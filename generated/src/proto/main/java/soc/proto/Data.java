@@ -137,6 +137,8 @@ public final class Data {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -144,6 +146,10 @@ public final class Data {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static HexType forNumber(int value) {
       switch (value) {
         case 0: return WATER_HEX;
@@ -305,6 +311,8 @@ public final class Data {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -312,6 +320,10 @@ public final class Data {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static ResourceType forNumber(int value) {
       switch (value) {
         case 0: return _NOT_YET_USED;
@@ -510,6 +522,8 @@ public final class Data {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -517,6 +531,10 @@ public final class Data {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static PieceType forNumber(int value) {
       switch (value) {
         case 0: return ROAD;
@@ -656,6 +674,8 @@ public final class Data {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -663,6 +683,10 @@ public final class Data {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static OtherPlayableItem forNumber(int value) {
       switch (value) {
         case 0: return _UNSENT_DEFAULT_ITEM;
@@ -923,6 +947,8 @@ public final class Data {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -930,6 +956,10 @@ public final class Data {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static DevCardValue forNumber(int value) {
       switch (value) {
         case 0: return _UNSENT_DEFAULT_DEVCARDVALUE;
@@ -1414,6 +1444,8 @@ public final class Data {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -1421,6 +1453,10 @@ public final class Data {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static GameState forNumber(int value) {
       switch (value) {
         case 0: return NEW;
@@ -1601,6 +1637,8 @@ public final class Data {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -1608,6 +1646,10 @@ public final class Data {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static SeatLockState forNumber(int value) {
       switch (value) {
         case 0: return UNLOCKED;
@@ -1671,14 +1713,18 @@ public final class Data {
 
     /**
      * <code>repeated int32 arr = 1;</code>
+     * @return A list containing the arr.
      */
     java.util.List<java.lang.Integer> getArrList();
     /**
      * <code>repeated int32 arr = 1;</code>
+     * @return The count of arr.
      */
     int getArrCount();
     /**
      * <code>repeated int32 arr = 1;</code>
+     * @param index The index of the element to return.
+     * @return The arr at the given index.
      */
     int getArr(int index);
   }
@@ -1700,7 +1746,14 @@ public final class Data {
       super(builder);
     }
     private _IntArray() {
-      arr_ = java.util.Collections.emptyList();
+      arr_ = emptyIntList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new _IntArray();
     }
 
     @java.lang.Override
@@ -1713,6 +1766,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1724,32 +1780,32 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                arr_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                arr_ = newIntList();
                 mutable_bitField0_ |= 0x00000001;
               }
-              arr_.add(input.readInt32());
+              arr_.addInt(input.readInt32());
               break;
             }
             case 10: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
-                arr_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+                arr_ = newIntList();
                 mutable_bitField0_ |= 0x00000001;
               }
               while (input.getBytesUntilLimit() > 0) {
-                arr_.add(input.readInt32());
+                arr_.addInt(input.readInt32());
               }
               input.popLimit(limit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -1760,8 +1816,8 @@ public final class Data {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          arr_ = java.util.Collections.unmodifiableList(arr_);
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          arr_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1772,6 +1828,7 @@ public final class Data {
       return soc.proto.Data.internal_static__IntArray_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static__IntArray_fieldAccessorTable
@@ -1780,9 +1837,10 @@ public final class Data {
     }
 
     public static final int ARR_FIELD_NUMBER = 1;
-    private java.util.List<java.lang.Integer> arr_;
+    private com.google.protobuf.Internal.IntList arr_;
     /**
      * <code>repeated int32 arr = 1;</code>
+     * @return A list containing the arr.
      */
     public java.util.List<java.lang.Integer>
         getArrList() {
@@ -1790,19 +1848,23 @@ public final class Data {
     }
     /**
      * <code>repeated int32 arr = 1;</code>
+     * @return The count of arr.
      */
     public int getArrCount() {
       return arr_.size();
     }
     /**
      * <code>repeated int32 arr = 1;</code>
+     * @param index The index of the element to return.
+     * @return The arr at the given index.
      */
     public int getArr(int index) {
-      return arr_.get(index);
+      return arr_.getInt(index);
     }
     private int arrMemoizedSerializedSize = -1;
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1812,6 +1874,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -1820,11 +1883,12 @@ public final class Data {
         output.writeUInt32NoTag(arrMemoizedSerializedSize);
       }
       for (int i = 0; i < arr_.size(); i++) {
-        output.writeInt32NoTag(arr_.get(i));
+        output.writeInt32NoTag(arr_.getInt(i));
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -1834,7 +1898,7 @@ public final class Data {
         int dataSize = 0;
         for (int i = 0; i < arr_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt32SizeNoTag(arr_.get(i));
+            .computeInt32SizeNoTag(arr_.getInt(i));
         }
         size += dataSize;
         if (!getArrList().isEmpty()) {
@@ -1859,11 +1923,10 @@ public final class Data {
       }
       soc.proto.Data._IntArray other = (soc.proto.Data._IntArray) obj;
 
-      boolean result = true;
-      result = result && getArrList()
-          .equals(other.getArrList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getArrList()
+          .equals(other.getArrList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1952,6 +2015,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1959,6 +2023,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data._IntArray prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1987,6 +2052,7 @@ public final class Data {
         return soc.proto.Data.internal_static__IntArray_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static__IntArray_fieldAccessorTable
@@ -2009,22 +2075,26 @@ public final class Data {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
-        arr_ = java.util.Collections.emptyList();
+        arr_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static__IntArray_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data._IntArray getDefaultInstanceForType() {
         return soc.proto.Data._IntArray.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data._IntArray build() {
         soc.proto.Data._IntArray result = buildPartial();
         if (!result.isInitialized()) {
@@ -2033,11 +2103,12 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data._IntArray buildPartial() {
         soc.proto.Data._IntArray result = new soc.proto.Data._IntArray(this);
         int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          arr_ = java.util.Collections.unmodifiableList(arr_);
+        if (((bitField0_ & 0x00000001) != 0)) {
+          arr_.makeImmutable();
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.arr_ = arr_;
@@ -2045,32 +2116,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data._IntArray) {
           return mergeFrom((soc.proto.Data._IntArray)other);
@@ -2097,10 +2175,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2120,53 +2200,65 @@ public final class Data {
       }
       private int bitField0_;
 
-      private java.util.List<java.lang.Integer> arr_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.IntList arr_ = emptyIntList();
       private void ensureArrIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          arr_ = new java.util.ArrayList<java.lang.Integer>(arr_);
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          arr_ = mutableCopy(arr_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
        * <code>repeated int32 arr = 1;</code>
+       * @return A list containing the arr.
        */
       public java.util.List<java.lang.Integer>
           getArrList() {
-        return java.util.Collections.unmodifiableList(arr_);
+        return ((bitField0_ & 0x00000001) != 0) ?
+                 java.util.Collections.unmodifiableList(arr_) : arr_;
       }
       /**
        * <code>repeated int32 arr = 1;</code>
+       * @return The count of arr.
        */
       public int getArrCount() {
         return arr_.size();
       }
       /**
        * <code>repeated int32 arr = 1;</code>
+       * @param index The index of the element to return.
+       * @return The arr at the given index.
        */
       public int getArr(int index) {
-        return arr_.get(index);
+        return arr_.getInt(index);
       }
       /**
        * <code>repeated int32 arr = 1;</code>
+       * @param index The index to set the value at.
+       * @param value The arr to set.
+       * @return This builder for chaining.
        */
       public Builder setArr(
           int index, int value) {
         ensureArrIsMutable();
-        arr_.set(index, value);
+        arr_.setInt(index, value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated int32 arr = 1;</code>
+       * @param value The arr to add.
+       * @return This builder for chaining.
        */
       public Builder addArr(int value) {
         ensureArrIsMutable();
-        arr_.add(value);
+        arr_.addInt(value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated int32 arr = 1;</code>
+       * @param values The arr to add.
+       * @return This builder for chaining.
        */
       public Builder addAllArr(
           java.lang.Iterable<? extends java.lang.Integer> values) {
@@ -2178,18 +2270,21 @@ public final class Data {
       }
       /**
        * <code>repeated int32 arr = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearArr() {
-        arr_ = java.util.Collections.emptyList();
+        arr_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -2211,11 +2306,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<_IntArray>
         PARSER = new com.google.protobuf.AbstractParser<_IntArray>() {
+      @java.lang.Override
       public _IntArray parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new _IntArray(input, extensionRegistry);
+        return new _IntArray(input, extensionRegistry);
       }
     };
 
@@ -2228,6 +2324,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data._IntArray getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -2240,14 +2337,18 @@ public final class Data {
 
     /**
      * <code>repeated sint32 arr = 1;</code>
+     * @return A list containing the arr.
      */
     java.util.List<java.lang.Integer> getArrList();
     /**
      * <code>repeated sint32 arr = 1;</code>
+     * @return The count of arr.
      */
     int getArrCount();
     /**
      * <code>repeated sint32 arr = 1;</code>
+     * @param index The index of the element to return.
+     * @return The arr at the given index.
      */
     int getArr(int index);
   }
@@ -2268,7 +2369,14 @@ public final class Data {
       super(builder);
     }
     private _SIntArray() {
-      arr_ = java.util.Collections.emptyList();
+      arr_ = emptyIntList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new _SIntArray();
     }
 
     @java.lang.Override
@@ -2281,6 +2389,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -2292,32 +2403,32 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                arr_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                arr_ = newIntList();
                 mutable_bitField0_ |= 0x00000001;
               }
-              arr_.add(input.readSInt32());
+              arr_.addInt(input.readSInt32());
               break;
             }
             case 10: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
-                arr_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+                arr_ = newIntList();
                 mutable_bitField0_ |= 0x00000001;
               }
               while (input.getBytesUntilLimit() > 0) {
-                arr_.add(input.readSInt32());
+                arr_.addInt(input.readSInt32());
               }
               input.popLimit(limit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -2328,8 +2439,8 @@ public final class Data {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          arr_ = java.util.Collections.unmodifiableList(arr_);
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          arr_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -2340,6 +2451,7 @@ public final class Data {
       return soc.proto.Data.internal_static__SIntArray_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static__SIntArray_fieldAccessorTable
@@ -2348,9 +2460,10 @@ public final class Data {
     }
 
     public static final int ARR_FIELD_NUMBER = 1;
-    private java.util.List<java.lang.Integer> arr_;
+    private com.google.protobuf.Internal.IntList arr_;
     /**
      * <code>repeated sint32 arr = 1;</code>
+     * @return A list containing the arr.
      */
     public java.util.List<java.lang.Integer>
         getArrList() {
@@ -2358,19 +2471,23 @@ public final class Data {
     }
     /**
      * <code>repeated sint32 arr = 1;</code>
+     * @return The count of arr.
      */
     public int getArrCount() {
       return arr_.size();
     }
     /**
      * <code>repeated sint32 arr = 1;</code>
+     * @param index The index of the element to return.
+     * @return The arr at the given index.
      */
     public int getArr(int index) {
-      return arr_.get(index);
+      return arr_.getInt(index);
     }
     private int arrMemoizedSerializedSize = -1;
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -2380,6 +2497,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -2388,11 +2506,12 @@ public final class Data {
         output.writeUInt32NoTag(arrMemoizedSerializedSize);
       }
       for (int i = 0; i < arr_.size(); i++) {
-        output.writeSInt32NoTag(arr_.get(i));
+        output.writeSInt32NoTag(arr_.getInt(i));
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -2402,7 +2521,7 @@ public final class Data {
         int dataSize = 0;
         for (int i = 0; i < arr_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeSInt32SizeNoTag(arr_.get(i));
+            .computeSInt32SizeNoTag(arr_.getInt(i));
         }
         size += dataSize;
         if (!getArrList().isEmpty()) {
@@ -2427,11 +2546,10 @@ public final class Data {
       }
       soc.proto.Data._SIntArray other = (soc.proto.Data._SIntArray) obj;
 
-      boolean result = true;
-      result = result && getArrList()
-          .equals(other.getArrList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getArrList()
+          .equals(other.getArrList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -2520,6 +2638,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -2527,6 +2646,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data._SIntArray prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -2554,6 +2674,7 @@ public final class Data {
         return soc.proto.Data.internal_static__SIntArray_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static__SIntArray_fieldAccessorTable
@@ -2576,22 +2697,26 @@ public final class Data {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
-        arr_ = java.util.Collections.emptyList();
+        arr_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static__SIntArray_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data._SIntArray getDefaultInstanceForType() {
         return soc.proto.Data._SIntArray.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data._SIntArray build() {
         soc.proto.Data._SIntArray result = buildPartial();
         if (!result.isInitialized()) {
@@ -2600,11 +2725,12 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data._SIntArray buildPartial() {
         soc.proto.Data._SIntArray result = new soc.proto.Data._SIntArray(this);
         int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          arr_ = java.util.Collections.unmodifiableList(arr_);
+        if (((bitField0_ & 0x00000001) != 0)) {
+          arr_.makeImmutable();
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.arr_ = arr_;
@@ -2612,32 +2738,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data._SIntArray) {
           return mergeFrom((soc.proto.Data._SIntArray)other);
@@ -2664,10 +2797,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2687,53 +2822,65 @@ public final class Data {
       }
       private int bitField0_;
 
-      private java.util.List<java.lang.Integer> arr_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.IntList arr_ = emptyIntList();
       private void ensureArrIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          arr_ = new java.util.ArrayList<java.lang.Integer>(arr_);
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          arr_ = mutableCopy(arr_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
        * <code>repeated sint32 arr = 1;</code>
+       * @return A list containing the arr.
        */
       public java.util.List<java.lang.Integer>
           getArrList() {
-        return java.util.Collections.unmodifiableList(arr_);
+        return ((bitField0_ & 0x00000001) != 0) ?
+                 java.util.Collections.unmodifiableList(arr_) : arr_;
       }
       /**
        * <code>repeated sint32 arr = 1;</code>
+       * @return The count of arr.
        */
       public int getArrCount() {
         return arr_.size();
       }
       /**
        * <code>repeated sint32 arr = 1;</code>
+       * @param index The index of the element to return.
+       * @return The arr at the given index.
        */
       public int getArr(int index) {
-        return arr_.get(index);
+        return arr_.getInt(index);
       }
       /**
        * <code>repeated sint32 arr = 1;</code>
+       * @param index The index to set the value at.
+       * @param value The arr to set.
+       * @return This builder for chaining.
        */
       public Builder setArr(
           int index, int value) {
         ensureArrIsMutable();
-        arr_.set(index, value);
+        arr_.setInt(index, value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated sint32 arr = 1;</code>
+       * @param value The arr to add.
+       * @return This builder for chaining.
        */
       public Builder addArr(int value) {
         ensureArrIsMutable();
-        arr_.add(value);
+        arr_.addInt(value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated sint32 arr = 1;</code>
+       * @param values The arr to add.
+       * @return This builder for chaining.
        */
       public Builder addAllArr(
           java.lang.Iterable<? extends java.lang.Integer> values) {
@@ -2745,18 +2892,21 @@ public final class Data {
       }
       /**
        * <code>repeated sint32 arr = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearArr() {
-        arr_ = java.util.Collections.emptyList();
+        arr_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -2778,11 +2928,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<_SIntArray>
         PARSER = new com.google.protobuf.AbstractParser<_SIntArray>() {
+      @java.lang.Override
       public _SIntArray parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new _SIntArray(input, extensionRegistry);
+        return new _SIntArray(input, extensionRegistry);
       }
     };
 
@@ -2795,6 +2946,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data._SIntArray getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -2807,11 +2959,13 @@ public final class Data {
 
     /**
      * <code>int32 row = 1;</code>
+     * @return The row.
      */
     int getRow();
 
     /**
      * <code>int32 column = 2;</code>
+     * @return The column.
      */
     int getColumn();
   }
@@ -2836,8 +2990,13 @@ public final class Data {
       super(builder);
     }
     private NodeCoord() {
-      row_ = 0;
-      column_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new NodeCoord();
     }
 
     @java.lang.Override
@@ -2850,7 +3009,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -2861,13 +3022,6 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               row_ = input.readInt32();
@@ -2876,6 +3030,13 @@ public final class Data {
             case 16: {
 
               column_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -2895,6 +3056,7 @@ public final class Data {
       return soc.proto.Data.internal_static_NodeCoord_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static_NodeCoord_fieldAccessorTable
@@ -2906,6 +3068,7 @@ public final class Data {
     private int row_;
     /**
      * <code>int32 row = 1;</code>
+     * @return The row.
      */
     public int getRow() {
       return row_;
@@ -2915,12 +3078,14 @@ public final class Data {
     private int column_;
     /**
      * <code>int32 column = 2;</code>
+     * @return The column.
      */
     public int getColumn() {
       return column_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -2930,6 +3095,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (row_ != 0) {
@@ -2941,6 +3107,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -2969,13 +3136,12 @@ public final class Data {
       }
       soc.proto.Data.NodeCoord other = (soc.proto.Data.NodeCoord) obj;
 
-      boolean result = true;
-      result = result && (getRow()
-          == other.getRow());
-      result = result && (getColumn()
-          == other.getColumn());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getRow()
+          != other.getRow()) return false;
+      if (getColumn()
+          != other.getColumn()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -3064,6 +3230,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -3071,6 +3238,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data.NodeCoord prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -3102,6 +3270,7 @@ public final class Data {
         return soc.proto.Data.internal_static_NodeCoord_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static_NodeCoord_fieldAccessorTable
@@ -3124,6 +3293,7 @@ public final class Data {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         row_ = 0;
@@ -3133,15 +3303,18 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static_NodeCoord_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data.NodeCoord getDefaultInstanceForType() {
         return soc.proto.Data.NodeCoord.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data.NodeCoord build() {
         soc.proto.Data.NodeCoord result = buildPartial();
         if (!result.isInitialized()) {
@@ -3150,6 +3323,7 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data.NodeCoord buildPartial() {
         soc.proto.Data.NodeCoord result = new soc.proto.Data.NodeCoord(this);
         result.row_ = row_;
@@ -3158,32 +3332,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data.NodeCoord) {
           return mergeFrom((soc.proto.Data.NodeCoord)other);
@@ -3206,10 +3387,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3231,12 +3414,15 @@ public final class Data {
       private int row_ ;
       /**
        * <code>int32 row = 1;</code>
+       * @return The row.
        */
       public int getRow() {
         return row_;
       }
       /**
        * <code>int32 row = 1;</code>
+       * @param value The row to set.
+       * @return This builder for chaining.
        */
       public Builder setRow(int value) {
         
@@ -3246,6 +3432,7 @@ public final class Data {
       }
       /**
        * <code>int32 row = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearRow() {
         
@@ -3257,12 +3444,15 @@ public final class Data {
       private int column_ ;
       /**
        * <code>int32 column = 2;</code>
+       * @return The column.
        */
       public int getColumn() {
         return column_;
       }
       /**
        * <code>int32 column = 2;</code>
+       * @param value The column to set.
+       * @return This builder for chaining.
        */
       public Builder setColumn(int value) {
         
@@ -3272,6 +3462,7 @@ public final class Data {
       }
       /**
        * <code>int32 column = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearColumn() {
         
@@ -3279,11 +3470,13 @@ public final class Data {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -3305,11 +3498,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<NodeCoord>
         PARSER = new com.google.protobuf.AbstractParser<NodeCoord>() {
+      @java.lang.Override
       public NodeCoord parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new NodeCoord(input, extensionRegistry);
+        return new NodeCoord(input, extensionRegistry);
       }
     };
 
@@ -3322,6 +3516,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data.NodeCoord getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -3334,11 +3529,13 @@ public final class Data {
 
     /**
      * <code>int32 row = 1;</code>
+     * @return The row.
      */
     int getRow();
 
     /**
      * <code>int32 column = 2;</code>
+     * @return The column.
      */
     int getColumn();
   }
@@ -3361,8 +3558,13 @@ public final class Data {
       super(builder);
     }
     private EdgeCoord() {
-      row_ = 0;
-      column_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new EdgeCoord();
     }
 
     @java.lang.Override
@@ -3375,7 +3577,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -3386,13 +3590,6 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               row_ = input.readInt32();
@@ -3401,6 +3598,13 @@ public final class Data {
             case 16: {
 
               column_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -3420,6 +3624,7 @@ public final class Data {
       return soc.proto.Data.internal_static_EdgeCoord_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static_EdgeCoord_fieldAccessorTable
@@ -3431,6 +3636,7 @@ public final class Data {
     private int row_;
     /**
      * <code>int32 row = 1;</code>
+     * @return The row.
      */
     public int getRow() {
       return row_;
@@ -3440,12 +3646,14 @@ public final class Data {
     private int column_;
     /**
      * <code>int32 column = 2;</code>
+     * @return The column.
      */
     public int getColumn() {
       return column_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -3455,6 +3663,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (row_ != 0) {
@@ -3466,6 +3675,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -3494,13 +3704,12 @@ public final class Data {
       }
       soc.proto.Data.EdgeCoord other = (soc.proto.Data.EdgeCoord) obj;
 
-      boolean result = true;
-      result = result && (getRow()
-          == other.getRow());
-      result = result && (getColumn()
-          == other.getColumn());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getRow()
+          != other.getRow()) return false;
+      if (getColumn()
+          != other.getColumn()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -3589,6 +3798,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -3596,6 +3806,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data.EdgeCoord prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -3625,6 +3836,7 @@ public final class Data {
         return soc.proto.Data.internal_static_EdgeCoord_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static_EdgeCoord_fieldAccessorTable
@@ -3647,6 +3859,7 @@ public final class Data {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         row_ = 0;
@@ -3656,15 +3869,18 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static_EdgeCoord_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data.EdgeCoord getDefaultInstanceForType() {
         return soc.proto.Data.EdgeCoord.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data.EdgeCoord build() {
         soc.proto.Data.EdgeCoord result = buildPartial();
         if (!result.isInitialized()) {
@@ -3673,6 +3889,7 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data.EdgeCoord buildPartial() {
         soc.proto.Data.EdgeCoord result = new soc.proto.Data.EdgeCoord(this);
         result.row_ = row_;
@@ -3681,32 +3898,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data.EdgeCoord) {
           return mergeFrom((soc.proto.Data.EdgeCoord)other);
@@ -3729,10 +3953,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3754,12 +3980,15 @@ public final class Data {
       private int row_ ;
       /**
        * <code>int32 row = 1;</code>
+       * @return The row.
        */
       public int getRow() {
         return row_;
       }
       /**
        * <code>int32 row = 1;</code>
+       * @param value The row to set.
+       * @return This builder for chaining.
        */
       public Builder setRow(int value) {
         
@@ -3769,6 +3998,7 @@ public final class Data {
       }
       /**
        * <code>int32 row = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearRow() {
         
@@ -3780,12 +4010,15 @@ public final class Data {
       private int column_ ;
       /**
        * <code>int32 column = 2;</code>
+       * @return The column.
        */
       public int getColumn() {
         return column_;
       }
       /**
        * <code>int32 column = 2;</code>
+       * @param value The column to set.
+       * @return This builder for chaining.
        */
       public Builder setColumn(int value) {
         
@@ -3795,6 +4028,7 @@ public final class Data {
       }
       /**
        * <code>int32 column = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearColumn() {
         
@@ -3802,11 +4036,13 @@ public final class Data {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -3828,11 +4064,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<EdgeCoord>
         PARSER = new com.google.protobuf.AbstractParser<EdgeCoord>() {
+      @java.lang.Override
       public EdgeCoord parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new EdgeCoord(input, extensionRegistry);
+        return new EdgeCoord(input, extensionRegistry);
       }
     };
 
@@ -3845,6 +4082,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data.EdgeCoord getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -3857,11 +4095,13 @@ public final class Data {
 
     /**
      * <code>int32 row = 1;</code>
+     * @return The row.
      */
     int getRow();
 
     /**
      * <code>int32 column = 2;</code>
+     * @return The column.
      */
     int getColumn();
   }
@@ -3882,8 +4122,13 @@ public final class Data {
       super(builder);
     }
     private HexCoord() {
-      row_ = 0;
-      column_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new HexCoord();
     }
 
     @java.lang.Override
@@ -3896,7 +4141,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -3907,13 +4154,6 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               row_ = input.readInt32();
@@ -3922,6 +4162,13 @@ public final class Data {
             case 16: {
 
               column_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -3941,6 +4188,7 @@ public final class Data {
       return soc.proto.Data.internal_static_HexCoord_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static_HexCoord_fieldAccessorTable
@@ -3952,6 +4200,7 @@ public final class Data {
     private int row_;
     /**
      * <code>int32 row = 1;</code>
+     * @return The row.
      */
     public int getRow() {
       return row_;
@@ -3961,12 +4210,14 @@ public final class Data {
     private int column_;
     /**
      * <code>int32 column = 2;</code>
+     * @return The column.
      */
     public int getColumn() {
       return column_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -3976,6 +4227,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (row_ != 0) {
@@ -3987,6 +4239,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -4015,13 +4268,12 @@ public final class Data {
       }
       soc.proto.Data.HexCoord other = (soc.proto.Data.HexCoord) obj;
 
-      boolean result = true;
-      result = result && (getRow()
-          == other.getRow());
-      result = result && (getColumn()
-          == other.getColumn());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getRow()
+          != other.getRow()) return false;
+      if (getColumn()
+          != other.getColumn()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -4110,6 +4362,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -4117,6 +4370,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data.HexCoord prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -4144,6 +4398,7 @@ public final class Data {
         return soc.proto.Data.internal_static_HexCoord_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static_HexCoord_fieldAccessorTable
@@ -4166,6 +4421,7 @@ public final class Data {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         row_ = 0;
@@ -4175,15 +4431,18 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static_HexCoord_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data.HexCoord getDefaultInstanceForType() {
         return soc.proto.Data.HexCoord.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data.HexCoord build() {
         soc.proto.Data.HexCoord result = buildPartial();
         if (!result.isInitialized()) {
@@ -4192,6 +4451,7 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data.HexCoord buildPartial() {
         soc.proto.Data.HexCoord result = new soc.proto.Data.HexCoord(this);
         result.row_ = row_;
@@ -4200,32 +4460,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data.HexCoord) {
           return mergeFrom((soc.proto.Data.HexCoord)other);
@@ -4248,10 +4515,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4273,12 +4542,15 @@ public final class Data {
       private int row_ ;
       /**
        * <code>int32 row = 1;</code>
+       * @return The row.
        */
       public int getRow() {
         return row_;
       }
       /**
        * <code>int32 row = 1;</code>
+       * @param value The row to set.
+       * @return This builder for chaining.
        */
       public Builder setRow(int value) {
         
@@ -4288,6 +4560,7 @@ public final class Data {
       }
       /**
        * <code>int32 row = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearRow() {
         
@@ -4299,12 +4572,15 @@ public final class Data {
       private int column_ ;
       /**
        * <code>int32 column = 2;</code>
+       * @return The column.
        */
       public int getColumn() {
         return column_;
       }
       /**
        * <code>int32 column = 2;</code>
+       * @param value The column to set.
+       * @return This builder for chaining.
        */
       public Builder setColumn(int value) {
         
@@ -4314,6 +4590,7 @@ public final class Data {
       }
       /**
        * <code>int32 column = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearColumn() {
         
@@ -4321,11 +4598,13 @@ public final class Data {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -4347,11 +4626,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<HexCoord>
         PARSER = new com.google.protobuf.AbstractParser<HexCoord>() {
+      @java.lang.Override
       public HexCoord parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new HexCoord(input, extensionRegistry);
+        return new HexCoord(input, extensionRegistry);
       }
     };
 
@@ -4364,6 +4644,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data.HexCoord getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -4376,10 +4657,12 @@ public final class Data {
 
     /**
      * <code>.NodeCoord node_coord = 1;</code>
+     * @return Whether the nodeCoord field is set.
      */
     boolean hasNodeCoord();
     /**
      * <code>.NodeCoord node_coord = 1;</code>
+     * @return The nodeCoord.
      */
     soc.proto.Data.NodeCoord getNodeCoord();
     /**
@@ -4389,10 +4672,12 @@ public final class Data {
 
     /**
      * <code>.EdgeCoord edge_coord = 2;</code>
+     * @return Whether the edgeCoord field is set.
      */
     boolean hasEdgeCoord();
     /**
      * <code>.EdgeCoord edge_coord = 2;</code>
+     * @return The edgeCoord.
      */
     soc.proto.Data.EdgeCoord getEdgeCoord();
     /**
@@ -4402,10 +4687,12 @@ public final class Data {
 
     /**
      * <code>.HexCoord hex_coord = 3;</code>
+     * @return Whether the hexCoord field is set.
      */
     boolean hasHexCoord();
     /**
      * <code>.HexCoord hex_coord = 3;</code>
+     * @return The hexCoord.
      */
     soc.proto.Data.HexCoord getHexCoord();
     /**
@@ -4439,6 +4726,13 @@ public final class Data {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BoardCoord();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -4448,7 +4742,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -4459,13 +4755,6 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Data.NodeCoord.Builder subBuilder = null;
               if (coordTypeCase_ == 1) {
@@ -4508,6 +4797,13 @@ public final class Data {
               coordTypeCase_ = 3;
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -4525,6 +4821,7 @@ public final class Data {
       return soc.proto.Data.internal_static_BoardCoord_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static_BoardCoord_fieldAccessorTable
@@ -4535,7 +4832,8 @@ public final class Data {
     private int coordTypeCase_ = 0;
     private java.lang.Object coordType_;
     public enum CoordTypeCase
-        implements com.google.protobuf.Internal.EnumLite {
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       NODE_COORD(1),
       EDGE_COORD(2),
       HEX_COORD(3),
@@ -4545,6 +4843,8 @@ public final class Data {
         this.value = value;
       }
       /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -4575,12 +4875,14 @@ public final class Data {
     public static final int NODE_COORD_FIELD_NUMBER = 1;
     /**
      * <code>.NodeCoord node_coord = 1;</code>
+     * @return Whether the nodeCoord field is set.
      */
     public boolean hasNodeCoord() {
       return coordTypeCase_ == 1;
     }
     /**
      * <code>.NodeCoord node_coord = 1;</code>
+     * @return The nodeCoord.
      */
     public soc.proto.Data.NodeCoord getNodeCoord() {
       if (coordTypeCase_ == 1) {
@@ -4601,12 +4903,14 @@ public final class Data {
     public static final int EDGE_COORD_FIELD_NUMBER = 2;
     /**
      * <code>.EdgeCoord edge_coord = 2;</code>
+     * @return Whether the edgeCoord field is set.
      */
     public boolean hasEdgeCoord() {
       return coordTypeCase_ == 2;
     }
     /**
      * <code>.EdgeCoord edge_coord = 2;</code>
+     * @return The edgeCoord.
      */
     public soc.proto.Data.EdgeCoord getEdgeCoord() {
       if (coordTypeCase_ == 2) {
@@ -4627,12 +4931,14 @@ public final class Data {
     public static final int HEX_COORD_FIELD_NUMBER = 3;
     /**
      * <code>.HexCoord hex_coord = 3;</code>
+     * @return Whether the hexCoord field is set.
      */
     public boolean hasHexCoord() {
       return coordTypeCase_ == 3;
     }
     /**
      * <code>.HexCoord hex_coord = 3;</code>
+     * @return The hexCoord.
      */
     public soc.proto.Data.HexCoord getHexCoord() {
       if (coordTypeCase_ == 3) {
@@ -4651,6 +4957,7 @@ public final class Data {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -4660,6 +4967,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (coordTypeCase_ == 1) {
@@ -4674,6 +4982,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -4706,28 +5015,25 @@ public final class Data {
       }
       soc.proto.Data.BoardCoord other = (soc.proto.Data.BoardCoord) obj;
 
-      boolean result = true;
-      result = result && getCoordTypeCase().equals(
-          other.getCoordTypeCase());
-      if (!result) return false;
+      if (!getCoordTypeCase().equals(other.getCoordTypeCase())) return false;
       switch (coordTypeCase_) {
         case 1:
-          result = result && getNodeCoord()
-              .equals(other.getNodeCoord());
+          if (!getNodeCoord()
+              .equals(other.getNodeCoord())) return false;
           break;
         case 2:
-          result = result && getEdgeCoord()
-              .equals(other.getEdgeCoord());
+          if (!getEdgeCoord()
+              .equals(other.getEdgeCoord())) return false;
           break;
         case 3:
-          result = result && getHexCoord()
-              .equals(other.getHexCoord());
+          if (!getHexCoord()
+              .equals(other.getHexCoord())) return false;
           break;
         case 0:
         default:
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -4828,6 +5134,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -4835,6 +5142,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data.BoardCoord prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -4866,6 +5174,7 @@ public final class Data {
         return soc.proto.Data.internal_static_BoardCoord_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static_BoardCoord_fieldAccessorTable
@@ -4888,6 +5197,7 @@ public final class Data {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         coordTypeCase_ = 0;
@@ -4895,15 +5205,18 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static_BoardCoord_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data.BoardCoord getDefaultInstanceForType() {
         return soc.proto.Data.BoardCoord.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data.BoardCoord build() {
         soc.proto.Data.BoardCoord result = buildPartial();
         if (!result.isInitialized()) {
@@ -4912,6 +5225,7 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data.BoardCoord buildPartial() {
         soc.proto.Data.BoardCoord result = new soc.proto.Data.BoardCoord(this);
         if (coordTypeCase_ == 1) {
@@ -4940,32 +5254,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data.BoardCoord) {
           return mergeFrom((soc.proto.Data.BoardCoord)other);
@@ -4999,10 +5320,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -5040,12 +5363,14 @@ public final class Data {
           soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder> nodeCoordBuilder_;
       /**
        * <code>.NodeCoord node_coord = 1;</code>
+       * @return Whether the nodeCoord field is set.
        */
       public boolean hasNodeCoord() {
         return coordTypeCase_ == 1;
       }
       /**
        * <code>.NodeCoord node_coord = 1;</code>
+       * @return The nodeCoord.
        */
       public soc.proto.Data.NodeCoord getNodeCoord() {
         if (nodeCoordBuilder_ == null) {
@@ -5176,12 +5501,14 @@ public final class Data {
           soc.proto.Data.EdgeCoord, soc.proto.Data.EdgeCoord.Builder, soc.proto.Data.EdgeCoordOrBuilder> edgeCoordBuilder_;
       /**
        * <code>.EdgeCoord edge_coord = 2;</code>
+       * @return Whether the edgeCoord field is set.
        */
       public boolean hasEdgeCoord() {
         return coordTypeCase_ == 2;
       }
       /**
        * <code>.EdgeCoord edge_coord = 2;</code>
+       * @return The edgeCoord.
        */
       public soc.proto.Data.EdgeCoord getEdgeCoord() {
         if (edgeCoordBuilder_ == null) {
@@ -5312,12 +5639,14 @@ public final class Data {
           soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder> hexCoordBuilder_;
       /**
        * <code>.HexCoord hex_coord = 3;</code>
+       * @return Whether the hexCoord field is set.
        */
       public boolean hasHexCoord() {
         return coordTypeCase_ == 3;
       }
       /**
        * <code>.HexCoord hex_coord = 3;</code>
+       * @return The hexCoord.
        */
       public soc.proto.Data.HexCoord getHexCoord() {
         if (hexCoordBuilder_ == null) {
@@ -5443,11 +5772,13 @@ public final class Data {
         onChanged();;
         return hexCoordBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -5469,11 +5800,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<BoardCoord>
         PARSER = new com.google.protobuf.AbstractParser<BoardCoord>() {
+      @java.lang.Override
       public BoardCoord parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BoardCoord(input, extensionRegistry);
+        return new BoardCoord(input, extensionRegistry);
       }
     };
 
@@ -5486,6 +5818,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data.BoardCoord getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -5541,6 +5874,13 @@ public final class Data {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new _EdgeList();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -5550,6 +5890,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -5561,20 +5904,20 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 edge_ = new java.util.ArrayList<soc.proto.Data.EdgeCoord>();
                 mutable_bitField0_ |= 0x00000001;
               }
               edge_.add(
                   input.readMessage(soc.proto.Data.EdgeCoord.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -5585,7 +5928,7 @@ public final class Data {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           edge_ = java.util.Collections.unmodifiableList(edge_);
         }
         this.unknownFields = unknownFields.build();
@@ -5597,6 +5940,7 @@ public final class Data {
       return soc.proto.Data.internal_static__EdgeList_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static__EdgeList_fieldAccessorTable
@@ -5640,6 +5984,7 @@ public final class Data {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -5649,6 +5994,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < edge_.size(); i++) {
@@ -5657,6 +6003,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -5681,11 +6028,10 @@ public final class Data {
       }
       soc.proto.Data._EdgeList other = (soc.proto.Data._EdgeList) obj;
 
-      boolean result = true;
-      result = result && getEdgeList()
-          .equals(other.getEdgeList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getEdgeList()
+          .equals(other.getEdgeList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -5774,6 +6120,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -5781,6 +6128,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data._EdgeList prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -5808,6 +6156,7 @@ public final class Data {
         return soc.proto.Data.internal_static__EdgeList_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static__EdgeList_fieldAccessorTable
@@ -5831,6 +6180,7 @@ public final class Data {
           getEdgeFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (edgeBuilder_ == null) {
@@ -5842,15 +6192,18 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static__EdgeList_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data._EdgeList getDefaultInstanceForType() {
         return soc.proto.Data._EdgeList.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data._EdgeList build() {
         soc.proto.Data._EdgeList result = buildPartial();
         if (!result.isInitialized()) {
@@ -5859,11 +6212,12 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data._EdgeList buildPartial() {
         soc.proto.Data._EdgeList result = new soc.proto.Data._EdgeList(this);
         int from_bitField0_ = bitField0_;
         if (edgeBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             edge_ = java.util.Collections.unmodifiableList(edge_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
@@ -5875,32 +6229,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data._EdgeList) {
           return mergeFrom((soc.proto.Data._EdgeList)other);
@@ -5943,10 +6304,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -5969,7 +6332,7 @@ public final class Data {
       private java.util.List<soc.proto.Data.EdgeCoord> edge_ =
         java.util.Collections.emptyList();
       private void ensureEdgeIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           edge_ = new java.util.ArrayList<soc.proto.Data.EdgeCoord>(edge_);
           bitField0_ |= 0x00000001;
          }
@@ -6198,18 +6561,20 @@ public final class Data {
           edgeBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.Data.EdgeCoord, soc.proto.Data.EdgeCoord.Builder, soc.proto.Data.EdgeCoordOrBuilder>(
                   edge_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           edge_ = null;
         }
         return edgeBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -6231,11 +6596,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<_EdgeList>
         PARSER = new com.google.protobuf.AbstractParser<_EdgeList>() {
+      @java.lang.Override
       public _EdgeList parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new _EdgeList(input, extensionRegistry);
+        return new _EdgeList(input, extensionRegistry);
       }
     };
 
@@ -6248,6 +6614,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data._EdgeList getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -6303,6 +6670,13 @@ public final class Data {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new _HexList();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -6312,6 +6686,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -6323,20 +6700,20 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 hex_ = new java.util.ArrayList<soc.proto.Data.HexCoord>();
                 mutable_bitField0_ |= 0x00000001;
               }
               hex_.add(
                   input.readMessage(soc.proto.Data.HexCoord.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -6347,7 +6724,7 @@ public final class Data {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           hex_ = java.util.Collections.unmodifiableList(hex_);
         }
         this.unknownFields = unknownFields.build();
@@ -6359,6 +6736,7 @@ public final class Data {
       return soc.proto.Data.internal_static__HexList_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static__HexList_fieldAccessorTable
@@ -6402,6 +6780,7 @@ public final class Data {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -6411,6 +6790,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < hex_.size(); i++) {
@@ -6419,6 +6799,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -6443,11 +6824,10 @@ public final class Data {
       }
       soc.proto.Data._HexList other = (soc.proto.Data._HexList) obj;
 
-      boolean result = true;
-      result = result && getHexList()
-          .equals(other.getHexList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getHexList()
+          .equals(other.getHexList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -6536,6 +6916,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -6543,6 +6924,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data._HexList prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -6570,6 +6952,7 @@ public final class Data {
         return soc.proto.Data.internal_static__HexList_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static__HexList_fieldAccessorTable
@@ -6593,6 +6976,7 @@ public final class Data {
           getHexFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (hexBuilder_ == null) {
@@ -6604,15 +6988,18 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static__HexList_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data._HexList getDefaultInstanceForType() {
         return soc.proto.Data._HexList.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data._HexList build() {
         soc.proto.Data._HexList result = buildPartial();
         if (!result.isInitialized()) {
@@ -6621,11 +7008,12 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data._HexList buildPartial() {
         soc.proto.Data._HexList result = new soc.proto.Data._HexList(this);
         int from_bitField0_ = bitField0_;
         if (hexBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             hex_ = java.util.Collections.unmodifiableList(hex_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
@@ -6637,32 +7025,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data._HexList) {
           return mergeFrom((soc.proto.Data._HexList)other);
@@ -6705,10 +7100,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -6731,7 +7128,7 @@ public final class Data {
       private java.util.List<soc.proto.Data.HexCoord> hex_ =
         java.util.Collections.emptyList();
       private void ensureHexIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           hex_ = new java.util.ArrayList<soc.proto.Data.HexCoord>(hex_);
           bitField0_ |= 0x00000001;
          }
@@ -6960,18 +7357,20 @@ public final class Data {
           hexBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder>(
                   hex_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           hex_ = null;
         }
         return hexBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -6993,11 +7392,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<_HexList>
         PARSER = new com.google.protobuf.AbstractParser<_HexList>() {
+      @java.lang.Override
       public _HexList parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new _HexList(input, extensionRegistry);
+        return new _HexList(input, extensionRegistry);
       }
     };
 
@@ -7010,6 +7410,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data._HexList getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -7065,6 +7466,13 @@ public final class Data {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new _NodeList();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -7074,6 +7482,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -7085,20 +7496,20 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 node_ = new java.util.ArrayList<soc.proto.Data.NodeCoord>();
                 mutable_bitField0_ |= 0x00000001;
               }
               node_.add(
                   input.readMessage(soc.proto.Data.NodeCoord.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -7109,7 +7520,7 @@ public final class Data {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           node_ = java.util.Collections.unmodifiableList(node_);
         }
         this.unknownFields = unknownFields.build();
@@ -7121,6 +7532,7 @@ public final class Data {
       return soc.proto.Data.internal_static__NodeList_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static__NodeList_fieldAccessorTable
@@ -7164,6 +7576,7 @@ public final class Data {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -7173,6 +7586,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < node_.size(); i++) {
@@ -7181,6 +7595,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -7205,11 +7620,10 @@ public final class Data {
       }
       soc.proto.Data._NodeList other = (soc.proto.Data._NodeList) obj;
 
-      boolean result = true;
-      result = result && getNodeList()
-          .equals(other.getNodeList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getNodeList()
+          .equals(other.getNodeList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -7298,6 +7712,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -7305,6 +7720,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data._NodeList prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -7332,6 +7748,7 @@ public final class Data {
         return soc.proto.Data.internal_static__NodeList_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static__NodeList_fieldAccessorTable
@@ -7355,6 +7772,7 @@ public final class Data {
           getNodeFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (nodeBuilder_ == null) {
@@ -7366,15 +7784,18 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static__NodeList_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data._NodeList getDefaultInstanceForType() {
         return soc.proto.Data._NodeList.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data._NodeList build() {
         soc.proto.Data._NodeList result = buildPartial();
         if (!result.isInitialized()) {
@@ -7383,11 +7804,12 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data._NodeList buildPartial() {
         soc.proto.Data._NodeList result = new soc.proto.Data._NodeList(this);
         int from_bitField0_ = bitField0_;
         if (nodeBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             node_ = java.util.Collections.unmodifiableList(node_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
@@ -7399,32 +7821,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data._NodeList) {
           return mergeFrom((soc.proto.Data._NodeList)other);
@@ -7467,10 +7896,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -7493,7 +7924,7 @@ public final class Data {
       private java.util.List<soc.proto.Data.NodeCoord> node_ =
         java.util.Collections.emptyList();
       private void ensureNodeIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           node_ = new java.util.ArrayList<soc.proto.Data.NodeCoord>(node_);
           bitField0_ |= 0x00000001;
          }
@@ -7722,18 +8153,20 @@ public final class Data {
           nodeBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder>(
                   node_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           node_ = null;
         }
         return nodeBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -7755,11 +8188,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<_NodeList>
         PARSER = new com.google.protobuf.AbstractParser<_NodeList>() {
+      @java.lang.Override
       public _NodeList parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new _NodeList(input, extensionRegistry);
+        return new _NodeList(input, extensionRegistry);
       }
     };
 
@@ -7772,6 +8206,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data._NodeList getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -7827,6 +8262,13 @@ public final class Data {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new _BoardCoordList();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -7836,6 +8278,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -7847,20 +8292,20 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 coord_ = new java.util.ArrayList<soc.proto.Data.BoardCoord>();
                 mutable_bitField0_ |= 0x00000001;
               }
               coord_.add(
                   input.readMessage(soc.proto.Data.BoardCoord.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -7871,7 +8316,7 @@ public final class Data {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           coord_ = java.util.Collections.unmodifiableList(coord_);
         }
         this.unknownFields = unknownFields.build();
@@ -7883,6 +8328,7 @@ public final class Data {
       return soc.proto.Data.internal_static__BoardCoordList_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static__BoardCoordList_fieldAccessorTable
@@ -7926,6 +8372,7 @@ public final class Data {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -7935,6 +8382,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < coord_.size(); i++) {
@@ -7943,6 +8391,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -7967,11 +8416,10 @@ public final class Data {
       }
       soc.proto.Data._BoardCoordList other = (soc.proto.Data._BoardCoordList) obj;
 
-      boolean result = true;
-      result = result && getCoordList()
-          .equals(other.getCoordList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getCoordList()
+          .equals(other.getCoordList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -8060,6 +8508,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -8067,6 +8516,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data._BoardCoordList prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -8094,6 +8544,7 @@ public final class Data {
         return soc.proto.Data.internal_static__BoardCoordList_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static__BoardCoordList_fieldAccessorTable
@@ -8117,6 +8568,7 @@ public final class Data {
           getCoordFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (coordBuilder_ == null) {
@@ -8128,15 +8580,18 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static__BoardCoordList_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data._BoardCoordList getDefaultInstanceForType() {
         return soc.proto.Data._BoardCoordList.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data._BoardCoordList build() {
         soc.proto.Data._BoardCoordList result = buildPartial();
         if (!result.isInitialized()) {
@@ -8145,11 +8600,12 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data._BoardCoordList buildPartial() {
         soc.proto.Data._BoardCoordList result = new soc.proto.Data._BoardCoordList(this);
         int from_bitField0_ = bitField0_;
         if (coordBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             coord_ = java.util.Collections.unmodifiableList(coord_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
@@ -8161,32 +8617,39 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data._BoardCoordList) {
           return mergeFrom((soc.proto.Data._BoardCoordList)other);
@@ -8229,10 +8692,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -8255,7 +8720,7 @@ public final class Data {
       private java.util.List<soc.proto.Data.BoardCoord> coord_ =
         java.util.Collections.emptyList();
       private void ensureCoordIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           coord_ = new java.util.ArrayList<soc.proto.Data.BoardCoord>(coord_);
           bitField0_ |= 0x00000001;
          }
@@ -8484,18 +8949,20 @@ public final class Data {
           coordBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder>(
                   coord_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           coord_ = null;
         }
         return coordBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -8517,11 +8984,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<_BoardCoordList>
         PARSER = new com.google.protobuf.AbstractParser<_BoardCoordList>() {
+      @java.lang.Override
       public _BoardCoordList parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new _BoardCoordList(input, extensionRegistry);
+        return new _BoardCoordList(input, extensionRegistry);
       }
     };
 
@@ -8534,6 +9002,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data._BoardCoordList getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -8550,6 +9019,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 clay = 1;</code>
+     * @return The clay.
      */
     int getClay();
 
@@ -8559,6 +9029,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 ore = 2;</code>
+     * @return The ore.
      */
     int getOre();
 
@@ -8568,6 +9039,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 sheep = 3;</code>
+     * @return The sheep.
      */
     int getSheep();
 
@@ -8577,6 +9049,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 wheat = 4;</code>
+     * @return The wheat.
      */
     int getWheat();
 
@@ -8586,6 +9059,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 wood = 5;</code>
+     * @return The wood.
      */
     int getWood();
 
@@ -8650,12 +9124,14 @@ public final class Data {
       super(builder);
     }
     private ResourceSet() {
-      clay_ = 0;
-      ore_ = 0;
-      sheep_ = 0;
-      wheat_ = 0;
-      wood_ = 0;
       others_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ResourceSet();
     }
 
     @java.lang.Override
@@ -8668,6 +9144,9 @@ public final class Data {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -8679,13 +9158,6 @@ public final class Data {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               clay_ = input.readInt32();
@@ -8712,12 +9184,19 @@ public final class Data {
               break;
             }
             case 50: {
-              if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 others_ = new java.util.ArrayList<soc.proto.Data.ResourceSet.OtherResource>();
-                mutable_bitField0_ |= 0x00000020;
+                mutable_bitField0_ |= 0x00000001;
               }
               others_.add(
                   input.readMessage(soc.proto.Data.ResourceSet.OtherResource.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -8728,7 +9207,7 @@ public final class Data {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           others_ = java.util.Collections.unmodifiableList(others_);
         }
         this.unknownFields = unknownFields.build();
@@ -8740,6 +9219,7 @@ public final class Data {
       return soc.proto.Data.internal_static_ResourceSet_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Data.internal_static_ResourceSet_fieldAccessorTable
@@ -8753,15 +9233,18 @@ public final class Data {
 
       /**
        * <code>.ResourceType res_type = 1;</code>
+       * @return The enum numeric value on the wire for resType.
        */
       int getResTypeValue();
       /**
        * <code>.ResourceType res_type = 1;</code>
+       * @return The resType.
        */
       soc.proto.Data.ResourceType getResType();
 
       /**
        * <code>int32 amount = 2;</code>
+       * @return The amount.
        */
       int getAmount();
     }
@@ -8783,7 +9266,13 @@ public final class Data {
       }
       private OtherResource() {
         resType_ = 0;
-        amount_ = 0;
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new OtherResource();
       }
 
       @java.lang.Override
@@ -8796,7 +9285,9 @@ public final class Data {
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
         this();
-        int mutable_bitField0_ = 0;
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
         com.google.protobuf.UnknownFieldSet.Builder unknownFields =
             com.google.protobuf.UnknownFieldSet.newBuilder();
         try {
@@ -8807,13 +9298,6 @@ public final class Data {
               case 0:
                 done = true;
                 break;
-              default: {
-                if (!parseUnknownFieldProto3(
-                    input, unknownFields, extensionRegistry, tag)) {
-                  done = true;
-                }
-                break;
-              }
               case 8: {
                 int rawValue = input.readEnum();
 
@@ -8823,6 +9307,13 @@ public final class Data {
               case 16: {
 
                 amount_ = input.readInt32();
+                break;
+              }
+              default: {
+                if (!parseUnknownField(
+                    input, unknownFields, extensionRegistry, tag)) {
+                  done = true;
+                }
                 break;
               }
             }
@@ -8842,6 +9333,7 @@ public final class Data {
         return soc.proto.Data.internal_static_ResourceSet_OtherResource_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static_ResourceSet_OtherResource_fieldAccessorTable
@@ -8853,14 +9345,17 @@ public final class Data {
       private int resType_;
       /**
        * <code>.ResourceType res_type = 1;</code>
+       * @return The enum numeric value on the wire for resType.
        */
       public int getResTypeValue() {
         return resType_;
       }
       /**
        * <code>.ResourceType res_type = 1;</code>
+       * @return The resType.
        */
       public soc.proto.Data.ResourceType getResType() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(resType_);
         return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
       }
@@ -8869,12 +9364,14 @@ public final class Data {
       private int amount_;
       /**
        * <code>int32 amount = 2;</code>
+       * @return The amount.
        */
       public int getAmount() {
         return amount_;
       }
 
       private byte memoizedIsInitialized = -1;
+      @java.lang.Override
       public final boolean isInitialized() {
         byte isInitialized = memoizedIsInitialized;
         if (isInitialized == 1) return true;
@@ -8884,6 +9381,7 @@ public final class Data {
         return true;
       }
 
+      @java.lang.Override
       public void writeTo(com.google.protobuf.CodedOutputStream output)
                           throws java.io.IOException {
         if (resType_ != soc.proto.Data.ResourceType._NOT_YET_USED.getNumber()) {
@@ -8895,6 +9393,7 @@ public final class Data {
         unknownFields.writeTo(output);
       }
 
+      @java.lang.Override
       public int getSerializedSize() {
         int size = memoizedSize;
         if (size != -1) return size;
@@ -8923,12 +9422,11 @@ public final class Data {
         }
         soc.proto.Data.ResourceSet.OtherResource other = (soc.proto.Data.ResourceSet.OtherResource) obj;
 
-        boolean result = true;
-        result = result && resType_ == other.resType_;
-        result = result && (getAmount()
-            == other.getAmount());
-        result = result && unknownFields.equals(other.unknownFields);
-        return result;
+        if (resType_ != other.resType_) return false;
+        if (getAmount()
+            != other.getAmount()) return false;
+        if (!unknownFields.equals(other.unknownFields)) return false;
+        return true;
       }
 
       @java.lang.Override
@@ -9017,6 +9515,7 @@ public final class Data {
             .parseWithIOException(PARSER, input, extensionRegistry);
       }
 
+      @java.lang.Override
       public Builder newBuilderForType() { return newBuilder(); }
       public static Builder newBuilder() {
         return DEFAULT_INSTANCE.toBuilder();
@@ -9024,6 +9523,7 @@ public final class Data {
       public static Builder newBuilder(soc.proto.Data.ResourceSet.OtherResource prototype) {
         return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
       }
+      @java.lang.Override
       public Builder toBuilder() {
         return this == DEFAULT_INSTANCE
             ? new Builder() : new Builder().mergeFrom(this);
@@ -9051,6 +9551,7 @@ public final class Data {
           return soc.proto.Data.internal_static_ResourceSet_OtherResource_descriptor;
         }
 
+        @java.lang.Override
         protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
             internalGetFieldAccessorTable() {
           return soc.proto.Data.internal_static_ResourceSet_OtherResource_fieldAccessorTable
@@ -9073,6 +9574,7 @@ public final class Data {
                   .alwaysUseFieldBuilders) {
           }
         }
+        @java.lang.Override
         public Builder clear() {
           super.clear();
           resType_ = 0;
@@ -9082,15 +9584,18 @@ public final class Data {
           return this;
         }
 
+        @java.lang.Override
         public com.google.protobuf.Descriptors.Descriptor
             getDescriptorForType() {
           return soc.proto.Data.internal_static_ResourceSet_OtherResource_descriptor;
         }
 
+        @java.lang.Override
         public soc.proto.Data.ResourceSet.OtherResource getDefaultInstanceForType() {
           return soc.proto.Data.ResourceSet.OtherResource.getDefaultInstance();
         }
 
+        @java.lang.Override
         public soc.proto.Data.ResourceSet.OtherResource build() {
           soc.proto.Data.ResourceSet.OtherResource result = buildPartial();
           if (!result.isInitialized()) {
@@ -9099,6 +9604,7 @@ public final class Data {
           return result;
         }
 
+        @java.lang.Override
         public soc.proto.Data.ResourceSet.OtherResource buildPartial() {
           soc.proto.Data.ResourceSet.OtherResource result = new soc.proto.Data.ResourceSet.OtherResource(this);
           result.resType_ = resType_;
@@ -9107,32 +9613,39 @@ public final class Data {
           return result;
         }
 
+        @java.lang.Override
         public Builder clone() {
-          return (Builder) super.clone();
+          return super.clone();
         }
+        @java.lang.Override
         public Builder setField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             java.lang.Object value) {
-          return (Builder) super.setField(field, value);
+          return super.setField(field, value);
         }
+        @java.lang.Override
         public Builder clearField(
             com.google.protobuf.Descriptors.FieldDescriptor field) {
-          return (Builder) super.clearField(field);
+          return super.clearField(field);
         }
+        @java.lang.Override
         public Builder clearOneof(
             com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-          return (Builder) super.clearOneof(oneof);
+          return super.clearOneof(oneof);
         }
+        @java.lang.Override
         public Builder setRepeatedField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             int index, java.lang.Object value) {
-          return (Builder) super.setRepeatedField(field, index, value);
+          return super.setRepeatedField(field, index, value);
         }
+        @java.lang.Override
         public Builder addRepeatedField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             java.lang.Object value) {
-          return (Builder) super.addRepeatedField(field, value);
+          return super.addRepeatedField(field, value);
         }
+        @java.lang.Override
         public Builder mergeFrom(com.google.protobuf.Message other) {
           if (other instanceof soc.proto.Data.ResourceSet.OtherResource) {
             return mergeFrom((soc.proto.Data.ResourceSet.OtherResource)other);
@@ -9155,10 +9668,12 @@ public final class Data {
           return this;
         }
 
+        @java.lang.Override
         public final boolean isInitialized() {
           return true;
         }
 
+        @java.lang.Override
         public Builder mergeFrom(
             com.google.protobuf.CodedInputStream input,
             com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -9180,12 +9695,15 @@ public final class Data {
         private int resType_ = 0;
         /**
          * <code>.ResourceType res_type = 1;</code>
+         * @return The enum numeric value on the wire for resType.
          */
         public int getResTypeValue() {
           return resType_;
         }
         /**
          * <code>.ResourceType res_type = 1;</code>
+         * @param value The enum numeric value on the wire for resType to set.
+         * @return This builder for chaining.
          */
         public Builder setResTypeValue(int value) {
           resType_ = value;
@@ -9194,13 +9712,17 @@ public final class Data {
         }
         /**
          * <code>.ResourceType res_type = 1;</code>
+         * @return The resType.
          */
         public soc.proto.Data.ResourceType getResType() {
+          @SuppressWarnings("deprecation")
           soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(resType_);
           return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
         }
         /**
          * <code>.ResourceType res_type = 1;</code>
+         * @param value The resType to set.
+         * @return This builder for chaining.
          */
         public Builder setResType(soc.proto.Data.ResourceType value) {
           if (value == null) {
@@ -9213,6 +9735,7 @@ public final class Data {
         }
         /**
          * <code>.ResourceType res_type = 1;</code>
+         * @return This builder for chaining.
          */
         public Builder clearResType() {
           
@@ -9224,12 +9747,15 @@ public final class Data {
         private int amount_ ;
         /**
          * <code>int32 amount = 2;</code>
+         * @return The amount.
          */
         public int getAmount() {
           return amount_;
         }
         /**
          * <code>int32 amount = 2;</code>
+         * @param value The amount to set.
+         * @return This builder for chaining.
          */
         public Builder setAmount(int value) {
           
@@ -9239,6 +9765,7 @@ public final class Data {
         }
         /**
          * <code>int32 amount = 2;</code>
+         * @return This builder for chaining.
          */
         public Builder clearAmount() {
           
@@ -9246,11 +9773,13 @@ public final class Data {
           onChanged();
           return this;
         }
+        @java.lang.Override
         public final Builder setUnknownFields(
             final com.google.protobuf.UnknownFieldSet unknownFields) {
-          return super.setUnknownFieldsProto3(unknownFields);
+          return super.setUnknownFields(unknownFields);
         }
 
+        @java.lang.Override
         public final Builder mergeUnknownFields(
             final com.google.protobuf.UnknownFieldSet unknownFields) {
           return super.mergeUnknownFields(unknownFields);
@@ -9272,11 +9801,12 @@ public final class Data {
 
       private static final com.google.protobuf.Parser<OtherResource>
           PARSER = new com.google.protobuf.AbstractParser<OtherResource>() {
+        @java.lang.Override
         public OtherResource parsePartialFrom(
             com.google.protobuf.CodedInputStream input,
             com.google.protobuf.ExtensionRegistryLite extensionRegistry)
             throws com.google.protobuf.InvalidProtocolBufferException {
-            return new OtherResource(input, extensionRegistry);
+          return new OtherResource(input, extensionRegistry);
         }
       };
 
@@ -9289,13 +9819,13 @@ public final class Data {
         return PARSER;
       }
 
+      @java.lang.Override
       public soc.proto.Data.ResourceSet.OtherResource getDefaultInstanceForType() {
         return DEFAULT_INSTANCE;
       }
 
     }
 
-    private int bitField0_;
     public static final int CLAY_FIELD_NUMBER = 1;
     private int clay_;
     /**
@@ -9304,6 +9834,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 clay = 1;</code>
+     * @return The clay.
      */
     public int getClay() {
       return clay_;
@@ -9317,6 +9848,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 ore = 2;</code>
+     * @return The ore.
      */
     public int getOre() {
       return ore_;
@@ -9330,6 +9862,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 sheep = 3;</code>
+     * @return The sheep.
      */
     public int getSheep() {
       return sheep_;
@@ -9343,6 +9876,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 wheat = 4;</code>
+     * @return The wheat.
      */
     public int getWheat() {
       return wheat_;
@@ -9356,6 +9890,7 @@ public final class Data {
      * </pre>
      *
      * <code>int32 wood = 5;</code>
+     * @return The wood.
      */
     public int getWood() {
       return wood_;
@@ -9417,6 +9952,7 @@ public final class Data {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -9426,6 +9962,7 @@ public final class Data {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (clay_ != 0) {
@@ -9449,6 +9986,7 @@ public final class Data {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -9493,21 +10031,20 @@ public final class Data {
       }
       soc.proto.Data.ResourceSet other = (soc.proto.Data.ResourceSet) obj;
 
-      boolean result = true;
-      result = result && (getClay()
-          == other.getClay());
-      result = result && (getOre()
-          == other.getOre());
-      result = result && (getSheep()
-          == other.getSheep());
-      result = result && (getWheat()
-          == other.getWheat());
-      result = result && (getWood()
-          == other.getWood());
-      result = result && getOthersList()
-          .equals(other.getOthersList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getClay()
+          != other.getClay()) return false;
+      if (getOre()
+          != other.getOre()) return false;
+      if (getSheep()
+          != other.getSheep()) return false;
+      if (getWheat()
+          != other.getWheat()) return false;
+      if (getWood()
+          != other.getWood()) return false;
+      if (!getOthersList()
+          .equals(other.getOthersList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -9606,6 +10143,7 @@ public final class Data {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -9613,6 +10151,7 @@ public final class Data {
     public static Builder newBuilder(soc.proto.Data.ResourceSet prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -9640,6 +10179,7 @@ public final class Data {
         return soc.proto.Data.internal_static_ResourceSet_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Data.internal_static_ResourceSet_fieldAccessorTable
@@ -9663,6 +10203,7 @@ public final class Data {
           getOthersFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         clay_ = 0;
@@ -9677,22 +10218,25 @@ public final class Data {
 
         if (othersBuilder_ == null) {
           others_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000020);
+          bitField0_ = (bitField0_ & ~0x00000001);
         } else {
           othersBuilder_.clear();
         }
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Data.internal_static_ResourceSet_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Data.ResourceSet getDefaultInstanceForType() {
         return soc.proto.Data.ResourceSet.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Data.ResourceSet build() {
         soc.proto.Data.ResourceSet result = buildPartial();
         if (!result.isInitialized()) {
@@ -9701,55 +10245,61 @@ public final class Data {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Data.ResourceSet buildPartial() {
         soc.proto.Data.ResourceSet result = new soc.proto.Data.ResourceSet(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.clay_ = clay_;
         result.ore_ = ore_;
         result.sheep_ = sheep_;
         result.wheat_ = wheat_;
         result.wood_ = wood_;
         if (othersBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) == 0x00000020)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             others_ = java.util.Collections.unmodifiableList(others_);
-            bitField0_ = (bitField0_ & ~0x00000020);
+            bitField0_ = (bitField0_ & ~0x00000001);
           }
           result.others_ = others_;
         } else {
           result.others_ = othersBuilder_.build();
         }
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Data.ResourceSet) {
           return mergeFrom((soc.proto.Data.ResourceSet)other);
@@ -9780,7 +10330,7 @@ public final class Data {
           if (!other.others_.isEmpty()) {
             if (others_.isEmpty()) {
               others_ = other.others_;
-              bitField0_ = (bitField0_ & ~0x00000020);
+              bitField0_ = (bitField0_ & ~0x00000001);
             } else {
               ensureOthersIsMutable();
               others_.addAll(other.others_);
@@ -9793,7 +10343,7 @@ public final class Data {
               othersBuilder_.dispose();
               othersBuilder_ = null;
               others_ = other.others_;
-              bitField0_ = (bitField0_ & ~0x00000020);
+              bitField0_ = (bitField0_ & ~0x00000001);
               othersBuilder_ = 
                 com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                    getOthersFieldBuilder() : null;
@@ -9807,10 +10357,12 @@ public final class Data {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -9837,6 +10389,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 clay = 1;</code>
+       * @return The clay.
        */
       public int getClay() {
         return clay_;
@@ -9847,6 +10400,8 @@ public final class Data {
        * </pre>
        *
        * <code>int32 clay = 1;</code>
+       * @param value The clay to set.
+       * @return This builder for chaining.
        */
       public Builder setClay(int value) {
         
@@ -9860,6 +10415,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 clay = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearClay() {
         
@@ -9875,6 +10431,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 ore = 2;</code>
+       * @return The ore.
        */
       public int getOre() {
         return ore_;
@@ -9885,6 +10442,8 @@ public final class Data {
        * </pre>
        *
        * <code>int32 ore = 2;</code>
+       * @param value The ore to set.
+       * @return This builder for chaining.
        */
       public Builder setOre(int value) {
         
@@ -9898,6 +10457,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 ore = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOre() {
         
@@ -9913,6 +10473,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 sheep = 3;</code>
+       * @return The sheep.
        */
       public int getSheep() {
         return sheep_;
@@ -9923,6 +10484,8 @@ public final class Data {
        * </pre>
        *
        * <code>int32 sheep = 3;</code>
+       * @param value The sheep to set.
+       * @return This builder for chaining.
        */
       public Builder setSheep(int value) {
         
@@ -9936,6 +10499,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 sheep = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearSheep() {
         
@@ -9951,6 +10515,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 wheat = 4;</code>
+       * @return The wheat.
        */
       public int getWheat() {
         return wheat_;
@@ -9961,6 +10526,8 @@ public final class Data {
        * </pre>
        *
        * <code>int32 wheat = 4;</code>
+       * @param value The wheat to set.
+       * @return This builder for chaining.
        */
       public Builder setWheat(int value) {
         
@@ -9974,6 +10541,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 wheat = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearWheat() {
         
@@ -9989,6 +10557,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 wood = 5;</code>
+       * @return The wood.
        */
       public int getWood() {
         return wood_;
@@ -9999,6 +10568,8 @@ public final class Data {
        * </pre>
        *
        * <code>int32 wood = 5;</code>
+       * @param value The wood to set.
+       * @return This builder for chaining.
        */
       public Builder setWood(int value) {
         
@@ -10012,6 +10583,7 @@ public final class Data {
        * </pre>
        *
        * <code>int32 wood = 5;</code>
+       * @return This builder for chaining.
        */
       public Builder clearWood() {
         
@@ -10023,9 +10595,9 @@ public final class Data {
       private java.util.List<soc.proto.Data.ResourceSet.OtherResource> others_ =
         java.util.Collections.emptyList();
       private void ensureOthersIsMutable() {
-        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           others_ = new java.util.ArrayList<soc.proto.Data.ResourceSet.OtherResource>(others_);
-          bitField0_ |= 0x00000020;
+          bitField0_ |= 0x00000001;
          }
       }
 
@@ -10219,7 +10791,7 @@ public final class Data {
       public Builder clearOthers() {
         if (othersBuilder_ == null) {
           others_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000020);
+          bitField0_ = (bitField0_ & ~0x00000001);
           onChanged();
         } else {
           othersBuilder_.clear();
@@ -10324,18 +10896,20 @@ public final class Data {
           othersBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.Data.ResourceSet.OtherResource, soc.proto.Data.ResourceSet.OtherResource.Builder, soc.proto.Data.ResourceSet.OtherResourceOrBuilder>(
                   others_,
-                  ((bitField0_ & 0x00000020) == 0x00000020),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           others_ = null;
         }
         return othersBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -10357,11 +10931,12 @@ public final class Data {
 
     private static final com.google.protobuf.Parser<ResourceSet>
         PARSER = new com.google.protobuf.AbstractParser<ResourceSet>() {
+      @java.lang.Override
       public ResourceSet parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ResourceSet(input, extensionRegistry);
+        return new ResourceSet(input, extensionRegistry);
       }
     };
 
@@ -10374,6 +10949,7 @@ public final class Data {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Data.ResourceSet getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -10458,7 +11034,7 @@ public final class Data {
       "\n\nedge_coord\030\002 \001(\0132\n.EdgeCoordH\000\022\036\n\thex_" +
       "coord\030\003 \001(\0132\t.HexCoordH\000B\014\n\ncoord_type\"%" +
       "\n\t_EdgeList\022\030\n\004edge\030\001 \003(\0132\n.EdgeCoord\"\"\n" +
-      "\010_HexList\022\026\n\003hex\030\001 \003(\0132\t.HexCoord\"%\n\t_No",
+      "\010_HexList\022\026\n\003hex\030\001 \003(\0132\t.HexCoord\"%\n\t_No" +
       "deList\022\030\n\004node\030\001 \003(\0132\n.NodeCoord\"-\n\017_Boa" +
       "rdCoordList\022\032\n\005coord\030\001 \003(\0132\013.BoardCoord\"" +
       "\302\001\n\013ResourceSet\022\014\n\004clay\030\001 \001(\005\022\013\n\003ore\030\002 \001" +
@@ -10468,7 +11044,7 @@ public final class Data {
       "\001 \001(\0162\r.ResourceType\022\016\n\006amount\030\002 \001(\005*\212\001\n" +
       "\007HexType\022\r\n\tWATER_HEX\020\000\022\014\n\010CLAY_HEX\020\001\022\013\n" +
       "\007ORE_HEX\020\002\022\r\n\tSHEEP_HEX\020\003\022\r\n\tWHEAT_HEX\020\004" +
-      "\022\014\n\010WOOD_HEX\020\005\022\016\n\nDESERT_HEX\020\006\022\014\n\010GOLD_H",
+      "\022\014\n\010WOOD_HEX\020\005\022\016\n\nDESERT_HEX\020\006\022\014\n\010GOLD_H" +
       "EX\020\007\022\013\n\007FOG_HEX\020\010*a\n\014ResourceType\022\021\n\r_NO" +
       "T_YET_USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP" +
       "\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020\006*T\n\t" +
@@ -10478,7 +11054,7 @@ public final class Data {
       "LT_ITEM\020\000\022\014\n\010DEV_CARD\020\002\022\014\n\010INV_ITEM\020\003*\333\001" +
       "\n\014DevCardValue\022 \n\034_UNSENT_DEFAULT_DEVCAR" +
       "DVALUE\020\000\022\024\n\020UNKNOWN_DEV_CARD\020\001\022\n\n\006KNIGHT" +
-      "\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rROAD_BUILDING\020\004\022\022\n\016Y",
+      "\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rROAD_BUILDING\020\004\022\022\n\016Y" +
       "EAR_OF_PLENTY\020\005\022\r\n\tVP_CHAPEL\0202\022\021\n\rVP_GRE" +
       "AT_HALL\0203\022\016\n\nVP_LIBRARY\0204\022\r\n\tVP_MARKET\0205" +
       "\022\021\n\rVP_UNIVERSITY\0206*\245\005\n\tGameState\022\007\n\003NEW" +
@@ -10488,7 +11064,7 @@ public final class Data {
       "_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n\007START3A\020\014\022\013\n" +
       "\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020\017\022\t\n\005PLAY1\020\024\022" +
       "\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACING_SETTLEMENT\020" +
-      "\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACING_ROBBER\020!\022",
+      "\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACING_ROBBER\020!\022" +
       "\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLACING_SHIP\020#\022\026\n" +
       "\022PLACING_FREE_ROAD1\020(\022\026\n\022PLACING_FREE_RO" +
       "AD2\020)\022\024\n\020PLACING_INV_ITEM\020*\022\030\n\024WAITING_F" +
@@ -10498,22 +11074,14 @@ public final class Data {
       "BER_OR_PIRATE\0206\022%\n!WAITING_FOR_ROB_CLOTH" +
       "_OR_RESOURCE\0207\022\"\n\036WAITING_FOR_PICK_GOLD_" +
       "RESOURCE\0208\022\024\n\020SPECIAL_BUILDING\020d\022\t\n\004OVER" +
-      "\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLockState\022\014\n\010",
+      "\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLockState\022\014\n\010" +
       "UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CLEAR_ON_RESET" +
       "\020\002B\r\n\tsoc.protoH\001b\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static__IntArray_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static__IntArray_fieldAccessorTable = new

@@ -24,6 +24,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 vers_num = 1;</code>
+     * @return The versNum.
      */
     int getVersNum();
 
@@ -33,6 +34,7 @@ public final class Message {
      * </pre>
      *
      * <code>string vers_str = 2;</code>
+     * @return The versStr.
      */
     java.lang.String getVersStr();
     /**
@@ -41,6 +43,7 @@ public final class Message {
      * </pre>
      *
      * <code>string vers_str = 2;</code>
+     * @return The bytes for versStr.
      */
     com.google.protobuf.ByteString
         getVersStrBytes();
@@ -51,6 +54,7 @@ public final class Message {
      * </pre>
      *
      * <code>string vers_build = 3;</code>
+     * @return The versBuild.
      */
     java.lang.String getVersBuild();
     /**
@@ -59,6 +63,7 @@ public final class Message {
      * </pre>
      *
      * <code>string vers_build = 3;</code>
+     * @return The bytes for versBuild.
      */
     com.google.protobuf.ByteString
         getVersBuildBytes();
@@ -69,6 +74,7 @@ public final class Message {
      * </pre>
      *
      * <code>string cli_locale = 4;</code>
+     * @return The cliLocale.
      */
     java.lang.String getCliLocale();
     /**
@@ -77,6 +83,7 @@ public final class Message {
      * </pre>
      *
      * <code>string cli_locale = 4;</code>
+     * @return The bytes for cliLocale.
      */
     com.google.protobuf.ByteString
         getCliLocaleBytes();
@@ -87,6 +94,7 @@ public final class Message {
      * </pre>
      *
      * <code>string feats = 5;</code>
+     * @return The feats.
      */
     java.lang.String getFeats();
     /**
@@ -95,14 +103,16 @@ public final class Message {
      * </pre>
      *
      * <code>string feats = 5;</code>
+     * @return The bytes for feats.
      */
     com.google.protobuf.ByteString
         getFeatsBytes();
   }
   /**
    * <pre>
-   * VERSION is the first message sent from client to server.
-   * The server also sends its version to the client early, not in response to client's VERSION message.
+   * Version is the first message sent from client to server.
+   * The server sends its version to the client as its first outbound message,
+   * not in response to client's version message.
    * </pre>
    *
    * Protobuf type {@code Version}
@@ -117,11 +127,17 @@ public final class Message {
       super(builder);
     }
     private Version() {
-      versNum_ = 0;
       versStr_ = "";
       versBuild_ = "";
       cliLocale_ = "";
       feats_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Version();
     }
 
     @java.lang.Override
@@ -134,7 +150,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -145,13 +163,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               versNum_ = input.readUInt32();
@@ -181,6 +192,13 @@ public final class Message {
               feats_ = s;
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -198,6 +216,7 @@ public final class Message {
       return soc.proto.Message.internal_static_Version_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_Version_fieldAccessorTable
@@ -213,6 +232,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 vers_num = 1;</code>
+     * @return The versNum.
      */
     public int getVersNum() {
       return versNum_;
@@ -226,6 +246,7 @@ public final class Message {
      * </pre>
      *
      * <code>string vers_str = 2;</code>
+     * @return The versStr.
      */
     public java.lang.String getVersStr() {
       java.lang.Object ref = versStr_;
@@ -245,6 +266,7 @@ public final class Message {
      * </pre>
      *
      * <code>string vers_str = 2;</code>
+     * @return The bytes for versStr.
      */
     public com.google.protobuf.ByteString
         getVersStrBytes() {
@@ -268,6 +290,7 @@ public final class Message {
      * </pre>
      *
      * <code>string vers_build = 3;</code>
+     * @return The versBuild.
      */
     public java.lang.String getVersBuild() {
       java.lang.Object ref = versBuild_;
@@ -287,6 +310,7 @@ public final class Message {
      * </pre>
      *
      * <code>string vers_build = 3;</code>
+     * @return The bytes for versBuild.
      */
     public com.google.protobuf.ByteString
         getVersBuildBytes() {
@@ -310,6 +334,7 @@ public final class Message {
      * </pre>
      *
      * <code>string cli_locale = 4;</code>
+     * @return The cliLocale.
      */
     public java.lang.String getCliLocale() {
       java.lang.Object ref = cliLocale_;
@@ -329,6 +354,7 @@ public final class Message {
      * </pre>
      *
      * <code>string cli_locale = 4;</code>
+     * @return The bytes for cliLocale.
      */
     public com.google.protobuf.ByteString
         getCliLocaleBytes() {
@@ -352,6 +378,7 @@ public final class Message {
      * </pre>
      *
      * <code>string feats = 5;</code>
+     * @return The feats.
      */
     public java.lang.String getFeats() {
       java.lang.Object ref = feats_;
@@ -371,6 +398,7 @@ public final class Message {
      * </pre>
      *
      * <code>string feats = 5;</code>
+     * @return The bytes for feats.
      */
     public com.google.protobuf.ByteString
         getFeatsBytes() {
@@ -387,6 +415,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -396,6 +425,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (versNum_ != 0) {
@@ -416,6 +446,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -452,19 +483,18 @@ public final class Message {
       }
       soc.proto.Message.Version other = (soc.proto.Message.Version) obj;
 
-      boolean result = true;
-      result = result && (getVersNum()
-          == other.getVersNum());
-      result = result && getVersStr()
-          .equals(other.getVersStr());
-      result = result && getVersBuild()
-          .equals(other.getVersBuild());
-      result = result && getCliLocale()
-          .equals(other.getCliLocale());
-      result = result && getFeats()
-          .equals(other.getFeats());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getVersNum()
+          != other.getVersNum()) return false;
+      if (!getVersStr()
+          .equals(other.getVersStr())) return false;
+      if (!getVersBuild()
+          .equals(other.getVersBuild())) return false;
+      if (!getCliLocale()
+          .equals(other.getCliLocale())) return false;
+      if (!getFeats()
+          .equals(other.getFeats())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -559,6 +589,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -566,6 +597,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.Version prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -579,8 +611,9 @@ public final class Message {
     }
     /**
      * <pre>
-     * VERSION is the first message sent from client to server.
-     * The server also sends its version to the client early, not in response to client's VERSION message.
+     * Version is the first message sent from client to server.
+     * The server sends its version to the client as its first outbound message,
+     * not in response to client's version message.
      * </pre>
      *
      * Protobuf type {@code Version}
@@ -594,6 +627,7 @@ public final class Message {
         return soc.proto.Message.internal_static_Version_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_Version_fieldAccessorTable
@@ -616,6 +650,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         versNum_ = 0;
@@ -631,15 +666,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_Version_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.Version getDefaultInstanceForType() {
         return soc.proto.Message.Version.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.Version build() {
         soc.proto.Message.Version result = buildPartial();
         if (!result.isInitialized()) {
@@ -648,6 +686,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.Version buildPartial() {
         soc.proto.Message.Version result = new soc.proto.Message.Version(this);
         result.versNum_ = versNum_;
@@ -659,32 +698,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.Version) {
           return mergeFrom((soc.proto.Message.Version)other);
@@ -720,10 +766,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -749,6 +797,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 vers_num = 1;</code>
+       * @return The versNum.
        */
       public int getVersNum() {
         return versNum_;
@@ -759,6 +808,8 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 vers_num = 1;</code>
+       * @param value The versNum to set.
+       * @return This builder for chaining.
        */
       public Builder setVersNum(int value) {
         
@@ -772,6 +823,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 vers_num = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearVersNum() {
         
@@ -787,6 +839,7 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_str = 2;</code>
+       * @return The versStr.
        */
       public java.lang.String getVersStr() {
         java.lang.Object ref = versStr_;
@@ -806,6 +859,7 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_str = 2;</code>
+       * @return The bytes for versStr.
        */
       public com.google.protobuf.ByteString
           getVersStrBytes() {
@@ -826,6 +880,8 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_str = 2;</code>
+       * @param value The versStr to set.
+       * @return This builder for chaining.
        */
       public Builder setVersStr(
           java.lang.String value) {
@@ -843,6 +899,7 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_str = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearVersStr() {
         
@@ -856,6 +913,8 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_str = 2;</code>
+       * @param value The bytes for versStr to set.
+       * @return This builder for chaining.
        */
       public Builder setVersStrBytes(
           com.google.protobuf.ByteString value) {
@@ -876,6 +935,7 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_build = 3;</code>
+       * @return The versBuild.
        */
       public java.lang.String getVersBuild() {
         java.lang.Object ref = versBuild_;
@@ -895,6 +955,7 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_build = 3;</code>
+       * @return The bytes for versBuild.
        */
       public com.google.protobuf.ByteString
           getVersBuildBytes() {
@@ -915,6 +976,8 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_build = 3;</code>
+       * @param value The versBuild to set.
+       * @return This builder for chaining.
        */
       public Builder setVersBuild(
           java.lang.String value) {
@@ -932,6 +995,7 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_build = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearVersBuild() {
         
@@ -945,6 +1009,8 @@ public final class Message {
        * </pre>
        *
        * <code>string vers_build = 3;</code>
+       * @param value The bytes for versBuild to set.
+       * @return This builder for chaining.
        */
       public Builder setVersBuildBytes(
           com.google.protobuf.ByteString value) {
@@ -965,6 +1031,7 @@ public final class Message {
        * </pre>
        *
        * <code>string cli_locale = 4;</code>
+       * @return The cliLocale.
        */
       public java.lang.String getCliLocale() {
         java.lang.Object ref = cliLocale_;
@@ -984,6 +1051,7 @@ public final class Message {
        * </pre>
        *
        * <code>string cli_locale = 4;</code>
+       * @return The bytes for cliLocale.
        */
       public com.google.protobuf.ByteString
           getCliLocaleBytes() {
@@ -1004,6 +1072,8 @@ public final class Message {
        * </pre>
        *
        * <code>string cli_locale = 4;</code>
+       * @param value The cliLocale to set.
+       * @return This builder for chaining.
        */
       public Builder setCliLocale(
           java.lang.String value) {
@@ -1021,6 +1091,7 @@ public final class Message {
        * </pre>
        *
        * <code>string cli_locale = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearCliLocale() {
         
@@ -1034,6 +1105,8 @@ public final class Message {
        * </pre>
        *
        * <code>string cli_locale = 4;</code>
+       * @param value The bytes for cliLocale to set.
+       * @return This builder for chaining.
        */
       public Builder setCliLocaleBytes(
           com.google.protobuf.ByteString value) {
@@ -1054,6 +1127,7 @@ public final class Message {
        * </pre>
        *
        * <code>string feats = 5;</code>
+       * @return The feats.
        */
       public java.lang.String getFeats() {
         java.lang.Object ref = feats_;
@@ -1073,6 +1147,7 @@ public final class Message {
        * </pre>
        *
        * <code>string feats = 5;</code>
+       * @return The bytes for feats.
        */
       public com.google.protobuf.ByteString
           getFeatsBytes() {
@@ -1093,6 +1168,8 @@ public final class Message {
        * </pre>
        *
        * <code>string feats = 5;</code>
+       * @param value The feats to set.
+       * @return This builder for chaining.
        */
       public Builder setFeats(
           java.lang.String value) {
@@ -1110,6 +1187,7 @@ public final class Message {
        * </pre>
        *
        * <code>string feats = 5;</code>
+       * @return This builder for chaining.
        */
       public Builder clearFeats() {
         
@@ -1123,6 +1201,8 @@ public final class Message {
        * </pre>
        *
        * <code>string feats = 5;</code>
+       * @param value The bytes for feats to set.
+       * @return This builder for chaining.
        */
       public Builder setFeatsBytes(
           com.google.protobuf.ByteString value) {
@@ -1135,11 +1215,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1161,11 +1243,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<Version>
         PARSER = new com.google.protobuf.AbstractParser<Version>() {
+      @java.lang.Override
       public Version parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new Version(input, extensionRegistry);
+        return new Version(input, extensionRegistry);
       }
     };
 
@@ -1178,6 +1261,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.Version getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1194,6 +1278,7 @@ public final class Message {
      * </pre>
      *
      * <code>string nickname = 1;</code>
+     * @return The nickname.
      */
     java.lang.String getNickname();
     /**
@@ -1202,6 +1287,7 @@ public final class Message {
      * </pre>
      *
      * <code>string nickname = 1;</code>
+     * @return The bytes for nickname.
      */
     com.google.protobuf.ByteString
         getNicknameBytes();
@@ -1212,6 +1298,7 @@ public final class Message {
      * </pre>
      *
      * <code>string cookie = 2;</code>
+     * @return The cookie.
      */
     java.lang.String getCookie();
     /**
@@ -1220,6 +1307,7 @@ public final class Message {
      * </pre>
      *
      * <code>string cookie = 2;</code>
+     * @return The bytes for cookie.
      */
     com.google.protobuf.ByteString
         getCookieBytes();
@@ -1230,6 +1318,7 @@ public final class Message {
      * </pre>
      *
      * <code>string rb_class = 3;</code>
+     * @return The rbClass.
      */
     java.lang.String getRbClass();
     /**
@@ -1238,6 +1327,7 @@ public final class Message {
      * </pre>
      *
      * <code>string rb_class = 3;</code>
+     * @return The bytes for rbClass.
      */
     com.google.protobuf.ByteString
         getRbClassBytes();
@@ -1261,6 +1351,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ImARobot();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -1270,7 +1367,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -1281,13 +1380,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -1304,6 +1396,13 @@ public final class Message {
               java.lang.String s = input.readStringRequireUtf8();
 
               rbClass_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -1323,6 +1422,7 @@ public final class Message {
       return soc.proto.Message.internal_static_ImARobot_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_ImARobot_fieldAccessorTable
@@ -1338,6 +1438,7 @@ public final class Message {
      * </pre>
      *
      * <code>string nickname = 1;</code>
+     * @return The nickname.
      */
     public java.lang.String getNickname() {
       java.lang.Object ref = nickname_;
@@ -1357,6 +1458,7 @@ public final class Message {
      * </pre>
      *
      * <code>string nickname = 1;</code>
+     * @return The bytes for nickname.
      */
     public com.google.protobuf.ByteString
         getNicknameBytes() {
@@ -1380,6 +1482,7 @@ public final class Message {
      * </pre>
      *
      * <code>string cookie = 2;</code>
+     * @return The cookie.
      */
     public java.lang.String getCookie() {
       java.lang.Object ref = cookie_;
@@ -1399,6 +1502,7 @@ public final class Message {
      * </pre>
      *
      * <code>string cookie = 2;</code>
+     * @return The bytes for cookie.
      */
     public com.google.protobuf.ByteString
         getCookieBytes() {
@@ -1422,6 +1526,7 @@ public final class Message {
      * </pre>
      *
      * <code>string rb_class = 3;</code>
+     * @return The rbClass.
      */
     public java.lang.String getRbClass() {
       java.lang.Object ref = rbClass_;
@@ -1441,6 +1546,7 @@ public final class Message {
      * </pre>
      *
      * <code>string rb_class = 3;</code>
+     * @return The bytes for rbClass.
      */
     public com.google.protobuf.ByteString
         getRbClassBytes() {
@@ -1457,6 +1563,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1466,6 +1573,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getNicknameBytes().isEmpty()) {
@@ -1480,6 +1588,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -1509,15 +1618,14 @@ public final class Message {
       }
       soc.proto.Message.ImARobot other = (soc.proto.Message.ImARobot) obj;
 
-      boolean result = true;
-      result = result && getNickname()
-          .equals(other.getNickname());
-      result = result && getCookie()
-          .equals(other.getCookie());
-      result = result && getRbClass()
-          .equals(other.getRbClass());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getNickname()
+          .equals(other.getNickname())) return false;
+      if (!getCookie()
+          .equals(other.getCookie())) return false;
+      if (!getRbClass()
+          .equals(other.getRbClass())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1608,6 +1716,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1615,6 +1724,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.ImARobot prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1638,6 +1748,7 @@ public final class Message {
         return soc.proto.Message.internal_static_ImARobot_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_ImARobot_fieldAccessorTable
@@ -1660,6 +1771,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         nickname_ = "";
@@ -1671,15 +1783,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_ImARobot_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ImARobot getDefaultInstanceForType() {
         return soc.proto.Message.ImARobot.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.ImARobot build() {
         soc.proto.Message.ImARobot result = buildPartial();
         if (!result.isInitialized()) {
@@ -1688,6 +1803,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ImARobot buildPartial() {
         soc.proto.Message.ImARobot result = new soc.proto.Message.ImARobot(this);
         result.nickname_ = nickname_;
@@ -1697,32 +1813,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.ImARobot) {
           return mergeFrom((soc.proto.Message.ImARobot)other);
@@ -1751,10 +1874,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1780,6 +1905,7 @@ public final class Message {
        * </pre>
        *
        * <code>string nickname = 1;</code>
+       * @return The nickname.
        */
       public java.lang.String getNickname() {
         java.lang.Object ref = nickname_;
@@ -1799,6 +1925,7 @@ public final class Message {
        * </pre>
        *
        * <code>string nickname = 1;</code>
+       * @return The bytes for nickname.
        */
       public com.google.protobuf.ByteString
           getNicknameBytes() {
@@ -1819,6 +1946,8 @@ public final class Message {
        * </pre>
        *
        * <code>string nickname = 1;</code>
+       * @param value The nickname to set.
+       * @return This builder for chaining.
        */
       public Builder setNickname(
           java.lang.String value) {
@@ -1836,6 +1965,7 @@ public final class Message {
        * </pre>
        *
        * <code>string nickname = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearNickname() {
         
@@ -1849,6 +1979,8 @@ public final class Message {
        * </pre>
        *
        * <code>string nickname = 1;</code>
+       * @param value The bytes for nickname to set.
+       * @return This builder for chaining.
        */
       public Builder setNicknameBytes(
           com.google.protobuf.ByteString value) {
@@ -1869,6 +2001,7 @@ public final class Message {
        * </pre>
        *
        * <code>string cookie = 2;</code>
+       * @return The cookie.
        */
       public java.lang.String getCookie() {
         java.lang.Object ref = cookie_;
@@ -1888,6 +2021,7 @@ public final class Message {
        * </pre>
        *
        * <code>string cookie = 2;</code>
+       * @return The bytes for cookie.
        */
       public com.google.protobuf.ByteString
           getCookieBytes() {
@@ -1908,6 +2042,8 @@ public final class Message {
        * </pre>
        *
        * <code>string cookie = 2;</code>
+       * @param value The cookie to set.
+       * @return This builder for chaining.
        */
       public Builder setCookie(
           java.lang.String value) {
@@ -1925,6 +2061,7 @@ public final class Message {
        * </pre>
        *
        * <code>string cookie = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearCookie() {
         
@@ -1938,6 +2075,8 @@ public final class Message {
        * </pre>
        *
        * <code>string cookie = 2;</code>
+       * @param value The bytes for cookie to set.
+       * @return This builder for chaining.
        */
       public Builder setCookieBytes(
           com.google.protobuf.ByteString value) {
@@ -1958,6 +2097,7 @@ public final class Message {
        * </pre>
        *
        * <code>string rb_class = 3;</code>
+       * @return The rbClass.
        */
       public java.lang.String getRbClass() {
         java.lang.Object ref = rbClass_;
@@ -1977,6 +2117,7 @@ public final class Message {
        * </pre>
        *
        * <code>string rb_class = 3;</code>
+       * @return The bytes for rbClass.
        */
       public com.google.protobuf.ByteString
           getRbClassBytes() {
@@ -1997,6 +2138,8 @@ public final class Message {
        * </pre>
        *
        * <code>string rb_class = 3;</code>
+       * @param value The rbClass to set.
+       * @return This builder for chaining.
        */
       public Builder setRbClass(
           java.lang.String value) {
@@ -2014,6 +2157,7 @@ public final class Message {
        * </pre>
        *
        * <code>string rb_class = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearRbClass() {
         
@@ -2027,6 +2171,8 @@ public final class Message {
        * </pre>
        *
        * <code>string rb_class = 3;</code>
+       * @param value The bytes for rbClass to set.
+       * @return This builder for chaining.
        */
       public Builder setRbClassBytes(
           com.google.protobuf.ByteString value) {
@@ -2039,11 +2185,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -2065,11 +2213,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<ImARobot>
         PARSER = new com.google.protobuf.AbstractParser<ImARobot>() {
+      @java.lang.Override
       public ImARobot parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ImARobot(input, extensionRegistry);
+        return new ImARobot(input, extensionRegistry);
       }
     };
 
@@ -2082,6 +2231,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.ImARobot getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -2094,39 +2244,47 @@ public final class Message {
 
     /**
      * <code>.AuthRequest.AuthRole role = 1;</code>
+     * @return The enum numeric value on the wire for role.
      */
     int getRoleValue();
     /**
      * <code>.AuthRequest.AuthRole role = 1;</code>
+     * @return The role.
      */
     soc.proto.Message.AuthRequest.AuthRole getRole();
 
     /**
      * <code>string nickname = 2;</code>
+     * @return The nickname.
      */
     java.lang.String getNickname();
     /**
      * <code>string nickname = 2;</code>
+     * @return The bytes for nickname.
      */
     com.google.protobuf.ByteString
         getNicknameBytes();
 
     /**
      * <code>string password = 3;</code>
+     * @return The password.
      */
     java.lang.String getPassword();
     /**
      * <code>string password = 3;</code>
+     * @return The bytes for password.
      */
     com.google.protobuf.ByteString
         getPasswordBytes();
 
     /**
      * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+     * @return The enum numeric value on the wire for authScheme.
      */
     int getAuthSchemeValue();
     /**
      * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+     * @return The authScheme.
      */
     soc.proto.Message.AuthRequest.AuthScheme getAuthScheme();
   }
@@ -2181,6 +2339,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new AuthRequest();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -2190,7 +2355,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -2201,13 +2368,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -2232,6 +2392,13 @@ public final class Message {
               authScheme_ = rawValue;
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -2249,6 +2416,7 @@ public final class Message {
       return soc.proto.Message.internal_static_AuthRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_AuthRequest_fieldAccessorTable
@@ -2323,6 +2491,8 @@ public final class Message {
       }
 
       /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -2330,6 +2500,10 @@ public final class Message {
         return forNumber(value);
       }
 
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       */
       public static AuthRole forNumber(int value) {
         switch (value) {
           case 0: return _UNSENT_DEFAULT;
@@ -2438,6 +2612,8 @@ public final class Message {
       }
 
       /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -2445,6 +2621,10 @@ public final class Message {
         return forNumber(value);
       }
 
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       */
       public static AuthScheme forNumber(int value) {
         switch (value) {
           case 0: return _UNUSED_DEFAULT;
@@ -2505,14 +2685,17 @@ public final class Message {
     private int role_;
     /**
      * <code>.AuthRequest.AuthRole role = 1;</code>
+     * @return The enum numeric value on the wire for role.
      */
     public int getRoleValue() {
       return role_;
     }
     /**
      * <code>.AuthRequest.AuthRole role = 1;</code>
+     * @return The role.
      */
     public soc.proto.Message.AuthRequest.AuthRole getRole() {
+      @SuppressWarnings("deprecation")
       soc.proto.Message.AuthRequest.AuthRole result = soc.proto.Message.AuthRequest.AuthRole.valueOf(role_);
       return result == null ? soc.proto.Message.AuthRequest.AuthRole.UNRECOGNIZED : result;
     }
@@ -2521,6 +2704,7 @@ public final class Message {
     private volatile java.lang.Object nickname_;
     /**
      * <code>string nickname = 2;</code>
+     * @return The nickname.
      */
     public java.lang.String getNickname() {
       java.lang.Object ref = nickname_;
@@ -2536,6 +2720,7 @@ public final class Message {
     }
     /**
      * <code>string nickname = 2;</code>
+     * @return The bytes for nickname.
      */
     public com.google.protobuf.ByteString
         getNicknameBytes() {
@@ -2555,6 +2740,7 @@ public final class Message {
     private volatile java.lang.Object password_;
     /**
      * <code>string password = 3;</code>
+     * @return The password.
      */
     public java.lang.String getPassword() {
       java.lang.Object ref = password_;
@@ -2570,6 +2756,7 @@ public final class Message {
     }
     /**
      * <code>string password = 3;</code>
+     * @return The bytes for password.
      */
     public com.google.protobuf.ByteString
         getPasswordBytes() {
@@ -2589,19 +2776,23 @@ public final class Message {
     private int authScheme_;
     /**
      * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+     * @return The enum numeric value on the wire for authScheme.
      */
     public int getAuthSchemeValue() {
       return authScheme_;
     }
     /**
      * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+     * @return The authScheme.
      */
     public soc.proto.Message.AuthRequest.AuthScheme getAuthScheme() {
+      @SuppressWarnings("deprecation")
       soc.proto.Message.AuthRequest.AuthScheme result = soc.proto.Message.AuthRequest.AuthScheme.valueOf(authScheme_);
       return result == null ? soc.proto.Message.AuthRequest.AuthScheme.UNRECOGNIZED : result;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -2611,6 +2802,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (role_ != soc.proto.Message.AuthRequest.AuthRole._UNSENT_DEFAULT.getNumber()) {
@@ -2628,6 +2820,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -2662,15 +2855,14 @@ public final class Message {
       }
       soc.proto.Message.AuthRequest other = (soc.proto.Message.AuthRequest) obj;
 
-      boolean result = true;
-      result = result && role_ == other.role_;
-      result = result && getNickname()
-          .equals(other.getNickname());
-      result = result && getPassword()
-          .equals(other.getPassword());
-      result = result && authScheme_ == other.authScheme_;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (role_ != other.role_) return false;
+      if (!getNickname()
+          .equals(other.getNickname())) return false;
+      if (!getPassword()
+          .equals(other.getPassword())) return false;
+      if (authScheme_ != other.authScheme_) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -2763,6 +2955,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -2770,6 +2963,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.AuthRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -2824,6 +3018,7 @@ public final class Message {
         return soc.proto.Message.internal_static_AuthRequest_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_AuthRequest_fieldAccessorTable
@@ -2846,6 +3041,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         role_ = 0;
@@ -2859,15 +3055,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_AuthRequest_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.AuthRequest getDefaultInstanceForType() {
         return soc.proto.Message.AuthRequest.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.AuthRequest build() {
         soc.proto.Message.AuthRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -2876,6 +3075,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.AuthRequest buildPartial() {
         soc.proto.Message.AuthRequest result = new soc.proto.Message.AuthRequest(this);
         result.role_ = role_;
@@ -2886,32 +3086,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.AuthRequest) {
           return mergeFrom((soc.proto.Message.AuthRequest)other);
@@ -2942,10 +3149,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2967,12 +3176,15 @@ public final class Message {
       private int role_ = 0;
       /**
        * <code>.AuthRequest.AuthRole role = 1;</code>
+       * @return The enum numeric value on the wire for role.
        */
       public int getRoleValue() {
         return role_;
       }
       /**
        * <code>.AuthRequest.AuthRole role = 1;</code>
+       * @param value The enum numeric value on the wire for role to set.
+       * @return This builder for chaining.
        */
       public Builder setRoleValue(int value) {
         role_ = value;
@@ -2981,13 +3193,17 @@ public final class Message {
       }
       /**
        * <code>.AuthRequest.AuthRole role = 1;</code>
+       * @return The role.
        */
       public soc.proto.Message.AuthRequest.AuthRole getRole() {
+        @SuppressWarnings("deprecation")
         soc.proto.Message.AuthRequest.AuthRole result = soc.proto.Message.AuthRequest.AuthRole.valueOf(role_);
         return result == null ? soc.proto.Message.AuthRequest.AuthRole.UNRECOGNIZED : result;
       }
       /**
        * <code>.AuthRequest.AuthRole role = 1;</code>
+       * @param value The role to set.
+       * @return This builder for chaining.
        */
       public Builder setRole(soc.proto.Message.AuthRequest.AuthRole value) {
         if (value == null) {
@@ -3000,6 +3216,7 @@ public final class Message {
       }
       /**
        * <code>.AuthRequest.AuthRole role = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearRole() {
         
@@ -3011,6 +3228,7 @@ public final class Message {
       private java.lang.Object nickname_ = "";
       /**
        * <code>string nickname = 2;</code>
+       * @return The nickname.
        */
       public java.lang.String getNickname() {
         java.lang.Object ref = nickname_;
@@ -3026,6 +3244,7 @@ public final class Message {
       }
       /**
        * <code>string nickname = 2;</code>
+       * @return The bytes for nickname.
        */
       public com.google.protobuf.ByteString
           getNicknameBytes() {
@@ -3042,6 +3261,8 @@ public final class Message {
       }
       /**
        * <code>string nickname = 2;</code>
+       * @param value The nickname to set.
+       * @return This builder for chaining.
        */
       public Builder setNickname(
           java.lang.String value) {
@@ -3055,6 +3276,7 @@ public final class Message {
       }
       /**
        * <code>string nickname = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearNickname() {
         
@@ -3064,6 +3286,8 @@ public final class Message {
       }
       /**
        * <code>string nickname = 2;</code>
+       * @param value The bytes for nickname to set.
+       * @return This builder for chaining.
        */
       public Builder setNicknameBytes(
           com.google.protobuf.ByteString value) {
@@ -3080,6 +3304,7 @@ public final class Message {
       private java.lang.Object password_ = "";
       /**
        * <code>string password = 3;</code>
+       * @return The password.
        */
       public java.lang.String getPassword() {
         java.lang.Object ref = password_;
@@ -3095,6 +3320,7 @@ public final class Message {
       }
       /**
        * <code>string password = 3;</code>
+       * @return The bytes for password.
        */
       public com.google.protobuf.ByteString
           getPasswordBytes() {
@@ -3111,6 +3337,8 @@ public final class Message {
       }
       /**
        * <code>string password = 3;</code>
+       * @param value The password to set.
+       * @return This builder for chaining.
        */
       public Builder setPassword(
           java.lang.String value) {
@@ -3124,6 +3352,7 @@ public final class Message {
       }
       /**
        * <code>string password = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPassword() {
         
@@ -3133,6 +3362,8 @@ public final class Message {
       }
       /**
        * <code>string password = 3;</code>
+       * @param value The bytes for password to set.
+       * @return This builder for chaining.
        */
       public Builder setPasswordBytes(
           com.google.protobuf.ByteString value) {
@@ -3149,12 +3380,15 @@ public final class Message {
       private int authScheme_ = 0;
       /**
        * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+       * @return The enum numeric value on the wire for authScheme.
        */
       public int getAuthSchemeValue() {
         return authScheme_;
       }
       /**
        * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+       * @param value The enum numeric value on the wire for authScheme to set.
+       * @return This builder for chaining.
        */
       public Builder setAuthSchemeValue(int value) {
         authScheme_ = value;
@@ -3163,13 +3397,17 @@ public final class Message {
       }
       /**
        * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+       * @return The authScheme.
        */
       public soc.proto.Message.AuthRequest.AuthScheme getAuthScheme() {
+        @SuppressWarnings("deprecation")
         soc.proto.Message.AuthRequest.AuthScheme result = soc.proto.Message.AuthRequest.AuthScheme.valueOf(authScheme_);
         return result == null ? soc.proto.Message.AuthRequest.AuthScheme.UNRECOGNIZED : result;
       }
       /**
        * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+       * @param value The authScheme to set.
+       * @return This builder for chaining.
        */
       public Builder setAuthScheme(soc.proto.Message.AuthRequest.AuthScheme value) {
         if (value == null) {
@@ -3182,6 +3420,7 @@ public final class Message {
       }
       /**
        * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAuthScheme() {
         
@@ -3189,11 +3428,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -3215,11 +3456,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<AuthRequest>
         PARSER = new com.google.protobuf.AbstractParser<AuthRequest>() {
+      @java.lang.Override
       public AuthRequest parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new AuthRequest(input, extensionRegistry);
+        return new AuthRequest(input, extensionRegistry);
       }
     };
 
@@ -3232,6 +3474,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.AuthRequest getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -3248,6 +3491,7 @@ public final class Message {
      * </pre>
      *
      * <code>string reason_text = 1;</code>
+     * @return The reasonText.
      */
     java.lang.String getReasonText();
     /**
@@ -3256,6 +3500,7 @@ public final class Message {
      * </pre>
      *
      * <code>string reason_text = 1;</code>
+     * @return The bytes for reasonText.
      */
     com.google.protobuf.ByteString
         getReasonTextBytes();
@@ -3281,6 +3526,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new RejectConnection();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -3290,7 +3542,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -3301,17 +3555,17 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
               reasonText_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -3331,6 +3585,7 @@ public final class Message {
       return soc.proto.Message.internal_static_RejectConnection_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_RejectConnection_fieldAccessorTable
@@ -3346,6 +3601,7 @@ public final class Message {
      * </pre>
      *
      * <code>string reason_text = 1;</code>
+     * @return The reasonText.
      */
     public java.lang.String getReasonText() {
       java.lang.Object ref = reasonText_;
@@ -3365,6 +3621,7 @@ public final class Message {
      * </pre>
      *
      * <code>string reason_text = 1;</code>
+     * @return The bytes for reasonText.
      */
     public com.google.protobuf.ByteString
         getReasonTextBytes() {
@@ -3381,6 +3638,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -3390,6 +3648,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getReasonTextBytes().isEmpty()) {
@@ -3398,6 +3657,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -3421,11 +3681,10 @@ public final class Message {
       }
       soc.proto.Message.RejectConnection other = (soc.proto.Message.RejectConnection) obj;
 
-      boolean result = true;
-      result = result && getReasonText()
-          .equals(other.getReasonText());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getReasonText()
+          .equals(other.getReasonText())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -3512,6 +3771,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -3519,6 +3779,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.RejectConnection prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -3546,6 +3807,7 @@ public final class Message {
         return soc.proto.Message.internal_static_RejectConnection_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_RejectConnection_fieldAccessorTable
@@ -3568,6 +3830,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         reasonText_ = "";
@@ -3575,15 +3838,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_RejectConnection_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.RejectConnection getDefaultInstanceForType() {
         return soc.proto.Message.RejectConnection.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.RejectConnection build() {
         soc.proto.Message.RejectConnection result = buildPartial();
         if (!result.isInitialized()) {
@@ -3592,6 +3858,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.RejectConnection buildPartial() {
         soc.proto.Message.RejectConnection result = new soc.proto.Message.RejectConnection(this);
         result.reasonText_ = reasonText_;
@@ -3599,32 +3866,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.RejectConnection) {
           return mergeFrom((soc.proto.Message.RejectConnection)other);
@@ -3645,10 +3919,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3674,6 +3950,7 @@ public final class Message {
        * </pre>
        *
        * <code>string reason_text = 1;</code>
+       * @return The reasonText.
        */
       public java.lang.String getReasonText() {
         java.lang.Object ref = reasonText_;
@@ -3693,6 +3970,7 @@ public final class Message {
        * </pre>
        *
        * <code>string reason_text = 1;</code>
+       * @return The bytes for reasonText.
        */
       public com.google.protobuf.ByteString
           getReasonTextBytes() {
@@ -3713,6 +3991,8 @@ public final class Message {
        * </pre>
        *
        * <code>string reason_text = 1;</code>
+       * @param value The reasonText to set.
+       * @return This builder for chaining.
        */
       public Builder setReasonText(
           java.lang.String value) {
@@ -3730,6 +4010,7 @@ public final class Message {
        * </pre>
        *
        * <code>string reason_text = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearReasonText() {
         
@@ -3743,6 +4024,8 @@ public final class Message {
        * </pre>
        *
        * <code>string reason_text = 1;</code>
+       * @param value The bytes for reasonText to set.
+       * @return This builder for chaining.
        */
       public Builder setReasonTextBytes(
           com.google.protobuf.ByteString value) {
@@ -3755,11 +4038,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -3781,11 +4066,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<RejectConnection>
         PARSER = new com.google.protobuf.AbstractParser<RejectConnection>() {
+      @java.lang.Override
       public RejectConnection parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new RejectConnection(input, extensionRegistry);
+        return new RejectConnection(input, extensionRegistry);
       }
     };
 
@@ -3798,6 +4084,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.RejectConnection getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -3810,20 +4097,24 @@ public final class Message {
 
     /**
      * <code>string text = 1;</code>
+     * @return The text.
      */
     java.lang.String getText();
     /**
      * <code>string text = 1;</code>
+     * @return The bytes for text.
      */
     com.google.protobuf.ByteString
         getTextBytes();
 
     /**
      * <code>.ServerStatusText.StatusValue sv = 2;</code>
+     * @return The enum numeric value on the wire for sv.
      */
     int getSvValue();
     /**
      * <code>.ServerStatusText.StatusValue sv = 2;</code>
+     * @return The sv.
      */
     soc.proto.Message.ServerStatusText.StatusValue getSv();
 
@@ -3833,6 +4124,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated string details = 3;</code>
+     * @return A list containing the details.
      */
     java.util.List<java.lang.String>
         getDetailsList();
@@ -3842,6 +4134,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated string details = 3;</code>
+     * @return The count of details.
      */
     int getDetailsCount();
     /**
@@ -3850,6 +4143,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated string details = 3;</code>
+     * @param index The index of the element to return.
+     * @return The details at the given index.
      */
     java.lang.String getDetails(int index);
     /**
@@ -3858,6 +4153,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated string details = 3;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the details at the given index.
      */
     com.google.protobuf.ByteString
         getDetailsBytes(int index);
@@ -3896,6 +4193,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ServerStatusText();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -3905,6 +4209,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -3916,13 +4223,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -3937,11 +4237,18 @@ public final class Message {
             }
             case 26: {
               java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 details_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000004;
+                mutable_bitField0_ |= 0x00000001;
               }
               details_.add(s);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -3952,7 +4259,7 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           details_ = details_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
@@ -3964,6 +4271,7 @@ public final class Message {
       return soc.proto.Message.internal_static_ServerStatusText_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_ServerStatusText_fieldAccessorTable
@@ -4614,6 +4922,8 @@ public final class Message {
       }
 
       /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -4621,6 +4931,10 @@ public final class Message {
         return forNumber(value);
       }
 
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       */
       public static StatusValue forNumber(int value) {
         switch (value) {
           case 0: return OK;
@@ -4699,11 +5013,11 @@ public final class Message {
       // @@protoc_insertion_point(enum_scope:ServerStatusText.StatusValue)
     }
 
-    private int bitField0_;
     public static final int TEXT_FIELD_NUMBER = 1;
     private volatile java.lang.Object text_;
     /**
      * <code>string text = 1;</code>
+     * @return The text.
      */
     public java.lang.String getText() {
       java.lang.Object ref = text_;
@@ -4719,6 +5033,7 @@ public final class Message {
     }
     /**
      * <code>string text = 1;</code>
+     * @return The bytes for text.
      */
     public com.google.protobuf.ByteString
         getTextBytes() {
@@ -4738,14 +5053,17 @@ public final class Message {
     private int sv_;
     /**
      * <code>.ServerStatusText.StatusValue sv = 2;</code>
+     * @return The enum numeric value on the wire for sv.
      */
     public int getSvValue() {
       return sv_;
     }
     /**
      * <code>.ServerStatusText.StatusValue sv = 2;</code>
+     * @return The sv.
      */
     public soc.proto.Message.ServerStatusText.StatusValue getSv() {
+      @SuppressWarnings("deprecation")
       soc.proto.Message.ServerStatusText.StatusValue result = soc.proto.Message.ServerStatusText.StatusValue.valueOf(sv_);
       return result == null ? soc.proto.Message.ServerStatusText.StatusValue.UNRECOGNIZED : result;
     }
@@ -4758,6 +5076,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated string details = 3;</code>
+     * @return A list containing the details.
      */
     public com.google.protobuf.ProtocolStringList
         getDetailsList() {
@@ -4769,6 +5088,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated string details = 3;</code>
+     * @return The count of details.
      */
     public int getDetailsCount() {
       return details_.size();
@@ -4779,6 +5099,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated string details = 3;</code>
+     * @param index The index of the element to return.
+     * @return The details at the given index.
      */
     public java.lang.String getDetails(int index) {
       return details_.get(index);
@@ -4789,6 +5111,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated string details = 3;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the details at the given index.
      */
     public com.google.protobuf.ByteString
         getDetailsBytes(int index) {
@@ -4796,6 +5120,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -4805,6 +5130,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getTextBytes().isEmpty()) {
@@ -4819,6 +5145,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -4854,14 +5181,13 @@ public final class Message {
       }
       soc.proto.Message.ServerStatusText other = (soc.proto.Message.ServerStatusText) obj;
 
-      boolean result = true;
-      result = result && getText()
-          .equals(other.getText());
-      result = result && sv_ == other.sv_;
-      result = result && getDetailsList()
-          .equals(other.getDetailsList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getText()
+          .equals(other.getText())) return false;
+      if (sv_ != other.sv_) return false;
+      if (!getDetailsList()
+          .equals(other.getDetailsList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -4954,6 +5280,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -4961,6 +5288,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.ServerStatusText prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -4999,6 +5327,7 @@ public final class Message {
         return soc.proto.Message.internal_static_ServerStatusText_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_ServerStatusText_fieldAccessorTable
@@ -5021,6 +5350,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         text_ = "";
@@ -5028,19 +5358,22 @@ public final class Message {
         sv_ = 0;
 
         details_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_ServerStatusText_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ServerStatusText getDefaultInstanceForType() {
         return soc.proto.Message.ServerStatusText.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.ServerStatusText build() {
         soc.proto.Message.ServerStatusText result = buildPartial();
         if (!result.isInitialized()) {
@@ -5049,48 +5382,54 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ServerStatusText buildPartial() {
         soc.proto.Message.ServerStatusText result = new soc.proto.Message.ServerStatusText(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.text_ = text_;
         result.sv_ = sv_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           details_ = details_.getUnmodifiableView();
-          bitField0_ = (bitField0_ & ~0x00000004);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.details_ = details_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.ServerStatusText) {
           return mergeFrom((soc.proto.Message.ServerStatusText)other);
@@ -5112,7 +5451,7 @@ public final class Message {
         if (!other.details_.isEmpty()) {
           if (details_.isEmpty()) {
             details_ = other.details_;
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureDetailsIsMutable();
             details_.addAll(other.details_);
@@ -5124,10 +5463,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -5150,6 +5491,7 @@ public final class Message {
       private java.lang.Object text_ = "";
       /**
        * <code>string text = 1;</code>
+       * @return The text.
        */
       public java.lang.String getText() {
         java.lang.Object ref = text_;
@@ -5165,6 +5507,7 @@ public final class Message {
       }
       /**
        * <code>string text = 1;</code>
+       * @return The bytes for text.
        */
       public com.google.protobuf.ByteString
           getTextBytes() {
@@ -5181,6 +5524,8 @@ public final class Message {
       }
       /**
        * <code>string text = 1;</code>
+       * @param value The text to set.
+       * @return This builder for chaining.
        */
       public Builder setText(
           java.lang.String value) {
@@ -5194,6 +5539,7 @@ public final class Message {
       }
       /**
        * <code>string text = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearText() {
         
@@ -5203,6 +5549,8 @@ public final class Message {
       }
       /**
        * <code>string text = 1;</code>
+       * @param value The bytes for text to set.
+       * @return This builder for chaining.
        */
       public Builder setTextBytes(
           com.google.protobuf.ByteString value) {
@@ -5219,12 +5567,15 @@ public final class Message {
       private int sv_ = 0;
       /**
        * <code>.ServerStatusText.StatusValue sv = 2;</code>
+       * @return The enum numeric value on the wire for sv.
        */
       public int getSvValue() {
         return sv_;
       }
       /**
        * <code>.ServerStatusText.StatusValue sv = 2;</code>
+       * @param value The enum numeric value on the wire for sv to set.
+       * @return This builder for chaining.
        */
       public Builder setSvValue(int value) {
         sv_ = value;
@@ -5233,13 +5584,17 @@ public final class Message {
       }
       /**
        * <code>.ServerStatusText.StatusValue sv = 2;</code>
+       * @return The sv.
        */
       public soc.proto.Message.ServerStatusText.StatusValue getSv() {
+        @SuppressWarnings("deprecation")
         soc.proto.Message.ServerStatusText.StatusValue result = soc.proto.Message.ServerStatusText.StatusValue.valueOf(sv_);
         return result == null ? soc.proto.Message.ServerStatusText.StatusValue.UNRECOGNIZED : result;
       }
       /**
        * <code>.ServerStatusText.StatusValue sv = 2;</code>
+       * @param value The sv to set.
+       * @return This builder for chaining.
        */
       public Builder setSv(soc.proto.Message.ServerStatusText.StatusValue value) {
         if (value == null) {
@@ -5252,6 +5607,7 @@ public final class Message {
       }
       /**
        * <code>.ServerStatusText.StatusValue sv = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearSv() {
         
@@ -5262,9 +5618,9 @@ public final class Message {
 
       private com.google.protobuf.LazyStringList details_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureDetailsIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           details_ = new com.google.protobuf.LazyStringArrayList(details_);
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000001;
          }
       }
       /**
@@ -5273,6 +5629,7 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @return A list containing the details.
        */
       public com.google.protobuf.ProtocolStringList
           getDetailsList() {
@@ -5284,6 +5641,7 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @return The count of details.
        */
       public int getDetailsCount() {
         return details_.size();
@@ -5294,6 +5652,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @param index The index of the element to return.
+       * @return The details at the given index.
        */
       public java.lang.String getDetails(int index) {
         return details_.get(index);
@@ -5304,6 +5664,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the details at the given index.
        */
       public com.google.protobuf.ByteString
           getDetailsBytes(int index) {
@@ -5315,6 +5677,9 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @param index The index to set the value at.
+       * @param value The details to set.
+       * @return This builder for chaining.
        */
       public Builder setDetails(
           int index, java.lang.String value) {
@@ -5332,6 +5697,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @param value The details to add.
+       * @return This builder for chaining.
        */
       public Builder addDetails(
           java.lang.String value) {
@@ -5349,6 +5716,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @param values The details to add.
+       * @return This builder for chaining.
        */
       public Builder addAllDetails(
           java.lang.Iterable<java.lang.String> values) {
@@ -5364,10 +5733,11 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDetails() {
         details_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
@@ -5377,6 +5747,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated string details = 3;</code>
+       * @param value The bytes of the details to add.
+       * @return This builder for chaining.
        */
       public Builder addDetailsBytes(
           com.google.protobuf.ByteString value) {
@@ -5389,11 +5761,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -5415,11 +5789,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<ServerStatusText>
         PARSER = new com.google.protobuf.AbstractParser<ServerStatusText>() {
+      @java.lang.Override
       public ServerStatusText parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ServerStatusText(input, extensionRegistry);
+        return new ServerStatusText(input, extensionRegistry);
       }
     };
 
@@ -5432,6 +5807,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.ServerStatusText getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -5444,10 +5820,12 @@ public final class Message {
 
     /**
      * <code>string text = 1;</code>
+     * @return The text.
      */
     java.lang.String getText();
     /**
      * <code>string text = 1;</code>
+     * @return The bytes for text.
      */
     com.google.protobuf.ByteString
         getTextBytes();
@@ -5475,6 +5853,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BroadcastText();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -5484,7 +5869,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -5495,17 +5882,17 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
               text_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -5525,6 +5912,7 @@ public final class Message {
       return soc.proto.Message.internal_static_BroadcastText_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_BroadcastText_fieldAccessorTable
@@ -5536,6 +5924,7 @@ public final class Message {
     private volatile java.lang.Object text_;
     /**
      * <code>string text = 1;</code>
+     * @return The text.
      */
     public java.lang.String getText() {
       java.lang.Object ref = text_;
@@ -5551,6 +5940,7 @@ public final class Message {
     }
     /**
      * <code>string text = 1;</code>
+     * @return The bytes for text.
      */
     public com.google.protobuf.ByteString
         getTextBytes() {
@@ -5567,6 +5957,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -5576,6 +5967,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getTextBytes().isEmpty()) {
@@ -5584,6 +5976,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -5607,11 +6000,10 @@ public final class Message {
       }
       soc.proto.Message.BroadcastText other = (soc.proto.Message.BroadcastText) obj;
 
-      boolean result = true;
-      result = result && getText()
-          .equals(other.getText());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getText()
+          .equals(other.getText())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -5698,6 +6090,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -5705,6 +6098,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.BroadcastText prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -5734,6 +6128,7 @@ public final class Message {
         return soc.proto.Message.internal_static_BroadcastText_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_BroadcastText_fieldAccessorTable
@@ -5756,6 +6151,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         text_ = "";
@@ -5763,15 +6159,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_BroadcastText_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BroadcastText getDefaultInstanceForType() {
         return soc.proto.Message.BroadcastText.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.BroadcastText build() {
         soc.proto.Message.BroadcastText result = buildPartial();
         if (!result.isInitialized()) {
@@ -5780,6 +6179,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BroadcastText buildPartial() {
         soc.proto.Message.BroadcastText result = new soc.proto.Message.BroadcastText(this);
         result.text_ = text_;
@@ -5787,32 +6187,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.BroadcastText) {
           return mergeFrom((soc.proto.Message.BroadcastText)other);
@@ -5833,10 +6240,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -5858,6 +6267,7 @@ public final class Message {
       private java.lang.Object text_ = "";
       /**
        * <code>string text = 1;</code>
+       * @return The text.
        */
       public java.lang.String getText() {
         java.lang.Object ref = text_;
@@ -5873,6 +6283,7 @@ public final class Message {
       }
       /**
        * <code>string text = 1;</code>
+       * @return The bytes for text.
        */
       public com.google.protobuf.ByteString
           getTextBytes() {
@@ -5889,6 +6300,8 @@ public final class Message {
       }
       /**
        * <code>string text = 1;</code>
+       * @param value The text to set.
+       * @return This builder for chaining.
        */
       public Builder setText(
           java.lang.String value) {
@@ -5902,6 +6315,7 @@ public final class Message {
       }
       /**
        * <code>string text = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearText() {
         
@@ -5911,6 +6325,8 @@ public final class Message {
       }
       /**
        * <code>string text = 1;</code>
+       * @param value The bytes for text to set.
+       * @return This builder for chaining.
        */
       public Builder setTextBytes(
           com.google.protobuf.ByteString value) {
@@ -5923,11 +6339,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -5949,11 +6367,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<BroadcastText>
         PARSER = new com.google.protobuf.AbstractParser<BroadcastText>() {
+      @java.lang.Override
       public BroadcastText parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BroadcastText(input, extensionRegistry);
+        return new BroadcastText(input, extensionRegistry);
       }
     };
 
@@ -5966,6 +6385,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.BroadcastText getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -6000,6 +6420,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new LeaveAll();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -6009,6 +6436,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -6020,7 +6450,7 @@ public final class Message {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -6043,6 +6473,7 @@ public final class Message {
       return soc.proto.Message.internal_static_LeaveAll_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_LeaveAll_fieldAccessorTable
@@ -6051,6 +6482,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -6060,11 +6492,13 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -6085,9 +6519,8 @@ public final class Message {
       }
       soc.proto.Message.LeaveAll other = (soc.proto.Message.LeaveAll) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -6172,6 +6605,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -6179,6 +6613,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.LeaveAll prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -6210,6 +6645,7 @@ public final class Message {
         return soc.proto.Message.internal_static_LeaveAll_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_LeaveAll_fieldAccessorTable
@@ -6232,20 +6668,24 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_LeaveAll_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveAll getDefaultInstanceForType() {
         return soc.proto.Message.LeaveAll.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveAll build() {
         soc.proto.Message.LeaveAll result = buildPartial();
         if (!result.isInitialized()) {
@@ -6254,38 +6694,46 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveAll buildPartial() {
         soc.proto.Message.LeaveAll result = new soc.proto.Message.LeaveAll(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.LeaveAll) {
           return mergeFrom((soc.proto.Message.LeaveAll)other);
@@ -6302,10 +6750,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -6323,11 +6773,13 @@ public final class Message {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -6349,11 +6801,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<LeaveAll>
         PARSER = new com.google.protobuf.AbstractParser<LeaveAll>() {
+      @java.lang.Override
       public LeaveAll parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new LeaveAll(input, extensionRegistry);
+        return new LeaveAll(input, extensionRegistry);
       }
     };
 
@@ -6366,6 +6819,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.LeaveAll getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -6385,6 +6839,7 @@ public final class Message {
      * </pre>
      *
      * <code>int32 sleep_time = 1;</code>
+     * @return The sleepTime.
      */
     int getSleepTime();
   }
@@ -6415,7 +6870,13 @@ public final class Message {
       super(builder);
     }
     private ServerPing() {
-      sleepTime_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ServerPing();
     }
 
     @java.lang.Override
@@ -6428,7 +6889,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -6439,16 +6902,16 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               sleepTime_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -6468,6 +6931,7 @@ public final class Message {
       return soc.proto.Message.internal_static_ServerPing_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_ServerPing_fieldAccessorTable
@@ -6486,12 +6950,14 @@ public final class Message {
      * </pre>
      *
      * <code>int32 sleep_time = 1;</code>
+     * @return The sleepTime.
      */
     public int getSleepTime() {
       return sleepTime_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -6501,6 +6967,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (sleepTime_ != 0) {
@@ -6509,6 +6976,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -6533,11 +7001,10 @@ public final class Message {
       }
       soc.proto.Message.ServerPing other = (soc.proto.Message.ServerPing) obj;
 
-      boolean result = true;
-      result = result && (getSleepTime()
-          == other.getSleepTime());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getSleepTime()
+          != other.getSleepTime()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -6624,6 +7091,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -6631,6 +7099,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.ServerPing prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -6668,6 +7137,7 @@ public final class Message {
         return soc.proto.Message.internal_static_ServerPing_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_ServerPing_fieldAccessorTable
@@ -6690,6 +7160,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         sleepTime_ = 0;
@@ -6697,15 +7168,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_ServerPing_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ServerPing getDefaultInstanceForType() {
         return soc.proto.Message.ServerPing.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.ServerPing build() {
         soc.proto.Message.ServerPing result = buildPartial();
         if (!result.isInitialized()) {
@@ -6714,6 +7188,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ServerPing buildPartial() {
         soc.proto.Message.ServerPing result = new soc.proto.Message.ServerPing(this);
         result.sleepTime_ = sleepTime_;
@@ -6721,32 +7196,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.ServerPing) {
           return mergeFrom((soc.proto.Message.ServerPing)other);
@@ -6766,10 +7248,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -6798,6 +7282,7 @@ public final class Message {
        * </pre>
        *
        * <code>int32 sleep_time = 1;</code>
+       * @return The sleepTime.
        */
       public int getSleepTime() {
         return sleepTime_;
@@ -6811,6 +7296,8 @@ public final class Message {
        * </pre>
        *
        * <code>int32 sleep_time = 1;</code>
+       * @param value The sleepTime to set.
+       * @return This builder for chaining.
        */
       public Builder setSleepTime(int value) {
         
@@ -6827,6 +7314,7 @@ public final class Message {
        * </pre>
        *
        * <code>int32 sleep_time = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearSleepTime() {
         
@@ -6834,11 +7322,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -6860,11 +7350,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<ServerPing>
         PARSER = new com.google.protobuf.AbstractParser<ServerPing>() {
+      @java.lang.Override
       public ServerPing parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ServerPing(input, extensionRegistry);
+        return new ServerPing(input, extensionRegistry);
       }
     };
 
@@ -6877,6 +7368,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.ServerPing getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -6889,36 +7381,43 @@ public final class Message {
 
     /**
      * <code>uint32 max_game_length = 1;</code>
+     * @return The maxGameLength.
      */
     int getMaxGameLength();
 
     /**
      * <code>uint32 max_eta = 2;</code>
+     * @return The maxEta.
      */
     int getMaxEta();
 
     /**
      * <code>float eta_bonus_factor = 3;</code>
+     * @return The etaBonusFactor.
      */
     float getEtaBonusFactor();
 
     /**
      * <code>float adversarial_factor = 4;</code>
+     * @return The adversarialFactor.
      */
     float getAdversarialFactor();
 
     /**
      * <code>float leader_adversarial_factor = 5;</code>
+     * @return The leaderAdversarialFactor.
      */
     float getLeaderAdversarialFactor();
 
     /**
      * <code>float dev_card_multiplier = 6;</code>
+     * @return The devCardMultiplier.
      */
     float getDevCardMultiplier();
 
     /**
      * <code>float threat_multiplier = 7;</code>
+     * @return The threatMultiplier.
      */
     float getThreatMultiplier();
 
@@ -6928,6 +7427,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 strategy_type = 8;</code>
+     * @return The strategyType.
      */
     int getStrategyType();
 
@@ -6937,6 +7437,7 @@ public final class Message {
      * </pre>
      *
      * <code>bool trade_flag = 9;</code>
+     * @return The tradeFlag.
      */
     boolean getTradeFlag();
   }
@@ -6960,15 +7461,13 @@ public final class Message {
       super(builder);
     }
     private BotUpdateParams() {
-      maxGameLength_ = 0;
-      maxEta_ = 0;
-      etaBonusFactor_ = 0F;
-      adversarialFactor_ = 0F;
-      leaderAdversarialFactor_ = 0F;
-      devCardMultiplier_ = 0F;
-      threatMultiplier_ = 0F;
-      strategyType_ = 0;
-      tradeFlag_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BotUpdateParams();
     }
 
     @java.lang.Override
@@ -6981,7 +7480,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -6992,13 +7493,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               maxGameLength_ = input.readUInt32();
@@ -7044,6 +7538,13 @@ public final class Message {
               tradeFlag_ = input.readBool();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -7061,6 +7562,7 @@ public final class Message {
       return soc.proto.Message.internal_static_BotUpdateParams_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_BotUpdateParams_fieldAccessorTable
@@ -7072,6 +7574,7 @@ public final class Message {
     private int maxGameLength_;
     /**
      * <code>uint32 max_game_length = 1;</code>
+     * @return The maxGameLength.
      */
     public int getMaxGameLength() {
       return maxGameLength_;
@@ -7081,6 +7584,7 @@ public final class Message {
     private int maxEta_;
     /**
      * <code>uint32 max_eta = 2;</code>
+     * @return The maxEta.
      */
     public int getMaxEta() {
       return maxEta_;
@@ -7090,6 +7594,7 @@ public final class Message {
     private float etaBonusFactor_;
     /**
      * <code>float eta_bonus_factor = 3;</code>
+     * @return The etaBonusFactor.
      */
     public float getEtaBonusFactor() {
       return etaBonusFactor_;
@@ -7099,6 +7604,7 @@ public final class Message {
     private float adversarialFactor_;
     /**
      * <code>float adversarial_factor = 4;</code>
+     * @return The adversarialFactor.
      */
     public float getAdversarialFactor() {
       return adversarialFactor_;
@@ -7108,6 +7614,7 @@ public final class Message {
     private float leaderAdversarialFactor_;
     /**
      * <code>float leader_adversarial_factor = 5;</code>
+     * @return The leaderAdversarialFactor.
      */
     public float getLeaderAdversarialFactor() {
       return leaderAdversarialFactor_;
@@ -7117,6 +7624,7 @@ public final class Message {
     private float devCardMultiplier_;
     /**
      * <code>float dev_card_multiplier = 6;</code>
+     * @return The devCardMultiplier.
      */
     public float getDevCardMultiplier() {
       return devCardMultiplier_;
@@ -7126,6 +7634,7 @@ public final class Message {
     private float threatMultiplier_;
     /**
      * <code>float threat_multiplier = 7;</code>
+     * @return The threatMultiplier.
      */
     public float getThreatMultiplier() {
       return threatMultiplier_;
@@ -7139,6 +7648,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 strategy_type = 8;</code>
+     * @return The strategyType.
      */
     public int getStrategyType() {
       return strategyType_;
@@ -7152,12 +7662,14 @@ public final class Message {
      * </pre>
      *
      * <code>bool trade_flag = 9;</code>
+     * @return The tradeFlag.
      */
     public boolean getTradeFlag() {
       return tradeFlag_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -7167,6 +7679,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (maxGameLength_ != 0) {
@@ -7199,6 +7712,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -7255,37 +7769,31 @@ public final class Message {
       }
       soc.proto.Message.BotUpdateParams other = (soc.proto.Message.BotUpdateParams) obj;
 
-      boolean result = true;
-      result = result && (getMaxGameLength()
-          == other.getMaxGameLength());
-      result = result && (getMaxEta()
-          == other.getMaxEta());
-      result = result && (
-          java.lang.Float.floatToIntBits(getEtaBonusFactor())
-          == java.lang.Float.floatToIntBits(
-              other.getEtaBonusFactor()));
-      result = result && (
-          java.lang.Float.floatToIntBits(getAdversarialFactor())
-          == java.lang.Float.floatToIntBits(
-              other.getAdversarialFactor()));
-      result = result && (
-          java.lang.Float.floatToIntBits(getLeaderAdversarialFactor())
-          == java.lang.Float.floatToIntBits(
-              other.getLeaderAdversarialFactor()));
-      result = result && (
-          java.lang.Float.floatToIntBits(getDevCardMultiplier())
-          == java.lang.Float.floatToIntBits(
-              other.getDevCardMultiplier()));
-      result = result && (
-          java.lang.Float.floatToIntBits(getThreatMultiplier())
-          == java.lang.Float.floatToIntBits(
-              other.getThreatMultiplier()));
-      result = result && (getStrategyType()
-          == other.getStrategyType());
-      result = result && (getTradeFlag()
-          == other.getTradeFlag());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getMaxGameLength()
+          != other.getMaxGameLength()) return false;
+      if (getMaxEta()
+          != other.getMaxEta()) return false;
+      if (java.lang.Float.floatToIntBits(getEtaBonusFactor())
+          != java.lang.Float.floatToIntBits(
+              other.getEtaBonusFactor())) return false;
+      if (java.lang.Float.floatToIntBits(getAdversarialFactor())
+          != java.lang.Float.floatToIntBits(
+              other.getAdversarialFactor())) return false;
+      if (java.lang.Float.floatToIntBits(getLeaderAdversarialFactor())
+          != java.lang.Float.floatToIntBits(
+              other.getLeaderAdversarialFactor())) return false;
+      if (java.lang.Float.floatToIntBits(getDevCardMultiplier())
+          != java.lang.Float.floatToIntBits(
+              other.getDevCardMultiplier())) return false;
+      if (java.lang.Float.floatToIntBits(getThreatMultiplier())
+          != java.lang.Float.floatToIntBits(
+              other.getThreatMultiplier())) return false;
+      if (getStrategyType()
+          != other.getStrategyType()) return false;
+      if (getTradeFlag()
+          != other.getTradeFlag()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -7394,6 +7902,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -7401,6 +7910,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.BotUpdateParams prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -7431,6 +7941,7 @@ public final class Message {
         return soc.proto.Message.internal_static_BotUpdateParams_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_BotUpdateParams_fieldAccessorTable
@@ -7453,6 +7964,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         maxGameLength_ = 0;
@@ -7476,15 +7988,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_BotUpdateParams_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotUpdateParams getDefaultInstanceForType() {
         return soc.proto.Message.BotUpdateParams.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotUpdateParams build() {
         soc.proto.Message.BotUpdateParams result = buildPartial();
         if (!result.isInitialized()) {
@@ -7493,6 +8008,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotUpdateParams buildPartial() {
         soc.proto.Message.BotUpdateParams result = new soc.proto.Message.BotUpdateParams(this);
         result.maxGameLength_ = maxGameLength_;
@@ -7508,32 +8024,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.BotUpdateParams) {
           return mergeFrom((soc.proto.Message.BotUpdateParams)other);
@@ -7577,10 +8100,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -7602,12 +8127,15 @@ public final class Message {
       private int maxGameLength_ ;
       /**
        * <code>uint32 max_game_length = 1;</code>
+       * @return The maxGameLength.
        */
       public int getMaxGameLength() {
         return maxGameLength_;
       }
       /**
        * <code>uint32 max_game_length = 1;</code>
+       * @param value The maxGameLength to set.
+       * @return This builder for chaining.
        */
       public Builder setMaxGameLength(int value) {
         
@@ -7617,6 +8145,7 @@ public final class Message {
       }
       /**
        * <code>uint32 max_game_length = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMaxGameLength() {
         
@@ -7628,12 +8157,15 @@ public final class Message {
       private int maxEta_ ;
       /**
        * <code>uint32 max_eta = 2;</code>
+       * @return The maxEta.
        */
       public int getMaxEta() {
         return maxEta_;
       }
       /**
        * <code>uint32 max_eta = 2;</code>
+       * @param value The maxEta to set.
+       * @return This builder for chaining.
        */
       public Builder setMaxEta(int value) {
         
@@ -7643,6 +8175,7 @@ public final class Message {
       }
       /**
        * <code>uint32 max_eta = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMaxEta() {
         
@@ -7654,12 +8187,15 @@ public final class Message {
       private float etaBonusFactor_ ;
       /**
        * <code>float eta_bonus_factor = 3;</code>
+       * @return The etaBonusFactor.
        */
       public float getEtaBonusFactor() {
         return etaBonusFactor_;
       }
       /**
        * <code>float eta_bonus_factor = 3;</code>
+       * @param value The etaBonusFactor to set.
+       * @return This builder for chaining.
        */
       public Builder setEtaBonusFactor(float value) {
         
@@ -7669,6 +8205,7 @@ public final class Message {
       }
       /**
        * <code>float eta_bonus_factor = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearEtaBonusFactor() {
         
@@ -7680,12 +8217,15 @@ public final class Message {
       private float adversarialFactor_ ;
       /**
        * <code>float adversarial_factor = 4;</code>
+       * @return The adversarialFactor.
        */
       public float getAdversarialFactor() {
         return adversarialFactor_;
       }
       /**
        * <code>float adversarial_factor = 4;</code>
+       * @param value The adversarialFactor to set.
+       * @return This builder for chaining.
        */
       public Builder setAdversarialFactor(float value) {
         
@@ -7695,6 +8235,7 @@ public final class Message {
       }
       /**
        * <code>float adversarial_factor = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAdversarialFactor() {
         
@@ -7706,12 +8247,15 @@ public final class Message {
       private float leaderAdversarialFactor_ ;
       /**
        * <code>float leader_adversarial_factor = 5;</code>
+       * @return The leaderAdversarialFactor.
        */
       public float getLeaderAdversarialFactor() {
         return leaderAdversarialFactor_;
       }
       /**
        * <code>float leader_adversarial_factor = 5;</code>
+       * @param value The leaderAdversarialFactor to set.
+       * @return This builder for chaining.
        */
       public Builder setLeaderAdversarialFactor(float value) {
         
@@ -7721,6 +8265,7 @@ public final class Message {
       }
       /**
        * <code>float leader_adversarial_factor = 5;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLeaderAdversarialFactor() {
         
@@ -7732,12 +8277,15 @@ public final class Message {
       private float devCardMultiplier_ ;
       /**
        * <code>float dev_card_multiplier = 6;</code>
+       * @return The devCardMultiplier.
        */
       public float getDevCardMultiplier() {
         return devCardMultiplier_;
       }
       /**
        * <code>float dev_card_multiplier = 6;</code>
+       * @param value The devCardMultiplier to set.
+       * @return This builder for chaining.
        */
       public Builder setDevCardMultiplier(float value) {
         
@@ -7747,6 +8295,7 @@ public final class Message {
       }
       /**
        * <code>float dev_card_multiplier = 6;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDevCardMultiplier() {
         
@@ -7758,12 +8307,15 @@ public final class Message {
       private float threatMultiplier_ ;
       /**
        * <code>float threat_multiplier = 7;</code>
+       * @return The threatMultiplier.
        */
       public float getThreatMultiplier() {
         return threatMultiplier_;
       }
       /**
        * <code>float threat_multiplier = 7;</code>
+       * @param value The threatMultiplier to set.
+       * @return This builder for chaining.
        */
       public Builder setThreatMultiplier(float value) {
         
@@ -7773,6 +8325,7 @@ public final class Message {
       }
       /**
        * <code>float threat_multiplier = 7;</code>
+       * @return This builder for chaining.
        */
       public Builder clearThreatMultiplier() {
         
@@ -7788,6 +8341,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 strategy_type = 8;</code>
+       * @return The strategyType.
        */
       public int getStrategyType() {
         return strategyType_;
@@ -7798,6 +8352,8 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 strategy_type = 8;</code>
+       * @param value The strategyType to set.
+       * @return This builder for chaining.
        */
       public Builder setStrategyType(int value) {
         
@@ -7811,6 +8367,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 strategy_type = 8;</code>
+       * @return This builder for chaining.
        */
       public Builder clearStrategyType() {
         
@@ -7826,6 +8383,7 @@ public final class Message {
        * </pre>
        *
        * <code>bool trade_flag = 9;</code>
+       * @return The tradeFlag.
        */
       public boolean getTradeFlag() {
         return tradeFlag_;
@@ -7836,6 +8394,8 @@ public final class Message {
        * </pre>
        *
        * <code>bool trade_flag = 9;</code>
+       * @param value The tradeFlag to set.
+       * @return This builder for chaining.
        */
       public Builder setTradeFlag(boolean value) {
         
@@ -7849,6 +8409,7 @@ public final class Message {
        * </pre>
        *
        * <code>bool trade_flag = 9;</code>
+       * @return This builder for chaining.
        */
       public Builder clearTradeFlag() {
         
@@ -7856,11 +8417,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -7882,11 +8445,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<BotUpdateParams>
         PARSER = new com.google.protobuf.AbstractParser<BotUpdateParams>() {
+      @java.lang.Override
       public BotUpdateParams parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BotUpdateParams(input, extensionRegistry);
+        return new BotUpdateParams(input, extensionRegistry);
       }
     };
 
@@ -7899,6 +8463,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.BotUpdateParams getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -7931,6 +8496,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BotAdminReset();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -7940,6 +8512,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -7951,7 +8526,7 @@ public final class Message {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -7974,6 +8549,7 @@ public final class Message {
       return soc.proto.Message.internal_static_BotAdminReset_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_BotAdminReset_fieldAccessorTable
@@ -7982,6 +8558,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -7991,11 +8568,13 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -8016,9 +8595,8 @@ public final class Message {
       }
       soc.proto.Message.BotAdminReset other = (soc.proto.Message.BotAdminReset) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -8103,6 +8681,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -8110,6 +8689,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.BotAdminReset prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -8139,6 +8719,7 @@ public final class Message {
         return soc.proto.Message.internal_static_BotAdminReset_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_BotAdminReset_fieldAccessorTable
@@ -8161,20 +8742,24 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_BotAdminReset_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotAdminReset getDefaultInstanceForType() {
         return soc.proto.Message.BotAdminReset.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotAdminReset build() {
         soc.proto.Message.BotAdminReset result = buildPartial();
         if (!result.isInitialized()) {
@@ -8183,38 +8768,46 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotAdminReset buildPartial() {
         soc.proto.Message.BotAdminReset result = new soc.proto.Message.BotAdminReset(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.BotAdminReset) {
           return mergeFrom((soc.proto.Message.BotAdminReset)other);
@@ -8231,10 +8824,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -8252,11 +8847,13 @@ public final class Message {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -8278,11 +8875,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<BotAdminReset>
         PARSER = new com.google.protobuf.AbstractParser<BotAdminReset>() {
+      @java.lang.Override
       public BotAdminReset parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BotAdminReset(input, extensionRegistry);
+        return new BotAdminReset(input, extensionRegistry);
       }
     };
 
@@ -8295,6 +8893,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.BotAdminReset getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -8307,19 +8906,25 @@ public final class Message {
 
     /**
      * <code>repeated string names = 1;</code>
+     * @return A list containing the names.
      */
     java.util.List<java.lang.String>
         getNamesList();
     /**
      * <code>repeated string names = 1;</code>
+     * @return The count of names.
      */
     int getNamesCount();
     /**
      * <code>repeated string names = 1;</code>
+     * @param index The index of the element to return.
+     * @return The names at the given index.
      */
     java.lang.String getNames(int index);
     /**
      * <code>repeated string names = 1;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the names at the given index.
      */
     com.google.protobuf.ByteString
         getNamesBytes(int index);
@@ -8353,6 +8958,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Channels();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -8362,6 +8974,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -8373,20 +8988,20 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 names_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000001;
               }
               names_.add(s);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -8397,7 +9012,7 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           names_ = names_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
@@ -8409,6 +9024,7 @@ public final class Message {
       return soc.proto.Message.internal_static_Channels_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_Channels_fieldAccessorTable
@@ -8420,6 +9036,7 @@ public final class Message {
     private com.google.protobuf.LazyStringList names_;
     /**
      * <code>repeated string names = 1;</code>
+     * @return A list containing the names.
      */
     public com.google.protobuf.ProtocolStringList
         getNamesList() {
@@ -8427,18 +9044,23 @@ public final class Message {
     }
     /**
      * <code>repeated string names = 1;</code>
+     * @return The count of names.
      */
     public int getNamesCount() {
       return names_.size();
     }
     /**
      * <code>repeated string names = 1;</code>
+     * @param index The index of the element to return.
+     * @return The names at the given index.
      */
     public java.lang.String getNames(int index) {
       return names_.get(index);
     }
     /**
      * <code>repeated string names = 1;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the names at the given index.
      */
     public com.google.protobuf.ByteString
         getNamesBytes(int index) {
@@ -8446,6 +9068,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -8455,6 +9078,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < names_.size(); i++) {
@@ -8463,6 +9087,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -8491,11 +9116,10 @@ public final class Message {
       }
       soc.proto.Message.Channels other = (soc.proto.Message.Channels) obj;
 
-      boolean result = true;
-      result = result && getNamesList()
-          .equals(other.getNamesList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getNamesList()
+          .equals(other.getNamesList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -8584,6 +9208,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -8591,6 +9216,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.Channels prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -8626,6 +9252,7 @@ public final class Message {
         return soc.proto.Message.internal_static_Channels_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_Channels_fieldAccessorTable
@@ -8648,6 +9275,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         names_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -8655,15 +9283,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_Channels_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.Channels getDefaultInstanceForType() {
         return soc.proto.Message.Channels.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.Channels build() {
         soc.proto.Message.Channels result = buildPartial();
         if (!result.isInitialized()) {
@@ -8672,10 +9303,11 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.Channels buildPartial() {
         soc.proto.Message.Channels result = new soc.proto.Message.Channels(this);
         int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           names_ = names_.getUnmodifiableView();
           bitField0_ = (bitField0_ & ~0x00000001);
         }
@@ -8684,32 +9316,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.Channels) {
           return mergeFrom((soc.proto.Message.Channels)other);
@@ -8736,10 +9375,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -8761,13 +9402,14 @@ public final class Message {
 
       private com.google.protobuf.LazyStringList names_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureNamesIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           names_ = new com.google.protobuf.LazyStringArrayList(names_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @return A list containing the names.
        */
       public com.google.protobuf.ProtocolStringList
           getNamesList() {
@@ -8775,18 +9417,23 @@ public final class Message {
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @return The count of names.
        */
       public int getNamesCount() {
         return names_.size();
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @param index The index of the element to return.
+       * @return The names at the given index.
        */
       public java.lang.String getNames(int index) {
         return names_.get(index);
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the names at the given index.
        */
       public com.google.protobuf.ByteString
           getNamesBytes(int index) {
@@ -8794,6 +9441,9 @@ public final class Message {
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @param index The index to set the value at.
+       * @param value The names to set.
+       * @return This builder for chaining.
        */
       public Builder setNames(
           int index, java.lang.String value) {
@@ -8807,6 +9457,8 @@ public final class Message {
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @param value The names to add.
+       * @return This builder for chaining.
        */
       public Builder addNames(
           java.lang.String value) {
@@ -8820,6 +9472,8 @@ public final class Message {
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @param values The names to add.
+       * @return This builder for chaining.
        */
       public Builder addAllNames(
           java.lang.Iterable<java.lang.String> values) {
@@ -8831,6 +9485,7 @@ public final class Message {
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearNames() {
         names_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -8840,6 +9495,8 @@ public final class Message {
       }
       /**
        * <code>repeated string names = 1;</code>
+       * @param value The bytes of the names to add.
+       * @return This builder for chaining.
        */
       public Builder addNamesBytes(
           com.google.protobuf.ByteString value) {
@@ -8852,11 +9509,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -8878,11 +9537,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<Channels>
         PARSER = new com.google.protobuf.AbstractParser<Channels>() {
+      @java.lang.Override
       public Channels parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new Channels(input, extensionRegistry);
+        return new Channels(input, extensionRegistry);
       }
     };
 
@@ -8895,6 +9555,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.Channels getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -8907,10 +9568,12 @@ public final class Message {
 
     /**
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     java.lang.String getChName();
     /**
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     com.google.protobuf.ByteString
         getChNameBytes();
@@ -8936,6 +9599,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new NewChannel();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -8945,7 +9615,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -8956,17 +9628,17 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
               chName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -8986,6 +9658,7 @@ public final class Message {
       return soc.proto.Message.internal_static_NewChannel_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_NewChannel_fieldAccessorTable
@@ -8997,6 +9670,7 @@ public final class Message {
     private volatile java.lang.Object chName_;
     /**
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
@@ -9012,6 +9686,7 @@ public final class Message {
     }
     /**
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     public com.google.protobuf.ByteString
         getChNameBytes() {
@@ -9028,6 +9703,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -9037,6 +9713,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getChNameBytes().isEmpty()) {
@@ -9045,6 +9722,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -9068,11 +9746,10 @@ public final class Message {
       }
       soc.proto.Message.NewChannel other = (soc.proto.Message.NewChannel) obj;
 
-      boolean result = true;
-      result = result && getChName()
-          .equals(other.getChName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getChName()
+          .equals(other.getChName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -9159,6 +9836,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -9166,6 +9844,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.NewChannel prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -9193,6 +9872,7 @@ public final class Message {
         return soc.proto.Message.internal_static_NewChannel_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_NewChannel_fieldAccessorTable
@@ -9215,6 +9895,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         chName_ = "";
@@ -9222,15 +9903,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_NewChannel_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.NewChannel getDefaultInstanceForType() {
         return soc.proto.Message.NewChannel.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.NewChannel build() {
         soc.proto.Message.NewChannel result = buildPartial();
         if (!result.isInitialized()) {
@@ -9239,6 +9923,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.NewChannel buildPartial() {
         soc.proto.Message.NewChannel result = new soc.proto.Message.NewChannel(this);
         result.chName_ = chName_;
@@ -9246,32 +9931,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.NewChannel) {
           return mergeFrom((soc.proto.Message.NewChannel)other);
@@ -9292,10 +9984,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -9317,6 +10011,7 @@ public final class Message {
       private java.lang.Object chName_ = "";
       /**
        * <code>string ch_name = 1;</code>
+       * @return The chName.
        */
       public java.lang.String getChName() {
         java.lang.Object ref = chName_;
@@ -9332,6 +10027,7 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @return The bytes for chName.
        */
       public com.google.protobuf.ByteString
           getChNameBytes() {
@@ -9348,6 +10044,8 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @param value The chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChName(
           java.lang.String value) {
@@ -9361,6 +10059,7 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChName() {
         
@@ -9370,6 +10069,8 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @param value The bytes for chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChNameBytes(
           com.google.protobuf.ByteString value) {
@@ -9382,11 +10083,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -9408,11 +10111,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<NewChannel>
         PARSER = new com.google.protobuf.AbstractParser<NewChannel>() {
+      @java.lang.Override
       public NewChannel parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new NewChannel(input, extensionRegistry);
+        return new NewChannel(input, extensionRegistry);
       }
     };
 
@@ -9425,6 +10129,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.NewChannel getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -9441,6 +10146,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     java.lang.String getChName();
     /**
@@ -9449,6 +10155,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     com.google.protobuf.ByteString
         getChNameBytes();
@@ -9459,6 +10166,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     java.lang.String getMemberName();
     /**
@@ -9467,6 +10175,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     com.google.protobuf.ByteString
         getMemberNameBytes();
@@ -9501,6 +10210,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new JoinChannel();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -9510,7 +10226,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -9521,13 +10239,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -9538,6 +10249,13 @@ public final class Message {
               java.lang.String s = input.readStringRequireUtf8();
 
               memberName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -9557,6 +10275,7 @@ public final class Message {
       return soc.proto.Message.internal_static_JoinChannel_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_JoinChannel_fieldAccessorTable
@@ -9572,6 +10291,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
@@ -9591,6 +10311,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     public com.google.protobuf.ByteString
         getChNameBytes() {
@@ -9614,6 +10335,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
@@ -9633,6 +10355,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
@@ -9649,6 +10372,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -9658,6 +10382,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getChNameBytes().isEmpty()) {
@@ -9669,6 +10394,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -9695,13 +10421,12 @@ public final class Message {
       }
       soc.proto.Message.JoinChannel other = (soc.proto.Message.JoinChannel) obj;
 
-      boolean result = true;
-      result = result && getChName()
-          .equals(other.getChName());
-      result = result && getMemberName()
-          .equals(other.getMemberName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getChName()
+          .equals(other.getChName())) return false;
+      if (!getMemberName()
+          .equals(other.getMemberName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -9790,6 +10515,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -9797,6 +10523,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.JoinChannel prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -9832,6 +10559,7 @@ public final class Message {
         return soc.proto.Message.internal_static_JoinChannel_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_JoinChannel_fieldAccessorTable
@@ -9854,6 +10582,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         chName_ = "";
@@ -9863,15 +10592,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_JoinChannel_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.JoinChannel getDefaultInstanceForType() {
         return soc.proto.Message.JoinChannel.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.JoinChannel build() {
         soc.proto.Message.JoinChannel result = buildPartial();
         if (!result.isInitialized()) {
@@ -9880,6 +10612,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.JoinChannel buildPartial() {
         soc.proto.Message.JoinChannel result = new soc.proto.Message.JoinChannel(this);
         result.chName_ = chName_;
@@ -9888,32 +10621,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.JoinChannel) {
           return mergeFrom((soc.proto.Message.JoinChannel)other);
@@ -9938,10 +10678,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -9967,6 +10709,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return The chName.
        */
       public java.lang.String getChName() {
         java.lang.Object ref = chName_;
@@ -9986,6 +10729,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return The bytes for chName.
        */
       public com.google.protobuf.ByteString
           getChNameBytes() {
@@ -10006,6 +10750,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @param value The chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChName(
           java.lang.String value) {
@@ -10023,6 +10769,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChName() {
         
@@ -10036,6 +10783,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @param value The bytes for chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChNameBytes(
           com.google.protobuf.ByteString value) {
@@ -10056,6 +10805,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The memberName.
        */
       public java.lang.String getMemberName() {
         java.lang.Object ref = memberName_;
@@ -10075,6 +10825,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The bytes for memberName.
        */
       public com.google.protobuf.ByteString
           getMemberNameBytes() {
@@ -10095,6 +10846,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberName(
           java.lang.String value) {
@@ -10112,6 +10865,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMemberName() {
         
@@ -10125,6 +10879,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The bytes for memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberNameBytes(
           com.google.protobuf.ByteString value) {
@@ -10137,11 +10893,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -10163,11 +10921,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<JoinChannel>
         PARSER = new com.google.protobuf.AbstractParser<JoinChannel>() {
+      @java.lang.Override
       public JoinChannel parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new JoinChannel(input, extensionRegistry);
+        return new JoinChannel(input, extensionRegistry);
       }
     };
 
@@ -10180,6 +10939,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.JoinChannel getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -10192,29 +10952,37 @@ public final class Message {
 
     /**
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     java.lang.String getChName();
     /**
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     com.google.protobuf.ByteString
         getChNameBytes();
 
     /**
      * <code>repeated string members = 2;</code>
+     * @return A list containing the members.
      */
     java.util.List<java.lang.String>
         getMembersList();
     /**
      * <code>repeated string members = 2;</code>
+     * @return The count of members.
      */
     int getMembersCount();
     /**
      * <code>repeated string members = 2;</code>
+     * @param index The index of the element to return.
+     * @return The members at the given index.
      */
     java.lang.String getMembers(int index);
     /**
      * <code>repeated string members = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the members at the given index.
      */
     com.google.protobuf.ByteString
         getMembersBytes(int index);
@@ -10250,6 +11018,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ChannelMembers();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -10259,6 +11034,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -10270,13 +11048,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -10285,11 +11056,18 @@ public final class Message {
             }
             case 18: {
               java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 members_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000002;
+                mutable_bitField0_ |= 0x00000001;
               }
               members_.add(s);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -10300,7 +11078,7 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           members_ = members_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
@@ -10312,6 +11090,7 @@ public final class Message {
       return soc.proto.Message.internal_static_ChannelMembers_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_ChannelMembers_fieldAccessorTable
@@ -10319,11 +11098,11 @@ public final class Message {
               soc.proto.Message.ChannelMembers.class, soc.proto.Message.ChannelMembers.Builder.class);
     }
 
-    private int bitField0_;
     public static final int CH_NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object chName_;
     /**
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
@@ -10339,6 +11118,7 @@ public final class Message {
     }
     /**
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     public com.google.protobuf.ByteString
         getChNameBytes() {
@@ -10358,6 +11138,7 @@ public final class Message {
     private com.google.protobuf.LazyStringList members_;
     /**
      * <code>repeated string members = 2;</code>
+     * @return A list containing the members.
      */
     public com.google.protobuf.ProtocolStringList
         getMembersList() {
@@ -10365,18 +11146,23 @@ public final class Message {
     }
     /**
      * <code>repeated string members = 2;</code>
+     * @return The count of members.
      */
     public int getMembersCount() {
       return members_.size();
     }
     /**
      * <code>repeated string members = 2;</code>
+     * @param index The index of the element to return.
+     * @return The members at the given index.
      */
     public java.lang.String getMembers(int index) {
       return members_.get(index);
     }
     /**
      * <code>repeated string members = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the members at the given index.
      */
     public com.google.protobuf.ByteString
         getMembersBytes(int index) {
@@ -10384,6 +11170,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -10393,6 +11180,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getChNameBytes().isEmpty()) {
@@ -10404,6 +11192,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -10435,13 +11224,12 @@ public final class Message {
       }
       soc.proto.Message.ChannelMembers other = (soc.proto.Message.ChannelMembers) obj;
 
-      boolean result = true;
-      result = result && getChName()
-          .equals(other.getChName());
-      result = result && getMembersList()
-          .equals(other.getMembersList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getChName()
+          .equals(other.getChName())) return false;
+      if (!getMembersList()
+          .equals(other.getMembersList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -10532,6 +11320,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -10539,6 +11328,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.ChannelMembers prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -10575,6 +11365,7 @@ public final class Message {
         return soc.proto.Message.internal_static_ChannelMembers_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_ChannelMembers_fieldAccessorTable
@@ -10597,24 +11388,28 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         chName_ = "";
 
         members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_ChannelMembers_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ChannelMembers getDefaultInstanceForType() {
         return soc.proto.Message.ChannelMembers.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.ChannelMembers build() {
         soc.proto.Message.ChannelMembers result = buildPartial();
         if (!result.isInitialized()) {
@@ -10623,47 +11418,53 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ChannelMembers buildPartial() {
         soc.proto.Message.ChannelMembers result = new soc.proto.Message.ChannelMembers(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.chName_ = chName_;
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           members_ = members_.getUnmodifiableView();
-          bitField0_ = (bitField0_ & ~0x00000002);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.members_ = members_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.ChannelMembers) {
           return mergeFrom((soc.proto.Message.ChannelMembers)other);
@@ -10682,7 +11483,7 @@ public final class Message {
         if (!other.members_.isEmpty()) {
           if (members_.isEmpty()) {
             members_ = other.members_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureMembersIsMutable();
             members_.addAll(other.members_);
@@ -10694,10 +11495,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -10720,6 +11523,7 @@ public final class Message {
       private java.lang.Object chName_ = "";
       /**
        * <code>string ch_name = 1;</code>
+       * @return The chName.
        */
       public java.lang.String getChName() {
         java.lang.Object ref = chName_;
@@ -10735,6 +11539,7 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @return The bytes for chName.
        */
       public com.google.protobuf.ByteString
           getChNameBytes() {
@@ -10751,6 +11556,8 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @param value The chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChName(
           java.lang.String value) {
@@ -10764,6 +11571,7 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChName() {
         
@@ -10773,6 +11581,8 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @param value The bytes for chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChNameBytes(
           com.google.protobuf.ByteString value) {
@@ -10788,13 +11598,14 @@ public final class Message {
 
       private com.google.protobuf.LazyStringList members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureMembersIsMutable() {
-        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           members_ = new com.google.protobuf.LazyStringArrayList(members_);
-          bitField0_ |= 0x00000002;
+          bitField0_ |= 0x00000001;
          }
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @return A list containing the members.
        */
       public com.google.protobuf.ProtocolStringList
           getMembersList() {
@@ -10802,18 +11613,23 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @return The count of members.
        */
       public int getMembersCount() {
         return members_.size();
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param index The index of the element to return.
+       * @return The members at the given index.
        */
       public java.lang.String getMembers(int index) {
         return members_.get(index);
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the members at the given index.
        */
       public com.google.protobuf.ByteString
           getMembersBytes(int index) {
@@ -10821,6 +11637,9 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param index The index to set the value at.
+       * @param value The members to set.
+       * @return This builder for chaining.
        */
       public Builder setMembers(
           int index, java.lang.String value) {
@@ -10834,6 +11653,8 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param value The members to add.
+       * @return This builder for chaining.
        */
       public Builder addMembers(
           java.lang.String value) {
@@ -10847,6 +11668,8 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param values The members to add.
+       * @return This builder for chaining.
        */
       public Builder addAllMembers(
           java.lang.Iterable<java.lang.String> values) {
@@ -10858,15 +11681,18 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMembers() {
         members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param value The bytes of the members to add.
+       * @return This builder for chaining.
        */
       public Builder addMembersBytes(
           com.google.protobuf.ByteString value) {
@@ -10879,11 +11705,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -10905,11 +11733,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<ChannelMembers>
         PARSER = new com.google.protobuf.AbstractParser<ChannelMembers>() {
+      @java.lang.Override
       public ChannelMembers parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ChannelMembers(input, extensionRegistry);
+        return new ChannelMembers(input, extensionRegistry);
       }
     };
 
@@ -10922,6 +11751,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.ChannelMembers getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -10938,6 +11768,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     java.lang.String getChName();
     /**
@@ -10946,6 +11777,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     com.google.protobuf.ByteString
         getChNameBytes();
@@ -10959,6 +11791,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     java.lang.String getMemberName();
     /**
@@ -10970,6 +11803,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     com.google.protobuf.ByteString
         getMemberNameBytes();
@@ -10981,6 +11815,7 @@ public final class Message {
      * </pre>
      *
      * <code>string text = 3;</code>
+     * @return The text.
      */
     java.lang.String getText();
     /**
@@ -10990,6 +11825,7 @@ public final class Message {
      * </pre>
      *
      * <code>string text = 3;</code>
+     * @return The bytes for text.
      */
     com.google.protobuf.ByteString
         getTextBytes();
@@ -11021,6 +11857,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ChannelText();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -11030,7 +11873,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -11041,13 +11886,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -11064,6 +11902,13 @@ public final class Message {
               java.lang.String s = input.readStringRequireUtf8();
 
               text_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -11083,6 +11928,7 @@ public final class Message {
       return soc.proto.Message.internal_static_ChannelText_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_ChannelText_fieldAccessorTable
@@ -11098,6 +11944,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
@@ -11117,6 +11964,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     public com.google.protobuf.ByteString
         getChNameBytes() {
@@ -11143,6 +11991,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
@@ -11165,6 +12014,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
@@ -11189,6 +12039,7 @@ public final class Message {
      * </pre>
      *
      * <code>string text = 3;</code>
+     * @return The text.
      */
     public java.lang.String getText() {
       java.lang.Object ref = text_;
@@ -11209,6 +12060,7 @@ public final class Message {
      * </pre>
      *
      * <code>string text = 3;</code>
+     * @return The bytes for text.
      */
     public com.google.protobuf.ByteString
         getTextBytes() {
@@ -11225,6 +12077,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -11234,6 +12087,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getChNameBytes().isEmpty()) {
@@ -11248,6 +12102,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -11277,15 +12132,14 @@ public final class Message {
       }
       soc.proto.Message.ChannelText other = (soc.proto.Message.ChannelText) obj;
 
-      boolean result = true;
-      result = result && getChName()
-          .equals(other.getChName());
-      result = result && getMemberName()
-          .equals(other.getMemberName());
-      result = result && getText()
-          .equals(other.getText());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getChName()
+          .equals(other.getChName())) return false;
+      if (!getMemberName()
+          .equals(other.getMemberName())) return false;
+      if (!getText()
+          .equals(other.getText())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -11376,6 +12230,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -11383,6 +12238,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.ChannelText prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -11414,6 +12270,7 @@ public final class Message {
         return soc.proto.Message.internal_static_ChannelText_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_ChannelText_fieldAccessorTable
@@ -11436,6 +12293,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         chName_ = "";
@@ -11447,15 +12305,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_ChannelText_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ChannelText getDefaultInstanceForType() {
         return soc.proto.Message.ChannelText.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.ChannelText build() {
         soc.proto.Message.ChannelText result = buildPartial();
         if (!result.isInitialized()) {
@@ -11464,6 +12325,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.ChannelText buildPartial() {
         soc.proto.Message.ChannelText result = new soc.proto.Message.ChannelText(this);
         result.chName_ = chName_;
@@ -11473,32 +12335,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.ChannelText) {
           return mergeFrom((soc.proto.Message.ChannelText)other);
@@ -11527,10 +12396,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -11556,6 +12427,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return The chName.
        */
       public java.lang.String getChName() {
         java.lang.Object ref = chName_;
@@ -11575,6 +12447,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return The bytes for chName.
        */
       public com.google.protobuf.ByteString
           getChNameBytes() {
@@ -11595,6 +12468,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @param value The chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChName(
           java.lang.String value) {
@@ -11612,6 +12487,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChName() {
         
@@ -11625,6 +12501,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @param value The bytes for chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChNameBytes(
           com.google.protobuf.ByteString value) {
@@ -11648,6 +12526,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The memberName.
        */
       public java.lang.String getMemberName() {
         java.lang.Object ref = memberName_;
@@ -11670,6 +12549,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The bytes for memberName.
        */
       public com.google.protobuf.ByteString
           getMemberNameBytes() {
@@ -11693,6 +12573,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberName(
           java.lang.String value) {
@@ -11713,6 +12595,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMemberName() {
         
@@ -11729,6 +12612,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The bytes for memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberNameBytes(
           com.google.protobuf.ByteString value) {
@@ -11750,6 +12635,7 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @return The text.
        */
       public java.lang.String getText() {
         java.lang.Object ref = text_;
@@ -11770,6 +12656,7 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @return The bytes for text.
        */
       public com.google.protobuf.ByteString
           getTextBytes() {
@@ -11791,6 +12678,8 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @param value The text to set.
+       * @return This builder for chaining.
        */
       public Builder setText(
           java.lang.String value) {
@@ -11809,6 +12698,7 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearText() {
         
@@ -11823,6 +12713,8 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @param value The bytes for text to set.
+       * @return This builder for chaining.
        */
       public Builder setTextBytes(
           com.google.protobuf.ByteString value) {
@@ -11835,11 +12727,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -11861,11 +12755,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<ChannelText>
         PARSER = new com.google.protobuf.AbstractParser<ChannelText>() {
+      @java.lang.Override
       public ChannelText parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ChannelText(input, extensionRegistry);
+        return new ChannelText(input, extensionRegistry);
       }
     };
 
@@ -11878,6 +12773,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.ChannelText getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -11894,6 +12790,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     java.lang.String getChName();
     /**
@@ -11902,6 +12799,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     com.google.protobuf.ByteString
         getChNameBytes();
@@ -11912,6 +12810,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     java.lang.String getMemberName();
     /**
@@ -11920,6 +12819,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     com.google.protobuf.ByteString
         getMemberNameBytes();
@@ -11947,6 +12847,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new LeaveChannel();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -11956,7 +12863,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -11967,13 +12876,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -11984,6 +12886,13 @@ public final class Message {
               java.lang.String s = input.readStringRequireUtf8();
 
               memberName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -12003,6 +12912,7 @@ public final class Message {
       return soc.proto.Message.internal_static_LeaveChannel_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_LeaveChannel_fieldAccessorTable
@@ -12018,6 +12928,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
@@ -12037,6 +12948,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     public com.google.protobuf.ByteString
         getChNameBytes() {
@@ -12060,6 +12972,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
@@ -12079,6 +12992,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
@@ -12095,6 +13009,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -12104,6 +13019,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getChNameBytes().isEmpty()) {
@@ -12115,6 +13031,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -12141,13 +13058,12 @@ public final class Message {
       }
       soc.proto.Message.LeaveChannel other = (soc.proto.Message.LeaveChannel) obj;
 
-      boolean result = true;
-      result = result && getChName()
-          .equals(other.getChName());
-      result = result && getMemberName()
-          .equals(other.getMemberName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getChName()
+          .equals(other.getChName())) return false;
+      if (!getMemberName()
+          .equals(other.getMemberName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -12236,6 +13152,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -12243,6 +13160,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.LeaveChannel prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -12271,6 +13189,7 @@ public final class Message {
         return soc.proto.Message.internal_static_LeaveChannel_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_LeaveChannel_fieldAccessorTable
@@ -12293,6 +13212,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         chName_ = "";
@@ -12302,15 +13222,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_LeaveChannel_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveChannel getDefaultInstanceForType() {
         return soc.proto.Message.LeaveChannel.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveChannel build() {
         soc.proto.Message.LeaveChannel result = buildPartial();
         if (!result.isInitialized()) {
@@ -12319,6 +13242,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveChannel buildPartial() {
         soc.proto.Message.LeaveChannel result = new soc.proto.Message.LeaveChannel(this);
         result.chName_ = chName_;
@@ -12327,32 +13251,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.LeaveChannel) {
           return mergeFrom((soc.proto.Message.LeaveChannel)other);
@@ -12377,10 +13308,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -12406,6 +13339,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return The chName.
        */
       public java.lang.String getChName() {
         java.lang.Object ref = chName_;
@@ -12425,6 +13359,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return The bytes for chName.
        */
       public com.google.protobuf.ByteString
           getChNameBytes() {
@@ -12445,6 +13380,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @param value The chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChName(
           java.lang.String value) {
@@ -12462,6 +13399,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChName() {
         
@@ -12475,6 +13413,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ch_name = 1;</code>
+       * @param value The bytes for chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChNameBytes(
           com.google.protobuf.ByteString value) {
@@ -12495,6 +13435,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The memberName.
        */
       public java.lang.String getMemberName() {
         java.lang.Object ref = memberName_;
@@ -12514,6 +13455,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The bytes for memberName.
        */
       public com.google.protobuf.ByteString
           getMemberNameBytes() {
@@ -12534,6 +13476,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberName(
           java.lang.String value) {
@@ -12551,6 +13495,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMemberName() {
         
@@ -12564,6 +13509,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The bytes for memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberNameBytes(
           com.google.protobuf.ByteString value) {
@@ -12576,11 +13523,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -12602,11 +13551,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<LeaveChannel>
         PARSER = new com.google.protobuf.AbstractParser<LeaveChannel>() {
+      @java.lang.Override
       public LeaveChannel parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new LeaveChannel(input, extensionRegistry);
+        return new LeaveChannel(input, extensionRegistry);
       }
     };
 
@@ -12619,6 +13569,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.LeaveChannel getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -12631,10 +13582,12 @@ public final class Message {
 
     /**
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     java.lang.String getChName();
     /**
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     com.google.protobuf.ByteString
         getChNameBytes();
@@ -12660,6 +13613,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new DeleteChannel();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -12669,7 +13629,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -12680,17 +13642,17 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
               chName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -12710,6 +13672,7 @@ public final class Message {
       return soc.proto.Message.internal_static_DeleteChannel_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_DeleteChannel_fieldAccessorTable
@@ -12721,6 +13684,7 @@ public final class Message {
     private volatile java.lang.Object chName_;
     /**
      * <code>string ch_name = 1;</code>
+     * @return The chName.
      */
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
@@ -12736,6 +13700,7 @@ public final class Message {
     }
     /**
      * <code>string ch_name = 1;</code>
+     * @return The bytes for chName.
      */
     public com.google.protobuf.ByteString
         getChNameBytes() {
@@ -12752,6 +13717,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -12761,6 +13727,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getChNameBytes().isEmpty()) {
@@ -12769,6 +13736,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -12792,11 +13760,10 @@ public final class Message {
       }
       soc.proto.Message.DeleteChannel other = (soc.proto.Message.DeleteChannel) obj;
 
-      boolean result = true;
-      result = result && getChName()
-          .equals(other.getChName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getChName()
+          .equals(other.getChName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -12883,6 +13850,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -12890,6 +13858,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.DeleteChannel prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -12917,6 +13886,7 @@ public final class Message {
         return soc.proto.Message.internal_static_DeleteChannel_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_DeleteChannel_fieldAccessorTable
@@ -12939,6 +13909,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         chName_ = "";
@@ -12946,15 +13917,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_DeleteChannel_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.DeleteChannel getDefaultInstanceForType() {
         return soc.proto.Message.DeleteChannel.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.DeleteChannel build() {
         soc.proto.Message.DeleteChannel result = buildPartial();
         if (!result.isInitialized()) {
@@ -12963,6 +13937,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.DeleteChannel buildPartial() {
         soc.proto.Message.DeleteChannel result = new soc.proto.Message.DeleteChannel(this);
         result.chName_ = chName_;
@@ -12970,32 +13945,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.DeleteChannel) {
           return mergeFrom((soc.proto.Message.DeleteChannel)other);
@@ -13016,10 +13998,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -13041,6 +14025,7 @@ public final class Message {
       private java.lang.Object chName_ = "";
       /**
        * <code>string ch_name = 1;</code>
+       * @return The chName.
        */
       public java.lang.String getChName() {
         java.lang.Object ref = chName_;
@@ -13056,6 +14041,7 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @return The bytes for chName.
        */
       public com.google.protobuf.ByteString
           getChNameBytes() {
@@ -13072,6 +14058,8 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @param value The chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChName(
           java.lang.String value) {
@@ -13085,6 +14073,7 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChName() {
         
@@ -13094,6 +14083,8 @@ public final class Message {
       }
       /**
        * <code>string ch_name = 1;</code>
+       * @param value The bytes for chName to set.
+       * @return This builder for chaining.
        */
       public Builder setChNameBytes(
           com.google.protobuf.ByteString value) {
@@ -13106,11 +14097,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -13132,11 +14125,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<DeleteChannel>
         PARSER = new com.google.protobuf.AbstractParser<DeleteChannel>() {
+      @java.lang.Override
       public DeleteChannel parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new DeleteChannel(input, extensionRegistry);
+        return new DeleteChannel(input, extensionRegistry);
       }
     };
 
@@ -13149,6 +14143,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.DeleteChannel getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -13161,10 +14156,12 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -13175,6 +14172,7 @@ public final class Message {
      * </pre>
      *
      * <code>string opts = 2;</code>
+     * @return The opts.
      */
     java.lang.String getOpts();
     /**
@@ -13183,6 +14181,7 @@ public final class Message {
      * </pre>
      *
      * <code>string opts = 2;</code>
+     * @return The bytes for opts.
      */
     com.google.protobuf.ByteString
         getOptsBytes();
@@ -13193,6 +14192,7 @@ public final class Message {
      * </pre>
      *
      * <code>bool unjoinable = 3;</code>
+     * @return The unjoinable.
      */
     boolean getUnjoinable();
   }
@@ -13215,7 +14215,13 @@ public final class Message {
     private _GameWithOptions() {
       gaName_ = "";
       opts_ = "";
-      unjoinable_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new _GameWithOptions();
     }
 
     @java.lang.Override
@@ -13228,7 +14234,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -13239,13 +14247,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -13261,6 +14262,13 @@ public final class Message {
             case 24: {
 
               unjoinable_ = input.readBool();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -13280,6 +14288,7 @@ public final class Message {
       return soc.proto.Message.internal_static__GameWithOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static__GameWithOptions_fieldAccessorTable
@@ -13291,6 +14300,7 @@ public final class Message {
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -13306,6 +14316,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -13329,6 +14340,7 @@ public final class Message {
      * </pre>
      *
      * <code>string opts = 2;</code>
+     * @return The opts.
      */
     public java.lang.String getOpts() {
       java.lang.Object ref = opts_;
@@ -13348,6 +14360,7 @@ public final class Message {
      * </pre>
      *
      * <code>string opts = 2;</code>
+     * @return The bytes for opts.
      */
     public com.google.protobuf.ByteString
         getOptsBytes() {
@@ -13371,12 +14384,14 @@ public final class Message {
      * </pre>
      *
      * <code>bool unjoinable = 3;</code>
+     * @return The unjoinable.
      */
     public boolean getUnjoinable() {
       return unjoinable_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -13386,6 +14401,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -13400,6 +14416,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -13430,15 +14447,14 @@ public final class Message {
       }
       soc.proto.Message._GameWithOptions other = (soc.proto.Message._GameWithOptions) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && getOpts()
-          .equals(other.getOpts());
-      result = result && (getUnjoinable()
-          == other.getUnjoinable());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!getOpts()
+          .equals(other.getOpts())) return false;
+      if (getUnjoinable()
+          != other.getUnjoinable()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -13530,6 +14546,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -13537,6 +14554,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message._GameWithOptions prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -13564,6 +14582,7 @@ public final class Message {
         return soc.proto.Message.internal_static__GameWithOptions_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static__GameWithOptions_fieldAccessorTable
@@ -13586,6 +14605,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -13597,15 +14617,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static__GameWithOptions_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message._GameWithOptions getDefaultInstanceForType() {
         return soc.proto.Message._GameWithOptions.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message._GameWithOptions build() {
         soc.proto.Message._GameWithOptions result = buildPartial();
         if (!result.isInitialized()) {
@@ -13614,6 +14637,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message._GameWithOptions buildPartial() {
         soc.proto.Message._GameWithOptions result = new soc.proto.Message._GameWithOptions(this);
         result.gaName_ = gaName_;
@@ -13623,32 +14647,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message._GameWithOptions) {
           return mergeFrom((soc.proto.Message._GameWithOptions)other);
@@ -13676,10 +14707,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -13701,6 +14734,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -13716,6 +14750,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -13732,6 +14767,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -13745,6 +14782,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -13754,6 +14792,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -13774,6 +14814,7 @@ public final class Message {
        * </pre>
        *
        * <code>string opts = 2;</code>
+       * @return The opts.
        */
       public java.lang.String getOpts() {
         java.lang.Object ref = opts_;
@@ -13793,6 +14834,7 @@ public final class Message {
        * </pre>
        *
        * <code>string opts = 2;</code>
+       * @return The bytes for opts.
        */
       public com.google.protobuf.ByteString
           getOptsBytes() {
@@ -13813,6 +14855,8 @@ public final class Message {
        * </pre>
        *
        * <code>string opts = 2;</code>
+       * @param value The opts to set.
+       * @return This builder for chaining.
        */
       public Builder setOpts(
           java.lang.String value) {
@@ -13830,6 +14874,7 @@ public final class Message {
        * </pre>
        *
        * <code>string opts = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOpts() {
         
@@ -13843,6 +14888,8 @@ public final class Message {
        * </pre>
        *
        * <code>string opts = 2;</code>
+       * @param value The bytes for opts to set.
+       * @return This builder for chaining.
        */
       public Builder setOptsBytes(
           com.google.protobuf.ByteString value) {
@@ -13863,6 +14910,7 @@ public final class Message {
        * </pre>
        *
        * <code>bool unjoinable = 3;</code>
+       * @return The unjoinable.
        */
       public boolean getUnjoinable() {
         return unjoinable_;
@@ -13873,6 +14921,8 @@ public final class Message {
        * </pre>
        *
        * <code>bool unjoinable = 3;</code>
+       * @param value The unjoinable to set.
+       * @return This builder for chaining.
        */
       public Builder setUnjoinable(boolean value) {
         
@@ -13886,6 +14936,7 @@ public final class Message {
        * </pre>
        *
        * <code>bool unjoinable = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearUnjoinable() {
         
@@ -13893,11 +14944,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -13919,11 +14972,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<_GameWithOptions>
         PARSER = new com.google.protobuf.AbstractParser<_GameWithOptions>() {
+      @java.lang.Override
       public _GameWithOptions parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new _GameWithOptions(input, extensionRegistry);
+        return new _GameWithOptions(input, extensionRegistry);
       }
     };
 
@@ -13936,6 +14990,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message._GameWithOptions getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -13998,6 +15053,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Games();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -14007,6 +15069,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -14018,20 +15083,20 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 game_ = new java.util.ArrayList<soc.proto.Message._GameWithOptions>();
                 mutable_bitField0_ |= 0x00000001;
               }
               game_.add(
                   input.readMessage(soc.proto.Message._GameWithOptions.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -14042,7 +15107,7 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           game_ = java.util.Collections.unmodifiableList(game_);
         }
         this.unknownFields = unknownFields.build();
@@ -14054,6 +15119,7 @@ public final class Message {
       return soc.proto.Message.internal_static_Games_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_Games_fieldAccessorTable
@@ -14097,6 +15163,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -14106,6 +15173,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < game_.size(); i++) {
@@ -14114,6 +15182,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -14138,11 +15207,10 @@ public final class Message {
       }
       soc.proto.Message.Games other = (soc.proto.Message.Games) obj;
 
-      boolean result = true;
-      result = result && getGameList()
-          .equals(other.getGameList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGameList()
+          .equals(other.getGameList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -14231,6 +15299,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -14238,6 +15307,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.Games prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -14272,6 +15342,7 @@ public final class Message {
         return soc.proto.Message.internal_static_Games_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_Games_fieldAccessorTable
@@ -14295,6 +15366,7 @@ public final class Message {
           getGameFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (gameBuilder_ == null) {
@@ -14306,15 +15378,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_Games_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.Games getDefaultInstanceForType() {
         return soc.proto.Message.Games.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.Games build() {
         soc.proto.Message.Games result = buildPartial();
         if (!result.isInitialized()) {
@@ -14323,11 +15398,12 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.Games buildPartial() {
         soc.proto.Message.Games result = new soc.proto.Message.Games(this);
         int from_bitField0_ = bitField0_;
         if (gameBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             game_ = java.util.Collections.unmodifiableList(game_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
@@ -14339,32 +15415,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.Games) {
           return mergeFrom((soc.proto.Message.Games)other);
@@ -14407,10 +15490,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -14433,7 +15518,7 @@ public final class Message {
       private java.util.List<soc.proto.Message._GameWithOptions> game_ =
         java.util.Collections.emptyList();
       private void ensureGameIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           game_ = new java.util.ArrayList<soc.proto.Message._GameWithOptions>(game_);
           bitField0_ |= 0x00000001;
          }
@@ -14662,18 +15747,20 @@ public final class Message {
           gameBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.Message._GameWithOptions, soc.proto.Message._GameWithOptions.Builder, soc.proto.Message._GameWithOptionsOrBuilder>(
                   game_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           game_ = null;
         }
         return gameBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -14695,11 +15782,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<Games>
         PARSER = new com.google.protobuf.AbstractParser<Games>() {
+      @java.lang.Override
       public Games parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new Games(input, extensionRegistry);
+        return new Games(input, extensionRegistry);
       }
     };
 
@@ -14712,6 +15800,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.Games getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -14724,10 +15813,12 @@ public final class Message {
 
     /**
      * <code>._GameWithOptions game = 1;</code>
+     * @return Whether the game field is set.
      */
     boolean hasGame();
     /**
      * <code>._GameWithOptions game = 1;</code>
+     * @return The game.
      */
     soc.proto.Message._GameWithOptions getGame();
     /**
@@ -14741,6 +15832,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 min_version = 2;</code>
+     * @return The minVersion.
      */
     int getMinVersion();
   }
@@ -14763,7 +15855,13 @@ public final class Message {
       super(builder);
     }
     private NewGame() {
-      minVersion_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new NewGame();
     }
 
     @java.lang.Override
@@ -14776,7 +15874,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -14787,13 +15887,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Message._GameWithOptions.Builder subBuilder = null;
               if (game_ != null) {
@@ -14810,6 +15903,13 @@ public final class Message {
             case 16: {
 
               minVersion_ = input.readUInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -14829,6 +15929,7 @@ public final class Message {
       return soc.proto.Message.internal_static_NewGame_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_NewGame_fieldAccessorTable
@@ -14840,12 +15941,14 @@ public final class Message {
     private soc.proto.Message._GameWithOptions game_;
     /**
      * <code>._GameWithOptions game = 1;</code>
+     * @return Whether the game field is set.
      */
     public boolean hasGame() {
       return game_ != null;
     }
     /**
      * <code>._GameWithOptions game = 1;</code>
+     * @return The game.
      */
     public soc.proto.Message._GameWithOptions getGame() {
       return game_ == null ? soc.proto.Message._GameWithOptions.getDefaultInstance() : game_;
@@ -14865,12 +15968,14 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 min_version = 2;</code>
+     * @return The minVersion.
      */
     public int getMinVersion() {
       return minVersion_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -14880,6 +15985,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (game_ != null) {
@@ -14891,6 +15997,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -14919,16 +16026,15 @@ public final class Message {
       }
       soc.proto.Message.NewGame other = (soc.proto.Message.NewGame) obj;
 
-      boolean result = true;
-      result = result && (hasGame() == other.hasGame());
+      if (hasGame() != other.hasGame()) return false;
       if (hasGame()) {
-        result = result && getGame()
-            .equals(other.getGame());
+        if (!getGame()
+            .equals(other.getGame())) return false;
       }
-      result = result && (getMinVersion()
-          == other.getMinVersion());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getMinVersion()
+          != other.getMinVersion()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -15019,6 +16125,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -15026,6 +16133,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.NewGame prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -15055,6 +16163,7 @@ public final class Message {
         return soc.proto.Message.internal_static_NewGame_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_NewGame_fieldAccessorTable
@@ -15077,6 +16186,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (gameBuilder_ == null) {
@@ -15090,15 +16200,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_NewGame_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.NewGame getDefaultInstanceForType() {
         return soc.proto.Message.NewGame.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.NewGame build() {
         soc.proto.Message.NewGame result = buildPartial();
         if (!result.isInitialized()) {
@@ -15107,6 +16220,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.NewGame buildPartial() {
         soc.proto.Message.NewGame result = new soc.proto.Message.NewGame(this);
         if (gameBuilder_ == null) {
@@ -15119,32 +16233,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.NewGame) {
           return mergeFrom((soc.proto.Message.NewGame)other);
@@ -15167,10 +16288,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -15189,17 +16312,19 @@ public final class Message {
         return this;
       }
 
-      private soc.proto.Message._GameWithOptions game_ = null;
+      private soc.proto.Message._GameWithOptions game_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Message._GameWithOptions, soc.proto.Message._GameWithOptions.Builder, soc.proto.Message._GameWithOptionsOrBuilder> gameBuilder_;
       /**
        * <code>._GameWithOptions game = 1;</code>
+       * @return Whether the game field is set.
        */
       public boolean hasGame() {
         return gameBuilder_ != null || game_ != null;
       }
       /**
        * <code>._GameWithOptions game = 1;</code>
+       * @return The game.
        */
       public soc.proto.Message._GameWithOptions getGame() {
         if (gameBuilder_ == null) {
@@ -15313,6 +16438,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 min_version = 2;</code>
+       * @return The minVersion.
        */
       public int getMinVersion() {
         return minVersion_;
@@ -15323,6 +16449,8 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 min_version = 2;</code>
+       * @param value The minVersion to set.
+       * @return This builder for chaining.
        */
       public Builder setMinVersion(int value) {
         
@@ -15336,6 +16464,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 min_version = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMinVersion() {
         
@@ -15343,11 +16472,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -15369,11 +16500,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<NewGame>
         PARSER = new com.google.protobuf.AbstractParser<NewGame>() {
+      @java.lang.Override
       public NewGame parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new NewGame(input, extensionRegistry);
+        return new NewGame(input, extensionRegistry);
       }
     };
 
@@ -15386,6 +16518,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.NewGame getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -15402,6 +16535,7 @@ public final class Message {
      * </pre>
      *
      * <code>._GameWithOptions game = 1;</code>
+     * @return Whether the game field is set.
      */
     boolean hasGame();
     /**
@@ -15410,6 +16544,7 @@ public final class Message {
      * </pre>
      *
      * <code>._GameWithOptions game = 1;</code>
+     * @return The game.
      */
     soc.proto.Message._GameWithOptions getGame();
     /**
@@ -15427,6 +16562,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 seat_number = 2;</code>
+     * @return The seatNumber.
      */
     int getSeatNumber();
   }
@@ -15452,7 +16588,13 @@ public final class Message {
       super(builder);
     }
     private BotJoinGameRequest() {
-      seatNumber_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BotJoinGameRequest();
     }
 
     @java.lang.Override
@@ -15465,7 +16607,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -15476,13 +16620,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Message._GameWithOptions.Builder subBuilder = null;
               if (game_ != null) {
@@ -15499,6 +16636,13 @@ public final class Message {
             case 16: {
 
               seatNumber_ = input.readUInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -15518,6 +16662,7 @@ public final class Message {
       return soc.proto.Message.internal_static_BotJoinGameRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_BotJoinGameRequest_fieldAccessorTable
@@ -15533,6 +16678,7 @@ public final class Message {
      * </pre>
      *
      * <code>._GameWithOptions game = 1;</code>
+     * @return Whether the game field is set.
      */
     public boolean hasGame() {
       return game_ != null;
@@ -15543,6 +16689,7 @@ public final class Message {
      * </pre>
      *
      * <code>._GameWithOptions game = 1;</code>
+     * @return The game.
      */
     public soc.proto.Message._GameWithOptions getGame() {
       return game_ == null ? soc.proto.Message._GameWithOptions.getDefaultInstance() : game_;
@@ -15566,12 +16713,14 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 seat_number = 2;</code>
+     * @return The seatNumber.
      */
     public int getSeatNumber() {
       return seatNumber_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -15581,6 +16730,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (game_ != null) {
@@ -15592,6 +16742,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -15620,16 +16771,15 @@ public final class Message {
       }
       soc.proto.Message.BotJoinGameRequest other = (soc.proto.Message.BotJoinGameRequest) obj;
 
-      boolean result = true;
-      result = result && (hasGame() == other.hasGame());
+      if (hasGame() != other.hasGame()) return false;
       if (hasGame()) {
-        result = result && getGame()
-            .equals(other.getGame());
+        if (!getGame()
+            .equals(other.getGame())) return false;
       }
-      result = result && (getSeatNumber()
-          == other.getSeatNumber());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getSeatNumber()
+          != other.getSeatNumber()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -15720,6 +16870,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -15727,6 +16878,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.BotJoinGameRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -15759,6 +16911,7 @@ public final class Message {
         return soc.proto.Message.internal_static_BotJoinGameRequest_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_BotJoinGameRequest_fieldAccessorTable
@@ -15781,6 +16934,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (gameBuilder_ == null) {
@@ -15794,15 +16948,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_BotJoinGameRequest_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotJoinGameRequest getDefaultInstanceForType() {
         return soc.proto.Message.BotJoinGameRequest.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotJoinGameRequest build() {
         soc.proto.Message.BotJoinGameRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -15811,6 +16968,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotJoinGameRequest buildPartial() {
         soc.proto.Message.BotJoinGameRequest result = new soc.proto.Message.BotJoinGameRequest(this);
         if (gameBuilder_ == null) {
@@ -15823,32 +16981,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.BotJoinGameRequest) {
           return mergeFrom((soc.proto.Message.BotJoinGameRequest)other);
@@ -15871,10 +17036,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -15893,7 +17060,7 @@ public final class Message {
         return this;
       }
 
-      private soc.proto.Message._GameWithOptions game_ = null;
+      private soc.proto.Message._GameWithOptions game_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Message._GameWithOptions, soc.proto.Message._GameWithOptions.Builder, soc.proto.Message._GameWithOptionsOrBuilder> gameBuilder_;
       /**
@@ -15902,6 +17069,7 @@ public final class Message {
        * </pre>
        *
        * <code>._GameWithOptions game = 1;</code>
+       * @return Whether the game field is set.
        */
       public boolean hasGame() {
         return gameBuilder_ != null || game_ != null;
@@ -15912,6 +17080,7 @@ public final class Message {
        * </pre>
        *
        * <code>._GameWithOptions game = 1;</code>
+       * @return The game.
        */
       public soc.proto.Message._GameWithOptions getGame() {
         if (gameBuilder_ == null) {
@@ -16053,6 +17222,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 2;</code>
+       * @return The seatNumber.
        */
       public int getSeatNumber() {
         return seatNumber_;
@@ -16063,6 +17233,8 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 2;</code>
+       * @param value The seatNumber to set.
+       * @return This builder for chaining.
        */
       public Builder setSeatNumber(int value) {
         
@@ -16076,6 +17248,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearSeatNumber() {
         
@@ -16083,11 +17256,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -16109,11 +17284,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<BotJoinGameRequest>
         PARSER = new com.google.protobuf.AbstractParser<BotJoinGameRequest>() {
+      @java.lang.Override
       public BotJoinGameRequest parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BotJoinGameRequest(input, extensionRegistry);
+        return new BotJoinGameRequest(input, extensionRegistry);
       }
     };
 
@@ -16126,6 +17302,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.BotJoinGameRequest getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -16142,6 +17319,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
@@ -16150,6 +17328,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -16160,6 +17339,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     java.lang.String getMemberName();
     /**
@@ -16168,6 +17348,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     com.google.protobuf.ByteString
         getMemberNameBytes();
@@ -16186,6 +17367,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated sint32 board_size_vshift = 3;</code>
+     * @return A list containing the boardSizeVshift.
      */
     java.util.List<java.lang.Integer> getBoardSizeVshiftList();
     /**
@@ -16202,6 +17384,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated sint32 board_size_vshift = 3;</code>
+     * @return The count of boardSizeVshift.
      */
     int getBoardSizeVshiftCount();
     /**
@@ -16218,6 +17401,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated sint32 board_size_vshift = 3;</code>
+     * @param index The index of the element to return.
+     * @return The boardSizeVshift at the given index.
      */
     int getBoardSizeVshift(int index);
   }
@@ -16261,7 +17446,14 @@ public final class Message {
     private JoinGame() {
       gaName_ = "";
       memberName_ = "";
-      boardSizeVshift_ = java.util.Collections.emptyList();
+      boardSizeVshift_ = emptyIntList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new JoinGame();
     }
 
     @java.lang.Override
@@ -16274,6 +17466,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -16285,13 +17480,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -16305,24 +17493,31 @@ public final class Message {
               break;
             }
             case 24: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-                boardSizeVshift_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000004;
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                boardSizeVshift_ = newIntList();
+                mutable_bitField0_ |= 0x00000001;
               }
-              boardSizeVshift_.add(input.readSInt32());
+              boardSizeVshift_.addInt(input.readSInt32());
               break;
             }
             case 26: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
-                boardSizeVshift_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000004;
+              if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+                boardSizeVshift_ = newIntList();
+                mutable_bitField0_ |= 0x00000001;
               }
               while (input.getBytesUntilLimit() > 0) {
-                boardSizeVshift_.add(input.readSInt32());
+                boardSizeVshift_.addInt(input.readSInt32());
               }
               input.popLimit(limit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -16333,8 +17528,8 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-          boardSizeVshift_ = java.util.Collections.unmodifiableList(boardSizeVshift_);
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          boardSizeVshift_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -16345,6 +17540,7 @@ public final class Message {
       return soc.proto.Message.internal_static_JoinGame_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_JoinGame_fieldAccessorTable
@@ -16352,7 +17548,6 @@ public final class Message {
               soc.proto.Message.JoinGame.class, soc.proto.Message.JoinGame.Builder.class);
     }
 
-    private int bitField0_;
     public static final int GA_NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object gaName_;
     /**
@@ -16361,6 +17556,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -16380,6 +17576,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -16403,6 +17600,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
@@ -16422,6 +17620,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
@@ -16438,7 +17637,7 @@ public final class Message {
     }
 
     public static final int BOARD_SIZE_VSHIFT_FIELD_NUMBER = 3;
-    private java.util.List<java.lang.Integer> boardSizeVshift_;
+    private com.google.protobuf.Internal.IntList boardSizeVshift_;
     /**
      * <pre>
      * Optional board size info, to help create the joining client's user interface to show this game.
@@ -16453,6 +17652,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated sint32 board_size_vshift = 3;</code>
+     * @return A list containing the boardSizeVshift.
      */
     public java.util.List<java.lang.Integer>
         getBoardSizeVshiftList() {
@@ -16472,6 +17672,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated sint32 board_size_vshift = 3;</code>
+     * @return The count of boardSizeVshift.
      */
     public int getBoardSizeVshiftCount() {
       return boardSizeVshift_.size();
@@ -16490,13 +17691,16 @@ public final class Message {
      * </pre>
      *
      * <code>repeated sint32 board_size_vshift = 3;</code>
+     * @param index The index of the element to return.
+     * @return The boardSizeVshift at the given index.
      */
     public int getBoardSizeVshift(int index) {
-      return boardSizeVshift_.get(index);
+      return boardSizeVshift_.getInt(index);
     }
     private int boardSizeVshiftMemoizedSerializedSize = -1;
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -16506,6 +17710,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -16520,11 +17725,12 @@ public final class Message {
         output.writeUInt32NoTag(boardSizeVshiftMemoizedSerializedSize);
       }
       for (int i = 0; i < boardSizeVshift_.size(); i++) {
-        output.writeSInt32NoTag(boardSizeVshift_.get(i));
+        output.writeSInt32NoTag(boardSizeVshift_.getInt(i));
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -16540,7 +17746,7 @@ public final class Message {
         int dataSize = 0;
         for (int i = 0; i < boardSizeVshift_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeSInt32SizeNoTag(boardSizeVshift_.get(i));
+            .computeSInt32SizeNoTag(boardSizeVshift_.getInt(i));
         }
         size += dataSize;
         if (!getBoardSizeVshiftList().isEmpty()) {
@@ -16565,15 +17771,14 @@ public final class Message {
       }
       soc.proto.Message.JoinGame other = (soc.proto.Message.JoinGame) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && getMemberName()
-          .equals(other.getMemberName());
-      result = result && getBoardSizeVshiftList()
-          .equals(other.getBoardSizeVshiftList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!getMemberName()
+          .equals(other.getMemberName())) return false;
+      if (!getBoardSizeVshiftList()
+          .equals(other.getBoardSizeVshiftList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -16666,6 +17871,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -16673,6 +17879,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.JoinGame prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -16721,6 +17928,7 @@ public final class Message {
         return soc.proto.Message.internal_static_JoinGame_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_JoinGame_fieldAccessorTable
@@ -16743,26 +17951,30 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
 
         memberName_ = "";
 
-        boardSizeVshift_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        boardSizeVshift_ = emptyIntList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_JoinGame_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.JoinGame getDefaultInstanceForType() {
         return soc.proto.Message.JoinGame.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.JoinGame build() {
         soc.proto.Message.JoinGame result = buildPartial();
         if (!result.isInitialized()) {
@@ -16771,48 +17983,54 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.JoinGame buildPartial() {
         soc.proto.Message.JoinGame result = new soc.proto.Message.JoinGame(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.gaName_ = gaName_;
         result.memberName_ = memberName_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
-          boardSizeVshift_ = java.util.Collections.unmodifiableList(boardSizeVshift_);
-          bitField0_ = (bitField0_ & ~0x00000004);
+        if (((bitField0_ & 0x00000001) != 0)) {
+          boardSizeVshift_.makeImmutable();
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.boardSizeVshift_ = boardSizeVshift_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.JoinGame) {
           return mergeFrom((soc.proto.Message.JoinGame)other);
@@ -16835,7 +18053,7 @@ public final class Message {
         if (!other.boardSizeVshift_.isEmpty()) {
           if (boardSizeVshift_.isEmpty()) {
             boardSizeVshift_ = other.boardSizeVshift_;
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureBoardSizeVshiftIsMutable();
             boardSizeVshift_.addAll(other.boardSizeVshift_);
@@ -16847,10 +18065,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -16877,6 +18097,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -16896,6 +18117,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -16916,6 +18138,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -16933,6 +18157,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -16946,6 +18171,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -16966,6 +18193,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The memberName.
        */
       public java.lang.String getMemberName() {
         java.lang.Object ref = memberName_;
@@ -16985,6 +18213,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The bytes for memberName.
        */
       public com.google.protobuf.ByteString
           getMemberNameBytes() {
@@ -17005,6 +18234,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberName(
           java.lang.String value) {
@@ -17022,6 +18253,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMemberName() {
         
@@ -17035,6 +18267,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The bytes for memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberNameBytes(
           com.google.protobuf.ByteString value) {
@@ -17048,11 +18282,11 @@ public final class Message {
         return this;
       }
 
-      private java.util.List<java.lang.Integer> boardSizeVshift_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.IntList boardSizeVshift_ = emptyIntList();
       private void ensureBoardSizeVshiftIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-          boardSizeVshift_ = new java.util.ArrayList<java.lang.Integer>(boardSizeVshift_);
-          bitField0_ |= 0x00000004;
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          boardSizeVshift_ = mutableCopy(boardSizeVshift_);
+          bitField0_ |= 0x00000001;
          }
       }
       /**
@@ -17069,10 +18303,12 @@ public final class Message {
        * </pre>
        *
        * <code>repeated sint32 board_size_vshift = 3;</code>
+       * @return A list containing the boardSizeVshift.
        */
       public java.util.List<java.lang.Integer>
           getBoardSizeVshiftList() {
-        return java.util.Collections.unmodifiableList(boardSizeVshift_);
+        return ((bitField0_ & 0x00000001) != 0) ?
+                 java.util.Collections.unmodifiableList(boardSizeVshift_) : boardSizeVshift_;
       }
       /**
        * <pre>
@@ -17088,6 +18324,7 @@ public final class Message {
        * </pre>
        *
        * <code>repeated sint32 board_size_vshift = 3;</code>
+       * @return The count of boardSizeVshift.
        */
       public int getBoardSizeVshiftCount() {
         return boardSizeVshift_.size();
@@ -17106,9 +18343,11 @@ public final class Message {
        * </pre>
        *
        * <code>repeated sint32 board_size_vshift = 3;</code>
+       * @param index The index of the element to return.
+       * @return The boardSizeVshift at the given index.
        */
       public int getBoardSizeVshift(int index) {
-        return boardSizeVshift_.get(index);
+        return boardSizeVshift_.getInt(index);
       }
       /**
        * <pre>
@@ -17124,11 +18363,14 @@ public final class Message {
        * </pre>
        *
        * <code>repeated sint32 board_size_vshift = 3;</code>
+       * @param index The index to set the value at.
+       * @param value The boardSizeVshift to set.
+       * @return This builder for chaining.
        */
       public Builder setBoardSizeVshift(
           int index, int value) {
         ensureBoardSizeVshiftIsMutable();
-        boardSizeVshift_.set(index, value);
+        boardSizeVshift_.setInt(index, value);
         onChanged();
         return this;
       }
@@ -17146,10 +18388,12 @@ public final class Message {
        * </pre>
        *
        * <code>repeated sint32 board_size_vshift = 3;</code>
+       * @param value The boardSizeVshift to add.
+       * @return This builder for chaining.
        */
       public Builder addBoardSizeVshift(int value) {
         ensureBoardSizeVshiftIsMutable();
-        boardSizeVshift_.add(value);
+        boardSizeVshift_.addInt(value);
         onChanged();
         return this;
       }
@@ -17167,6 +18411,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated sint32 board_size_vshift = 3;</code>
+       * @param values The boardSizeVshift to add.
+       * @return This builder for chaining.
        */
       public Builder addAllBoardSizeVshift(
           java.lang.Iterable<? extends java.lang.Integer> values) {
@@ -17190,18 +18436,21 @@ public final class Message {
        * </pre>
        *
        * <code>repeated sint32 board_size_vshift = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearBoardSizeVshift() {
-        boardSizeVshift_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        boardSizeVshift_ = emptyIntList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -17223,11 +18472,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<JoinGame>
         PARSER = new com.google.protobuf.AbstractParser<JoinGame>() {
+      @java.lang.Override
       public JoinGame parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new JoinGame(input, extensionRegistry);
+        return new JoinGame(input, extensionRegistry);
       }
     };
 
@@ -17240,6 +18490,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.JoinGame getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -17252,29 +18503,37 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
 
     /**
      * <code>repeated string members = 2;</code>
+     * @return A list containing the members.
      */
     java.util.List<java.lang.String>
         getMembersList();
     /**
      * <code>repeated string members = 2;</code>
+     * @return The count of members.
      */
     int getMembersCount();
     /**
      * <code>repeated string members = 2;</code>
+     * @param index The index of the element to return.
+     * @return The members at the given index.
      */
     java.lang.String getMembers(int index);
     /**
      * <code>repeated string members = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the members at the given index.
      */
     com.google.protobuf.ByteString
         getMembersBytes(int index);
@@ -17318,6 +18577,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GameMembers();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -17327,6 +18593,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -17338,13 +18607,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -17353,11 +18615,18 @@ public final class Message {
             }
             case 18: {
               java.lang.String s = input.readStringRequireUtf8();
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 members_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000002;
+                mutable_bitField0_ |= 0x00000001;
               }
               members_.add(s);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -17368,7 +18637,7 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           members_ = members_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
@@ -17380,6 +18649,7 @@ public final class Message {
       return soc.proto.Message.internal_static_GameMembers_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_GameMembers_fieldAccessorTable
@@ -17387,11 +18657,11 @@ public final class Message {
               soc.proto.Message.GameMembers.class, soc.proto.Message.GameMembers.Builder.class);
     }
 
-    private int bitField0_;
     public static final int GA_NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -17407,6 +18677,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -17426,6 +18697,7 @@ public final class Message {
     private com.google.protobuf.LazyStringList members_;
     /**
      * <code>repeated string members = 2;</code>
+     * @return A list containing the members.
      */
     public com.google.protobuf.ProtocolStringList
         getMembersList() {
@@ -17433,18 +18705,23 @@ public final class Message {
     }
     /**
      * <code>repeated string members = 2;</code>
+     * @return The count of members.
      */
     public int getMembersCount() {
       return members_.size();
     }
     /**
      * <code>repeated string members = 2;</code>
+     * @param index The index of the element to return.
+     * @return The members at the given index.
      */
     public java.lang.String getMembers(int index) {
       return members_.get(index);
     }
     /**
      * <code>repeated string members = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the members at the given index.
      */
     public com.google.protobuf.ByteString
         getMembersBytes(int index) {
@@ -17452,6 +18729,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -17461,6 +18739,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -17472,6 +18751,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -17503,13 +18783,12 @@ public final class Message {
       }
       soc.proto.Message.GameMembers other = (soc.proto.Message.GameMembers) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && getMembersList()
-          .equals(other.getMembersList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!getMembersList()
+          .equals(other.getMembersList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -17600,6 +18879,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -17607,6 +18887,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.GameMembers prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -17651,6 +18932,7 @@ public final class Message {
         return soc.proto.Message.internal_static_GameMembers_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_GameMembers_fieldAccessorTable
@@ -17673,24 +18955,28 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
 
         members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_GameMembers_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.GameMembers getDefaultInstanceForType() {
         return soc.proto.Message.GameMembers.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.GameMembers build() {
         soc.proto.Message.GameMembers result = buildPartial();
         if (!result.isInitialized()) {
@@ -17699,47 +18985,53 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.GameMembers buildPartial() {
         soc.proto.Message.GameMembers result = new soc.proto.Message.GameMembers(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.gaName_ = gaName_;
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           members_ = members_.getUnmodifiableView();
-          bitField0_ = (bitField0_ & ~0x00000002);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.members_ = members_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.GameMembers) {
           return mergeFrom((soc.proto.Message.GameMembers)other);
@@ -17758,7 +19050,7 @@ public final class Message {
         if (!other.members_.isEmpty()) {
           if (members_.isEmpty()) {
             members_ = other.members_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureMembersIsMutable();
             members_.addAll(other.members_);
@@ -17770,10 +19062,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -17796,6 +19090,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -17811,6 +19106,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -17827,6 +19123,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -17840,6 +19138,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -17849,6 +19148,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -17864,13 +19165,14 @@ public final class Message {
 
       private com.google.protobuf.LazyStringList members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureMembersIsMutable() {
-        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           members_ = new com.google.protobuf.LazyStringArrayList(members_);
-          bitField0_ |= 0x00000002;
+          bitField0_ |= 0x00000001;
          }
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @return A list containing the members.
        */
       public com.google.protobuf.ProtocolStringList
           getMembersList() {
@@ -17878,18 +19180,23 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @return The count of members.
        */
       public int getMembersCount() {
         return members_.size();
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param index The index of the element to return.
+       * @return The members at the given index.
        */
       public java.lang.String getMembers(int index) {
         return members_.get(index);
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the members at the given index.
        */
       public com.google.protobuf.ByteString
           getMembersBytes(int index) {
@@ -17897,6 +19204,9 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param index The index to set the value at.
+       * @param value The members to set.
+       * @return This builder for chaining.
        */
       public Builder setMembers(
           int index, java.lang.String value) {
@@ -17910,6 +19220,8 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param value The members to add.
+       * @return This builder for chaining.
        */
       public Builder addMembers(
           java.lang.String value) {
@@ -17923,6 +19235,8 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param values The members to add.
+       * @return This builder for chaining.
        */
       public Builder addAllMembers(
           java.lang.Iterable<java.lang.String> values) {
@@ -17934,15 +19248,18 @@ public final class Message {
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMembers() {
         members_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
        * <code>repeated string members = 2;</code>
+       * @param value The bytes of the members to add.
+       * @return This builder for chaining.
        */
       public Builder addMembersBytes(
           com.google.protobuf.ByteString value) {
@@ -17955,11 +19272,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -17981,11 +19300,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<GameMembers>
         PARSER = new com.google.protobuf.AbstractParser<GameMembers>() {
+      @java.lang.Override
       public GameMembers parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new GameMembers(input, extensionRegistry);
+        return new GameMembers(input, extensionRegistry);
       }
     };
 
@@ -17998,6 +19318,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.GameMembers getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -18014,6 +19335,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
@@ -18022,6 +19344,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -18032,6 +19355,7 @@ public final class Message {
      * </pre>
      *
      * <code>string pl_name = 2;</code>
+     * @return The plName.
      */
     java.lang.String getPlName();
     /**
@@ -18040,6 +19364,7 @@ public final class Message {
      * </pre>
      *
      * <code>string pl_name = 2;</code>
+     * @return The bytes for plName.
      */
     com.google.protobuf.ByteString
         getPlNameBytes();
@@ -18050,6 +19375,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 seat_number = 3;</code>
+     * @return The seatNumber.
      */
     int getSeatNumber();
 
@@ -18059,6 +19385,7 @@ public final class Message {
      * </pre>
      *
      * <code>bool is_robot = 4;</code>
+     * @return The isRobot.
      */
     boolean getIsRobot();
   }
@@ -18084,8 +19411,13 @@ public final class Message {
     private SitDown() {
       gaName_ = "";
       plName_ = "";
-      seatNumber_ = 0;
-      isRobot_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new SitDown();
     }
 
     @java.lang.Override
@@ -18098,7 +19430,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -18109,13 +19443,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -18138,6 +19465,13 @@ public final class Message {
               isRobot_ = input.readBool();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -18155,6 +19489,7 @@ public final class Message {
       return soc.proto.Message.internal_static_SitDown_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_SitDown_fieldAccessorTable
@@ -18170,6 +19505,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -18189,6 +19525,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -18212,6 +19549,7 @@ public final class Message {
      * </pre>
      *
      * <code>string pl_name = 2;</code>
+     * @return The plName.
      */
     public java.lang.String getPlName() {
       java.lang.Object ref = plName_;
@@ -18231,6 +19569,7 @@ public final class Message {
      * </pre>
      *
      * <code>string pl_name = 2;</code>
+     * @return The bytes for plName.
      */
     public com.google.protobuf.ByteString
         getPlNameBytes() {
@@ -18254,6 +19593,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 seat_number = 3;</code>
+     * @return The seatNumber.
      */
     public int getSeatNumber() {
       return seatNumber_;
@@ -18267,12 +19607,14 @@ public final class Message {
      * </pre>
      *
      * <code>bool is_robot = 4;</code>
+     * @return The isRobot.
      */
     public boolean getIsRobot() {
       return isRobot_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -18282,6 +19624,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -18299,6 +19642,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -18333,17 +19677,16 @@ public final class Message {
       }
       soc.proto.Message.SitDown other = (soc.proto.Message.SitDown) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && getPlName()
-          .equals(other.getPlName());
-      result = result && (getSeatNumber()
-          == other.getSeatNumber());
-      result = result && (getIsRobot()
-          == other.getIsRobot());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!getPlName()
+          .equals(other.getPlName())) return false;
+      if (getSeatNumber()
+          != other.getSeatNumber()) return false;
+      if (getIsRobot()
+          != other.getIsRobot()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -18437,6 +19780,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -18444,6 +19788,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.SitDown prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -18474,6 +19819,7 @@ public final class Message {
         return soc.proto.Message.internal_static_SitDown_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_SitDown_fieldAccessorTable
@@ -18496,6 +19842,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -18509,15 +19856,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_SitDown_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.SitDown getDefaultInstanceForType() {
         return soc.proto.Message.SitDown.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.SitDown build() {
         soc.proto.Message.SitDown result = buildPartial();
         if (!result.isInitialized()) {
@@ -18526,6 +19876,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.SitDown buildPartial() {
         soc.proto.Message.SitDown result = new soc.proto.Message.SitDown(this);
         result.gaName_ = gaName_;
@@ -18536,32 +19887,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.SitDown) {
           return mergeFrom((soc.proto.Message.SitDown)other);
@@ -18592,10 +19950,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -18621,6 +19981,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -18640,6 +20001,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -18660,6 +20022,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -18677,6 +20041,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -18690,6 +20055,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -18710,6 +20077,7 @@ public final class Message {
        * </pre>
        *
        * <code>string pl_name = 2;</code>
+       * @return The plName.
        */
       public java.lang.String getPlName() {
         java.lang.Object ref = plName_;
@@ -18729,6 +20097,7 @@ public final class Message {
        * </pre>
        *
        * <code>string pl_name = 2;</code>
+       * @return The bytes for plName.
        */
       public com.google.protobuf.ByteString
           getPlNameBytes() {
@@ -18749,6 +20118,8 @@ public final class Message {
        * </pre>
        *
        * <code>string pl_name = 2;</code>
+       * @param value The plName to set.
+       * @return This builder for chaining.
        */
       public Builder setPlName(
           java.lang.String value) {
@@ -18766,6 +20137,7 @@ public final class Message {
        * </pre>
        *
        * <code>string pl_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPlName() {
         
@@ -18779,6 +20151,8 @@ public final class Message {
        * </pre>
        *
        * <code>string pl_name = 2;</code>
+       * @param value The bytes for plName to set.
+       * @return This builder for chaining.
        */
       public Builder setPlNameBytes(
           com.google.protobuf.ByteString value) {
@@ -18799,6 +20173,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 3;</code>
+       * @return The seatNumber.
        */
       public int getSeatNumber() {
         return seatNumber_;
@@ -18809,6 +20184,8 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 3;</code>
+       * @param value The seatNumber to set.
+       * @return This builder for chaining.
        */
       public Builder setSeatNumber(int value) {
         
@@ -18822,6 +20199,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearSeatNumber() {
         
@@ -18837,6 +20215,7 @@ public final class Message {
        * </pre>
        *
        * <code>bool is_robot = 4;</code>
+       * @return The isRobot.
        */
       public boolean getIsRobot() {
         return isRobot_;
@@ -18847,6 +20226,8 @@ public final class Message {
        * </pre>
        *
        * <code>bool is_robot = 4;</code>
+       * @param value The isRobot to set.
+       * @return This builder for chaining.
        */
       public Builder setIsRobot(boolean value) {
         
@@ -18860,6 +20241,7 @@ public final class Message {
        * </pre>
        *
        * <code>bool is_robot = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsRobot() {
         
@@ -18867,11 +20249,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -18893,11 +20277,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<SitDown>
         PARSER = new com.google.protobuf.AbstractParser<SitDown>() {
+      @java.lang.Override
       public SitDown parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new SitDown(input, extensionRegistry);
+        return new SitDown(input, extensionRegistry);
       }
     };
 
@@ -18910,6 +20295,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.SitDown getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -18926,6 +20312,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
@@ -18934,6 +20321,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -18944,6 +20332,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 seat_number = 2;</code>
+     * @return The seatNumber.
      */
     int getSeatNumber();
 
@@ -18953,6 +20342,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @return A list containing the state.
      */
     java.util.List<soc.proto.Data.SeatLockState> getStateList();
     /**
@@ -18961,6 +20351,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @return The count of state.
      */
     int getStateCount();
     /**
@@ -18969,6 +20360,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @param index The index of the element to return.
+     * @return The state at the given index.
      */
     soc.proto.Data.SeatLockState getState(int index);
     /**
@@ -18977,6 +20370,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @return A list containing the enum numeric values on the wire for state.
      */
     java.util.List<java.lang.Integer>
     getStateValueList();
@@ -18986,6 +20380,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of state at the given index.
      */
     int getStateValue(int index);
   }
@@ -19008,8 +20404,14 @@ public final class Message {
     }
     private SetSeatLock() {
       gaName_ = "";
-      seatNumber_ = 0;
       state_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new SetSeatLock();
     }
 
     @java.lang.Override
@@ -19022,6 +20424,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -19033,13 +20438,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -19053,9 +20451,9 @@ public final class Message {
             }
             case 24: {
               int rawValue = input.readEnum();
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 state_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000004;
+                mutable_bitField0_ |= 0x00000001;
               }
               state_.add(rawValue);
               break;
@@ -19065,13 +20463,20 @@ public final class Message {
               int oldLimit = input.pushLimit(length);
               while(input.getBytesUntilLimit() > 0) {
                 int rawValue = input.readEnum();
-                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                   state_ = new java.util.ArrayList<java.lang.Integer>();
-                  mutable_bitField0_ |= 0x00000004;
+                  mutable_bitField0_ |= 0x00000001;
                 }
                 state_.add(rawValue);
               }
               input.popLimit(oldLimit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -19082,7 +20487,7 @@ public final class Message {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           state_ = java.util.Collections.unmodifiableList(state_);
         }
         this.unknownFields = unknownFields.build();
@@ -19094,6 +20499,7 @@ public final class Message {
       return soc.proto.Message.internal_static_SetSeatLock_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_SetSeatLock_fieldAccessorTable
@@ -19101,7 +20507,6 @@ public final class Message {
               soc.proto.Message.SetSeatLock.class, soc.proto.Message.SetSeatLock.Builder.class);
     }
 
-    private int bitField0_;
     public static final int GA_NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object gaName_;
     /**
@@ -19110,6 +20515,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -19129,6 +20535,7 @@ public final class Message {
      * </pre>
      *
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -19152,6 +20559,7 @@ public final class Message {
      * </pre>
      *
      * <code>uint32 seat_number = 2;</code>
+     * @return The seatNumber.
      */
     public int getSeatNumber() {
       return seatNumber_;
@@ -19164,6 +20572,7 @@ public final class Message {
             new com.google.protobuf.Internal.ListAdapter.Converter<
                 java.lang.Integer, soc.proto.Data.SeatLockState>() {
               public soc.proto.Data.SeatLockState convert(java.lang.Integer from) {
+                @SuppressWarnings("deprecation")
                 soc.proto.Data.SeatLockState result = soc.proto.Data.SeatLockState.valueOf(from);
                 return result == null ? soc.proto.Data.SeatLockState.UNRECOGNIZED : result;
               }
@@ -19174,6 +20583,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @return A list containing the state.
      */
     public java.util.List<soc.proto.Data.SeatLockState> getStateList() {
       return new com.google.protobuf.Internal.ListAdapter<
@@ -19185,6 +20595,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @return The count of state.
      */
     public int getStateCount() {
       return state_.size();
@@ -19195,6 +20606,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @param index The index of the element to return.
+     * @return The state at the given index.
      */
     public soc.proto.Data.SeatLockState getState(int index) {
       return state_converter_.convert(state_.get(index));
@@ -19205,6 +20618,7 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @return A list containing the enum numeric values on the wire for state.
      */
     public java.util.List<java.lang.Integer>
     getStateValueList() {
@@ -19216,6 +20630,8 @@ public final class Message {
      * </pre>
      *
      * <code>repeated .SeatLockState state = 3;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of state at the given index.
      */
     public int getStateValue(int index) {
       return state_.get(index);
@@ -19223,6 +20639,7 @@ public final class Message {
     private int stateMemoizedSerializedSize;
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -19232,6 +20649,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -19251,6 +20669,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -19290,14 +20709,13 @@ public final class Message {
       }
       soc.proto.Message.SetSeatLock other = (soc.proto.Message.SetSeatLock) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && (getSeatNumber()
-          == other.getSeatNumber());
-      result = result && state_.equals(other.state_);
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (getSeatNumber()
+          != other.getSeatNumber()) return false;
+      if (!state_.equals(other.state_)) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -19390,6 +20808,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -19397,6 +20816,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.SetSeatLock prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -19425,6 +20845,7 @@ public final class Message {
         return soc.proto.Message.internal_static_SetSeatLock_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_SetSeatLock_fieldAccessorTable
@@ -19447,6 +20868,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -19454,19 +20876,22 @@ public final class Message {
         seatNumber_ = 0;
 
         state_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_SetSeatLock_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.SetSeatLock getDefaultInstanceForType() {
         return soc.proto.Message.SetSeatLock.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.SetSeatLock build() {
         soc.proto.Message.SetSeatLock result = buildPartial();
         if (!result.isInitialized()) {
@@ -19475,48 +20900,54 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.SetSeatLock buildPartial() {
         soc.proto.Message.SetSeatLock result = new soc.proto.Message.SetSeatLock(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.gaName_ = gaName_;
         result.seatNumber_ = seatNumber_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           state_ = java.util.Collections.unmodifiableList(state_);
-          bitField0_ = (bitField0_ & ~0x00000004);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.state_ = state_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.SetSeatLock) {
           return mergeFrom((soc.proto.Message.SetSeatLock)other);
@@ -19538,7 +20969,7 @@ public final class Message {
         if (!other.state_.isEmpty()) {
           if (state_.isEmpty()) {
             state_ = other.state_;
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureStateIsMutable();
             state_.addAll(other.state_);
@@ -19550,10 +20981,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -19580,6 +21013,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -19599,6 +21033,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -19619,6 +21054,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -19636,6 +21073,7 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -19649,6 +21087,8 @@ public final class Message {
        * </pre>
        *
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -19669,6 +21109,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 2;</code>
+       * @return The seatNumber.
        */
       public int getSeatNumber() {
         return seatNumber_;
@@ -19679,6 +21120,8 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 2;</code>
+       * @param value The seatNumber to set.
+       * @return This builder for chaining.
        */
       public Builder setSeatNumber(int value) {
         
@@ -19692,6 +21135,7 @@ public final class Message {
        * </pre>
        *
        * <code>uint32 seat_number = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearSeatNumber() {
         
@@ -19703,9 +21147,9 @@ public final class Message {
       private java.util.List<java.lang.Integer> state_ =
         java.util.Collections.emptyList();
       private void ensureStateIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           state_ = new java.util.ArrayList<java.lang.Integer>(state_);
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000001;
         }
       }
       /**
@@ -19714,6 +21158,7 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @return A list containing the state.
        */
       public java.util.List<soc.proto.Data.SeatLockState> getStateList() {
         return new com.google.protobuf.Internal.ListAdapter<
@@ -19725,6 +21170,7 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @return The count of state.
        */
       public int getStateCount() {
         return state_.size();
@@ -19735,6 +21181,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @param index The index of the element to return.
+       * @return The state at the given index.
        */
       public soc.proto.Data.SeatLockState getState(int index) {
         return state_converter_.convert(state_.get(index));
@@ -19745,6 +21193,9 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @param index The index to set the value at.
+       * @param value The state to set.
+       * @return This builder for chaining.
        */
       public Builder setState(
           int index, soc.proto.Data.SeatLockState value) {
@@ -19762,6 +21213,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @param value The state to add.
+       * @return This builder for chaining.
        */
       public Builder addState(soc.proto.Data.SeatLockState value) {
         if (value == null) {
@@ -19778,6 +21231,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @param values The state to add.
+       * @return This builder for chaining.
        */
       public Builder addAllState(
           java.lang.Iterable<? extends soc.proto.Data.SeatLockState> values) {
@@ -19794,10 +21249,11 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearState() {
         state_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
@@ -19807,6 +21263,7 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @return A list containing the enum numeric values on the wire for state.
        */
       public java.util.List<java.lang.Integer>
       getStateValueList() {
@@ -19818,6 +21275,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @param index The index of the value to return.
+       * @return The enum numeric value on the wire of state at the given index.
        */
       public int getStateValue(int index) {
         return state_.get(index);
@@ -19828,6 +21287,9 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @param index The index of the value to return.
+       * @return The enum numeric value on the wire of state at the given index.
+       * @return This builder for chaining.
        */
       public Builder setStateValue(
           int index, int value) {
@@ -19842,6 +21304,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @param value The enum numeric value on the wire for state to add.
+       * @return This builder for chaining.
        */
       public Builder addStateValue(int value) {
         ensureStateIsMutable();
@@ -19855,6 +21319,8 @@ public final class Message {
        * </pre>
        *
        * <code>repeated .SeatLockState state = 3;</code>
+       * @param values The enum numeric values on the wire for state to add.
+       * @return This builder for chaining.
        */
       public Builder addAllStateValue(
           java.lang.Iterable<java.lang.Integer> values) {
@@ -19865,11 +21331,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -19891,11 +21359,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<SetSeatLock>
         PARSER = new com.google.protobuf.AbstractParser<SetSeatLock>() {
+      @java.lang.Override
       public SetSeatLock parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new SetSeatLock(input, extensionRegistry);
+        return new SetSeatLock(input, extensionRegistry);
       }
     };
 
@@ -19908,6 +21377,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.SetSeatLock getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -19920,20 +21390,24 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
 
     /**
      * <code>string text = 2;</code>
+     * @return The text.
      */
     java.lang.String getText();
     /**
      * <code>string text = 2;</code>
+     * @return The bytes for text.
      */
     com.google.protobuf.ByteString
         getTextBytes();
@@ -19977,6 +21451,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GameServerText();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -19986,7 +21467,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -19997,13 +21480,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -20014,6 +21490,13 @@ public final class Message {
               java.lang.String s = input.readStringRequireUtf8();
 
               text_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -20033,6 +21516,7 @@ public final class Message {
       return soc.proto.Message.internal_static_GameServerText_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_GameServerText_fieldAccessorTable
@@ -20044,6 +21528,7 @@ public final class Message {
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -20059,6 +21544,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -20078,6 +21564,7 @@ public final class Message {
     private volatile java.lang.Object text_;
     /**
      * <code>string text = 2;</code>
+     * @return The text.
      */
     public java.lang.String getText() {
       java.lang.Object ref = text_;
@@ -20093,6 +21580,7 @@ public final class Message {
     }
     /**
      * <code>string text = 2;</code>
+     * @return The bytes for text.
      */
     public com.google.protobuf.ByteString
         getTextBytes() {
@@ -20109,6 +21597,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -20118,6 +21607,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -20129,6 +21619,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -20155,13 +21646,12 @@ public final class Message {
       }
       soc.proto.Message.GameServerText other = (soc.proto.Message.GameServerText) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && getText()
-          .equals(other.getText());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!getText()
+          .equals(other.getText())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -20250,6 +21740,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -20257,6 +21748,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.GameServerText prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -20301,6 +21793,7 @@ public final class Message {
         return soc.proto.Message.internal_static_GameServerText_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_GameServerText_fieldAccessorTable
@@ -20323,6 +21816,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -20332,15 +21826,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_GameServerText_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.GameServerText getDefaultInstanceForType() {
         return soc.proto.Message.GameServerText.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.GameServerText build() {
         soc.proto.Message.GameServerText result = buildPartial();
         if (!result.isInitialized()) {
@@ -20349,6 +21846,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.GameServerText buildPartial() {
         soc.proto.Message.GameServerText result = new soc.proto.Message.GameServerText(this);
         result.gaName_ = gaName_;
@@ -20357,32 +21855,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.GameServerText) {
           return mergeFrom((soc.proto.Message.GameServerText)other);
@@ -20407,10 +21912,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -20432,6 +21939,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -20447,6 +21955,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -20463,6 +21972,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -20476,6 +21987,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -20485,6 +21997,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -20501,6 +22015,7 @@ public final class Message {
       private java.lang.Object text_ = "";
       /**
        * <code>string text = 2;</code>
+       * @return The text.
        */
       public java.lang.String getText() {
         java.lang.Object ref = text_;
@@ -20516,6 +22031,7 @@ public final class Message {
       }
       /**
        * <code>string text = 2;</code>
+       * @return The bytes for text.
        */
       public com.google.protobuf.ByteString
           getTextBytes() {
@@ -20532,6 +22048,8 @@ public final class Message {
       }
       /**
        * <code>string text = 2;</code>
+       * @param value The text to set.
+       * @return This builder for chaining.
        */
       public Builder setText(
           java.lang.String value) {
@@ -20545,6 +22063,7 @@ public final class Message {
       }
       /**
        * <code>string text = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearText() {
         
@@ -20554,6 +22073,8 @@ public final class Message {
       }
       /**
        * <code>string text = 2;</code>
+       * @param value The bytes for text to set.
+       * @return This builder for chaining.
        */
       public Builder setTextBytes(
           com.google.protobuf.ByteString value) {
@@ -20566,11 +22087,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -20592,11 +22115,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<GameServerText>
         PARSER = new com.google.protobuf.AbstractParser<GameServerText>() {
+      @java.lang.Override
       public GameServerText parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new GameServerText(input, extensionRegistry);
+        return new GameServerText(input, extensionRegistry);
       }
     };
 
@@ -20609,6 +22133,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.GameServerText getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -20621,10 +22146,12 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -20638,6 +22165,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     java.lang.String getMemberName();
     /**
@@ -20649,6 +22177,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     com.google.protobuf.ByteString
         getMemberNameBytes();
@@ -20660,6 +22189,7 @@ public final class Message {
      * </pre>
      *
      * <code>string text = 3;</code>
+     * @return The text.
      */
     java.lang.String getText();
     /**
@@ -20669,6 +22199,7 @@ public final class Message {
      * </pre>
      *
      * <code>string text = 3;</code>
+     * @return The bytes for text.
      */
     com.google.protobuf.ByteString
         getTextBytes();
@@ -20709,6 +22240,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GamePlayerText();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -20718,7 +22256,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -20729,13 +22269,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -20752,6 +22285,13 @@ public final class Message {
               java.lang.String s = input.readStringRequireUtf8();
 
               text_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -20771,6 +22311,7 @@ public final class Message {
       return soc.proto.Message.internal_static_GamePlayerText_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_GamePlayerText_fieldAccessorTable
@@ -20782,6 +22323,7 @@ public final class Message {
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -20797,6 +22339,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -20823,6 +22366,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
@@ -20845,6 +22389,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
@@ -20869,6 +22414,7 @@ public final class Message {
      * </pre>
      *
      * <code>string text = 3;</code>
+     * @return The text.
      */
     public java.lang.String getText() {
       java.lang.Object ref = text_;
@@ -20889,6 +22435,7 @@ public final class Message {
      * </pre>
      *
      * <code>string text = 3;</code>
+     * @return The bytes for text.
      */
     public com.google.protobuf.ByteString
         getTextBytes() {
@@ -20905,6 +22452,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -20914,6 +22462,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -20928,6 +22477,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -20957,15 +22507,14 @@ public final class Message {
       }
       soc.proto.Message.GamePlayerText other = (soc.proto.Message.GamePlayerText) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && getMemberName()
-          .equals(other.getMemberName());
-      result = result && getText()
-          .equals(other.getText());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!getMemberName()
+          .equals(other.getMemberName())) return false;
+      if (!getText()
+          .equals(other.getText())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -21056,6 +22605,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -21063,6 +22613,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.GamePlayerText prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -21103,6 +22654,7 @@ public final class Message {
         return soc.proto.Message.internal_static_GamePlayerText_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_GamePlayerText_fieldAccessorTable
@@ -21125,6 +22677,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -21136,15 +22689,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_GamePlayerText_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.GamePlayerText getDefaultInstanceForType() {
         return soc.proto.Message.GamePlayerText.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.GamePlayerText build() {
         soc.proto.Message.GamePlayerText result = buildPartial();
         if (!result.isInitialized()) {
@@ -21153,6 +22709,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.GamePlayerText buildPartial() {
         soc.proto.Message.GamePlayerText result = new soc.proto.Message.GamePlayerText(this);
         result.gaName_ = gaName_;
@@ -21162,32 +22719,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.GamePlayerText) {
           return mergeFrom((soc.proto.Message.GamePlayerText)other);
@@ -21216,10 +22780,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -21241,6 +22807,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -21256,6 +22823,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -21272,6 +22840,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -21285,6 +22855,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -21294,6 +22865,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -21317,6 +22890,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The memberName.
        */
       public java.lang.String getMemberName() {
         java.lang.Object ref = memberName_;
@@ -21339,6 +22913,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The bytes for memberName.
        */
       public com.google.protobuf.ByteString
           getMemberNameBytes() {
@@ -21362,6 +22937,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberName(
           java.lang.String value) {
@@ -21382,6 +22959,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMemberName() {
         
@@ -21398,6 +22976,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The bytes for memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberNameBytes(
           com.google.protobuf.ByteString value) {
@@ -21419,6 +22999,7 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @return The text.
        */
       public java.lang.String getText() {
         java.lang.Object ref = text_;
@@ -21439,6 +23020,7 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @return The bytes for text.
        */
       public com.google.protobuf.ByteString
           getTextBytes() {
@@ -21460,6 +23042,8 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @param value The text to set.
+       * @return This builder for chaining.
        */
       public Builder setText(
           java.lang.String value) {
@@ -21478,6 +23062,7 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearText() {
         
@@ -21492,6 +23077,8 @@ public final class Message {
        * </pre>
        *
        * <code>string text = 3;</code>
+       * @param value The bytes for text to set.
+       * @return This builder for chaining.
        */
       public Builder setTextBytes(
           com.google.protobuf.ByteString value) {
@@ -21504,11 +23091,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -21530,11 +23119,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<GamePlayerText>
         PARSER = new com.google.protobuf.AbstractParser<GamePlayerText>() {
+      @java.lang.Override
       public GamePlayerText parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new GamePlayerText(input, extensionRegistry);
+        return new GamePlayerText(input, extensionRegistry);
       }
     };
 
@@ -21547,6 +23137,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.GamePlayerText getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -21559,10 +23150,12 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -21592,6 +23185,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BotTimingPing();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -21601,7 +23201,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -21612,17 +23214,17 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
               gaName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -21642,6 +23244,7 @@ public final class Message {
       return soc.proto.Message.internal_static_BotTimingPing_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_BotTimingPing_fieldAccessorTable
@@ -21653,6 +23256,7 @@ public final class Message {
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -21668,6 +23272,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -21684,6 +23289,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -21693,6 +23299,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -21701,6 +23308,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -21724,11 +23332,10 @@ public final class Message {
       }
       soc.proto.Message.BotTimingPing other = (soc.proto.Message.BotTimingPing) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -21815,6 +23422,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -21822,6 +23430,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.BotTimingPing prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -21853,6 +23462,7 @@ public final class Message {
         return soc.proto.Message.internal_static_BotTimingPing_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_BotTimingPing_fieldAccessorTable
@@ -21875,6 +23485,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -21882,15 +23493,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_BotTimingPing_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotTimingPing getDefaultInstanceForType() {
         return soc.proto.Message.BotTimingPing.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotTimingPing build() {
         soc.proto.Message.BotTimingPing result = buildPartial();
         if (!result.isInitialized()) {
@@ -21899,6 +23513,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotTimingPing buildPartial() {
         soc.proto.Message.BotTimingPing result = new soc.proto.Message.BotTimingPing(this);
         result.gaName_ = gaName_;
@@ -21906,32 +23521,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.BotTimingPing) {
           return mergeFrom((soc.proto.Message.BotTimingPing)other);
@@ -21952,10 +23574,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -21977,6 +23601,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -21992,6 +23617,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -22008,6 +23634,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -22021,6 +23649,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -22030,6 +23659,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -22042,11 +23673,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -22068,11 +23701,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<BotTimingPing>
         PARSER = new com.google.protobuf.AbstractParser<BotTimingPing>() {
+      @java.lang.Override
       public BotTimingPing parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BotTimingPing(input, extensionRegistry);
+        return new BotTimingPing(input, extensionRegistry);
       }
     };
 
@@ -22085,6 +23719,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.BotTimingPing getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -22097,10 +23732,12 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -22128,6 +23765,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BotAdminPing();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -22137,7 +23781,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -22148,17 +23794,17 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
               gaName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -22178,6 +23824,7 @@ public final class Message {
       return soc.proto.Message.internal_static_BotAdminPing_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_BotAdminPing_fieldAccessorTable
@@ -22189,6 +23836,7 @@ public final class Message {
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -22204,6 +23852,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -22220,6 +23869,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -22229,6 +23879,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -22237,6 +23888,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -22260,11 +23912,10 @@ public final class Message {
       }
       soc.proto.Message.BotAdminPing other = (soc.proto.Message.BotAdminPing) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -22351,6 +24002,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -22358,6 +24010,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.BotAdminPing prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -22387,6 +24040,7 @@ public final class Message {
         return soc.proto.Message.internal_static_BotAdminPing_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_BotAdminPing_fieldAccessorTable
@@ -22409,6 +24063,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -22416,15 +24071,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_BotAdminPing_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotAdminPing getDefaultInstanceForType() {
         return soc.proto.Message.BotAdminPing.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotAdminPing build() {
         soc.proto.Message.BotAdminPing result = buildPartial();
         if (!result.isInitialized()) {
@@ -22433,6 +24091,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotAdminPing buildPartial() {
         soc.proto.Message.BotAdminPing result = new soc.proto.Message.BotAdminPing(this);
         result.gaName_ = gaName_;
@@ -22440,32 +24099,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.BotAdminPing) {
           return mergeFrom((soc.proto.Message.BotAdminPing)other);
@@ -22486,10 +24152,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -22511,6 +24179,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -22526,6 +24195,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -22542,6 +24212,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -22555,6 +24227,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -22564,6 +24237,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -22576,11 +24251,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -22602,11 +24279,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<BotAdminPing>
         PARSER = new com.google.protobuf.AbstractParser<BotAdminPing>() {
+      @java.lang.Override
       public BotAdminPing parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BotAdminPing(input, extensionRegistry);
+        return new BotAdminPing(input, extensionRegistry);
       }
     };
 
@@ -22619,6 +24297,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.BotAdminPing getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -22631,10 +24310,12 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -22662,6 +24343,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BotDismiss();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -22671,7 +24359,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -22682,17 +24372,17 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
               gaName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -22712,6 +24402,7 @@ public final class Message {
       return soc.proto.Message.internal_static_BotDismiss_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_BotDismiss_fieldAccessorTable
@@ -22723,6 +24414,7 @@ public final class Message {
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -22738,6 +24430,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -22754,6 +24447,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -22763,6 +24457,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -22771,6 +24466,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -22794,11 +24490,10 @@ public final class Message {
       }
       soc.proto.Message.BotDismiss other = (soc.proto.Message.BotDismiss) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -22885,6 +24580,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -22892,6 +24588,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.BotDismiss prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -22921,6 +24618,7 @@ public final class Message {
         return soc.proto.Message.internal_static_BotDismiss_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_BotDismiss_fieldAccessorTable
@@ -22943,6 +24641,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -22950,15 +24649,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_BotDismiss_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotDismiss getDefaultInstanceForType() {
         return soc.proto.Message.BotDismiss.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotDismiss build() {
         soc.proto.Message.BotDismiss result = buildPartial();
         if (!result.isInitialized()) {
@@ -22967,6 +24669,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.BotDismiss buildPartial() {
         soc.proto.Message.BotDismiss result = new soc.proto.Message.BotDismiss(this);
         result.gaName_ = gaName_;
@@ -22974,32 +24677,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.BotDismiss) {
           return mergeFrom((soc.proto.Message.BotDismiss)other);
@@ -23020,10 +24730,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -23045,6 +24757,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -23060,6 +24773,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -23076,6 +24790,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -23089,6 +24805,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -23098,6 +24815,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -23110,11 +24829,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -23136,11 +24857,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<BotDismiss>
         PARSER = new com.google.protobuf.AbstractParser<BotDismiss>() {
+      @java.lang.Override
       public BotDismiss parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BotDismiss(input, extensionRegistry);
+        return new BotDismiss(input, extensionRegistry);
       }
     };
 
@@ -23153,6 +24875,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.BotDismiss getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -23165,10 +24888,12 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -23179,6 +24904,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     java.lang.String getMemberName();
     /**
@@ -23187,6 +24913,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     com.google.protobuf.ByteString
         getMemberNameBytes();
@@ -23214,6 +24941,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new LeaveGame();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -23223,7 +24957,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -23234,13 +24970,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -23251,6 +24980,13 @@ public final class Message {
               java.lang.String s = input.readStringRequireUtf8();
 
               memberName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -23270,6 +25006,7 @@ public final class Message {
       return soc.proto.Message.internal_static_LeaveGame_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_LeaveGame_fieldAccessorTable
@@ -23281,6 +25018,7 @@ public final class Message {
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -23296,6 +25034,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -23319,6 +25058,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The memberName.
      */
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
@@ -23338,6 +25078,7 @@ public final class Message {
      * </pre>
      *
      * <code>string member_name = 2;</code>
+     * @return The bytes for memberName.
      */
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
@@ -23354,6 +25095,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -23363,6 +25105,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -23374,6 +25117,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -23400,13 +25144,12 @@ public final class Message {
       }
       soc.proto.Message.LeaveGame other = (soc.proto.Message.LeaveGame) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && getMemberName()
-          .equals(other.getMemberName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!getMemberName()
+          .equals(other.getMemberName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -23495,6 +25238,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -23502,6 +25246,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.LeaveGame prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -23530,6 +25275,7 @@ public final class Message {
         return soc.proto.Message.internal_static_LeaveGame_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_LeaveGame_fieldAccessorTable
@@ -23552,6 +25298,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -23561,15 +25308,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_LeaveGame_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveGame getDefaultInstanceForType() {
         return soc.proto.Message.LeaveGame.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveGame build() {
         soc.proto.Message.LeaveGame result = buildPartial();
         if (!result.isInitialized()) {
@@ -23578,6 +25328,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.LeaveGame buildPartial() {
         soc.proto.Message.LeaveGame result = new soc.proto.Message.LeaveGame(this);
         result.gaName_ = gaName_;
@@ -23586,32 +25337,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.LeaveGame) {
           return mergeFrom((soc.proto.Message.LeaveGame)other);
@@ -23636,10 +25394,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -23661,6 +25421,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -23676,6 +25437,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -23692,6 +25454,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -23705,6 +25469,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -23714,6 +25479,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -23734,6 +25501,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The memberName.
        */
       public java.lang.String getMemberName() {
         java.lang.Object ref = memberName_;
@@ -23753,6 +25521,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return The bytes for memberName.
        */
       public com.google.protobuf.ByteString
           getMemberNameBytes() {
@@ -23773,6 +25542,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberName(
           java.lang.String value) {
@@ -23790,6 +25561,7 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMemberName() {
         
@@ -23803,6 +25575,8 @@ public final class Message {
        * </pre>
        *
        * <code>string member_name = 2;</code>
+       * @param value The bytes for memberName to set.
+       * @return This builder for chaining.
        */
       public Builder setMemberNameBytes(
           com.google.protobuf.ByteString value) {
@@ -23815,11 +25589,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -23841,11 +25617,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<LeaveGame>
         PARSER = new com.google.protobuf.AbstractParser<LeaveGame>() {
+      @java.lang.Override
       public LeaveGame parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new LeaveGame(input, extensionRegistry);
+        return new LeaveGame(input, extensionRegistry);
       }
     };
 
@@ -23858,6 +25635,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.LeaveGame getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -23870,10 +25648,12 @@ public final class Message {
 
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     java.lang.String getGaName();
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     com.google.protobuf.ByteString
         getGaNameBytes();
@@ -23899,6 +25679,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new DeleteGame();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -23908,7 +25695,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -23919,17 +25708,17 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
               gaName_ = s;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -23949,6 +25738,7 @@ public final class Message {
       return soc.proto.Message.internal_static_DeleteGame_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_DeleteGame_fieldAccessorTable
@@ -23960,6 +25750,7 @@ public final class Message {
     private volatile java.lang.Object gaName_;
     /**
      * <code>string ga_name = 1;</code>
+     * @return The gaName.
      */
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
@@ -23975,6 +25766,7 @@ public final class Message {
     }
     /**
      * <code>string ga_name = 1;</code>
+     * @return The bytes for gaName.
      */
     public com.google.protobuf.ByteString
         getGaNameBytes() {
@@ -23991,6 +25783,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -24000,6 +25793,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGaNameBytes().isEmpty()) {
@@ -24008,6 +25802,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -24031,11 +25826,10 @@ public final class Message {
       }
       soc.proto.Message.DeleteGame other = (soc.proto.Message.DeleteGame) obj;
 
-      boolean result = true;
-      result = result && getGaName()
-          .equals(other.getGaName());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getGaName()
+          .equals(other.getGaName())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -24122,6 +25916,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -24129,6 +25924,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.DeleteGame prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -24156,6 +25952,7 @@ public final class Message {
         return soc.proto.Message.internal_static_DeleteGame_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_DeleteGame_fieldAccessorTable
@@ -24178,6 +25975,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gaName_ = "";
@@ -24185,15 +25983,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_DeleteGame_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.DeleteGame getDefaultInstanceForType() {
         return soc.proto.Message.DeleteGame.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.DeleteGame build() {
         soc.proto.Message.DeleteGame result = buildPartial();
         if (!result.isInitialized()) {
@@ -24202,6 +26003,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.DeleteGame buildPartial() {
         soc.proto.Message.DeleteGame result = new soc.proto.Message.DeleteGame(this);
         result.gaName_ = gaName_;
@@ -24209,32 +26011,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.DeleteGame) {
           return mergeFrom((soc.proto.Message.DeleteGame)other);
@@ -24255,10 +26064,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -24280,6 +26091,7 @@ public final class Message {
       private java.lang.Object gaName_ = "";
       /**
        * <code>string ga_name = 1;</code>
+       * @return The gaName.
        */
       public java.lang.String getGaName() {
         java.lang.Object ref = gaName_;
@@ -24295,6 +26107,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return The bytes for gaName.
        */
       public com.google.protobuf.ByteString
           getGaNameBytes() {
@@ -24311,6 +26124,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaName(
           java.lang.String value) {
@@ -24324,6 +26139,7 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGaName() {
         
@@ -24333,6 +26149,8 @@ public final class Message {
       }
       /**
        * <code>string ga_name = 1;</code>
+       * @param value The bytes for gaName to set.
+       * @return This builder for chaining.
        */
       public Builder setGaNameBytes(
           com.google.protobuf.ByteString value) {
@@ -24345,11 +26163,13 @@ public final class Message {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -24371,11 +26191,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<DeleteGame>
         PARSER = new com.google.protobuf.AbstractParser<DeleteGame>() {
+      @java.lang.Override
       public DeleteGame parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new DeleteGame(input, extensionRegistry);
+        return new DeleteGame(input, extensionRegistry);
       }
     };
 
@@ -24388,6 +26209,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.DeleteGame getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -24404,6 +26226,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Version vers = 1;</code>
+     * @return Whether the vers field is set.
      */
     boolean hasVers();
     /**
@@ -24412,6 +26235,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Version vers = 1;</code>
+     * @return The vers.
      */
     soc.proto.Message.Version getVers();
     /**
@@ -24425,10 +26249,12 @@ public final class Message {
 
     /**
      * <code>.RejectConnection reject_connection = 2;</code>
+     * @return Whether the rejectConnection field is set.
      */
     boolean hasRejectConnection();
     /**
      * <code>.RejectConnection reject_connection = 2;</code>
+     * @return The rejectConnection.
      */
     soc.proto.Message.RejectConnection getRejectConnection();
     /**
@@ -24438,10 +26264,12 @@ public final class Message {
 
     /**
      * <code>.ServerStatusText status_text = 3;</code>
+     * @return Whether the statusText field is set.
      */
     boolean hasStatusText();
     /**
      * <code>.ServerStatusText status_text = 3;</code>
+     * @return The statusText.
      */
     soc.proto.Message.ServerStatusText getStatusText();
     /**
@@ -24451,10 +26279,12 @@ public final class Message {
 
     /**
      * <code>.BroadcastText broadcast_text = 4;</code>
+     * @return Whether the broadcastText field is set.
      */
     boolean hasBroadcastText();
     /**
      * <code>.BroadcastText broadcast_text = 4;</code>
+     * @return The broadcastText.
      */
     soc.proto.Message.BroadcastText getBroadcastText();
     /**
@@ -24464,10 +26294,12 @@ public final class Message {
 
     /**
      * <code>.ServerPing server_ping = 5;</code>
+     * @return Whether the serverPing field is set.
      */
     boolean hasServerPing();
     /**
      * <code>.ServerPing server_ping = 5;</code>
+     * @return The serverPing.
      */
     soc.proto.Message.ServerPing getServerPing();
     /**
@@ -24481,6 +26313,7 @@ public final class Message {
      * </pre>
      *
      * <code>.GameMessageFromServer game_message = 15;</code>
+     * @return Whether the gameMessage field is set.
      */
     boolean hasGameMessage();
     /**
@@ -24489,6 +26322,7 @@ public final class Message {
      * </pre>
      *
      * <code>.GameMessageFromServer game_message = 15;</code>
+     * @return The gameMessage.
      */
     soc.proto.GameMessage.GameMessageFromServer getGameMessage();
     /**
@@ -24506,6 +26340,7 @@ public final class Message {
      * </pre>
      *
      * <code>.BotUpdateParams bot_update_params = 20;</code>
+     * @return Whether the botUpdateParams field is set.
      */
     boolean hasBotUpdateParams();
     /**
@@ -24514,6 +26349,7 @@ public final class Message {
      * </pre>
      *
      * <code>.BotUpdateParams bot_update_params = 20;</code>
+     * @return The botUpdateParams.
      */
     soc.proto.Message.BotUpdateParams getBotUpdateParams();
     /**
@@ -24527,10 +26363,12 @@ public final class Message {
 
     /**
      * <code>.BotAdminReset bot_admin_reset = 21;</code>
+     * @return Whether the botAdminReset field is set.
      */
     boolean hasBotAdminReset();
     /**
      * <code>.BotAdminReset bot_admin_reset = 21;</code>
+     * @return The botAdminReset.
      */
     soc.proto.Message.BotAdminReset getBotAdminReset();
     /**
@@ -24544,6 +26382,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Channels channels = 100;</code>
+     * @return Whether the channels field is set.
      */
     boolean hasChannels();
     /**
@@ -24552,6 +26391,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Channels channels = 100;</code>
+     * @return The channels.
      */
     soc.proto.Message.Channels getChannels();
     /**
@@ -24565,10 +26405,12 @@ public final class Message {
 
     /**
      * <code>.NewChannel ch_new = 101;</code>
+     * @return Whether the chNew field is set.
      */
     boolean hasChNew();
     /**
      * <code>.NewChannel ch_new = 101;</code>
+     * @return The chNew.
      */
     soc.proto.Message.NewChannel getChNew();
     /**
@@ -24578,10 +26420,12 @@ public final class Message {
 
     /**
      * <code>.JoinChannel ch_join = 102;</code>
+     * @return Whether the chJoin field is set.
      */
     boolean hasChJoin();
     /**
      * <code>.JoinChannel ch_join = 102;</code>
+     * @return The chJoin.
      */
     soc.proto.Message.JoinChannel getChJoin();
     /**
@@ -24591,10 +26435,12 @@ public final class Message {
 
     /**
      * <code>.ChannelMembers ch_members = 103;</code>
+     * @return Whether the chMembers field is set.
      */
     boolean hasChMembers();
     /**
      * <code>.ChannelMembers ch_members = 103;</code>
+     * @return The chMembers.
      */
     soc.proto.Message.ChannelMembers getChMembers();
     /**
@@ -24604,10 +26450,12 @@ public final class Message {
 
     /**
      * <code>.ChannelText ch_text = 104;</code>
+     * @return Whether the chText field is set.
      */
     boolean hasChText();
     /**
      * <code>.ChannelText ch_text = 104;</code>
+     * @return The chText.
      */
     soc.proto.Message.ChannelText getChText();
     /**
@@ -24617,10 +26465,12 @@ public final class Message {
 
     /**
      * <code>.LeaveChannel ch_leave = 105;</code>
+     * @return Whether the chLeave field is set.
      */
     boolean hasChLeave();
     /**
      * <code>.LeaveChannel ch_leave = 105;</code>
+     * @return The chLeave.
      */
     soc.proto.Message.LeaveChannel getChLeave();
     /**
@@ -24630,10 +26480,12 @@ public final class Message {
 
     /**
      * <code>.DeleteChannel ch_delete = 106;</code>
+     * @return Whether the chDelete field is set.
      */
     boolean hasChDelete();
     /**
      * <code>.DeleteChannel ch_delete = 106;</code>
+     * @return The chDelete.
      */
     soc.proto.Message.DeleteChannel getChDelete();
     /**
@@ -24647,6 +26499,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Games games = 200;</code>
+     * @return Whether the games field is set.
      */
     boolean hasGames();
     /**
@@ -24655,6 +26508,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Games games = 200;</code>
+     * @return The games.
      */
     soc.proto.Message.Games getGames();
     /**
@@ -24668,10 +26522,12 @@ public final class Message {
 
     /**
      * <code>.NewGame ga_new = 201;</code>
+     * @return Whether the gaNew field is set.
      */
     boolean hasGaNew();
     /**
      * <code>.NewGame ga_new = 201;</code>
+     * @return The gaNew.
      */
     soc.proto.Message.NewGame getGaNew();
     /**
@@ -24681,10 +26537,12 @@ public final class Message {
 
     /**
      * <code>.JoinGame ga_join = 202;</code>
+     * @return Whether the gaJoin field is set.
      */
     boolean hasGaJoin();
     /**
      * <code>.JoinGame ga_join = 202;</code>
+     * @return The gaJoin.
      */
     soc.proto.Message.JoinGame getGaJoin();
     /**
@@ -24694,10 +26552,12 @@ public final class Message {
 
     /**
      * <code>.BotJoinGameRequest bot_join_req = 203;</code>
+     * @return Whether the botJoinReq field is set.
      */
     boolean hasBotJoinReq();
     /**
      * <code>.BotJoinGameRequest bot_join_req = 203;</code>
+     * @return The botJoinReq.
      */
     soc.proto.Message.BotJoinGameRequest getBotJoinReq();
     /**
@@ -24707,10 +26567,12 @@ public final class Message {
 
     /**
      * <code>.GameMembers ga_members = 204;</code>
+     * @return Whether the gaMembers field is set.
      */
     boolean hasGaMembers();
     /**
      * <code>.GameMembers ga_members = 204;</code>
+     * @return The gaMembers.
      */
     soc.proto.Message.GameMembers getGaMembers();
     /**
@@ -24720,10 +26582,12 @@ public final class Message {
 
     /**
      * <code>.SitDown sit_down = 205;</code>
+     * @return Whether the sitDown field is set.
      */
     boolean hasSitDown();
     /**
      * <code>.SitDown sit_down = 205;</code>
+     * @return The sitDown.
      */
     soc.proto.Message.SitDown getSitDown();
     /**
@@ -24733,10 +26597,12 @@ public final class Message {
 
     /**
      * <code>.SetSeatLock set_seat_lock = 206;</code>
+     * @return Whether the setSeatLock field is set.
      */
     boolean hasSetSeatLock();
     /**
      * <code>.SetSeatLock set_seat_lock = 206;</code>
+     * @return The setSeatLock.
      */
     soc.proto.Message.SetSeatLock getSetSeatLock();
     /**
@@ -24746,10 +26612,12 @@ public final class Message {
 
     /**
      * <code>.GameServerText server_text = 207;</code>
+     * @return Whether the serverText field is set.
      */
     boolean hasServerText();
     /**
      * <code>.GameServerText server_text = 207;</code>
+     * @return The serverText.
      */
     soc.proto.Message.GameServerText getServerText();
     /**
@@ -24759,10 +26627,12 @@ public final class Message {
 
     /**
      * <code>.GamePlayerText ga_player_text = 208;</code>
+     * @return Whether the gaPlayerText field is set.
      */
     boolean hasGaPlayerText();
     /**
      * <code>.GamePlayerText ga_player_text = 208;</code>
+     * @return The gaPlayerText.
      */
     soc.proto.Message.GamePlayerText getGaPlayerText();
     /**
@@ -24772,10 +26642,12 @@ public final class Message {
 
     /**
      * <code>.BotTimingPing bot_timing_ping = 209;</code>
+     * @return Whether the botTimingPing field is set.
      */
     boolean hasBotTimingPing();
     /**
      * <code>.BotTimingPing bot_timing_ping = 209;</code>
+     * @return The botTimingPing.
      */
     soc.proto.Message.BotTimingPing getBotTimingPing();
     /**
@@ -24785,10 +26657,12 @@ public final class Message {
 
     /**
      * <code>.BotAdminPing bot_admin_ping = 210;</code>
+     * @return Whether the botAdminPing field is set.
      */
     boolean hasBotAdminPing();
     /**
      * <code>.BotAdminPing bot_admin_ping = 210;</code>
+     * @return The botAdminPing.
      */
     soc.proto.Message.BotAdminPing getBotAdminPing();
     /**
@@ -24798,10 +26672,12 @@ public final class Message {
 
     /**
      * <code>.BotDismiss bot_dismiss = 211;</code>
+     * @return Whether the botDismiss field is set.
      */
     boolean hasBotDismiss();
     /**
      * <code>.BotDismiss bot_dismiss = 211;</code>
+     * @return The botDismiss.
      */
     soc.proto.Message.BotDismiss getBotDismiss();
     /**
@@ -24811,10 +26687,12 @@ public final class Message {
 
     /**
      * <code>.LeaveGame ga_leave = 212;</code>
+     * @return Whether the gaLeave field is set.
      */
     boolean hasGaLeave();
     /**
      * <code>.LeaveGame ga_leave = 212;</code>
+     * @return The gaLeave.
      */
     soc.proto.Message.LeaveGame getGaLeave();
     /**
@@ -24824,10 +26702,12 @@ public final class Message {
 
     /**
      * <code>.DeleteGame ga_delete = 213;</code>
+     * @return Whether the gaDelete field is set.
      */
     boolean hasGaDelete();
     /**
      * <code>.DeleteGame ga_delete = 213;</code>
+     * @return The gaDelete.
      */
     soc.proto.Message.DeleteGame getGaDelete();
     /**
@@ -24853,6 +26733,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new FromServer();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -24862,7 +26749,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -24873,13 +26762,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Message.Version.Builder subBuilder = null;
               if (msgCase_ == 1) {
@@ -25286,6 +27168,13 @@ public final class Message {
               msgCase_ = 213;
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -25303,6 +27192,7 @@ public final class Message {
       return soc.proto.Message.internal_static_FromServer_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_FromServer_fieldAccessorTable
@@ -25313,7 +27203,8 @@ public final class Message {
     private int msgCase_ = 0;
     private java.lang.Object msg_;
     public enum MsgCase
-        implements com.google.protobuf.Internal.EnumLite {
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       VERS(1),
       REJECT_CONNECTION(2),
       STATUS_TEXT(3),
@@ -25349,6 +27240,8 @@ public final class Message {
         this.value = value;
       }
       /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -25409,6 +27302,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Version vers = 1;</code>
+     * @return Whether the vers field is set.
      */
     public boolean hasVers() {
       return msgCase_ == 1;
@@ -25419,6 +27313,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Version vers = 1;</code>
+     * @return The vers.
      */
     public soc.proto.Message.Version getVers() {
       if (msgCase_ == 1) {
@@ -25443,12 +27338,14 @@ public final class Message {
     public static final int REJECT_CONNECTION_FIELD_NUMBER = 2;
     /**
      * <code>.RejectConnection reject_connection = 2;</code>
+     * @return Whether the rejectConnection field is set.
      */
     public boolean hasRejectConnection() {
       return msgCase_ == 2;
     }
     /**
      * <code>.RejectConnection reject_connection = 2;</code>
+     * @return The rejectConnection.
      */
     public soc.proto.Message.RejectConnection getRejectConnection() {
       if (msgCase_ == 2) {
@@ -25469,12 +27366,14 @@ public final class Message {
     public static final int STATUS_TEXT_FIELD_NUMBER = 3;
     /**
      * <code>.ServerStatusText status_text = 3;</code>
+     * @return Whether the statusText field is set.
      */
     public boolean hasStatusText() {
       return msgCase_ == 3;
     }
     /**
      * <code>.ServerStatusText status_text = 3;</code>
+     * @return The statusText.
      */
     public soc.proto.Message.ServerStatusText getStatusText() {
       if (msgCase_ == 3) {
@@ -25495,12 +27394,14 @@ public final class Message {
     public static final int BROADCAST_TEXT_FIELD_NUMBER = 4;
     /**
      * <code>.BroadcastText broadcast_text = 4;</code>
+     * @return Whether the broadcastText field is set.
      */
     public boolean hasBroadcastText() {
       return msgCase_ == 4;
     }
     /**
      * <code>.BroadcastText broadcast_text = 4;</code>
+     * @return The broadcastText.
      */
     public soc.proto.Message.BroadcastText getBroadcastText() {
       if (msgCase_ == 4) {
@@ -25521,12 +27422,14 @@ public final class Message {
     public static final int SERVER_PING_FIELD_NUMBER = 5;
     /**
      * <code>.ServerPing server_ping = 5;</code>
+     * @return Whether the serverPing field is set.
      */
     public boolean hasServerPing() {
       return msgCase_ == 5;
     }
     /**
      * <code>.ServerPing server_ping = 5;</code>
+     * @return The serverPing.
      */
     public soc.proto.Message.ServerPing getServerPing() {
       if (msgCase_ == 5) {
@@ -25551,6 +27454,7 @@ public final class Message {
      * </pre>
      *
      * <code>.GameMessageFromServer game_message = 15;</code>
+     * @return Whether the gameMessage field is set.
      */
     public boolean hasGameMessage() {
       return msgCase_ == 15;
@@ -25561,6 +27465,7 @@ public final class Message {
      * </pre>
      *
      * <code>.GameMessageFromServer game_message = 15;</code>
+     * @return The gameMessage.
      */
     public soc.proto.GameMessage.GameMessageFromServer getGameMessage() {
       if (msgCase_ == 15) {
@@ -25589,6 +27494,7 @@ public final class Message {
      * </pre>
      *
      * <code>.BotUpdateParams bot_update_params = 20;</code>
+     * @return Whether the botUpdateParams field is set.
      */
     public boolean hasBotUpdateParams() {
       return msgCase_ == 20;
@@ -25599,6 +27505,7 @@ public final class Message {
      * </pre>
      *
      * <code>.BotUpdateParams bot_update_params = 20;</code>
+     * @return The botUpdateParams.
      */
     public soc.proto.Message.BotUpdateParams getBotUpdateParams() {
       if (msgCase_ == 20) {
@@ -25623,12 +27530,14 @@ public final class Message {
     public static final int BOT_ADMIN_RESET_FIELD_NUMBER = 21;
     /**
      * <code>.BotAdminReset bot_admin_reset = 21;</code>
+     * @return Whether the botAdminReset field is set.
      */
     public boolean hasBotAdminReset() {
       return msgCase_ == 21;
     }
     /**
      * <code>.BotAdminReset bot_admin_reset = 21;</code>
+     * @return The botAdminReset.
      */
     public soc.proto.Message.BotAdminReset getBotAdminReset() {
       if (msgCase_ == 21) {
@@ -25653,6 +27562,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Channels channels = 100;</code>
+     * @return Whether the channels field is set.
      */
     public boolean hasChannels() {
       return msgCase_ == 100;
@@ -25663,6 +27573,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Channels channels = 100;</code>
+     * @return The channels.
      */
     public soc.proto.Message.Channels getChannels() {
       if (msgCase_ == 100) {
@@ -25687,12 +27598,14 @@ public final class Message {
     public static final int CH_NEW_FIELD_NUMBER = 101;
     /**
      * <code>.NewChannel ch_new = 101;</code>
+     * @return Whether the chNew field is set.
      */
     public boolean hasChNew() {
       return msgCase_ == 101;
     }
     /**
      * <code>.NewChannel ch_new = 101;</code>
+     * @return The chNew.
      */
     public soc.proto.Message.NewChannel getChNew() {
       if (msgCase_ == 101) {
@@ -25713,12 +27626,14 @@ public final class Message {
     public static final int CH_JOIN_FIELD_NUMBER = 102;
     /**
      * <code>.JoinChannel ch_join = 102;</code>
+     * @return Whether the chJoin field is set.
      */
     public boolean hasChJoin() {
       return msgCase_ == 102;
     }
     /**
      * <code>.JoinChannel ch_join = 102;</code>
+     * @return The chJoin.
      */
     public soc.proto.Message.JoinChannel getChJoin() {
       if (msgCase_ == 102) {
@@ -25739,12 +27654,14 @@ public final class Message {
     public static final int CH_MEMBERS_FIELD_NUMBER = 103;
     /**
      * <code>.ChannelMembers ch_members = 103;</code>
+     * @return Whether the chMembers field is set.
      */
     public boolean hasChMembers() {
       return msgCase_ == 103;
     }
     /**
      * <code>.ChannelMembers ch_members = 103;</code>
+     * @return The chMembers.
      */
     public soc.proto.Message.ChannelMembers getChMembers() {
       if (msgCase_ == 103) {
@@ -25765,12 +27682,14 @@ public final class Message {
     public static final int CH_TEXT_FIELD_NUMBER = 104;
     /**
      * <code>.ChannelText ch_text = 104;</code>
+     * @return Whether the chText field is set.
      */
     public boolean hasChText() {
       return msgCase_ == 104;
     }
     /**
      * <code>.ChannelText ch_text = 104;</code>
+     * @return The chText.
      */
     public soc.proto.Message.ChannelText getChText() {
       if (msgCase_ == 104) {
@@ -25791,12 +27710,14 @@ public final class Message {
     public static final int CH_LEAVE_FIELD_NUMBER = 105;
     /**
      * <code>.LeaveChannel ch_leave = 105;</code>
+     * @return Whether the chLeave field is set.
      */
     public boolean hasChLeave() {
       return msgCase_ == 105;
     }
     /**
      * <code>.LeaveChannel ch_leave = 105;</code>
+     * @return The chLeave.
      */
     public soc.proto.Message.LeaveChannel getChLeave() {
       if (msgCase_ == 105) {
@@ -25817,12 +27738,14 @@ public final class Message {
     public static final int CH_DELETE_FIELD_NUMBER = 106;
     /**
      * <code>.DeleteChannel ch_delete = 106;</code>
+     * @return Whether the chDelete field is set.
      */
     public boolean hasChDelete() {
       return msgCase_ == 106;
     }
     /**
      * <code>.DeleteChannel ch_delete = 106;</code>
+     * @return The chDelete.
      */
     public soc.proto.Message.DeleteChannel getChDelete() {
       if (msgCase_ == 106) {
@@ -25847,6 +27770,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Games games = 200;</code>
+     * @return Whether the games field is set.
      */
     public boolean hasGames() {
       return msgCase_ == 200;
@@ -25857,6 +27781,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Games games = 200;</code>
+     * @return The games.
      */
     public soc.proto.Message.Games getGames() {
       if (msgCase_ == 200) {
@@ -25881,12 +27806,14 @@ public final class Message {
     public static final int GA_NEW_FIELD_NUMBER = 201;
     /**
      * <code>.NewGame ga_new = 201;</code>
+     * @return Whether the gaNew field is set.
      */
     public boolean hasGaNew() {
       return msgCase_ == 201;
     }
     /**
      * <code>.NewGame ga_new = 201;</code>
+     * @return The gaNew.
      */
     public soc.proto.Message.NewGame getGaNew() {
       if (msgCase_ == 201) {
@@ -25907,12 +27834,14 @@ public final class Message {
     public static final int GA_JOIN_FIELD_NUMBER = 202;
     /**
      * <code>.JoinGame ga_join = 202;</code>
+     * @return Whether the gaJoin field is set.
      */
     public boolean hasGaJoin() {
       return msgCase_ == 202;
     }
     /**
      * <code>.JoinGame ga_join = 202;</code>
+     * @return The gaJoin.
      */
     public soc.proto.Message.JoinGame getGaJoin() {
       if (msgCase_ == 202) {
@@ -25933,12 +27862,14 @@ public final class Message {
     public static final int BOT_JOIN_REQ_FIELD_NUMBER = 203;
     /**
      * <code>.BotJoinGameRequest bot_join_req = 203;</code>
+     * @return Whether the botJoinReq field is set.
      */
     public boolean hasBotJoinReq() {
       return msgCase_ == 203;
     }
     /**
      * <code>.BotJoinGameRequest bot_join_req = 203;</code>
+     * @return The botJoinReq.
      */
     public soc.proto.Message.BotJoinGameRequest getBotJoinReq() {
       if (msgCase_ == 203) {
@@ -25959,12 +27890,14 @@ public final class Message {
     public static final int GA_MEMBERS_FIELD_NUMBER = 204;
     /**
      * <code>.GameMembers ga_members = 204;</code>
+     * @return Whether the gaMembers field is set.
      */
     public boolean hasGaMembers() {
       return msgCase_ == 204;
     }
     /**
      * <code>.GameMembers ga_members = 204;</code>
+     * @return The gaMembers.
      */
     public soc.proto.Message.GameMembers getGaMembers() {
       if (msgCase_ == 204) {
@@ -25985,12 +27918,14 @@ public final class Message {
     public static final int SIT_DOWN_FIELD_NUMBER = 205;
     /**
      * <code>.SitDown sit_down = 205;</code>
+     * @return Whether the sitDown field is set.
      */
     public boolean hasSitDown() {
       return msgCase_ == 205;
     }
     /**
      * <code>.SitDown sit_down = 205;</code>
+     * @return The sitDown.
      */
     public soc.proto.Message.SitDown getSitDown() {
       if (msgCase_ == 205) {
@@ -26011,12 +27946,14 @@ public final class Message {
     public static final int SET_SEAT_LOCK_FIELD_NUMBER = 206;
     /**
      * <code>.SetSeatLock set_seat_lock = 206;</code>
+     * @return Whether the setSeatLock field is set.
      */
     public boolean hasSetSeatLock() {
       return msgCase_ == 206;
     }
     /**
      * <code>.SetSeatLock set_seat_lock = 206;</code>
+     * @return The setSeatLock.
      */
     public soc.proto.Message.SetSeatLock getSetSeatLock() {
       if (msgCase_ == 206) {
@@ -26037,12 +27974,14 @@ public final class Message {
     public static final int SERVER_TEXT_FIELD_NUMBER = 207;
     /**
      * <code>.GameServerText server_text = 207;</code>
+     * @return Whether the serverText field is set.
      */
     public boolean hasServerText() {
       return msgCase_ == 207;
     }
     /**
      * <code>.GameServerText server_text = 207;</code>
+     * @return The serverText.
      */
     public soc.proto.Message.GameServerText getServerText() {
       if (msgCase_ == 207) {
@@ -26063,12 +28002,14 @@ public final class Message {
     public static final int GA_PLAYER_TEXT_FIELD_NUMBER = 208;
     /**
      * <code>.GamePlayerText ga_player_text = 208;</code>
+     * @return Whether the gaPlayerText field is set.
      */
     public boolean hasGaPlayerText() {
       return msgCase_ == 208;
     }
     /**
      * <code>.GamePlayerText ga_player_text = 208;</code>
+     * @return The gaPlayerText.
      */
     public soc.proto.Message.GamePlayerText getGaPlayerText() {
       if (msgCase_ == 208) {
@@ -26089,12 +28030,14 @@ public final class Message {
     public static final int BOT_TIMING_PING_FIELD_NUMBER = 209;
     /**
      * <code>.BotTimingPing bot_timing_ping = 209;</code>
+     * @return Whether the botTimingPing field is set.
      */
     public boolean hasBotTimingPing() {
       return msgCase_ == 209;
     }
     /**
      * <code>.BotTimingPing bot_timing_ping = 209;</code>
+     * @return The botTimingPing.
      */
     public soc.proto.Message.BotTimingPing getBotTimingPing() {
       if (msgCase_ == 209) {
@@ -26115,12 +28058,14 @@ public final class Message {
     public static final int BOT_ADMIN_PING_FIELD_NUMBER = 210;
     /**
      * <code>.BotAdminPing bot_admin_ping = 210;</code>
+     * @return Whether the botAdminPing field is set.
      */
     public boolean hasBotAdminPing() {
       return msgCase_ == 210;
     }
     /**
      * <code>.BotAdminPing bot_admin_ping = 210;</code>
+     * @return The botAdminPing.
      */
     public soc.proto.Message.BotAdminPing getBotAdminPing() {
       if (msgCase_ == 210) {
@@ -26141,12 +28086,14 @@ public final class Message {
     public static final int BOT_DISMISS_FIELD_NUMBER = 211;
     /**
      * <code>.BotDismiss bot_dismiss = 211;</code>
+     * @return Whether the botDismiss field is set.
      */
     public boolean hasBotDismiss() {
       return msgCase_ == 211;
     }
     /**
      * <code>.BotDismiss bot_dismiss = 211;</code>
+     * @return The botDismiss.
      */
     public soc.proto.Message.BotDismiss getBotDismiss() {
       if (msgCase_ == 211) {
@@ -26167,12 +28114,14 @@ public final class Message {
     public static final int GA_LEAVE_FIELD_NUMBER = 212;
     /**
      * <code>.LeaveGame ga_leave = 212;</code>
+     * @return Whether the gaLeave field is set.
      */
     public boolean hasGaLeave() {
       return msgCase_ == 212;
     }
     /**
      * <code>.LeaveGame ga_leave = 212;</code>
+     * @return The gaLeave.
      */
     public soc.proto.Message.LeaveGame getGaLeave() {
       if (msgCase_ == 212) {
@@ -26193,12 +28142,14 @@ public final class Message {
     public static final int GA_DELETE_FIELD_NUMBER = 213;
     /**
      * <code>.DeleteGame ga_delete = 213;</code>
+     * @return Whether the gaDelete field is set.
      */
     public boolean hasGaDelete() {
       return msgCase_ == 213;
     }
     /**
      * <code>.DeleteGame ga_delete = 213;</code>
+     * @return The gaDelete.
      */
     public soc.proto.Message.DeleteGame getGaDelete() {
       if (msgCase_ == 213) {
@@ -26217,6 +28168,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -26226,6 +28178,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (msgCase_ == 1) {
@@ -26318,6 +28271,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -26454,132 +28408,129 @@ public final class Message {
       }
       soc.proto.Message.FromServer other = (soc.proto.Message.FromServer) obj;
 
-      boolean result = true;
-      result = result && getMsgCase().equals(
-          other.getMsgCase());
-      if (!result) return false;
+      if (!getMsgCase().equals(other.getMsgCase())) return false;
       switch (msgCase_) {
         case 1:
-          result = result && getVers()
-              .equals(other.getVers());
+          if (!getVers()
+              .equals(other.getVers())) return false;
           break;
         case 2:
-          result = result && getRejectConnection()
-              .equals(other.getRejectConnection());
+          if (!getRejectConnection()
+              .equals(other.getRejectConnection())) return false;
           break;
         case 3:
-          result = result && getStatusText()
-              .equals(other.getStatusText());
+          if (!getStatusText()
+              .equals(other.getStatusText())) return false;
           break;
         case 4:
-          result = result && getBroadcastText()
-              .equals(other.getBroadcastText());
+          if (!getBroadcastText()
+              .equals(other.getBroadcastText())) return false;
           break;
         case 5:
-          result = result && getServerPing()
-              .equals(other.getServerPing());
+          if (!getServerPing()
+              .equals(other.getServerPing())) return false;
           break;
         case 15:
-          result = result && getGameMessage()
-              .equals(other.getGameMessage());
+          if (!getGameMessage()
+              .equals(other.getGameMessage())) return false;
           break;
         case 20:
-          result = result && getBotUpdateParams()
-              .equals(other.getBotUpdateParams());
+          if (!getBotUpdateParams()
+              .equals(other.getBotUpdateParams())) return false;
           break;
         case 21:
-          result = result && getBotAdminReset()
-              .equals(other.getBotAdminReset());
+          if (!getBotAdminReset()
+              .equals(other.getBotAdminReset())) return false;
           break;
         case 100:
-          result = result && getChannels()
-              .equals(other.getChannels());
+          if (!getChannels()
+              .equals(other.getChannels())) return false;
           break;
         case 101:
-          result = result && getChNew()
-              .equals(other.getChNew());
+          if (!getChNew()
+              .equals(other.getChNew())) return false;
           break;
         case 102:
-          result = result && getChJoin()
-              .equals(other.getChJoin());
+          if (!getChJoin()
+              .equals(other.getChJoin())) return false;
           break;
         case 103:
-          result = result && getChMembers()
-              .equals(other.getChMembers());
+          if (!getChMembers()
+              .equals(other.getChMembers())) return false;
           break;
         case 104:
-          result = result && getChText()
-              .equals(other.getChText());
+          if (!getChText()
+              .equals(other.getChText())) return false;
           break;
         case 105:
-          result = result && getChLeave()
-              .equals(other.getChLeave());
+          if (!getChLeave()
+              .equals(other.getChLeave())) return false;
           break;
         case 106:
-          result = result && getChDelete()
-              .equals(other.getChDelete());
+          if (!getChDelete()
+              .equals(other.getChDelete())) return false;
           break;
         case 200:
-          result = result && getGames()
-              .equals(other.getGames());
+          if (!getGames()
+              .equals(other.getGames())) return false;
           break;
         case 201:
-          result = result && getGaNew()
-              .equals(other.getGaNew());
+          if (!getGaNew()
+              .equals(other.getGaNew())) return false;
           break;
         case 202:
-          result = result && getGaJoin()
-              .equals(other.getGaJoin());
+          if (!getGaJoin()
+              .equals(other.getGaJoin())) return false;
           break;
         case 203:
-          result = result && getBotJoinReq()
-              .equals(other.getBotJoinReq());
+          if (!getBotJoinReq()
+              .equals(other.getBotJoinReq())) return false;
           break;
         case 204:
-          result = result && getGaMembers()
-              .equals(other.getGaMembers());
+          if (!getGaMembers()
+              .equals(other.getGaMembers())) return false;
           break;
         case 205:
-          result = result && getSitDown()
-              .equals(other.getSitDown());
+          if (!getSitDown()
+              .equals(other.getSitDown())) return false;
           break;
         case 206:
-          result = result && getSetSeatLock()
-              .equals(other.getSetSeatLock());
+          if (!getSetSeatLock()
+              .equals(other.getSetSeatLock())) return false;
           break;
         case 207:
-          result = result && getServerText()
-              .equals(other.getServerText());
+          if (!getServerText()
+              .equals(other.getServerText())) return false;
           break;
         case 208:
-          result = result && getGaPlayerText()
-              .equals(other.getGaPlayerText());
+          if (!getGaPlayerText()
+              .equals(other.getGaPlayerText())) return false;
           break;
         case 209:
-          result = result && getBotTimingPing()
-              .equals(other.getBotTimingPing());
+          if (!getBotTimingPing()
+              .equals(other.getBotTimingPing())) return false;
           break;
         case 210:
-          result = result && getBotAdminPing()
-              .equals(other.getBotAdminPing());
+          if (!getBotAdminPing()
+              .equals(other.getBotAdminPing())) return false;
           break;
         case 211:
-          result = result && getBotDismiss()
-              .equals(other.getBotDismiss());
+          if (!getBotDismiss()
+              .equals(other.getBotDismiss())) return false;
           break;
         case 212:
-          result = result && getGaLeave()
-              .equals(other.getGaLeave());
+          if (!getGaLeave()
+              .equals(other.getGaLeave())) return false;
           break;
         case 213:
-          result = result && getGaDelete()
-              .equals(other.getGaDelete());
+          if (!getGaDelete()
+              .equals(other.getGaDelete())) return false;
           break;
         case 0:
         default:
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -26784,6 +28735,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -26791,6 +28743,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.FromServer prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -26814,6 +28767,7 @@ public final class Message {
         return soc.proto.Message.internal_static_FromServer_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_FromServer_fieldAccessorTable
@@ -26836,6 +28790,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         msgCase_ = 0;
@@ -26843,15 +28798,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_FromServer_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.FromServer getDefaultInstanceForType() {
         return soc.proto.Message.FromServer.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.FromServer build() {
         soc.proto.Message.FromServer result = buildPartial();
         if (!result.isInitialized()) {
@@ -26860,6 +28818,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.FromServer buildPartial() {
         soc.proto.Message.FromServer result = new soc.proto.Message.FromServer(this);
         if (msgCase_ == 1) {
@@ -27070,32 +29029,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.FromServer) {
           return mergeFrom((soc.proto.Message.FromServer)other);
@@ -27233,10 +29199,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -27278,6 +29246,7 @@ public final class Message {
        * </pre>
        *
        * <code>.Version vers = 1;</code>
+       * @return Whether the vers field is set.
        */
       public boolean hasVers() {
         return msgCase_ == 1;
@@ -27288,6 +29257,7 @@ public final class Message {
        * </pre>
        *
        * <code>.Version vers = 1;</code>
+       * @return The vers.
        */
       public soc.proto.Message.Version getVers() {
         if (versBuilder_ == null) {
@@ -27446,12 +29416,14 @@ public final class Message {
           soc.proto.Message.RejectConnection, soc.proto.Message.RejectConnection.Builder, soc.proto.Message.RejectConnectionOrBuilder> rejectConnectionBuilder_;
       /**
        * <code>.RejectConnection reject_connection = 2;</code>
+       * @return Whether the rejectConnection field is set.
        */
       public boolean hasRejectConnection() {
         return msgCase_ == 2;
       }
       /**
        * <code>.RejectConnection reject_connection = 2;</code>
+       * @return The rejectConnection.
        */
       public soc.proto.Message.RejectConnection getRejectConnection() {
         if (rejectConnectionBuilder_ == null) {
@@ -27582,12 +29554,14 @@ public final class Message {
           soc.proto.Message.ServerStatusText, soc.proto.Message.ServerStatusText.Builder, soc.proto.Message.ServerStatusTextOrBuilder> statusTextBuilder_;
       /**
        * <code>.ServerStatusText status_text = 3;</code>
+       * @return Whether the statusText field is set.
        */
       public boolean hasStatusText() {
         return msgCase_ == 3;
       }
       /**
        * <code>.ServerStatusText status_text = 3;</code>
+       * @return The statusText.
        */
       public soc.proto.Message.ServerStatusText getStatusText() {
         if (statusTextBuilder_ == null) {
@@ -27718,12 +29692,14 @@ public final class Message {
           soc.proto.Message.BroadcastText, soc.proto.Message.BroadcastText.Builder, soc.proto.Message.BroadcastTextOrBuilder> broadcastTextBuilder_;
       /**
        * <code>.BroadcastText broadcast_text = 4;</code>
+       * @return Whether the broadcastText field is set.
        */
       public boolean hasBroadcastText() {
         return msgCase_ == 4;
       }
       /**
        * <code>.BroadcastText broadcast_text = 4;</code>
+       * @return The broadcastText.
        */
       public soc.proto.Message.BroadcastText getBroadcastText() {
         if (broadcastTextBuilder_ == null) {
@@ -27854,12 +29830,14 @@ public final class Message {
           soc.proto.Message.ServerPing, soc.proto.Message.ServerPing.Builder, soc.proto.Message.ServerPingOrBuilder> serverPingBuilder_;
       /**
        * <code>.ServerPing server_ping = 5;</code>
+       * @return Whether the serverPing field is set.
        */
       public boolean hasServerPing() {
         return msgCase_ == 5;
       }
       /**
        * <code>.ServerPing server_ping = 5;</code>
+       * @return The serverPing.
        */
       public soc.proto.Message.ServerPing getServerPing() {
         if (serverPingBuilder_ == null) {
@@ -27994,6 +29972,7 @@ public final class Message {
        * </pre>
        *
        * <code>.GameMessageFromServer game_message = 15;</code>
+       * @return Whether the gameMessage field is set.
        */
       public boolean hasGameMessage() {
         return msgCase_ == 15;
@@ -28004,6 +29983,7 @@ public final class Message {
        * </pre>
        *
        * <code>.GameMessageFromServer game_message = 15;</code>
+       * @return The gameMessage.
        */
       public soc.proto.GameMessage.GameMessageFromServer getGameMessage() {
         if (gameMessageBuilder_ == null) {
@@ -28166,6 +30146,7 @@ public final class Message {
        * </pre>
        *
        * <code>.BotUpdateParams bot_update_params = 20;</code>
+       * @return Whether the botUpdateParams field is set.
        */
       public boolean hasBotUpdateParams() {
         return msgCase_ == 20;
@@ -28176,6 +30157,7 @@ public final class Message {
        * </pre>
        *
        * <code>.BotUpdateParams bot_update_params = 20;</code>
+       * @return The botUpdateParams.
        */
       public soc.proto.Message.BotUpdateParams getBotUpdateParams() {
         if (botUpdateParamsBuilder_ == null) {
@@ -28334,12 +30316,14 @@ public final class Message {
           soc.proto.Message.BotAdminReset, soc.proto.Message.BotAdminReset.Builder, soc.proto.Message.BotAdminResetOrBuilder> botAdminResetBuilder_;
       /**
        * <code>.BotAdminReset bot_admin_reset = 21;</code>
+       * @return Whether the botAdminReset field is set.
        */
       public boolean hasBotAdminReset() {
         return msgCase_ == 21;
       }
       /**
        * <code>.BotAdminReset bot_admin_reset = 21;</code>
+       * @return The botAdminReset.
        */
       public soc.proto.Message.BotAdminReset getBotAdminReset() {
         if (botAdminResetBuilder_ == null) {
@@ -28474,6 +30458,7 @@ public final class Message {
        * </pre>
        *
        * <code>.Channels channels = 100;</code>
+       * @return Whether the channels field is set.
        */
       public boolean hasChannels() {
         return msgCase_ == 100;
@@ -28484,6 +30469,7 @@ public final class Message {
        * </pre>
        *
        * <code>.Channels channels = 100;</code>
+       * @return The channels.
        */
       public soc.proto.Message.Channels getChannels() {
         if (channelsBuilder_ == null) {
@@ -28642,12 +30628,14 @@ public final class Message {
           soc.proto.Message.NewChannel, soc.proto.Message.NewChannel.Builder, soc.proto.Message.NewChannelOrBuilder> chNewBuilder_;
       /**
        * <code>.NewChannel ch_new = 101;</code>
+       * @return Whether the chNew field is set.
        */
       public boolean hasChNew() {
         return msgCase_ == 101;
       }
       /**
        * <code>.NewChannel ch_new = 101;</code>
+       * @return The chNew.
        */
       public soc.proto.Message.NewChannel getChNew() {
         if (chNewBuilder_ == null) {
@@ -28778,12 +30766,14 @@ public final class Message {
           soc.proto.Message.JoinChannel, soc.proto.Message.JoinChannel.Builder, soc.proto.Message.JoinChannelOrBuilder> chJoinBuilder_;
       /**
        * <code>.JoinChannel ch_join = 102;</code>
+       * @return Whether the chJoin field is set.
        */
       public boolean hasChJoin() {
         return msgCase_ == 102;
       }
       /**
        * <code>.JoinChannel ch_join = 102;</code>
+       * @return The chJoin.
        */
       public soc.proto.Message.JoinChannel getChJoin() {
         if (chJoinBuilder_ == null) {
@@ -28914,12 +30904,14 @@ public final class Message {
           soc.proto.Message.ChannelMembers, soc.proto.Message.ChannelMembers.Builder, soc.proto.Message.ChannelMembersOrBuilder> chMembersBuilder_;
       /**
        * <code>.ChannelMembers ch_members = 103;</code>
+       * @return Whether the chMembers field is set.
        */
       public boolean hasChMembers() {
         return msgCase_ == 103;
       }
       /**
        * <code>.ChannelMembers ch_members = 103;</code>
+       * @return The chMembers.
        */
       public soc.proto.Message.ChannelMembers getChMembers() {
         if (chMembersBuilder_ == null) {
@@ -29050,12 +31042,14 @@ public final class Message {
           soc.proto.Message.ChannelText, soc.proto.Message.ChannelText.Builder, soc.proto.Message.ChannelTextOrBuilder> chTextBuilder_;
       /**
        * <code>.ChannelText ch_text = 104;</code>
+       * @return Whether the chText field is set.
        */
       public boolean hasChText() {
         return msgCase_ == 104;
       }
       /**
        * <code>.ChannelText ch_text = 104;</code>
+       * @return The chText.
        */
       public soc.proto.Message.ChannelText getChText() {
         if (chTextBuilder_ == null) {
@@ -29186,12 +31180,14 @@ public final class Message {
           soc.proto.Message.LeaveChannel, soc.proto.Message.LeaveChannel.Builder, soc.proto.Message.LeaveChannelOrBuilder> chLeaveBuilder_;
       /**
        * <code>.LeaveChannel ch_leave = 105;</code>
+       * @return Whether the chLeave field is set.
        */
       public boolean hasChLeave() {
         return msgCase_ == 105;
       }
       /**
        * <code>.LeaveChannel ch_leave = 105;</code>
+       * @return The chLeave.
        */
       public soc.proto.Message.LeaveChannel getChLeave() {
         if (chLeaveBuilder_ == null) {
@@ -29322,12 +31318,14 @@ public final class Message {
           soc.proto.Message.DeleteChannel, soc.proto.Message.DeleteChannel.Builder, soc.proto.Message.DeleteChannelOrBuilder> chDeleteBuilder_;
       /**
        * <code>.DeleteChannel ch_delete = 106;</code>
+       * @return Whether the chDelete field is set.
        */
       public boolean hasChDelete() {
         return msgCase_ == 106;
       }
       /**
        * <code>.DeleteChannel ch_delete = 106;</code>
+       * @return The chDelete.
        */
       public soc.proto.Message.DeleteChannel getChDelete() {
         if (chDeleteBuilder_ == null) {
@@ -29462,6 +31460,7 @@ public final class Message {
        * </pre>
        *
        * <code>.Games games = 200;</code>
+       * @return Whether the games field is set.
        */
       public boolean hasGames() {
         return msgCase_ == 200;
@@ -29472,6 +31471,7 @@ public final class Message {
        * </pre>
        *
        * <code>.Games games = 200;</code>
+       * @return The games.
        */
       public soc.proto.Message.Games getGames() {
         if (gamesBuilder_ == null) {
@@ -29630,12 +31630,14 @@ public final class Message {
           soc.proto.Message.NewGame, soc.proto.Message.NewGame.Builder, soc.proto.Message.NewGameOrBuilder> gaNewBuilder_;
       /**
        * <code>.NewGame ga_new = 201;</code>
+       * @return Whether the gaNew field is set.
        */
       public boolean hasGaNew() {
         return msgCase_ == 201;
       }
       /**
        * <code>.NewGame ga_new = 201;</code>
+       * @return The gaNew.
        */
       public soc.proto.Message.NewGame getGaNew() {
         if (gaNewBuilder_ == null) {
@@ -29766,12 +31768,14 @@ public final class Message {
           soc.proto.Message.JoinGame, soc.proto.Message.JoinGame.Builder, soc.proto.Message.JoinGameOrBuilder> gaJoinBuilder_;
       /**
        * <code>.JoinGame ga_join = 202;</code>
+       * @return Whether the gaJoin field is set.
        */
       public boolean hasGaJoin() {
         return msgCase_ == 202;
       }
       /**
        * <code>.JoinGame ga_join = 202;</code>
+       * @return The gaJoin.
        */
       public soc.proto.Message.JoinGame getGaJoin() {
         if (gaJoinBuilder_ == null) {
@@ -29902,12 +31906,14 @@ public final class Message {
           soc.proto.Message.BotJoinGameRequest, soc.proto.Message.BotJoinGameRequest.Builder, soc.proto.Message.BotJoinGameRequestOrBuilder> botJoinReqBuilder_;
       /**
        * <code>.BotJoinGameRequest bot_join_req = 203;</code>
+       * @return Whether the botJoinReq field is set.
        */
       public boolean hasBotJoinReq() {
         return msgCase_ == 203;
       }
       /**
        * <code>.BotJoinGameRequest bot_join_req = 203;</code>
+       * @return The botJoinReq.
        */
       public soc.proto.Message.BotJoinGameRequest getBotJoinReq() {
         if (botJoinReqBuilder_ == null) {
@@ -30038,12 +32044,14 @@ public final class Message {
           soc.proto.Message.GameMembers, soc.proto.Message.GameMembers.Builder, soc.proto.Message.GameMembersOrBuilder> gaMembersBuilder_;
       /**
        * <code>.GameMembers ga_members = 204;</code>
+       * @return Whether the gaMembers field is set.
        */
       public boolean hasGaMembers() {
         return msgCase_ == 204;
       }
       /**
        * <code>.GameMembers ga_members = 204;</code>
+       * @return The gaMembers.
        */
       public soc.proto.Message.GameMembers getGaMembers() {
         if (gaMembersBuilder_ == null) {
@@ -30174,12 +32182,14 @@ public final class Message {
           soc.proto.Message.SitDown, soc.proto.Message.SitDown.Builder, soc.proto.Message.SitDownOrBuilder> sitDownBuilder_;
       /**
        * <code>.SitDown sit_down = 205;</code>
+       * @return Whether the sitDown field is set.
        */
       public boolean hasSitDown() {
         return msgCase_ == 205;
       }
       /**
        * <code>.SitDown sit_down = 205;</code>
+       * @return The sitDown.
        */
       public soc.proto.Message.SitDown getSitDown() {
         if (sitDownBuilder_ == null) {
@@ -30310,12 +32320,14 @@ public final class Message {
           soc.proto.Message.SetSeatLock, soc.proto.Message.SetSeatLock.Builder, soc.proto.Message.SetSeatLockOrBuilder> setSeatLockBuilder_;
       /**
        * <code>.SetSeatLock set_seat_lock = 206;</code>
+       * @return Whether the setSeatLock field is set.
        */
       public boolean hasSetSeatLock() {
         return msgCase_ == 206;
       }
       /**
        * <code>.SetSeatLock set_seat_lock = 206;</code>
+       * @return The setSeatLock.
        */
       public soc.proto.Message.SetSeatLock getSetSeatLock() {
         if (setSeatLockBuilder_ == null) {
@@ -30446,12 +32458,14 @@ public final class Message {
           soc.proto.Message.GameServerText, soc.proto.Message.GameServerText.Builder, soc.proto.Message.GameServerTextOrBuilder> serverTextBuilder_;
       /**
        * <code>.GameServerText server_text = 207;</code>
+       * @return Whether the serverText field is set.
        */
       public boolean hasServerText() {
         return msgCase_ == 207;
       }
       /**
        * <code>.GameServerText server_text = 207;</code>
+       * @return The serverText.
        */
       public soc.proto.Message.GameServerText getServerText() {
         if (serverTextBuilder_ == null) {
@@ -30582,12 +32596,14 @@ public final class Message {
           soc.proto.Message.GamePlayerText, soc.proto.Message.GamePlayerText.Builder, soc.proto.Message.GamePlayerTextOrBuilder> gaPlayerTextBuilder_;
       /**
        * <code>.GamePlayerText ga_player_text = 208;</code>
+       * @return Whether the gaPlayerText field is set.
        */
       public boolean hasGaPlayerText() {
         return msgCase_ == 208;
       }
       /**
        * <code>.GamePlayerText ga_player_text = 208;</code>
+       * @return The gaPlayerText.
        */
       public soc.proto.Message.GamePlayerText getGaPlayerText() {
         if (gaPlayerTextBuilder_ == null) {
@@ -30718,12 +32734,14 @@ public final class Message {
           soc.proto.Message.BotTimingPing, soc.proto.Message.BotTimingPing.Builder, soc.proto.Message.BotTimingPingOrBuilder> botTimingPingBuilder_;
       /**
        * <code>.BotTimingPing bot_timing_ping = 209;</code>
+       * @return Whether the botTimingPing field is set.
        */
       public boolean hasBotTimingPing() {
         return msgCase_ == 209;
       }
       /**
        * <code>.BotTimingPing bot_timing_ping = 209;</code>
+       * @return The botTimingPing.
        */
       public soc.proto.Message.BotTimingPing getBotTimingPing() {
         if (botTimingPingBuilder_ == null) {
@@ -30854,12 +32872,14 @@ public final class Message {
           soc.proto.Message.BotAdminPing, soc.proto.Message.BotAdminPing.Builder, soc.proto.Message.BotAdminPingOrBuilder> botAdminPingBuilder_;
       /**
        * <code>.BotAdminPing bot_admin_ping = 210;</code>
+       * @return Whether the botAdminPing field is set.
        */
       public boolean hasBotAdminPing() {
         return msgCase_ == 210;
       }
       /**
        * <code>.BotAdminPing bot_admin_ping = 210;</code>
+       * @return The botAdminPing.
        */
       public soc.proto.Message.BotAdminPing getBotAdminPing() {
         if (botAdminPingBuilder_ == null) {
@@ -30990,12 +33010,14 @@ public final class Message {
           soc.proto.Message.BotDismiss, soc.proto.Message.BotDismiss.Builder, soc.proto.Message.BotDismissOrBuilder> botDismissBuilder_;
       /**
        * <code>.BotDismiss bot_dismiss = 211;</code>
+       * @return Whether the botDismiss field is set.
        */
       public boolean hasBotDismiss() {
         return msgCase_ == 211;
       }
       /**
        * <code>.BotDismiss bot_dismiss = 211;</code>
+       * @return The botDismiss.
        */
       public soc.proto.Message.BotDismiss getBotDismiss() {
         if (botDismissBuilder_ == null) {
@@ -31126,12 +33148,14 @@ public final class Message {
           soc.proto.Message.LeaveGame, soc.proto.Message.LeaveGame.Builder, soc.proto.Message.LeaveGameOrBuilder> gaLeaveBuilder_;
       /**
        * <code>.LeaveGame ga_leave = 212;</code>
+       * @return Whether the gaLeave field is set.
        */
       public boolean hasGaLeave() {
         return msgCase_ == 212;
       }
       /**
        * <code>.LeaveGame ga_leave = 212;</code>
+       * @return The gaLeave.
        */
       public soc.proto.Message.LeaveGame getGaLeave() {
         if (gaLeaveBuilder_ == null) {
@@ -31262,12 +33286,14 @@ public final class Message {
           soc.proto.Message.DeleteGame, soc.proto.Message.DeleteGame.Builder, soc.proto.Message.DeleteGameOrBuilder> gaDeleteBuilder_;
       /**
        * <code>.DeleteGame ga_delete = 213;</code>
+       * @return Whether the gaDelete field is set.
        */
       public boolean hasGaDelete() {
         return msgCase_ == 213;
       }
       /**
        * <code>.DeleteGame ga_delete = 213;</code>
+       * @return The gaDelete.
        */
       public soc.proto.Message.DeleteGame getGaDelete() {
         if (gaDeleteBuilder_ == null) {
@@ -31393,11 +33419,13 @@ public final class Message {
         onChanged();;
         return gaDeleteBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -31419,11 +33447,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<FromServer>
         PARSER = new com.google.protobuf.AbstractParser<FromServer>() {
+      @java.lang.Override
       public FromServer parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new FromServer(input, extensionRegistry);
+        return new FromServer(input, extensionRegistry);
       }
     };
 
@@ -31436,6 +33465,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.FromServer getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -31452,6 +33482,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Version vers = 1;</code>
+     * @return Whether the vers field is set.
      */
     boolean hasVers();
     /**
@@ -31460,6 +33491,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Version vers = 1;</code>
+     * @return The vers.
      */
     soc.proto.Message.Version getVers();
     /**
@@ -31473,10 +33505,12 @@ public final class Message {
 
     /**
      * <code>.AuthRequest auth_req = 2;</code>
+     * @return Whether the authReq field is set.
      */
     boolean hasAuthReq();
     /**
      * <code>.AuthRequest auth_req = 2;</code>
+     * @return The authReq.
      */
     soc.proto.Message.AuthRequest getAuthReq();
     /**
@@ -31486,10 +33520,12 @@ public final class Message {
 
     /**
      * <code>.ImARobot im_a_robot = 3;</code>
+     * @return Whether the imARobot field is set.
      */
     boolean hasImARobot();
     /**
      * <code>.ImARobot im_a_robot = 3;</code>
+     * @return The imARobot.
      */
     soc.proto.Message.ImARobot getImARobot();
     /**
@@ -31499,10 +33535,12 @@ public final class Message {
 
     /**
      * <code>.ServerPing server_ping = 4;</code>
+     * @return Whether the serverPing field is set.
      */
     boolean hasServerPing();
     /**
      * <code>.ServerPing server_ping = 4;</code>
+     * @return The serverPing.
      */
     soc.proto.Message.ServerPing getServerPing();
     /**
@@ -31512,10 +33550,12 @@ public final class Message {
 
     /**
      * <code>.LeaveAll leave_all = 5;</code>
+     * @return Whether the leaveAll field is set.
      */
     boolean hasLeaveAll();
     /**
      * <code>.LeaveAll leave_all = 5;</code>
+     * @return The leaveAll.
      */
     soc.proto.Message.LeaveAll getLeaveAll();
     /**
@@ -31529,6 +33569,7 @@ public final class Message {
      * </pre>
      *
      * <code>.GameMessageFromClient game_message = 15;</code>
+     * @return Whether the gameMessage field is set.
      */
     boolean hasGameMessage();
     /**
@@ -31537,6 +33578,7 @@ public final class Message {
      * </pre>
      *
      * <code>.GameMessageFromClient game_message = 15;</code>
+     * @return The gameMessage.
      */
     soc.proto.GameMessage.GameMessageFromClient getGameMessage();
     /**
@@ -31554,6 +33596,7 @@ public final class Message {
      * </pre>
      *
      * <code>.JoinChannel ch_join = 100;</code>
+     * @return Whether the chJoin field is set.
      */
     boolean hasChJoin();
     /**
@@ -31562,6 +33605,7 @@ public final class Message {
      * </pre>
      *
      * <code>.JoinChannel ch_join = 100;</code>
+     * @return The chJoin.
      */
     soc.proto.Message.JoinChannel getChJoin();
     /**
@@ -31575,10 +33619,12 @@ public final class Message {
 
     /**
      * <code>.ChannelText ch_text = 101;</code>
+     * @return Whether the chText field is set.
      */
     boolean hasChText();
     /**
      * <code>.ChannelText ch_text = 101;</code>
+     * @return The chText.
      */
     soc.proto.Message.ChannelText getChText();
     /**
@@ -31588,10 +33634,12 @@ public final class Message {
 
     /**
      * <code>.LeaveChannel ch_leave = 102;</code>
+     * @return Whether the chLeave field is set.
      */
     boolean hasChLeave();
     /**
      * <code>.LeaveChannel ch_leave = 102;</code>
+     * @return The chLeave.
      */
     soc.proto.Message.LeaveChannel getChLeave();
     /**
@@ -31605,6 +33653,7 @@ public final class Message {
      * </pre>
      *
      * <code>.NewGame ga_new = 200;</code>
+     * @return Whether the gaNew field is set.
      */
     boolean hasGaNew();
     /**
@@ -31613,6 +33662,7 @@ public final class Message {
      * </pre>
      *
      * <code>.NewGame ga_new = 200;</code>
+     * @return The gaNew.
      */
     soc.proto.Message.NewGame getGaNew();
     /**
@@ -31626,10 +33676,12 @@ public final class Message {
 
     /**
      * <code>.JoinGame ga_join = 201;</code>
+     * @return Whether the gaJoin field is set.
      */
     boolean hasGaJoin();
     /**
      * <code>.JoinGame ga_join = 201;</code>
+     * @return The gaJoin.
      */
     soc.proto.Message.JoinGame getGaJoin();
     /**
@@ -31639,10 +33691,12 @@ public final class Message {
 
     /**
      * <code>.SitDown sit_down = 202;</code>
+     * @return Whether the sitDown field is set.
      */
     boolean hasSitDown();
     /**
      * <code>.SitDown sit_down = 202;</code>
+     * @return The sitDown.
      */
     soc.proto.Message.SitDown getSitDown();
     /**
@@ -31652,10 +33706,12 @@ public final class Message {
 
     /**
      * <code>.SetSeatLock set_seat_lock = 203;</code>
+     * @return Whether the setSeatLock field is set.
      */
     boolean hasSetSeatLock();
     /**
      * <code>.SetSeatLock set_seat_lock = 203;</code>
+     * @return The setSeatLock.
      */
     soc.proto.Message.SetSeatLock getSetSeatLock();
     /**
@@ -31665,10 +33721,12 @@ public final class Message {
 
     /**
      * <code>.GamePlayerText ga_player_text = 204;</code>
+     * @return Whether the gaPlayerText field is set.
      */
     boolean hasGaPlayerText();
     /**
      * <code>.GamePlayerText ga_player_text = 204;</code>
+     * @return The gaPlayerText.
      */
     soc.proto.Message.GamePlayerText getGaPlayerText();
     /**
@@ -31678,10 +33736,12 @@ public final class Message {
 
     /**
      * <code>.LeaveGame ga_leave = 205;</code>
+     * @return Whether the gaLeave field is set.
      */
     boolean hasGaLeave();
     /**
      * <code>.LeaveGame ga_leave = 205;</code>
+     * @return The gaLeave.
      */
     soc.proto.Message.LeaveGame getGaLeave();
     /**
@@ -31707,6 +33767,13 @@ public final class Message {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new FromClient();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -31716,7 +33783,9 @@ public final class Message {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -31727,13 +33796,6 @@ public final class Message {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Message.Version.Builder subBuilder = null;
               if (msgCase_ == 1) {
@@ -31944,6 +34006,13 @@ public final class Message {
               msgCase_ = 205;
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -31961,6 +34030,7 @@ public final class Message {
       return soc.proto.Message.internal_static_FromClient_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.Message.internal_static_FromClient_fieldAccessorTable
@@ -31971,7 +34041,8 @@ public final class Message {
     private int msgCase_ = 0;
     private java.lang.Object msg_;
     public enum MsgCase
-        implements com.google.protobuf.Internal.EnumLite {
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       VERS(1),
       AUTH_REQ(2),
       IM_A_ROBOT(3),
@@ -31993,6 +34064,8 @@ public final class Message {
         this.value = value;
       }
       /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -32039,6 +34112,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Version vers = 1;</code>
+     * @return Whether the vers field is set.
      */
     public boolean hasVers() {
       return msgCase_ == 1;
@@ -32049,6 +34123,7 @@ public final class Message {
      * </pre>
      *
      * <code>.Version vers = 1;</code>
+     * @return The vers.
      */
     public soc.proto.Message.Version getVers() {
       if (msgCase_ == 1) {
@@ -32073,12 +34148,14 @@ public final class Message {
     public static final int AUTH_REQ_FIELD_NUMBER = 2;
     /**
      * <code>.AuthRequest auth_req = 2;</code>
+     * @return Whether the authReq field is set.
      */
     public boolean hasAuthReq() {
       return msgCase_ == 2;
     }
     /**
      * <code>.AuthRequest auth_req = 2;</code>
+     * @return The authReq.
      */
     public soc.proto.Message.AuthRequest getAuthReq() {
       if (msgCase_ == 2) {
@@ -32099,12 +34176,14 @@ public final class Message {
     public static final int IM_A_ROBOT_FIELD_NUMBER = 3;
     /**
      * <code>.ImARobot im_a_robot = 3;</code>
+     * @return Whether the imARobot field is set.
      */
     public boolean hasImARobot() {
       return msgCase_ == 3;
     }
     /**
      * <code>.ImARobot im_a_robot = 3;</code>
+     * @return The imARobot.
      */
     public soc.proto.Message.ImARobot getImARobot() {
       if (msgCase_ == 3) {
@@ -32125,12 +34204,14 @@ public final class Message {
     public static final int SERVER_PING_FIELD_NUMBER = 4;
     /**
      * <code>.ServerPing server_ping = 4;</code>
+     * @return Whether the serverPing field is set.
      */
     public boolean hasServerPing() {
       return msgCase_ == 4;
     }
     /**
      * <code>.ServerPing server_ping = 4;</code>
+     * @return The serverPing.
      */
     public soc.proto.Message.ServerPing getServerPing() {
       if (msgCase_ == 4) {
@@ -32151,12 +34232,14 @@ public final class Message {
     public static final int LEAVE_ALL_FIELD_NUMBER = 5;
     /**
      * <code>.LeaveAll leave_all = 5;</code>
+     * @return Whether the leaveAll field is set.
      */
     public boolean hasLeaveAll() {
       return msgCase_ == 5;
     }
     /**
      * <code>.LeaveAll leave_all = 5;</code>
+     * @return The leaveAll.
      */
     public soc.proto.Message.LeaveAll getLeaveAll() {
       if (msgCase_ == 5) {
@@ -32181,6 +34264,7 @@ public final class Message {
      * </pre>
      *
      * <code>.GameMessageFromClient game_message = 15;</code>
+     * @return Whether the gameMessage field is set.
      */
     public boolean hasGameMessage() {
       return msgCase_ == 15;
@@ -32191,6 +34275,7 @@ public final class Message {
      * </pre>
      *
      * <code>.GameMessageFromClient game_message = 15;</code>
+     * @return The gameMessage.
      */
     public soc.proto.GameMessage.GameMessageFromClient getGameMessage() {
       if (msgCase_ == 15) {
@@ -32219,6 +34304,7 @@ public final class Message {
      * </pre>
      *
      * <code>.JoinChannel ch_join = 100;</code>
+     * @return Whether the chJoin field is set.
      */
     public boolean hasChJoin() {
       return msgCase_ == 100;
@@ -32229,6 +34315,7 @@ public final class Message {
      * </pre>
      *
      * <code>.JoinChannel ch_join = 100;</code>
+     * @return The chJoin.
      */
     public soc.proto.Message.JoinChannel getChJoin() {
       if (msgCase_ == 100) {
@@ -32253,12 +34340,14 @@ public final class Message {
     public static final int CH_TEXT_FIELD_NUMBER = 101;
     /**
      * <code>.ChannelText ch_text = 101;</code>
+     * @return Whether the chText field is set.
      */
     public boolean hasChText() {
       return msgCase_ == 101;
     }
     /**
      * <code>.ChannelText ch_text = 101;</code>
+     * @return The chText.
      */
     public soc.proto.Message.ChannelText getChText() {
       if (msgCase_ == 101) {
@@ -32279,12 +34368,14 @@ public final class Message {
     public static final int CH_LEAVE_FIELD_NUMBER = 102;
     /**
      * <code>.LeaveChannel ch_leave = 102;</code>
+     * @return Whether the chLeave field is set.
      */
     public boolean hasChLeave() {
       return msgCase_ == 102;
     }
     /**
      * <code>.LeaveChannel ch_leave = 102;</code>
+     * @return The chLeave.
      */
     public soc.proto.Message.LeaveChannel getChLeave() {
       if (msgCase_ == 102) {
@@ -32309,6 +34400,7 @@ public final class Message {
      * </pre>
      *
      * <code>.NewGame ga_new = 200;</code>
+     * @return Whether the gaNew field is set.
      */
     public boolean hasGaNew() {
       return msgCase_ == 200;
@@ -32319,6 +34411,7 @@ public final class Message {
      * </pre>
      *
      * <code>.NewGame ga_new = 200;</code>
+     * @return The gaNew.
      */
     public soc.proto.Message.NewGame getGaNew() {
       if (msgCase_ == 200) {
@@ -32343,12 +34436,14 @@ public final class Message {
     public static final int GA_JOIN_FIELD_NUMBER = 201;
     /**
      * <code>.JoinGame ga_join = 201;</code>
+     * @return Whether the gaJoin field is set.
      */
     public boolean hasGaJoin() {
       return msgCase_ == 201;
     }
     /**
      * <code>.JoinGame ga_join = 201;</code>
+     * @return The gaJoin.
      */
     public soc.proto.Message.JoinGame getGaJoin() {
       if (msgCase_ == 201) {
@@ -32369,12 +34464,14 @@ public final class Message {
     public static final int SIT_DOWN_FIELD_NUMBER = 202;
     /**
      * <code>.SitDown sit_down = 202;</code>
+     * @return Whether the sitDown field is set.
      */
     public boolean hasSitDown() {
       return msgCase_ == 202;
     }
     /**
      * <code>.SitDown sit_down = 202;</code>
+     * @return The sitDown.
      */
     public soc.proto.Message.SitDown getSitDown() {
       if (msgCase_ == 202) {
@@ -32395,12 +34492,14 @@ public final class Message {
     public static final int SET_SEAT_LOCK_FIELD_NUMBER = 203;
     /**
      * <code>.SetSeatLock set_seat_lock = 203;</code>
+     * @return Whether the setSeatLock field is set.
      */
     public boolean hasSetSeatLock() {
       return msgCase_ == 203;
     }
     /**
      * <code>.SetSeatLock set_seat_lock = 203;</code>
+     * @return The setSeatLock.
      */
     public soc.proto.Message.SetSeatLock getSetSeatLock() {
       if (msgCase_ == 203) {
@@ -32421,12 +34520,14 @@ public final class Message {
     public static final int GA_PLAYER_TEXT_FIELD_NUMBER = 204;
     /**
      * <code>.GamePlayerText ga_player_text = 204;</code>
+     * @return Whether the gaPlayerText field is set.
      */
     public boolean hasGaPlayerText() {
       return msgCase_ == 204;
     }
     /**
      * <code>.GamePlayerText ga_player_text = 204;</code>
+     * @return The gaPlayerText.
      */
     public soc.proto.Message.GamePlayerText getGaPlayerText() {
       if (msgCase_ == 204) {
@@ -32447,12 +34548,14 @@ public final class Message {
     public static final int GA_LEAVE_FIELD_NUMBER = 205;
     /**
      * <code>.LeaveGame ga_leave = 205;</code>
+     * @return Whether the gaLeave field is set.
      */
     public boolean hasGaLeave() {
       return msgCase_ == 205;
     }
     /**
      * <code>.LeaveGame ga_leave = 205;</code>
+     * @return The gaLeave.
      */
     public soc.proto.Message.LeaveGame getGaLeave() {
       if (msgCase_ == 205) {
@@ -32471,6 +34574,7 @@ public final class Message {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -32480,6 +34584,7 @@ public final class Message {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (msgCase_ == 1) {
@@ -32530,6 +34635,7 @@ public final class Message {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -32610,76 +34716,73 @@ public final class Message {
       }
       soc.proto.Message.FromClient other = (soc.proto.Message.FromClient) obj;
 
-      boolean result = true;
-      result = result && getMsgCase().equals(
-          other.getMsgCase());
-      if (!result) return false;
+      if (!getMsgCase().equals(other.getMsgCase())) return false;
       switch (msgCase_) {
         case 1:
-          result = result && getVers()
-              .equals(other.getVers());
+          if (!getVers()
+              .equals(other.getVers())) return false;
           break;
         case 2:
-          result = result && getAuthReq()
-              .equals(other.getAuthReq());
+          if (!getAuthReq()
+              .equals(other.getAuthReq())) return false;
           break;
         case 3:
-          result = result && getImARobot()
-              .equals(other.getImARobot());
+          if (!getImARobot()
+              .equals(other.getImARobot())) return false;
           break;
         case 4:
-          result = result && getServerPing()
-              .equals(other.getServerPing());
+          if (!getServerPing()
+              .equals(other.getServerPing())) return false;
           break;
         case 5:
-          result = result && getLeaveAll()
-              .equals(other.getLeaveAll());
+          if (!getLeaveAll()
+              .equals(other.getLeaveAll())) return false;
           break;
         case 15:
-          result = result && getGameMessage()
-              .equals(other.getGameMessage());
+          if (!getGameMessage()
+              .equals(other.getGameMessage())) return false;
           break;
         case 100:
-          result = result && getChJoin()
-              .equals(other.getChJoin());
+          if (!getChJoin()
+              .equals(other.getChJoin())) return false;
           break;
         case 101:
-          result = result && getChText()
-              .equals(other.getChText());
+          if (!getChText()
+              .equals(other.getChText())) return false;
           break;
         case 102:
-          result = result && getChLeave()
-              .equals(other.getChLeave());
+          if (!getChLeave()
+              .equals(other.getChLeave())) return false;
           break;
         case 200:
-          result = result && getGaNew()
-              .equals(other.getGaNew());
+          if (!getGaNew()
+              .equals(other.getGaNew())) return false;
           break;
         case 201:
-          result = result && getGaJoin()
-              .equals(other.getGaJoin());
+          if (!getGaJoin()
+              .equals(other.getGaJoin())) return false;
           break;
         case 202:
-          result = result && getSitDown()
-              .equals(other.getSitDown());
+          if (!getSitDown()
+              .equals(other.getSitDown())) return false;
           break;
         case 203:
-          result = result && getSetSeatLock()
-              .equals(other.getSetSeatLock());
+          if (!getSetSeatLock()
+              .equals(other.getSetSeatLock())) return false;
           break;
         case 204:
-          result = result && getGaPlayerText()
-              .equals(other.getGaPlayerText());
+          if (!getGaPlayerText()
+              .equals(other.getGaPlayerText())) return false;
           break;
         case 205:
-          result = result && getGaLeave()
-              .equals(other.getGaLeave());
+          if (!getGaLeave()
+              .equals(other.getGaLeave())) return false;
           break;
         case 0:
         default:
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -32828,6 +34931,7 @@ public final class Message {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -32835,6 +34939,7 @@ public final class Message {
     public static Builder newBuilder(soc.proto.Message.FromClient prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -32858,6 +34963,7 @@ public final class Message {
         return soc.proto.Message.internal_static_FromClient_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.Message.internal_static_FromClient_fieldAccessorTable
@@ -32880,6 +34986,7 @@ public final class Message {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         msgCase_ = 0;
@@ -32887,15 +34994,18 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.Message.internal_static_FromClient_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.Message.FromClient getDefaultInstanceForType() {
         return soc.proto.Message.FromClient.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.Message.FromClient build() {
         soc.proto.Message.FromClient result = buildPartial();
         if (!result.isInitialized()) {
@@ -32904,6 +35014,7 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.Message.FromClient buildPartial() {
         soc.proto.Message.FromClient result = new soc.proto.Message.FromClient(this);
         if (msgCase_ == 1) {
@@ -33016,32 +35127,39 @@ public final class Message {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.Message.FromClient) {
           return mergeFrom((soc.proto.Message.FromClient)other);
@@ -33123,10 +35241,12 @@ public final class Message {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -33168,6 +35288,7 @@ public final class Message {
        * </pre>
        *
        * <code>.Version vers = 1;</code>
+       * @return Whether the vers field is set.
        */
       public boolean hasVers() {
         return msgCase_ == 1;
@@ -33178,6 +35299,7 @@ public final class Message {
        * </pre>
        *
        * <code>.Version vers = 1;</code>
+       * @return The vers.
        */
       public soc.proto.Message.Version getVers() {
         if (versBuilder_ == null) {
@@ -33336,12 +35458,14 @@ public final class Message {
           soc.proto.Message.AuthRequest, soc.proto.Message.AuthRequest.Builder, soc.proto.Message.AuthRequestOrBuilder> authReqBuilder_;
       /**
        * <code>.AuthRequest auth_req = 2;</code>
+       * @return Whether the authReq field is set.
        */
       public boolean hasAuthReq() {
         return msgCase_ == 2;
       }
       /**
        * <code>.AuthRequest auth_req = 2;</code>
+       * @return The authReq.
        */
       public soc.proto.Message.AuthRequest getAuthReq() {
         if (authReqBuilder_ == null) {
@@ -33472,12 +35596,14 @@ public final class Message {
           soc.proto.Message.ImARobot, soc.proto.Message.ImARobot.Builder, soc.proto.Message.ImARobotOrBuilder> imARobotBuilder_;
       /**
        * <code>.ImARobot im_a_robot = 3;</code>
+       * @return Whether the imARobot field is set.
        */
       public boolean hasImARobot() {
         return msgCase_ == 3;
       }
       /**
        * <code>.ImARobot im_a_robot = 3;</code>
+       * @return The imARobot.
        */
       public soc.proto.Message.ImARobot getImARobot() {
         if (imARobotBuilder_ == null) {
@@ -33608,12 +35734,14 @@ public final class Message {
           soc.proto.Message.ServerPing, soc.proto.Message.ServerPing.Builder, soc.proto.Message.ServerPingOrBuilder> serverPingBuilder_;
       /**
        * <code>.ServerPing server_ping = 4;</code>
+       * @return Whether the serverPing field is set.
        */
       public boolean hasServerPing() {
         return msgCase_ == 4;
       }
       /**
        * <code>.ServerPing server_ping = 4;</code>
+       * @return The serverPing.
        */
       public soc.proto.Message.ServerPing getServerPing() {
         if (serverPingBuilder_ == null) {
@@ -33744,12 +35872,14 @@ public final class Message {
           soc.proto.Message.LeaveAll, soc.proto.Message.LeaveAll.Builder, soc.proto.Message.LeaveAllOrBuilder> leaveAllBuilder_;
       /**
        * <code>.LeaveAll leave_all = 5;</code>
+       * @return Whether the leaveAll field is set.
        */
       public boolean hasLeaveAll() {
         return msgCase_ == 5;
       }
       /**
        * <code>.LeaveAll leave_all = 5;</code>
+       * @return The leaveAll.
        */
       public soc.proto.Message.LeaveAll getLeaveAll() {
         if (leaveAllBuilder_ == null) {
@@ -33884,6 +36014,7 @@ public final class Message {
        * </pre>
        *
        * <code>.GameMessageFromClient game_message = 15;</code>
+       * @return Whether the gameMessage field is set.
        */
       public boolean hasGameMessage() {
         return msgCase_ == 15;
@@ -33894,6 +36025,7 @@ public final class Message {
        * </pre>
        *
        * <code>.GameMessageFromClient game_message = 15;</code>
+       * @return The gameMessage.
        */
       public soc.proto.GameMessage.GameMessageFromClient getGameMessage() {
         if (gameMessageBuilder_ == null) {
@@ -34056,6 +36188,7 @@ public final class Message {
        * </pre>
        *
        * <code>.JoinChannel ch_join = 100;</code>
+       * @return Whether the chJoin field is set.
        */
       public boolean hasChJoin() {
         return msgCase_ == 100;
@@ -34066,6 +36199,7 @@ public final class Message {
        * </pre>
        *
        * <code>.JoinChannel ch_join = 100;</code>
+       * @return The chJoin.
        */
       public soc.proto.Message.JoinChannel getChJoin() {
         if (chJoinBuilder_ == null) {
@@ -34224,12 +36358,14 @@ public final class Message {
           soc.proto.Message.ChannelText, soc.proto.Message.ChannelText.Builder, soc.proto.Message.ChannelTextOrBuilder> chTextBuilder_;
       /**
        * <code>.ChannelText ch_text = 101;</code>
+       * @return Whether the chText field is set.
        */
       public boolean hasChText() {
         return msgCase_ == 101;
       }
       /**
        * <code>.ChannelText ch_text = 101;</code>
+       * @return The chText.
        */
       public soc.proto.Message.ChannelText getChText() {
         if (chTextBuilder_ == null) {
@@ -34360,12 +36496,14 @@ public final class Message {
           soc.proto.Message.LeaveChannel, soc.proto.Message.LeaveChannel.Builder, soc.proto.Message.LeaveChannelOrBuilder> chLeaveBuilder_;
       /**
        * <code>.LeaveChannel ch_leave = 102;</code>
+       * @return Whether the chLeave field is set.
        */
       public boolean hasChLeave() {
         return msgCase_ == 102;
       }
       /**
        * <code>.LeaveChannel ch_leave = 102;</code>
+       * @return The chLeave.
        */
       public soc.proto.Message.LeaveChannel getChLeave() {
         if (chLeaveBuilder_ == null) {
@@ -34500,6 +36638,7 @@ public final class Message {
        * </pre>
        *
        * <code>.NewGame ga_new = 200;</code>
+       * @return Whether the gaNew field is set.
        */
       public boolean hasGaNew() {
         return msgCase_ == 200;
@@ -34510,6 +36649,7 @@ public final class Message {
        * </pre>
        *
        * <code>.NewGame ga_new = 200;</code>
+       * @return The gaNew.
        */
       public soc.proto.Message.NewGame getGaNew() {
         if (gaNewBuilder_ == null) {
@@ -34668,12 +36808,14 @@ public final class Message {
           soc.proto.Message.JoinGame, soc.proto.Message.JoinGame.Builder, soc.proto.Message.JoinGameOrBuilder> gaJoinBuilder_;
       /**
        * <code>.JoinGame ga_join = 201;</code>
+       * @return Whether the gaJoin field is set.
        */
       public boolean hasGaJoin() {
         return msgCase_ == 201;
       }
       /**
        * <code>.JoinGame ga_join = 201;</code>
+       * @return The gaJoin.
        */
       public soc.proto.Message.JoinGame getGaJoin() {
         if (gaJoinBuilder_ == null) {
@@ -34804,12 +36946,14 @@ public final class Message {
           soc.proto.Message.SitDown, soc.proto.Message.SitDown.Builder, soc.proto.Message.SitDownOrBuilder> sitDownBuilder_;
       /**
        * <code>.SitDown sit_down = 202;</code>
+       * @return Whether the sitDown field is set.
        */
       public boolean hasSitDown() {
         return msgCase_ == 202;
       }
       /**
        * <code>.SitDown sit_down = 202;</code>
+       * @return The sitDown.
        */
       public soc.proto.Message.SitDown getSitDown() {
         if (sitDownBuilder_ == null) {
@@ -34940,12 +37084,14 @@ public final class Message {
           soc.proto.Message.SetSeatLock, soc.proto.Message.SetSeatLock.Builder, soc.proto.Message.SetSeatLockOrBuilder> setSeatLockBuilder_;
       /**
        * <code>.SetSeatLock set_seat_lock = 203;</code>
+       * @return Whether the setSeatLock field is set.
        */
       public boolean hasSetSeatLock() {
         return msgCase_ == 203;
       }
       /**
        * <code>.SetSeatLock set_seat_lock = 203;</code>
+       * @return The setSeatLock.
        */
       public soc.proto.Message.SetSeatLock getSetSeatLock() {
         if (setSeatLockBuilder_ == null) {
@@ -35076,12 +37222,14 @@ public final class Message {
           soc.proto.Message.GamePlayerText, soc.proto.Message.GamePlayerText.Builder, soc.proto.Message.GamePlayerTextOrBuilder> gaPlayerTextBuilder_;
       /**
        * <code>.GamePlayerText ga_player_text = 204;</code>
+       * @return Whether the gaPlayerText field is set.
        */
       public boolean hasGaPlayerText() {
         return msgCase_ == 204;
       }
       /**
        * <code>.GamePlayerText ga_player_text = 204;</code>
+       * @return The gaPlayerText.
        */
       public soc.proto.Message.GamePlayerText getGaPlayerText() {
         if (gaPlayerTextBuilder_ == null) {
@@ -35212,12 +37360,14 @@ public final class Message {
           soc.proto.Message.LeaveGame, soc.proto.Message.LeaveGame.Builder, soc.proto.Message.LeaveGameOrBuilder> gaLeaveBuilder_;
       /**
        * <code>.LeaveGame ga_leave = 205;</code>
+       * @return Whether the gaLeave field is set.
        */
       public boolean hasGaLeave() {
         return msgCase_ == 205;
       }
       /**
        * <code>.LeaveGame ga_leave = 205;</code>
+       * @return The gaLeave.
        */
       public soc.proto.Message.LeaveGame getGaLeave() {
         if (gaLeaveBuilder_ == null) {
@@ -35343,11 +37493,13 @@ public final class Message {
         onChanged();;
         return gaLeaveBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -35369,11 +37521,12 @@ public final class Message {
 
     private static final com.google.protobuf.Parser<FromClient>
         PARSER = new com.google.protobuf.AbstractParser<FromClient>() {
+      @java.lang.Override
       public FromClient parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new FromClient(input, extensionRegistry);
+        return new FromClient(input, extensionRegistry);
       }
     };
 
@@ -35386,6 +37539,7 @@ public final class Message {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.Message.FromClient getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -35580,7 +37734,7 @@ public final class Message {
       "\001(\0162\025.AuthRequest.AuthRole\022\020\n\010nickname\030\002" +
       " \001(\t\022\020\n\010password\030\003 \001(\t\022,\n\013auth_scheme\030\004 " +
       "\001(\0162\027.AuthRequest.AuthScheme\"@\n\010AuthRole" +
-      "\022\023\n\017_UNSENT_DEFAULT\020\000\022\017\n\013GAME_PLAYER\020\001\022\016",
+      "\022\023\n\017_UNSENT_DEFAULT\020\000\022\017\n\013GAME_PLAYER\020\001\022\016" +
       "\n\nUSER_ADMIN\020\002\"7\n\nAuthScheme\022\023\n\017_UNUSED_" +
       "DEFAULT\020\000\022\024\n\020CLIENT_PLAINTEXT\020\001\"\'\n\020Rejec" +
       "tConnection\022\023\n\013reason_text\030\001 \001(\t\"\260\005\n\020Ser" +
@@ -35590,7 +37744,7 @@ public final class Message {
       "K_GENERIC\020\001\022\022\n\016NAME_NOT_FOUND\020\002\022\014\n\010PW_WR" +
       "ONG\020\003\022\017\n\013NAME_IN_USE\020\004\022\032\n\026CANT_JOIN_GAME" +
       "_VERSION\020\005\022\023\n\017PROBLEM_WITH_DB\020\006\022\023\n\017ACCT_" +
-      "CREATED_OK\020\007\022\030\n\024ACCT_NOT_CREATED_ERR\020\010\022\032",
+      "CREATED_OK\020\007\022\030\n\024ACCT_NOT_CREATED_ERR\020\010\022\032" +
       "\n\026NEWGAME_OPTION_UNKNOWN\020\t\022\037\n\033NEWGAME_OP" +
       "TION_VALUE_TOONEW\020\n\022\032\n\026NEWGAME_ALREADY_E" +
       "XISTS\020\013\022\031\n\025NEWGAME_NAME_REJECTED\020\014\022\031\n\025NE" +
@@ -35600,7 +37754,7 @@ public final class Message {
       "D_DENIED\020\021\022\035\n\031ACCT_CREATED_OK_FIRST_ONE\020" +
       "\022\022\024\n\020NAME_NOT_ALLOWED\020\023\022\023\n\017OK_SET_NICKNA" +
       "ME\020\024\022\024\n\020OK_DEBUG_MODE_ON\020\025\022\037\n\033GAME_CLIEN" +
-      "T_FEATURES_NEEDED\020\026\022\026\n\022SV_SERVER_SHUTDOW",
+      "T_FEATURES_NEEDED\020\026\022\026\n\022SV_SERVER_SHUTDOW" +
       "N\020\027\"\035\n\rBroadcastText\022\014\n\004text\030\001 \001(\t\"\n\n\010Le" +
       "aveAll\" \n\nServerPing\022\022\n\nsleep_time\030\001 \001(\005" +
       "\"\367\001\n\017BotUpdateParams\022\027\n\017max_game_length\030" +
@@ -35610,7 +37764,7 @@ public final class Message {
       "ard_multiplier\030\006 \001(\002\022\031\n\021threat_multiplie" +
       "r\030\007 \001(\002\022\025\n\rstrategy_type\030\010 \001(\r\022\022\n\ntrade_" +
       "flag\030\t \001(\010\"\017\n\rBotAdminReset\"\031\n\010Channels\022" +
-      "\r\n\005names\030\001 \003(\t\"\035\n\nNewChannel\022\017\n\007ch_name\030",
+      "\r\n\005names\030\001 \003(\t\"\035\n\nNewChannel\022\017\n\007ch_name\030" +
       "\001 \001(\t\"3\n\013JoinChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n" +
       "\013member_name\030\002 \001(\t\"2\n\016ChannelMembers\022\017\n\007" +
       "ch_name\030\001 \001(\t\022\017\n\007members\030\002 \003(\t\"A\n\013Channe" +
@@ -35620,7 +37774,7 @@ public final class Message {
       "eChannel\022\017\n\007ch_name\030\001 \001(\t\"E\n\020_GameWithOp" +
       "tions\022\017\n\007ga_name\030\001 \001(\t\022\014\n\004opts\030\002 \001(\t\022\022\n\n" +
       "unjoinable\030\003 \001(\010\"(\n\005Games\022\037\n\004game\030\001 \003(\0132" +
-      "\021._GameWithOptions\"?\n\007NewGame\022\037\n\004game\030\001 ",
+      "\021._GameWithOptions\"?\n\007NewGame\022\037\n\004game\030\001 " +
       "\001(\0132\021._GameWithOptions\022\023\n\013min_version\030\002 " +
       "\001(\r\"J\n\022BotJoinGameRequest\022\037\n\004game\030\001 \001(\0132" +
       "\021._GameWithOptions\022\023\n\013seat_number\030\002 \001(\r\"" +
@@ -35630,7 +37784,7 @@ public final class Message {
       "\002 \003(\t\"R\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_" +
       "name\030\002 \001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_ro" +
       "bot\030\004 \001(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(" +
-      "\t\022\023\n\013seat_number\030\002 \001(\r\022\035\n\005state\030\003 \003(\0162\016.",
+      "\t\022\023\n\013seat_number\030\002 \001(\r\022\035\n\005state\030\003 \003(\0162\016." +
       "SeatLockState\"/\n\016GameServerText\022\017\n\007ga_na" +
       "me\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"D\n\016GamePlayerText" +
       "\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014" +
@@ -35640,7 +37794,7 @@ public final class Message {
       "ame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(" +
       "\t\"\035\n\nDeleteGame\022\017\n\007ga_name\030\001 \001(\t\"\322\010\n\nFro" +
       "mServer\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021rej" +
-      "ect_connection\030\002 \001(\0132\021.RejectConnectionH",
+      "ect_connection\030\002 \001(\0132\021.RejectConnectionH" +
       "\000\022(\n\013status_text\030\003 \001(\0132\021.ServerStatusTex" +
       "tH\000\022(\n\016broadcast_text\030\004 \001(\0132\016.BroadcastT" +
       "extH\000\022\"\n\013server_ping\030\005 \001(\0132\013.ServerPingH" +
@@ -35650,7 +37804,7 @@ public final class Message {
       "\0132\016.BotAdminResetH\000\022\035\n\010channels\030d \001(\0132\t." +
       "ChannelsH\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH" +
       "\000\022\037\n\007ch_join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch" +
-      "_members\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_",
+      "_members\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_" +
       "text\030h \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i" +
       " \001(\0132\r.LeaveChannelH\000\022#\n\tch_delete\030j \001(\013" +
       "2\016.DeleteChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.Gam" +
@@ -35660,7 +37814,7 @@ public final class Message {
       "bers\030\314\001 \001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030" +
       "\315\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001" +
       "(\0132\014.SetSeatLockH\000\022\'\n\013server_text\030\317\001 \001(\013" +
-      "2\017.GameServerTextH\000\022*\n\016ga_player_text\030\320\001",
+      "2\017.GameServerTextH\000\022*\n\016ga_player_text\030\320\001" +
       " \001(\0132\017.GamePlayerTextH\000\022*\n\017bot_timing_pi" +
       "ng\030\321\001 \001(\0132\016.BotTimingPingH\000\022(\n\016bot_admin" +
       "_ping\030\322\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_dis" +
@@ -35670,7 +37824,7 @@ public final class Message {
       "vers\030\001 \001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001(\013" +
       "2\014.AuthRequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.I" +
       "mARobotH\000\022\"\n\013server_ping\030\004 \001(\0132\013.ServerP" +
-      "ingH\000\022\036\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n",
+      "ingH\000\022\036\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n" +
       "\014game_message\030\017 \001(\0132\026.GameMessageFromCli" +
       "entH\000\022\037\n\007ch_join\030d \001(\0132\014.JoinChannelH\000\022\037" +
       "\n\007ch_text\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_le" +
@@ -35682,20 +37836,12 @@ public final class Message {
       "\000\022\037\n\010ga_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003ms" +
       "gB\r\n\tsoc.protoH\001P\000P\001b\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           soc.proto.Data.getDescriptor(),
           soc.proto.GameMessage.getDescriptor(),
-        }, assigner);
+        });
     internal_static_Version_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_Version_fieldAccessorTable = new

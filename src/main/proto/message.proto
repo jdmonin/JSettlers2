@@ -40,8 +40,9 @@ import public "data.proto";
 //
 
 
-/* VERSION is the first message sent from client to server.
- * The server also sends its version to the client early, not in response to client's VERSION message.
+/* Version is the first message sent from client to server.
+ * The server sends its version to the client as its first outbound message,
+ * not in response to client's version message.
  */
 message Version {
     uint32 vers_num = 1;    // version number, as in {@link soc.util.Version#versionNumber()}

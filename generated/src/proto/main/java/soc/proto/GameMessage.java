@@ -101,6 +101,8 @@ public final class GameMessage {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -108,6 +110,10 @@ public final class GameMessage {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static _PlayerElementAction forNumber(int value) {
       switch (value) {
         case 0: return _UNSENT_DEFAULT_ACTION;
@@ -641,6 +647,8 @@ public final class GameMessage {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -648,6 +656,10 @@ public final class GameMessage {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static _PlayerElementType forNumber(int value) {
       switch (value) {
         case 0: return _UNSENT_DEFAULT_PLAYER_ELEM;
@@ -735,6 +747,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+     * @return The enum numeric value on the wire for layoutEncoding.
      */
     int getLayoutEncodingValue();
     /**
@@ -743,6 +756,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+     * @return The layoutEncoding.
      */
     soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding();
 
@@ -828,6 +842,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BoardLayout();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -837,6 +858,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -848,13 +872,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -862,16 +879,23 @@ public final class GameMessage {
               break;
             }
             case 18: {
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 parts_ = com.google.protobuf.MapField.newMapField(
                     PartsDefaultEntryHolder.defaultEntry);
-                mutable_bitField0_ |= 0x00000002;
+                mutable_bitField0_ |= 0x00000001;
               }
               com.google.protobuf.MapEntry<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart>
               parts__ = input.readMessage(
                   PartsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               parts_.getMutableMap().put(
                   parts__.getKey(), parts__.getValue());
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -892,6 +916,7 @@ public final class GameMessage {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -902,6 +927,7 @@ public final class GameMessage {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_BoardLayout_fieldAccessorTable
@@ -1006,6 +1032,8 @@ public final class GameMessage {
       }
 
       /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -1013,6 +1041,10 @@ public final class GameMessage {
         return forNumber(value);
       }
 
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       */
       public static _LayoutEncodingFormat forNumber(int value) {
         switch (value) {
           case 0: return _UNSENT_DEFAULT_ENCODING;
@@ -1081,6 +1113,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 i_val = 1;</code>
+       * @return The iVal.
        */
       int getIVal();
 
@@ -1090,6 +1123,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>string s_val = 2;</code>
+       * @return The sVal.
        */
       java.lang.String getSVal();
       /**
@@ -1098,6 +1132,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>string s_val = 2;</code>
+       * @return The bytes for sVal.
        */
       com.google.protobuf.ByteString
           getSValBytes();
@@ -1108,6 +1143,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._IntArray i_arr = 3;</code>
+       * @return Whether the iArr field is set.
        */
       boolean hasIArr();
       /**
@@ -1116,6 +1152,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._IntArray i_arr = 3;</code>
+       * @return The iArr.
        */
       soc.proto.Data._IntArray getIArr();
       /**
@@ -1133,6 +1170,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._BoardCoordList coordinate_list = 4;</code>
+       * @return Whether the coordinateList field is set.
        */
       boolean hasCoordinateList();
       /**
@@ -1141,6 +1179,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._BoardCoordList coordinate_list = 4;</code>
+       * @return The coordinateList.
        */
       soc.proto.Data._BoardCoordList getCoordinateList();
       /**
@@ -1158,6 +1197,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._EdgeList edge_list = 5;</code>
+       * @return Whether the edgeList field is set.
        */
       boolean hasEdgeList();
       /**
@@ -1166,6 +1206,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._EdgeList edge_list = 5;</code>
+       * @return The edgeList.
        */
       soc.proto.Data._EdgeList getEdgeList();
       /**
@@ -1183,6 +1224,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._HexList hex_list = 6;</code>
+       * @return Whether the hexList field is set.
        */
       boolean hasHexList();
       /**
@@ -1191,6 +1233,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._HexList hex_list = 6;</code>
+       * @return The hexList.
        */
       soc.proto.Data._HexList getHexList();
       /**
@@ -1208,6 +1251,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._NodeList node_list = 7;</code>
+       * @return Whether the nodeList field is set.
        */
       boolean hasNodeList();
       /**
@@ -1216,6 +1260,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._NodeList node_list = 7;</code>
+       * @return The nodeList.
        */
       soc.proto.Data._NodeList getNodeList();
       /**
@@ -1245,6 +1290,13 @@ public final class GameMessage {
       }
 
       @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new _BoardLayoutPart();
+      }
+
+      @java.lang.Override
       public final com.google.protobuf.UnknownFieldSet
       getUnknownFields() {
         return this.unknownFields;
@@ -1254,7 +1306,9 @@ public final class GameMessage {
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
         this();
-        int mutable_bitField0_ = 0;
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
         com.google.protobuf.UnknownFieldSet.Builder unknownFields =
             com.google.protobuf.UnknownFieldSet.newBuilder();
         try {
@@ -1265,13 +1319,6 @@ public final class GameMessage {
               case 0:
                 done = true;
                 break;
-              default: {
-                if (!parseUnknownFieldProto3(
-                    input, unknownFields, extensionRegistry, tag)) {
-                  done = true;
-                }
-                break;
-              }
               case 8: {
                 valCase_ = 1;
                 val_ = input.readInt32();
@@ -1353,6 +1400,13 @@ public final class GameMessage {
                 valCase_ = 7;
                 break;
               }
+              default: {
+                if (!parseUnknownField(
+                    input, unknownFields, extensionRegistry, tag)) {
+                  done = true;
+                }
+                break;
+              }
             }
           }
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -1370,6 +1424,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable
@@ -1380,7 +1435,8 @@ public final class GameMessage {
       private int valCase_ = 0;
       private java.lang.Object val_;
       public enum ValCase
-          implements com.google.protobuf.Internal.EnumLite {
+          implements com.google.protobuf.Internal.EnumLite,
+              com.google.protobuf.AbstractMessage.InternalOneOfEnum {
         I_VAL(1),
         S_VAL(2),
         I_ARR(3),
@@ -1394,6 +1450,8 @@ public final class GameMessage {
           this.value = value;
         }
         /**
+         * @param value The number of the enum to look for.
+         * @return The enum associated with the given number.
          * @deprecated Use {@link #forNumber(int)} instead.
          */
         @java.lang.Deprecated
@@ -1432,6 +1490,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 i_val = 1;</code>
+       * @return The iVal.
        */
       public int getIVal() {
         if (valCase_ == 1) {
@@ -1447,6 +1506,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>string s_val = 2;</code>
+       * @return The sVal.
        */
       public java.lang.String getSVal() {
         java.lang.Object ref = "";
@@ -1471,6 +1531,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>string s_val = 2;</code>
+       * @return The bytes for sVal.
        */
       public com.google.protobuf.ByteString
           getSValBytes() {
@@ -1498,6 +1559,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._IntArray i_arr = 3;</code>
+       * @return Whether the iArr field is set.
        */
       public boolean hasIArr() {
         return valCase_ == 3;
@@ -1508,6 +1570,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._IntArray i_arr = 3;</code>
+       * @return The iArr.
        */
       public soc.proto.Data._IntArray getIArr() {
         if (valCase_ == 3) {
@@ -1536,6 +1599,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._BoardCoordList coordinate_list = 4;</code>
+       * @return Whether the coordinateList field is set.
        */
       public boolean hasCoordinateList() {
         return valCase_ == 4;
@@ -1546,6 +1610,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._BoardCoordList coordinate_list = 4;</code>
+       * @return The coordinateList.
        */
       public soc.proto.Data._BoardCoordList getCoordinateList() {
         if (valCase_ == 4) {
@@ -1574,6 +1639,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._EdgeList edge_list = 5;</code>
+       * @return Whether the edgeList field is set.
        */
       public boolean hasEdgeList() {
         return valCase_ == 5;
@@ -1584,6 +1650,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._EdgeList edge_list = 5;</code>
+       * @return The edgeList.
        */
       public soc.proto.Data._EdgeList getEdgeList() {
         if (valCase_ == 5) {
@@ -1612,6 +1679,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._HexList hex_list = 6;</code>
+       * @return Whether the hexList field is set.
        */
       public boolean hasHexList() {
         return valCase_ == 6;
@@ -1622,6 +1690,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._HexList hex_list = 6;</code>
+       * @return The hexList.
        */
       public soc.proto.Data._HexList getHexList() {
         if (valCase_ == 6) {
@@ -1650,6 +1719,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._NodeList node_list = 7;</code>
+       * @return Whether the nodeList field is set.
        */
       public boolean hasNodeList() {
         return valCase_ == 7;
@@ -1660,6 +1730,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._NodeList node_list = 7;</code>
+       * @return The nodeList.
        */
       public soc.proto.Data._NodeList getNodeList() {
         if (valCase_ == 7) {
@@ -1682,6 +1753,7 @@ public final class GameMessage {
       }
 
       private byte memoizedIsInitialized = -1;
+      @java.lang.Override
       public final boolean isInitialized() {
         byte isInitialized = memoizedIsInitialized;
         if (isInitialized == 1) return true;
@@ -1691,6 +1763,7 @@ public final class GameMessage {
         return true;
       }
 
+      @java.lang.Override
       public void writeTo(com.google.protobuf.CodedOutputStream output)
                           throws java.io.IOException {
         if (valCase_ == 1) {
@@ -1718,6 +1791,7 @@ public final class GameMessage {
         unknownFields.writeTo(output);
       }
 
+      @java.lang.Override
       public int getSerializedSize() {
         int size = memoizedSize;
         if (size != -1) return size;
@@ -1766,44 +1840,41 @@ public final class GameMessage {
         }
         soc.proto.GameMessage.BoardLayout._BoardLayoutPart other = (soc.proto.GameMessage.BoardLayout._BoardLayoutPart) obj;
 
-        boolean result = true;
-        result = result && getValCase().equals(
-            other.getValCase());
-        if (!result) return false;
+        if (!getValCase().equals(other.getValCase())) return false;
         switch (valCase_) {
           case 1:
-            result = result && (getIVal()
-                == other.getIVal());
+            if (getIVal()
+                != other.getIVal()) return false;
             break;
           case 2:
-            result = result && getSVal()
-                .equals(other.getSVal());
+            if (!getSVal()
+                .equals(other.getSVal())) return false;
             break;
           case 3:
-            result = result && getIArr()
-                .equals(other.getIArr());
+            if (!getIArr()
+                .equals(other.getIArr())) return false;
             break;
           case 4:
-            result = result && getCoordinateList()
-                .equals(other.getCoordinateList());
+            if (!getCoordinateList()
+                .equals(other.getCoordinateList())) return false;
             break;
           case 5:
-            result = result && getEdgeList()
-                .equals(other.getEdgeList());
+            if (!getEdgeList()
+                .equals(other.getEdgeList())) return false;
             break;
           case 6:
-            result = result && getHexList()
-                .equals(other.getHexList());
+            if (!getHexList()
+                .equals(other.getHexList())) return false;
             break;
           case 7:
-            result = result && getNodeList()
-                .equals(other.getNodeList());
+            if (!getNodeList()
+                .equals(other.getNodeList())) return false;
             break;
           case 0:
           default:
         }
-        result = result && unknownFields.equals(other.unknownFields);
-        return result;
+        if (!unknownFields.equals(other.unknownFields)) return false;
+        return true;
       }
 
       @java.lang.Override
@@ -1920,6 +1991,7 @@ public final class GameMessage {
             .parseWithIOException(PARSER, input, extensionRegistry);
       }
 
+      @java.lang.Override
       public Builder newBuilderForType() { return newBuilder(); }
       public static Builder newBuilder() {
         return DEFAULT_INSTANCE.toBuilder();
@@ -1927,6 +1999,7 @@ public final class GameMessage {
       public static Builder newBuilder(soc.proto.GameMessage.BoardLayout._BoardLayoutPart prototype) {
         return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
       }
+      @java.lang.Override
       public Builder toBuilder() {
         return this == DEFAULT_INSTANCE
             ? new Builder() : new Builder().mergeFrom(this);
@@ -1950,6 +2023,7 @@ public final class GameMessage {
           return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_descriptor;
         }
 
+        @java.lang.Override
         protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
             internalGetFieldAccessorTable() {
           return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_fieldAccessorTable
@@ -1972,6 +2046,7 @@ public final class GameMessage {
                   .alwaysUseFieldBuilders) {
           }
         }
+        @java.lang.Override
         public Builder clear() {
           super.clear();
           valCase_ = 0;
@@ -1979,15 +2054,18 @@ public final class GameMessage {
           return this;
         }
 
+        @java.lang.Override
         public com.google.protobuf.Descriptors.Descriptor
             getDescriptorForType() {
           return soc.proto.GameMessage.internal_static_BoardLayout__BoardLayoutPart_descriptor;
         }
 
+        @java.lang.Override
         public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getDefaultInstanceForType() {
           return soc.proto.GameMessage.BoardLayout._BoardLayoutPart.getDefaultInstance();
         }
 
+        @java.lang.Override
         public soc.proto.GameMessage.BoardLayout._BoardLayoutPart build() {
           soc.proto.GameMessage.BoardLayout._BoardLayoutPart result = buildPartial();
           if (!result.isInitialized()) {
@@ -1996,6 +2074,7 @@ public final class GameMessage {
           return result;
         }
 
+        @java.lang.Override
         public soc.proto.GameMessage.BoardLayout._BoardLayoutPart buildPartial() {
           soc.proto.GameMessage.BoardLayout._BoardLayoutPart result = new soc.proto.GameMessage.BoardLayout._BoardLayoutPart(this);
           if (valCase_ == 1) {
@@ -2044,32 +2123,39 @@ public final class GameMessage {
           return result;
         }
 
+        @java.lang.Override
         public Builder clone() {
-          return (Builder) super.clone();
+          return super.clone();
         }
+        @java.lang.Override
         public Builder setField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             java.lang.Object value) {
-          return (Builder) super.setField(field, value);
+          return super.setField(field, value);
         }
+        @java.lang.Override
         public Builder clearField(
             com.google.protobuf.Descriptors.FieldDescriptor field) {
-          return (Builder) super.clearField(field);
+          return super.clearField(field);
         }
+        @java.lang.Override
         public Builder clearOneof(
             com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-          return (Builder) super.clearOneof(oneof);
+          return super.clearOneof(oneof);
         }
+        @java.lang.Override
         public Builder setRepeatedField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             int index, java.lang.Object value) {
-          return (Builder) super.setRepeatedField(field, index, value);
+          return super.setRepeatedField(field, index, value);
         }
+        @java.lang.Override
         public Builder addRepeatedField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             java.lang.Object value) {
-          return (Builder) super.addRepeatedField(field, value);
+          return super.addRepeatedField(field, value);
         }
+        @java.lang.Override
         public Builder mergeFrom(com.google.protobuf.Message other) {
           if (other instanceof soc.proto.GameMessage.BoardLayout._BoardLayoutPart) {
             return mergeFrom((soc.proto.GameMessage.BoardLayout._BoardLayoutPart)other);
@@ -2121,10 +2207,12 @@ public final class GameMessage {
           return this;
         }
 
+        @java.lang.Override
         public final boolean isInitialized() {
           return true;
         }
 
+        @java.lang.Override
         public Builder mergeFrom(
             com.google.protobuf.CodedInputStream input,
             com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2164,6 +2252,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>int32 i_val = 1;</code>
+         * @return The iVal.
          */
         public int getIVal() {
           if (valCase_ == 1) {
@@ -2177,6 +2266,8 @@ public final class GameMessage {
          * </pre>
          *
          * <code>int32 i_val = 1;</code>
+         * @param value The iVal to set.
+         * @return This builder for chaining.
          */
         public Builder setIVal(int value) {
           valCase_ = 1;
@@ -2190,6 +2281,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>int32 i_val = 1;</code>
+         * @return This builder for chaining.
          */
         public Builder clearIVal() {
           if (valCase_ == 1) {
@@ -2206,6 +2298,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>string s_val = 2;</code>
+         * @return The sVal.
          */
         public java.lang.String getSVal() {
           java.lang.Object ref = "";
@@ -2230,6 +2323,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>string s_val = 2;</code>
+         * @return The bytes for sVal.
          */
         public com.google.protobuf.ByteString
             getSValBytes() {
@@ -2255,6 +2349,8 @@ public final class GameMessage {
          * </pre>
          *
          * <code>string s_val = 2;</code>
+         * @param value The sVal to set.
+         * @return This builder for chaining.
          */
         public Builder setSVal(
             java.lang.String value) {
@@ -2272,6 +2368,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>string s_val = 2;</code>
+         * @return This builder for chaining.
          */
         public Builder clearSVal() {
           if (valCase_ == 2) {
@@ -2287,6 +2384,8 @@ public final class GameMessage {
          * </pre>
          *
          * <code>string s_val = 2;</code>
+         * @param value The bytes for sVal to set.
+         * @return This builder for chaining.
          */
         public Builder setSValBytes(
             com.google.protobuf.ByteString value) {
@@ -2308,6 +2407,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._IntArray i_arr = 3;</code>
+         * @return Whether the iArr field is set.
          */
         public boolean hasIArr() {
           return valCase_ == 3;
@@ -2318,6 +2418,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._IntArray i_arr = 3;</code>
+         * @return The iArr.
          */
         public soc.proto.Data._IntArray getIArr() {
           if (iArrBuilder_ == null) {
@@ -2480,6 +2581,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._BoardCoordList coordinate_list = 4;</code>
+         * @return Whether the coordinateList field is set.
          */
         public boolean hasCoordinateList() {
           return valCase_ == 4;
@@ -2490,6 +2592,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._BoardCoordList coordinate_list = 4;</code>
+         * @return The coordinateList.
          */
         public soc.proto.Data._BoardCoordList getCoordinateList() {
           if (coordinateListBuilder_ == null) {
@@ -2652,6 +2755,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._EdgeList edge_list = 5;</code>
+         * @return Whether the edgeList field is set.
          */
         public boolean hasEdgeList() {
           return valCase_ == 5;
@@ -2662,6 +2766,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._EdgeList edge_list = 5;</code>
+         * @return The edgeList.
          */
         public soc.proto.Data._EdgeList getEdgeList() {
           if (edgeListBuilder_ == null) {
@@ -2824,6 +2929,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._HexList hex_list = 6;</code>
+         * @return Whether the hexList field is set.
          */
         public boolean hasHexList() {
           return valCase_ == 6;
@@ -2834,6 +2940,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._HexList hex_list = 6;</code>
+         * @return The hexList.
          */
         public soc.proto.Data._HexList getHexList() {
           if (hexListBuilder_ == null) {
@@ -2996,6 +3103,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._NodeList node_list = 7;</code>
+         * @return Whether the nodeList field is set.
          */
         public boolean hasNodeList() {
           return valCase_ == 7;
@@ -3006,6 +3114,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>._NodeList node_list = 7;</code>
+         * @return The nodeList.
          */
         public soc.proto.Data._NodeList getNodeList() {
           if (nodeListBuilder_ == null) {
@@ -3159,11 +3268,13 @@ public final class GameMessage {
           onChanged();;
           return nodeListBuilder_;
         }
+        @java.lang.Override
         public final Builder setUnknownFields(
             final com.google.protobuf.UnknownFieldSet unknownFields) {
-          return super.setUnknownFieldsProto3(unknownFields);
+          return super.setUnknownFields(unknownFields);
         }
 
+        @java.lang.Override
         public final Builder mergeUnknownFields(
             final com.google.protobuf.UnknownFieldSet unknownFields) {
           return super.mergeUnknownFields(unknownFields);
@@ -3185,11 +3296,12 @@ public final class GameMessage {
 
       private static final com.google.protobuf.Parser<_BoardLayoutPart>
           PARSER = new com.google.protobuf.AbstractParser<_BoardLayoutPart>() {
+        @java.lang.Override
         public _BoardLayoutPart parsePartialFrom(
             com.google.protobuf.CodedInputStream input,
             com.google.protobuf.ExtensionRegistryLite extensionRegistry)
             throws com.google.protobuf.InvalidProtocolBufferException {
-            return new _BoardLayoutPart(input, extensionRegistry);
+          return new _BoardLayoutPart(input, extensionRegistry);
         }
       };
 
@@ -3202,13 +3314,13 @@ public final class GameMessage {
         return PARSER;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getDefaultInstanceForType() {
         return DEFAULT_INSTANCE;
       }
 
     }
 
-    private int bitField0_;
     public static final int LAYOUT_ENCODING_FIELD_NUMBER = 1;
     private int layoutEncoding_;
     /**
@@ -3217,6 +3329,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+     * @return The enum numeric value on the wire for layoutEncoding.
      */
     public int getLayoutEncodingValue() {
       return layoutEncoding_;
@@ -3227,8 +3340,10 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+     * @return The layoutEncoding.
      */
     public soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding() {
+      @SuppressWarnings("deprecation")
       soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat result = soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.valueOf(layoutEncoding_);
       return result == null ? soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.UNRECOGNIZED : result;
     }
@@ -3326,6 +3441,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -3335,6 +3451,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (layoutEncoding_ != soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat._UNSENT_DEFAULT_ENCODING.getNumber()) {
@@ -3349,6 +3466,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -3383,12 +3501,11 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.BoardLayout other = (soc.proto.GameMessage.BoardLayout) obj;
 
-      boolean result = true;
-      result = result && layoutEncoding_ == other.layoutEncoding_;
-      result = result && internalGetParts().equals(
-          other.internalGetParts());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (layoutEncoding_ != other.layoutEncoding_) return false;
+      if (!internalGetParts().equals(
+          other.internalGetParts())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -3479,6 +3596,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -3486,6 +3604,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.BoardLayout prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -3542,6 +3661,7 @@ public final class GameMessage {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_BoardLayout_fieldAccessorTable
@@ -3564,6 +3684,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         layoutEncoding_ = 0;
@@ -3572,15 +3693,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_BoardLayout_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BoardLayout getDefaultInstanceForType() {
         return soc.proto.GameMessage.BoardLayout.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BoardLayout build() {
         soc.proto.GameMessage.BoardLayout result = buildPartial();
         if (!result.isInitialized()) {
@@ -3589,44 +3713,50 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BoardLayout buildPartial() {
         soc.proto.GameMessage.BoardLayout result = new soc.proto.GameMessage.BoardLayout(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.layoutEncoding_ = layoutEncoding_;
         result.parts_ = internalGetParts();
         result.parts_.makeImmutable();
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.BoardLayout) {
           return mergeFrom((soc.proto.GameMessage.BoardLayout)other);
@@ -3648,10 +3778,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3678,6 +3810,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+       * @return The enum numeric value on the wire for layoutEncoding.
        */
       public int getLayoutEncodingValue() {
         return layoutEncoding_;
@@ -3688,6 +3821,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+       * @param value The enum numeric value on the wire for layoutEncoding to set.
+       * @return This builder for chaining.
        */
       public Builder setLayoutEncodingValue(int value) {
         layoutEncoding_ = value;
@@ -3700,8 +3835,10 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+       * @return The layoutEncoding.
        */
       public soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding() {
+        @SuppressWarnings("deprecation")
         soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat result = soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.valueOf(layoutEncoding_);
         return result == null ? soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.UNRECOGNIZED : result;
       }
@@ -3711,6 +3848,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+       * @param value The layoutEncoding to set.
+       * @return This builder for chaining.
        */
       public Builder setLayoutEncoding(soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat value) {
         if (value == null) {
@@ -3727,6 +3866,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLayoutEncoding() {
         
@@ -3885,11 +4025,13 @@ public final class GameMessage {
             .putAll(values);
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -3911,11 +4053,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<BoardLayout>
         PARSER = new com.google.protobuf.AbstractParser<BoardLayout>() {
+      @java.lang.Override
       public BoardLayout parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BoardLayout(input, extensionRegistry);
+        return new BoardLayout(input, extensionRegistry);
       }
     };
 
@@ -3928,6 +4071,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.BoardLayout getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -4008,6 +4152,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>uint32 area_count = 2;</code>
+     * @return The areaCount.
      */
     int getAreaCount();
 
@@ -4021,6 +4166,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>uint32 starting_land_area = 3;</code>
+     * @return The startingLandArea.
      */
     int getStartingLandArea();
 
@@ -4208,9 +4354,14 @@ public final class GameMessage {
     }
     private PotentialSettlements() {
       psNodes_ = java.util.Collections.emptyList();
-      areaCount_ = 0;
-      startingLandArea_ = 0;
       legalSeaEdges_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new PotentialSettlements();
     }
 
     @java.lang.Override
@@ -4223,6 +4374,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -4234,15 +4388,8 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 psNodes_ = new java.util.ArrayList<soc.proto.Data.NodeCoord>();
                 mutable_bitField0_ |= 0x00000001;
               }
@@ -4261,10 +4408,10 @@ public final class GameMessage {
               break;
             }
             case 34: {
-              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
                 landAreasLegalNodes_ = com.google.protobuf.MapField.newMapField(
                     LandAreasLegalNodesDefaultEntryHolder.defaultEntry);
-                mutable_bitField0_ |= 0x00000008;
+                mutable_bitField0_ |= 0x00000002;
               }
               com.google.protobuf.MapEntry<java.lang.Integer, soc.proto.Data._NodeList>
               landAreasLegalNodes__ = input.readMessage(
@@ -4274,12 +4421,19 @@ public final class GameMessage {
               break;
             }
             case 42: {
-              if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
                 legalSeaEdges_ = new java.util.ArrayList<soc.proto.Data._EdgeList>();
-                mutable_bitField0_ |= 0x00000010;
+                mutable_bitField0_ |= 0x00000004;
               }
               legalSeaEdges_.add(
                   input.readMessage(soc.proto.Data._EdgeList.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -4290,10 +4444,10 @@ public final class GameMessage {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           psNodes_ = java.util.Collections.unmodifiableList(psNodes_);
         }
-        if (((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((mutable_bitField0_ & 0x00000004) != 0)) {
           legalSeaEdges_ = java.util.Collections.unmodifiableList(legalSeaEdges_);
         }
         this.unknownFields = unknownFields.build();
@@ -4306,6 +4460,7 @@ public final class GameMessage {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -4316,6 +4471,7 @@ public final class GameMessage {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_PotentialSettlements_fieldAccessorTable
@@ -4323,7 +4479,6 @@ public final class GameMessage {
               soc.proto.GameMessage.PotentialSettlements.class, soc.proto.GameMessage.PotentialSettlements.Builder.class);
     }
 
-    private int bitField0_;
     public static final int PS_NODES_FIELD_NUMBER = 1;
     private java.util.List<soc.proto.Data.NodeCoord> psNodes_;
     /**
@@ -4407,6 +4562,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>uint32 area_count = 2;</code>
+     * @return The areaCount.
      */
     public int getAreaCount() {
       return areaCount_;
@@ -4424,6 +4580,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>uint32 starting_land_area = 3;</code>
+     * @return The startingLandArea.
      */
     public int getStartingLandArea() {
       return startingLandArea_;
@@ -4631,6 +4788,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -4640,6 +4798,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < psNodes_.size(); i++) {
@@ -4663,6 +4822,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -4709,19 +4869,18 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.PotentialSettlements other = (soc.proto.GameMessage.PotentialSettlements) obj;
 
-      boolean result = true;
-      result = result && getPsNodesList()
-          .equals(other.getPsNodesList());
-      result = result && (getAreaCount()
-          == other.getAreaCount());
-      result = result && (getStartingLandArea()
-          == other.getStartingLandArea());
-      result = result && internalGetLandAreasLegalNodes().equals(
-          other.internalGetLandAreasLegalNodes());
-      result = result && getLegalSeaEdgesList()
-          .equals(other.getLegalSeaEdgesList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getPsNodesList()
+          .equals(other.getPsNodesList())) return false;
+      if (getAreaCount()
+          != other.getAreaCount()) return false;
+      if (getStartingLandArea()
+          != other.getStartingLandArea()) return false;
+      if (!internalGetLandAreasLegalNodes().equals(
+          other.internalGetLandAreasLegalNodes())) return false;
+      if (!getLegalSeaEdgesList()
+          .equals(other.getLegalSeaEdgesList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -4822,6 +4981,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -4829,6 +4989,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.PotentialSettlements prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -4891,6 +5052,7 @@ public final class GameMessage {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_PotentialSettlements_fieldAccessorTable
@@ -4915,6 +5077,7 @@ public final class GameMessage {
           getLegalSeaEdgesFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (psNodesBuilder_ == null) {
@@ -4930,22 +5093,25 @@ public final class GameMessage {
         internalGetMutableLandAreasLegalNodes().clear();
         if (legalSeaEdgesBuilder_ == null) {
           legalSeaEdges_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000010);
+          bitField0_ = (bitField0_ & ~0x00000004);
         } else {
           legalSeaEdgesBuilder_.clear();
         }
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_PotentialSettlements_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PotentialSettlements getDefaultInstanceForType() {
         return soc.proto.GameMessage.PotentialSettlements.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PotentialSettlements build() {
         soc.proto.GameMessage.PotentialSettlements result = buildPartial();
         if (!result.isInitialized()) {
@@ -4954,12 +5120,12 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PotentialSettlements buildPartial() {
         soc.proto.GameMessage.PotentialSettlements result = new soc.proto.GameMessage.PotentialSettlements(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         if (psNodesBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             psNodes_ = java.util.Collections.unmodifiableList(psNodes_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
@@ -4972,45 +5138,51 @@ public final class GameMessage {
         result.landAreasLegalNodes_ = internalGetLandAreasLegalNodes();
         result.landAreasLegalNodes_.makeImmutable();
         if (legalSeaEdgesBuilder_ == null) {
-          if (((bitField0_ & 0x00000010) == 0x00000010)) {
+          if (((bitField0_ & 0x00000004) != 0)) {
             legalSeaEdges_ = java.util.Collections.unmodifiableList(legalSeaEdges_);
-            bitField0_ = (bitField0_ & ~0x00000010);
+            bitField0_ = (bitField0_ & ~0x00000004);
           }
           result.legalSeaEdges_ = legalSeaEdges_;
         } else {
           result.legalSeaEdges_ = legalSeaEdgesBuilder_.build();
         }
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.PotentialSettlements) {
           return mergeFrom((soc.proto.GameMessage.PotentialSettlements)other);
@@ -5060,7 +5232,7 @@ public final class GameMessage {
           if (!other.legalSeaEdges_.isEmpty()) {
             if (legalSeaEdges_.isEmpty()) {
               legalSeaEdges_ = other.legalSeaEdges_;
-              bitField0_ = (bitField0_ & ~0x00000010);
+              bitField0_ = (bitField0_ & ~0x00000004);
             } else {
               ensureLegalSeaEdgesIsMutable();
               legalSeaEdges_.addAll(other.legalSeaEdges_);
@@ -5073,7 +5245,7 @@ public final class GameMessage {
               legalSeaEdgesBuilder_.dispose();
               legalSeaEdgesBuilder_ = null;
               legalSeaEdges_ = other.legalSeaEdges_;
-              bitField0_ = (bitField0_ & ~0x00000010);
+              bitField0_ = (bitField0_ & ~0x00000004);
               legalSeaEdgesBuilder_ = 
                 com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                    getLegalSeaEdgesFieldBuilder() : null;
@@ -5087,10 +5259,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -5113,7 +5287,7 @@ public final class GameMessage {
       private java.util.List<soc.proto.Data.NodeCoord> psNodes_ =
         java.util.Collections.emptyList();
       private void ensurePsNodesIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           psNodes_ = new java.util.ArrayList<soc.proto.Data.NodeCoord>(psNodes_);
           bitField0_ |= 0x00000001;
          }
@@ -5486,7 +5660,7 @@ public final class GameMessage {
           psNodesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.Data.NodeCoord, soc.proto.Data.NodeCoord.Builder, soc.proto.Data.NodeCoordOrBuilder>(
                   psNodes_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           psNodes_ = null;
@@ -5501,6 +5675,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 area_count = 2;</code>
+       * @return The areaCount.
        */
       public int getAreaCount() {
         return areaCount_;
@@ -5511,6 +5686,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 area_count = 2;</code>
+       * @param value The areaCount to set.
+       * @return This builder for chaining.
        */
       public Builder setAreaCount(int value) {
         
@@ -5524,6 +5701,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 area_count = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAreaCount() {
         
@@ -5543,6 +5721,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 starting_land_area = 3;</code>
+       * @return The startingLandArea.
        */
       public int getStartingLandArea() {
         return startingLandArea_;
@@ -5557,6 +5736,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 starting_land_area = 3;</code>
+       * @param value The startingLandArea to set.
+       * @return This builder for chaining.
        */
       public Builder setStartingLandArea(int value) {
         
@@ -5574,6 +5755,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 starting_land_area = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearStartingLandArea() {
         
@@ -5743,9 +5925,9 @@ public final class GameMessage {
       private java.util.List<soc.proto.Data._EdgeList> legalSeaEdges_ =
         java.util.Collections.emptyList();
       private void ensureLegalSeaEdgesIsMutable() {
-        if (!((bitField0_ & 0x00000010) == 0x00000010)) {
+        if (!((bitField0_ & 0x00000004) != 0)) {
           legalSeaEdges_ = new java.util.ArrayList<soc.proto.Data._EdgeList>(legalSeaEdges_);
-          bitField0_ |= 0x00000010;
+          bitField0_ |= 0x00000004;
          }
       }
 
@@ -6049,7 +6231,7 @@ public final class GameMessage {
       public Builder clearLegalSeaEdges() {
         if (legalSeaEdgesBuilder_ == null) {
           legalSeaEdges_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000010);
+          bitField0_ = (bitField0_ & ~0x00000004);
           onChanged();
         } else {
           legalSeaEdgesBuilder_.clear();
@@ -6224,18 +6406,20 @@ public final class GameMessage {
           legalSeaEdgesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.Data._EdgeList, soc.proto.Data._EdgeList.Builder, soc.proto.Data._EdgeListOrBuilder>(
                   legalSeaEdges_,
-                  ((bitField0_ & 0x00000010) == 0x00000010),
+                  ((bitField0_ & 0x00000004) != 0),
                   getParentForChildren(),
                   isClean());
           legalSeaEdges_ = null;
         }
         return legalSeaEdgesBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -6257,11 +6441,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<PotentialSettlements>
         PARSER = new com.google.protobuf.AbstractParser<PotentialSettlements>() {
+      @java.lang.Override
       public PotentialSettlements parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new PotentialSettlements(input, extensionRegistry);
+        return new PotentialSettlements(input, extensionRegistry);
       }
     };
 
@@ -6274,6 +6459,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.PotentialSettlements getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -6291,6 +6477,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The enum numeric value on the wire for ptype.
      */
     int getPtypeValue();
     /**
@@ -6300,6 +6487,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The ptype.
      */
     soc.proto.Data.PieceType getPtype();
 
@@ -6309,6 +6497,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return Whether the coordinates field is set.
      */
     boolean hasCoordinates();
     /**
@@ -6317,6 +6506,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return The coordinates.
      */
     soc.proto.Data.BoardCoord getCoordinates();
     /**
@@ -6334,6 +6524,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 piece_value1 = 3;</code>
+     * @return The pieceValue1.
      */
     int getPieceValue1();
 
@@ -6343,6 +6534,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 piece_value2 = 4;</code>
+     * @return The pieceValue2.
      */
     int getPieceValue2();
   }
@@ -6369,8 +6561,13 @@ public final class GameMessage {
     }
     private PieceValue() {
       ptype_ = 0;
-      pieceValue1_ = 0;
-      pieceValue2_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new PieceValue();
     }
 
     @java.lang.Override
@@ -6383,7 +6580,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -6394,13 +6593,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -6430,6 +6622,13 @@ public final class GameMessage {
               pieceValue2_ = input.readSInt32();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -6447,6 +6646,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_PieceValue_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_PieceValue_fieldAccessorTable
@@ -6463,6 +6663,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The enum numeric value on the wire for ptype.
      */
     public int getPtypeValue() {
       return ptype_;
@@ -6474,8 +6675,10 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The ptype.
      */
     public soc.proto.Data.PieceType getPtype() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
     }
@@ -6488,6 +6691,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return Whether the coordinates field is set.
      */
     public boolean hasCoordinates() {
       return coordinates_ != null;
@@ -6498,6 +6702,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return The coordinates.
      */
     public soc.proto.Data.BoardCoord getCoordinates() {
       return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
@@ -6521,6 +6726,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 piece_value1 = 3;</code>
+     * @return The pieceValue1.
      */
     public int getPieceValue1() {
       return pieceValue1_;
@@ -6534,12 +6740,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 piece_value2 = 4;</code>
+     * @return The pieceValue2.
      */
     public int getPieceValue2() {
       return pieceValue2_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -6549,6 +6757,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (ptype_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
@@ -6566,6 +6775,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -6602,19 +6812,18 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.PieceValue other = (soc.proto.GameMessage.PieceValue) obj;
 
-      boolean result = true;
-      result = result && ptype_ == other.ptype_;
-      result = result && (hasCoordinates() == other.hasCoordinates());
+      if (ptype_ != other.ptype_) return false;
+      if (hasCoordinates() != other.hasCoordinates()) return false;
       if (hasCoordinates()) {
-        result = result && getCoordinates()
-            .equals(other.getCoordinates());
+        if (!getCoordinates()
+            .equals(other.getCoordinates())) return false;
       }
-      result = result && (getPieceValue1()
-          == other.getPieceValue1());
-      result = result && (getPieceValue2()
-          == other.getPieceValue2());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getPieceValue1()
+          != other.getPieceValue1()) return false;
+      if (getPieceValue2()
+          != other.getPieceValue2()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -6709,6 +6918,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -6716,6 +6926,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.PieceValue prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -6748,6 +6959,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_PieceValue_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_PieceValue_fieldAccessorTable
@@ -6770,6 +6982,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         ptype_ = 0;
@@ -6787,15 +7000,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_PieceValue_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PieceValue getDefaultInstanceForType() {
         return soc.proto.GameMessage.PieceValue.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PieceValue build() {
         soc.proto.GameMessage.PieceValue result = buildPartial();
         if (!result.isInitialized()) {
@@ -6804,6 +7020,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PieceValue buildPartial() {
         soc.proto.GameMessage.PieceValue result = new soc.proto.GameMessage.PieceValue(this);
         result.ptype_ = ptype_;
@@ -6818,32 +7035,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.PieceValue) {
           return mergeFrom((soc.proto.GameMessage.PieceValue)other);
@@ -6872,10 +7096,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -6902,6 +7128,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return The enum numeric value on the wire for ptype.
        */
       public int getPtypeValue() {
         return ptype_;
@@ -6913,6 +7140,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @param value The enum numeric value on the wire for ptype to set.
+       * @return This builder for chaining.
        */
       public Builder setPtypeValue(int value) {
         ptype_ = value;
@@ -6926,8 +7155,10 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return The ptype.
        */
       public soc.proto.Data.PieceType getPtype() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
         return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
       }
@@ -6938,6 +7169,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @param value The ptype to set.
+       * @return This builder for chaining.
        */
       public Builder setPtype(soc.proto.Data.PieceType value) {
         if (value == null) {
@@ -6955,6 +7188,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPtype() {
         
@@ -6963,7 +7197,7 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.BoardCoord coordinates_ = null;
+      private soc.proto.Data.BoardCoord coordinates_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> coordinatesBuilder_;
       /**
@@ -6972,6 +7206,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardCoord coordinates = 2;</code>
+       * @return Whether the coordinates field is set.
        */
       public boolean hasCoordinates() {
         return coordinatesBuilder_ != null || coordinates_ != null;
@@ -6982,6 +7217,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardCoord coordinates = 2;</code>
+       * @return The coordinates.
        */
       public soc.proto.Data.BoardCoord getCoordinates() {
         if (coordinatesBuilder_ == null) {
@@ -7123,6 +7359,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 piece_value1 = 3;</code>
+       * @return The pieceValue1.
        */
       public int getPieceValue1() {
         return pieceValue1_;
@@ -7133,6 +7370,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 piece_value1 = 3;</code>
+       * @param value The pieceValue1 to set.
+       * @return This builder for chaining.
        */
       public Builder setPieceValue1(int value) {
         
@@ -7146,6 +7385,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 piece_value1 = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPieceValue1() {
         
@@ -7161,6 +7401,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 piece_value2 = 4;</code>
+       * @return The pieceValue2.
        */
       public int getPieceValue2() {
         return pieceValue2_;
@@ -7171,6 +7412,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 piece_value2 = 4;</code>
+       * @param value The pieceValue2 to set.
+       * @return This builder for chaining.
        */
       public Builder setPieceValue2(int value) {
         
@@ -7184,6 +7427,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 piece_value2 = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPieceValue2() {
         
@@ -7191,11 +7435,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -7217,11 +7463,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<PieceValue>
         PARSER = new com.google.protobuf.AbstractParser<PieceValue>() {
+      @java.lang.Override
       public PieceValue parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new PieceValue(input, extensionRegistry);
+        return new PieceValue(input, extensionRegistry);
       }
     };
 
@@ -7234,6 +7481,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.PieceValue getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -7246,10 +7494,12 @@ public final class GameMessage {
 
     /**
      * <code>.PieceType ptype = 1;</code>
+     * @return The enum numeric value on the wire for ptype.
      */
     int getPtypeValue();
     /**
      * <code>.PieceType ptype = 1;</code>
+     * @return The ptype.
      */
     soc.proto.Data.PieceType getPtype();
 
@@ -7261,6 +7511,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return Whether the coordinates field is set.
      */
     boolean hasCoordinates();
     /**
@@ -7271,6 +7522,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return The coordinates.
      */
     soc.proto.Data.BoardCoord getCoordinates();
     /**
@@ -7334,6 +7586,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BuildPiece();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -7343,7 +7602,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -7354,13 +7615,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -7380,6 +7634,13 @@ public final class GameMessage {
 
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -7397,6 +7658,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_BuildPiece_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_BuildPiece_fieldAccessorTable
@@ -7408,14 +7670,17 @@ public final class GameMessage {
     private int ptype_;
     /**
      * <code>.PieceType ptype = 1;</code>
+     * @return The enum numeric value on the wire for ptype.
      */
     public int getPtypeValue() {
       return ptype_;
     }
     /**
      * <code>.PieceType ptype = 1;</code>
+     * @return The ptype.
      */
     public soc.proto.Data.PieceType getPtype() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
     }
@@ -7430,6 +7695,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return Whether the coordinates field is set.
      */
     public boolean hasCoordinates() {
       return coordinates_ != null;
@@ -7442,6 +7708,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return The coordinates.
      */
     public soc.proto.Data.BoardCoord getCoordinates() {
       return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
@@ -7460,6 +7727,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -7469,6 +7737,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (ptype_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
@@ -7480,6 +7749,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -7508,15 +7778,14 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.BuildPiece other = (soc.proto.GameMessage.BuildPiece) obj;
 
-      boolean result = true;
-      result = result && ptype_ == other.ptype_;
-      result = result && (hasCoordinates() == other.hasCoordinates());
+      if (ptype_ != other.ptype_) return false;
+      if (hasCoordinates() != other.hasCoordinates()) return false;
       if (hasCoordinates()) {
-        result = result && getCoordinates()
-            .equals(other.getCoordinates());
+        if (!getCoordinates()
+            .equals(other.getCoordinates())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -7607,6 +7876,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -7614,6 +7884,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.BuildPiece prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -7670,6 +7941,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_BuildPiece_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_BuildPiece_fieldAccessorTable
@@ -7692,6 +7964,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         ptype_ = 0;
@@ -7705,15 +7978,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_BuildPiece_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BuildPiece getDefaultInstanceForType() {
         return soc.proto.GameMessage.BuildPiece.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BuildPiece build() {
         soc.proto.GameMessage.BuildPiece result = buildPartial();
         if (!result.isInitialized()) {
@@ -7722,6 +7998,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BuildPiece buildPartial() {
         soc.proto.GameMessage.BuildPiece result = new soc.proto.GameMessage.BuildPiece(this);
         result.ptype_ = ptype_;
@@ -7734,32 +8011,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.BuildPiece) {
           return mergeFrom((soc.proto.GameMessage.BuildPiece)other);
@@ -7782,10 +8066,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -7807,12 +8093,15 @@ public final class GameMessage {
       private int ptype_ = 0;
       /**
        * <code>.PieceType ptype = 1;</code>
+       * @return The enum numeric value on the wire for ptype.
        */
       public int getPtypeValue() {
         return ptype_;
       }
       /**
        * <code>.PieceType ptype = 1;</code>
+       * @param value The enum numeric value on the wire for ptype to set.
+       * @return This builder for chaining.
        */
       public Builder setPtypeValue(int value) {
         ptype_ = value;
@@ -7821,13 +8110,17 @@ public final class GameMessage {
       }
       /**
        * <code>.PieceType ptype = 1;</code>
+       * @return The ptype.
        */
       public soc.proto.Data.PieceType getPtype() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
         return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
       }
       /**
        * <code>.PieceType ptype = 1;</code>
+       * @param value The ptype to set.
+       * @return This builder for chaining.
        */
       public Builder setPtype(soc.proto.Data.PieceType value) {
         if (value == null) {
@@ -7840,6 +8133,7 @@ public final class GameMessage {
       }
       /**
        * <code>.PieceType ptype = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPtype() {
         
@@ -7848,7 +8142,7 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.BoardCoord coordinates_ = null;
+      private soc.proto.Data.BoardCoord coordinates_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> coordinatesBuilder_;
       /**
@@ -7859,6 +8153,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardCoord coordinates = 2;</code>
+       * @return Whether the coordinates field is set.
        */
       public boolean hasCoordinates() {
         return coordinatesBuilder_ != null || coordinates_ != null;
@@ -7871,6 +8166,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardCoord coordinates = 2;</code>
+       * @return The coordinates.
        */
       public soc.proto.Data.BoardCoord getCoordinates() {
         if (coordinatesBuilder_ == null) {
@@ -8018,11 +8314,13 @@ public final class GameMessage {
         }
         return coordinatesBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -8044,11 +8342,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<BuildPiece>
         PARSER = new com.google.protobuf.AbstractParser<BuildPiece>() {
+      @java.lang.Override
       public BuildPiece parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BuildPiece(input, extensionRegistry);
+        return new BuildPiece(input, extensionRegistry);
       }
     };
 
@@ -8061,6 +8360,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.BuildPiece getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -8077,6 +8377,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_not_dev_card = 1;</code>
+     * @return The isNotDevCard.
      */
     boolean getIsNotDevCard();
 
@@ -8087,6 +8388,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 other_inv_item_type = 2;</code>
+     * @return The otherInvItemType.
      */
     int getOtherInvItemType();
   }
@@ -8126,8 +8428,13 @@ public final class GameMessage {
       super(builder);
     }
     private BuyInventoryItemRequest() {
-      isNotDevCard_ = false;
-      otherInvItemType_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BuyInventoryItemRequest();
     }
 
     @java.lang.Override
@@ -8140,7 +8447,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -8151,13 +8460,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               isNotDevCard_ = input.readBool();
@@ -8166,6 +8468,13 @@ public final class GameMessage {
             case 16: {
 
               otherInvItemType_ = input.readSInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -8185,6 +8494,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_fieldAccessorTable
@@ -8200,6 +8510,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_not_dev_card = 1;</code>
+     * @return The isNotDevCard.
      */
     public boolean getIsNotDevCard() {
       return isNotDevCard_;
@@ -8214,12 +8525,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 other_inv_item_type = 2;</code>
+     * @return The otherInvItemType.
      */
     public int getOtherInvItemType() {
       return otherInvItemType_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -8229,6 +8542,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (isNotDevCard_ != false) {
@@ -8240,6 +8554,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -8268,13 +8583,12 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.BuyInventoryItemRequest other = (soc.proto.GameMessage.BuyInventoryItemRequest) obj;
 
-      boolean result = true;
-      result = result && (getIsNotDevCard()
-          == other.getIsNotDevCard());
-      result = result && (getOtherInvItemType()
-          == other.getOtherInvItemType());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getIsNotDevCard()
+          != other.getIsNotDevCard()) return false;
+      if (getOtherInvItemType()
+          != other.getOtherInvItemType()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -8364,6 +8678,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -8371,6 +8686,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.BuyInventoryItemRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -8417,6 +8733,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_fieldAccessorTable
@@ -8439,6 +8756,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         isNotDevCard_ = false;
@@ -8448,15 +8766,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_BuyInventoryItemRequest_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BuyInventoryItemRequest getDefaultInstanceForType() {
         return soc.proto.GameMessage.BuyInventoryItemRequest.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BuyInventoryItemRequest build() {
         soc.proto.GameMessage.BuyInventoryItemRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -8465,6 +8786,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.BuyInventoryItemRequest buildPartial() {
         soc.proto.GameMessage.BuyInventoryItemRequest result = new soc.proto.GameMessage.BuyInventoryItemRequest(this);
         result.isNotDevCard_ = isNotDevCard_;
@@ -8473,32 +8795,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.BuyInventoryItemRequest) {
           return mergeFrom((soc.proto.GameMessage.BuyInventoryItemRequest)other);
@@ -8521,10 +8850,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -8550,6 +8881,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_not_dev_card = 1;</code>
+       * @return The isNotDevCard.
        */
       public boolean getIsNotDevCard() {
         return isNotDevCard_;
@@ -8560,6 +8892,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_not_dev_card = 1;</code>
+       * @param value The isNotDevCard to set.
+       * @return This builder for chaining.
        */
       public Builder setIsNotDevCard(boolean value) {
         
@@ -8573,6 +8907,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_not_dev_card = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsNotDevCard() {
         
@@ -8589,6 +8924,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 other_inv_item_type = 2;</code>
+       * @return The otherInvItemType.
        */
       public int getOtherInvItemType() {
         return otherInvItemType_;
@@ -8600,6 +8936,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 other_inv_item_type = 2;</code>
+       * @param value The otherInvItemType to set.
+       * @return This builder for chaining.
        */
       public Builder setOtherInvItemType(int value) {
         
@@ -8614,6 +8952,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 other_inv_item_type = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOtherInvItemType() {
         
@@ -8621,11 +8960,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -8647,11 +8988,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<BuyInventoryItemRequest>
         PARSER = new com.google.protobuf.AbstractParser<BuyInventoryItemRequest>() {
+      @java.lang.Override
       public BuyInventoryItemRequest parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BuyInventoryItemRequest(input, extensionRegistry);
+        return new BuyInventoryItemRequest(input, extensionRegistry);
       }
     };
 
@@ -8664,6 +9006,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.BuyInventoryItemRequest getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -8676,10 +9019,12 @@ public final class GameMessage {
 
     /**
      * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+     * @return The enum numeric value on the wire for actionType.
      */
     int getActionTypeValue();
     /**
      * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+     * @return The actionType.
      */
     soc.proto.GameMessage.InventoryItemAction._ActionType getActionType();
 
@@ -8690,6 +9035,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.DevCardValue dev_card_value = 2;</code>
+     * @return The enum numeric value on the wire for devCardValue.
      */
     int getDevCardValueValue();
     /**
@@ -8699,6 +9045,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.DevCardValue dev_card_value = 2;</code>
+     * @return The devCardValue.
      */
     soc.proto.Data.DevCardValue getDevCardValue();
 
@@ -8708,6 +9055,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 other_inv_item_type = 3;</code>
+     * @return The otherInvItemType.
      */
     int getOtherInvItemType();
 
@@ -8720,6 +9068,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @return A list containing the devCardsSet.
      */
     java.util.List<soc.proto.Data.DevCardValue> getDevCardsSetList();
     /**
@@ -8731,6 +9080,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @return The count of devCardsSet.
      */
     int getDevCardsSetCount();
     /**
@@ -8742,6 +9092,8 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @param index The index of the element to return.
+     * @return The devCardsSet at the given index.
      */
     soc.proto.Data.DevCardValue getDevCardsSet(int index);
     /**
@@ -8753,6 +9105,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @return A list containing the enum numeric values on the wire for devCardsSet.
      */
     java.util.List<java.lang.Integer>
     getDevCardsSetValueList();
@@ -8765,6 +9118,8 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of devCardsSet at the given index.
      */
     int getDevCardsSetValue(int index);
 
@@ -8775,6 +9130,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 reason_code = 21;</code>
+     * @return The reasonCode.
      */
     int getReasonCode();
 
@@ -8785,6 +9141,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_playable = 22;</code>
+     * @return The isPlayable.
      */
     boolean getIsPlayable();
 
@@ -8795,6 +9152,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_kept = 23;</code>
+     * @return The isKept.
      */
     boolean getIsKept();
 
@@ -8805,6 +9163,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_VP = 24;</code>
+     * @return The isVP.
      */
     boolean getIsVP();
 
@@ -8816,6 +9175,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool can_cancel_play = 25;</code>
+     * @return The canCancelPlay.
      */
     boolean getCanCancelPlay();
 
@@ -8862,11 +9222,13 @@ public final class GameMessage {
     private InventoryItemAction() {
       actionType_ = 0;
       devCardsSet_ = java.util.Collections.emptyList();
-      reasonCode_ = 0;
-      isPlayable_ = false;
-      isKept_ = false;
-      isVP_ = false;
-      canCancelPlay_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new InventoryItemAction();
     }
 
     @java.lang.Override
@@ -8879,6 +9241,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -8890,13 +9255,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -8916,9 +9274,9 @@ public final class GameMessage {
             }
             case 32: {
               int rawValue = input.readEnum();
-              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 devCardsSet_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000008;
+                mutable_bitField0_ |= 0x00000001;
               }
               devCardsSet_.add(rawValue);
               break;
@@ -8928,9 +9286,9 @@ public final class GameMessage {
               int oldLimit = input.pushLimit(length);
               while(input.getBytesUntilLimit() > 0) {
                 int rawValue = input.readEnum();
-                if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                   devCardsSet_ = new java.util.ArrayList<java.lang.Integer>();
-                  mutable_bitField0_ |= 0x00000008;
+                  mutable_bitField0_ |= 0x00000001;
                 }
                 devCardsSet_.add(rawValue);
               }
@@ -8962,6 +9320,13 @@ public final class GameMessage {
               canCancelPlay_ = input.readBool();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -8970,7 +9335,7 @@ public final class GameMessage {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           devCardsSet_ = java.util.Collections.unmodifiableList(devCardsSet_);
         }
         this.unknownFields = unknownFields.build();
@@ -8982,6 +9347,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_InventoryItemAction_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_InventoryItemAction_fieldAccessorTable
@@ -9171,6 +9537,8 @@ public final class GameMessage {
       }
 
       /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -9178,6 +9546,10 @@ public final class GameMessage {
         return forNumber(value);
       }
 
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       */
       public static _ActionType forNumber(int value) {
         switch (value) {
           case 0: return _UNSENT_DEFAULT_ACTION;
@@ -9239,11 +9611,11 @@ public final class GameMessage {
       // @@protoc_insertion_point(enum_scope:InventoryItemAction._ActionType)
     }
 
-    private int bitField0_;
     private int itemValueCase_ = 0;
     private java.lang.Object itemValue_;
     public enum ItemValueCase
-        implements com.google.protobuf.Internal.EnumLite {
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       DEV_CARD_VALUE(2),
       OTHER_INV_ITEM_TYPE(3),
       ITEMVALUE_NOT_SET(0);
@@ -9252,6 +9624,8 @@ public final class GameMessage {
         this.value = value;
       }
       /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -9282,14 +9656,17 @@ public final class GameMessage {
     private int actionType_;
     /**
      * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+     * @return The enum numeric value on the wire for actionType.
      */
     public int getActionTypeValue() {
       return actionType_;
     }
     /**
      * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+     * @return The actionType.
      */
     public soc.proto.GameMessage.InventoryItemAction._ActionType getActionType() {
+      @SuppressWarnings("deprecation")
       soc.proto.GameMessage.InventoryItemAction._ActionType result = soc.proto.GameMessage.InventoryItemAction._ActionType.valueOf(actionType_);
       return result == null ? soc.proto.GameMessage.InventoryItemAction._ActionType.UNRECOGNIZED : result;
     }
@@ -9302,6 +9679,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.DevCardValue dev_card_value = 2;</code>
+     * @return The enum numeric value on the wire for devCardValue.
      */
     public int getDevCardValueValue() {
       if (itemValueCase_ == 2) {
@@ -9316,9 +9694,11 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.DevCardValue dev_card_value = 2;</code>
+     * @return The devCardValue.
      */
     public soc.proto.Data.DevCardValue getDevCardValue() {
       if (itemValueCase_ == 2) {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.DevCardValue result = soc.proto.Data.DevCardValue.valueOf(
             (java.lang.Integer) itemValue_);
         return result == null ? soc.proto.Data.DevCardValue.UNRECOGNIZED : result;
@@ -9333,6 +9713,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 other_inv_item_type = 3;</code>
+     * @return The otherInvItemType.
      */
     public int getOtherInvItemType() {
       if (itemValueCase_ == 3) {
@@ -9348,6 +9729,7 @@ public final class GameMessage {
             new com.google.protobuf.Internal.ListAdapter.Converter<
                 java.lang.Integer, soc.proto.Data.DevCardValue>() {
               public soc.proto.Data.DevCardValue convert(java.lang.Integer from) {
+                @SuppressWarnings("deprecation")
                 soc.proto.Data.DevCardValue result = soc.proto.Data.DevCardValue.valueOf(from);
                 return result == null ? soc.proto.Data.DevCardValue.UNRECOGNIZED : result;
               }
@@ -9361,6 +9743,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @return A list containing the devCardsSet.
      */
     public java.util.List<soc.proto.Data.DevCardValue> getDevCardsSetList() {
       return new com.google.protobuf.Internal.ListAdapter<
@@ -9375,6 +9758,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @return The count of devCardsSet.
      */
     public int getDevCardsSetCount() {
       return devCardsSet_.size();
@@ -9388,6 +9772,8 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @param index The index of the element to return.
+     * @return The devCardsSet at the given index.
      */
     public soc.proto.Data.DevCardValue getDevCardsSet(int index) {
       return devCardsSet_converter_.convert(devCardsSet_.get(index));
@@ -9401,6 +9787,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @return A list containing the enum numeric values on the wire for devCardsSet.
      */
     public java.util.List<java.lang.Integer>
     getDevCardsSetValueList() {
@@ -9415,6 +9802,8 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of devCardsSet at the given index.
      */
     public int getDevCardsSetValue(int index) {
       return devCardsSet_.get(index);
@@ -9430,6 +9819,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 reason_code = 21;</code>
+     * @return The reasonCode.
      */
     public int getReasonCode() {
       return reasonCode_;
@@ -9444,6 +9834,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_playable = 22;</code>
+     * @return The isPlayable.
      */
     public boolean getIsPlayable() {
       return isPlayable_;
@@ -9458,6 +9849,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_kept = 23;</code>
+     * @return The isKept.
      */
     public boolean getIsKept() {
       return isKept_;
@@ -9472,6 +9864,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_VP = 24;</code>
+     * @return The isVP.
      */
     public boolean getIsVP() {
       return isVP_;
@@ -9487,12 +9880,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool can_cancel_play = 25;</code>
+     * @return The canCancelPlay.
      */
     public boolean getCanCancelPlay() {
       return canCancelPlay_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -9502,6 +9897,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -9540,6 +9936,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -9605,36 +10002,33 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.InventoryItemAction other = (soc.proto.GameMessage.InventoryItemAction) obj;
 
-      boolean result = true;
-      result = result && actionType_ == other.actionType_;
-      result = result && devCardsSet_.equals(other.devCardsSet_);
-      result = result && (getReasonCode()
-          == other.getReasonCode());
-      result = result && (getIsPlayable()
-          == other.getIsPlayable());
-      result = result && (getIsKept()
-          == other.getIsKept());
-      result = result && (getIsVP()
-          == other.getIsVP());
-      result = result && (getCanCancelPlay()
-          == other.getCanCancelPlay());
-      result = result && getItemValueCase().equals(
-          other.getItemValueCase());
-      if (!result) return false;
+      if (actionType_ != other.actionType_) return false;
+      if (!devCardsSet_.equals(other.devCardsSet_)) return false;
+      if (getReasonCode()
+          != other.getReasonCode()) return false;
+      if (getIsPlayable()
+          != other.getIsPlayable()) return false;
+      if (getIsKept()
+          != other.getIsKept()) return false;
+      if (getIsVP()
+          != other.getIsVP()) return false;
+      if (getCanCancelPlay()
+          != other.getCanCancelPlay()) return false;
+      if (!getItemValueCase().equals(other.getItemValueCase())) return false;
       switch (itemValueCase_) {
         case 2:
-          result = result && getDevCardValueValue()
-              == other.getDevCardValueValue();
+          if (getDevCardValueValue()
+              != other.getDevCardValueValue()) return false;
           break;
         case 3:
-          result = result && (getOtherInvItemType()
-              == other.getOtherInvItemType());
+          if (getOtherInvItemType()
+              != other.getOtherInvItemType()) return false;
           break;
         case 0:
         default:
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -9751,6 +10145,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -9758,6 +10153,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.InventoryItemAction prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -9807,6 +10203,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_InventoryItemAction_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_InventoryItemAction_fieldAccessorTable
@@ -9829,12 +10226,13 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         actionType_ = 0;
 
         devCardsSet_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000001);
         reasonCode_ = 0;
 
         isPlayable_ = false;
@@ -9850,15 +10248,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_InventoryItemAction_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.InventoryItemAction getDefaultInstanceForType() {
         return soc.proto.GameMessage.InventoryItemAction.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.InventoryItemAction build() {
         soc.proto.GameMessage.InventoryItemAction result = buildPartial();
         if (!result.isInitialized()) {
@@ -9867,10 +10268,10 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.InventoryItemAction buildPartial() {
         soc.proto.GameMessage.InventoryItemAction result = new soc.proto.GameMessage.InventoryItemAction(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.actionType_ = actionType_;
         if (itemValueCase_ == 2) {
           result.itemValue_ = itemValue_;
@@ -9878,9 +10279,9 @@ public final class GameMessage {
         if (itemValueCase_ == 3) {
           result.itemValue_ = itemValue_;
         }
-        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           devCardsSet_ = java.util.Collections.unmodifiableList(devCardsSet_);
-          bitField0_ = (bitField0_ & ~0x00000008);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.devCardsSet_ = devCardsSet_;
         result.reasonCode_ = reasonCode_;
@@ -9888,38 +10289,44 @@ public final class GameMessage {
         result.isKept_ = isKept_;
         result.isVP_ = isVP_;
         result.canCancelPlay_ = canCancelPlay_;
-        result.bitField0_ = to_bitField0_;
         result.itemValueCase_ = itemValueCase_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.InventoryItemAction) {
           return mergeFrom((soc.proto.GameMessage.InventoryItemAction)other);
@@ -9937,7 +10344,7 @@ public final class GameMessage {
         if (!other.devCardsSet_.isEmpty()) {
           if (devCardsSet_.isEmpty()) {
             devCardsSet_ = other.devCardsSet_;
-            bitField0_ = (bitField0_ & ~0x00000008);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureDevCardsSetIsMutable();
             devCardsSet_.addAll(other.devCardsSet_);
@@ -9977,10 +10384,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -10018,12 +10427,15 @@ public final class GameMessage {
       private int actionType_ = 0;
       /**
        * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       * @return The enum numeric value on the wire for actionType.
        */
       public int getActionTypeValue() {
         return actionType_;
       }
       /**
        * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       * @param value The enum numeric value on the wire for actionType to set.
+       * @return This builder for chaining.
        */
       public Builder setActionTypeValue(int value) {
         actionType_ = value;
@@ -10032,13 +10444,17 @@ public final class GameMessage {
       }
       /**
        * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       * @return The actionType.
        */
       public soc.proto.GameMessage.InventoryItemAction._ActionType getActionType() {
+        @SuppressWarnings("deprecation")
         soc.proto.GameMessage.InventoryItemAction._ActionType result = soc.proto.GameMessage.InventoryItemAction._ActionType.valueOf(actionType_);
         return result == null ? soc.proto.GameMessage.InventoryItemAction._ActionType.UNRECOGNIZED : result;
       }
       /**
        * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       * @param value The actionType to set.
+       * @return This builder for chaining.
        */
       public Builder setActionType(soc.proto.GameMessage.InventoryItemAction._ActionType value) {
         if (value == null) {
@@ -10051,6 +10467,7 @@ public final class GameMessage {
       }
       /**
        * <code>.InventoryItemAction._ActionType action_type = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearActionType() {
         
@@ -10066,6 +10483,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.DevCardValue dev_card_value = 2;</code>
+       * @return The enum numeric value on the wire for devCardValue.
        */
       public int getDevCardValueValue() {
         if (itemValueCase_ == 2) {
@@ -10080,6 +10498,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.DevCardValue dev_card_value = 2;</code>
+       * @param value The enum numeric value on the wire for devCardValue to set.
+       * @return This builder for chaining.
        */
       public Builder setDevCardValueValue(int value) {
         itemValueCase_ = 2;
@@ -10094,9 +10514,11 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.DevCardValue dev_card_value = 2;</code>
+       * @return The devCardValue.
        */
       public soc.proto.Data.DevCardValue getDevCardValue() {
         if (itemValueCase_ == 2) {
+          @SuppressWarnings("deprecation")
           soc.proto.Data.DevCardValue result = soc.proto.Data.DevCardValue.valueOf(
               (java.lang.Integer) itemValue_);
           return result == null ? soc.proto.Data.DevCardValue.UNRECOGNIZED : result;
@@ -10110,6 +10532,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.DevCardValue dev_card_value = 2;</code>
+       * @param value The devCardValue to set.
+       * @return This builder for chaining.
        */
       public Builder setDevCardValue(soc.proto.Data.DevCardValue value) {
         if (value == null) {
@@ -10127,6 +10551,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.DevCardValue dev_card_value = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDevCardValue() {
         if (itemValueCase_ == 2) {
@@ -10143,6 +10568,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 other_inv_item_type = 3;</code>
+       * @return The otherInvItemType.
        */
       public int getOtherInvItemType() {
         if (itemValueCase_ == 3) {
@@ -10156,6 +10582,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 other_inv_item_type = 3;</code>
+       * @param value The otherInvItemType to set.
+       * @return This builder for chaining.
        */
       public Builder setOtherInvItemType(int value) {
         itemValueCase_ = 3;
@@ -10169,6 +10597,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 other_inv_item_type = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOtherInvItemType() {
         if (itemValueCase_ == 3) {
@@ -10182,9 +10611,9 @@ public final class GameMessage {
       private java.util.List<java.lang.Integer> devCardsSet_ =
         java.util.Collections.emptyList();
       private void ensureDevCardsSetIsMutable() {
-        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           devCardsSet_ = new java.util.ArrayList<java.lang.Integer>(devCardsSet_);
-          bitField0_ |= 0x00000008;
+          bitField0_ |= 0x00000001;
         }
       }
       /**
@@ -10196,6 +10625,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @return A list containing the devCardsSet.
        */
       public java.util.List<soc.proto.Data.DevCardValue> getDevCardsSetList() {
         return new com.google.protobuf.Internal.ListAdapter<
@@ -10210,6 +10640,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @return The count of devCardsSet.
        */
       public int getDevCardsSetCount() {
         return devCardsSet_.size();
@@ -10223,6 +10654,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @param index The index of the element to return.
+       * @return The devCardsSet at the given index.
        */
       public soc.proto.Data.DevCardValue getDevCardsSet(int index) {
         return devCardsSet_converter_.convert(devCardsSet_.get(index));
@@ -10236,6 +10669,9 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @param index The index to set the value at.
+       * @param value The devCardsSet to set.
+       * @return This builder for chaining.
        */
       public Builder setDevCardsSet(
           int index, soc.proto.Data.DevCardValue value) {
@@ -10256,6 +10692,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @param value The devCardsSet to add.
+       * @return This builder for chaining.
        */
       public Builder addDevCardsSet(soc.proto.Data.DevCardValue value) {
         if (value == null) {
@@ -10275,6 +10713,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @param values The devCardsSet to add.
+       * @return This builder for chaining.
        */
       public Builder addAllDevCardsSet(
           java.lang.Iterable<? extends soc.proto.Data.DevCardValue> values) {
@@ -10294,10 +10734,11 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDevCardsSet() {
         devCardsSet_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
@@ -10310,6 +10751,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @return A list containing the enum numeric values on the wire for devCardsSet.
        */
       public java.util.List<java.lang.Integer>
       getDevCardsSetValueList() {
@@ -10324,6 +10766,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @param index The index of the value to return.
+       * @return The enum numeric value on the wire of devCardsSet at the given index.
        */
       public int getDevCardsSetValue(int index) {
         return devCardsSet_.get(index);
@@ -10337,6 +10781,9 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @param index The index of the value to return.
+       * @return The enum numeric value on the wire of devCardsSet at the given index.
+       * @return This builder for chaining.
        */
       public Builder setDevCardsSetValue(
           int index, int value) {
@@ -10354,6 +10801,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @param value The enum numeric value on the wire for devCardsSet to add.
+       * @return This builder for chaining.
        */
       public Builder addDevCardsSetValue(int value) {
         ensureDevCardsSetIsMutable();
@@ -10370,6 +10819,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated .DevCardValue dev_cards_set = 4;</code>
+       * @param values The enum numeric values on the wire for devCardsSet to add.
+       * @return This builder for chaining.
        */
       public Builder addAllDevCardsSetValue(
           java.lang.Iterable<java.lang.Integer> values) {
@@ -10389,6 +10840,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 reason_code = 21;</code>
+       * @return The reasonCode.
        */
       public int getReasonCode() {
         return reasonCode_;
@@ -10400,6 +10852,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 reason_code = 21;</code>
+       * @param value The reasonCode to set.
+       * @return This builder for chaining.
        */
       public Builder setReasonCode(int value) {
         
@@ -10414,6 +10868,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 reason_code = 21;</code>
+       * @return This builder for chaining.
        */
       public Builder clearReasonCode() {
         
@@ -10430,6 +10885,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_playable = 22;</code>
+       * @return The isPlayable.
        */
       public boolean getIsPlayable() {
         return isPlayable_;
@@ -10441,6 +10897,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_playable = 22;</code>
+       * @param value The isPlayable to set.
+       * @return This builder for chaining.
        */
       public Builder setIsPlayable(boolean value) {
         
@@ -10455,6 +10913,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_playable = 22;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsPlayable() {
         
@@ -10471,6 +10930,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_kept = 23;</code>
+       * @return The isKept.
        */
       public boolean getIsKept() {
         return isKept_;
@@ -10482,6 +10942,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_kept = 23;</code>
+       * @param value The isKept to set.
+       * @return This builder for chaining.
        */
       public Builder setIsKept(boolean value) {
         
@@ -10496,6 +10958,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_kept = 23;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsKept() {
         
@@ -10512,6 +10975,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_VP = 24;</code>
+       * @return The isVP.
        */
       public boolean getIsVP() {
         return isVP_;
@@ -10523,6 +10987,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_VP = 24;</code>
+       * @param value The isVP to set.
+       * @return This builder for chaining.
        */
       public Builder setIsVP(boolean value) {
         
@@ -10537,6 +11003,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_VP = 24;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsVP() {
         
@@ -10554,6 +11021,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool can_cancel_play = 25;</code>
+       * @return The canCancelPlay.
        */
       public boolean getCanCancelPlay() {
         return canCancelPlay_;
@@ -10566,6 +11034,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool can_cancel_play = 25;</code>
+       * @param value The canCancelPlay to set.
+       * @return This builder for chaining.
        */
       public Builder setCanCancelPlay(boolean value) {
         
@@ -10581,6 +11051,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool can_cancel_play = 25;</code>
+       * @return This builder for chaining.
        */
       public Builder clearCanCancelPlay() {
         
@@ -10588,11 +11059,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -10614,11 +11087,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<InventoryItemAction>
         PARSER = new com.google.protobuf.AbstractParser<InventoryItemAction>() {
+      @java.lang.Override
       public InventoryItemAction parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new InventoryItemAction(input, extensionRegistry);
+        return new InventoryItemAction(input, extensionRegistry);
       }
     };
 
@@ -10631,6 +11105,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.InventoryItemAction getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -10643,19 +11118,23 @@ public final class GameMessage {
 
     /**
      * <code>.PieceType piece_type = 1;</code>
+     * @return The enum numeric value on the wire for pieceType.
      */
     int getPieceTypeValue();
     /**
      * <code>.PieceType piece_type = 1;</code>
+     * @return The pieceType.
      */
     soc.proto.Data.PieceType getPieceType();
 
     /**
      * <code>.OtherPlayableItem item_type = 2;</code>
+     * @return The enum numeric value on the wire for itemType.
      */
     int getItemTypeValue();
     /**
      * <code>.OtherPlayableItem item_type = 2;</code>
+     * @return The itemType.
      */
     soc.proto.Data.OtherPlayableItem getItemType();
 
@@ -10713,6 +11192,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new CancelBuild();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -10722,7 +11208,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -10733,13 +11221,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
               cancelTypeCase_ = 1;
@@ -10750,6 +11231,13 @@ public final class GameMessage {
               int rawValue = input.readEnum();
               cancelTypeCase_ = 2;
               cancelType_ = rawValue;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -10769,6 +11257,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_CancelBuild_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_CancelBuild_fieldAccessorTable
@@ -10779,7 +11268,8 @@ public final class GameMessage {
     private int cancelTypeCase_ = 0;
     private java.lang.Object cancelType_;
     public enum CancelTypeCase
-        implements com.google.protobuf.Internal.EnumLite {
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       PIECE_TYPE(1),
       ITEM_TYPE(2),
       CANCELTYPE_NOT_SET(0);
@@ -10788,6 +11278,8 @@ public final class GameMessage {
         this.value = value;
       }
       /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -10817,6 +11309,7 @@ public final class GameMessage {
     public static final int PIECE_TYPE_FIELD_NUMBER = 1;
     /**
      * <code>.PieceType piece_type = 1;</code>
+     * @return The enum numeric value on the wire for pieceType.
      */
     public int getPieceTypeValue() {
       if (cancelTypeCase_ == 1) {
@@ -10826,9 +11319,11 @@ public final class GameMessage {
     }
     /**
      * <code>.PieceType piece_type = 1;</code>
+     * @return The pieceType.
      */
     public soc.proto.Data.PieceType getPieceType() {
       if (cancelTypeCase_ == 1) {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(
             (java.lang.Integer) cancelType_);
         return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
@@ -10839,6 +11334,7 @@ public final class GameMessage {
     public static final int ITEM_TYPE_FIELD_NUMBER = 2;
     /**
      * <code>.OtherPlayableItem item_type = 2;</code>
+     * @return The enum numeric value on the wire for itemType.
      */
     public int getItemTypeValue() {
       if (cancelTypeCase_ == 2) {
@@ -10848,9 +11344,11 @@ public final class GameMessage {
     }
     /**
      * <code>.OtherPlayableItem item_type = 2;</code>
+     * @return The itemType.
      */
     public soc.proto.Data.OtherPlayableItem getItemType() {
       if (cancelTypeCase_ == 2) {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.OtherPlayableItem result = soc.proto.Data.OtherPlayableItem.valueOf(
             (java.lang.Integer) cancelType_);
         return result == null ? soc.proto.Data.OtherPlayableItem.UNRECOGNIZED : result;
@@ -10859,6 +11357,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -10868,6 +11367,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (cancelTypeCase_ == 1) {
@@ -10879,6 +11379,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -10907,24 +11408,21 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.CancelBuild other = (soc.proto.GameMessage.CancelBuild) obj;
 
-      boolean result = true;
-      result = result && getCancelTypeCase().equals(
-          other.getCancelTypeCase());
-      if (!result) return false;
+      if (!getCancelTypeCase().equals(other.getCancelTypeCase())) return false;
       switch (cancelTypeCase_) {
         case 1:
-          result = result && getPieceTypeValue()
-              == other.getPieceTypeValue();
+          if (getPieceTypeValue()
+              != other.getPieceTypeValue()) return false;
           break;
         case 2:
-          result = result && getItemTypeValue()
-              == other.getItemTypeValue();
+          if (getItemTypeValue()
+              != other.getItemTypeValue()) return false;
           break;
         case 0:
         default:
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -11021,6 +11519,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -11028,6 +11527,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.CancelBuild prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -11087,6 +11587,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_CancelBuild_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_CancelBuild_fieldAccessorTable
@@ -11109,6 +11610,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         cancelTypeCase_ = 0;
@@ -11116,15 +11618,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_CancelBuild_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.CancelBuild getDefaultInstanceForType() {
         return soc.proto.GameMessage.CancelBuild.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.CancelBuild build() {
         soc.proto.GameMessage.CancelBuild result = buildPartial();
         if (!result.isInitialized()) {
@@ -11133,6 +11638,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.CancelBuild buildPartial() {
         soc.proto.GameMessage.CancelBuild result = new soc.proto.GameMessage.CancelBuild(this);
         if (cancelTypeCase_ == 1) {
@@ -11146,32 +11652,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.CancelBuild) {
           return mergeFrom((soc.proto.GameMessage.CancelBuild)other);
@@ -11201,10 +11714,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -11240,6 +11755,7 @@ public final class GameMessage {
 
       /**
        * <code>.PieceType piece_type = 1;</code>
+       * @return The enum numeric value on the wire for pieceType.
        */
       public int getPieceTypeValue() {
         if (cancelTypeCase_ == 1) {
@@ -11249,6 +11765,8 @@ public final class GameMessage {
       }
       /**
        * <code>.PieceType piece_type = 1;</code>
+       * @param value The enum numeric value on the wire for pieceType to set.
+       * @return This builder for chaining.
        */
       public Builder setPieceTypeValue(int value) {
         cancelTypeCase_ = 1;
@@ -11258,9 +11776,11 @@ public final class GameMessage {
       }
       /**
        * <code>.PieceType piece_type = 1;</code>
+       * @return The pieceType.
        */
       public soc.proto.Data.PieceType getPieceType() {
         if (cancelTypeCase_ == 1) {
+          @SuppressWarnings("deprecation")
           soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(
               (java.lang.Integer) cancelType_);
           return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
@@ -11269,6 +11789,8 @@ public final class GameMessage {
       }
       /**
        * <code>.PieceType piece_type = 1;</code>
+       * @param value The pieceType to set.
+       * @return This builder for chaining.
        */
       public Builder setPieceType(soc.proto.Data.PieceType value) {
         if (value == null) {
@@ -11281,6 +11803,7 @@ public final class GameMessage {
       }
       /**
        * <code>.PieceType piece_type = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPieceType() {
         if (cancelTypeCase_ == 1) {
@@ -11293,6 +11816,7 @@ public final class GameMessage {
 
       /**
        * <code>.OtherPlayableItem item_type = 2;</code>
+       * @return The enum numeric value on the wire for itemType.
        */
       public int getItemTypeValue() {
         if (cancelTypeCase_ == 2) {
@@ -11302,6 +11826,8 @@ public final class GameMessage {
       }
       /**
        * <code>.OtherPlayableItem item_type = 2;</code>
+       * @param value The enum numeric value on the wire for itemType to set.
+       * @return This builder for chaining.
        */
       public Builder setItemTypeValue(int value) {
         cancelTypeCase_ = 2;
@@ -11311,9 +11837,11 @@ public final class GameMessage {
       }
       /**
        * <code>.OtherPlayableItem item_type = 2;</code>
+       * @return The itemType.
        */
       public soc.proto.Data.OtherPlayableItem getItemType() {
         if (cancelTypeCase_ == 2) {
+          @SuppressWarnings("deprecation")
           soc.proto.Data.OtherPlayableItem result = soc.proto.Data.OtherPlayableItem.valueOf(
               (java.lang.Integer) cancelType_);
           return result == null ? soc.proto.Data.OtherPlayableItem.UNRECOGNIZED : result;
@@ -11322,6 +11850,8 @@ public final class GameMessage {
       }
       /**
        * <code>.OtherPlayableItem item_type = 2;</code>
+       * @param value The itemType to set.
+       * @return This builder for chaining.
        */
       public Builder setItemType(soc.proto.Data.OtherPlayableItem value) {
         if (value == null) {
@@ -11334,6 +11864,7 @@ public final class GameMessage {
       }
       /**
        * <code>.OtherPlayableItem item_type = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearItemType() {
         if (cancelTypeCase_ == 2) {
@@ -11343,11 +11874,13 @@ public final class GameMessage {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -11369,11 +11902,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<CancelBuild>
         PARSER = new com.google.protobuf.AbstractParser<CancelBuild>() {
+      @java.lang.Override
       public CancelBuild parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new CancelBuild(input, extensionRegistry);
+        return new CancelBuild(input, extensionRegistry);
       }
     };
 
@@ -11386,6 +11920,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.CancelBuild getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -11402,6 +11937,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The enum numeric value on the wire for ptype.
      */
     int getPtypeValue();
     /**
@@ -11410,15 +11946,18 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The ptype.
      */
     soc.proto.Data.PieceType getPtype();
 
     /**
      * <code>.BoardCoord from_coordinates = 2;</code>
+     * @return Whether the fromCoordinates field is set.
      */
     boolean hasFromCoordinates();
     /**
      * <code>.BoardCoord from_coordinates = 2;</code>
+     * @return The fromCoordinates.
      */
     soc.proto.Data.BoardCoord getFromCoordinates();
     /**
@@ -11428,10 +11967,12 @@ public final class GameMessage {
 
     /**
      * <code>.BoardCoord to_coordinates = 3;</code>
+     * @return Whether the toCoordinates field is set.
      */
     boolean hasToCoordinates();
     /**
      * <code>.BoardCoord to_coordinates = 3;</code>
+     * @return The toCoordinates.
      */
     soc.proto.Data.BoardCoord getToCoordinates();
     /**
@@ -11468,6 +12009,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new MovePiece();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -11477,7 +12025,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -11488,13 +12038,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -11527,6 +12070,13 @@ public final class GameMessage {
 
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -11544,6 +12094,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_MovePiece_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_MovePiece_fieldAccessorTable
@@ -11559,6 +12110,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The enum numeric value on the wire for ptype.
      */
     public int getPtypeValue() {
       return ptype_;
@@ -11569,8 +12121,10 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The ptype.
      */
     public soc.proto.Data.PieceType getPtype() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
     }
@@ -11579,12 +12133,14 @@ public final class GameMessage {
     private soc.proto.Data.BoardCoord fromCoordinates_;
     /**
      * <code>.BoardCoord from_coordinates = 2;</code>
+     * @return Whether the fromCoordinates field is set.
      */
     public boolean hasFromCoordinates() {
       return fromCoordinates_ != null;
     }
     /**
      * <code>.BoardCoord from_coordinates = 2;</code>
+     * @return The fromCoordinates.
      */
     public soc.proto.Data.BoardCoord getFromCoordinates() {
       return fromCoordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : fromCoordinates_;
@@ -11600,12 +12156,14 @@ public final class GameMessage {
     private soc.proto.Data.BoardCoord toCoordinates_;
     /**
      * <code>.BoardCoord to_coordinates = 3;</code>
+     * @return Whether the toCoordinates field is set.
      */
     public boolean hasToCoordinates() {
       return toCoordinates_ != null;
     }
     /**
      * <code>.BoardCoord to_coordinates = 3;</code>
+     * @return The toCoordinates.
      */
     public soc.proto.Data.BoardCoord getToCoordinates() {
       return toCoordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : toCoordinates_;
@@ -11618,6 +12176,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -11627,6 +12186,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (ptype_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
@@ -11641,6 +12201,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -11673,20 +12234,19 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.MovePiece other = (soc.proto.GameMessage.MovePiece) obj;
 
-      boolean result = true;
-      result = result && ptype_ == other.ptype_;
-      result = result && (hasFromCoordinates() == other.hasFromCoordinates());
+      if (ptype_ != other.ptype_) return false;
+      if (hasFromCoordinates() != other.hasFromCoordinates()) return false;
       if (hasFromCoordinates()) {
-        result = result && getFromCoordinates()
-            .equals(other.getFromCoordinates());
+        if (!getFromCoordinates()
+            .equals(other.getFromCoordinates())) return false;
       }
-      result = result && (hasToCoordinates() == other.hasToCoordinates());
+      if (hasToCoordinates() != other.hasToCoordinates()) return false;
       if (hasToCoordinates()) {
-        result = result && getToCoordinates()
-            .equals(other.getToCoordinates());
+        if (!getToCoordinates()
+            .equals(other.getToCoordinates())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -11781,6 +12341,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -11788,6 +12349,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.MovePiece prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -11823,6 +12385,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_MovePiece_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_MovePiece_fieldAccessorTable
@@ -11845,6 +12408,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         ptype_ = 0;
@@ -11864,15 +12428,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_MovePiece_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.MovePiece getDefaultInstanceForType() {
         return soc.proto.GameMessage.MovePiece.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.MovePiece build() {
         soc.proto.GameMessage.MovePiece result = buildPartial();
         if (!result.isInitialized()) {
@@ -11881,6 +12448,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.MovePiece buildPartial() {
         soc.proto.GameMessage.MovePiece result = new soc.proto.GameMessage.MovePiece(this);
         result.ptype_ = ptype_;
@@ -11898,32 +12466,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.MovePiece) {
           return mergeFrom((soc.proto.GameMessage.MovePiece)other);
@@ -11949,10 +12524,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -11978,6 +12555,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return The enum numeric value on the wire for ptype.
        */
       public int getPtypeValue() {
         return ptype_;
@@ -11988,6 +12566,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @param value The enum numeric value on the wire for ptype to set.
+       * @return This builder for chaining.
        */
       public Builder setPtypeValue(int value) {
         ptype_ = value;
@@ -12000,8 +12580,10 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return The ptype.
        */
       public soc.proto.Data.PieceType getPtype() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
         return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
       }
@@ -12011,6 +12593,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @param value The ptype to set.
+       * @return This builder for chaining.
        */
       public Builder setPtype(soc.proto.Data.PieceType value) {
         if (value == null) {
@@ -12027,6 +12611,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPtype() {
         
@@ -12035,17 +12620,19 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.BoardCoord fromCoordinates_ = null;
+      private soc.proto.Data.BoardCoord fromCoordinates_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> fromCoordinatesBuilder_;
       /**
        * <code>.BoardCoord from_coordinates = 2;</code>
+       * @return Whether the fromCoordinates field is set.
        */
       public boolean hasFromCoordinates() {
         return fromCoordinatesBuilder_ != null || fromCoordinates_ != null;
       }
       /**
        * <code>.BoardCoord from_coordinates = 2;</code>
+       * @return The fromCoordinates.
        */
       public soc.proto.Data.BoardCoord getFromCoordinates() {
         if (fromCoordinatesBuilder_ == null) {
@@ -12152,17 +12739,19 @@ public final class GameMessage {
         return fromCoordinatesBuilder_;
       }
 
-      private soc.proto.Data.BoardCoord toCoordinates_ = null;
+      private soc.proto.Data.BoardCoord toCoordinates_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> toCoordinatesBuilder_;
       /**
        * <code>.BoardCoord to_coordinates = 3;</code>
+       * @return Whether the toCoordinates field is set.
        */
       public boolean hasToCoordinates() {
         return toCoordinatesBuilder_ != null || toCoordinates_ != null;
       }
       /**
        * <code>.BoardCoord to_coordinates = 3;</code>
+       * @return The toCoordinates.
        */
       public soc.proto.Data.BoardCoord getToCoordinates() {
         if (toCoordinatesBuilder_ == null) {
@@ -12268,11 +12857,13 @@ public final class GameMessage {
         }
         return toCoordinatesBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -12294,11 +12885,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<MovePiece>
         PARSER = new com.google.protobuf.AbstractParser<MovePiece>() {
+      @java.lang.Override
       public MovePiece parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new MovePiece(input, extensionRegistry);
+        return new MovePiece(input, extensionRegistry);
       }
     };
 
@@ -12311,6 +12903,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.MovePiece getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -12327,6 +12920,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The enum numeric value on the wire for ptype.
      */
     int getPtypeValue();
     /**
@@ -12335,15 +12929,18 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The ptype.
      */
     soc.proto.Data.PieceType getPtype();
 
     /**
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return Whether the coordinates field is set.
      */
     boolean hasCoordinates();
     /**
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return The coordinates.
      */
     soc.proto.Data.BoardCoord getCoordinates();
     /**
@@ -12377,6 +12974,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new RemovePiece();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -12386,7 +12990,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -12397,13 +13003,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -12423,6 +13022,13 @@ public final class GameMessage {
 
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -12440,6 +13046,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_RemovePiece_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_RemovePiece_fieldAccessorTable
@@ -12455,6 +13062,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The enum numeric value on the wire for ptype.
      */
     public int getPtypeValue() {
       return ptype_;
@@ -12465,8 +13073,10 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PieceType ptype = 1;</code>
+     * @return The ptype.
      */
     public soc.proto.Data.PieceType getPtype() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
     }
@@ -12475,12 +13085,14 @@ public final class GameMessage {
     private soc.proto.Data.BoardCoord coordinates_;
     /**
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return Whether the coordinates field is set.
      */
     public boolean hasCoordinates() {
       return coordinates_ != null;
     }
     /**
      * <code>.BoardCoord coordinates = 2;</code>
+     * @return The coordinates.
      */
     public soc.proto.Data.BoardCoord getCoordinates() {
       return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
@@ -12493,6 +13105,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -12502,6 +13115,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (ptype_ != soc.proto.Data.PieceType.ROAD.getNumber()) {
@@ -12513,6 +13127,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -12541,15 +13156,14 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.RemovePiece other = (soc.proto.GameMessage.RemovePiece) obj;
 
-      boolean result = true;
-      result = result && ptype_ == other.ptype_;
-      result = result && (hasCoordinates() == other.hasCoordinates());
+      if (ptype_ != other.ptype_) return false;
+      if (hasCoordinates() != other.hasCoordinates()) return false;
       if (hasCoordinates()) {
-        result = result && getCoordinates()
-            .equals(other.getCoordinates());
+        if (!getCoordinates()
+            .equals(other.getCoordinates())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -12640,6 +13254,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -12647,6 +13262,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.RemovePiece prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -12679,6 +13295,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_RemovePiece_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_RemovePiece_fieldAccessorTable
@@ -12701,6 +13318,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         ptype_ = 0;
@@ -12714,15 +13332,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_RemovePiece_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.RemovePiece getDefaultInstanceForType() {
         return soc.proto.GameMessage.RemovePiece.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.RemovePiece build() {
         soc.proto.GameMessage.RemovePiece result = buildPartial();
         if (!result.isInitialized()) {
@@ -12731,6 +13352,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.RemovePiece buildPartial() {
         soc.proto.GameMessage.RemovePiece result = new soc.proto.GameMessage.RemovePiece(this);
         result.ptype_ = ptype_;
@@ -12743,32 +13365,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.RemovePiece) {
           return mergeFrom((soc.proto.GameMessage.RemovePiece)other);
@@ -12791,10 +13420,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -12820,6 +13451,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return The enum numeric value on the wire for ptype.
        */
       public int getPtypeValue() {
         return ptype_;
@@ -12830,6 +13462,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @param value The enum numeric value on the wire for ptype to set.
+       * @return This builder for chaining.
        */
       public Builder setPtypeValue(int value) {
         ptype_ = value;
@@ -12842,8 +13476,10 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return The ptype.
        */
       public soc.proto.Data.PieceType getPtype() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
         return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
       }
@@ -12853,6 +13489,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @param value The ptype to set.
+       * @return This builder for chaining.
        */
       public Builder setPtype(soc.proto.Data.PieceType value) {
         if (value == null) {
@@ -12869,6 +13507,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PieceType ptype = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPtype() {
         
@@ -12877,17 +13516,19 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.BoardCoord coordinates_ = null;
+      private soc.proto.Data.BoardCoord coordinates_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.BoardCoord, soc.proto.Data.BoardCoord.Builder, soc.proto.Data.BoardCoordOrBuilder> coordinatesBuilder_;
       /**
        * <code>.BoardCoord coordinates = 2;</code>
+       * @return Whether the coordinates field is set.
        */
       public boolean hasCoordinates() {
         return coordinatesBuilder_ != null || coordinates_ != null;
       }
       /**
        * <code>.BoardCoord coordinates = 2;</code>
+       * @return The coordinates.
        */
       public soc.proto.Data.BoardCoord getCoordinates() {
         if (coordinatesBuilder_ == null) {
@@ -12993,11 +13634,13 @@ public final class GameMessage {
         }
         return coordinatesBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -13019,11 +13662,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<RemovePiece>
         PARSER = new com.google.protobuf.AbstractParser<RemovePiece>() {
+      @java.lang.Override
       public RemovePiece parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new RemovePiece(input, extensionRegistry);
+        return new RemovePiece(input, extensionRegistry);
       }
     };
 
@@ -13036,6 +13680,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.RemovePiece getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -13052,6 +13697,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexCoord coord = 1;</code>
+     * @return Whether the coord field is set.
      */
     boolean hasCoord();
     /**
@@ -13060,6 +13706,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexCoord coord = 1;</code>
+     * @return The coord.
      */
     soc.proto.Data.HexCoord getCoord();
     /**
@@ -13077,6 +13724,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexType htype = 2;</code>
+     * @return The enum numeric value on the wire for htype.
      */
     int getHtypeValue();
     /**
@@ -13085,6 +13733,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexType htype = 2;</code>
+     * @return The htype.
      */
     soc.proto.Data.HexType getHtype();
 
@@ -13094,6 +13743,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 dice_num = 3;</code>
+     * @return The diceNum.
      */
     int getDiceNum();
   }
@@ -13120,7 +13770,13 @@ public final class GameMessage {
     }
     private RevealFogHex() {
       htype_ = 0;
-      diceNum_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new RevealFogHex();
     }
 
     @java.lang.Override
@@ -13133,7 +13789,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -13144,13 +13802,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Data.HexCoord.Builder subBuilder = null;
               if (coord_ != null) {
@@ -13175,6 +13826,13 @@ public final class GameMessage {
               diceNum_ = input.readSInt32();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -13192,6 +13850,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_RevealFogHex_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_RevealFogHex_fieldAccessorTable
@@ -13207,6 +13866,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexCoord coord = 1;</code>
+     * @return Whether the coord field is set.
      */
     public boolean hasCoord() {
       return coord_ != null;
@@ -13217,6 +13877,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexCoord coord = 1;</code>
+     * @return The coord.
      */
     public soc.proto.Data.HexCoord getCoord() {
       return coord_ == null ? soc.proto.Data.HexCoord.getDefaultInstance() : coord_;
@@ -13240,6 +13901,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexType htype = 2;</code>
+     * @return The enum numeric value on the wire for htype.
      */
     public int getHtypeValue() {
       return htype_;
@@ -13250,8 +13912,10 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexType htype = 2;</code>
+     * @return The htype.
      */
     public soc.proto.Data.HexType getHtype() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.HexType result = soc.proto.Data.HexType.valueOf(htype_);
       return result == null ? soc.proto.Data.HexType.UNRECOGNIZED : result;
     }
@@ -13264,12 +13928,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 dice_num = 3;</code>
+     * @return The diceNum.
      */
     public int getDiceNum() {
       return diceNum_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -13279,6 +13945,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (coord_ != null) {
@@ -13293,6 +13960,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -13325,17 +13993,16 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.RevealFogHex other = (soc.proto.GameMessage.RevealFogHex) obj;
 
-      boolean result = true;
-      result = result && (hasCoord() == other.hasCoord());
+      if (hasCoord() != other.hasCoord()) return false;
       if (hasCoord()) {
-        result = result && getCoord()
-            .equals(other.getCoord());
+        if (!getCoord()
+            .equals(other.getCoord())) return false;
       }
-      result = result && htype_ == other.htype_;
-      result = result && (getDiceNum()
-          == other.getDiceNum());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (htype_ != other.htype_) return false;
+      if (getDiceNum()
+          != other.getDiceNum()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -13428,6 +14095,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -13435,6 +14103,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.RevealFogHex prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -13467,6 +14136,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_RevealFogHex_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_RevealFogHex_fieldAccessorTable
@@ -13489,6 +14159,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (coordBuilder_ == null) {
@@ -13504,15 +14175,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_RevealFogHex_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.RevealFogHex getDefaultInstanceForType() {
         return soc.proto.GameMessage.RevealFogHex.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.RevealFogHex build() {
         soc.proto.GameMessage.RevealFogHex result = buildPartial();
         if (!result.isInitialized()) {
@@ -13521,6 +14195,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.RevealFogHex buildPartial() {
         soc.proto.GameMessage.RevealFogHex result = new soc.proto.GameMessage.RevealFogHex(this);
         if (coordBuilder_ == null) {
@@ -13534,32 +14209,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.RevealFogHex) {
           return mergeFrom((soc.proto.GameMessage.RevealFogHex)other);
@@ -13585,10 +14267,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -13607,7 +14291,7 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.HexCoord coord_ = null;
+      private soc.proto.Data.HexCoord coord_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder> coordBuilder_;
       /**
@@ -13616,6 +14300,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexCoord coord = 1;</code>
+       * @return Whether the coord field is set.
        */
       public boolean hasCoord() {
         return coordBuilder_ != null || coord_ != null;
@@ -13626,6 +14311,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexCoord coord = 1;</code>
+       * @return The coord.
        */
       public soc.proto.Data.HexCoord getCoord() {
         if (coordBuilder_ == null) {
@@ -13767,6 +14453,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexType htype = 2;</code>
+       * @return The enum numeric value on the wire for htype.
        */
       public int getHtypeValue() {
         return htype_;
@@ -13777,6 +14464,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexType htype = 2;</code>
+       * @param value The enum numeric value on the wire for htype to set.
+       * @return This builder for chaining.
        */
       public Builder setHtypeValue(int value) {
         htype_ = value;
@@ -13789,8 +14478,10 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexType htype = 2;</code>
+       * @return The htype.
        */
       public soc.proto.Data.HexType getHtype() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.HexType result = soc.proto.Data.HexType.valueOf(htype_);
         return result == null ? soc.proto.Data.HexType.UNRECOGNIZED : result;
       }
@@ -13800,6 +14491,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexType htype = 2;</code>
+       * @param value The htype to set.
+       * @return This builder for chaining.
        */
       public Builder setHtype(soc.proto.Data.HexType value) {
         if (value == null) {
@@ -13816,6 +14509,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexType htype = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearHtype() {
         
@@ -13831,6 +14525,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 dice_num = 3;</code>
+       * @return The diceNum.
        */
       public int getDiceNum() {
         return diceNum_;
@@ -13841,6 +14536,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 dice_num = 3;</code>
+       * @param value The diceNum to set.
+       * @return This builder for chaining.
        */
       public Builder setDiceNum(int value) {
         
@@ -13854,6 +14551,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 dice_num = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDiceNum() {
         
@@ -13861,11 +14559,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -13887,11 +14587,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<RevealFogHex>
         PARSER = new com.google.protobuf.AbstractParser<RevealFogHex>() {
+      @java.lang.Override
       public RevealFogHex parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new RevealFogHex(input, extensionRegistry);
+        return new RevealFogHex(input, extensionRegistry);
       }
     };
 
@@ -13904,6 +14605,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.RevealFogHex getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -13916,10 +14618,12 @@ public final class GameMessage {
 
     /**
      * <code>.GameState state = 1;</code>
+     * @return The enum numeric value on the wire for state.
      */
     int getStateValue();
     /**
      * <code>.GameState state = 1;</code>
+     * @return The state.
      */
     soc.proto.Data.GameState getState();
   }
@@ -14034,6 +14738,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new State();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -14043,7 +14754,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -14054,17 +14767,17 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
               state_ = rawValue;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -14084,6 +14797,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_State_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_State_fieldAccessorTable
@@ -14095,19 +14809,23 @@ public final class GameMessage {
     private int state_;
     /**
      * <code>.GameState state = 1;</code>
+     * @return The enum numeric value on the wire for state.
      */
     public int getStateValue() {
       return state_;
     }
     /**
      * <code>.GameState state = 1;</code>
+     * @return The state.
      */
     public soc.proto.Data.GameState getState() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -14117,6 +14835,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (state_ != soc.proto.Data.GameState.NEW.getNumber()) {
@@ -14125,6 +14844,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -14149,10 +14869,9 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.State other = (soc.proto.GameMessage.State) obj;
 
-      boolean result = true;
-      result = result && state_ == other.state_;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (state_ != other.state_) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -14239,6 +14958,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -14246,6 +14966,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.State prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -14363,6 +15084,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_State_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_State_fieldAccessorTable
@@ -14385,6 +15107,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         state_ = 0;
@@ -14392,15 +15115,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_State_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.State getDefaultInstanceForType() {
         return soc.proto.GameMessage.State.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.State build() {
         soc.proto.GameMessage.State result = buildPartial();
         if (!result.isInitialized()) {
@@ -14409,6 +15135,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.State buildPartial() {
         soc.proto.GameMessage.State result = new soc.proto.GameMessage.State(this);
         result.state_ = state_;
@@ -14416,32 +15143,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.State) {
           return mergeFrom((soc.proto.GameMessage.State)other);
@@ -14461,10 +15195,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -14486,12 +15222,15 @@ public final class GameMessage {
       private int state_ = 0;
       /**
        * <code>.GameState state = 1;</code>
+       * @return The enum numeric value on the wire for state.
        */
       public int getStateValue() {
         return state_;
       }
       /**
        * <code>.GameState state = 1;</code>
+       * @param value The enum numeric value on the wire for state to set.
+       * @return This builder for chaining.
        */
       public Builder setStateValue(int value) {
         state_ = value;
@@ -14500,13 +15239,17 @@ public final class GameMessage {
       }
       /**
        * <code>.GameState state = 1;</code>
+       * @return The state.
        */
       public soc.proto.Data.GameState getState() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
         return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
       }
       /**
        * <code>.GameState state = 1;</code>
+       * @param value The state to set.
+       * @return This builder for chaining.
        */
       public Builder setState(soc.proto.Data.GameState value) {
         if (value == null) {
@@ -14519,6 +15262,7 @@ public final class GameMessage {
       }
       /**
        * <code>.GameState state = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearState() {
         
@@ -14526,11 +15270,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -14552,11 +15298,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<State>
         PARSER = new com.google.protobuf.AbstractParser<State>() {
+      @java.lang.Override
       public State parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new State(input, extensionRegistry);
+        return new State(input, extensionRegistry);
       }
     };
 
@@ -14569,6 +15316,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.State getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -14581,29 +15329,35 @@ public final class GameMessage {
 
     /**
      * <code>._PlayerElementAction action = 1;</code>
+     * @return The enum numeric value on the wire for action.
      */
     int getActionValue();
     /**
      * <code>._PlayerElementAction action = 1;</code>
+     * @return The action.
      */
     soc.proto.GameMessage._PlayerElementAction getAction();
 
     /**
      * <code>._PlayerElementType element_type = 2;</code>
+     * @return The enum numeric value on the wire for elementType.
      */
     int getElementTypeValue();
     /**
      * <code>._PlayerElementType element_type = 2;</code>
+     * @return The elementType.
      */
     soc.proto.GameMessage._PlayerElementType getElementType();
 
     /**
      * <code>sint32 amount = 3;</code>
+     * @return The amount.
      */
     int getAmount();
 
     /**
      * <code>bool is_news = 4;</code>
+     * @return The isNews.
      */
     boolean getIsNews();
   }
@@ -14649,8 +15403,13 @@ public final class GameMessage {
     private PlayerElement() {
       action_ = 0;
       elementType_ = 0;
-      amount_ = 0;
-      isNews_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new PlayerElement();
     }
 
     @java.lang.Override
@@ -14663,7 +15422,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -14674,13 +15435,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -14703,6 +15457,13 @@ public final class GameMessage {
               isNews_ = input.readBool();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -14720,6 +15481,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_PlayerElement_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_PlayerElement_fieldAccessorTable
@@ -14731,14 +15493,17 @@ public final class GameMessage {
     private int action_;
     /**
      * <code>._PlayerElementAction action = 1;</code>
+     * @return The enum numeric value on the wire for action.
      */
     public int getActionValue() {
       return action_;
     }
     /**
      * <code>._PlayerElementAction action = 1;</code>
+     * @return The action.
      */
     public soc.proto.GameMessage._PlayerElementAction getAction() {
+      @SuppressWarnings("deprecation")
       soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
       return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
     }
@@ -14747,14 +15512,17 @@ public final class GameMessage {
     private int elementType_;
     /**
      * <code>._PlayerElementType element_type = 2;</code>
+     * @return The enum numeric value on the wire for elementType.
      */
     public int getElementTypeValue() {
       return elementType_;
     }
     /**
      * <code>._PlayerElementType element_type = 2;</code>
+     * @return The elementType.
      */
     public soc.proto.GameMessage._PlayerElementType getElementType() {
+      @SuppressWarnings("deprecation")
       soc.proto.GameMessage._PlayerElementType result = soc.proto.GameMessage._PlayerElementType.valueOf(elementType_);
       return result == null ? soc.proto.GameMessage._PlayerElementType.UNRECOGNIZED : result;
     }
@@ -14763,6 +15531,7 @@ public final class GameMessage {
     private int amount_;
     /**
      * <code>sint32 amount = 3;</code>
+     * @return The amount.
      */
     public int getAmount() {
       return amount_;
@@ -14772,12 +15541,14 @@ public final class GameMessage {
     private boolean isNews_;
     /**
      * <code>bool is_news = 4;</code>
+     * @return The isNews.
      */
     public boolean getIsNews() {
       return isNews_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -14787,6 +15558,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (action_ != soc.proto.GameMessage._PlayerElementAction._UNSENT_DEFAULT_ACTION.getNumber()) {
@@ -14804,6 +15576,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -14840,15 +15613,14 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.PlayerElement other = (soc.proto.GameMessage.PlayerElement) obj;
 
-      boolean result = true;
-      result = result && action_ == other.action_;
-      result = result && elementType_ == other.elementType_;
-      result = result && (getAmount()
-          == other.getAmount());
-      result = result && (getIsNews()
-          == other.getIsNews());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (action_ != other.action_) return false;
+      if (elementType_ != other.elementType_) return false;
+      if (getAmount()
+          != other.getAmount()) return false;
+      if (getIsNews()
+          != other.getIsNews()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -14942,6 +15714,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -14949,6 +15722,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.PlayerElement prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -14999,6 +15773,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_PlayerElement_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_PlayerElement_fieldAccessorTable
@@ -15021,6 +15796,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         action_ = 0;
@@ -15034,15 +15810,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_PlayerElement_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElement getDefaultInstanceForType() {
         return soc.proto.GameMessage.PlayerElement.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElement build() {
         soc.proto.GameMessage.PlayerElement result = buildPartial();
         if (!result.isInitialized()) {
@@ -15051,6 +15830,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElement buildPartial() {
         soc.proto.GameMessage.PlayerElement result = new soc.proto.GameMessage.PlayerElement(this);
         result.action_ = action_;
@@ -15061,32 +15841,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.PlayerElement) {
           return mergeFrom((soc.proto.GameMessage.PlayerElement)other);
@@ -15115,10 +15902,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -15140,12 +15929,15 @@ public final class GameMessage {
       private int action_ = 0;
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @return The enum numeric value on the wire for action.
        */
       public int getActionValue() {
         return action_;
       }
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @param value The enum numeric value on the wire for action to set.
+       * @return This builder for chaining.
        */
       public Builder setActionValue(int value) {
         action_ = value;
@@ -15154,13 +15946,17 @@ public final class GameMessage {
       }
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @return The action.
        */
       public soc.proto.GameMessage._PlayerElementAction getAction() {
+        @SuppressWarnings("deprecation")
         soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
         return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
       }
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @param value The action to set.
+       * @return This builder for chaining.
        */
       public Builder setAction(soc.proto.GameMessage._PlayerElementAction value) {
         if (value == null) {
@@ -15173,6 +15969,7 @@ public final class GameMessage {
       }
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAction() {
         
@@ -15184,12 +15981,15 @@ public final class GameMessage {
       private int elementType_ = 0;
       /**
        * <code>._PlayerElementType element_type = 2;</code>
+       * @return The enum numeric value on the wire for elementType.
        */
       public int getElementTypeValue() {
         return elementType_;
       }
       /**
        * <code>._PlayerElementType element_type = 2;</code>
+       * @param value The enum numeric value on the wire for elementType to set.
+       * @return This builder for chaining.
        */
       public Builder setElementTypeValue(int value) {
         elementType_ = value;
@@ -15198,13 +15998,17 @@ public final class GameMessage {
       }
       /**
        * <code>._PlayerElementType element_type = 2;</code>
+       * @return The elementType.
        */
       public soc.proto.GameMessage._PlayerElementType getElementType() {
+        @SuppressWarnings("deprecation")
         soc.proto.GameMessage._PlayerElementType result = soc.proto.GameMessage._PlayerElementType.valueOf(elementType_);
         return result == null ? soc.proto.GameMessage._PlayerElementType.UNRECOGNIZED : result;
       }
       /**
        * <code>._PlayerElementType element_type = 2;</code>
+       * @param value The elementType to set.
+       * @return This builder for chaining.
        */
       public Builder setElementType(soc.proto.GameMessage._PlayerElementType value) {
         if (value == null) {
@@ -15217,6 +16021,7 @@ public final class GameMessage {
       }
       /**
        * <code>._PlayerElementType element_type = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearElementType() {
         
@@ -15228,12 +16033,15 @@ public final class GameMessage {
       private int amount_ ;
       /**
        * <code>sint32 amount = 3;</code>
+       * @return The amount.
        */
       public int getAmount() {
         return amount_;
       }
       /**
        * <code>sint32 amount = 3;</code>
+       * @param value The amount to set.
+       * @return This builder for chaining.
        */
       public Builder setAmount(int value) {
         
@@ -15243,6 +16051,7 @@ public final class GameMessage {
       }
       /**
        * <code>sint32 amount = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAmount() {
         
@@ -15254,12 +16063,15 @@ public final class GameMessage {
       private boolean isNews_ ;
       /**
        * <code>bool is_news = 4;</code>
+       * @return The isNews.
        */
       public boolean getIsNews() {
         return isNews_;
       }
       /**
        * <code>bool is_news = 4;</code>
+       * @param value The isNews to set.
+       * @return This builder for chaining.
        */
       public Builder setIsNews(boolean value) {
         
@@ -15269,6 +16081,7 @@ public final class GameMessage {
       }
       /**
        * <code>bool is_news = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsNews() {
         
@@ -15276,11 +16089,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -15302,11 +16117,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<PlayerElement>
         PARSER = new com.google.protobuf.AbstractParser<PlayerElement>() {
+      @java.lang.Override
       public PlayerElement parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new PlayerElement(input, extensionRegistry);
+        return new PlayerElement(input, extensionRegistry);
       }
     };
 
@@ -15319,6 +16135,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.PlayerElement getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -15331,45 +16148,58 @@ public final class GameMessage {
 
     /**
      * <code>._PlayerElementAction action = 1;</code>
+     * @return The enum numeric value on the wire for action.
      */
     int getActionValue();
     /**
      * <code>._PlayerElementAction action = 1;</code>
+     * @return The action.
      */
     soc.proto.GameMessage._PlayerElementAction getAction();
 
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @return A list containing the elementTypes.
      */
     java.util.List<soc.proto.GameMessage._PlayerElementType> getElementTypesList();
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @return The count of elementTypes.
      */
     int getElementTypesCount();
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @param index The index of the element to return.
+     * @return The elementTypes at the given index.
      */
     soc.proto.GameMessage._PlayerElementType getElementTypes(int index);
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @return A list containing the enum numeric values on the wire for elementTypes.
      */
     java.util.List<java.lang.Integer>
     getElementTypesValueList();
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of elementTypes at the given index.
      */
     int getElementTypesValue(int index);
 
     /**
      * <code>repeated sint32 amounts = 3;</code>
+     * @return A list containing the amounts.
      */
     java.util.List<java.lang.Integer> getAmountsList();
     /**
      * <code>repeated sint32 amounts = 3;</code>
+     * @return The count of amounts.
      */
     int getAmountsCount();
     /**
      * <code>repeated sint32 amounts = 3;</code>
+     * @param index The index of the element to return.
+     * @return The amounts at the given index.
      */
     int getAmounts(int index);
   }
@@ -15402,7 +16232,14 @@ public final class GameMessage {
     private PlayerElements() {
       action_ = 0;
       elementTypes_ = java.util.Collections.emptyList();
-      amounts_ = java.util.Collections.emptyList();
+      amounts_ = emptyIntList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new PlayerElements();
     }
 
     @java.lang.Override
@@ -15415,6 +16252,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -15426,13 +16266,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
@@ -15441,9 +16274,9 @@ public final class GameMessage {
             }
             case 16: {
               int rawValue = input.readEnum();
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 elementTypes_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000002;
+                mutable_bitField0_ |= 0x00000001;
               }
               elementTypes_.add(rawValue);
               break;
@@ -15453,9 +16286,9 @@ public final class GameMessage {
               int oldLimit = input.pushLimit(length);
               while(input.getBytesUntilLimit() > 0) {
                 int rawValue = input.readEnum();
-                if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                   elementTypes_ = new java.util.ArrayList<java.lang.Integer>();
-                  mutable_bitField0_ |= 0x00000002;
+                  mutable_bitField0_ |= 0x00000001;
                 }
                 elementTypes_.add(rawValue);
               }
@@ -15463,24 +16296,31 @@ public final class GameMessage {
               break;
             }
             case 24: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-                amounts_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000004;
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+                amounts_ = newIntList();
+                mutable_bitField0_ |= 0x00000002;
               }
-              amounts_.add(input.readSInt32());
+              amounts_.addInt(input.readSInt32());
               break;
             }
             case 26: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
-                amounts_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000004;
+              if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
+                amounts_ = newIntList();
+                mutable_bitField0_ |= 0x00000002;
               }
               while (input.getBytesUntilLimit() > 0) {
-                amounts_.add(input.readSInt32());
+                amounts_.addInt(input.readSInt32());
               }
               input.popLimit(limit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -15491,11 +16331,11 @@ public final class GameMessage {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           elementTypes_ = java.util.Collections.unmodifiableList(elementTypes_);
         }
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-          amounts_ = java.util.Collections.unmodifiableList(amounts_);
+        if (((mutable_bitField0_ & 0x00000002) != 0)) {
+          amounts_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -15506,6 +16346,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_PlayerElements_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_PlayerElements_fieldAccessorTable
@@ -15513,19 +16354,21 @@ public final class GameMessage {
               soc.proto.GameMessage.PlayerElements.class, soc.proto.GameMessage.PlayerElements.Builder.class);
     }
 
-    private int bitField0_;
     public static final int ACTION_FIELD_NUMBER = 1;
     private int action_;
     /**
      * <code>._PlayerElementAction action = 1;</code>
+     * @return The enum numeric value on the wire for action.
      */
     public int getActionValue() {
       return action_;
     }
     /**
      * <code>._PlayerElementAction action = 1;</code>
+     * @return The action.
      */
     public soc.proto.GameMessage._PlayerElementAction getAction() {
+      @SuppressWarnings("deprecation")
       soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
       return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
     }
@@ -15537,12 +16380,14 @@ public final class GameMessage {
             new com.google.protobuf.Internal.ListAdapter.Converter<
                 java.lang.Integer, soc.proto.GameMessage._PlayerElementType>() {
               public soc.proto.GameMessage._PlayerElementType convert(java.lang.Integer from) {
+                @SuppressWarnings("deprecation")
                 soc.proto.GameMessage._PlayerElementType result = soc.proto.GameMessage._PlayerElementType.valueOf(from);
                 return result == null ? soc.proto.GameMessage._PlayerElementType.UNRECOGNIZED : result;
               }
             };
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @return A list containing the elementTypes.
      */
     public java.util.List<soc.proto.GameMessage._PlayerElementType> getElementTypesList() {
       return new com.google.protobuf.Internal.ListAdapter<
@@ -15550,18 +16395,22 @@ public final class GameMessage {
     }
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @return The count of elementTypes.
      */
     public int getElementTypesCount() {
       return elementTypes_.size();
     }
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @param index The index of the element to return.
+     * @return The elementTypes at the given index.
      */
     public soc.proto.GameMessage._PlayerElementType getElementTypes(int index) {
       return elementTypes_converter_.convert(elementTypes_.get(index));
     }
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @return A list containing the enum numeric values on the wire for elementTypes.
      */
     public java.util.List<java.lang.Integer>
     getElementTypesValueList() {
@@ -15569,6 +16418,8 @@ public final class GameMessage {
     }
     /**
      * <code>repeated ._PlayerElementType element_types = 2;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of elementTypes at the given index.
      */
     public int getElementTypesValue(int index) {
       return elementTypes_.get(index);
@@ -15576,9 +16427,10 @@ public final class GameMessage {
     private int elementTypesMemoizedSerializedSize;
 
     public static final int AMOUNTS_FIELD_NUMBER = 3;
-    private java.util.List<java.lang.Integer> amounts_;
+    private com.google.protobuf.Internal.IntList amounts_;
     /**
      * <code>repeated sint32 amounts = 3;</code>
+     * @return A list containing the amounts.
      */
     public java.util.List<java.lang.Integer>
         getAmountsList() {
@@ -15586,19 +16438,23 @@ public final class GameMessage {
     }
     /**
      * <code>repeated sint32 amounts = 3;</code>
+     * @return The count of amounts.
      */
     public int getAmountsCount() {
       return amounts_.size();
     }
     /**
      * <code>repeated sint32 amounts = 3;</code>
+     * @param index The index of the element to return.
+     * @return The amounts at the given index.
      */
     public int getAmounts(int index) {
-      return amounts_.get(index);
+      return amounts_.getInt(index);
     }
     private int amountsMemoizedSerializedSize = -1;
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -15608,6 +16464,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -15626,11 +16483,12 @@ public final class GameMessage {
         output.writeUInt32NoTag(amountsMemoizedSerializedSize);
       }
       for (int i = 0; i < amounts_.size(); i++) {
-        output.writeSInt32NoTag(amounts_.get(i));
+        output.writeSInt32NoTag(amounts_.getInt(i));
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -15656,7 +16514,7 @@ public final class GameMessage {
         int dataSize = 0;
         for (int i = 0; i < amounts_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeSInt32SizeNoTag(amounts_.get(i));
+            .computeSInt32SizeNoTag(amounts_.getInt(i));
         }
         size += dataSize;
         if (!getAmountsList().isEmpty()) {
@@ -15681,13 +16539,12 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.PlayerElements other = (soc.proto.GameMessage.PlayerElements) obj;
 
-      boolean result = true;
-      result = result && action_ == other.action_;
-      result = result && elementTypes_.equals(other.elementTypes_);
-      result = result && getAmountsList()
-          .equals(other.getAmountsList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (action_ != other.action_) return false;
+      if (!elementTypes_.equals(other.elementTypes_)) return false;
+      if (!getAmountsList()
+          .equals(other.getAmountsList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -15782,6 +16639,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -15789,6 +16647,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.PlayerElements prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -15826,6 +16685,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_PlayerElements_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_PlayerElements_fieldAccessorTable
@@ -15848,26 +16708,30 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         action_ = 0;
 
         elementTypes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        amounts_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000002);
-        amounts_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_PlayerElements_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElements getDefaultInstanceForType() {
         return soc.proto.GameMessage.PlayerElements.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElements build() {
         soc.proto.GameMessage.PlayerElements result = buildPartial();
         if (!result.isInitialized()) {
@@ -15876,52 +16740,58 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElements buildPartial() {
         soc.proto.GameMessage.PlayerElements result = new soc.proto.GameMessage.PlayerElements(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.action_ = action_;
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           elementTypes_ = java.util.Collections.unmodifiableList(elementTypes_);
-          bitField0_ = (bitField0_ & ~0x00000002);
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.elementTypes_ = elementTypes_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
-          amounts_ = java.util.Collections.unmodifiableList(amounts_);
-          bitField0_ = (bitField0_ & ~0x00000004);
+        if (((bitField0_ & 0x00000002) != 0)) {
+          amounts_.makeImmutable();
+          bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.amounts_ = amounts_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.PlayerElements) {
           return mergeFrom((soc.proto.GameMessage.PlayerElements)other);
@@ -15939,7 +16809,7 @@ public final class GameMessage {
         if (!other.elementTypes_.isEmpty()) {
           if (elementTypes_.isEmpty()) {
             elementTypes_ = other.elementTypes_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureElementTypesIsMutable();
             elementTypes_.addAll(other.elementTypes_);
@@ -15949,7 +16819,7 @@ public final class GameMessage {
         if (!other.amounts_.isEmpty()) {
           if (amounts_.isEmpty()) {
             amounts_ = other.amounts_;
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000002);
           } else {
             ensureAmountsIsMutable();
             amounts_.addAll(other.amounts_);
@@ -15961,10 +16831,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -15987,12 +16859,15 @@ public final class GameMessage {
       private int action_ = 0;
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @return The enum numeric value on the wire for action.
        */
       public int getActionValue() {
         return action_;
       }
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @param value The enum numeric value on the wire for action to set.
+       * @return This builder for chaining.
        */
       public Builder setActionValue(int value) {
         action_ = value;
@@ -16001,13 +16876,17 @@ public final class GameMessage {
       }
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @return The action.
        */
       public soc.proto.GameMessage._PlayerElementAction getAction() {
+        @SuppressWarnings("deprecation")
         soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
         return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
       }
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @param value The action to set.
+       * @return This builder for chaining.
        */
       public Builder setAction(soc.proto.GameMessage._PlayerElementAction value) {
         if (value == null) {
@@ -16020,6 +16899,7 @@ public final class GameMessage {
       }
       /**
        * <code>._PlayerElementAction action = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAction() {
         
@@ -16031,13 +16911,14 @@ public final class GameMessage {
       private java.util.List<java.lang.Integer> elementTypes_ =
         java.util.Collections.emptyList();
       private void ensureElementTypesIsMutable() {
-        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           elementTypes_ = new java.util.ArrayList<java.lang.Integer>(elementTypes_);
-          bitField0_ |= 0x00000002;
+          bitField0_ |= 0x00000001;
         }
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @return A list containing the elementTypes.
        */
       public java.util.List<soc.proto.GameMessage._PlayerElementType> getElementTypesList() {
         return new com.google.protobuf.Internal.ListAdapter<
@@ -16045,18 +16926,24 @@ public final class GameMessage {
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @return The count of elementTypes.
        */
       public int getElementTypesCount() {
         return elementTypes_.size();
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @param index The index of the element to return.
+       * @return The elementTypes at the given index.
        */
       public soc.proto.GameMessage._PlayerElementType getElementTypes(int index) {
         return elementTypes_converter_.convert(elementTypes_.get(index));
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @param index The index to set the value at.
+       * @param value The elementTypes to set.
+       * @return This builder for chaining.
        */
       public Builder setElementTypes(
           int index, soc.proto.GameMessage._PlayerElementType value) {
@@ -16070,6 +16957,8 @@ public final class GameMessage {
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @param value The elementTypes to add.
+       * @return This builder for chaining.
        */
       public Builder addElementTypes(soc.proto.GameMessage._PlayerElementType value) {
         if (value == null) {
@@ -16082,6 +16971,8 @@ public final class GameMessage {
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @param values The elementTypes to add.
+       * @return This builder for chaining.
        */
       public Builder addAllElementTypes(
           java.lang.Iterable<? extends soc.proto.GameMessage._PlayerElementType> values) {
@@ -16094,15 +16985,17 @@ public final class GameMessage {
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearElementTypes() {
         elementTypes_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @return A list containing the enum numeric values on the wire for elementTypes.
        */
       public java.util.List<java.lang.Integer>
       getElementTypesValueList() {
@@ -16110,12 +17003,17 @@ public final class GameMessage {
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @param index The index of the value to return.
+       * @return The enum numeric value on the wire of elementTypes at the given index.
        */
       public int getElementTypesValue(int index) {
         return elementTypes_.get(index);
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @param index The index of the value to return.
+       * @return The enum numeric value on the wire of elementTypes at the given index.
+       * @return This builder for chaining.
        */
       public Builder setElementTypesValue(
           int index, int value) {
@@ -16126,6 +17024,8 @@ public final class GameMessage {
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @param value The enum numeric value on the wire for elementTypes to add.
+       * @return This builder for chaining.
        */
       public Builder addElementTypesValue(int value) {
         ensureElementTypesIsMutable();
@@ -16135,6 +17035,8 @@ public final class GameMessage {
       }
       /**
        * <code>repeated ._PlayerElementType element_types = 2;</code>
+       * @param values The enum numeric values on the wire for elementTypes to add.
+       * @return This builder for chaining.
        */
       public Builder addAllElementTypesValue(
           java.lang.Iterable<java.lang.Integer> values) {
@@ -16146,53 +17048,65 @@ public final class GameMessage {
         return this;
       }
 
-      private java.util.List<java.lang.Integer> amounts_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.IntList amounts_ = emptyIntList();
       private void ensureAmountsIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-          amounts_ = new java.util.ArrayList<java.lang.Integer>(amounts_);
-          bitField0_ |= 0x00000004;
+        if (!((bitField0_ & 0x00000002) != 0)) {
+          amounts_ = mutableCopy(amounts_);
+          bitField0_ |= 0x00000002;
          }
       }
       /**
        * <code>repeated sint32 amounts = 3;</code>
+       * @return A list containing the amounts.
        */
       public java.util.List<java.lang.Integer>
           getAmountsList() {
-        return java.util.Collections.unmodifiableList(amounts_);
+        return ((bitField0_ & 0x00000002) != 0) ?
+                 java.util.Collections.unmodifiableList(amounts_) : amounts_;
       }
       /**
        * <code>repeated sint32 amounts = 3;</code>
+       * @return The count of amounts.
        */
       public int getAmountsCount() {
         return amounts_.size();
       }
       /**
        * <code>repeated sint32 amounts = 3;</code>
+       * @param index The index of the element to return.
+       * @return The amounts at the given index.
        */
       public int getAmounts(int index) {
-        return amounts_.get(index);
+        return amounts_.getInt(index);
       }
       /**
        * <code>repeated sint32 amounts = 3;</code>
+       * @param index The index to set the value at.
+       * @param value The amounts to set.
+       * @return This builder for chaining.
        */
       public Builder setAmounts(
           int index, int value) {
         ensureAmountsIsMutable();
-        amounts_.set(index, value);
+        amounts_.setInt(index, value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated sint32 amounts = 3;</code>
+       * @param value The amounts to add.
+       * @return This builder for chaining.
        */
       public Builder addAmounts(int value) {
         ensureAmountsIsMutable();
-        amounts_.add(value);
+        amounts_.addInt(value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated sint32 amounts = 3;</code>
+       * @param values The amounts to add.
+       * @return This builder for chaining.
        */
       public Builder addAllAmounts(
           java.lang.Iterable<? extends java.lang.Integer> values) {
@@ -16204,18 +17118,21 @@ public final class GameMessage {
       }
       /**
        * <code>repeated sint32 amounts = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAmounts() {
-        amounts_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        amounts_ = emptyIntList();
+        bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -16237,11 +17154,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<PlayerElements>
         PARSER = new com.google.protobuf.AbstractParser<PlayerElements>() {
+      @java.lang.Override
       public PlayerElements parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new PlayerElements(input, extensionRegistry);
+        return new PlayerElements(input, extensionRegistry);
       }
     };
 
@@ -16254,6 +17172,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.PlayerElements getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -16266,36 +17185,47 @@ public final class GameMessage {
 
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @return A list containing the elementTypes.
      */
     java.util.List<soc.proto.GameMessage.GameElements._ElementType> getElementTypesList();
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @return The count of elementTypes.
      */
     int getElementTypesCount();
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @param index The index of the element to return.
+     * @return The elementTypes at the given index.
      */
     soc.proto.GameMessage.GameElements._ElementType getElementTypes(int index);
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @return A list containing the enum numeric values on the wire for elementTypes.
      */
     java.util.List<java.lang.Integer>
     getElementTypesValueList();
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of elementTypes at the given index.
      */
     int getElementTypesValue(int index);
 
     /**
      * <code>repeated sint32 values = 2;</code>
+     * @return A list containing the values.
      */
     java.util.List<java.lang.Integer> getValuesList();
     /**
      * <code>repeated sint32 values = 2;</code>
+     * @return The count of values.
      */
     int getValuesCount();
     /**
      * <code>repeated sint32 values = 2;</code>
+     * @param index The index of the element to return.
+     * @return The values at the given index.
      */
     int getValues(int index);
   }
@@ -16321,7 +17251,14 @@ public final class GameMessage {
     }
     private GameElements() {
       elementTypes_ = java.util.Collections.emptyList();
-      values_ = java.util.Collections.emptyList();
+      values_ = emptyIntList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GameElements();
     }
 
     @java.lang.Override
@@ -16334,6 +17271,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -16345,16 +17285,9 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 elementTypes_ = new java.util.ArrayList<java.lang.Integer>();
                 mutable_bitField0_ |= 0x00000001;
               }
@@ -16366,7 +17299,7 @@ public final class GameMessage {
               int oldLimit = input.pushLimit(length);
               while(input.getBytesUntilLimit() > 0) {
                 int rawValue = input.readEnum();
-                if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                   elementTypes_ = new java.util.ArrayList<java.lang.Integer>();
                   mutable_bitField0_ |= 0x00000001;
                 }
@@ -16376,24 +17309,31 @@ public final class GameMessage {
               break;
             }
             case 16: {
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-                values_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+                values_ = newIntList();
                 mutable_bitField0_ |= 0x00000002;
               }
-              values_.add(input.readSInt32());
+              values_.addInt(input.readSInt32());
               break;
             }
             case 18: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
-                values_ = new java.util.ArrayList<java.lang.Integer>();
+              if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
+                values_ = newIntList();
                 mutable_bitField0_ |= 0x00000002;
               }
               while (input.getBytesUntilLimit() > 0) {
-                values_.add(input.readSInt32());
+                values_.addInt(input.readSInt32());
               }
               input.popLimit(limit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -16404,11 +17344,11 @@ public final class GameMessage {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           elementTypes_ = java.util.Collections.unmodifiableList(elementTypes_);
         }
-        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-          values_ = java.util.Collections.unmodifiableList(values_);
+        if (((mutable_bitField0_ & 0x00000002) != 0)) {
+          values_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -16419,6 +17359,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_GameElements_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_GameElements_fieldAccessorTable
@@ -16559,6 +17500,8 @@ public final class GameMessage {
       }
 
       /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -16566,6 +17509,10 @@ public final class GameMessage {
         return forNumber(value);
       }
 
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       */
       public static _ElementType forNumber(int value) {
         switch (value) {
           case 0: return _UNSENT_DEFAULT_GAME_ELEM;
@@ -16634,12 +17581,14 @@ public final class GameMessage {
             new com.google.protobuf.Internal.ListAdapter.Converter<
                 java.lang.Integer, soc.proto.GameMessage.GameElements._ElementType>() {
               public soc.proto.GameMessage.GameElements._ElementType convert(java.lang.Integer from) {
+                @SuppressWarnings("deprecation")
                 soc.proto.GameMessage.GameElements._ElementType result = soc.proto.GameMessage.GameElements._ElementType.valueOf(from);
                 return result == null ? soc.proto.GameMessage.GameElements._ElementType.UNRECOGNIZED : result;
               }
             };
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @return A list containing the elementTypes.
      */
     public java.util.List<soc.proto.GameMessage.GameElements._ElementType> getElementTypesList() {
       return new com.google.protobuf.Internal.ListAdapter<
@@ -16647,18 +17596,22 @@ public final class GameMessage {
     }
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @return The count of elementTypes.
      */
     public int getElementTypesCount() {
       return elementTypes_.size();
     }
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @param index The index of the element to return.
+     * @return The elementTypes at the given index.
      */
     public soc.proto.GameMessage.GameElements._ElementType getElementTypes(int index) {
       return elementTypes_converter_.convert(elementTypes_.get(index));
     }
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @return A list containing the enum numeric values on the wire for elementTypes.
      */
     public java.util.List<java.lang.Integer>
     getElementTypesValueList() {
@@ -16666,6 +17619,8 @@ public final class GameMessage {
     }
     /**
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
+     * @param index The index of the value to return.
+     * @return The enum numeric value on the wire of elementTypes at the given index.
      */
     public int getElementTypesValue(int index) {
       return elementTypes_.get(index);
@@ -16673,9 +17628,10 @@ public final class GameMessage {
     private int elementTypesMemoizedSerializedSize;
 
     public static final int VALUES_FIELD_NUMBER = 2;
-    private java.util.List<java.lang.Integer> values_;
+    private com.google.protobuf.Internal.IntList values_;
     /**
      * <code>repeated sint32 values = 2;</code>
+     * @return A list containing the values.
      */
     public java.util.List<java.lang.Integer>
         getValuesList() {
@@ -16683,19 +17639,23 @@ public final class GameMessage {
     }
     /**
      * <code>repeated sint32 values = 2;</code>
+     * @return The count of values.
      */
     public int getValuesCount() {
       return values_.size();
     }
     /**
      * <code>repeated sint32 values = 2;</code>
+     * @param index The index of the element to return.
+     * @return The values at the given index.
      */
     public int getValues(int index) {
-      return values_.get(index);
+      return values_.getInt(index);
     }
     private int valuesMemoizedSerializedSize = -1;
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -16705,6 +17665,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -16720,11 +17681,12 @@ public final class GameMessage {
         output.writeUInt32NoTag(valuesMemoizedSerializedSize);
       }
       for (int i = 0; i < values_.size(); i++) {
-        output.writeSInt32NoTag(values_.get(i));
+        output.writeSInt32NoTag(values_.getInt(i));
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -16746,7 +17708,7 @@ public final class GameMessage {
         int dataSize = 0;
         for (int i = 0; i < values_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeSInt32SizeNoTag(values_.get(i));
+            .computeSInt32SizeNoTag(values_.getInt(i));
         }
         size += dataSize;
         if (!getValuesList().isEmpty()) {
@@ -16771,12 +17733,11 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.GameElements other = (soc.proto.GameMessage.GameElements) obj;
 
-      boolean result = true;
-      result = result && elementTypes_.equals(other.elementTypes_);
-      result = result && getValuesList()
-          .equals(other.getValuesList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!elementTypes_.equals(other.elementTypes_)) return false;
+      if (!getValuesList()
+          .equals(other.getValuesList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -16869,6 +17830,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -16876,6 +17838,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.GameElements prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -16907,6 +17870,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_GameElements_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_GameElements_fieldAccessorTable
@@ -16929,24 +17893,28 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         elementTypes_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
-        values_ = java.util.Collections.emptyList();
+        values_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_GameElements_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameElements getDefaultInstanceForType() {
         return soc.proto.GameMessage.GameElements.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameElements build() {
         soc.proto.GameMessage.GameElements result = buildPartial();
         if (!result.isInitialized()) {
@@ -16955,16 +17923,17 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameElements buildPartial() {
         soc.proto.GameMessage.GameElements result = new soc.proto.GameMessage.GameElements(this);
         int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           elementTypes_ = java.util.Collections.unmodifiableList(elementTypes_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.elementTypes_ = elementTypes_;
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
-          values_ = java.util.Collections.unmodifiableList(values_);
+        if (((bitField0_ & 0x00000002) != 0)) {
+          values_.makeImmutable();
           bitField0_ = (bitField0_ & ~0x00000002);
         }
         result.values_ = values_;
@@ -16972,32 +17941,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.GameElements) {
           return mergeFrom((soc.proto.GameMessage.GameElements)other);
@@ -17034,10 +18010,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -17060,13 +18038,14 @@ public final class GameMessage {
       private java.util.List<java.lang.Integer> elementTypes_ =
         java.util.Collections.emptyList();
       private void ensureElementTypesIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           elementTypes_ = new java.util.ArrayList<java.lang.Integer>(elementTypes_);
           bitField0_ |= 0x00000001;
         }
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @return A list containing the elementTypes.
        */
       public java.util.List<soc.proto.GameMessage.GameElements._ElementType> getElementTypesList() {
         return new com.google.protobuf.Internal.ListAdapter<
@@ -17074,18 +18053,24 @@ public final class GameMessage {
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @return The count of elementTypes.
        */
       public int getElementTypesCount() {
         return elementTypes_.size();
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @param index The index of the element to return.
+       * @return The elementTypes at the given index.
        */
       public soc.proto.GameMessage.GameElements._ElementType getElementTypes(int index) {
         return elementTypes_converter_.convert(elementTypes_.get(index));
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @param index The index to set the value at.
+       * @param value The elementTypes to set.
+       * @return This builder for chaining.
        */
       public Builder setElementTypes(
           int index, soc.proto.GameMessage.GameElements._ElementType value) {
@@ -17099,6 +18084,8 @@ public final class GameMessage {
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @param value The elementTypes to add.
+       * @return This builder for chaining.
        */
       public Builder addElementTypes(soc.proto.GameMessage.GameElements._ElementType value) {
         if (value == null) {
@@ -17111,6 +18098,8 @@ public final class GameMessage {
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @param values The elementTypes to add.
+       * @return This builder for chaining.
        */
       public Builder addAllElementTypes(
           java.lang.Iterable<? extends soc.proto.GameMessage.GameElements._ElementType> values) {
@@ -17123,6 +18112,7 @@ public final class GameMessage {
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearElementTypes() {
         elementTypes_ = java.util.Collections.emptyList();
@@ -17132,6 +18122,7 @@ public final class GameMessage {
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @return A list containing the enum numeric values on the wire for elementTypes.
        */
       public java.util.List<java.lang.Integer>
       getElementTypesValueList() {
@@ -17139,12 +18130,17 @@ public final class GameMessage {
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @param index The index of the value to return.
+       * @return The enum numeric value on the wire of elementTypes at the given index.
        */
       public int getElementTypesValue(int index) {
         return elementTypes_.get(index);
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @param index The index of the value to return.
+       * @return The enum numeric value on the wire of elementTypes at the given index.
+       * @return This builder for chaining.
        */
       public Builder setElementTypesValue(
           int index, int value) {
@@ -17155,6 +18151,8 @@ public final class GameMessage {
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @param value The enum numeric value on the wire for elementTypes to add.
+       * @return This builder for chaining.
        */
       public Builder addElementTypesValue(int value) {
         ensureElementTypesIsMutable();
@@ -17164,6 +18162,8 @@ public final class GameMessage {
       }
       /**
        * <code>repeated .GameElements._ElementType element_types = 1;</code>
+       * @param values The enum numeric values on the wire for elementTypes to add.
+       * @return This builder for chaining.
        */
       public Builder addAllElementTypesValue(
           java.lang.Iterable<java.lang.Integer> values) {
@@ -17175,53 +18175,65 @@ public final class GameMessage {
         return this;
       }
 
-      private java.util.List<java.lang.Integer> values_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.IntList values_ = emptyIntList();
       private void ensureValuesIsMutable() {
-        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-          values_ = new java.util.ArrayList<java.lang.Integer>(values_);
+        if (!((bitField0_ & 0x00000002) != 0)) {
+          values_ = mutableCopy(values_);
           bitField0_ |= 0x00000002;
          }
       }
       /**
        * <code>repeated sint32 values = 2;</code>
+       * @return A list containing the values.
        */
       public java.util.List<java.lang.Integer>
           getValuesList() {
-        return java.util.Collections.unmodifiableList(values_);
+        return ((bitField0_ & 0x00000002) != 0) ?
+                 java.util.Collections.unmodifiableList(values_) : values_;
       }
       /**
        * <code>repeated sint32 values = 2;</code>
+       * @return The count of values.
        */
       public int getValuesCount() {
         return values_.size();
       }
       /**
        * <code>repeated sint32 values = 2;</code>
+       * @param index The index of the element to return.
+       * @return The values at the given index.
        */
       public int getValues(int index) {
-        return values_.get(index);
+        return values_.getInt(index);
       }
       /**
        * <code>repeated sint32 values = 2;</code>
+       * @param index The index to set the value at.
+       * @param value The values to set.
+       * @return This builder for chaining.
        */
       public Builder setValues(
           int index, int value) {
         ensureValuesIsMutable();
-        values_.set(index, value);
+        values_.setInt(index, value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated sint32 values = 2;</code>
+       * @param value The values to add.
+       * @return This builder for chaining.
        */
       public Builder addValues(int value) {
         ensureValuesIsMutable();
-        values_.add(value);
+        values_.addInt(value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated sint32 values = 2;</code>
+       * @param values The values to add.
+       * @return This builder for chaining.
        */
       public Builder addAllValues(
           java.lang.Iterable<? extends java.lang.Integer> values) {
@@ -17233,18 +18245,21 @@ public final class GameMessage {
       }
       /**
        * <code>repeated sint32 values = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearValues() {
-        values_ = java.util.Collections.emptyList();
+        values_ = emptyIntList();
         bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -17266,11 +18281,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<GameElements>
         PARSER = new com.google.protobuf.AbstractParser<GameElements>() {
+      @java.lang.Override
       public GameElements parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new GameElements(input, extensionRegistry);
+        return new GameElements(input, extensionRegistry);
       }
     };
 
@@ -17283,6 +18299,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.GameElements getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -17299,6 +18316,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.GameState state = 1;</code>
+     * @return The enum numeric value on the wire for state.
      */
     int getStateValue();
     /**
@@ -17307,6 +18325,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.GameState state = 1;</code>
+     * @return The state.
      */
     soc.proto.Data.GameState getState();
   }
@@ -17337,6 +18356,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new StartGame();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -17346,7 +18372,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -17357,17 +18385,17 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
               state_ = rawValue;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -17387,6 +18415,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_StartGame_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_StartGame_fieldAccessorTable
@@ -17402,6 +18431,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.GameState state = 1;</code>
+     * @return The enum numeric value on the wire for state.
      */
     public int getStateValue() {
       return state_;
@@ -17412,13 +18442,16 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.GameState state = 1;</code>
+     * @return The state.
      */
     public soc.proto.Data.GameState getState() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -17428,6 +18461,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (state_ != soc.proto.Data.GameState.NEW.getNumber()) {
@@ -17436,6 +18470,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -17460,10 +18495,9 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.StartGame other = (soc.proto.GameMessage.StartGame) obj;
 
-      boolean result = true;
-      result = result && state_ == other.state_;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (state_ != other.state_) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -17550,6 +18584,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -17557,6 +18592,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.StartGame prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -17590,6 +18626,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_StartGame_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_StartGame_fieldAccessorTable
@@ -17612,6 +18649,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         state_ = 0;
@@ -17619,15 +18657,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_StartGame_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.StartGame getDefaultInstanceForType() {
         return soc.proto.GameMessage.StartGame.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.StartGame build() {
         soc.proto.GameMessage.StartGame result = buildPartial();
         if (!result.isInitialized()) {
@@ -17636,6 +18677,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.StartGame buildPartial() {
         soc.proto.GameMessage.StartGame result = new soc.proto.GameMessage.StartGame(this);
         result.state_ = state_;
@@ -17643,32 +18685,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.StartGame) {
           return mergeFrom((soc.proto.GameMessage.StartGame)other);
@@ -17688,10 +18737,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -17717,6 +18768,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @return The enum numeric value on the wire for state.
        */
       public int getStateValue() {
         return state_;
@@ -17727,6 +18779,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @param value The enum numeric value on the wire for state to set.
+       * @return This builder for chaining.
        */
       public Builder setStateValue(int value) {
         state_ = value;
@@ -17739,8 +18793,10 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @return The state.
        */
       public soc.proto.Data.GameState getState() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
         return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
       }
@@ -17750,6 +18806,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @param value The state to set.
+       * @return This builder for chaining.
        */
       public Builder setState(soc.proto.Data.GameState value) {
         if (value == null) {
@@ -17766,6 +18824,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearState() {
         
@@ -17773,11 +18832,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -17799,11 +18860,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<StartGame>
         PARSER = new com.google.protobuf.AbstractParser<StartGame>() {
+      @java.lang.Override
       public StartGame parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new StartGame(input, extensionRegistry);
+        return new StartGame(input, extensionRegistry);
       }
     };
 
@@ -17816,6 +18878,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.StartGame getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -17832,6 +18895,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.GameState state = 1;</code>
+     * @return The enum numeric value on the wire for state.
      */
     int getStateValue();
     /**
@@ -17840,6 +18904,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.GameState state = 1;</code>
+     * @return The state.
      */
     soc.proto.Data.GameState getState();
   }
@@ -17875,6 +18940,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Turn();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -17884,7 +18956,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -17895,17 +18969,17 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
               state_ = rawValue;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -17925,6 +18999,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_Turn_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_Turn_fieldAccessorTable
@@ -17940,6 +19015,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.GameState state = 1;</code>
+     * @return The enum numeric value on the wire for state.
      */
     public int getStateValue() {
       return state_;
@@ -17950,13 +19026,16 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.GameState state = 1;</code>
+     * @return The state.
      */
     public soc.proto.Data.GameState getState() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -17966,6 +19045,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (state_ != soc.proto.Data.GameState.NEW.getNumber()) {
@@ -17974,6 +19054,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -17998,10 +19079,9 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.Turn other = (soc.proto.GameMessage.Turn) obj;
 
-      boolean result = true;
-      result = result && state_ == other.state_;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (state_ != other.state_) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -18088,6 +19168,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -18095,6 +19176,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.Turn prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -18133,6 +19215,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_Turn_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_Turn_fieldAccessorTable
@@ -18155,6 +19238,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         state_ = 0;
@@ -18162,15 +19246,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_Turn_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.Turn getDefaultInstanceForType() {
         return soc.proto.GameMessage.Turn.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.Turn build() {
         soc.proto.GameMessage.Turn result = buildPartial();
         if (!result.isInitialized()) {
@@ -18179,6 +19266,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.Turn buildPartial() {
         soc.proto.GameMessage.Turn result = new soc.proto.GameMessage.Turn(this);
         result.state_ = state_;
@@ -18186,32 +19274,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.Turn) {
           return mergeFrom((soc.proto.GameMessage.Turn)other);
@@ -18231,10 +19326,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -18260,6 +19357,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @return The enum numeric value on the wire for state.
        */
       public int getStateValue() {
         return state_;
@@ -18270,6 +19368,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @param value The enum numeric value on the wire for state to set.
+       * @return This builder for chaining.
        */
       public Builder setStateValue(int value) {
         state_ = value;
@@ -18282,8 +19382,10 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @return The state.
        */
       public soc.proto.Data.GameState getState() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
         return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
       }
@@ -18293,6 +19395,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @param value The state to set.
+       * @return This builder for chaining.
        */
       public Builder setState(soc.proto.Data.GameState value) {
         if (value == null) {
@@ -18309,6 +19413,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.GameState state = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearState() {
         
@@ -18316,11 +19421,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -18342,11 +19449,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<Turn>
         PARSER = new com.google.protobuf.AbstractParser<Turn>() {
+      @java.lang.Override
       public Turn parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new Turn(input, extensionRegistry);
+        return new Turn(input, extensionRegistry);
       }
     };
 
@@ -18359,6 +19467,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.Turn getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -18393,6 +19502,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new SetTurn();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -18402,6 +19518,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -18413,7 +19532,7 @@ public final class GameMessage {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -18436,6 +19555,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_SetTurn_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_SetTurn_fieldAccessorTable
@@ -18444,6 +19564,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -18453,11 +19574,13 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -18478,9 +19601,8 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.SetTurn other = (soc.proto.GameMessage.SetTurn) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -18565,6 +19687,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -18572,6 +19695,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.SetTurn prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -18603,6 +19727,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_SetTurn_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_SetTurn_fieldAccessorTable
@@ -18625,20 +19750,24 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_SetTurn_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.SetTurn getDefaultInstanceForType() {
         return soc.proto.GameMessage.SetTurn.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.SetTurn build() {
         soc.proto.GameMessage.SetTurn result = buildPartial();
         if (!result.isInitialized()) {
@@ -18647,38 +19776,46 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.SetTurn buildPartial() {
         soc.proto.GameMessage.SetTurn result = new soc.proto.GameMessage.SetTurn(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.SetTurn) {
           return mergeFrom((soc.proto.GameMessage.SetTurn)other);
@@ -18695,10 +19832,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -18716,11 +19855,13 @@ public final class GameMessage {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -18742,11 +19883,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<SetTurn>
         PARSER = new com.google.protobuf.AbstractParser<SetTurn>() {
+      @java.lang.Override
       public SetTurn parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new SetTurn(input, extensionRegistry);
+        return new SetTurn(input, extensionRegistry);
       }
     };
 
@@ -18759,6 +19901,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.SetTurn getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -18796,6 +19939,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new DiceRollRequest();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -18805,6 +19955,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -18816,7 +19969,7 @@ public final class GameMessage {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -18839,6 +19992,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_DiceRollRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_DiceRollRequest_fieldAccessorTable
@@ -18847,6 +20001,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -18856,11 +20011,13 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -18881,9 +20038,8 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.DiceRollRequest other = (soc.proto.GameMessage.DiceRollRequest) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -18968,6 +20124,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -18975,6 +20132,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.DiceRollRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -19009,6 +20167,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_DiceRollRequest_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_DiceRollRequest_fieldAccessorTable
@@ -19031,20 +20190,24 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_DiceRollRequest_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceRollRequest getDefaultInstanceForType() {
         return soc.proto.GameMessage.DiceRollRequest.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceRollRequest build() {
         soc.proto.GameMessage.DiceRollRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -19053,38 +20216,46 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceRollRequest buildPartial() {
         soc.proto.GameMessage.DiceRollRequest result = new soc.proto.GameMessage.DiceRollRequest(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.DiceRollRequest) {
           return mergeFrom((soc.proto.GameMessage.DiceRollRequest)other);
@@ -19101,10 +20272,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -19122,11 +20295,13 @@ public final class GameMessage {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -19148,11 +20323,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<DiceRollRequest>
         PARSER = new com.google.protobuf.AbstractParser<DiceRollRequest>() {
+      @java.lang.Override
       public DiceRollRequest parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new DiceRollRequest(input, extensionRegistry);
+        return new DiceRollRequest(input, extensionRegistry);
       }
     };
 
@@ -19165,6 +20341,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.DiceRollRequest getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -19182,6 +20359,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 dice_total = 1;</code>
+     * @return The diceTotal.
      */
     int getDiceTotal();
   }
@@ -19217,7 +20395,13 @@ public final class GameMessage {
       super(builder);
     }
     private DiceResult() {
-      diceTotal_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new DiceResult();
     }
 
     @java.lang.Override
@@ -19230,7 +20414,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -19241,16 +20427,16 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               diceTotal_ = input.readSInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -19270,6 +20456,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_DiceResult_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_DiceResult_fieldAccessorTable
@@ -19286,12 +20473,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 dice_total = 1;</code>
+     * @return The diceTotal.
      */
     public int getDiceTotal() {
       return diceTotal_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -19301,6 +20490,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (diceTotal_ != 0) {
@@ -19309,6 +20499,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -19333,11 +20524,10 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.DiceResult other = (soc.proto.GameMessage.DiceResult) obj;
 
-      boolean result = true;
-      result = result && (getDiceTotal()
-          == other.getDiceTotal());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getDiceTotal()
+          != other.getDiceTotal()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -19424,6 +20614,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -19431,6 +20622,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.DiceResult prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -19473,6 +20665,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_DiceResult_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_DiceResult_fieldAccessorTable
@@ -19495,6 +20688,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         diceTotal_ = 0;
@@ -19502,15 +20696,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_DiceResult_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResult getDefaultInstanceForType() {
         return soc.proto.GameMessage.DiceResult.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResult build() {
         soc.proto.GameMessage.DiceResult result = buildPartial();
         if (!result.isInitialized()) {
@@ -19519,6 +20716,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResult buildPartial() {
         soc.proto.GameMessage.DiceResult result = new soc.proto.GameMessage.DiceResult(this);
         result.diceTotal_ = diceTotal_;
@@ -19526,32 +20724,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.DiceResult) {
           return mergeFrom((soc.proto.GameMessage.DiceResult)other);
@@ -19571,10 +20776,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -19601,6 +20808,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 dice_total = 1;</code>
+       * @return The diceTotal.
        */
       public int getDiceTotal() {
         return diceTotal_;
@@ -19612,6 +20820,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 dice_total = 1;</code>
+       * @param value The diceTotal to set.
+       * @return This builder for chaining.
        */
       public Builder setDiceTotal(int value) {
         
@@ -19626,6 +20836,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 dice_total = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDiceTotal() {
         
@@ -19633,11 +20844,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -19659,11 +20872,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<DiceResult>
         PARSER = new com.google.protobuf.AbstractParser<DiceResult>() {
+      @java.lang.Override
       public DiceResult parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new DiceResult(input, extensionRegistry);
+        return new DiceResult(input, extensionRegistry);
       }
     };
 
@@ -19676,6 +20890,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.DiceResult getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -19733,6 +20948,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new DiceResultResources();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -19742,6 +20964,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -19753,20 +20978,20 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 playerResources_ = new java.util.ArrayList<soc.proto.GameMessage.DiceResultResources.PlayerResources>();
                 mutable_bitField0_ |= 0x00000001;
               }
               playerResources_.add(
                   input.readMessage(soc.proto.GameMessage.DiceResultResources.PlayerResources.parser(), extensionRegistry));
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -19777,7 +21002,7 @@ public final class GameMessage {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           playerResources_ = java.util.Collections.unmodifiableList(playerResources_);
         }
         this.unknownFields = unknownFields.build();
@@ -19789,6 +21014,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_DiceResultResources_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_DiceResultResources_fieldAccessorTable
@@ -19806,6 +21032,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 player_number = 1;</code>
+       * @return The playerNumber.
        */
       int getPlayerNumber();
 
@@ -19815,6 +21042,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceSet res_gained = 2;</code>
+       * @return Whether the resGained field is set.
        */
       boolean hasResGained();
       /**
@@ -19823,6 +21051,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceSet res_gained = 2;</code>
+       * @return The resGained.
        */
       soc.proto.Data.ResourceSet getResGained();
       /**
@@ -19840,6 +21069,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 res_total = 3;</code>
+       * @return The resTotal.
        */
       int getResTotal();
     }
@@ -19860,8 +21090,13 @@ public final class GameMessage {
         super(builder);
       }
       private PlayerResources() {
-        playerNumber_ = 0;
-        resTotal_ = 0;
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new PlayerResources();
       }
 
       @java.lang.Override
@@ -19874,7 +21109,9 @@ public final class GameMessage {
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
         this();
-        int mutable_bitField0_ = 0;
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
         com.google.protobuf.UnknownFieldSet.Builder unknownFields =
             com.google.protobuf.UnknownFieldSet.newBuilder();
         try {
@@ -19885,13 +21122,6 @@ public final class GameMessage {
               case 0:
                 done = true;
                 break;
-              default: {
-                if (!parseUnknownFieldProto3(
-                    input, unknownFields, extensionRegistry, tag)) {
-                  done = true;
-                }
-                break;
-              }
               case 8: {
 
                 playerNumber_ = input.readUInt32();
@@ -19915,6 +21145,13 @@ public final class GameMessage {
                 resTotal_ = input.readUInt32();
                 break;
               }
+              default: {
+                if (!parseUnknownField(
+                    input, unknownFields, extensionRegistry, tag)) {
+                  done = true;
+                }
+                break;
+              }
             }
           }
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -19932,6 +21169,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_fieldAccessorTable
@@ -19947,6 +21185,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 player_number = 1;</code>
+       * @return The playerNumber.
        */
       public int getPlayerNumber() {
         return playerNumber_;
@@ -19960,6 +21199,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceSet res_gained = 2;</code>
+       * @return Whether the resGained field is set.
        */
       public boolean hasResGained() {
         return resGained_ != null;
@@ -19970,6 +21210,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceSet res_gained = 2;</code>
+       * @return The resGained.
        */
       public soc.proto.Data.ResourceSet getResGained() {
         return resGained_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : resGained_;
@@ -19993,12 +21234,14 @@ public final class GameMessage {
        * </pre>
        *
        * <code>uint32 res_total = 3;</code>
+       * @return The resTotal.
        */
       public int getResTotal() {
         return resTotal_;
       }
 
       private byte memoizedIsInitialized = -1;
+      @java.lang.Override
       public final boolean isInitialized() {
         byte isInitialized = memoizedIsInitialized;
         if (isInitialized == 1) return true;
@@ -20008,6 +21251,7 @@ public final class GameMessage {
         return true;
       }
 
+      @java.lang.Override
       public void writeTo(com.google.protobuf.CodedOutputStream output)
                           throws java.io.IOException {
         if (playerNumber_ != 0) {
@@ -20022,6 +21266,7 @@ public final class GameMessage {
         unknownFields.writeTo(output);
       }
 
+      @java.lang.Override
       public int getSerializedSize() {
         int size = memoizedSize;
         if (size != -1) return size;
@@ -20054,18 +21299,17 @@ public final class GameMessage {
         }
         soc.proto.GameMessage.DiceResultResources.PlayerResources other = (soc.proto.GameMessage.DiceResultResources.PlayerResources) obj;
 
-        boolean result = true;
-        result = result && (getPlayerNumber()
-            == other.getPlayerNumber());
-        result = result && (hasResGained() == other.hasResGained());
+        if (getPlayerNumber()
+            != other.getPlayerNumber()) return false;
+        if (hasResGained() != other.hasResGained()) return false;
         if (hasResGained()) {
-          result = result && getResGained()
-              .equals(other.getResGained());
+          if (!getResGained()
+              .equals(other.getResGained())) return false;
         }
-        result = result && (getResTotal()
-            == other.getResTotal());
-        result = result && unknownFields.equals(other.unknownFields);
-        return result;
+        if (getResTotal()
+            != other.getResTotal()) return false;
+        if (!unknownFields.equals(other.unknownFields)) return false;
+        return true;
       }
 
       @java.lang.Override
@@ -20158,6 +21402,7 @@ public final class GameMessage {
             .parseWithIOException(PARSER, input, extensionRegistry);
       }
 
+      @java.lang.Override
       public Builder newBuilderForType() { return newBuilder(); }
       public static Builder newBuilder() {
         return DEFAULT_INSTANCE.toBuilder();
@@ -20165,6 +21410,7 @@ public final class GameMessage {
       public static Builder newBuilder(soc.proto.GameMessage.DiceResultResources.PlayerResources prototype) {
         return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
       }
+      @java.lang.Override
       public Builder toBuilder() {
         return this == DEFAULT_INSTANCE
             ? new Builder() : new Builder().mergeFrom(this);
@@ -20192,6 +21438,7 @@ public final class GameMessage {
           return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_descriptor;
         }
 
+        @java.lang.Override
         protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
             internalGetFieldAccessorTable() {
           return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_fieldAccessorTable
@@ -20214,6 +21461,7 @@ public final class GameMessage {
                   .alwaysUseFieldBuilders) {
           }
         }
+        @java.lang.Override
         public Builder clear() {
           super.clear();
           playerNumber_ = 0;
@@ -20229,15 +21477,18 @@ public final class GameMessage {
           return this;
         }
 
+        @java.lang.Override
         public com.google.protobuf.Descriptors.Descriptor
             getDescriptorForType() {
           return soc.proto.GameMessage.internal_static_DiceResultResources_PlayerResources_descriptor;
         }
 
+        @java.lang.Override
         public soc.proto.GameMessage.DiceResultResources.PlayerResources getDefaultInstanceForType() {
           return soc.proto.GameMessage.DiceResultResources.PlayerResources.getDefaultInstance();
         }
 
+        @java.lang.Override
         public soc.proto.GameMessage.DiceResultResources.PlayerResources build() {
           soc.proto.GameMessage.DiceResultResources.PlayerResources result = buildPartial();
           if (!result.isInitialized()) {
@@ -20246,6 +21497,7 @@ public final class GameMessage {
           return result;
         }
 
+        @java.lang.Override
         public soc.proto.GameMessage.DiceResultResources.PlayerResources buildPartial() {
           soc.proto.GameMessage.DiceResultResources.PlayerResources result = new soc.proto.GameMessage.DiceResultResources.PlayerResources(this);
           result.playerNumber_ = playerNumber_;
@@ -20259,32 +21511,39 @@ public final class GameMessage {
           return result;
         }
 
+        @java.lang.Override
         public Builder clone() {
-          return (Builder) super.clone();
+          return super.clone();
         }
+        @java.lang.Override
         public Builder setField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             java.lang.Object value) {
-          return (Builder) super.setField(field, value);
+          return super.setField(field, value);
         }
+        @java.lang.Override
         public Builder clearField(
             com.google.protobuf.Descriptors.FieldDescriptor field) {
-          return (Builder) super.clearField(field);
+          return super.clearField(field);
         }
+        @java.lang.Override
         public Builder clearOneof(
             com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-          return (Builder) super.clearOneof(oneof);
+          return super.clearOneof(oneof);
         }
+        @java.lang.Override
         public Builder setRepeatedField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             int index, java.lang.Object value) {
-          return (Builder) super.setRepeatedField(field, index, value);
+          return super.setRepeatedField(field, index, value);
         }
+        @java.lang.Override
         public Builder addRepeatedField(
             com.google.protobuf.Descriptors.FieldDescriptor field,
             java.lang.Object value) {
-          return (Builder) super.addRepeatedField(field, value);
+          return super.addRepeatedField(field, value);
         }
+        @java.lang.Override
         public Builder mergeFrom(com.google.protobuf.Message other) {
           if (other instanceof soc.proto.GameMessage.DiceResultResources.PlayerResources) {
             return mergeFrom((soc.proto.GameMessage.DiceResultResources.PlayerResources)other);
@@ -20310,10 +21569,12 @@ public final class GameMessage {
           return this;
         }
 
+        @java.lang.Override
         public final boolean isInitialized() {
           return true;
         }
 
+        @java.lang.Override
         public Builder mergeFrom(
             com.google.protobuf.CodedInputStream input,
             com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -20339,6 +21600,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>uint32 player_number = 1;</code>
+         * @return The playerNumber.
          */
         public int getPlayerNumber() {
           return playerNumber_;
@@ -20349,6 +21611,8 @@ public final class GameMessage {
          * </pre>
          *
          * <code>uint32 player_number = 1;</code>
+         * @param value The playerNumber to set.
+         * @return This builder for chaining.
          */
         public Builder setPlayerNumber(int value) {
           
@@ -20362,6 +21626,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>uint32 player_number = 1;</code>
+         * @return This builder for chaining.
          */
         public Builder clearPlayerNumber() {
           
@@ -20370,7 +21635,7 @@ public final class GameMessage {
           return this;
         }
 
-        private soc.proto.Data.ResourceSet resGained_ = null;
+        private soc.proto.Data.ResourceSet resGained_;
         private com.google.protobuf.SingleFieldBuilderV3<
             soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> resGainedBuilder_;
         /**
@@ -20379,6 +21644,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>.ResourceSet res_gained = 2;</code>
+         * @return Whether the resGained field is set.
          */
         public boolean hasResGained() {
           return resGainedBuilder_ != null || resGained_ != null;
@@ -20389,6 +21655,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>.ResourceSet res_gained = 2;</code>
+         * @return The resGained.
          */
         public soc.proto.Data.ResourceSet getResGained() {
           if (resGainedBuilder_ == null) {
@@ -20530,6 +21797,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>uint32 res_total = 3;</code>
+         * @return The resTotal.
          */
         public int getResTotal() {
           return resTotal_;
@@ -20540,6 +21808,8 @@ public final class GameMessage {
          * </pre>
          *
          * <code>uint32 res_total = 3;</code>
+         * @param value The resTotal to set.
+         * @return This builder for chaining.
          */
         public Builder setResTotal(int value) {
           
@@ -20553,6 +21823,7 @@ public final class GameMessage {
          * </pre>
          *
          * <code>uint32 res_total = 3;</code>
+         * @return This builder for chaining.
          */
         public Builder clearResTotal() {
           
@@ -20560,11 +21831,13 @@ public final class GameMessage {
           onChanged();
           return this;
         }
+        @java.lang.Override
         public final Builder setUnknownFields(
             final com.google.protobuf.UnknownFieldSet unknownFields) {
-          return super.setUnknownFieldsProto3(unknownFields);
+          return super.setUnknownFields(unknownFields);
         }
 
+        @java.lang.Override
         public final Builder mergeUnknownFields(
             final com.google.protobuf.UnknownFieldSet unknownFields) {
           return super.mergeUnknownFields(unknownFields);
@@ -20586,11 +21859,12 @@ public final class GameMessage {
 
       private static final com.google.protobuf.Parser<PlayerResources>
           PARSER = new com.google.protobuf.AbstractParser<PlayerResources>() {
+        @java.lang.Override
         public PlayerResources parsePartialFrom(
             com.google.protobuf.CodedInputStream input,
             com.google.protobuf.ExtensionRegistryLite extensionRegistry)
             throws com.google.protobuf.InvalidProtocolBufferException {
-            return new PlayerResources(input, extensionRegistry);
+          return new PlayerResources(input, extensionRegistry);
         }
       };
 
@@ -20603,6 +21877,7 @@ public final class GameMessage {
         return PARSER;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResultResources.PlayerResources getDefaultInstanceForType() {
         return DEFAULT_INSTANCE;
       }
@@ -20645,6 +21920,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -20654,6 +21930,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < playerResources_.size(); i++) {
@@ -20662,6 +21939,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -20686,11 +21964,10 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.DiceResultResources other = (soc.proto.GameMessage.DiceResultResources) obj;
 
-      boolean result = true;
-      result = result && getPlayerResourcesList()
-          .equals(other.getPlayerResourcesList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getPlayerResourcesList()
+          .equals(other.getPlayerResourcesList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -20779,6 +22056,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -20786,6 +22064,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.DiceResultResources prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -20815,6 +22094,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_DiceResultResources_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_DiceResultResources_fieldAccessorTable
@@ -20838,6 +22118,7 @@ public final class GameMessage {
           getPlayerResourcesFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (playerResourcesBuilder_ == null) {
@@ -20849,15 +22130,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_DiceResultResources_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResultResources getDefaultInstanceForType() {
         return soc.proto.GameMessage.DiceResultResources.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResultResources build() {
         soc.proto.GameMessage.DiceResultResources result = buildPartial();
         if (!result.isInitialized()) {
@@ -20866,11 +22150,12 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResultResources buildPartial() {
         soc.proto.GameMessage.DiceResultResources result = new soc.proto.GameMessage.DiceResultResources(this);
         int from_bitField0_ = bitField0_;
         if (playerResourcesBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          if (((bitField0_ & 0x00000001) != 0)) {
             playerResources_ = java.util.Collections.unmodifiableList(playerResources_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
@@ -20882,32 +22167,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.DiceResultResources) {
           return mergeFrom((soc.proto.GameMessage.DiceResultResources)other);
@@ -20950,10 +22242,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -20976,7 +22270,7 @@ public final class GameMessage {
       private java.util.List<soc.proto.GameMessage.DiceResultResources.PlayerResources> playerResources_ =
         java.util.Collections.emptyList();
       private void ensurePlayerResourcesIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           playerResources_ = new java.util.ArrayList<soc.proto.GameMessage.DiceResultResources.PlayerResources>(playerResources_);
           bitField0_ |= 0x00000001;
          }
@@ -21205,18 +22499,20 @@ public final class GameMessage {
           playerResourcesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               soc.proto.GameMessage.DiceResultResources.PlayerResources, soc.proto.GameMessage.DiceResultResources.PlayerResources.Builder, soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder>(
                   playerResources_,
-                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
                   isClean());
           playerResources_ = null;
         }
         return playerResourcesBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -21238,11 +22534,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<DiceResultResources>
         PARSER = new com.google.protobuf.AbstractParser<DiceResultResources>() {
+      @java.lang.Override
       public DiceResultResources parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new DiceResultResources(input, extensionRegistry);
+        return new DiceResultResources(input, extensionRegistry);
       }
     };
 
@@ -21255,6 +22552,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.DiceResultResources getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -21285,6 +22583,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new EndTurn();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -21294,6 +22599,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -21305,7 +22613,7 @@ public final class GameMessage {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -21328,6 +22636,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_EndTurn_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_EndTurn_fieldAccessorTable
@@ -21336,6 +22645,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -21345,11 +22655,13 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -21370,9 +22682,8 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.EndTurn other = (soc.proto.GameMessage.EndTurn) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -21457,6 +22768,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -21464,6 +22776,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.EndTurn prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -21491,6 +22804,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_EndTurn_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_EndTurn_fieldAccessorTable
@@ -21513,20 +22827,24 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_EndTurn_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.EndTurn getDefaultInstanceForType() {
         return soc.proto.GameMessage.EndTurn.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.EndTurn build() {
         soc.proto.GameMessage.EndTurn result = buildPartial();
         if (!result.isInitialized()) {
@@ -21535,38 +22853,46 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.EndTurn buildPartial() {
         soc.proto.GameMessage.EndTurn result = new soc.proto.GameMessage.EndTurn(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.EndTurn) {
           return mergeFrom((soc.proto.GameMessage.EndTurn)other);
@@ -21583,10 +22909,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -21604,11 +22932,13 @@ public final class GameMessage {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -21630,11 +22960,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<EndTurn>
         PARSER = new com.google.protobuf.AbstractParser<EndTurn>() {
+      @java.lang.Override
       public EndTurn parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new EndTurn(input, extensionRegistry);
+        return new EndTurn(input, extensionRegistry);
       }
     };
 
@@ -21647,6 +22978,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.EndTurn getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -21659,10 +22991,12 @@ public final class GameMessage {
 
     /**
      * <code>.ResourceSet give = 1;</code>
+     * @return Whether the give field is set.
      */
     boolean hasGive();
     /**
      * <code>.ResourceSet give = 1;</code>
+     * @return The give.
      */
     soc.proto.Data.ResourceSet getGive();
     /**
@@ -21672,10 +23006,12 @@ public final class GameMessage {
 
     /**
      * <code>.ResourceSet get = 2;</code>
+     * @return Whether the get field is set.
      */
     boolean hasGet();
     /**
      * <code>.ResourceSet get = 2;</code>
+     * @return The get.
      */
     soc.proto.Data.ResourceSet getGet();
     /**
@@ -21707,6 +23043,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new TradeWithBank();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -21716,7 +23059,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -21727,13 +23072,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Data.ResourceSet.Builder subBuilder = null;
               if (give_ != null) {
@@ -21760,6 +23098,13 @@ public final class GameMessage {
 
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -21777,6 +23122,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_TradeWithBank_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_TradeWithBank_fieldAccessorTable
@@ -21788,12 +23134,14 @@ public final class GameMessage {
     private soc.proto.Data.ResourceSet give_;
     /**
      * <code>.ResourceSet give = 1;</code>
+     * @return Whether the give field is set.
      */
     public boolean hasGive() {
       return give_ != null;
     }
     /**
      * <code>.ResourceSet give = 1;</code>
+     * @return The give.
      */
     public soc.proto.Data.ResourceSet getGive() {
       return give_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
@@ -21809,12 +23157,14 @@ public final class GameMessage {
     private soc.proto.Data.ResourceSet get_;
     /**
      * <code>.ResourceSet get = 2;</code>
+     * @return Whether the get field is set.
      */
     public boolean hasGet() {
       return get_ != null;
     }
     /**
      * <code>.ResourceSet get = 2;</code>
+     * @return The get.
      */
     public soc.proto.Data.ResourceSet getGet() {
       return get_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
@@ -21827,6 +23177,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -21836,6 +23187,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (give_ != null) {
@@ -21847,6 +23199,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -21875,19 +23228,18 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.TradeWithBank other = (soc.proto.GameMessage.TradeWithBank) obj;
 
-      boolean result = true;
-      result = result && (hasGive() == other.hasGive());
+      if (hasGive() != other.hasGive()) return false;
       if (hasGive()) {
-        result = result && getGive()
-            .equals(other.getGive());
+        if (!getGive()
+            .equals(other.getGive())) return false;
       }
-      result = result && (hasGet() == other.hasGet());
+      if (hasGet() != other.hasGet()) return false;
       if (hasGet()) {
-        result = result && getGet()
-            .equals(other.getGet());
+        if (!getGet()
+            .equals(other.getGet())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -21980,6 +23332,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -21987,6 +23340,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.TradeWithBank prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -22018,6 +23372,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_TradeWithBank_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_TradeWithBank_fieldAccessorTable
@@ -22040,6 +23395,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (giveBuilder_ == null) {
@@ -22057,15 +23413,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_TradeWithBank_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeWithBank getDefaultInstanceForType() {
         return soc.proto.GameMessage.TradeWithBank.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeWithBank build() {
         soc.proto.GameMessage.TradeWithBank result = buildPartial();
         if (!result.isInitialized()) {
@@ -22074,6 +23433,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeWithBank buildPartial() {
         soc.proto.GameMessage.TradeWithBank result = new soc.proto.GameMessage.TradeWithBank(this);
         if (giveBuilder_ == null) {
@@ -22090,32 +23450,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.TradeWithBank) {
           return mergeFrom((soc.proto.GameMessage.TradeWithBank)other);
@@ -22138,10 +23505,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -22160,17 +23529,19 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.ResourceSet give_ = null;
+      private soc.proto.Data.ResourceSet give_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> giveBuilder_;
       /**
        * <code>.ResourceSet give = 1;</code>
+       * @return Whether the give field is set.
        */
       public boolean hasGive() {
         return giveBuilder_ != null || give_ != null;
       }
       /**
        * <code>.ResourceSet give = 1;</code>
+       * @return The give.
        */
       public soc.proto.Data.ResourceSet getGive() {
         if (giveBuilder_ == null) {
@@ -22277,17 +23648,19 @@ public final class GameMessage {
         return giveBuilder_;
       }
 
-      private soc.proto.Data.ResourceSet get_ = null;
+      private soc.proto.Data.ResourceSet get_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> getBuilder_;
       /**
        * <code>.ResourceSet get = 2;</code>
+       * @return Whether the get field is set.
        */
       public boolean hasGet() {
         return getBuilder_ != null || get_ != null;
       }
       /**
        * <code>.ResourceSet get = 2;</code>
+       * @return The get.
        */
       public soc.proto.Data.ResourceSet getGet() {
         if (getBuilder_ == null) {
@@ -22393,11 +23766,13 @@ public final class GameMessage {
         }
         return getBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -22419,11 +23794,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<TradeWithBank>
         PARSER = new com.google.protobuf.AbstractParser<TradeWithBank>() {
+      @java.lang.Override
       public TradeWithBank parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new TradeWithBank(input, extensionRegistry);
+        return new TradeWithBank(input, extensionRegistry);
       }
     };
 
@@ -22436,6 +23812,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.TradeWithBank getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -22448,10 +23825,12 @@ public final class GameMessage {
 
     /**
      * <code>.ResourceSet give = 1;</code>
+     * @return Whether the give field is set.
      */
     boolean hasGive();
     /**
      * <code>.ResourceSet give = 1;</code>
+     * @return The give.
      */
     soc.proto.Data.ResourceSet getGive();
     /**
@@ -22461,10 +23840,12 @@ public final class GameMessage {
 
     /**
      * <code>.ResourceSet get = 2;</code>
+     * @return Whether the get field is set.
      */
     boolean hasGet();
     /**
      * <code>.ResourceSet get = 2;</code>
+     * @return The get.
      */
     soc.proto.Data.ResourceSet getGet();
     /**
@@ -22478,6 +23859,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>._IntArray to_players = 3;</code>
+     * @return Whether the toPlayers field is set.
      */
     boolean hasToPlayers();
     /**
@@ -22486,6 +23868,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>._IntArray to_players = 3;</code>
+     * @return The toPlayers.
      */
     soc.proto.Data._IntArray getToPlayers();
     /**
@@ -22503,6 +23886,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 offer_serial = 4;</code>
+     * @return The offerSerial.
      */
     int getOfferSerial();
   }
@@ -22530,7 +23914,13 @@ public final class GameMessage {
       super(builder);
     }
     private TradeMakeOffer() {
-      offerSerial_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new TradeMakeOffer();
     }
 
     @java.lang.Override
@@ -22543,7 +23933,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -22554,13 +23946,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Data.ResourceSet.Builder subBuilder = null;
               if (give_ != null) {
@@ -22605,6 +23990,13 @@ public final class GameMessage {
               offerSerial_ = input.readInt32();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -22622,6 +24014,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_TradeMakeOffer_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_TradeMakeOffer_fieldAccessorTable
@@ -22633,12 +24026,14 @@ public final class GameMessage {
     private soc.proto.Data.ResourceSet give_;
     /**
      * <code>.ResourceSet give = 1;</code>
+     * @return Whether the give field is set.
      */
     public boolean hasGive() {
       return give_ != null;
     }
     /**
      * <code>.ResourceSet give = 1;</code>
+     * @return The give.
      */
     public soc.proto.Data.ResourceSet getGive() {
       return give_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
@@ -22654,12 +24049,14 @@ public final class GameMessage {
     private soc.proto.Data.ResourceSet get_;
     /**
      * <code>.ResourceSet get = 2;</code>
+     * @return Whether the get field is set.
      */
     public boolean hasGet() {
       return get_ != null;
     }
     /**
      * <code>.ResourceSet get = 2;</code>
+     * @return The get.
      */
     public soc.proto.Data.ResourceSet getGet() {
       return get_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
@@ -22679,6 +24076,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>._IntArray to_players = 3;</code>
+     * @return Whether the toPlayers field is set.
      */
     public boolean hasToPlayers() {
       return toPlayers_ != null;
@@ -22689,6 +24087,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>._IntArray to_players = 3;</code>
+     * @return The toPlayers.
      */
     public soc.proto.Data._IntArray getToPlayers() {
       return toPlayers_ == null ? soc.proto.Data._IntArray.getDefaultInstance() : toPlayers_;
@@ -22712,12 +24111,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 offer_serial = 4;</code>
+     * @return The offerSerial.
      */
     public int getOfferSerial() {
       return offerSerial_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -22727,6 +24128,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (give_ != null) {
@@ -22744,6 +24146,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -22780,26 +24183,25 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.TradeMakeOffer other = (soc.proto.GameMessage.TradeMakeOffer) obj;
 
-      boolean result = true;
-      result = result && (hasGive() == other.hasGive());
+      if (hasGive() != other.hasGive()) return false;
       if (hasGive()) {
-        result = result && getGive()
-            .equals(other.getGive());
+        if (!getGive()
+            .equals(other.getGive())) return false;
       }
-      result = result && (hasGet() == other.hasGet());
+      if (hasGet() != other.hasGet()) return false;
       if (hasGet()) {
-        result = result && getGet()
-            .equals(other.getGet());
+        if (!getGet()
+            .equals(other.getGet())) return false;
       }
-      result = result && (hasToPlayers() == other.hasToPlayers());
+      if (hasToPlayers() != other.hasToPlayers()) return false;
       if (hasToPlayers()) {
-        result = result && getToPlayers()
-            .equals(other.getToPlayers());
+        if (!getToPlayers()
+            .equals(other.getToPlayers())) return false;
       }
-      result = result && (getOfferSerial()
-          == other.getOfferSerial());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getOfferSerial()
+          != other.getOfferSerial()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -22898,6 +24300,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -22905,6 +24308,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.TradeMakeOffer prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -22939,6 +24343,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_TradeMakeOffer_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_TradeMakeOffer_fieldAccessorTable
@@ -22961,6 +24366,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (giveBuilder_ == null) {
@@ -22986,15 +24392,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_TradeMakeOffer_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeMakeOffer getDefaultInstanceForType() {
         return soc.proto.GameMessage.TradeMakeOffer.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeMakeOffer build() {
         soc.proto.GameMessage.TradeMakeOffer result = buildPartial();
         if (!result.isInitialized()) {
@@ -23003,6 +24412,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeMakeOffer buildPartial() {
         soc.proto.GameMessage.TradeMakeOffer result = new soc.proto.GameMessage.TradeMakeOffer(this);
         if (giveBuilder_ == null) {
@@ -23025,32 +24435,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.TradeMakeOffer) {
           return mergeFrom((soc.proto.GameMessage.TradeMakeOffer)other);
@@ -23079,10 +24496,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -23101,17 +24520,19 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.ResourceSet give_ = null;
+      private soc.proto.Data.ResourceSet give_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> giveBuilder_;
       /**
        * <code>.ResourceSet give = 1;</code>
+       * @return Whether the give field is set.
        */
       public boolean hasGive() {
         return giveBuilder_ != null || give_ != null;
       }
       /**
        * <code>.ResourceSet give = 1;</code>
+       * @return The give.
        */
       public soc.proto.Data.ResourceSet getGive() {
         if (giveBuilder_ == null) {
@@ -23218,17 +24639,19 @@ public final class GameMessage {
         return giveBuilder_;
       }
 
-      private soc.proto.Data.ResourceSet get_ = null;
+      private soc.proto.Data.ResourceSet get_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> getBuilder_;
       /**
        * <code>.ResourceSet get = 2;</code>
+       * @return Whether the get field is set.
        */
       public boolean hasGet() {
         return getBuilder_ != null || get_ != null;
       }
       /**
        * <code>.ResourceSet get = 2;</code>
+       * @return The get.
        */
       public soc.proto.Data.ResourceSet getGet() {
         if (getBuilder_ == null) {
@@ -23335,7 +24758,7 @@ public final class GameMessage {
         return getBuilder_;
       }
 
-      private soc.proto.Data._IntArray toPlayers_ = null;
+      private soc.proto.Data._IntArray toPlayers_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data._IntArray, soc.proto.Data._IntArray.Builder, soc.proto.Data._IntArrayOrBuilder> toPlayersBuilder_;
       /**
@@ -23344,6 +24767,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._IntArray to_players = 3;</code>
+       * @return Whether the toPlayers field is set.
        */
       public boolean hasToPlayers() {
         return toPlayersBuilder_ != null || toPlayers_ != null;
@@ -23354,6 +24778,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>._IntArray to_players = 3;</code>
+       * @return The toPlayers.
        */
       public soc.proto.Data._IntArray getToPlayers() {
         if (toPlayersBuilder_ == null) {
@@ -23495,6 +24920,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offer_serial = 4;</code>
+       * @return The offerSerial.
        */
       public int getOfferSerial() {
         return offerSerial_;
@@ -23505,6 +24931,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offer_serial = 4;</code>
+       * @param value The offerSerial to set.
+       * @return This builder for chaining.
        */
       public Builder setOfferSerial(int value) {
         
@@ -23518,6 +24946,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offer_serial = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOfferSerial() {
         
@@ -23525,11 +24954,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -23551,11 +24982,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<TradeMakeOffer>
         PARSER = new com.google.protobuf.AbstractParser<TradeMakeOffer>() {
+      @java.lang.Override
       public TradeMakeOffer parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new TradeMakeOffer(input, extensionRegistry);
+        return new TradeMakeOffer(input, extensionRegistry);
       }
     };
 
@@ -23568,6 +25000,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.TradeMakeOffer getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -23602,6 +25035,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new TradeClearOffer();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -23611,6 +25051,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -23622,7 +25065,7 @@ public final class GameMessage {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -23645,6 +25088,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_TradeClearOffer_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_TradeClearOffer_fieldAccessorTable
@@ -23653,6 +25097,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -23662,11 +25107,13 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -23687,9 +25134,8 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.TradeClearOffer other = (soc.proto.GameMessage.TradeClearOffer) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -23774,6 +25220,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -23781,6 +25228,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.TradeClearOffer prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -23812,6 +25260,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_TradeClearOffer_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_TradeClearOffer_fieldAccessorTable
@@ -23834,20 +25283,24 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_TradeClearOffer_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeClearOffer getDefaultInstanceForType() {
         return soc.proto.GameMessage.TradeClearOffer.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeClearOffer build() {
         soc.proto.GameMessage.TradeClearOffer result = buildPartial();
         if (!result.isInitialized()) {
@@ -23856,38 +25309,46 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeClearOffer buildPartial() {
         soc.proto.GameMessage.TradeClearOffer result = new soc.proto.GameMessage.TradeClearOffer(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.TradeClearOffer) {
           return mergeFrom((soc.proto.GameMessage.TradeClearOffer)other);
@@ -23904,10 +25365,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -23925,11 +25388,13 @@ public final class GameMessage {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -23951,11 +25416,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<TradeClearOffer>
         PARSER = new com.google.protobuf.AbstractParser<TradeClearOffer>() {
+      @java.lang.Override
       public TradeClearOffer parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new TradeClearOffer(input, extensionRegistry);
+        return new TradeClearOffer(input, extensionRegistry);
       }
     };
 
@@ -23968,6 +25434,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.TradeClearOffer getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -24000,6 +25467,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new TradeRejectOffer();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -24009,6 +25483,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -24020,7 +25497,7 @@ public final class GameMessage {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -24043,6 +25520,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_TradeRejectOffer_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_TradeRejectOffer_fieldAccessorTable
@@ -24051,6 +25529,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -24060,11 +25539,13 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -24085,9 +25566,8 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.TradeRejectOffer other = (soc.proto.GameMessage.TradeRejectOffer) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -24172,6 +25652,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -24179,6 +25660,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.TradeRejectOffer prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -24208,6 +25690,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_TradeRejectOffer_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_TradeRejectOffer_fieldAccessorTable
@@ -24230,20 +25713,24 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_TradeRejectOffer_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeRejectOffer getDefaultInstanceForType() {
         return soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeRejectOffer build() {
         soc.proto.GameMessage.TradeRejectOffer result = buildPartial();
         if (!result.isInitialized()) {
@@ -24252,38 +25739,46 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeRejectOffer buildPartial() {
         soc.proto.GameMessage.TradeRejectOffer result = new soc.proto.GameMessage.TradeRejectOffer(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.TradeRejectOffer) {
           return mergeFrom((soc.proto.GameMessage.TradeRejectOffer)other);
@@ -24300,10 +25795,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -24321,11 +25818,13 @@ public final class GameMessage {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -24347,11 +25846,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<TradeRejectOffer>
         PARSER = new com.google.protobuf.AbstractParser<TradeRejectOffer>() {
+      @java.lang.Override
       public TradeRejectOffer parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new TradeRejectOffer(input, extensionRegistry);
+        return new TradeRejectOffer(input, extensionRegistry);
       }
     };
 
@@ -24364,6 +25864,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.TradeRejectOffer getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -24380,6 +25881,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 offering_player_number = 1;</code>
+     * @return The offeringPlayerNumber.
      */
     int getOfferingPlayerNumber();
 
@@ -24389,6 +25891,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 offer_serial = 2;</code>
+     * @return The offerSerial.
      */
     int getOfferSerial();
   }
@@ -24417,8 +25920,13 @@ public final class GameMessage {
       super(builder);
     }
     private TradeAcceptOffer() {
-      offeringPlayerNumber_ = 0;
-      offerSerial_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new TradeAcceptOffer();
     }
 
     @java.lang.Override
@@ -24431,7 +25939,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -24442,13 +25952,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               offeringPlayerNumber_ = input.readInt32();
@@ -24457,6 +25960,13 @@ public final class GameMessage {
             case 16: {
 
               offerSerial_ = input.readInt32();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -24476,6 +25986,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_TradeAcceptOffer_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_TradeAcceptOffer_fieldAccessorTable
@@ -24491,6 +26002,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 offering_player_number = 1;</code>
+     * @return The offeringPlayerNumber.
      */
     public int getOfferingPlayerNumber() {
       return offeringPlayerNumber_;
@@ -24504,12 +26016,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 offer_serial = 2;</code>
+     * @return The offerSerial.
      */
     public int getOfferSerial() {
       return offerSerial_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -24519,6 +26033,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (offeringPlayerNumber_ != 0) {
@@ -24530,6 +26045,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -24558,13 +26074,12 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.TradeAcceptOffer other = (soc.proto.GameMessage.TradeAcceptOffer) obj;
 
-      boolean result = true;
-      result = result && (getOfferingPlayerNumber()
-          == other.getOfferingPlayerNumber());
-      result = result && (getOfferSerial()
-          == other.getOfferSerial());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getOfferingPlayerNumber()
+          != other.getOfferingPlayerNumber()) return false;
+      if (getOfferSerial()
+          != other.getOfferSerial()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -24653,6 +26168,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -24660,6 +26176,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.TradeAcceptOffer prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -24695,6 +26212,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_TradeAcceptOffer_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_TradeAcceptOffer_fieldAccessorTable
@@ -24717,6 +26235,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         offeringPlayerNumber_ = 0;
@@ -24726,15 +26245,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_TradeAcceptOffer_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeAcceptOffer getDefaultInstanceForType() {
         return soc.proto.GameMessage.TradeAcceptOffer.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeAcceptOffer build() {
         soc.proto.GameMessage.TradeAcceptOffer result = buildPartial();
         if (!result.isInitialized()) {
@@ -24743,6 +26265,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.TradeAcceptOffer buildPartial() {
         soc.proto.GameMessage.TradeAcceptOffer result = new soc.proto.GameMessage.TradeAcceptOffer(this);
         result.offeringPlayerNumber_ = offeringPlayerNumber_;
@@ -24751,32 +26274,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.TradeAcceptOffer) {
           return mergeFrom((soc.proto.GameMessage.TradeAcceptOffer)other);
@@ -24799,10 +26329,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -24828,6 +26360,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offering_player_number = 1;</code>
+       * @return The offeringPlayerNumber.
        */
       public int getOfferingPlayerNumber() {
         return offeringPlayerNumber_;
@@ -24838,6 +26371,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offering_player_number = 1;</code>
+       * @param value The offeringPlayerNumber to set.
+       * @return This builder for chaining.
        */
       public Builder setOfferingPlayerNumber(int value) {
         
@@ -24851,6 +26386,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offering_player_number = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOfferingPlayerNumber() {
         
@@ -24866,6 +26402,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offer_serial = 2;</code>
+       * @return The offerSerial.
        */
       public int getOfferSerial() {
         return offerSerial_;
@@ -24876,6 +26413,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offer_serial = 2;</code>
+       * @param value The offerSerial to set.
+       * @return This builder for chaining.
        */
       public Builder setOfferSerial(int value) {
         
@@ -24889,6 +26428,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 offer_serial = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOfferSerial() {
         
@@ -24896,11 +26436,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -24922,11 +26464,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<TradeAcceptOffer>
         PARSER = new com.google.protobuf.AbstractParser<TradeAcceptOffer>() {
+      @java.lang.Override
       public TradeAcceptOffer parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new TradeAcceptOffer(input, extensionRegistry);
+        return new TradeAcceptOffer(input, extensionRegistry);
       }
     };
 
@@ -24939,6 +26482,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.TradeAcceptOffer getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -24955,6 +26499,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 amount = 1;</code>
+     * @return The amount.
      */
     int getAmount();
 
@@ -24964,6 +26509,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
+     * @return Whether the lose field is set.
      */
     boolean hasLose();
     /**
@@ -24972,6 +26518,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
+     * @return The lose.
      */
     soc.proto.Data.ResourceSet getLose();
     /**
@@ -25008,7 +26555,13 @@ public final class GameMessage {
       super(builder);
     }
     private LoseResources() {
-      amount_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new LoseResources();
     }
 
     @java.lang.Override
@@ -25021,7 +26574,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -25032,13 +26587,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               amount_ = input.readInt32();
@@ -25055,6 +26603,13 @@ public final class GameMessage {
                 lose_ = subBuilder.buildPartial();
               }
 
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -25074,6 +26629,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_LoseResources_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_LoseResources_fieldAccessorTable
@@ -25089,6 +26645,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 amount = 1;</code>
+     * @return The amount.
      */
     public int getAmount() {
       return amount_;
@@ -25102,6 +26659,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
+     * @return Whether the lose field is set.
      */
     public boolean hasLose() {
       return lose_ != null;
@@ -25112,6 +26670,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
+     * @return The lose.
      */
     public soc.proto.Data.ResourceSet getLose() {
       return lose_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : lose_;
@@ -25128,6 +26687,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -25137,6 +26697,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (amount_ != 0) {
@@ -25148,6 +26709,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -25176,16 +26738,15 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.LoseResources other = (soc.proto.GameMessage.LoseResources) obj;
 
-      boolean result = true;
-      result = result && (getAmount()
-          == other.getAmount());
-      result = result && (hasLose() == other.hasLose());
+      if (getAmount()
+          != other.getAmount()) return false;
+      if (hasLose() != other.hasLose()) return false;
       if (hasLose()) {
-        result = result && getLose()
-            .equals(other.getLose());
+        if (!getLose()
+            .equals(other.getLose())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -25276,6 +26837,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -25283,6 +26845,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.LoseResources prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -25318,6 +26881,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_LoseResources_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_LoseResources_fieldAccessorTable
@@ -25340,6 +26904,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         amount_ = 0;
@@ -25353,15 +26918,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_LoseResources_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResources getDefaultInstanceForType() {
         return soc.proto.GameMessage.LoseResources.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResources build() {
         soc.proto.GameMessage.LoseResources result = buildPartial();
         if (!result.isInitialized()) {
@@ -25370,6 +26938,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResources buildPartial() {
         soc.proto.GameMessage.LoseResources result = new soc.proto.GameMessage.LoseResources(this);
         result.amount_ = amount_;
@@ -25382,32 +26951,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.LoseResources) {
           return mergeFrom((soc.proto.GameMessage.LoseResources)other);
@@ -25430,10 +27006,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -25459,6 +27037,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 amount = 1;</code>
+       * @return The amount.
        */
       public int getAmount() {
         return amount_;
@@ -25469,6 +27048,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 amount = 1;</code>
+       * @param value The amount to set.
+       * @return This builder for chaining.
        */
       public Builder setAmount(int value) {
         
@@ -25482,6 +27063,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 amount = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAmount() {
         
@@ -25490,7 +27072,7 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.ResourceSet lose_ = null;
+      private soc.proto.Data.ResourceSet lose_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> loseBuilder_;
       /**
@@ -25499,6 +27081,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
+       * @return Whether the lose field is set.
        */
       public boolean hasLose() {
         return loseBuilder_ != null || lose_ != null;
@@ -25509,6 +27092,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
+       * @return The lose.
        */
       public soc.proto.Data.ResourceSet getLose() {
         if (loseBuilder_ == null) {
@@ -25642,11 +27226,13 @@ public final class GameMessage {
         }
         return loseBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -25668,11 +27254,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<LoseResources>
         PARSER = new com.google.protobuf.AbstractParser<LoseResources>() {
+      @java.lang.Override
       public LoseResources parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new LoseResources(input, extensionRegistry);
+        return new LoseResources(input, extensionRegistry);
       }
     };
 
@@ -25685,6 +27272,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.LoseResources getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -25701,6 +27289,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 amount = 1;</code>
+     * @return The amount.
      */
     int getAmount();
 
@@ -25710,6 +27299,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceSet gain = 2;</code>
+     * @return Whether the gain field is set.
      */
     boolean hasGain();
     /**
@@ -25718,6 +27308,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceSet gain = 2;</code>
+     * @return The gain.
      */
     soc.proto.Data.ResourceSet getGain();
     /**
@@ -25749,7 +27340,13 @@ public final class GameMessage {
       super(builder);
     }
     private GainResources() {
-      amount_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GainResources();
     }
 
     @java.lang.Override
@@ -25762,7 +27359,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -25773,13 +27372,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               amount_ = input.readInt32();
@@ -25796,6 +27388,13 @@ public final class GameMessage {
                 gain_ = subBuilder.buildPartial();
               }
 
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -25815,6 +27414,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_GainResources_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_GainResources_fieldAccessorTable
@@ -25830,6 +27430,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 amount = 1;</code>
+     * @return The amount.
      */
     public int getAmount() {
       return amount_;
@@ -25843,6 +27444,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceSet gain = 2;</code>
+     * @return Whether the gain field is set.
      */
     public boolean hasGain() {
       return gain_ != null;
@@ -25853,6 +27455,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceSet gain = 2;</code>
+     * @return The gain.
      */
     public soc.proto.Data.ResourceSet getGain() {
       return gain_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : gain_;
@@ -25869,6 +27472,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -25878,6 +27482,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (amount_ != 0) {
@@ -25889,6 +27494,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -25917,16 +27523,15 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.GainResources other = (soc.proto.GameMessage.GainResources) obj;
 
-      boolean result = true;
-      result = result && (getAmount()
-          == other.getAmount());
-      result = result && (hasGain() == other.hasGain());
+      if (getAmount()
+          != other.getAmount()) return false;
+      if (hasGain() != other.hasGain()) return false;
       if (hasGain()) {
-        result = result && getGain()
-            .equals(other.getGain());
+        if (!getGain()
+            .equals(other.getGain())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -26017,6 +27622,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -26024,6 +27630,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.GainResources prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -26054,6 +27661,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_GainResources_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_GainResources_fieldAccessorTable
@@ -26076,6 +27684,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         amount_ = 0;
@@ -26089,15 +27698,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_GainResources_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GainResources getDefaultInstanceForType() {
         return soc.proto.GameMessage.GainResources.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GainResources build() {
         soc.proto.GameMessage.GainResources result = buildPartial();
         if (!result.isInitialized()) {
@@ -26106,6 +27718,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GainResources buildPartial() {
         soc.proto.GameMessage.GainResources result = new soc.proto.GameMessage.GainResources(this);
         result.amount_ = amount_;
@@ -26118,32 +27731,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.GainResources) {
           return mergeFrom((soc.proto.GameMessage.GainResources)other);
@@ -26166,10 +27786,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -26195,6 +27817,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 amount = 1;</code>
+       * @return The amount.
        */
       public int getAmount() {
         return amount_;
@@ -26205,6 +27828,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 amount = 1;</code>
+       * @param value The amount to set.
+       * @return This builder for chaining.
        */
       public Builder setAmount(int value) {
         
@@ -26218,6 +27843,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 amount = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearAmount() {
         
@@ -26226,7 +27852,7 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.ResourceSet gain_ = null;
+      private soc.proto.Data.ResourceSet gain_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> gainBuilder_;
       /**
@@ -26235,6 +27861,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceSet gain = 2;</code>
+       * @return Whether the gain field is set.
        */
       public boolean hasGain() {
         return gainBuilder_ != null || gain_ != null;
@@ -26245,6 +27872,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceSet gain = 2;</code>
+       * @return The gain.
        */
       public soc.proto.Data.ResourceSet getGain() {
         if (gainBuilder_ == null) {
@@ -26378,11 +28006,13 @@ public final class GameMessage {
         }
         return gainBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -26404,11 +28034,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<GainResources>
         PARSER = new com.google.protobuf.AbstractParser<GainResources>() {
+      @java.lang.Override
       public GainResources parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new GainResources(input, extensionRegistry);
+        return new GainResources(input, extensionRegistry);
       }
     };
 
@@ -26421,6 +28052,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.GainResources getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -26437,6 +28069,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceType rtype = 1;</code>
+     * @return The enum numeric value on the wire for rtype.
      */
     int getRtypeValue();
     /**
@@ -26445,6 +28078,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceType rtype = 1;</code>
+     * @return The rtype.
      */
     soc.proto.Data.ResourceType getRtype();
   }
@@ -26472,6 +28106,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ChooseResourceType();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -26481,7 +28122,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -26492,17 +28135,17 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
 
               rtype_ = rawValue;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -26522,6 +28165,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_ChooseResourceType_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_ChooseResourceType_fieldAccessorTable
@@ -26537,6 +28181,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceType rtype = 1;</code>
+     * @return The enum numeric value on the wire for rtype.
      */
     public int getRtypeValue() {
       return rtype_;
@@ -26547,13 +28192,16 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResourceType rtype = 1;</code>
+     * @return The rtype.
      */
     public soc.proto.Data.ResourceType getRtype() {
+      @SuppressWarnings("deprecation")
       soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(rtype_);
       return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -26563,6 +28211,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (rtype_ != soc.proto.Data.ResourceType._NOT_YET_USED.getNumber()) {
@@ -26571,6 +28220,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -26595,10 +28245,9 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.ChooseResourceType other = (soc.proto.GameMessage.ChooseResourceType) obj;
 
-      boolean result = true;
-      result = result && rtype_ == other.rtype_;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (rtype_ != other.rtype_) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -26685,6 +28334,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -26692,6 +28342,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.ChooseResourceType prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -26722,6 +28373,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_ChooseResourceType_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_ChooseResourceType_fieldAccessorTable
@@ -26744,6 +28396,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         rtype_ = 0;
@@ -26751,15 +28404,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_ChooseResourceType_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ChooseResourceType getDefaultInstanceForType() {
         return soc.proto.GameMessage.ChooseResourceType.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ChooseResourceType build() {
         soc.proto.GameMessage.ChooseResourceType result = buildPartial();
         if (!result.isInitialized()) {
@@ -26768,6 +28424,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ChooseResourceType buildPartial() {
         soc.proto.GameMessage.ChooseResourceType result = new soc.proto.GameMessage.ChooseResourceType(this);
         result.rtype_ = rtype_;
@@ -26775,32 +28432,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.ChooseResourceType) {
           return mergeFrom((soc.proto.GameMessage.ChooseResourceType)other);
@@ -26820,10 +28484,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -26849,6 +28515,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceType rtype = 1;</code>
+       * @return The enum numeric value on the wire for rtype.
        */
       public int getRtypeValue() {
         return rtype_;
@@ -26859,6 +28526,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceType rtype = 1;</code>
+       * @param value The enum numeric value on the wire for rtype to set.
+       * @return This builder for chaining.
        */
       public Builder setRtypeValue(int value) {
         rtype_ = value;
@@ -26871,8 +28540,10 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceType rtype = 1;</code>
+       * @return The rtype.
        */
       public soc.proto.Data.ResourceType getRtype() {
+        @SuppressWarnings("deprecation")
         soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(rtype_);
         return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
       }
@@ -26882,6 +28553,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceType rtype = 1;</code>
+       * @param value The rtype to set.
+       * @return This builder for chaining.
        */
       public Builder setRtype(soc.proto.Data.ResourceType value) {
         if (value == null) {
@@ -26898,6 +28571,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResourceType rtype = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearRtype() {
         
@@ -26905,11 +28579,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -26931,11 +28607,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<ChooseResourceType>
         PARSER = new com.google.protobuf.AbstractParser<ChooseResourceType>() {
+      @java.lang.Override
       public ChooseResourceType parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ChooseResourceType(input, extensionRegistry);
+        return new ChooseResourceType(input, extensionRegistry);
       }
     };
 
@@ -26948,6 +28625,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.ChooseResourceType getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -26967,6 +28645,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 chosen_player_number = 1;</code>
+     * @return The chosenPlayerNumber.
      */
     int getChosenPlayerNumber();
 
@@ -26976,6 +28655,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool can_choose_none = 2;</code>
+     * @return The canChooseNone.
      */
     boolean getCanChooseNone();
 
@@ -26985,6 +28665,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated uint32 chooseable_player_number = 3;</code>
+     * @return A list containing the chooseablePlayerNumber.
      */
     java.util.List<java.lang.Integer> getChooseablePlayerNumberList();
     /**
@@ -26993,6 +28674,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated uint32 chooseable_player_number = 3;</code>
+     * @return The count of chooseablePlayerNumber.
      */
     int getChooseablePlayerNumberCount();
     /**
@@ -27001,6 +28683,8 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated uint32 chooseable_player_number = 3;</code>
+     * @param index The index of the element to return.
+     * @return The chooseablePlayerNumber at the given index.
      */
     int getChooseablePlayerNumber(int index);
   }
@@ -27023,9 +28707,14 @@ public final class GameMessage {
       super(builder);
     }
     private ChoosePlayer() {
-      chosenPlayerNumber_ = 0;
-      canChooseNone_ = false;
-      chooseablePlayerNumber_ = java.util.Collections.emptyList();
+      chooseablePlayerNumber_ = emptyIntList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ChoosePlayer();
     }
 
     @java.lang.Override
@@ -27038,6 +28727,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -27049,13 +28741,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               chosenPlayerNumber_ = input.readSInt32();
@@ -27067,24 +28752,31 @@ public final class GameMessage {
               break;
             }
             case 24: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-                chooseablePlayerNumber_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000004;
+              if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                chooseablePlayerNumber_ = newIntList();
+                mutable_bitField0_ |= 0x00000001;
               }
-              chooseablePlayerNumber_.add(input.readUInt32());
+              chooseablePlayerNumber_.addInt(input.readUInt32());
               break;
             }
             case 26: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
-                chooseablePlayerNumber_ = new java.util.ArrayList<java.lang.Integer>();
-                mutable_bitField0_ |= 0x00000004;
+              if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+                chooseablePlayerNumber_ = newIntList();
+                mutable_bitField0_ |= 0x00000001;
               }
               while (input.getBytesUntilLimit() > 0) {
-                chooseablePlayerNumber_.add(input.readUInt32());
+                chooseablePlayerNumber_.addInt(input.readUInt32());
               }
               input.popLimit(limit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -27095,8 +28787,8 @@ public final class GameMessage {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-          chooseablePlayerNumber_ = java.util.Collections.unmodifiableList(chooseablePlayerNumber_);
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
+          chooseablePlayerNumber_.makeImmutable(); // C
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -27107,6 +28799,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_ChoosePlayer_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_ChoosePlayer_fieldAccessorTable
@@ -27114,7 +28807,6 @@ public final class GameMessage {
               soc.proto.GameMessage.ChoosePlayer.class, soc.proto.GameMessage.ChoosePlayer.Builder.class);
     }
 
-    private int bitField0_;
     public static final int CHOSEN_PLAYER_NUMBER_FIELD_NUMBER = 1;
     private int chosenPlayerNumber_;
     /**
@@ -27126,6 +28818,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 chosen_player_number = 1;</code>
+     * @return The chosenPlayerNumber.
      */
     public int getChosenPlayerNumber() {
       return chosenPlayerNumber_;
@@ -27139,19 +28832,21 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool can_choose_none = 2;</code>
+     * @return The canChooseNone.
      */
     public boolean getCanChooseNone() {
       return canChooseNone_;
     }
 
     public static final int CHOOSEABLE_PLAYER_NUMBER_FIELD_NUMBER = 3;
-    private java.util.List<java.lang.Integer> chooseablePlayerNumber_;
+    private com.google.protobuf.Internal.IntList chooseablePlayerNumber_;
     /**
      * <pre>
      * from server: List of player numbers who can be chosen
      * </pre>
      *
      * <code>repeated uint32 chooseable_player_number = 3;</code>
+     * @return A list containing the chooseablePlayerNumber.
      */
     public java.util.List<java.lang.Integer>
         getChooseablePlayerNumberList() {
@@ -27163,6 +28858,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated uint32 chooseable_player_number = 3;</code>
+     * @return The count of chooseablePlayerNumber.
      */
     public int getChooseablePlayerNumberCount() {
       return chooseablePlayerNumber_.size();
@@ -27173,13 +28869,16 @@ public final class GameMessage {
      * </pre>
      *
      * <code>repeated uint32 chooseable_player_number = 3;</code>
+     * @param index The index of the element to return.
+     * @return The chooseablePlayerNumber at the given index.
      */
     public int getChooseablePlayerNumber(int index) {
-      return chooseablePlayerNumber_.get(index);
+      return chooseablePlayerNumber_.getInt(index);
     }
     private int chooseablePlayerNumberMemoizedSerializedSize = -1;
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -27189,6 +28888,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
@@ -27203,11 +28903,12 @@ public final class GameMessage {
         output.writeUInt32NoTag(chooseablePlayerNumberMemoizedSerializedSize);
       }
       for (int i = 0; i < chooseablePlayerNumber_.size(); i++) {
-        output.writeUInt32NoTag(chooseablePlayerNumber_.get(i));
+        output.writeUInt32NoTag(chooseablePlayerNumber_.getInt(i));
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -27225,7 +28926,7 @@ public final class GameMessage {
         int dataSize = 0;
         for (int i = 0; i < chooseablePlayerNumber_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeUInt32SizeNoTag(chooseablePlayerNumber_.get(i));
+            .computeUInt32SizeNoTag(chooseablePlayerNumber_.getInt(i));
         }
         size += dataSize;
         if (!getChooseablePlayerNumberList().isEmpty()) {
@@ -27250,15 +28951,14 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.ChoosePlayer other = (soc.proto.GameMessage.ChoosePlayer) obj;
 
-      boolean result = true;
-      result = result && (getChosenPlayerNumber()
-          == other.getChosenPlayerNumber());
-      result = result && (getCanChooseNone()
-          == other.getCanChooseNone());
-      result = result && getChooseablePlayerNumberList()
-          .equals(other.getChooseablePlayerNumberList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getChosenPlayerNumber()
+          != other.getChosenPlayerNumber()) return false;
+      if (getCanChooseNone()
+          != other.getCanChooseNone()) return false;
+      if (!getChooseablePlayerNumberList()
+          .equals(other.getChooseablePlayerNumberList())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -27352,6 +29052,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -27359,6 +29060,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.ChoosePlayer prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -27388,6 +29090,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_ChoosePlayer_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_ChoosePlayer_fieldAccessorTable
@@ -27410,26 +29113,30 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         chosenPlayerNumber_ = 0;
 
         canChooseNone_ = false;
 
-        chooseablePlayerNumber_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        chooseablePlayerNumber_ = emptyIntList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_ChoosePlayer_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ChoosePlayer getDefaultInstanceForType() {
         return soc.proto.GameMessage.ChoosePlayer.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ChoosePlayer build() {
         soc.proto.GameMessage.ChoosePlayer result = buildPartial();
         if (!result.isInitialized()) {
@@ -27438,48 +29145,54 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ChoosePlayer buildPartial() {
         soc.proto.GameMessage.ChoosePlayer result = new soc.proto.GameMessage.ChoosePlayer(this);
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         result.chosenPlayerNumber_ = chosenPlayerNumber_;
         result.canChooseNone_ = canChooseNone_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
-          chooseablePlayerNumber_ = java.util.Collections.unmodifiableList(chooseablePlayerNumber_);
-          bitField0_ = (bitField0_ & ~0x00000004);
+        if (((bitField0_ & 0x00000001) != 0)) {
+          chooseablePlayerNumber_.makeImmutable();
+          bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.chooseablePlayerNumber_ = chooseablePlayerNumber_;
-        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.ChoosePlayer) {
           return mergeFrom((soc.proto.GameMessage.ChoosePlayer)other);
@@ -27500,7 +29213,7 @@ public final class GameMessage {
         if (!other.chooseablePlayerNumber_.isEmpty()) {
           if (chooseablePlayerNumber_.isEmpty()) {
             chooseablePlayerNumber_ = other.chooseablePlayerNumber_;
-            bitField0_ = (bitField0_ & ~0x00000004);
+            bitField0_ = (bitField0_ & ~0x00000001);
           } else {
             ensureChooseablePlayerNumberIsMutable();
             chooseablePlayerNumber_.addAll(other.chooseablePlayerNumber_);
@@ -27512,10 +29225,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -27545,6 +29260,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 chosen_player_number = 1;</code>
+       * @return The chosenPlayerNumber.
        */
       public int getChosenPlayerNumber() {
         return chosenPlayerNumber_;
@@ -27558,6 +29274,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 chosen_player_number = 1;</code>
+       * @param value The chosenPlayerNumber to set.
+       * @return This builder for chaining.
        */
       public Builder setChosenPlayerNumber(int value) {
         
@@ -27574,6 +29292,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 chosen_player_number = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChosenPlayerNumber() {
         
@@ -27589,6 +29308,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool can_choose_none = 2;</code>
+       * @return The canChooseNone.
        */
       public boolean getCanChooseNone() {
         return canChooseNone_;
@@ -27599,6 +29319,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool can_choose_none = 2;</code>
+       * @param value The canChooseNone to set.
+       * @return This builder for chaining.
        */
       public Builder setCanChooseNone(boolean value) {
         
@@ -27612,6 +29334,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool can_choose_none = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearCanChooseNone() {
         
@@ -27620,11 +29343,11 @@ public final class GameMessage {
         return this;
       }
 
-      private java.util.List<java.lang.Integer> chooseablePlayerNumber_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.IntList chooseablePlayerNumber_ = emptyIntList();
       private void ensureChooseablePlayerNumberIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-          chooseablePlayerNumber_ = new java.util.ArrayList<java.lang.Integer>(chooseablePlayerNumber_);
-          bitField0_ |= 0x00000004;
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          chooseablePlayerNumber_ = mutableCopy(chooseablePlayerNumber_);
+          bitField0_ |= 0x00000001;
          }
       }
       /**
@@ -27633,10 +29356,12 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated uint32 chooseable_player_number = 3;</code>
+       * @return A list containing the chooseablePlayerNumber.
        */
       public java.util.List<java.lang.Integer>
           getChooseablePlayerNumberList() {
-        return java.util.Collections.unmodifiableList(chooseablePlayerNumber_);
+        return ((bitField0_ & 0x00000001) != 0) ?
+                 java.util.Collections.unmodifiableList(chooseablePlayerNumber_) : chooseablePlayerNumber_;
       }
       /**
        * <pre>
@@ -27644,6 +29369,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated uint32 chooseable_player_number = 3;</code>
+       * @return The count of chooseablePlayerNumber.
        */
       public int getChooseablePlayerNumberCount() {
         return chooseablePlayerNumber_.size();
@@ -27654,9 +29380,11 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated uint32 chooseable_player_number = 3;</code>
+       * @param index The index of the element to return.
+       * @return The chooseablePlayerNumber at the given index.
        */
       public int getChooseablePlayerNumber(int index) {
-        return chooseablePlayerNumber_.get(index);
+        return chooseablePlayerNumber_.getInt(index);
       }
       /**
        * <pre>
@@ -27664,11 +29392,14 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated uint32 chooseable_player_number = 3;</code>
+       * @param index The index to set the value at.
+       * @param value The chooseablePlayerNumber to set.
+       * @return This builder for chaining.
        */
       public Builder setChooseablePlayerNumber(
           int index, int value) {
         ensureChooseablePlayerNumberIsMutable();
-        chooseablePlayerNumber_.set(index, value);
+        chooseablePlayerNumber_.setInt(index, value);
         onChanged();
         return this;
       }
@@ -27678,10 +29409,12 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated uint32 chooseable_player_number = 3;</code>
+       * @param value The chooseablePlayerNumber to add.
+       * @return This builder for chaining.
        */
       public Builder addChooseablePlayerNumber(int value) {
         ensureChooseablePlayerNumberIsMutable();
-        chooseablePlayerNumber_.add(value);
+        chooseablePlayerNumber_.addInt(value);
         onChanged();
         return this;
       }
@@ -27691,6 +29424,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated uint32 chooseable_player_number = 3;</code>
+       * @param values The chooseablePlayerNumber to add.
+       * @return This builder for chaining.
        */
       public Builder addAllChooseablePlayerNumber(
           java.lang.Iterable<? extends java.lang.Integer> values) {
@@ -27706,18 +29441,21 @@ public final class GameMessage {
        * </pre>
        *
        * <code>repeated uint32 chooseable_player_number = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChooseablePlayerNumber() {
-        chooseablePlayerNumber_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000004);
+        chooseablePlayerNumber_ = emptyIntList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -27739,11 +29477,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<ChoosePlayer>
         PARSER = new com.google.protobuf.AbstractParser<ChoosePlayer>() {
+      @java.lang.Override
       public ChoosePlayer parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ChoosePlayer(input, extensionRegistry);
+        return new ChoosePlayer(input, extensionRegistry);
       }
     };
 
@@ -27756,6 +29495,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.ChoosePlayer getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -27772,6 +29512,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
+     * @return Whether the moveTo field is set.
      */
     boolean hasMoveTo();
     /**
@@ -27780,6 +29521,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
+     * @return The moveTo.
      */
     soc.proto.Data.HexCoord getMoveTo();
     /**
@@ -27799,6 +29541,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_robber = 2;</code>
+     * @return The isRobber.
      */
     boolean getIsRobber();
 
@@ -27810,6 +29553,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_pirate = 3;</code>
+     * @return The isPirate.
      */
     boolean getIsPirate();
   }
@@ -27837,8 +29581,13 @@ public final class GameMessage {
       super(builder);
     }
     private MoveRobber() {
-      isRobber_ = false;
-      isPirate_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new MoveRobber();
     }
 
     @java.lang.Override
@@ -27851,7 +29600,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -27862,13 +29613,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               soc.proto.Data.HexCoord.Builder subBuilder = null;
               if (moveTo_ != null) {
@@ -27892,6 +29636,13 @@ public final class GameMessage {
               isPirate_ = input.readBool();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -27909,6 +29660,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_MoveRobber_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_MoveRobber_fieldAccessorTable
@@ -27924,6 +29676,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
+     * @return Whether the moveTo field is set.
      */
     public boolean hasMoveTo() {
       return moveTo_ != null;
@@ -27934,6 +29687,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
+     * @return The moveTo.
      */
     public soc.proto.Data.HexCoord getMoveTo() {
       return moveTo_ == null ? soc.proto.Data.HexCoord.getDefaultInstance() : moveTo_;
@@ -27959,6 +29713,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_robber = 2;</code>
+     * @return The isRobber.
      */
     public boolean getIsRobber() {
       return isRobber_;
@@ -27974,12 +29729,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_pirate = 3;</code>
+     * @return The isPirate.
      */
     public boolean getIsPirate() {
       return isPirate_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -27989,6 +29746,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (moveTo_ != null) {
@@ -28003,6 +29761,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -28035,18 +29794,17 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.MoveRobber other = (soc.proto.GameMessage.MoveRobber) obj;
 
-      boolean result = true;
-      result = result && (hasMoveTo() == other.hasMoveTo());
+      if (hasMoveTo() != other.hasMoveTo()) return false;
       if (hasMoveTo()) {
-        result = result && getMoveTo()
-            .equals(other.getMoveTo());
+        if (!getMoveTo()
+            .equals(other.getMoveTo())) return false;
       }
-      result = result && (getIsRobber()
-          == other.getIsRobber());
-      result = result && (getIsPirate()
-          == other.getIsPirate());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getIsRobber()
+          != other.getIsRobber()) return false;
+      if (getIsPirate()
+          != other.getIsPirate()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -28141,6 +29899,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -28148,6 +29907,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.MoveRobber prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -28182,6 +29942,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_MoveRobber_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_MoveRobber_fieldAccessorTable
@@ -28204,6 +29965,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         if (moveToBuilder_ == null) {
@@ -28219,15 +29981,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_MoveRobber_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.MoveRobber getDefaultInstanceForType() {
         return soc.proto.GameMessage.MoveRobber.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.MoveRobber build() {
         soc.proto.GameMessage.MoveRobber result = buildPartial();
         if (!result.isInitialized()) {
@@ -28236,6 +30001,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.MoveRobber buildPartial() {
         soc.proto.GameMessage.MoveRobber result = new soc.proto.GameMessage.MoveRobber(this);
         if (moveToBuilder_ == null) {
@@ -28249,32 +30015,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.MoveRobber) {
           return mergeFrom((soc.proto.GameMessage.MoveRobber)other);
@@ -28300,10 +30073,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -28322,7 +30097,7 @@ public final class GameMessage {
         return this;
       }
 
-      private soc.proto.Data.HexCoord moveTo_ = null;
+      private soc.proto.Data.HexCoord moveTo_;
       private com.google.protobuf.SingleFieldBuilderV3<
           soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder> moveToBuilder_;
       /**
@@ -28331,6 +30106,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
+       * @return Whether the moveTo field is set.
        */
       public boolean hasMoveTo() {
         return moveToBuilder_ != null || moveTo_ != null;
@@ -28341,6 +30117,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
+       * @return The moveTo.
        */
       public soc.proto.Data.HexCoord getMoveTo() {
         if (moveToBuilder_ == null) {
@@ -28484,6 +30261,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_robber = 2;</code>
+       * @return The isRobber.
        */
       public boolean getIsRobber() {
         return isRobber_;
@@ -28496,6 +30274,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_robber = 2;</code>
+       * @param value The isRobber to set.
+       * @return This builder for chaining.
        */
       public Builder setIsRobber(boolean value) {
         
@@ -28511,6 +30291,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_robber = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsRobber() {
         
@@ -28528,6 +30309,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_pirate = 3;</code>
+       * @return The isPirate.
        */
       public boolean getIsPirate() {
         return isPirate_;
@@ -28540,6 +30322,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_pirate = 3;</code>
+       * @param value The isPirate to set.
+       * @return This builder for chaining.
        */
       public Builder setIsPirate(boolean value) {
         
@@ -28555,6 +30339,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_pirate = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsPirate() {
         
@@ -28562,11 +30347,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -28588,11 +30375,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<MoveRobber>
         PARSER = new com.google.protobuf.AbstractParser<MoveRobber>() {
+      @java.lang.Override
       public MoveRobber parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new MoveRobber(input, extensionRegistry);
+        return new MoveRobber(input, extensionRegistry);
       }
     };
 
@@ -28605,6 +30393,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.MoveRobber getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -28642,6 +30431,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ResetBoardRequest();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -28651,6 +30447,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -28662,7 +30461,7 @@ public final class GameMessage {
               done = true;
               break;
             default: {
-              if (!parseUnknownFieldProto3(
+              if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
@@ -28685,6 +30484,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_ResetBoardRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_ResetBoardRequest_fieldAccessorTable
@@ -28693,6 +30493,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -28702,11 +30503,13 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -28727,9 +30530,8 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.ResetBoardRequest other = (soc.proto.GameMessage.ResetBoardRequest) obj;
 
-      boolean result = true;
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -28814,6 +30616,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -28821,6 +30624,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.ResetBoardRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -28855,6 +30659,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_ResetBoardRequest_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_ResetBoardRequest_fieldAccessorTable
@@ -28877,20 +30682,24 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_ResetBoardRequest_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardRequest getDefaultInstanceForType() {
         return soc.proto.GameMessage.ResetBoardRequest.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardRequest build() {
         soc.proto.GameMessage.ResetBoardRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -28899,38 +30708,46 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardRequest buildPartial() {
         soc.proto.GameMessage.ResetBoardRequest result = new soc.proto.GameMessage.ResetBoardRequest(this);
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.ResetBoardRequest) {
           return mergeFrom((soc.proto.GameMessage.ResetBoardRequest)other);
@@ -28947,10 +30764,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -28968,11 +30787,13 @@ public final class GameMessage {
         }
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -28994,11 +30815,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<ResetBoardRequest>
         PARSER = new com.google.protobuf.AbstractParser<ResetBoardRequest>() {
+      @java.lang.Override
       public ResetBoardRequest parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ResetBoardRequest(input, extensionRegistry);
+        return new ResetBoardRequest(input, extensionRegistry);
       }
     };
 
@@ -29011,6 +30833,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardRequest getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -29027,6 +30850,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_yes = 1;</code>
+     * @return The isYes.
      */
     boolean getIsYes();
   }
@@ -29053,7 +30877,13 @@ public final class GameMessage {
       super(builder);
     }
     private ResetBoardVote() {
-      isYes_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ResetBoardVote();
     }
 
     @java.lang.Override
@@ -29066,7 +30896,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -29077,16 +30909,16 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               isYes_ = input.readBool();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -29106,6 +30938,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_ResetBoardVote_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_ResetBoardVote_fieldAccessorTable
@@ -29121,12 +30954,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool is_yes = 1;</code>
+     * @return The isYes.
      */
     public boolean getIsYes() {
       return isYes_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -29136,6 +30971,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (isYes_ != false) {
@@ -29144,6 +30980,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -29168,11 +31005,10 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.ResetBoardVote other = (soc.proto.GameMessage.ResetBoardVote) obj;
 
-      boolean result = true;
-      result = result && (getIsYes()
-          == other.getIsYes());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getIsYes()
+          != other.getIsYes()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -29260,6 +31096,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -29267,6 +31104,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.ResetBoardVote prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -29300,6 +31138,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_ResetBoardVote_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_ResetBoardVote_fieldAccessorTable
@@ -29322,6 +31161,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         isYes_ = false;
@@ -29329,15 +31169,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_ResetBoardVote_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVote getDefaultInstanceForType() {
         return soc.proto.GameMessage.ResetBoardVote.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVote build() {
         soc.proto.GameMessage.ResetBoardVote result = buildPartial();
         if (!result.isInitialized()) {
@@ -29346,6 +31189,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVote buildPartial() {
         soc.proto.GameMessage.ResetBoardVote result = new soc.proto.GameMessage.ResetBoardVote(this);
         result.isYes_ = isYes_;
@@ -29353,32 +31197,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.ResetBoardVote) {
           return mergeFrom((soc.proto.GameMessage.ResetBoardVote)other);
@@ -29398,10 +31249,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -29427,6 +31280,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_yes = 1;</code>
+       * @return The isYes.
        */
       public boolean getIsYes() {
         return isYes_;
@@ -29437,6 +31291,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_yes = 1;</code>
+       * @param value The isYes to set.
+       * @return This builder for chaining.
        */
       public Builder setIsYes(boolean value) {
         
@@ -29450,6 +31306,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool is_yes = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsYes() {
         
@@ -29457,11 +31314,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -29483,11 +31342,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<ResetBoardVote>
         PARSER = new com.google.protobuf.AbstractParser<ResetBoardVote>() {
+      @java.lang.Override
       public ResetBoardVote parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ResetBoardVote(input, extensionRegistry);
+        return new ResetBoardVote(input, extensionRegistry);
       }
     };
 
@@ -29500,6 +31360,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardVote getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -29516,6 +31377,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool was_rejected = 1;</code>
+     * @return The wasRejected.
      */
     boolean getWasRejected();
   }
@@ -29544,7 +31406,13 @@ public final class GameMessage {
       super(builder);
     }
     private ResetBoardResult() {
-      wasRejected_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ResetBoardResult();
     }
 
     @java.lang.Override
@@ -29557,7 +31425,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -29568,16 +31438,16 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
 
               wasRejected_ = input.readBool();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -29597,6 +31467,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_ResetBoardResult_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_ResetBoardResult_fieldAccessorTable
@@ -29612,12 +31483,14 @@ public final class GameMessage {
      * </pre>
      *
      * <code>bool was_rejected = 1;</code>
+     * @return The wasRejected.
      */
     public boolean getWasRejected() {
       return wasRejected_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -29627,6 +31500,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (wasRejected_ != false) {
@@ -29635,6 +31509,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -29659,11 +31534,10 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.ResetBoardResult other = (soc.proto.GameMessage.ResetBoardResult) obj;
 
-      boolean result = true;
-      result = result && (getWasRejected()
-          == other.getWasRejected());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (getWasRejected()
+          != other.getWasRejected()) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -29751,6 +31625,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -29758,6 +31633,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.ResetBoardResult prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -29793,6 +31669,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_ResetBoardResult_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_ResetBoardResult_fieldAccessorTable
@@ -29815,6 +31692,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         wasRejected_ = false;
@@ -29822,15 +31700,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_ResetBoardResult_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardResult getDefaultInstanceForType() {
         return soc.proto.GameMessage.ResetBoardResult.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardResult build() {
         soc.proto.GameMessage.ResetBoardResult result = buildPartial();
         if (!result.isInitialized()) {
@@ -29839,6 +31720,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardResult buildPartial() {
         soc.proto.GameMessage.ResetBoardResult result = new soc.proto.GameMessage.ResetBoardResult(this);
         result.wasRejected_ = wasRejected_;
@@ -29846,32 +31728,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.ResetBoardResult) {
           return mergeFrom((soc.proto.GameMessage.ResetBoardResult)other);
@@ -29891,10 +31780,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -29920,6 +31811,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool was_rejected = 1;</code>
+       * @return The wasRejected.
        */
       public boolean getWasRejected() {
         return wasRejected_;
@@ -29930,6 +31822,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool was_rejected = 1;</code>
+       * @param value The wasRejected to set.
+       * @return This builder for chaining.
        */
       public Builder setWasRejected(boolean value) {
         
@@ -29943,6 +31837,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>bool was_rejected = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearWasRejected() {
         
@@ -29950,11 +31845,13 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -29976,11 +31873,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<ResetBoardResult>
         PARSER = new com.google.protobuf.AbstractParser<ResetBoardResult>() {
+      @java.lang.Override
       public ResetBoardResult parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new ResetBoardResult(input, extensionRegistry);
+        return new ResetBoardResult(input, extensionRegistry);
       }
     };
 
@@ -29993,6 +31891,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardResult getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -30005,10 +31904,12 @@ public final class GameMessage {
 
     /**
      * <code>string game_name = 1;</code>
+     * @return The gameName.
      */
     java.lang.String getGameName();
     /**
      * <code>string game_name = 1;</code>
+     * @return The bytes for gameName.
      */
     com.google.protobuf.ByteString
         getGameNameBytes();
@@ -30021,6 +31922,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 player_number = 2;</code>
+     * @return The playerNumber.
      */
     int getPlayerNumber();
 
@@ -30030,6 +31932,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.State game_state = 3;</code>
+     * @return Whether the gameState field is set.
      */
     boolean hasGameState();
     /**
@@ -30038,6 +31941,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.State game_state = 3;</code>
+     * @return The gameState.
      */
     soc.proto.GameMessage.State getGameState();
     /**
@@ -30051,10 +31955,12 @@ public final class GameMessage {
 
     /**
      * <code>.PlayerElement player_element = 15;</code>
+     * @return Whether the playerElement field is set.
      */
     boolean hasPlayerElement();
     /**
      * <code>.PlayerElement player_element = 15;</code>
+     * @return The playerElement.
      */
     soc.proto.GameMessage.PlayerElement getPlayerElement();
     /**
@@ -30068,6 +31974,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PlayerElements player_elements = 16;</code>
+     * @return Whether the playerElements field is set.
      */
     boolean hasPlayerElements();
     /**
@@ -30076,6 +31983,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PlayerElements player_elements = 16;</code>
+     * @return The playerElements.
      */
     soc.proto.GameMessage.PlayerElements getPlayerElements();
     /**
@@ -30089,10 +31997,12 @@ public final class GameMessage {
 
     /**
      * <code>.GameElements game_elements = 17;</code>
+     * @return Whether the gameElements field is set.
      */
     boolean hasGameElements();
     /**
      * <code>.GameElements game_elements = 17;</code>
+     * @return The gameElements.
      */
     soc.proto.GameMessage.GameElements getGameElements();
     /**
@@ -30106,6 +32016,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardLayout board_layout = 30;</code>
+     * @return Whether the boardLayout field is set.
      */
     boolean hasBoardLayout();
     /**
@@ -30114,6 +32025,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardLayout board_layout = 30;</code>
+     * @return The boardLayout.
      */
     soc.proto.GameMessage.BoardLayout getBoardLayout();
     /**
@@ -30127,10 +32039,12 @@ public final class GameMessage {
 
     /**
      * <code>.PotentialSettlements potential_settlements = 31;</code>
+     * @return Whether the potentialSettlements field is set.
      */
     boolean hasPotentialSettlements();
     /**
      * <code>.PotentialSettlements potential_settlements = 31;</code>
+     * @return The potentialSettlements.
      */
     soc.proto.GameMessage.PotentialSettlements getPotentialSettlements();
     /**
@@ -30140,10 +32054,12 @@ public final class GameMessage {
 
     /**
      * <code>.PieceValue piece_value = 32;</code>
+     * @return Whether the pieceValue field is set.
      */
     boolean hasPieceValue();
     /**
      * <code>.PieceValue piece_value = 32;</code>
+     * @return The pieceValue.
      */
     soc.proto.GameMessage.PieceValue getPieceValue();
     /**
@@ -30153,10 +32069,12 @@ public final class GameMessage {
 
     /**
      * <code>.BuildPiece build_piece = 33;</code>
+     * @return Whether the buildPiece field is set.
      */
     boolean hasBuildPiece();
     /**
      * <code>.BuildPiece build_piece = 33;</code>
+     * @return The buildPiece.
      */
     soc.proto.GameMessage.BuildPiece getBuildPiece();
     /**
@@ -30166,10 +32084,12 @@ public final class GameMessage {
 
     /**
      * <code>.CancelBuild cancel_build = 34;</code>
+     * @return Whether the cancelBuild field is set.
      */
     boolean hasCancelBuild();
     /**
      * <code>.CancelBuild cancel_build = 34;</code>
+     * @return The cancelBuild.
      */
     soc.proto.GameMessage.CancelBuild getCancelBuild();
     /**
@@ -30179,10 +32099,12 @@ public final class GameMessage {
 
     /**
      * <code>.MovePiece move_piece = 35;</code>
+     * @return Whether the movePiece field is set.
      */
     boolean hasMovePiece();
     /**
      * <code>.MovePiece move_piece = 35;</code>
+     * @return The movePiece.
      */
     soc.proto.GameMessage.MovePiece getMovePiece();
     /**
@@ -30192,10 +32114,12 @@ public final class GameMessage {
 
     /**
      * <code>.RemovePiece remove_piece = 36;</code>
+     * @return Whether the removePiece field is set.
      */
     boolean hasRemovePiece();
     /**
      * <code>.RemovePiece remove_piece = 36;</code>
+     * @return The removePiece.
      */
     soc.proto.GameMessage.RemovePiece getRemovePiece();
     /**
@@ -30205,10 +32129,12 @@ public final class GameMessage {
 
     /**
      * <code>.RevealFogHex reveal_fog_hex = 37;</code>
+     * @return Whether the revealFogHex field is set.
      */
     boolean hasRevealFogHex();
     /**
      * <code>.RevealFogHex reveal_fog_hex = 37;</code>
+     * @return The revealFogHex.
      */
     soc.proto.GameMessage.RevealFogHex getRevealFogHex();
     /**
@@ -30222,6 +32148,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.StartGame start_game = 100;</code>
+     * @return Whether the startGame field is set.
      */
     boolean hasStartGame();
     /**
@@ -30230,6 +32157,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.StartGame start_game = 100;</code>
+     * @return The startGame.
      */
     soc.proto.GameMessage.StartGame getStartGame();
     /**
@@ -30243,10 +32171,12 @@ public final class GameMessage {
 
     /**
      * <code>.Turn turn = 101;</code>
+     * @return Whether the turn field is set.
      */
     boolean hasTurn();
     /**
      * <code>.Turn turn = 101;</code>
+     * @return The turn.
      */
     soc.proto.GameMessage.Turn getTurn();
     /**
@@ -30256,10 +32186,12 @@ public final class GameMessage {
 
     /**
      * <code>.SetTurn set_turn = 102;</code>
+     * @return Whether the setTurn field is set.
      */
     boolean hasSetTurn();
     /**
      * <code>.SetTurn set_turn = 102;</code>
+     * @return The setTurn.
      */
     soc.proto.GameMessage.SetTurn getSetTurn();
     /**
@@ -30269,10 +32201,12 @@ public final class GameMessage {
 
     /**
      * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     * @return Whether the diceRollRequest field is set.
      */
     boolean hasDiceRollRequest();
     /**
      * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     * @return The diceRollRequest.
      */
     soc.proto.GameMessage.DiceRollRequest getDiceRollRequest();
     /**
@@ -30282,10 +32216,12 @@ public final class GameMessage {
 
     /**
      * <code>.DiceResult dice_result = 104;</code>
+     * @return Whether the diceResult field is set.
      */
     boolean hasDiceResult();
     /**
      * <code>.DiceResult dice_result = 104;</code>
+     * @return The diceResult.
      */
     soc.proto.GameMessage.DiceResult getDiceResult();
     /**
@@ -30295,10 +32231,12 @@ public final class GameMessage {
 
     /**
      * <code>.DiceResultResources dice_result_resources = 105;</code>
+     * @return Whether the diceResultResources field is set.
      */
     boolean hasDiceResultResources();
     /**
      * <code>.DiceResultResources dice_result_resources = 105;</code>
+     * @return The diceResultResources.
      */
     soc.proto.GameMessage.DiceResultResources getDiceResultResources();
     /**
@@ -30314,6 +32252,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.InventoryItemAction inventory_item_action = 302;</code>
+     * @return Whether the inventoryItemAction field is set.
      */
     boolean hasInventoryItemAction();
     /**
@@ -30324,6 +32263,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.InventoryItemAction inventory_item_action = 302;</code>
+     * @return The inventoryItemAction.
      */
     soc.proto.GameMessage.InventoryItemAction getInventoryItemAction();
     /**
@@ -30343,6 +32283,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
+     * @return Whether the tradeWithBank field is set.
      */
     boolean hasTradeWithBank();
     /**
@@ -30351,6 +32292,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
+     * @return The tradeWithBank.
      */
     soc.proto.GameMessage.TradeWithBank getTradeWithBank();
     /**
@@ -30364,10 +32306,12 @@ public final class GameMessage {
 
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     * @return Whether the tradeMakeOffer field is set.
      */
     boolean hasTradeMakeOffer();
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     * @return The tradeMakeOffer.
      */
     soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer();
     /**
@@ -30377,10 +32321,12 @@ public final class GameMessage {
 
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     * @return Whether the tradeClearOffer field is set.
      */
     boolean hasTradeClearOffer();
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     * @return The tradeClearOffer.
      */
     soc.proto.GameMessage.TradeClearOffer getTradeClearOffer();
     /**
@@ -30390,10 +32336,12 @@ public final class GameMessage {
 
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     * @return Whether the tradeRejectOffer field is set.
      */
     boolean hasTradeRejectOffer();
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     * @return The tradeRejectOffer.
      */
     soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer();
     /**
@@ -30403,10 +32351,12 @@ public final class GameMessage {
 
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     * @return Whether the tradeAcceptOffer field is set.
      */
     boolean hasTradeAcceptOffer();
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     * @return The tradeAcceptOffer.
      */
     soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer();
     /**
@@ -30420,6 +32370,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.LoseResources lose_resources_prompt = 500;</code>
+     * @return Whether the loseResourcesPrompt field is set.
      */
     boolean hasLoseResourcesPrompt();
     /**
@@ -30428,6 +32379,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.LoseResources lose_resources_prompt = 500;</code>
+     * @return The loseResourcesPrompt.
      */
     soc.proto.GameMessage.LoseResources getLoseResourcesPrompt();
     /**
@@ -30441,10 +32393,12 @@ public final class GameMessage {
 
     /**
      * <code>.LoseResources lose_resources = 501;</code>
+     * @return Whether the loseResources field is set.
      */
     boolean hasLoseResources();
     /**
      * <code>.LoseResources lose_resources = 501;</code>
+     * @return The loseResources.
      */
     soc.proto.GameMessage.LoseResources getLoseResources();
     /**
@@ -30454,10 +32408,12 @@ public final class GameMessage {
 
     /**
      * <code>.GainResources gain_resources_prompt = 502;</code>
+     * @return Whether the gainResourcesPrompt field is set.
      */
     boolean hasGainResourcesPrompt();
     /**
      * <code>.GainResources gain_resources_prompt = 502;</code>
+     * @return The gainResourcesPrompt.
      */
     soc.proto.GameMessage.GainResources getGainResourcesPrompt();
     /**
@@ -30467,10 +32423,12 @@ public final class GameMessage {
 
     /**
      * <code>.GainResources gain_resources = 503;</code>
+     * @return Whether the gainResources field is set.
      */
     boolean hasGainResources();
     /**
      * <code>.GainResources gain_resources = 503;</code>
+     * @return The gainResources.
      */
     soc.proto.GameMessage.GainResources getGainResources();
     /**
@@ -30480,10 +32438,12 @@ public final class GameMessage {
 
     /**
      * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     * @return Whether the choosePlayerPrompt field is set.
      */
     boolean hasChoosePlayerPrompt();
     /**
      * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     * @return The choosePlayerPrompt.
      */
     soc.proto.GameMessage.ChoosePlayer getChoosePlayerPrompt();
     /**
@@ -30493,10 +32453,12 @@ public final class GameMessage {
 
     /**
      * <code>.MoveRobber move_robber = 505;</code>
+     * @return Whether the moveRobber field is set.
      */
     boolean hasMoveRobber();
     /**
      * <code>.MoveRobber move_robber = 505;</code>
+     * @return The moveRobber.
      */
     soc.proto.GameMessage.MoveRobber getMoveRobber();
     /**
@@ -30510,6 +32472,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     * @return Whether the resetBoardRequest field is set.
      */
     boolean hasResetBoardRequest();
     /**
@@ -30518,6 +32481,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     * @return The resetBoardRequest.
      */
     soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest();
     /**
@@ -30531,10 +32495,12 @@ public final class GameMessage {
 
     /**
      * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     * @return Whether the resetBoardVotePrompt field is set.
      */
     boolean hasResetBoardVotePrompt();
     /**
      * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     * @return The resetBoardVotePrompt.
      */
     soc.proto.GameMessage.ResetBoardVote getResetBoardVotePrompt();
     /**
@@ -30544,10 +32510,12 @@ public final class GameMessage {
 
     /**
      * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     * @return Whether the resetBoardVote field is set.
      */
     boolean hasResetBoardVote();
     /**
      * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     * @return The resetBoardVote.
      */
     soc.proto.GameMessage.ResetBoardVote getResetBoardVote();
     /**
@@ -30557,10 +32525,12 @@ public final class GameMessage {
 
     /**
      * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     * @return Whether the resetBoardResult field is set.
      */
     boolean hasResetBoardResult();
     /**
      * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     * @return The resetBoardResult.
      */
     soc.proto.GameMessage.ResetBoardResult getResetBoardResult();
     /**
@@ -30584,7 +32554,13 @@ public final class GameMessage {
     }
     private GameMessageFromServer() {
       gameName_ = "";
-      playerNumber_ = 0;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GameMessageFromServer();
     }
 
     @java.lang.Override
@@ -30597,8 +32573,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
-      int mutable_bitField1_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -30609,13 +32586,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -31103,6 +33073,13 @@ public final class GameMessage {
               msgCase_ = 1003;
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -31120,6 +33097,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_GameMessageFromServer_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_GameMessageFromServer_fieldAccessorTable
@@ -31130,7 +33108,8 @@ public final class GameMessage {
     private int msgCase_ = 0;
     private java.lang.Object msg_;
     public enum MsgCase
-        implements com.google.protobuf.Internal.EnumLite {
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       GAME_STATE(3),
       PLAYER_ELEMENT(15),
       PLAYER_ELEMENTS(16),
@@ -31171,6 +33150,8 @@ public final class GameMessage {
         this.value = value;
       }
       /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -31233,6 +33214,7 @@ public final class GameMessage {
     private volatile java.lang.Object gameName_;
     /**
      * <code>string game_name = 1;</code>
+     * @return The gameName.
      */
     public java.lang.String getGameName() {
       java.lang.Object ref = gameName_;
@@ -31248,6 +33230,7 @@ public final class GameMessage {
     }
     /**
      * <code>string game_name = 1;</code>
+     * @return The bytes for gameName.
      */
     public com.google.protobuf.ByteString
         getGameNameBytes() {
@@ -31273,6 +33256,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>sint32 player_number = 2;</code>
+     * @return The playerNumber.
      */
     public int getPlayerNumber() {
       return playerNumber_;
@@ -31285,6 +33269,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.State game_state = 3;</code>
+     * @return Whether the gameState field is set.
      */
     public boolean hasGameState() {
       return msgCase_ == 3;
@@ -31295,6 +33280,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.State game_state = 3;</code>
+     * @return The gameState.
      */
     public soc.proto.GameMessage.State getGameState() {
       if (msgCase_ == 3) {
@@ -31319,12 +33305,14 @@ public final class GameMessage {
     public static final int PLAYER_ELEMENT_FIELD_NUMBER = 15;
     /**
      * <code>.PlayerElement player_element = 15;</code>
+     * @return Whether the playerElement field is set.
      */
     public boolean hasPlayerElement() {
       return msgCase_ == 15;
     }
     /**
      * <code>.PlayerElement player_element = 15;</code>
+     * @return The playerElement.
      */
     public soc.proto.GameMessage.PlayerElement getPlayerElement() {
       if (msgCase_ == 15) {
@@ -31349,6 +33337,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PlayerElements player_elements = 16;</code>
+     * @return Whether the playerElements field is set.
      */
     public boolean hasPlayerElements() {
       return msgCase_ == 16;
@@ -31359,6 +33348,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.PlayerElements player_elements = 16;</code>
+     * @return The playerElements.
      */
     public soc.proto.GameMessage.PlayerElements getPlayerElements() {
       if (msgCase_ == 16) {
@@ -31383,12 +33373,14 @@ public final class GameMessage {
     public static final int GAME_ELEMENTS_FIELD_NUMBER = 17;
     /**
      * <code>.GameElements game_elements = 17;</code>
+     * @return Whether the gameElements field is set.
      */
     public boolean hasGameElements() {
       return msgCase_ == 17;
     }
     /**
      * <code>.GameElements game_elements = 17;</code>
+     * @return The gameElements.
      */
     public soc.proto.GameMessage.GameElements getGameElements() {
       if (msgCase_ == 17) {
@@ -31413,6 +33405,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardLayout board_layout = 30;</code>
+     * @return Whether the boardLayout field is set.
      */
     public boolean hasBoardLayout() {
       return msgCase_ == 30;
@@ -31423,6 +33416,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BoardLayout board_layout = 30;</code>
+     * @return The boardLayout.
      */
     public soc.proto.GameMessage.BoardLayout getBoardLayout() {
       if (msgCase_ == 30) {
@@ -31447,12 +33441,14 @@ public final class GameMessage {
     public static final int POTENTIAL_SETTLEMENTS_FIELD_NUMBER = 31;
     /**
      * <code>.PotentialSettlements potential_settlements = 31;</code>
+     * @return Whether the potentialSettlements field is set.
      */
     public boolean hasPotentialSettlements() {
       return msgCase_ == 31;
     }
     /**
      * <code>.PotentialSettlements potential_settlements = 31;</code>
+     * @return The potentialSettlements.
      */
     public soc.proto.GameMessage.PotentialSettlements getPotentialSettlements() {
       if (msgCase_ == 31) {
@@ -31473,12 +33469,14 @@ public final class GameMessage {
     public static final int PIECE_VALUE_FIELD_NUMBER = 32;
     /**
      * <code>.PieceValue piece_value = 32;</code>
+     * @return Whether the pieceValue field is set.
      */
     public boolean hasPieceValue() {
       return msgCase_ == 32;
     }
     /**
      * <code>.PieceValue piece_value = 32;</code>
+     * @return The pieceValue.
      */
     public soc.proto.GameMessage.PieceValue getPieceValue() {
       if (msgCase_ == 32) {
@@ -31499,12 +33497,14 @@ public final class GameMessage {
     public static final int BUILD_PIECE_FIELD_NUMBER = 33;
     /**
      * <code>.BuildPiece build_piece = 33;</code>
+     * @return Whether the buildPiece field is set.
      */
     public boolean hasBuildPiece() {
       return msgCase_ == 33;
     }
     /**
      * <code>.BuildPiece build_piece = 33;</code>
+     * @return The buildPiece.
      */
     public soc.proto.GameMessage.BuildPiece getBuildPiece() {
       if (msgCase_ == 33) {
@@ -31525,12 +33525,14 @@ public final class GameMessage {
     public static final int CANCEL_BUILD_FIELD_NUMBER = 34;
     /**
      * <code>.CancelBuild cancel_build = 34;</code>
+     * @return Whether the cancelBuild field is set.
      */
     public boolean hasCancelBuild() {
       return msgCase_ == 34;
     }
     /**
      * <code>.CancelBuild cancel_build = 34;</code>
+     * @return The cancelBuild.
      */
     public soc.proto.GameMessage.CancelBuild getCancelBuild() {
       if (msgCase_ == 34) {
@@ -31551,12 +33553,14 @@ public final class GameMessage {
     public static final int MOVE_PIECE_FIELD_NUMBER = 35;
     /**
      * <code>.MovePiece move_piece = 35;</code>
+     * @return Whether the movePiece field is set.
      */
     public boolean hasMovePiece() {
       return msgCase_ == 35;
     }
     /**
      * <code>.MovePiece move_piece = 35;</code>
+     * @return The movePiece.
      */
     public soc.proto.GameMessage.MovePiece getMovePiece() {
       if (msgCase_ == 35) {
@@ -31577,12 +33581,14 @@ public final class GameMessage {
     public static final int REMOVE_PIECE_FIELD_NUMBER = 36;
     /**
      * <code>.RemovePiece remove_piece = 36;</code>
+     * @return Whether the removePiece field is set.
      */
     public boolean hasRemovePiece() {
       return msgCase_ == 36;
     }
     /**
      * <code>.RemovePiece remove_piece = 36;</code>
+     * @return The removePiece.
      */
     public soc.proto.GameMessage.RemovePiece getRemovePiece() {
       if (msgCase_ == 36) {
@@ -31603,12 +33609,14 @@ public final class GameMessage {
     public static final int REVEAL_FOG_HEX_FIELD_NUMBER = 37;
     /**
      * <code>.RevealFogHex reveal_fog_hex = 37;</code>
+     * @return Whether the revealFogHex field is set.
      */
     public boolean hasRevealFogHex() {
       return msgCase_ == 37;
     }
     /**
      * <code>.RevealFogHex reveal_fog_hex = 37;</code>
+     * @return The revealFogHex.
      */
     public soc.proto.GameMessage.RevealFogHex getRevealFogHex() {
       if (msgCase_ == 37) {
@@ -31633,6 +33641,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.StartGame start_game = 100;</code>
+     * @return Whether the startGame field is set.
      */
     public boolean hasStartGame() {
       return msgCase_ == 100;
@@ -31643,6 +33652,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.StartGame start_game = 100;</code>
+     * @return The startGame.
      */
     public soc.proto.GameMessage.StartGame getStartGame() {
       if (msgCase_ == 100) {
@@ -31667,12 +33677,14 @@ public final class GameMessage {
     public static final int TURN_FIELD_NUMBER = 101;
     /**
      * <code>.Turn turn = 101;</code>
+     * @return Whether the turn field is set.
      */
     public boolean hasTurn() {
       return msgCase_ == 101;
     }
     /**
      * <code>.Turn turn = 101;</code>
+     * @return The turn.
      */
     public soc.proto.GameMessage.Turn getTurn() {
       if (msgCase_ == 101) {
@@ -31693,12 +33705,14 @@ public final class GameMessage {
     public static final int SET_TURN_FIELD_NUMBER = 102;
     /**
      * <code>.SetTurn set_turn = 102;</code>
+     * @return Whether the setTurn field is set.
      */
     public boolean hasSetTurn() {
       return msgCase_ == 102;
     }
     /**
      * <code>.SetTurn set_turn = 102;</code>
+     * @return The setTurn.
      */
     public soc.proto.GameMessage.SetTurn getSetTurn() {
       if (msgCase_ == 102) {
@@ -31719,12 +33733,14 @@ public final class GameMessage {
     public static final int DICE_ROLL_REQUEST_FIELD_NUMBER = 103;
     /**
      * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     * @return Whether the diceRollRequest field is set.
      */
     public boolean hasDiceRollRequest() {
       return msgCase_ == 103;
     }
     /**
      * <code>.DiceRollRequest dice_roll_request = 103;</code>
+     * @return The diceRollRequest.
      */
     public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
       if (msgCase_ == 103) {
@@ -31745,12 +33761,14 @@ public final class GameMessage {
     public static final int DICE_RESULT_FIELD_NUMBER = 104;
     /**
      * <code>.DiceResult dice_result = 104;</code>
+     * @return Whether the diceResult field is set.
      */
     public boolean hasDiceResult() {
       return msgCase_ == 104;
     }
     /**
      * <code>.DiceResult dice_result = 104;</code>
+     * @return The diceResult.
      */
     public soc.proto.GameMessage.DiceResult getDiceResult() {
       if (msgCase_ == 104) {
@@ -31771,12 +33789,14 @@ public final class GameMessage {
     public static final int DICE_RESULT_RESOURCES_FIELD_NUMBER = 105;
     /**
      * <code>.DiceResultResources dice_result_resources = 105;</code>
+     * @return Whether the diceResultResources field is set.
      */
     public boolean hasDiceResultResources() {
       return msgCase_ == 105;
     }
     /**
      * <code>.DiceResultResources dice_result_resources = 105;</code>
+     * @return The diceResultResources.
      */
     public soc.proto.GameMessage.DiceResultResources getDiceResultResources() {
       if (msgCase_ == 105) {
@@ -31803,6 +33823,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.InventoryItemAction inventory_item_action = 302;</code>
+     * @return Whether the inventoryItemAction field is set.
      */
     public boolean hasInventoryItemAction() {
       return msgCase_ == 302;
@@ -31815,6 +33836,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.InventoryItemAction inventory_item_action = 302;</code>
+     * @return The inventoryItemAction.
      */
     public soc.proto.GameMessage.InventoryItemAction getInventoryItemAction() {
       if (msgCase_ == 302) {
@@ -31845,6 +33867,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
+     * @return Whether the tradeWithBank field is set.
      */
     public boolean hasTradeWithBank() {
       return msgCase_ == 400;
@@ -31855,6 +33878,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
+     * @return The tradeWithBank.
      */
     public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
       if (msgCase_ == 400) {
@@ -31879,12 +33903,14 @@ public final class GameMessage {
     public static final int TRADE_MAKE_OFFER_FIELD_NUMBER = 401;
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     * @return Whether the tradeMakeOffer field is set.
      */
     public boolean hasTradeMakeOffer() {
       return msgCase_ == 401;
     }
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     * @return The tradeMakeOffer.
      */
     public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
       if (msgCase_ == 401) {
@@ -31905,12 +33931,14 @@ public final class GameMessage {
     public static final int TRADE_CLEAR_OFFER_FIELD_NUMBER = 402;
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     * @return Whether the tradeClearOffer field is set.
      */
     public boolean hasTradeClearOffer() {
       return msgCase_ == 402;
     }
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     * @return The tradeClearOffer.
      */
     public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
       if (msgCase_ == 402) {
@@ -31931,12 +33959,14 @@ public final class GameMessage {
     public static final int TRADE_REJECT_OFFER_FIELD_NUMBER = 403;
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     * @return Whether the tradeRejectOffer field is set.
      */
     public boolean hasTradeRejectOffer() {
       return msgCase_ == 403;
     }
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     * @return The tradeRejectOffer.
      */
     public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
       if (msgCase_ == 403) {
@@ -31957,12 +33987,14 @@ public final class GameMessage {
     public static final int TRADE_ACCEPT_OFFER_FIELD_NUMBER = 404;
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     * @return Whether the tradeAcceptOffer field is set.
      */
     public boolean hasTradeAcceptOffer() {
       return msgCase_ == 404;
     }
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     * @return The tradeAcceptOffer.
      */
     public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
       if (msgCase_ == 404) {
@@ -31987,6 +34019,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.LoseResources lose_resources_prompt = 500;</code>
+     * @return Whether the loseResourcesPrompt field is set.
      */
     public boolean hasLoseResourcesPrompt() {
       return msgCase_ == 500;
@@ -31997,6 +34030,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.LoseResources lose_resources_prompt = 500;</code>
+     * @return The loseResourcesPrompt.
      */
     public soc.proto.GameMessage.LoseResources getLoseResourcesPrompt() {
       if (msgCase_ == 500) {
@@ -32021,12 +34055,14 @@ public final class GameMessage {
     public static final int LOSE_RESOURCES_FIELD_NUMBER = 501;
     /**
      * <code>.LoseResources lose_resources = 501;</code>
+     * @return Whether the loseResources field is set.
      */
     public boolean hasLoseResources() {
       return msgCase_ == 501;
     }
     /**
      * <code>.LoseResources lose_resources = 501;</code>
+     * @return The loseResources.
      */
     public soc.proto.GameMessage.LoseResources getLoseResources() {
       if (msgCase_ == 501) {
@@ -32047,12 +34083,14 @@ public final class GameMessage {
     public static final int GAIN_RESOURCES_PROMPT_FIELD_NUMBER = 502;
     /**
      * <code>.GainResources gain_resources_prompt = 502;</code>
+     * @return Whether the gainResourcesPrompt field is set.
      */
     public boolean hasGainResourcesPrompt() {
       return msgCase_ == 502;
     }
     /**
      * <code>.GainResources gain_resources_prompt = 502;</code>
+     * @return The gainResourcesPrompt.
      */
     public soc.proto.GameMessage.GainResources getGainResourcesPrompt() {
       if (msgCase_ == 502) {
@@ -32073,12 +34111,14 @@ public final class GameMessage {
     public static final int GAIN_RESOURCES_FIELD_NUMBER = 503;
     /**
      * <code>.GainResources gain_resources = 503;</code>
+     * @return Whether the gainResources field is set.
      */
     public boolean hasGainResources() {
       return msgCase_ == 503;
     }
     /**
      * <code>.GainResources gain_resources = 503;</code>
+     * @return The gainResources.
      */
     public soc.proto.GameMessage.GainResources getGainResources() {
       if (msgCase_ == 503) {
@@ -32099,12 +34139,14 @@ public final class GameMessage {
     public static final int CHOOSE_PLAYER_PROMPT_FIELD_NUMBER = 504;
     /**
      * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     * @return Whether the choosePlayerPrompt field is set.
      */
     public boolean hasChoosePlayerPrompt() {
       return msgCase_ == 504;
     }
     /**
      * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+     * @return The choosePlayerPrompt.
      */
     public soc.proto.GameMessage.ChoosePlayer getChoosePlayerPrompt() {
       if (msgCase_ == 504) {
@@ -32125,12 +34167,14 @@ public final class GameMessage {
     public static final int MOVE_ROBBER_FIELD_NUMBER = 505;
     /**
      * <code>.MoveRobber move_robber = 505;</code>
+     * @return Whether the moveRobber field is set.
      */
     public boolean hasMoveRobber() {
       return msgCase_ == 505;
     }
     /**
      * <code>.MoveRobber move_robber = 505;</code>
+     * @return The moveRobber.
      */
     public soc.proto.GameMessage.MoveRobber getMoveRobber() {
       if (msgCase_ == 505) {
@@ -32155,6 +34199,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     * @return Whether the resetBoardRequest field is set.
      */
     public boolean hasResetBoardRequest() {
       return msgCase_ == 1000;
@@ -32165,6 +34210,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     * @return The resetBoardRequest.
      */
     public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
       if (msgCase_ == 1000) {
@@ -32189,12 +34235,14 @@ public final class GameMessage {
     public static final int RESET_BOARD_VOTE_PROMPT_FIELD_NUMBER = 1001;
     /**
      * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     * @return Whether the resetBoardVotePrompt field is set.
      */
     public boolean hasResetBoardVotePrompt() {
       return msgCase_ == 1001;
     }
     /**
      * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+     * @return The resetBoardVotePrompt.
      */
     public soc.proto.GameMessage.ResetBoardVote getResetBoardVotePrompt() {
       if (msgCase_ == 1001) {
@@ -32215,12 +34263,14 @@ public final class GameMessage {
     public static final int RESET_BOARD_VOTE_FIELD_NUMBER = 1002;
     /**
      * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     * @return Whether the resetBoardVote field is set.
      */
     public boolean hasResetBoardVote() {
       return msgCase_ == 1002;
     }
     /**
      * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+     * @return The resetBoardVote.
      */
     public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
       if (msgCase_ == 1002) {
@@ -32241,12 +34291,14 @@ public final class GameMessage {
     public static final int RESET_BOARD_RESULT_FIELD_NUMBER = 1003;
     /**
      * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     * @return Whether the resetBoardResult field is set.
      */
     public boolean hasResetBoardResult() {
       return msgCase_ == 1003;
     }
     /**
      * <code>.ResetBoardResult reset_board_result = 1003;</code>
+     * @return The resetBoardResult.
      */
     public soc.proto.GameMessage.ResetBoardResult getResetBoardResult() {
       if (msgCase_ == 1003) {
@@ -32265,6 +34317,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -32274,6 +34327,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGameNameBytes().isEmpty()) {
@@ -32387,6 +34441,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -32550,156 +34605,153 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.GameMessageFromServer other = (soc.proto.GameMessage.GameMessageFromServer) obj;
 
-      boolean result = true;
-      result = result && getGameName()
-          .equals(other.getGameName());
-      result = result && (getPlayerNumber()
-          == other.getPlayerNumber());
-      result = result && getMsgCase().equals(
-          other.getMsgCase());
-      if (!result) return false;
+      if (!getGameName()
+          .equals(other.getGameName())) return false;
+      if (getPlayerNumber()
+          != other.getPlayerNumber()) return false;
+      if (!getMsgCase().equals(other.getMsgCase())) return false;
       switch (msgCase_) {
         case 3:
-          result = result && getGameState()
-              .equals(other.getGameState());
+          if (!getGameState()
+              .equals(other.getGameState())) return false;
           break;
         case 15:
-          result = result && getPlayerElement()
-              .equals(other.getPlayerElement());
+          if (!getPlayerElement()
+              .equals(other.getPlayerElement())) return false;
           break;
         case 16:
-          result = result && getPlayerElements()
-              .equals(other.getPlayerElements());
+          if (!getPlayerElements()
+              .equals(other.getPlayerElements())) return false;
           break;
         case 17:
-          result = result && getGameElements()
-              .equals(other.getGameElements());
+          if (!getGameElements()
+              .equals(other.getGameElements())) return false;
           break;
         case 30:
-          result = result && getBoardLayout()
-              .equals(other.getBoardLayout());
+          if (!getBoardLayout()
+              .equals(other.getBoardLayout())) return false;
           break;
         case 31:
-          result = result && getPotentialSettlements()
-              .equals(other.getPotentialSettlements());
+          if (!getPotentialSettlements()
+              .equals(other.getPotentialSettlements())) return false;
           break;
         case 32:
-          result = result && getPieceValue()
-              .equals(other.getPieceValue());
+          if (!getPieceValue()
+              .equals(other.getPieceValue())) return false;
           break;
         case 33:
-          result = result && getBuildPiece()
-              .equals(other.getBuildPiece());
+          if (!getBuildPiece()
+              .equals(other.getBuildPiece())) return false;
           break;
         case 34:
-          result = result && getCancelBuild()
-              .equals(other.getCancelBuild());
+          if (!getCancelBuild()
+              .equals(other.getCancelBuild())) return false;
           break;
         case 35:
-          result = result && getMovePiece()
-              .equals(other.getMovePiece());
+          if (!getMovePiece()
+              .equals(other.getMovePiece())) return false;
           break;
         case 36:
-          result = result && getRemovePiece()
-              .equals(other.getRemovePiece());
+          if (!getRemovePiece()
+              .equals(other.getRemovePiece())) return false;
           break;
         case 37:
-          result = result && getRevealFogHex()
-              .equals(other.getRevealFogHex());
+          if (!getRevealFogHex()
+              .equals(other.getRevealFogHex())) return false;
           break;
         case 100:
-          result = result && getStartGame()
-              .equals(other.getStartGame());
+          if (!getStartGame()
+              .equals(other.getStartGame())) return false;
           break;
         case 101:
-          result = result && getTurn()
-              .equals(other.getTurn());
+          if (!getTurn()
+              .equals(other.getTurn())) return false;
           break;
         case 102:
-          result = result && getSetTurn()
-              .equals(other.getSetTurn());
+          if (!getSetTurn()
+              .equals(other.getSetTurn())) return false;
           break;
         case 103:
-          result = result && getDiceRollRequest()
-              .equals(other.getDiceRollRequest());
+          if (!getDiceRollRequest()
+              .equals(other.getDiceRollRequest())) return false;
           break;
         case 104:
-          result = result && getDiceResult()
-              .equals(other.getDiceResult());
+          if (!getDiceResult()
+              .equals(other.getDiceResult())) return false;
           break;
         case 105:
-          result = result && getDiceResultResources()
-              .equals(other.getDiceResultResources());
+          if (!getDiceResultResources()
+              .equals(other.getDiceResultResources())) return false;
           break;
         case 302:
-          result = result && getInventoryItemAction()
-              .equals(other.getInventoryItemAction());
+          if (!getInventoryItemAction()
+              .equals(other.getInventoryItemAction())) return false;
           break;
         case 400:
-          result = result && getTradeWithBank()
-              .equals(other.getTradeWithBank());
+          if (!getTradeWithBank()
+              .equals(other.getTradeWithBank())) return false;
           break;
         case 401:
-          result = result && getTradeMakeOffer()
-              .equals(other.getTradeMakeOffer());
+          if (!getTradeMakeOffer()
+              .equals(other.getTradeMakeOffer())) return false;
           break;
         case 402:
-          result = result && getTradeClearOffer()
-              .equals(other.getTradeClearOffer());
+          if (!getTradeClearOffer()
+              .equals(other.getTradeClearOffer())) return false;
           break;
         case 403:
-          result = result && getTradeRejectOffer()
-              .equals(other.getTradeRejectOffer());
+          if (!getTradeRejectOffer()
+              .equals(other.getTradeRejectOffer())) return false;
           break;
         case 404:
-          result = result && getTradeAcceptOffer()
-              .equals(other.getTradeAcceptOffer());
+          if (!getTradeAcceptOffer()
+              .equals(other.getTradeAcceptOffer())) return false;
           break;
         case 500:
-          result = result && getLoseResourcesPrompt()
-              .equals(other.getLoseResourcesPrompt());
+          if (!getLoseResourcesPrompt()
+              .equals(other.getLoseResourcesPrompt())) return false;
           break;
         case 501:
-          result = result && getLoseResources()
-              .equals(other.getLoseResources());
+          if (!getLoseResources()
+              .equals(other.getLoseResources())) return false;
           break;
         case 502:
-          result = result && getGainResourcesPrompt()
-              .equals(other.getGainResourcesPrompt());
+          if (!getGainResourcesPrompt()
+              .equals(other.getGainResourcesPrompt())) return false;
           break;
         case 503:
-          result = result && getGainResources()
-              .equals(other.getGainResources());
+          if (!getGainResources()
+              .equals(other.getGainResources())) return false;
           break;
         case 504:
-          result = result && getChoosePlayerPrompt()
-              .equals(other.getChoosePlayerPrompt());
+          if (!getChoosePlayerPrompt()
+              .equals(other.getChoosePlayerPrompt())) return false;
           break;
         case 505:
-          result = result && getMoveRobber()
-              .equals(other.getMoveRobber());
+          if (!getMoveRobber()
+              .equals(other.getMoveRobber())) return false;
           break;
         case 1000:
-          result = result && getResetBoardRequest()
-              .equals(other.getResetBoardRequest());
+          if (!getResetBoardRequest()
+              .equals(other.getResetBoardRequest())) return false;
           break;
         case 1001:
-          result = result && getResetBoardVotePrompt()
-              .equals(other.getResetBoardVotePrompt());
+          if (!getResetBoardVotePrompt()
+              .equals(other.getResetBoardVotePrompt())) return false;
           break;
         case 1002:
-          result = result && getResetBoardVote()
-              .equals(other.getResetBoardVote());
+          if (!getResetBoardVote()
+              .equals(other.getResetBoardVote())) return false;
           break;
         case 1003:
-          result = result && getResetBoardResult()
-              .equals(other.getResetBoardResult());
+          if (!getResetBoardResult()
+              .equals(other.getResetBoardResult())) return false;
           break;
         case 0:
         default:
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -32928,6 +34980,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -32935,6 +34988,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.GameMessageFromServer prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -32958,6 +35012,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_GameMessageFromServer_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_GameMessageFromServer_fieldAccessorTable
@@ -32980,6 +35035,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gameName_ = "";
@@ -32991,15 +35047,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_GameMessageFromServer_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromServer getDefaultInstanceForType() {
         return soc.proto.GameMessage.GameMessageFromServer.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromServer build() {
         soc.proto.GameMessage.GameMessageFromServer result = buildPartial();
         if (!result.isInitialized()) {
@@ -33008,6 +35067,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromServer buildPartial() {
         soc.proto.GameMessage.GameMessageFromServer result = new soc.proto.GameMessage.GameMessageFromServer(this);
         result.gameName_ = gameName_;
@@ -33255,32 +35315,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.GameMessageFromServer) {
           return mergeFrom((soc.proto.GameMessage.GameMessageFromServer)other);
@@ -33445,10 +35512,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -33485,6 +35554,7 @@ public final class GameMessage {
       private java.lang.Object gameName_ = "";
       /**
        * <code>string game_name = 1;</code>
+       * @return The gameName.
        */
       public java.lang.String getGameName() {
         java.lang.Object ref = gameName_;
@@ -33500,6 +35570,7 @@ public final class GameMessage {
       }
       /**
        * <code>string game_name = 1;</code>
+       * @return The bytes for gameName.
        */
       public com.google.protobuf.ByteString
           getGameNameBytes() {
@@ -33516,6 +35587,8 @@ public final class GameMessage {
       }
       /**
        * <code>string game_name = 1;</code>
+       * @param value The gameName to set.
+       * @return This builder for chaining.
        */
       public Builder setGameName(
           java.lang.String value) {
@@ -33529,6 +35602,7 @@ public final class GameMessage {
       }
       /**
        * <code>string game_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGameName() {
         
@@ -33538,6 +35612,8 @@ public final class GameMessage {
       }
       /**
        * <code>string game_name = 1;</code>
+       * @param value The bytes for gameName to set.
+       * @return This builder for chaining.
        */
       public Builder setGameNameBytes(
           com.google.protobuf.ByteString value) {
@@ -33560,6 +35636,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 player_number = 2;</code>
+       * @return The playerNumber.
        */
       public int getPlayerNumber() {
         return playerNumber_;
@@ -33572,6 +35649,8 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 player_number = 2;</code>
+       * @param value The playerNumber to set.
+       * @return This builder for chaining.
        */
       public Builder setPlayerNumber(int value) {
         
@@ -33587,6 +35666,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>sint32 player_number = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPlayerNumber() {
         
@@ -33603,6 +35683,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.State game_state = 3;</code>
+       * @return Whether the gameState field is set.
        */
       public boolean hasGameState() {
         return msgCase_ == 3;
@@ -33613,6 +35694,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.State game_state = 3;</code>
+       * @return The gameState.
        */
       public soc.proto.GameMessage.State getGameState() {
         if (gameStateBuilder_ == null) {
@@ -33771,12 +35853,14 @@ public final class GameMessage {
           soc.proto.GameMessage.PlayerElement, soc.proto.GameMessage.PlayerElement.Builder, soc.proto.GameMessage.PlayerElementOrBuilder> playerElementBuilder_;
       /**
        * <code>.PlayerElement player_element = 15;</code>
+       * @return Whether the playerElement field is set.
        */
       public boolean hasPlayerElement() {
         return msgCase_ == 15;
       }
       /**
        * <code>.PlayerElement player_element = 15;</code>
+       * @return The playerElement.
        */
       public soc.proto.GameMessage.PlayerElement getPlayerElement() {
         if (playerElementBuilder_ == null) {
@@ -33911,6 +35995,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PlayerElements player_elements = 16;</code>
+       * @return Whether the playerElements field is set.
        */
       public boolean hasPlayerElements() {
         return msgCase_ == 16;
@@ -33921,6 +36006,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.PlayerElements player_elements = 16;</code>
+       * @return The playerElements.
        */
       public soc.proto.GameMessage.PlayerElements getPlayerElements() {
         if (playerElementsBuilder_ == null) {
@@ -34079,12 +36165,14 @@ public final class GameMessage {
           soc.proto.GameMessage.GameElements, soc.proto.GameMessage.GameElements.Builder, soc.proto.GameMessage.GameElementsOrBuilder> gameElementsBuilder_;
       /**
        * <code>.GameElements game_elements = 17;</code>
+       * @return Whether the gameElements field is set.
        */
       public boolean hasGameElements() {
         return msgCase_ == 17;
       }
       /**
        * <code>.GameElements game_elements = 17;</code>
+       * @return The gameElements.
        */
       public soc.proto.GameMessage.GameElements getGameElements() {
         if (gameElementsBuilder_ == null) {
@@ -34219,6 +36307,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardLayout board_layout = 30;</code>
+       * @return Whether the boardLayout field is set.
        */
       public boolean hasBoardLayout() {
         return msgCase_ == 30;
@@ -34229,6 +36318,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BoardLayout board_layout = 30;</code>
+       * @return The boardLayout.
        */
       public soc.proto.GameMessage.BoardLayout getBoardLayout() {
         if (boardLayoutBuilder_ == null) {
@@ -34387,12 +36477,14 @@ public final class GameMessage {
           soc.proto.GameMessage.PotentialSettlements, soc.proto.GameMessage.PotentialSettlements.Builder, soc.proto.GameMessage.PotentialSettlementsOrBuilder> potentialSettlementsBuilder_;
       /**
        * <code>.PotentialSettlements potential_settlements = 31;</code>
+       * @return Whether the potentialSettlements field is set.
        */
       public boolean hasPotentialSettlements() {
         return msgCase_ == 31;
       }
       /**
        * <code>.PotentialSettlements potential_settlements = 31;</code>
+       * @return The potentialSettlements.
        */
       public soc.proto.GameMessage.PotentialSettlements getPotentialSettlements() {
         if (potentialSettlementsBuilder_ == null) {
@@ -34523,12 +36615,14 @@ public final class GameMessage {
           soc.proto.GameMessage.PieceValue, soc.proto.GameMessage.PieceValue.Builder, soc.proto.GameMessage.PieceValueOrBuilder> pieceValueBuilder_;
       /**
        * <code>.PieceValue piece_value = 32;</code>
+       * @return Whether the pieceValue field is set.
        */
       public boolean hasPieceValue() {
         return msgCase_ == 32;
       }
       /**
        * <code>.PieceValue piece_value = 32;</code>
+       * @return The pieceValue.
        */
       public soc.proto.GameMessage.PieceValue getPieceValue() {
         if (pieceValueBuilder_ == null) {
@@ -34659,12 +36753,14 @@ public final class GameMessage {
           soc.proto.GameMessage.BuildPiece, soc.proto.GameMessage.BuildPiece.Builder, soc.proto.GameMessage.BuildPieceOrBuilder> buildPieceBuilder_;
       /**
        * <code>.BuildPiece build_piece = 33;</code>
+       * @return Whether the buildPiece field is set.
        */
       public boolean hasBuildPiece() {
         return msgCase_ == 33;
       }
       /**
        * <code>.BuildPiece build_piece = 33;</code>
+       * @return The buildPiece.
        */
       public soc.proto.GameMessage.BuildPiece getBuildPiece() {
         if (buildPieceBuilder_ == null) {
@@ -34795,12 +36891,14 @@ public final class GameMessage {
           soc.proto.GameMessage.CancelBuild, soc.proto.GameMessage.CancelBuild.Builder, soc.proto.GameMessage.CancelBuildOrBuilder> cancelBuildBuilder_;
       /**
        * <code>.CancelBuild cancel_build = 34;</code>
+       * @return Whether the cancelBuild field is set.
        */
       public boolean hasCancelBuild() {
         return msgCase_ == 34;
       }
       /**
        * <code>.CancelBuild cancel_build = 34;</code>
+       * @return The cancelBuild.
        */
       public soc.proto.GameMessage.CancelBuild getCancelBuild() {
         if (cancelBuildBuilder_ == null) {
@@ -34931,12 +37029,14 @@ public final class GameMessage {
           soc.proto.GameMessage.MovePiece, soc.proto.GameMessage.MovePiece.Builder, soc.proto.GameMessage.MovePieceOrBuilder> movePieceBuilder_;
       /**
        * <code>.MovePiece move_piece = 35;</code>
+       * @return Whether the movePiece field is set.
        */
       public boolean hasMovePiece() {
         return msgCase_ == 35;
       }
       /**
        * <code>.MovePiece move_piece = 35;</code>
+       * @return The movePiece.
        */
       public soc.proto.GameMessage.MovePiece getMovePiece() {
         if (movePieceBuilder_ == null) {
@@ -35067,12 +37167,14 @@ public final class GameMessage {
           soc.proto.GameMessage.RemovePiece, soc.proto.GameMessage.RemovePiece.Builder, soc.proto.GameMessage.RemovePieceOrBuilder> removePieceBuilder_;
       /**
        * <code>.RemovePiece remove_piece = 36;</code>
+       * @return Whether the removePiece field is set.
        */
       public boolean hasRemovePiece() {
         return msgCase_ == 36;
       }
       /**
        * <code>.RemovePiece remove_piece = 36;</code>
+       * @return The removePiece.
        */
       public soc.proto.GameMessage.RemovePiece getRemovePiece() {
         if (removePieceBuilder_ == null) {
@@ -35203,12 +37305,14 @@ public final class GameMessage {
           soc.proto.GameMessage.RevealFogHex, soc.proto.GameMessage.RevealFogHex.Builder, soc.proto.GameMessage.RevealFogHexOrBuilder> revealFogHexBuilder_;
       /**
        * <code>.RevealFogHex reveal_fog_hex = 37;</code>
+       * @return Whether the revealFogHex field is set.
        */
       public boolean hasRevealFogHex() {
         return msgCase_ == 37;
       }
       /**
        * <code>.RevealFogHex reveal_fog_hex = 37;</code>
+       * @return The revealFogHex.
        */
       public soc.proto.GameMessage.RevealFogHex getRevealFogHex() {
         if (revealFogHexBuilder_ == null) {
@@ -35343,6 +37447,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.StartGame start_game = 100;</code>
+       * @return Whether the startGame field is set.
        */
       public boolean hasStartGame() {
         return msgCase_ == 100;
@@ -35353,6 +37458,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.StartGame start_game = 100;</code>
+       * @return The startGame.
        */
       public soc.proto.GameMessage.StartGame getStartGame() {
         if (startGameBuilder_ == null) {
@@ -35511,12 +37617,14 @@ public final class GameMessage {
           soc.proto.GameMessage.Turn, soc.proto.GameMessage.Turn.Builder, soc.proto.GameMessage.TurnOrBuilder> turnBuilder_;
       /**
        * <code>.Turn turn = 101;</code>
+       * @return Whether the turn field is set.
        */
       public boolean hasTurn() {
         return msgCase_ == 101;
       }
       /**
        * <code>.Turn turn = 101;</code>
+       * @return The turn.
        */
       public soc.proto.GameMessage.Turn getTurn() {
         if (turnBuilder_ == null) {
@@ -35647,12 +37755,14 @@ public final class GameMessage {
           soc.proto.GameMessage.SetTurn, soc.proto.GameMessage.SetTurn.Builder, soc.proto.GameMessage.SetTurnOrBuilder> setTurnBuilder_;
       /**
        * <code>.SetTurn set_turn = 102;</code>
+       * @return Whether the setTurn field is set.
        */
       public boolean hasSetTurn() {
         return msgCase_ == 102;
       }
       /**
        * <code>.SetTurn set_turn = 102;</code>
+       * @return The setTurn.
        */
       public soc.proto.GameMessage.SetTurn getSetTurn() {
         if (setTurnBuilder_ == null) {
@@ -35783,12 +37893,14 @@ public final class GameMessage {
           soc.proto.GameMessage.DiceRollRequest, soc.proto.GameMessage.DiceRollRequest.Builder, soc.proto.GameMessage.DiceRollRequestOrBuilder> diceRollRequestBuilder_;
       /**
        * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       * @return Whether the diceRollRequest field is set.
        */
       public boolean hasDiceRollRequest() {
         return msgCase_ == 103;
       }
       /**
        * <code>.DiceRollRequest dice_roll_request = 103;</code>
+       * @return The diceRollRequest.
        */
       public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
         if (diceRollRequestBuilder_ == null) {
@@ -35919,12 +38031,14 @@ public final class GameMessage {
           soc.proto.GameMessage.DiceResult, soc.proto.GameMessage.DiceResult.Builder, soc.proto.GameMessage.DiceResultOrBuilder> diceResultBuilder_;
       /**
        * <code>.DiceResult dice_result = 104;</code>
+       * @return Whether the diceResult field is set.
        */
       public boolean hasDiceResult() {
         return msgCase_ == 104;
       }
       /**
        * <code>.DiceResult dice_result = 104;</code>
+       * @return The diceResult.
        */
       public soc.proto.GameMessage.DiceResult getDiceResult() {
         if (diceResultBuilder_ == null) {
@@ -36055,12 +38169,14 @@ public final class GameMessage {
           soc.proto.GameMessage.DiceResultResources, soc.proto.GameMessage.DiceResultResources.Builder, soc.proto.GameMessage.DiceResultResourcesOrBuilder> diceResultResourcesBuilder_;
       /**
        * <code>.DiceResultResources dice_result_resources = 105;</code>
+       * @return Whether the diceResultResources field is set.
        */
       public boolean hasDiceResultResources() {
         return msgCase_ == 105;
       }
       /**
        * <code>.DiceResultResources dice_result_resources = 105;</code>
+       * @return The diceResultResources.
        */
       public soc.proto.GameMessage.DiceResultResources getDiceResultResources() {
         if (diceResultResourcesBuilder_ == null) {
@@ -36197,6 +38313,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.InventoryItemAction inventory_item_action = 302;</code>
+       * @return Whether the inventoryItemAction field is set.
        */
       public boolean hasInventoryItemAction() {
         return msgCase_ == 302;
@@ -36209,6 +38326,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.InventoryItemAction inventory_item_action = 302;</code>
+       * @return The inventoryItemAction.
        */
       public soc.proto.GameMessage.InventoryItemAction getInventoryItemAction() {
         if (inventoryItemActionBuilder_ == null) {
@@ -36385,6 +38503,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.TradeWithBank trade_with_bank = 400;</code>
+       * @return Whether the tradeWithBank field is set.
        */
       public boolean hasTradeWithBank() {
         return msgCase_ == 400;
@@ -36395,6 +38514,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.TradeWithBank trade_with_bank = 400;</code>
+       * @return The tradeWithBank.
        */
       public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
         if (tradeWithBankBuilder_ == null) {
@@ -36553,12 +38673,14 @@ public final class GameMessage {
           soc.proto.GameMessage.TradeMakeOffer, soc.proto.GameMessage.TradeMakeOffer.Builder, soc.proto.GameMessage.TradeMakeOfferOrBuilder> tradeMakeOfferBuilder_;
       /**
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       * @return Whether the tradeMakeOffer field is set.
        */
       public boolean hasTradeMakeOffer() {
         return msgCase_ == 401;
       }
       /**
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       * @return The tradeMakeOffer.
        */
       public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
         if (tradeMakeOfferBuilder_ == null) {
@@ -36689,12 +38811,14 @@ public final class GameMessage {
           soc.proto.GameMessage.TradeClearOffer, soc.proto.GameMessage.TradeClearOffer.Builder, soc.proto.GameMessage.TradeClearOfferOrBuilder> tradeClearOfferBuilder_;
       /**
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       * @return Whether the tradeClearOffer field is set.
        */
       public boolean hasTradeClearOffer() {
         return msgCase_ == 402;
       }
       /**
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       * @return The tradeClearOffer.
        */
       public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
         if (tradeClearOfferBuilder_ == null) {
@@ -36825,12 +38949,14 @@ public final class GameMessage {
           soc.proto.GameMessage.TradeRejectOffer, soc.proto.GameMessage.TradeRejectOffer.Builder, soc.proto.GameMessage.TradeRejectOfferOrBuilder> tradeRejectOfferBuilder_;
       /**
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       * @return Whether the tradeRejectOffer field is set.
        */
       public boolean hasTradeRejectOffer() {
         return msgCase_ == 403;
       }
       /**
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       * @return The tradeRejectOffer.
        */
       public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
         if (tradeRejectOfferBuilder_ == null) {
@@ -36961,12 +39087,14 @@ public final class GameMessage {
           soc.proto.GameMessage.TradeAcceptOffer, soc.proto.GameMessage.TradeAcceptOffer.Builder, soc.proto.GameMessage.TradeAcceptOfferOrBuilder> tradeAcceptOfferBuilder_;
       /**
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       * @return Whether the tradeAcceptOffer field is set.
        */
       public boolean hasTradeAcceptOffer() {
         return msgCase_ == 404;
       }
       /**
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       * @return The tradeAcceptOffer.
        */
       public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
         if (tradeAcceptOfferBuilder_ == null) {
@@ -37101,6 +39229,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.LoseResources lose_resources_prompt = 500;</code>
+       * @return Whether the loseResourcesPrompt field is set.
        */
       public boolean hasLoseResourcesPrompt() {
         return msgCase_ == 500;
@@ -37111,6 +39240,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.LoseResources lose_resources_prompt = 500;</code>
+       * @return The loseResourcesPrompt.
        */
       public soc.proto.GameMessage.LoseResources getLoseResourcesPrompt() {
         if (loseResourcesPromptBuilder_ == null) {
@@ -37269,12 +39399,14 @@ public final class GameMessage {
           soc.proto.GameMessage.LoseResources, soc.proto.GameMessage.LoseResources.Builder, soc.proto.GameMessage.LoseResourcesOrBuilder> loseResourcesBuilder_;
       /**
        * <code>.LoseResources lose_resources = 501;</code>
+       * @return Whether the loseResources field is set.
        */
       public boolean hasLoseResources() {
         return msgCase_ == 501;
       }
       /**
        * <code>.LoseResources lose_resources = 501;</code>
+       * @return The loseResources.
        */
       public soc.proto.GameMessage.LoseResources getLoseResources() {
         if (loseResourcesBuilder_ == null) {
@@ -37405,12 +39537,14 @@ public final class GameMessage {
           soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> gainResourcesPromptBuilder_;
       /**
        * <code>.GainResources gain_resources_prompt = 502;</code>
+       * @return Whether the gainResourcesPrompt field is set.
        */
       public boolean hasGainResourcesPrompt() {
         return msgCase_ == 502;
       }
       /**
        * <code>.GainResources gain_resources_prompt = 502;</code>
+       * @return The gainResourcesPrompt.
        */
       public soc.proto.GameMessage.GainResources getGainResourcesPrompt() {
         if (gainResourcesPromptBuilder_ == null) {
@@ -37541,12 +39675,14 @@ public final class GameMessage {
           soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> gainResourcesBuilder_;
       /**
        * <code>.GainResources gain_resources = 503;</code>
+       * @return Whether the gainResources field is set.
        */
       public boolean hasGainResources() {
         return msgCase_ == 503;
       }
       /**
        * <code>.GainResources gain_resources = 503;</code>
+       * @return The gainResources.
        */
       public soc.proto.GameMessage.GainResources getGainResources() {
         if (gainResourcesBuilder_ == null) {
@@ -37677,12 +39813,14 @@ public final class GameMessage {
           soc.proto.GameMessage.ChoosePlayer, soc.proto.GameMessage.ChoosePlayer.Builder, soc.proto.GameMessage.ChoosePlayerOrBuilder> choosePlayerPromptBuilder_;
       /**
        * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       * @return Whether the choosePlayerPrompt field is set.
        */
       public boolean hasChoosePlayerPrompt() {
         return msgCase_ == 504;
       }
       /**
        * <code>.ChoosePlayer choose_player_prompt = 504;</code>
+       * @return The choosePlayerPrompt.
        */
       public soc.proto.GameMessage.ChoosePlayer getChoosePlayerPrompt() {
         if (choosePlayerPromptBuilder_ == null) {
@@ -37813,12 +39951,14 @@ public final class GameMessage {
           soc.proto.GameMessage.MoveRobber, soc.proto.GameMessage.MoveRobber.Builder, soc.proto.GameMessage.MoveRobberOrBuilder> moveRobberBuilder_;
       /**
        * <code>.MoveRobber move_robber = 505;</code>
+       * @return Whether the moveRobber field is set.
        */
       public boolean hasMoveRobber() {
         return msgCase_ == 505;
       }
       /**
        * <code>.MoveRobber move_robber = 505;</code>
+       * @return The moveRobber.
        */
       public soc.proto.GameMessage.MoveRobber getMoveRobber() {
         if (moveRobberBuilder_ == null) {
@@ -37953,6 +40093,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       * @return Whether the resetBoardRequest field is set.
        */
       public boolean hasResetBoardRequest() {
         return msgCase_ == 1000;
@@ -37963,6 +40104,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       * @return The resetBoardRequest.
        */
       public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
         if (resetBoardRequestBuilder_ == null) {
@@ -38121,12 +40263,14 @@ public final class GameMessage {
           soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> resetBoardVotePromptBuilder_;
       /**
        * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       * @return Whether the resetBoardVotePrompt field is set.
        */
       public boolean hasResetBoardVotePrompt() {
         return msgCase_ == 1001;
       }
       /**
        * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
+       * @return The resetBoardVotePrompt.
        */
       public soc.proto.GameMessage.ResetBoardVote getResetBoardVotePrompt() {
         if (resetBoardVotePromptBuilder_ == null) {
@@ -38257,12 +40401,14 @@ public final class GameMessage {
           soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> resetBoardVoteBuilder_;
       /**
        * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       * @return Whether the resetBoardVote field is set.
        */
       public boolean hasResetBoardVote() {
         return msgCase_ == 1002;
       }
       /**
        * <code>.ResetBoardVote reset_board_vote = 1002;</code>
+       * @return The resetBoardVote.
        */
       public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
         if (resetBoardVoteBuilder_ == null) {
@@ -38393,12 +40539,14 @@ public final class GameMessage {
           soc.proto.GameMessage.ResetBoardResult, soc.proto.GameMessage.ResetBoardResult.Builder, soc.proto.GameMessage.ResetBoardResultOrBuilder> resetBoardResultBuilder_;
       /**
        * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       * @return Whether the resetBoardResult field is set.
        */
       public boolean hasResetBoardResult() {
         return msgCase_ == 1003;
       }
       /**
        * <code>.ResetBoardResult reset_board_result = 1003;</code>
+       * @return The resetBoardResult.
        */
       public soc.proto.GameMessage.ResetBoardResult getResetBoardResult() {
         if (resetBoardResultBuilder_ == null) {
@@ -38524,11 +40672,13 @@ public final class GameMessage {
         onChanged();;
         return resetBoardResultBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -38550,11 +40700,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<GameMessageFromServer>
         PARSER = new com.google.protobuf.AbstractParser<GameMessageFromServer>() {
+      @java.lang.Override
       public GameMessageFromServer parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new GameMessageFromServer(input, extensionRegistry);
+        return new GameMessageFromServer(input, extensionRegistry);
       }
     };
 
@@ -38567,6 +40718,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.GameMessageFromServer getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -38579,10 +40731,12 @@ public final class GameMessage {
 
     /**
      * <code>string game_name = 1;</code>
+     * @return The gameName.
      */
     java.lang.String getGameName();
     /**
      * <code>string game_name = 1;</code>
+     * @return The bytes for gameName.
      */
     com.google.protobuf.ByteString
         getGameNameBytes();
@@ -38593,6 +40747,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.StartGame start_game = 100;</code>
+     * @return Whether the startGame field is set.
      */
     boolean hasStartGame();
     /**
@@ -38601,6 +40756,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.StartGame start_game = 100;</code>
+     * @return The startGame.
      */
     soc.proto.GameMessage.StartGame getStartGame();
     /**
@@ -38614,10 +40770,12 @@ public final class GameMessage {
 
     /**
      * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     * @return Whether the diceRollRequest field is set.
      */
     boolean hasDiceRollRequest();
     /**
      * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     * @return The diceRollRequest.
      */
     soc.proto.GameMessage.DiceRollRequest getDiceRollRequest();
     /**
@@ -38627,10 +40785,12 @@ public final class GameMessage {
 
     /**
      * <code>.EndTurn end_turn = 102;</code>
+     * @return Whether the endTurn field is set.
      */
     boolean hasEndTurn();
     /**
      * <code>.EndTurn end_turn = 102;</code>
+     * @return The endTurn.
      */
     soc.proto.GameMessage.EndTurn getEndTurn();
     /**
@@ -38644,6 +40804,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BuildPiece build_piece = 200;</code>
+     * @return Whether the buildPiece field is set.
      */
     boolean hasBuildPiece();
     /**
@@ -38652,6 +40813,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BuildPiece build_piece = 200;</code>
+     * @return The buildPiece.
      */
     soc.proto.GameMessage.BuildPiece getBuildPiece();
     /**
@@ -38665,10 +40827,12 @@ public final class GameMessage {
 
     /**
      * <code>.CancelBuild cancel_build = 201;</code>
+     * @return Whether the cancelBuild field is set.
      */
     boolean hasCancelBuild();
     /**
      * <code>.CancelBuild cancel_build = 201;</code>
+     * @return The cancelBuild.
      */
     soc.proto.GameMessage.CancelBuild getCancelBuild();
     /**
@@ -38678,10 +40842,12 @@ public final class GameMessage {
 
     /**
      * <code>.MovePiece move_piece = 202;</code>
+     * @return Whether the movePiece field is set.
      */
     boolean hasMovePiece();
     /**
      * <code>.MovePiece move_piece = 202;</code>
+     * @return The movePiece.
      */
     soc.proto.GameMessage.MovePiece getMovePiece();
     /**
@@ -38691,10 +40857,12 @@ public final class GameMessage {
 
     /**
      * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
+     * @return Whether the buyInventoryItem field is set.
      */
     boolean hasBuyInventoryItem();
     /**
      * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
+     * @return The buyInventoryItem.
      */
     soc.proto.GameMessage.BuyInventoryItemRequest getBuyInventoryItem();
     /**
@@ -38704,10 +40872,12 @@ public final class GameMessage {
 
     /**
      * <code>.InventoryItemAction inventory_item_action = 204;</code>
+     * @return Whether the inventoryItemAction field is set.
      */
     boolean hasInventoryItemAction();
     /**
      * <code>.InventoryItemAction inventory_item_action = 204;</code>
+     * @return The inventoryItemAction.
      */
     soc.proto.GameMessage.InventoryItemAction getInventoryItemAction();
     /**
@@ -38721,6 +40891,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
+     * @return Whether the tradeWithBank field is set.
      */
     boolean hasTradeWithBank();
     /**
@@ -38729,6 +40900,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
+     * @return The tradeWithBank.
      */
     soc.proto.GameMessage.TradeWithBank getTradeWithBank();
     /**
@@ -38742,10 +40914,12 @@ public final class GameMessage {
 
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     * @return Whether the tradeMakeOffer field is set.
      */
     boolean hasTradeMakeOffer();
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     * @return The tradeMakeOffer.
      */
     soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer();
     /**
@@ -38755,10 +40929,12 @@ public final class GameMessage {
 
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     * @return Whether the tradeClearOffer field is set.
      */
     boolean hasTradeClearOffer();
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     * @return The tradeClearOffer.
      */
     soc.proto.GameMessage.TradeClearOffer getTradeClearOffer();
     /**
@@ -38768,10 +40944,12 @@ public final class GameMessage {
 
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     * @return Whether the tradeRejectOffer field is set.
      */
     boolean hasTradeRejectOffer();
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     * @return The tradeRejectOffer.
      */
     soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer();
     /**
@@ -38781,10 +40959,12 @@ public final class GameMessage {
 
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     * @return Whether the tradeAcceptOffer field is set.
      */
     boolean hasTradeAcceptOffer();
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     * @return The tradeAcceptOffer.
      */
     soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer();
     /**
@@ -38798,6 +40978,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.LoseResources lose_resources = 500;</code>
+     * @return Whether the loseResources field is set.
      */
     boolean hasLoseResources();
     /**
@@ -38806,6 +40987,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.LoseResources lose_resources = 500;</code>
+     * @return The loseResources.
      */
     soc.proto.GameMessage.LoseResources getLoseResources();
     /**
@@ -38819,10 +41001,12 @@ public final class GameMessage {
 
     /**
      * <code>.GainResources gain_resources = 501;</code>
+     * @return Whether the gainResources field is set.
      */
     boolean hasGainResources();
     /**
      * <code>.GainResources gain_resources = 501;</code>
+     * @return The gainResources.
      */
     soc.proto.GameMessage.GainResources getGainResources();
     /**
@@ -38832,10 +41016,12 @@ public final class GameMessage {
 
     /**
      * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     * @return Whether the chooseResourceType field is set.
      */
     boolean hasChooseResourceType();
     /**
      * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     * @return The chooseResourceType.
      */
     soc.proto.GameMessage.ChooseResourceType getChooseResourceType();
     /**
@@ -38845,10 +41031,12 @@ public final class GameMessage {
 
     /**
      * <code>.ChoosePlayer choose_player = 503;</code>
+     * @return Whether the choosePlayer field is set.
      */
     boolean hasChoosePlayer();
     /**
      * <code>.ChoosePlayer choose_player = 503;</code>
+     * @return The choosePlayer.
      */
     soc.proto.GameMessage.ChoosePlayer getChoosePlayer();
     /**
@@ -38858,10 +41046,12 @@ public final class GameMessage {
 
     /**
      * <code>.MoveRobber move_robber = 504;</code>
+     * @return Whether the moveRobber field is set.
      */
     boolean hasMoveRobber();
     /**
      * <code>.MoveRobber move_robber = 504;</code>
+     * @return The moveRobber.
      */
     soc.proto.GameMessage.MoveRobber getMoveRobber();
     /**
@@ -38875,6 +41065,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     * @return Whether the resetBoardRequest field is set.
      */
     boolean hasResetBoardRequest();
     /**
@@ -38883,6 +41074,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     * @return The resetBoardRequest.
      */
     soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest();
     /**
@@ -38896,10 +41088,12 @@ public final class GameMessage {
 
     /**
      * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     * @return Whether the resetBoardVote field is set.
      */
     boolean hasResetBoardVote();
     /**
      * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     * @return The resetBoardVote.
      */
     soc.proto.GameMessage.ResetBoardVote getResetBoardVote();
     /**
@@ -38926,6 +41120,13 @@ public final class GameMessage {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new GameMessageFromClient();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -38935,7 +41136,9 @@ public final class GameMessage {
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       this();
-      int mutable_bitField0_ = 0;
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
       try {
@@ -38946,13 +41149,6 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownFieldProto3(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               java.lang.String s = input.readStringRequireUtf8();
 
@@ -39239,6 +41435,13 @@ public final class GameMessage {
               msgCase_ = 1001;
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -39256,6 +41459,7 @@ public final class GameMessage {
       return soc.proto.GameMessage.internal_static_GameMessageFromClient_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return soc.proto.GameMessage.internal_static_GameMessageFromClient_fieldAccessorTable
@@ -39266,7 +41470,8 @@ public final class GameMessage {
     private int msgCase_ = 0;
     private java.lang.Object msg_;
     public enum MsgCase
-        implements com.google.protobuf.Internal.EnumLite {
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
       START_GAME(100),
       DICE_ROLL_REQUEST(101),
       END_TURN(102),
@@ -39293,6 +41498,8 @@ public final class GameMessage {
         this.value = value;
       }
       /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
        * @deprecated Use {@link #forNumber(int)} instead.
        */
       @java.lang.Deprecated
@@ -39341,6 +41548,7 @@ public final class GameMessage {
     private volatile java.lang.Object gameName_;
     /**
      * <code>string game_name = 1;</code>
+     * @return The gameName.
      */
     public java.lang.String getGameName() {
       java.lang.Object ref = gameName_;
@@ -39356,6 +41564,7 @@ public final class GameMessage {
     }
     /**
      * <code>string game_name = 1;</code>
+     * @return The bytes for gameName.
      */
     public com.google.protobuf.ByteString
         getGameNameBytes() {
@@ -39378,6 +41587,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.StartGame start_game = 100;</code>
+     * @return Whether the startGame field is set.
      */
     public boolean hasStartGame() {
       return msgCase_ == 100;
@@ -39388,6 +41598,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.StartGame start_game = 100;</code>
+     * @return The startGame.
      */
     public soc.proto.GameMessage.StartGame getStartGame() {
       if (msgCase_ == 100) {
@@ -39412,12 +41623,14 @@ public final class GameMessage {
     public static final int DICE_ROLL_REQUEST_FIELD_NUMBER = 101;
     /**
      * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     * @return Whether the diceRollRequest field is set.
      */
     public boolean hasDiceRollRequest() {
       return msgCase_ == 101;
     }
     /**
      * <code>.DiceRollRequest dice_roll_request = 101;</code>
+     * @return The diceRollRequest.
      */
     public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
       if (msgCase_ == 101) {
@@ -39438,12 +41651,14 @@ public final class GameMessage {
     public static final int END_TURN_FIELD_NUMBER = 102;
     /**
      * <code>.EndTurn end_turn = 102;</code>
+     * @return Whether the endTurn field is set.
      */
     public boolean hasEndTurn() {
       return msgCase_ == 102;
     }
     /**
      * <code>.EndTurn end_turn = 102;</code>
+     * @return The endTurn.
      */
     public soc.proto.GameMessage.EndTurn getEndTurn() {
       if (msgCase_ == 102) {
@@ -39468,6 +41683,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BuildPiece build_piece = 200;</code>
+     * @return Whether the buildPiece field is set.
      */
     public boolean hasBuildPiece() {
       return msgCase_ == 200;
@@ -39478,6 +41694,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.BuildPiece build_piece = 200;</code>
+     * @return The buildPiece.
      */
     public soc.proto.GameMessage.BuildPiece getBuildPiece() {
       if (msgCase_ == 200) {
@@ -39502,12 +41719,14 @@ public final class GameMessage {
     public static final int CANCEL_BUILD_FIELD_NUMBER = 201;
     /**
      * <code>.CancelBuild cancel_build = 201;</code>
+     * @return Whether the cancelBuild field is set.
      */
     public boolean hasCancelBuild() {
       return msgCase_ == 201;
     }
     /**
      * <code>.CancelBuild cancel_build = 201;</code>
+     * @return The cancelBuild.
      */
     public soc.proto.GameMessage.CancelBuild getCancelBuild() {
       if (msgCase_ == 201) {
@@ -39528,12 +41747,14 @@ public final class GameMessage {
     public static final int MOVE_PIECE_FIELD_NUMBER = 202;
     /**
      * <code>.MovePiece move_piece = 202;</code>
+     * @return Whether the movePiece field is set.
      */
     public boolean hasMovePiece() {
       return msgCase_ == 202;
     }
     /**
      * <code>.MovePiece move_piece = 202;</code>
+     * @return The movePiece.
      */
     public soc.proto.GameMessage.MovePiece getMovePiece() {
       if (msgCase_ == 202) {
@@ -39554,12 +41775,14 @@ public final class GameMessage {
     public static final int BUY_INVENTORY_ITEM_FIELD_NUMBER = 203;
     /**
      * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
+     * @return Whether the buyInventoryItem field is set.
      */
     public boolean hasBuyInventoryItem() {
       return msgCase_ == 203;
     }
     /**
      * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
+     * @return The buyInventoryItem.
      */
     public soc.proto.GameMessage.BuyInventoryItemRequest getBuyInventoryItem() {
       if (msgCase_ == 203) {
@@ -39580,12 +41803,14 @@ public final class GameMessage {
     public static final int INVENTORY_ITEM_ACTION_FIELD_NUMBER = 204;
     /**
      * <code>.InventoryItemAction inventory_item_action = 204;</code>
+     * @return Whether the inventoryItemAction field is set.
      */
     public boolean hasInventoryItemAction() {
       return msgCase_ == 204;
     }
     /**
      * <code>.InventoryItemAction inventory_item_action = 204;</code>
+     * @return The inventoryItemAction.
      */
     public soc.proto.GameMessage.InventoryItemAction getInventoryItemAction() {
       if (msgCase_ == 204) {
@@ -39610,6 +41835,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
+     * @return Whether the tradeWithBank field is set.
      */
     public boolean hasTradeWithBank() {
       return msgCase_ == 400;
@@ -39620,6 +41846,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
+     * @return The tradeWithBank.
      */
     public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
       if (msgCase_ == 400) {
@@ -39644,12 +41871,14 @@ public final class GameMessage {
     public static final int TRADE_MAKE_OFFER_FIELD_NUMBER = 401;
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     * @return Whether the tradeMakeOffer field is set.
      */
     public boolean hasTradeMakeOffer() {
       return msgCase_ == 401;
     }
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+     * @return The tradeMakeOffer.
      */
     public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
       if (msgCase_ == 401) {
@@ -39670,12 +41899,14 @@ public final class GameMessage {
     public static final int TRADE_CLEAR_OFFER_FIELD_NUMBER = 402;
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     * @return Whether the tradeClearOffer field is set.
      */
     public boolean hasTradeClearOffer() {
       return msgCase_ == 402;
     }
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+     * @return The tradeClearOffer.
      */
     public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
       if (msgCase_ == 402) {
@@ -39696,12 +41927,14 @@ public final class GameMessage {
     public static final int TRADE_REJECT_OFFER_FIELD_NUMBER = 403;
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     * @return Whether the tradeRejectOffer field is set.
      */
     public boolean hasTradeRejectOffer() {
       return msgCase_ == 403;
     }
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+     * @return The tradeRejectOffer.
      */
     public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
       if (msgCase_ == 403) {
@@ -39722,12 +41955,14 @@ public final class GameMessage {
     public static final int TRADE_ACCEPT_OFFER_FIELD_NUMBER = 404;
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     * @return Whether the tradeAcceptOffer field is set.
      */
     public boolean hasTradeAcceptOffer() {
       return msgCase_ == 404;
     }
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+     * @return The tradeAcceptOffer.
      */
     public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
       if (msgCase_ == 404) {
@@ -39752,6 +41987,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.LoseResources lose_resources = 500;</code>
+     * @return Whether the loseResources field is set.
      */
     public boolean hasLoseResources() {
       return msgCase_ == 500;
@@ -39762,6 +41998,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.LoseResources lose_resources = 500;</code>
+     * @return The loseResources.
      */
     public soc.proto.GameMessage.LoseResources getLoseResources() {
       if (msgCase_ == 500) {
@@ -39786,12 +42023,14 @@ public final class GameMessage {
     public static final int GAIN_RESOURCES_FIELD_NUMBER = 501;
     /**
      * <code>.GainResources gain_resources = 501;</code>
+     * @return Whether the gainResources field is set.
      */
     public boolean hasGainResources() {
       return msgCase_ == 501;
     }
     /**
      * <code>.GainResources gain_resources = 501;</code>
+     * @return The gainResources.
      */
     public soc.proto.GameMessage.GainResources getGainResources() {
       if (msgCase_ == 501) {
@@ -39812,12 +42051,14 @@ public final class GameMessage {
     public static final int CHOOSE_RESOURCE_TYPE_FIELD_NUMBER = 502;
     /**
      * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     * @return Whether the chooseResourceType field is set.
      */
     public boolean hasChooseResourceType() {
       return msgCase_ == 502;
     }
     /**
      * <code>.ChooseResourceType choose_resource_type = 502;</code>
+     * @return The chooseResourceType.
      */
     public soc.proto.GameMessage.ChooseResourceType getChooseResourceType() {
       if (msgCase_ == 502) {
@@ -39838,12 +42079,14 @@ public final class GameMessage {
     public static final int CHOOSE_PLAYER_FIELD_NUMBER = 503;
     /**
      * <code>.ChoosePlayer choose_player = 503;</code>
+     * @return Whether the choosePlayer field is set.
      */
     public boolean hasChoosePlayer() {
       return msgCase_ == 503;
     }
     /**
      * <code>.ChoosePlayer choose_player = 503;</code>
+     * @return The choosePlayer.
      */
     public soc.proto.GameMessage.ChoosePlayer getChoosePlayer() {
       if (msgCase_ == 503) {
@@ -39864,12 +42107,14 @@ public final class GameMessage {
     public static final int MOVE_ROBBER_FIELD_NUMBER = 504;
     /**
      * <code>.MoveRobber move_robber = 504;</code>
+     * @return Whether the moveRobber field is set.
      */
     public boolean hasMoveRobber() {
       return msgCase_ == 504;
     }
     /**
      * <code>.MoveRobber move_robber = 504;</code>
+     * @return The moveRobber.
      */
     public soc.proto.GameMessage.MoveRobber getMoveRobber() {
       if (msgCase_ == 504) {
@@ -39894,6 +42139,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     * @return Whether the resetBoardRequest field is set.
      */
     public boolean hasResetBoardRequest() {
       return msgCase_ == 1000;
@@ -39904,6 +42150,7 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+     * @return The resetBoardRequest.
      */
     public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
       if (msgCase_ == 1000) {
@@ -39928,12 +42175,14 @@ public final class GameMessage {
     public static final int RESET_BOARD_VOTE_FIELD_NUMBER = 1001;
     /**
      * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     * @return Whether the resetBoardVote field is set.
      */
     public boolean hasResetBoardVote() {
       return msgCase_ == 1001;
     }
     /**
      * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+     * @return The resetBoardVote.
      */
     public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
       if (msgCase_ == 1001) {
@@ -39952,6 +42201,7 @@ public final class GameMessage {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -39961,6 +42211,7 @@ public final class GameMessage {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (!getGameNameBytes().isEmpty()) {
@@ -40029,6 +42280,7 @@ public final class GameMessage {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -40132,98 +42384,95 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.GameMessageFromClient other = (soc.proto.GameMessage.GameMessageFromClient) obj;
 
-      boolean result = true;
-      result = result && getGameName()
-          .equals(other.getGameName());
-      result = result && getMsgCase().equals(
-          other.getMsgCase());
-      if (!result) return false;
+      if (!getGameName()
+          .equals(other.getGameName())) return false;
+      if (!getMsgCase().equals(other.getMsgCase())) return false;
       switch (msgCase_) {
         case 100:
-          result = result && getStartGame()
-              .equals(other.getStartGame());
+          if (!getStartGame()
+              .equals(other.getStartGame())) return false;
           break;
         case 101:
-          result = result && getDiceRollRequest()
-              .equals(other.getDiceRollRequest());
+          if (!getDiceRollRequest()
+              .equals(other.getDiceRollRequest())) return false;
           break;
         case 102:
-          result = result && getEndTurn()
-              .equals(other.getEndTurn());
+          if (!getEndTurn()
+              .equals(other.getEndTurn())) return false;
           break;
         case 200:
-          result = result && getBuildPiece()
-              .equals(other.getBuildPiece());
+          if (!getBuildPiece()
+              .equals(other.getBuildPiece())) return false;
           break;
         case 201:
-          result = result && getCancelBuild()
-              .equals(other.getCancelBuild());
+          if (!getCancelBuild()
+              .equals(other.getCancelBuild())) return false;
           break;
         case 202:
-          result = result && getMovePiece()
-              .equals(other.getMovePiece());
+          if (!getMovePiece()
+              .equals(other.getMovePiece())) return false;
           break;
         case 203:
-          result = result && getBuyInventoryItem()
-              .equals(other.getBuyInventoryItem());
+          if (!getBuyInventoryItem()
+              .equals(other.getBuyInventoryItem())) return false;
           break;
         case 204:
-          result = result && getInventoryItemAction()
-              .equals(other.getInventoryItemAction());
+          if (!getInventoryItemAction()
+              .equals(other.getInventoryItemAction())) return false;
           break;
         case 400:
-          result = result && getTradeWithBank()
-              .equals(other.getTradeWithBank());
+          if (!getTradeWithBank()
+              .equals(other.getTradeWithBank())) return false;
           break;
         case 401:
-          result = result && getTradeMakeOffer()
-              .equals(other.getTradeMakeOffer());
+          if (!getTradeMakeOffer()
+              .equals(other.getTradeMakeOffer())) return false;
           break;
         case 402:
-          result = result && getTradeClearOffer()
-              .equals(other.getTradeClearOffer());
+          if (!getTradeClearOffer()
+              .equals(other.getTradeClearOffer())) return false;
           break;
         case 403:
-          result = result && getTradeRejectOffer()
-              .equals(other.getTradeRejectOffer());
+          if (!getTradeRejectOffer()
+              .equals(other.getTradeRejectOffer())) return false;
           break;
         case 404:
-          result = result && getTradeAcceptOffer()
-              .equals(other.getTradeAcceptOffer());
+          if (!getTradeAcceptOffer()
+              .equals(other.getTradeAcceptOffer())) return false;
           break;
         case 500:
-          result = result && getLoseResources()
-              .equals(other.getLoseResources());
+          if (!getLoseResources()
+              .equals(other.getLoseResources())) return false;
           break;
         case 501:
-          result = result && getGainResources()
-              .equals(other.getGainResources());
+          if (!getGainResources()
+              .equals(other.getGainResources())) return false;
           break;
         case 502:
-          result = result && getChooseResourceType()
-              .equals(other.getChooseResourceType());
+          if (!getChooseResourceType()
+              .equals(other.getChooseResourceType())) return false;
           break;
         case 503:
-          result = result && getChoosePlayer()
-              .equals(other.getChoosePlayer());
+          if (!getChoosePlayer()
+              .equals(other.getChoosePlayer())) return false;
           break;
         case 504:
-          result = result && getMoveRobber()
-              .equals(other.getMoveRobber());
+          if (!getMoveRobber()
+              .equals(other.getMoveRobber())) return false;
           break;
         case 1000:
-          result = result && getResetBoardRequest()
-              .equals(other.getResetBoardRequest());
+          if (!getResetBoardRequest()
+              .equals(other.getResetBoardRequest())) return false;
           break;
         case 1001:
-          result = result && getResetBoardVote()
-              .equals(other.getResetBoardVote());
+          if (!getResetBoardVote()
+              .equals(other.getResetBoardVote())) return false;
           break;
         case 0:
         default:
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -40394,6 +42643,7 @@ public final class GameMessage {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -40401,6 +42651,7 @@ public final class GameMessage {
     public static Builder newBuilder(soc.proto.GameMessage.GameMessageFromClient prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -40424,6 +42675,7 @@ public final class GameMessage {
         return soc.proto.GameMessage.internal_static_GameMessageFromClient_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return soc.proto.GameMessage.internal_static_GameMessageFromClient_fieldAccessorTable
@@ -40446,6 +42698,7 @@ public final class GameMessage {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         gameName_ = "";
@@ -40455,15 +42708,18 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return soc.proto.GameMessage.internal_static_GameMessageFromClient_descriptor;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromClient getDefaultInstanceForType() {
         return soc.proto.GameMessage.GameMessageFromClient.getDefaultInstance();
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromClient build() {
         soc.proto.GameMessage.GameMessageFromClient result = buildPartial();
         if (!result.isInitialized()) {
@@ -40472,6 +42728,7 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromClient buildPartial() {
         soc.proto.GameMessage.GameMessageFromClient result = new soc.proto.GameMessage.GameMessageFromClient(this);
         result.gameName_ = gameName_;
@@ -40620,32 +42877,39 @@ public final class GameMessage {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof soc.proto.GameMessage.GameMessageFromClient) {
           return mergeFrom((soc.proto.GameMessage.GameMessageFromClient)other);
@@ -40751,10 +43015,12 @@ public final class GameMessage {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -40791,6 +43057,7 @@ public final class GameMessage {
       private java.lang.Object gameName_ = "";
       /**
        * <code>string game_name = 1;</code>
+       * @return The gameName.
        */
       public java.lang.String getGameName() {
         java.lang.Object ref = gameName_;
@@ -40806,6 +43073,7 @@ public final class GameMessage {
       }
       /**
        * <code>string game_name = 1;</code>
+       * @return The bytes for gameName.
        */
       public com.google.protobuf.ByteString
           getGameNameBytes() {
@@ -40822,6 +43090,8 @@ public final class GameMessage {
       }
       /**
        * <code>string game_name = 1;</code>
+       * @param value The gameName to set.
+       * @return This builder for chaining.
        */
       public Builder setGameName(
           java.lang.String value) {
@@ -40835,6 +43105,7 @@ public final class GameMessage {
       }
       /**
        * <code>string game_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGameName() {
         
@@ -40844,6 +43115,8 @@ public final class GameMessage {
       }
       /**
        * <code>string game_name = 1;</code>
+       * @param value The bytes for gameName to set.
+       * @return This builder for chaining.
        */
       public Builder setGameNameBytes(
           com.google.protobuf.ByteString value) {
@@ -40865,6 +43138,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.StartGame start_game = 100;</code>
+       * @return Whether the startGame field is set.
        */
       public boolean hasStartGame() {
         return msgCase_ == 100;
@@ -40875,6 +43149,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.StartGame start_game = 100;</code>
+       * @return The startGame.
        */
       public soc.proto.GameMessage.StartGame getStartGame() {
         if (startGameBuilder_ == null) {
@@ -41033,12 +43308,14 @@ public final class GameMessage {
           soc.proto.GameMessage.DiceRollRequest, soc.proto.GameMessage.DiceRollRequest.Builder, soc.proto.GameMessage.DiceRollRequestOrBuilder> diceRollRequestBuilder_;
       /**
        * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       * @return Whether the diceRollRequest field is set.
        */
       public boolean hasDiceRollRequest() {
         return msgCase_ == 101;
       }
       /**
        * <code>.DiceRollRequest dice_roll_request = 101;</code>
+       * @return The diceRollRequest.
        */
       public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
         if (diceRollRequestBuilder_ == null) {
@@ -41169,12 +43446,14 @@ public final class GameMessage {
           soc.proto.GameMessage.EndTurn, soc.proto.GameMessage.EndTurn.Builder, soc.proto.GameMessage.EndTurnOrBuilder> endTurnBuilder_;
       /**
        * <code>.EndTurn end_turn = 102;</code>
+       * @return Whether the endTurn field is set.
        */
       public boolean hasEndTurn() {
         return msgCase_ == 102;
       }
       /**
        * <code>.EndTurn end_turn = 102;</code>
+       * @return The endTurn.
        */
       public soc.proto.GameMessage.EndTurn getEndTurn() {
         if (endTurnBuilder_ == null) {
@@ -41309,6 +43588,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BuildPiece build_piece = 200;</code>
+       * @return Whether the buildPiece field is set.
        */
       public boolean hasBuildPiece() {
         return msgCase_ == 200;
@@ -41319,6 +43599,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.BuildPiece build_piece = 200;</code>
+       * @return The buildPiece.
        */
       public soc.proto.GameMessage.BuildPiece getBuildPiece() {
         if (buildPieceBuilder_ == null) {
@@ -41477,12 +43758,14 @@ public final class GameMessage {
           soc.proto.GameMessage.CancelBuild, soc.proto.GameMessage.CancelBuild.Builder, soc.proto.GameMessage.CancelBuildOrBuilder> cancelBuildBuilder_;
       /**
        * <code>.CancelBuild cancel_build = 201;</code>
+       * @return Whether the cancelBuild field is set.
        */
       public boolean hasCancelBuild() {
         return msgCase_ == 201;
       }
       /**
        * <code>.CancelBuild cancel_build = 201;</code>
+       * @return The cancelBuild.
        */
       public soc.proto.GameMessage.CancelBuild getCancelBuild() {
         if (cancelBuildBuilder_ == null) {
@@ -41613,12 +43896,14 @@ public final class GameMessage {
           soc.proto.GameMessage.MovePiece, soc.proto.GameMessage.MovePiece.Builder, soc.proto.GameMessage.MovePieceOrBuilder> movePieceBuilder_;
       /**
        * <code>.MovePiece move_piece = 202;</code>
+       * @return Whether the movePiece field is set.
        */
       public boolean hasMovePiece() {
         return msgCase_ == 202;
       }
       /**
        * <code>.MovePiece move_piece = 202;</code>
+       * @return The movePiece.
        */
       public soc.proto.GameMessage.MovePiece getMovePiece() {
         if (movePieceBuilder_ == null) {
@@ -41749,12 +44034,14 @@ public final class GameMessage {
           soc.proto.GameMessage.BuyInventoryItemRequest, soc.proto.GameMessage.BuyInventoryItemRequest.Builder, soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder> buyInventoryItemBuilder_;
       /**
        * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
+       * @return Whether the buyInventoryItem field is set.
        */
       public boolean hasBuyInventoryItem() {
         return msgCase_ == 203;
       }
       /**
        * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
+       * @return The buyInventoryItem.
        */
       public soc.proto.GameMessage.BuyInventoryItemRequest getBuyInventoryItem() {
         if (buyInventoryItemBuilder_ == null) {
@@ -41885,12 +44172,14 @@ public final class GameMessage {
           soc.proto.GameMessage.InventoryItemAction, soc.proto.GameMessage.InventoryItemAction.Builder, soc.proto.GameMessage.InventoryItemActionOrBuilder> inventoryItemActionBuilder_;
       /**
        * <code>.InventoryItemAction inventory_item_action = 204;</code>
+       * @return Whether the inventoryItemAction field is set.
        */
       public boolean hasInventoryItemAction() {
         return msgCase_ == 204;
       }
       /**
        * <code>.InventoryItemAction inventory_item_action = 204;</code>
+       * @return The inventoryItemAction.
        */
       public soc.proto.GameMessage.InventoryItemAction getInventoryItemAction() {
         if (inventoryItemActionBuilder_ == null) {
@@ -42025,6 +44314,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.TradeWithBank trade_with_bank = 400;</code>
+       * @return Whether the tradeWithBank field is set.
        */
       public boolean hasTradeWithBank() {
         return msgCase_ == 400;
@@ -42035,6 +44325,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.TradeWithBank trade_with_bank = 400;</code>
+       * @return The tradeWithBank.
        */
       public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
         if (tradeWithBankBuilder_ == null) {
@@ -42193,12 +44484,14 @@ public final class GameMessage {
           soc.proto.GameMessage.TradeMakeOffer, soc.proto.GameMessage.TradeMakeOffer.Builder, soc.proto.GameMessage.TradeMakeOfferOrBuilder> tradeMakeOfferBuilder_;
       /**
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       * @return Whether the tradeMakeOffer field is set.
        */
       public boolean hasTradeMakeOffer() {
         return msgCase_ == 401;
       }
       /**
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
+       * @return The tradeMakeOffer.
        */
       public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
         if (tradeMakeOfferBuilder_ == null) {
@@ -42329,12 +44622,14 @@ public final class GameMessage {
           soc.proto.GameMessage.TradeClearOffer, soc.proto.GameMessage.TradeClearOffer.Builder, soc.proto.GameMessage.TradeClearOfferOrBuilder> tradeClearOfferBuilder_;
       /**
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       * @return Whether the tradeClearOffer field is set.
        */
       public boolean hasTradeClearOffer() {
         return msgCase_ == 402;
       }
       /**
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
+       * @return The tradeClearOffer.
        */
       public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
         if (tradeClearOfferBuilder_ == null) {
@@ -42465,12 +44760,14 @@ public final class GameMessage {
           soc.proto.GameMessage.TradeRejectOffer, soc.proto.GameMessage.TradeRejectOffer.Builder, soc.proto.GameMessage.TradeRejectOfferOrBuilder> tradeRejectOfferBuilder_;
       /**
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       * @return Whether the tradeRejectOffer field is set.
        */
       public boolean hasTradeRejectOffer() {
         return msgCase_ == 403;
       }
       /**
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
+       * @return The tradeRejectOffer.
        */
       public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
         if (tradeRejectOfferBuilder_ == null) {
@@ -42601,12 +44898,14 @@ public final class GameMessage {
           soc.proto.GameMessage.TradeAcceptOffer, soc.proto.GameMessage.TradeAcceptOffer.Builder, soc.proto.GameMessage.TradeAcceptOfferOrBuilder> tradeAcceptOfferBuilder_;
       /**
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       * @return Whether the tradeAcceptOffer field is set.
        */
       public boolean hasTradeAcceptOffer() {
         return msgCase_ == 404;
       }
       /**
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
+       * @return The tradeAcceptOffer.
        */
       public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
         if (tradeAcceptOfferBuilder_ == null) {
@@ -42741,6 +45040,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.LoseResources lose_resources = 500;</code>
+       * @return Whether the loseResources field is set.
        */
       public boolean hasLoseResources() {
         return msgCase_ == 500;
@@ -42751,6 +45051,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.LoseResources lose_resources = 500;</code>
+       * @return The loseResources.
        */
       public soc.proto.GameMessage.LoseResources getLoseResources() {
         if (loseResourcesBuilder_ == null) {
@@ -42909,12 +45210,14 @@ public final class GameMessage {
           soc.proto.GameMessage.GainResources, soc.proto.GameMessage.GainResources.Builder, soc.proto.GameMessage.GainResourcesOrBuilder> gainResourcesBuilder_;
       /**
        * <code>.GainResources gain_resources = 501;</code>
+       * @return Whether the gainResources field is set.
        */
       public boolean hasGainResources() {
         return msgCase_ == 501;
       }
       /**
        * <code>.GainResources gain_resources = 501;</code>
+       * @return The gainResources.
        */
       public soc.proto.GameMessage.GainResources getGainResources() {
         if (gainResourcesBuilder_ == null) {
@@ -43045,12 +45348,14 @@ public final class GameMessage {
           soc.proto.GameMessage.ChooseResourceType, soc.proto.GameMessage.ChooseResourceType.Builder, soc.proto.GameMessage.ChooseResourceTypeOrBuilder> chooseResourceTypeBuilder_;
       /**
        * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       * @return Whether the chooseResourceType field is set.
        */
       public boolean hasChooseResourceType() {
         return msgCase_ == 502;
       }
       /**
        * <code>.ChooseResourceType choose_resource_type = 502;</code>
+       * @return The chooseResourceType.
        */
       public soc.proto.GameMessage.ChooseResourceType getChooseResourceType() {
         if (chooseResourceTypeBuilder_ == null) {
@@ -43181,12 +45486,14 @@ public final class GameMessage {
           soc.proto.GameMessage.ChoosePlayer, soc.proto.GameMessage.ChoosePlayer.Builder, soc.proto.GameMessage.ChoosePlayerOrBuilder> choosePlayerBuilder_;
       /**
        * <code>.ChoosePlayer choose_player = 503;</code>
+       * @return Whether the choosePlayer field is set.
        */
       public boolean hasChoosePlayer() {
         return msgCase_ == 503;
       }
       /**
        * <code>.ChoosePlayer choose_player = 503;</code>
+       * @return The choosePlayer.
        */
       public soc.proto.GameMessage.ChoosePlayer getChoosePlayer() {
         if (choosePlayerBuilder_ == null) {
@@ -43317,12 +45624,14 @@ public final class GameMessage {
           soc.proto.GameMessage.MoveRobber, soc.proto.GameMessage.MoveRobber.Builder, soc.proto.GameMessage.MoveRobberOrBuilder> moveRobberBuilder_;
       /**
        * <code>.MoveRobber move_robber = 504;</code>
+       * @return Whether the moveRobber field is set.
        */
       public boolean hasMoveRobber() {
         return msgCase_ == 504;
       }
       /**
        * <code>.MoveRobber move_robber = 504;</code>
+       * @return The moveRobber.
        */
       public soc.proto.GameMessage.MoveRobber getMoveRobber() {
         if (moveRobberBuilder_ == null) {
@@ -43457,6 +45766,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       * @return Whether the resetBoardRequest field is set.
        */
       public boolean hasResetBoardRequest() {
         return msgCase_ == 1000;
@@ -43467,6 +45777,7 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
+       * @return The resetBoardRequest.
        */
       public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
         if (resetBoardRequestBuilder_ == null) {
@@ -43625,12 +45936,14 @@ public final class GameMessage {
           soc.proto.GameMessage.ResetBoardVote, soc.proto.GameMessage.ResetBoardVote.Builder, soc.proto.GameMessage.ResetBoardVoteOrBuilder> resetBoardVoteBuilder_;
       /**
        * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       * @return Whether the resetBoardVote field is set.
        */
       public boolean hasResetBoardVote() {
         return msgCase_ == 1001;
       }
       /**
        * <code>.ResetBoardVote reset_board_vote = 1001;</code>
+       * @return The resetBoardVote.
        */
       public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
         if (resetBoardVoteBuilder_ == null) {
@@ -43756,11 +46069,13 @@ public final class GameMessage {
         onChanged();;
         return resetBoardVoteBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
-        return super.setUnknownFieldsProto3(unknownFields);
+        return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -43782,11 +46097,12 @@ public final class GameMessage {
 
     private static final com.google.protobuf.Parser<GameMessageFromClient>
         PARSER = new com.google.protobuf.AbstractParser<GameMessageFromClient>() {
+      @java.lang.Override
       public GameMessageFromClient parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new GameMessageFromClient(input, extensionRegistry);
+        return new GameMessageFromClient(input, extensionRegistry);
       }
     };
 
@@ -43799,6 +46115,7 @@ public final class GameMessage {
       return PARSER;
     }
 
+    @java.lang.Override
     public soc.proto.GameMessage.GameMessageFromClient getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -44023,7 +46340,7 @@ public final class GameMessage {
       "rdinate_list\030\004 \001(\0132\020._BoardCoordListH\000\022\037" +
       "\n\tedge_list\030\005 \001(\0132\n._EdgeListH\000\022\035\n\010hex_l" +
       "ist\030\006 \001(\0132\t._HexListH\000\022\037\n\tnode_list\030\007 \001(" +
-      "\0132\n._NodeListH\000B\005\n\003val\032K\n\nPartsEntry\022\013\n\003",
+      "\0132\n._NodeListH\000B\005\n\003val\032K\n\nPartsEntry\022\013\n\003" +
       "key\030\001 \001(\t\022,\n\005value\030\002 \001(\0132\035.BoardLayout._" +
       "BoardLayoutPart:\0028\001\"\210\001\n\025_LayoutEncodingF" +
       "ormat\022\034\n\030_UNSENT_DEFAULT_ENCODING\020\000\022\033\n\027B" +
@@ -44033,7 +46350,7 @@ public final class GameMessage {
       "\0132\n.NodeCoord\022\022\n\narea_count\030\002 \001(\r\022\032\n\022sta" +
       "rting_land_area\030\003 \001(\r\022N\n\026land_areas_lega" +
       "l_nodes\030\004 \003(\0132..PotentialSettlements.Lan" +
-      "dAreasLegalNodesEntry\022#\n\017legal_sea_edges",
+      "dAreasLegalNodesEntry\022#\n\017legal_sea_edges" +
       "\030\005 \003(\0132\n._EdgeList\032F\n\030LandAreasLegalNode" +
       "sEntry\022\013\n\003key\030\001 \001(\r\022\031\n\005value\030\002 \001(\0132\n._No" +
       "deList:\0028\001\"u\n\nPieceValue\022\031\n\005ptype\030\001 \001(\0162" +
@@ -44043,7 +46360,7 @@ public final class GameMessage {
       ".PieceType\022 \n\013coordinates\030\002 \001(\0132\013.BoardC" +
       "oord\"O\n\027BuyInventoryItemRequest\022\027\n\017is_no" +
       "t_dev_card\030\001 \001(\010\022\033\n\023other_inv_item_type\030" +
-      "\002 \001(\021\"\250\003\n\023InventoryItemAction\0225\n\013action_",
+      "\002 \001(\021\"\250\003\n\023InventoryItemAction\0225\n\013action_" +
       "type\030\001 \001(\0162 .InventoryItemAction._Action" +
       "Type\022\'\n\016dev_card_value\030\002 \001(\0162\r.DevCardVa" +
       "lueH\000\022\035\n\023other_inv_item_type\030\003 \001(\005H\000\022$\n\r" +
@@ -44053,7 +46370,7 @@ public final class GameMessage {
       "el_play\030\031 \001(\010\"{\n\013_ActionType\022\032\n\026_UNSENT_" +
       "DEFAULT_ACTION\020\000\022\010\n\004DRAW\020\001\022\010\n\004PLAY\020\002\022\013\n\007" +
       "ADD_NEW\020\003\022\013\n\007ADD_OLD\020\004\022\017\n\013CANNOT_PLAY\020\005\022" +
-      "\021\n\rPLACING_EXTRA\020\006B\014\n\nitem_value\"g\n\013Canc",
+      "\021\n\rPLACING_EXTRA\020\006B\014\n\nitem_value\"g\n\013Canc" +
       "elBuild\022 \n\npiece_type\030\001 \001(\0162\n.PieceTypeH" +
       "\000\022\'\n\titem_type\030\002 \001(\0162\022.OtherPlayableItem" +
       "H\000B\r\n\013cancel_type\"r\n\tMovePiece\022\031\n\005ptype\030" +
@@ -44063,7 +46380,7 @@ public final class GameMessage {
       "\001(\0162\n.PieceType\022 \n\013coordinates\030\002 \001(\0132\013.B" +
       "oardCoord\"S\n\014RevealFogHex\022\030\n\005coord\030\001 \001(\013" +
       "2\t.HexCoord\022\027\n\005htype\030\002 \001(\0162\010.HexType\022\020\n\010" +
-      "dice_num\030\003 \001(\021\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n",
+      "dice_num\030\003 \001(\021\"\"\n\005State\022\031\n\005state\030\001 \001(\0162\n" +
       ".GameState\"\202\001\n\rPlayerElement\022%\n\006action\030\001" +
       " \001(\0162\025._PlayerElementAction\022)\n\014element_t" +
       "ype\030\002 \001(\0162\023._PlayerElementType\022\016\n\006amount" +
@@ -44073,7 +46390,7 @@ public final class GameMessage {
       "Type\022\017\n\007amounts\030\003 \003(\021\"\376\001\n\014GameElements\0221" +
       "\n\relement_types\030\001 \003(\0162\032.GameElements._El" +
       "ementType\022\016\n\006values\030\002 \003(\021\"\252\001\n\014_ElementTy" +
-      "pe\022\035\n\031_UNSENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013ROU",
+      "pe\022\035\n\031_UNSENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013ROU" +
       "ND_COUNT\020\001\022\022\n\016DEV_CARD_COUNT\020\002\022\020\n\014FIRST_" +
       "PLAYER\020\003\022\022\n\016CURRENT_PLAYER\020\004\022\027\n\023LARGEST_" +
       "ARMY_PLAYER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006\"&" +
@@ -44083,7 +46400,7 @@ public final class GameMessage {
       "\ndice_total\030\001 \001(\021\"\264\001\n\023DiceResultResource" +
       "s\022>\n\020player_resources\030\001 \003(\0132$.DiceResult" +
       "Resources.PlayerResources\032]\n\017PlayerResou" +
-      "rces\022\025\n\rplayer_number\030\001 \001(\r\022 \n\nres_gaine",
+      "rces\022\025\n\rplayer_number\030\001 \001(\r\022 \n\nres_gaine" +
       "d\030\002 \001(\0132\014.ResourceSet\022\021\n\tres_total\030\003 \001(\r" +
       "\"\t\n\007EndTurn\"F\n\rTradeWithBank\022\032\n\004give\030\001 \001" +
       "(\0132\014.ResourceSet\022\031\n\003get\030\002 \001(\0132\014.Resource" +
@@ -44093,7 +46410,7 @@ public final class GameMessage {
       "rial\030\004 \001(\005\"\021\n\017TradeClearOffer\"\022\n\020TradeRe" +
       "jectOffer\"H\n\020TradeAcceptOffer\022\036\n\026offerin" +
       "g_player_number\030\001 \001(\005\022\024\n\014offer_serial\030\002 " +
-      "\001(\005\";\n\rLoseResources\022\016\n\006amount\030\001 \001(\005\022\032\n\004",
+      "\001(\005\";\n\rLoseResources\022\016\n\006amount\030\001 \001(\005\022\032\n\004" +
       "lose\030\002 \001(\0132\014.ResourceSet\";\n\rGainResource" +
       "s\022\016\n\006amount\030\001 \001(\005\022\032\n\004gain\030\002 \001(\0132\014.Resour" +
       "ceSet\"2\n\022ChooseResourceType\022\034\n\005rtype\030\001 \001" +
@@ -44103,7 +46420,7 @@ public final class GameMessage {
       "(\r\"N\n\nMoveRobber\022\032\n\007move_to\030\001 \001(\0132\t.HexC" +
       "oord\022\021\n\tis_robber\030\002 \001(\010\022\021\n\tis_pirate\030\003 \001" +
       "(\010\"\023\n\021ResetBoardRequest\" \n\016ResetBoardVot" +
-      "e\022\016\n\006is_yes\030\001 \001(\010\"(\n\020ResetBoardResult\022\024\n",
+      "e\022\016\n\006is_yes\030\001 \001(\010\"(\n\020ResetBoardResult\022\024\n" +
       "\014was_rejected\030\001 \001(\010\"\200\014\n\025GameMessageFromS" +
       "erver\022\021\n\tgame_name\030\001 \001(\t\022\025\n\rplayer_numbe" +
       "r\030\002 \001(\021\022\034\n\ngame_state\030\003 \001(\0132\006.StateH\000\022(\n" +
@@ -44113,7 +46430,7 @@ public final class GameMessage {
       "sH\000\022$\n\014board_layout\030\036 \001(\0132\014.BoardLayoutH" +
       "\000\0226\n\025potential_settlements\030\037 \001(\0132\025.Poten" +
       "tialSettlementsH\000\022\"\n\013piece_value\030  \001(\0132\013" +
-      ".PieceValueH\000\022\"\n\013build_piece\030! \001(\0132\013.Bui",
+      ".PieceValueH\000\022\"\n\013build_piece\030! \001(\0132\013.Bui" +
       "ldPieceH\000\022$\n\014cancel_build\030\" \001(\0132\014.Cancel" +
       "BuildH\000\022 \n\nmove_piece\030# \001(\0132\n.MovePieceH" +
       "\000\022$\n\014remove_piece\030$ \001(\0132\014.RemovePieceH\000\022" +
@@ -44123,7 +46440,7 @@ public final class GameMessage {
       "tTurnH\000\022-\n\021dice_roll_request\030g \001(\0132\020.Dic" +
       "eRollRequestH\000\022\"\n\013dice_result\030h \001(\0132\013.Di" +
       "ceResultH\000\0225\n\025dice_result_resources\030i \001(" +
-      "\0132\024.DiceResultResourcesH\000\0226\n\025inventory_i",
+      "\0132\024.DiceResultResourcesH\000\0226\n\025inventory_i" +
       "tem_action\030\256\002 \001(\0132\024.InventoryItemActionH" +
       "\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.TradeWithB" +
       "ankH\000\022,\n\020trade_make_offer\030\221\003 \001(\0132\017.Trade" +
@@ -44133,7 +46450,7 @@ public final class GameMessage {
       "ccept_offer\030\224\003 \001(\0132\021.TradeAcceptOfferH\000\022" +
       "0\n\025lose_resources_prompt\030\364\003 \001(\0132\016.LoseRe" +
       "sourcesH\000\022)\n\016lose_resources\030\365\003 \001(\0132\016.Los" +
-      "eResourcesH\000\0220\n\025gain_resources_prompt\030\366\003",
+      "eResourcesH\000\0220\n\025gain_resources_prompt\030\366\003" +
       " \001(\0132\016.GainResourcesH\000\022)\n\016gain_resources" +
       "\030\367\003 \001(\0132\016.GainResourcesH\000\022.\n\024choose_play" +
       "er_prompt\030\370\003 \001(\0132\r.ChoosePlayerH\000\022#\n\013mov" +
@@ -44143,7 +46460,7 @@ public final class GameMessage {
       "esetBoardVoteH\000\022,\n\020reset_board_vote\030\352\007 \001" +
       "(\0132\017.ResetBoardVoteH\000\0220\n\022reset_board_res" +
       "ult\030\353\007 \001(\0132\021.ResetBoardResultH\000B\005\n\003msg\"\252" +
-      "\007\n\025GameMessageFromClient\022\021\n\tgame_name\030\001 ",
+      "\007\n\025GameMessageFromClient\022\021\n\tgame_name\030\001 " +
       "\001(\t\022 \n\nstart_game\030d \001(\0132\n.StartGameH\000\022-\n" +
       "\021dice_roll_request\030e \001(\0132\020.DiceRollReque" +
       "stH\000\022\034\n\010end_turn\030f \001(\0132\010.EndTurnH\000\022#\n\013bu" +
@@ -44153,7 +46470,7 @@ public final class GameMessage {
       "ry_item\030\313\001 \001(\0132\030.BuyInventoryItemRequest" +
       "H\000\0226\n\025inventory_item_action\030\314\001 \001(\0132\024.Inv" +
       "entoryItemActionH\000\022*\n\017trade_with_bank\030\220\003" +
-      " \001(\0132\016.TradeWithBankH\000\022,\n\020trade_make_off",
+      " \001(\0132\016.TradeWithBankH\000\022,\n\020trade_make_off" +
       "er\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trade_cl" +
       "ear_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022" +
       "trade_reject_offer\030\223\003 \001(\0132\021.TradeRejectO" +
@@ -44163,7 +46480,7 @@ public final class GameMessage {
       " \001(\0132\016.GainResourcesH\000\0224\n\024choose_resourc" +
       "e_type\030\366\003 \001(\0132\023.ChooseResourceTypeH\000\022\'\n\r" +
       "choose_player\030\367\003 \001(\0132\r.ChoosePlayerH\000\022#\n" +
-      "\013move_robber\030\370\003 \001(\0132\013.MoveRobberH\000\0222\n\023re",
+      "\013move_robber\030\370\003 \001(\0132\013.MoveRobberH\000\0222\n\023re" +
       "set_board_request\030\350\007 \001(\0132\022.ResetBoardReq" +
       "uestH\000\022,\n\020reset_board_vote\030\351\007 \001(\0132\017.Rese" +
       "tBoardVoteH\000B\005\n\003msg*O\n\024_PlayerElementAct" +
@@ -44173,7 +46490,7 @@ public final class GameMessage {
       "ELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020" +
       "\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM" +
       "_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLE" +
-      "MENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNI",
+      "MENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNI" +
       "GHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022\n\016RESOURC" +
       "E_COUNT\020\021\022\030\n\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024P" +
       "LAYED_DEV_CARD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_H" +
@@ -44184,19 +46501,11 @@ public final class GameMessage {
       "NARIO_WARSHIP_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006" +
       "proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           soc.proto.Data.getDescriptor(),
-        }, assigner);
+        });
     internal_static_BoardLayout_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_BoardLayout_fieldAccessorTable = new

@@ -514,10 +514,14 @@ For interop with other languages, see the **python** sample protobuf client `Dum
   It includes functions to implement `Message.writeDelimitedTo` and `Message.parseDelimitedFrom`
   since those are included only with protobuf's java runtime, not other languages.
 - The sample client is written in Python 3.
-- To install the protobuf python runtime, run:  
+- To install the protobuf python runtime (requires v3.11.3 or newer), run:  
   `pip3 install protobuf`  
-- DummyProtoClient was tested with python protobuf runtime v3.4.0. To print your installed runtime version, run:  
-  `python3 -c "import google.protobuf; print(google.protobuf.__version__)"`
+  or to upgrade from an earlier runtime version:  
+  `pip3 install --upgrade protobuf==3.11.3`  
+- DummyProtoClient was tested with python protobuf runtime v3.11.3. To print your installed runtime version, run:  
+  `python3 -c "import google.protobuf; print(google.protobuf.__version__)"`  
+  If your python protobuf runtime is too old, you may see this error when running your python script:  
+  `TypeError: __init__() got an unexpected keyword argument 'serialized_options'`
 - To run DummyProtoClient, your `PYTHONPATH` must include the `/generated/src/proto/main/python`
   and `/src/main/python` subdirectories witin the repo. If your shell supports environment variables,
   from the repo's top-level directory you could run DummyProtoClient like:
@@ -1110,21 +1114,21 @@ These are automatically downloaded by gradle and added to the project.
 They're listed here for reference or if you want to download them manually.
 
 - For API JARs (protobuf, servlets, websockets):
-     - Locate `protobuf-java-3.4.0.jar` by
-       [searching maven for g:"com.google.protobuf" AND a:"protobuf-java" AND v:"3.4.0"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java%22%20AND%20v%3A%223.4.0%22),
-       then clicking **jar** in the search results. Or, click version **3.4.0** in the search results
+     - Locate `protobuf-java-3.11.3.jar` by
+       [searching maven for g:"com.google.protobuf" AND a:"protobuf-java" AND v:"3.11.3"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java%22%20AND%20v%3A%223.11.3%22),
+       then clicking **jar** in the search results. Or, click version **3.11.3** in the search results
        and then click the link to browse the repository, which will get you to a maven repo folder
-       like http://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.4.0/
+       like http://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.11.3/
      - Download it to the project's top-level `lib` directory
-     - Locate and download `protobuf-java-util-3.4.0.jar`
-          - [search maven for g:"com.google.protobuf" AND a:"protobuf-java-util" AND v:"3.4.0"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java-util%22%20AND%20v%3A%223.4.0%22)
+     - Locate and download `protobuf-java-util-3.11.3.jar`
+          - [search maven for g:"com.google.protobuf" AND a:"protobuf-java-util" AND v:"3.11.3"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java-util%22%20AND%20v%3A%223.11.3%22)
      - Locate and download `servlet-api-3.1.jar`
           - [search maven for g:"javax.servlet" AND a:"javax.servlet-api" AND v:"3.1.0"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22javax.servlet%22%20AND%20a%3A%22javax.servlet-api%22%20AND%20v%3A%223.1.0%22)
      - Locate and download `javax.websocket-api-1.0.jar`
           - [search maven for g:"javax.websocket" AND a:"javax.websocket-api" AND v:"1.0"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22javax.websocket%22%20AND%20a%3A%22javax.websocket-api%22%20AND%20v%3A%221.0%22)
-- For runtime JARs (protobuf-java-util dependencies):
-     - Locate and download `gson-2.7.jar`
-          - [search maven for g:"com.google.code.gson" AND a:"gson" AND v:"2.7"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.code.gson%22%20AND%20a%3A%22gson%22%20AND%20v%3A%222.7%22)
-     - Locate and download `guava-19.0.jar`
-          - [search maven for g:"com.google.guava" AND a:"guava" AND v:"19.0"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.guava%22%20AND%20a%3A%22guava%22%20AND%20v%3A%2219.0%22)
+- For runtime JARs (protobuf-java-util dependencies, needed for servlet and json but not protobuf-only standalone server):
+     - `gson-2.8.6.jar`
+          - [search maven for g:"com.google.code.gson" AND a:"gson" AND v:"2.8.6"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.code.gson%22%20AND%20a%3A%22gson%22%20AND%20v%3A%222.8.6%22)
+     - `guava-28.1-android.jar`
+          - [search maven for g:"com.google.guava" AND a:"guava" AND v:"28.1-android"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.guava%22%20AND%20a%3A%22guava%22%20AND%20v%3A%2228.1-android%22)
 

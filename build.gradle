@@ -13,7 +13,7 @@ buildscript {
         maven { url "http://google-diff-match-patch.googlecode.com/svn/trunk/maven" }
     }
     dependencies {
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.8'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.11'
     }
 }
 
@@ -34,8 +34,8 @@ repositories {
 
 dependencies {
     testCompile 'junit:junit:4.12'
-    providedCompile 'com.google.protobuf:protobuf-java:3.4.0'
-    providedCompile 'com.google.protobuf:protobuf-java-util:3.4.0'   // for proto3 <-> json
+    providedCompile 'com.google.protobuf:protobuf-java:3.11.3'
+    providedCompile 'com.google.protobuf:protobuf-java-util:3.11.3'   // for proto3 <-> json
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0'  // Java EE 7
     providedCompile 'javax.websocket:javax.websocket-api:1.0'  // for java EE 7
 }
@@ -204,7 +204,7 @@ task i18neditorJar(type: Jar) {
 protobuf {
     generatedFilesBaseDir = "${projectDir}/generated/src/proto"
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.4.0'
+        artifact = 'com.google.protobuf:protoc:3.11.3'
     }
     generateProtoTasks {
         all().each { task ->
