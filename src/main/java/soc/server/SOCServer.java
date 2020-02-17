@@ -1858,82 +1858,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Third-party bot startup with server:
-     * Parse {@link #PROP_JSETTLERS_BOTS_START3P} and set up {@link #robots3pCliConstrucs}.
-     * @throws IllegalArgumentException if property can't be parsed or a named bot class can't be found.
-     *     {@link Throwable#getMessage()} will have problem details.
-     * @since 2.2.00
-     */
-    private void initSocServer_bots_start3p()
-        throws IllegalArgumentException
-    {
-        String errMsg = null;
-
-        robots3pCliConstrucs = new ArrayList<>();
-        int count = 1;
-        for (String part : props.getProperty(PROP_JSETTLERS_BOTS_START3P).trim().split(","))
-        {
-            if (part.isEmpty())
-                continue;
-
-            if (Character.isDigit(part.charAt(0)))
-            {
-                count = 0;
-                try
-                {
-                    count = Integer.parseInt(part);
-                } catch (NumberFormatException e) {
-                    errMsg = "Expected number but can't parse: " + part;
-                    break;
-                }
-                if (count <= 0)
-                {
-                    errMsg = "Count must be at least 1: " + count;
-                    break;
-                }
-            } else if (part.indexOf('.') > 0) {
-                try
-                {
-                    Class<?> rcli3p = Class.forName(part);
-                    if (! SOCRobotClient.class.isAssignableFrom(rcli3p))
-                    {
-                        errMsg = "3p client not subclass of SOCRobotClient, can't be auto-started: " + part;
-                        break;
-                    }
-
-                    try
-                    {
-                        @SuppressWarnings("unchecked")
-                        Constructor<? extends SOCRobotClient> cliConstruc3p
-                            = (Constructor<? extends SOCRobotClient>) rcli3p.getDeclaredConstructor
-                                (ServerConnectInfo.class, String.class, String.class);
-
-                        // looks good; queue up those bots
-                        for (; count > 0; --count)
-                            robots3pCliConstrucs.add(cliConstruc3p);
-                        count = 1;
-                    } catch(NoSuchMethodException e) {
-                        errMsg = "3p client " + part
-                            + " missing constructor(ServerConnectInfo, String, String)";
-                        break;
-                    }
-                } catch(Exception|LinkageError err) {
-                    errMsg = "3p client class " + part + " can't be loaded: " + err;
-                    break;
-                }
-            } else {
-                errMsg = "Expected digits or fully qualified class name";
-                break;
-            }
-        }
-
-        if (errMsg != null)
-            throw new IllegalArgumentException
-                ("Setup failed from property " + PROP_JSETTLERS_BOTS_START3P + ": " + errMsg);
-    }
-
-    /**
-     * Set some DB-related SOCServer fields and features:
+     * Set some DB-related SOCServer fields and features,
+     * as part of {@link #initSocServer_DB(String, String, boolean, boolean, boolean) initSocServer_DB(..)}:
      * {@link #databaseUserAdmins} from {@link #PROP_JSETTLERS_ACCOUNTS_ADMINS},
      * {@link #features}({@link SOCFeatureSet#SERVER_OPEN_REG}) and {@link #acctsNotOpenRegButNoUsers}
      * from {@link #PROP_JSETTLERS_ACCOUNTS_OPEN}.
@@ -2009,7 +1935,81 @@ public class SOCServer extends Server
             System.err.println
                 ("** To create users, you must list admin names in property " + PROP_JSETTLERS_ACCOUNTS_ADMINS + ".");
         }
+    }
 
+    /**
+     * Third-party bot startup with server:
+     * Parse {@link #PROP_JSETTLERS_BOTS_START3P} and set up {@link #robots3pCliConstrucs}.
+     * @throws IllegalArgumentException if property can't be parsed or a named bot class can't be found.
+     *     {@link Throwable#getMessage()} will have problem details.
+     * @since 2.2.00
+     */
+    private void initSocServer_bots_start3p()
+        throws IllegalArgumentException
+    {
+        String errMsg = null;
+
+        robots3pCliConstrucs = new ArrayList<>();
+        int count = 1;
+        for (String part : props.getProperty(PROP_JSETTLERS_BOTS_START3P).trim().split(","))
+        {
+            if (part.isEmpty())
+                continue;
+
+            if (Character.isDigit(part.charAt(0)))
+            {
+                count = 0;
+                try
+                {
+                    count = Integer.parseInt(part);
+                } catch (NumberFormatException e) {
+                    errMsg = "Expected number but can't parse: " + part;
+                    break;
+                }
+                if (count <= 0)
+                {
+                    errMsg = "Count must be at least 1: " + count;
+                    break;
+                }
+            } else if (part.indexOf('.') > 0) {
+                try
+                {
+                    Class<?> rcli3p = Class.forName(part);
+                    if (! SOCRobotClient.class.isAssignableFrom(rcli3p))
+                    {
+                        errMsg = "3p client not subclass of SOCRobotClient, can't be auto-started: " + part;
+                        break;
+                    }
+
+                    try
+                    {
+                        @SuppressWarnings("unchecked")
+                        Constructor<? extends SOCRobotClient> cliConstruc3p
+                            = (Constructor<? extends SOCRobotClient>) rcli3p.getDeclaredConstructor
+                                (ServerConnectInfo.class, String.class, String.class);
+
+                        // looks good; queue up those bots
+                        for (; count > 0; --count)
+                            robots3pCliConstrucs.add(cliConstruc3p);
+                        count = 1;
+                    } catch(NoSuchMethodException e) {
+                        errMsg = "3p client " + part
+                            + " missing constructor(ServerConnectInfo, String, String)";
+                        break;
+                    }
+                } catch(Exception|LinkageError err) {
+                    errMsg = "3p client class " + part + " can't be loaded: " + err;
+                    break;
+                }
+            } else {
+                errMsg = "Expected digits or fully qualified class name";
+                break;
+            }
+        }
+
+        if (errMsg != null)
+            throw new IllegalArgumentException
+                ("Setup failed from property " + PROP_JSETTLERS_BOTS_START3P + ": " + errMsg);
     }
 
     /**
