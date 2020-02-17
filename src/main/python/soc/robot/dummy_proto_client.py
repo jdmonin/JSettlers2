@@ -284,9 +284,27 @@ class DummyProtoClient(object):
     # board layout and contents
 
     def _treat_ga_board_layout(self, ga_name, pn, msg):
+        def part_str(k, part):
+            """format a single _BoardLayoutPart"""
+            itype = part.WhichOneof("val")
+            if itype == "i_arr":
+                if k != 'VS':
+                    return "[" + ', '.join([hex(v) for v in part.i_arr.arr]) + "]"
+                else:
+                    return "[" + ', '.join([str(v) for v in part.i_arr.arr]) + "]"
+            return repr(getattr(part, itype)).replace("\n", " ")   # single i_val or s_val, or an unknown repeated type
+            # later TODO when edge_list,hex_list,node_list,coord_list are used, fmt them like PotentialSettlements format_proto_coord
+        def parts_str(parts):
+            s = "{"
+            for k, v in parts.items():
+                if len(s) > 1:
+                    s += ", "
+                s += repr(k) + ": " + part_str(k, v)
+            s += "}"
+            return s
         print("  BoardLayout(game=" + repr(ga_name) + ", encoding="
               + game_message_pb2.BoardLayout._LayoutEncodingFormat.Name(msg.layout_encoding)
-              + ", parts=" + repr(msg.parts) + ")")
+              + ", parts=" + parts_str(msg.parts) + ")")
 
     def _treat_ga_potential_settlements(self, ga_name, pn, msg):
         if pn is None:
