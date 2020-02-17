@@ -153,8 +153,8 @@ class DummyProtoClient(object):
 
     def _treat_vers(self, msg):
         print("  Version(" + str(msg.vers_num) + ", '"
-            + msg.vers_str + "', '" + msg.vers_build + "', "
-            + repr(msg.srv_feats) + ")" )
+            + msg.vers_str + "', '" + msg.vers_build + "', feats="
+            + repr(msg.feats) + ")" )
 
     def _treat_reject_connection(self, msg):
         print("  RejectConnection(" + repr(msg.reason_text) + ")" )
@@ -313,7 +313,7 @@ class DummyProtoClient(object):
     def _treat_ga_build_piece(self, ga_name, pn, msg):
         if pn is None:
             pn = 0
-        ptype = msg.type  # not sent if ROAD (0)
+        ptype = msg.ptype  # not sent if ROAD (0)
         if not ptype:
             pt = data_pb2.ROAD
         print("  BuildPiece(game=" + repr(ga_name) + ", player_number=" + str(pn)
