@@ -308,6 +308,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * Once true, disable "nick" textfield, etc.
      * Remains true, even if connected becomes false.
+     * @since 1.1.00
      */
     protected boolean hasJoinedServer;
 

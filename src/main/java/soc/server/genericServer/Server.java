@@ -46,7 +46,7 @@ import soc.server.SOCServer;
  *<P>
  *  This is the real stuff. Server subclasses won't have to care about
  *  reading/writing on the net, data consistency among threads, etc.
- *  The Server listens on either a TCP {@link #port}, or for practice mode,
+ *  The Server listens on either a TCP {@link #port}, or for Practice mode,
  *  to a {@link StringServerSocket}.
  *<P>
  *  Newly connecting clients arrive in {@link #run()},
@@ -86,8 +86,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 {
 
     /**
-     * TCP or practice-mode server socket.
-     * Runs on port number {@link #port}, or {@link #strSocketName} in practice mode.
+     * TCP or Practice-mode server socket.
+     * Runs on port number {@link #port}, or {@link #strSocketName} in Practice mode.
      */
     SOCServerSocket ss;
 
@@ -113,7 +113,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * TCP port number for {@link #ss} when using {@link NetServerSocket}, or -1 for
-     * local/practice mode ({@link StringServerSocket}).
+     * local/Practice mode ({@link StringServerSocket}).
      * @see #strSocketName
      */
     protected int port;
@@ -299,7 +299,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * A Server which will start listening to the given local string port (practice game).
+     * A Server which will start listening to the given local string port (Practice mode).
      * @param stringSocketName  Arbitrary name for string "port" to use
      * @param props  Optional properties to configure and run the server.
      *       If null, the properties field will be created empty.

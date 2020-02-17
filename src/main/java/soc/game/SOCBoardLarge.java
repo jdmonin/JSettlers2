@@ -71,7 +71,7 @@ import soc.util.IntPair;
  *<H4> Layout Parts: </H4>
  * Some parts of the layout are stored and sent as int parameters or lists of ints.
  * Each part has a key name like {@code "LH"} or {@code "RH"}. See
- * {@link #getAddedLayoutParts()} for more explanation.
+ * {@link #getAddedLayoutPart(String)} for a list, or {@link #getAddedLayoutParts()} for more explanation.
  *<P>
  * Some scenarios may add other "layout parts" related to their scenario board layout.
  * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path the pirate fleet follows.
@@ -1163,11 +1163,12 @@ public class SOCBoardLarge extends SOCBoard
      * {@link SOCScenario#K_SC_CLVI SC_CLVI} adds {@code "CV"} for the cloth village locations.
      * {@link SOCScenario#K_SC_WOND SC_WOND} adds Node Lists {@code "N1"}-{@code "N3"} for wonder placement locations.
      *<P>
+     * For a list with details of all known layout parts, see {@link #getAddedLayoutPart(String)}.
+     *<P>
      * At the client, most of these are get/set with specific methods like {@link #setVillageAndClothLayout(int[])}.
      * A few such as {@code "PP"}, {@code "LS"}, and {@code "N1"}-{@code "N3"} just call {@link #getAddedLayoutPart(String)}.
      *<P>
      * Please treat the returned value as read-only.
-     * The layout parts and their keynames are documented at {@link #getAddedLayoutPart(String)}.
      *<P>
      * Added during {@code SOCBoardAtServer.makeNewBoard}
      * or {@code SOCBoardAtServer.startGame_putInitPieces}.

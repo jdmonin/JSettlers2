@@ -58,7 +58,7 @@ public class ServerConnectInfo
     public final String stringSocketName;
 
     /**
-     * Security cookie for robot connections to server.
+     * Security cookie (weak shared secret) for robot connections to server.
      * Required by server v1.1.19 and higher.
      * Unused ({@code null}) for non-bot human clients.
      */
@@ -67,7 +67,7 @@ public class ServerConnectInfo
     /**
      * ServerConnectInfo to connect to a server using TCP.
      * @param host  Server hostname; see {@link #hostname} for details
-     * @param port  Server port number
+     * @param port  Server port number. Default port is {@link soc.client.ClientNetwork#SOC_PORT_DEFAULT}.
      * @param cookie  Bot cookie, or {@code null} for human client; see {@link #robotCookie} for details
      */
     public ServerConnectInfo(final String host, final int port, final String cookie)

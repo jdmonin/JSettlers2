@@ -1493,6 +1493,7 @@ public class SOCGameHandler extends GameHandler
 
         if (membersCommand != null)
             c.put(membersCommand);
+
         // before v2.0.00, current player number (SETTURN) was sent here,
         // between membersCommand and GAMESTATE.
 

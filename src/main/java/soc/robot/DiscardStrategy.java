@@ -57,6 +57,7 @@ public class DiscardStrategy
      * @param pl  Our player data in {@code ga}
      * @param br  Robot brain for {@code pl}
      * @param rand  Random number generator from {@code br}
+     * @since 2.2.00
      */
     public DiscardStrategy(SOCGame ga, SOCPlayer pl, SOCRobotBrain br, Random rand)
     {
