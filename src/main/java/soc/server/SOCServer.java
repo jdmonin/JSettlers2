@@ -1256,8 +1256,8 @@ public class SOCServer extends Server
      *       with it before calling this constructor.
      * @since 1.1.09
      * @throws SocketException  If a network setup problem occurs
-     * @throws EOFException   If db setup script ran successfully and server should exit now
-     * @throws SQLException   If db setup script fails, or need db but can't connect,
+     * @throws EOFException   If db setup script or upgrade ran successfully and server should exit now
+     * @throws SQLException   If db setup script or upgrade fails, or needs db but can't connect,
      *       or if required tests failed in {@link SOCDBHelper#testDBHelper()},
      *       or if other problems with DB-related contents of {@code props}
      *       (exception's {@link Throwable#getCause()} will be an {@link IllegalArgumentException} or
@@ -1309,7 +1309,7 @@ public class SOCServer extends Server
      * @param databasePassword  the password for the user
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script ran successfully and server should exit now
-     * @throws SQLException   If db setup script fails,
+     * @throws SQLException   If db setup script or upgrade fails,
      *       or if required tests failed in {@link SOCDBHelper#testDBHelper()}
      * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      * @since 1.1.00
@@ -1358,9 +1358,15 @@ public class SOCServer extends Server
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
      * @throws SocketException  If a network setup problem occurs
-     * @throws EOFException   If db setup script ran successfully and server should exit now;
+     * @throws EOFException   If db setup script or upgrade ran successfully and server should exit now;
      *       thrown in Utility Mode ({@link #hasUtilityModeProp}).
-     * @throws SQLException   If db setup script fails, or need db but can't connect
+     * @throws SQLException   If db setup script or upgrade fails, or needs db but can't connect,
+     *       or if required tests failed in {@link SOCDBHelper#testDBHelper()},
+     *       or if other problems with DB-related contents of {@code props}
+     *       (exception's {@link Throwable#getCause()} will be an {@link IllegalArgumentException} or
+     *       {@link DBSettingMismatchException}); see {@link SOCDBHelper#initialize(String, String, Properties)} javadoc.
+     *       This method prints the SQLException details to {@link System#err},
+     *       caller doesn't need to extract the cause and print those same details.
      * @throws IllegalArgumentException  If {@code props} contains game options ({@code jsettlers.gameopt.*})
      *       with bad syntax. See {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} for expected syntax.
      *       See {@link #parseCmdline_DashedArgs(String[])} for how game option properties are checked.
@@ -1388,15 +1394,17 @@ public class SOCServer extends Server
         final boolean validate_config_mode = getConfigBoolProperty(PROP_JSETTLERS_TEST_VALIDATE__CONFIG, false);
 
         final boolean wants_upg_schema = getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, false);
-        boolean db_test_bcrypt_mode = false;
 
-        final String val = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
-        if (val != null)
+        boolean db_test_bcrypt_mode = false;
         {
-            db_test_bcrypt_mode = (val.equalsIgnoreCase("test"));
-            if (db_test_bcrypt_mode)
-                // make sure DBH.initialize won't try to parse "test" as an integer
-                props.remove(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+            String val = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+            if (val != null)
+            {
+                db_test_bcrypt_mode = (val.equalsIgnoreCase("test"));
+                if (db_test_bcrypt_mode)
+                    // make sure DBH.initialize won't try to parse "test" as an integer
+                    props.remove(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+            }
         }
 
         // Set this flag as early as possible
@@ -1502,11 +1510,173 @@ public class SOCServer extends Server
         final boolean accountsRequired = getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
 
         /**
-         * Try to connect to the DB, if any.
-         * Running SOCDBHelper.initialize(..) will handle some Utility Mode properties
-         * like PROP_JSETTLERS_DB_SETTINGS if present.
+         * Try to connect to the DB, if any. Runs SOCDBHelper.initialize(..),
+         * will handle some Utility Mode properties like PROP_JSETTLERS_DB_SETTINGS if present.
+         * Checks schema version, runs upgrade if wants_upg_schema.
          */
+        initSocServer_DB
+            (databaseUserName, databasePassword, wants_upg_schema, accountsRequired, db_test_bcrypt_mode);
+
+        /**
+         * No errors thrown by now: Continue normal startup.
+         */
+
+        if (hasUtilityModeProp && ! (test_mode_with_db || validate_config_mode))
+        {
+            return;  // <--- don't continue startup if Utility Mode ---
+        }
+
+        if (SOCDBHelper.isInitialized())
+        {
+            if (accountsRequired)
+                System.err.println("User database accounts are required for all players.");
+
+            // Note: This hook is not triggered under eclipse debugging.
+            //    https://bugs.eclipse.org/bugs/show_bug.cgi?id=38016
+            //        "WONTFIX/README" since 2007-07-18; discussed again in 2019 but not solved.
+            try
+            {
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        System.err.println("\n--\n-- shutdown; disconnecting from db --\n--\n");
+                        System.err.flush();
+                        try
+                        {
+                            // Before disconnect, do a final check for unexpected DB settings changes
+                            try
+                            {
+                                SOCDBHelper.checkSettings(true, false);
+                            } catch (Exception x) {}
+
+                            SOCDBHelper.cleanup(true);
+                        }
+                        catch (SQLException x) { }
+                    }
+                });
+            } catch (Throwable th)
+            {
+                // just a warning
+                System.err.println("Warning: Could not register shutdown hook for database disconnect. Check java security settings.");
+            }
+        }
+
+        startTime = System.currentTimeMillis();
+        numberOfGamesStarted = 0;
+        numberOfGamesFinished = 0;
+        numberOfUsers = 0;
+        clientPastVersionStats = new HashMap<Integer, AtomicInteger>();
+        numRobotOnlyGamesRemaining = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
+        if (numRobotOnlyGamesRemaining > 0)
+        {
+                final int n = SOCGame.MAXPLAYERS_STANDARD;
+                if (n > getConfigIntProperty(PROP_JSETTLERS_STARTROBOTS, 0))
+                {
+                    final String errmsg =
+                        ("*** To start robot-only games, server needs at least " + n + " robots started.");
+                    System.err.println(errmsg);
+                    throw new IllegalArgumentException(errmsg);
+                }
+        }
+
+        if (CLIENT_MAX_CREATE_CHANNELS != 0)
+            features.add(SOCFeatureSet.SERVER_CHANNELS);
+
+        /**
+         * Start various threads.
+         */
+        if (! (test_mode_with_db || validate_config_mode))
+        {
+            serverRobotPinger = new SOCServerRobotPinger(this, robots);
+            serverRobotPinger.start();
+            gameTimeoutChecker = new SOCGameTimeoutChecker(this);
+            gameTimeoutChecker.start();
+        }
+
+        this.databaseUserName = databaseUserName;
+        this.databasePassword = databasePassword;
+
+        /**
+         * Print game options if we've set them on commandline, or if
+         * any option defaults require a minimum client version.
+         */
+        if (hasSetGameOptions || validate_config_mode
+            || (SOCVersionedItem.itemsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
+        {
+            Thread.yield();  // wait for other output to appear first
+            try { Thread.sleep(200); } catch (InterruptedException ie) {}
+
+            printGameOptions();
+        }
+
+        if (getConfigBoolProperty(PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
+            System.err.println("Robot cookie: " + robotCookie);
+
+        if (validate_config_mode)
+        {
+            // Print configured known properties (ignore if not in PROPS_LIST);
+            // this also gives them in the same order as PROPS_LIST,
+            // which is the same order --help prints them out.
+            // If a problem was found by init_propsSetGameopts, it would have already
+            // thrown an exception out of this method.
+            System.err.println();
+            System.err.println("-- Configured server properties: --");
+            for (int i = 0; i < PROPS_LIST.length; i += 2)
+            {
+                final String pkey = PROPS_LIST[i];
+                if ((! pkey.equals(PROP_JSETTLERS_TEST_VALIDATE__CONFIG)) && props.containsKey(pkey))
+                    System.err.format("%-40s %s\n", pkey, props.getProperty(pkey));
+            }
+
+            System.err.println();
+            System.err.println("* Config Validation Mode: No problems found.");
+        }
+
+        if (test_mode_with_db && SOCDBHelper.isInitialized())
+        {
+            SOCDBHelper.testDBHelper();  // failures/errors throw SQLException for our caller to catch
+        }
+
+        if (! (test_mode_with_db || validate_config_mode))
+        {
+            System.err.print("The server is ready.");
+            if (port > 0)
+                System.err.print(" Listening on port " + port);
+            System.err.println();
+
+            if (SOCDBHelper.isInitialized() && SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
+                SOCDBHelper.startSchemaUpgradeBGTasks();  // includes 5-second sleep before conversions begin
+        }
+
+        System.err.println();
+    }
+
+    /**
+     * Try to connect to the DB, if any, as part of {@link #initSocServer(String, String)}.
+     * Runs {@link SOCDBHelper#initialize(String, String, Properties) SOCDBHelper.initialize(..)},
+     * will handle some Utility Mode properties like
+     * {@link SOCDBHelper#PROP_JSETTLERS_DB_SETTINGS PROP_JSETTLERS_DB_SETTINGS} if present.
+     * Checks schema version, runs upgrade if {@code wants_upg_schema}.
+     *<P>
+     * Before v2.2.00 this code was part of {@code initSocServer}.
+     *
+     * @param databaseUserName  DB username given to {@code initSocServer}
+     * @param databasePassword  DB password given to {@code initSocServer}
+     * @param wants_upg_schema  True if {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag is set
+     * @param accountsRequired  True if {@link #PROP_JSETTLERS_ACCOUNTS_REQUIRED} flag is set
+     * @param db_test_bcrypt_mode  True if {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} == "test"
+     * @throws SQLException  If a problem occurs; see {@link #initSocServer(String, String)} javadoc
+     *     for details and behavior
+     * @throws EOFException  If db setup script or upgrade ran successfully
+     * @since 2.2.00
+     */
+    private void initSocServer_DB
+        (final String databaseUserName, final String databasePassword,
+         final boolean wants_upg_schema, final boolean accountsRequired, final boolean db_test_bcrypt_mode)
+        throws IllegalStateException, SQLException, EOFException
+    {
         boolean db_err_printed = false;
+
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
@@ -1685,134 +1855,6 @@ public class SOCServer extends Server
 
         if (db_test_bcrypt_mode)
             SOCDBHelper.testBCryptSpeed();
-
-        if (hasUtilityModeProp && ! (test_mode_with_db || validate_config_mode))
-        {
-            return;  // <--- don't continue startup if Utility Mode ---
-        }
-
-        if (SOCDBHelper.isInitialized())
-        {
-            if (accountsRequired)
-                System.err.println("User database accounts are required for all players.");
-
-            // Note: This hook is not triggered under eclipse debugging.
-            //    https://bugs.eclipse.org/bugs/show_bug.cgi?id=38016  "WONTFIX/README" since 2007-07-18
-            try
-            {
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-                    @Override
-                    public void run() {
-                        System.err.println("\n--\n-- shutdown; disconnecting from db --\n--\n");
-                        System.err.flush();
-                        try
-                        {
-                            // Before disconnect, do a final check for unexpected DB settings changes
-                            try
-                            {
-                                SOCDBHelper.checkSettings(true, false);
-                            } catch (Exception x) {}
-
-                            SOCDBHelper.cleanup(true);
-                        }
-                        catch (SQLException x) { }
-                    }
-                });
-            } catch (Throwable th)
-            {
-                // just a warning
-                System.err.println("Warning: Could not register shutdown hook for database disconnect. Check java security settings.");
-            }
-        }
-
-        startTime = System.currentTimeMillis();
-        numberOfGamesStarted = 0;
-        numberOfGamesFinished = 0;
-        numberOfUsers = 0;
-        clientPastVersionStats = new HashMap<Integer, AtomicInteger>();
-        numRobotOnlyGamesRemaining = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
-        if (numRobotOnlyGamesRemaining > 0)
-        {
-                final int n = SOCGame.MAXPLAYERS_STANDARD;
-                if (n > getConfigIntProperty(PROP_JSETTLERS_STARTROBOTS, 0))
-                {
-                    final String errmsg =
-                        ("*** To start robot-only games, server needs at least " + n + " robots started.");
-                    System.err.println(errmsg);
-                    throw new IllegalArgumentException(errmsg);
-                }
-        }
-
-        if (CLIENT_MAX_CREATE_CHANNELS != 0)
-            features.add(SOCFeatureSet.SERVER_CHANNELS);
-
-        /**
-         * Start various threads.
-         */
-        if (! (test_mode_with_db || validate_config_mode))
-        {
-            serverRobotPinger = new SOCServerRobotPinger(this, robots);
-            serverRobotPinger.start();
-            gameTimeoutChecker = new SOCGameTimeoutChecker(this);
-            gameTimeoutChecker.start();
-        }
-
-        this.databaseUserName = databaseUserName;
-        this.databasePassword = databasePassword;
-
-        /**
-         * Print game options if we've set them on commandline, or if
-         * any option defaults require a minimum client version.
-         */
-        if (hasSetGameOptions || validate_config_mode
-            || (SOCVersionedItem.itemsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
-        {
-            Thread.yield();  // wait for other output to appear first
-            try { Thread.sleep(200); } catch (InterruptedException ie) {}
-
-            printGameOptions();
-        }
-
-        if (getConfigBoolProperty(PROP_JSETTLERS_BOTS_SHOWCOOKIE, false))
-            System.err.println("Robot cookie: " + robotCookie);
-
-        if (validate_config_mode)
-        {
-            // Print configured known properties (ignore if not in PROPS_LIST);
-            // this also gives them in the same order as PROPS_LIST,
-            // which is the same order --help prints them out.
-            // If a problem was found by init_propsSetGameopts, it would have already
-            // thrown an exception out of this method.
-            System.err.println();
-            System.err.println("-- Configured server properties: --");
-            for (int i = 0; i < PROPS_LIST.length; i += 2)
-            {
-                final String pkey = PROPS_LIST[i];
-                if ((! pkey.equals(PROP_JSETTLERS_TEST_VALIDATE__CONFIG)) && props.containsKey(pkey))
-                    System.err.format("%-40s %s\n", pkey, props.getProperty(pkey));
-            }
-
-            System.err.println();
-            System.err.println("* Config Validation Mode: No problems found.");
-        }
-
-        if (test_mode_with_db && SOCDBHelper.isInitialized())
-        {
-            SOCDBHelper.testDBHelper();  // failures/errors throw SQLException for our caller to catch
-        }
-
-        if (! (test_mode_with_db || validate_config_mode))
-        {
-            System.err.print("The server is ready.");
-            if (port > 0)
-                System.err.print(" Listening on port " + port);
-            System.err.println();
-
-            if (SOCDBHelper.isInitialized() && SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
-                SOCDBHelper.startSchemaUpgradeBGTasks();  // includes 5-second sleep before conversions begin
-        }
-
-        System.err.println();
     }
 
     /**
