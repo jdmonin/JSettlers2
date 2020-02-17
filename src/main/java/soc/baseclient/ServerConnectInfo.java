@@ -45,10 +45,18 @@ public class ServerConnectInfo
     public final String hostname;
 
     /**
-     * TCP port number for connecting to server on {@link #hostname},
-     * or 0 when using {@link #stringSocketName} instead.
+     * TCP port number which can be used for legacy {@code SOCMessage} connection to server on {@link #hostname},
+     * or 0 when instead using {@link #stringSocketName} or solely {@link #protoPort}.
+     * @see #protoPort
      */
     public final int port;
+
+    /**
+     * TCP port number which can be used for protobuf connection to server on {@link #hostname}, or 0 if not enabled.
+     * @see #port
+     * @since 3.0.00
+     */
+    public final int protoPort;
 
     /**
      * The server's stringport socket name if it's a same-JVM local server
@@ -65,15 +73,37 @@ public class ServerConnectInfo
     public final String robotCookie;
 
     /**
-     * ServerConnectInfo to connect to a server using TCP.
+     * ServerConnectInfo to connect to a server using TCP supporting only the legacy {@code SOCMessage} protocol.
      * @param host  Server hostname; see {@link #hostname} for details
      * @param port  Server port number
      * @param cookie  Bot cookie, or {@code null} for human client; see {@link #robotCookie} for details
      */
     public ServerConnectInfo(final String host, final int port, final String cookie)
     {
+        this(host, port, 0, cookie);
+    }
+
+    /**
+     * ServerConnectInfo to connect to a server using TCP
+     * supporting protobuf and/or the legacy {@code SOCMessage} protocol.
+     * @param host  Server hostname; see {@link #hostname} for details
+     * @param port  Server port number for legacy {@code SOCMessage} protocol, or 0.
+     *     Default port is {@link soc.client.ClientNetwork#SOC_PORT_DEFAULT}.
+     * @param protoPort  Server port number for protobuf, or 0.
+     *     Default protobuf port for JSettlers is {@link SOCDisplaylessPlayerClient#PORT_DEFAULT_PROTOBUF}.
+     * @param cookie  Bot cookie, or {@code null} for human client; see {@link #robotCookie} for details
+     * @throws IllegalArgumentException if both {@code port} and {@code protoPort} are 0
+     * @since 3.0.00
+     */
+    public ServerConnectInfo(final String host, final int port, final int protoPort, final String cookie)
+        throws IllegalArgumentException
+    {
+        if ((port == 0) && (protoPort == 0))
+            throw new IllegalArgumentException();
+
         hostname = host;
         this.port = port;
+        this.protoPort = protoPort;
         stringSocketName = null;
         robotCookie = cookie;
     }
@@ -87,6 +117,7 @@ public class ServerConnectInfo
     {
         hostname = null;
         port = 0;
+        protoPort = 0;
         this.stringSocketName = stringSocketName;
         robotCookie = cookie;
     }

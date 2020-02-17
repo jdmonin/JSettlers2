@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
+import soc.baseclient.ServerConnectInfo;
 import soc.proto.Message;
 import soc.util.Version;
 
@@ -42,17 +43,10 @@ public class DummyProtoClient
 {
     public static final String BOTNAME = "DummyProtoBot";
 
-    /** Server hostname (FQDN) or IP string ("127.0.0.1" etc) */
-    public final String srvHost;
-
     /**
-     * TCP port; default protobuf port for JSettlers
-     * is {@link SOCDisplaylessPlayerClient#PORT_DEFAULT_PROTOBUF}
+     * Server TCP port, hostname (FQDN) or IP string, and required bot cookie.
      */
-    public final int srvPort;
-
-    /** Server's required bot cookie (weak shared secret) */
-    public final String cookie;
+    protected final ServerConnectInfo serverConnectInfo;
 
     private final Socket sock;
 
@@ -74,11 +68,9 @@ public class DummyProtoClient
         (final String srvHost, final int srvPort, final String cookie)
         throws IOException, SecurityException
     {
-        this.srvHost = srvHost;
-        this.srvPort = srvPort;
-        this.cookie = cookie;
         sock = new Socket(srvHost, srvPort);
         sockOut = sock.getOutputStream();
+        serverConnectInfo = new ServerConnectInfo(srvHost, 0, srvPort, cookie);
     }
 
     /**
@@ -95,7 +87,7 @@ public class DummyProtoClient
                 .setVersBuild(Version.buildnum())).build();
         final Message.FromClient msgImARobot = Message.FromClient.newBuilder()
             .setImARobot(Message.ImARobot.newBuilder()
-                .setNickname(BOTNAME).setCookie(cookie)
+                .setNickname(BOTNAME).setCookie(serverConnectInfo.robotCookie)
                 .setRbClass(getClass().getName())).build();
 
         connected = true;
