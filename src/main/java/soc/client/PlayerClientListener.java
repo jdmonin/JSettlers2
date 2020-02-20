@@ -55,9 +55,7 @@ import soc.game.SOCSpecialItem;
  * but the non-blocking dialog was obscuring the Special Building button.
  *<P>
  * To prevent such surprises for the client player, call {@link #isNonBlockingDialogVisible()}
- * before taking that kind of automatic action. If the UI might do something when that dialog is
- * no longer visible, such as start a countdown to automatically roll dice, register a listener
- * by calling {@link #setNonBlockingDialogDismissListener(NonBlockingDialogDismissListener)}.
+ * before taking that kind of automatic action.
  *<P>
  * The classic UI implementing this interface is {@link SOCPlayerInterface.ClientBridge}.
  *
@@ -374,22 +372,11 @@ public interface PlayerClientListener
     // This javadoc also appears in SOCPlayerInterface; please also update there if it changes.
     /**
      * Is a dialog or popup message currently visible while gameplay continues?
-     * See interface javadoc for details and implications.
-     *<P>
-     * To do things when the dialog is no longer visible, you can register a listener with
-     * {@link #setNonBlockingDialogDismissListener(NonBlockingDialogDismissListener)}.
+     * See {@link PlayerClientListener} interface javadoc for details and implications.
      *
      * @return  True if such a dialog is visible
      */
     boolean isNonBlockingDialogVisible();
-
-    // This javadoc also appears in SOCPlayerInterface; please also update there if it changes.
-    /**
-     * Set or clear the {@link NonBlockingDialogDismissListener listener}
-     * for when {@link #isNonBlockingDialogVisible()}'s dialog is no longer visible.
-     * @param li  Listener, or {@code null} to clear
-     */
-    void setNonBlockingDialogDismissListener(NonBlockingDialogDismissListener li);
 
     /**
      * Game play is starting (leaving state {@link SOCGame#NEW}).
