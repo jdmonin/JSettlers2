@@ -484,6 +484,14 @@ public class SOCGame implements Serializable, Cloneable
     public static final int SPECIAL_BUILDING = 100;  // see advanceTurnToSpecialBuilding()
 
     /**
+     * A saved game is being loaded. Its actual state is saved in {@code oldGameState} field.
+     * Before resuming play, server or user may need to satisfy conditions or constraints
+     * (have a certain type of bot sit down at a given player number, etc).
+     * @since 2.3.00
+     */
+    public static final int LOADING = 999;
+
+    /**
      * The game is over.  A player has accumulated enough ({@link #vp_winner}) victory points,
      * or all players have left the game.
      * The winning player, if any, is {@link #getPlayerWithWin()}.
@@ -977,6 +985,8 @@ public class SOCGame implements Serializable, Cloneable
      *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *        Can be {@link #ROLL_OR_CARD} in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}:
      *        See {@link #pickGoldHexResources(int, SOCResourceSet)} and {@link #rollDice_update7gameState()}.
+     *<LI> {@link #LOADING}:
+     *        Holds the actual game state, to be resumed once optional constraints are met.
      *</UL>
      * Also used if the game board was reset: {@link #getResetOldGameState()} holds the state before the reset.
      */

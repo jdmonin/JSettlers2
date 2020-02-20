@@ -15,6 +15,12 @@ and backport minor new features until `2.0.00` was ready.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
+## branch `feat/savegame`
+- Server can save/load games using local files and debug commands
+	- Server config must designate a directory
+	- Optional GSON jar must be on classpath or same dir as server
+
+
 ## `2.2.00` (build JM2020xxxx)
 - Currently being developed
 - Client:
