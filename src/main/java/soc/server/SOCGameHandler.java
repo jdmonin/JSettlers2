@@ -167,7 +167,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Debug command prefix for scenario-related debugging. Used with
-     * {@link #processDebugCommand_scenario(Connection, String, String)}.
+     * {@link #processDebugCommand_scenario(Connection, SOCGame, String)}.
      * @since 2.0.00
      */
     private static final String DEBUG_CMD_PFX_SCENARIO = "*SCEN* ";
@@ -283,20 +283,17 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler
-    public boolean processDebugCommand(Connection debugCli, String gaName, final String dcmd, final String dcmdU)
+    public boolean processDebugCommand
+        (final Connection debugCli, final SOCGame ga, final String dcmd, final String dcmdU)
     {
         if (dcmdU.startsWith("RSRCS:"))
         {
-            SOCGame ga = srv.getGame(gaName);
-            if (ga != null)
-                debugGiveResources(debugCli, dcmd, ga);
+            debugGiveResources(debugCli, dcmd, ga);
             return true;
         }
         else if (dcmdU.startsWith("DEV:"))
         {
-            SOCGame ga = srv.getGame(gaName);
-            if (ga != null)
-                debugGiveDevCard(debugCli, dcmd, ga);
+            debugGiveDevCard(debugCli, dcmd, ga);
             return true;
         }
         else if (dcmd.charAt(0) != '*')
@@ -306,11 +303,11 @@ public class SOCGameHandler extends GameHandler
 
         if (dcmdU.startsWith(DEBUG_CMD_FREEPLACEMENT))
         {
-            processDebugCommand_freePlace(debugCli, gaName, dcmd.substring(DEBUG_CMD_FREEPLACEMENT.length()).trim());
+            processDebugCommand_freePlace(debugCli, ga, dcmd.substring(DEBUG_CMD_FREEPLACEMENT.length()).trim());
             return true;
         } else if (dcmdU.startsWith(DEBUG_CMD_PFX_SCENARIO))
         {
-            processDebugCommand_scenario(debugCli, gaName, dcmd.substring(DEBUG_CMD_PFX_SCENARIO.length()).trim());
+            processDebugCommand_scenario(debugCli, ga, dcmd.substring(DEBUG_CMD_PFX_SCENARIO.length()).trim());
             return true;
         } else {
             return false;
@@ -328,20 +325,18 @@ public class SOCGameHandler extends GameHandler
      * Can turn it off at any time, but can only turn it on during
      * your own turn after rolling (during game state {@link SOCGame#PLAY1}).
      * @param c   Connection (client) sending this message
-     * @param gaName  Game to which this applies
+     * @param ga  Game to which this applies; not null
      * @param arg  1 or 0, to turn on or off, or empty string or
      *    null to print current value
      * @since 1.1.12
      */
     final void processDebugCommand_freePlace
-        (Connection c, final String gaName, final String arg)
+        (final Connection c, final SOCGame ga, final String arg)
     {
-        SOCGame ga = srv.gameList.getGameData(gaName);
-        if (ga == null)
-            return;
-
+        final String gaName = ga.getName();
         final boolean wasInitial = ga.isInitialPlacement();
         final boolean ppValue = ga.isDebugFreePlacement();
+
         final boolean ppWanted;
         if ((arg == null) || (arg.length() == 0))
             ppWanted = ppValue;
@@ -433,20 +428,20 @@ public class SOCGameHandler extends GameHandler
      * If you add a debug command, also update {@link #SOC_DEBUG_COMMANDS_HELP}.
      *
      * @param c   Connection (client) sending this message
-     * @param gaName  Game to which this applies
-     * @param args  Debug command string from the user.
-     *     Caller must remove prefix {@link #DEBUG_CMD_PFX_SCENARIO} and then {@link String#trim()}.
+     * @param ga  Game to which this applies; not null
+     * @param argStr  Debug command string from the user.
+     *     Caller must remove prefix {@link #DEBUG_CMD_PFX_SCENARIO} and call {@link String#trim()}.
+     *     Returns immediately if "".
      * @since 2.0.00
      */
     private final void processDebugCommand_scenario
-        (final Connection c, final String gaName, final String argStr)
+        (final Connection c, final SOCGame ga, final String argStr)
     {
-        if (argStr.length() == 0)
+        if (argStr.isEmpty())
             return;
 
-        final SOCGame ga = srv.gameList.getGameData(gaName);
-        if (ga == null)
-            return;
+        final String gaName = ga.getName();
+
         if (ga.getGameOptionStringValue("SC") == null)
         {
             srv.messageToPlayer(c, gaName, "This game has no scenario");

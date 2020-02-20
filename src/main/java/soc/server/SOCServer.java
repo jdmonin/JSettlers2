@@ -150,7 +150,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *<H3>Debug Commands:</H3>
  * The server supports several debug commands when {@link #isDebugUserEnabled()}, and
  * when sent as chat messages by a user named {@code "debug"} or by the only human in a practice game.
- * See {@link #processDebugCommand(Connection, String, String, String)} and
+ * See {@link #processDebugCommand(Connection, SOCGame, String, String)} and
  * {@link SOCServerMessageHandler#handleGAMETEXTMSG(Connection, SOCGameTextMsg)}
  * for details.
  *
@@ -737,7 +737,7 @@ public class SOCServer extends Server
      *<P>
      * Publicly visible via {@link #isDebugUserEnabled()}.
      *
-     * @see #processDebugCommand(Connection, String, String, String)
+     * @see #processDebugCommand(Connection, SOCGame, String, String)
      * @since 1.1.14
      */
     private boolean allowDebugUser;
@@ -4920,7 +4920,7 @@ public class SOCServer extends Server
 
     /**
      * List and description of general commands that any game member can run.
-     * Used by {@link #processDebugCommand(Connection, String, String, String)}
+     * Used by {@link #processDebugCommand(Connection, SOCGame, String, String)}
      * when {@code *HELP*} is requested.
      * @see #ADMIN_USER_COMMANDS_HELP
      * @see #DEBUG_COMMANDS_HELP
@@ -4950,7 +4950,7 @@ public class SOCServer extends Server
     /**
      * List and description of user-admin commands. Along with {@link #GENERAL_COMMANDS_HELP}
      * and {@link #DEBUG_COMMANDS_HELP}, used by
-     * {@link #processDebugCommand(Connection, String, String, String)}
+     * {@link #processDebugCommand(Connection, SOCGame, String, String)}
      * when {@code *HELP*} is requested by a debug/admin user who passes
      * {@link #isUserDBUserAdmin(String) isUserDBUserAdmin(username)}.
      * Preceded by {@link #ADMIN_COMMANDS_HEADING}.
@@ -4968,7 +4968,7 @@ public class SOCServer extends Server
     /**
      * List and description of debug/admin commands. Along with {@link #GENERAL_COMMANDS_HELP}
      * and {@link #ADMIN_USER_COMMANDS_HELP},
-     * used by {@link #processDebugCommand(Connection, String, String, String)}
+     * used by {@link #processDebugCommand(Connection, SOCGame, String, String)}
      * when {@code *HELP*} is requested by a debug/admin user.
      * @since 1.1.07
      * @see #GENERAL_COMMANDS_HELP
@@ -4991,7 +4991,7 @@ public class SOCServer extends Server
      * Process a debug command, sent by the "debug" client/player.
      * Some debug commands are server-wide, some apply to a specific game.
      * If no server-wide commands match, server will call
-     * {@link GameHandler#processDebugCommand(Connection, String, String, String)}
+     * {@link GameHandler#processDebugCommand(Connection, SOCGame, String, String)}
      * to check for those.
      *<P>
      * Check {@link #allowDebugUser} before calling this method.
@@ -5001,28 +5001,31 @@ public class SOCServer extends Server
      * {@link SOCServerMessageHandler#handleGAMETEXTMSG(Connection, SOCGameTextMsg)}.
      *
      * @param debugCli  Client sending the potential debug command
-     * @param ga  Game in which the message is sent
+     * @param ga  Game in which the message is sent; not null
      * @param dcmd   Text message which may be a debug command
      * @param dcmdU  {@code dcmd} as uppercase, for efficiency (it's already been uppercased in caller)
      * @return true if {@code dcmd} is a recognized debug command, false otherwise
      */
-    public boolean processDebugCommand(Connection debugCli, String ga, final String dcmd, final String dcmdU)
+    public boolean processDebugCommand
+        (final Connection debugCli, final SOCGame ga, final String dcmd, final String dcmdU)
     {
         // See SOCServerMessageHandler.handleGAMETEXTMSG for "unprivileged" debug commands like *HELP*, *STATS*, and *ADDTIME*.
 
         boolean isCmd = true;  // eventual return value; will set false if unrecognized
 
+        final String gaName = ga.getName();
+
         if (dcmdU.startsWith("*KILLGAME*"))
         {
-            messageToGameUrgent(ga, ">>> ********** " + debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
-            destroyGameAndBroadcast(ga, "KILLGAME");
+            messageToGameUrgent(gaName, ">>> ********** " + debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
+            destroyGameAndBroadcast(gaName, "KILLGAME");
         }
         else if (dcmdU.startsWith("*GC*"))
         {
             Runtime rt = Runtime.getRuntime();
             rt.gc();
-            messageToGame(ga, "> GARBAGE COLLECTING DONE");
-            messageToGame(ga, "> Free Memory: " + rt.freeMemory());
+            messageToGame(gaName, "> GARBAGE COLLECTING DONE");
+            messageToGame(gaName, "> Free Memory: " + rt.freeMemory());
         }
         else if (dcmd.startsWith("*STOP*"))  // dcmd to force case-sensitivity
         {
@@ -5049,7 +5052,7 @@ public class SOCServer extends Server
                 srvShutPassword = sb.toString();
                 System.err.println("** Shutdown password generated: " + srvShutPassword);
                 broadcast(SOCBCastTextMsg.toCmd(debugCli.getData() + " WANTS TO STOP THE SERVER"));
-                messageToPlayer(debugCli, ga, "Send stop command again with the password.");
+                messageToPlayer(debugCli, gaName, "Send stop command again with the password.");
             }
 
             if (shutNow)
@@ -5073,14 +5076,14 @@ public class SOCServer extends Server
             while (robotsEnum.hasMoreElements())
             {
                 Connection robotConn = robotsEnum.nextElement();
-                messageToGame(ga, "> Robot: " + robotConn.getData());
-                robotConn.put(SOCAdminPing.toCmd((ga)));
+                messageToGame(gaName, "> Robot: " + robotConn.getData());
+                robotConn.put(SOCAdminPing.toCmd((gaName)));
             }
         }
         else if (dcmdU.startsWith("*RESETBOT* "))
         {
             String botName = dcmd.substring(11).trim();
-            messageToGame(ga, "> botName = '" + botName + "'");
+            messageToGame(gaName, "> botName = '" + botName + "'");
 
             Enumeration<Connection> robotsEnum = robots.elements();
 
@@ -5091,7 +5094,7 @@ public class SOCServer extends Server
                 if (botName.equals(robotConn.getData()))
                 {
                     botFound = true;
-                    messageToGame(ga, "> SENDING RESET COMMAND TO " + botName);
+                    messageToGame(gaName, "> SENDING RESET COMMAND TO " + botName);
 
                     robotConn.put(new SOCAdminReset());
 
@@ -5104,7 +5107,7 @@ public class SOCServer extends Server
         else if (dcmdU.startsWith("*KILLBOT* "))
         {
             String botName = dcmd.substring(10).trim();
-            messageToGame(ga, "> botName = '" + botName + "'");
+            messageToGame(gaName, "> botName = '" + botName + "'");
 
             Enumeration<Connection> robotsEnum = robots.elements();
 
@@ -5116,7 +5119,7 @@ public class SOCServer extends Server
                 if (botName.equals(robotConn.getData()))
                 {
                     botFound = true;
-                    messageToGame(ga, "> DISCONNECTING " + botName);
+                    messageToGame(gaName, "> DISCONNECTING " + botName);
                     removeConnection(robotConn, true);
 
                     break;
@@ -5129,18 +5132,15 @@ public class SOCServer extends Server
         {
             if (0 == getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
             {
-                messageToPlayer(debugCli, ga,
+                messageToPlayer(debugCli, gaName,
                     "To start a bots-only game, must restart server with "
                     + PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL + " != 0.");
                 return true;
             }
 
-            SOCGame gameObj = getGame(ga);
-            if (gameObj == null)
-                return true;  // we're sitting in this game, shouldn't happen
-            if (gameObj.getGameState() != SOCGame.NEW)
+            if (ga.getGameState() != SOCGame.NEW)
             {
-                messageToPlayer(debugCli, ga, "This game has already started; you must create a new one.");
+                messageToPlayer(debugCli, gaName, "This game has already started; you must create a new one.");
                 return true;
             }
 
@@ -5152,13 +5152,13 @@ public class SOCServer extends Server
                 } catch (NumberFormatException e) {}
             }
 
-            srvMsgHandler.handleSTARTGAME(debugCli, new SOCStartGame(ga, 0), maxBots);
+            srvMsgHandler.handleSTARTGAME(debugCli, new SOCStartGame(gaName, 0), maxBots);
             return true;
         }
         else
         {
             // See if game type's handler finds a debug command
-            GameHandler hand = gameList.getGameTypeHandler(ga);
+            GameHandler hand = gameList.getGameTypeHandler(gaName);
             if (hand != null)
                 isCmd = hand.processDebugCommand(debugCli, ga, dcmd, dcmdU);
             else
@@ -5171,14 +5171,14 @@ public class SOCServer extends Server
     /**
      * Process the {@code *STATS*} unprivileged debug command:
      * Send the client a list of server statistics, and stats for the game and connection they sent the command from.
-     * Calls {@link SOCServerMessageHandler#processDebugCommand_gameStats(Connection, String, SOCGame, boolean)}.
+     * Calls {@link SOCServerMessageHandler#processDebugCommand_gameStats(Connection, SOCGame, boolean)}.
      *<P>
      * Before v2.0.00, this method was part of {@code handleGAMETEXTMSG(..)}.
      * @param c  Client sending the {@code *STATS*} command
      * @param ga  Game in which the message is sent
      * @since 2.0.00
      * @see SOCServerMessageHandler#processDebugCommand_dbSettings(Connection, SOCGame)
-     * @see #processDebugCommand_connStats(Connection, String, boolean)
+     * @see #processDebugCommand_connStats(Connection, SOCGame, boolean)
      */
     final void processDebugCommand_serverStats(final Connection c, final SOCGame ga)
     {
@@ -5228,7 +5228,7 @@ public class SOCServer extends Server
             messageToPlayer(c, gaName, "> This game's client versions: "
                 + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
 
-        srvMsgHandler.processDebugCommand_gameStats(c, gaName, ga, false);
+        srvMsgHandler.processDebugCommand_gameStats(c, ga, false);
         processDebugCommand_connStats(c, ga, false);
     }
 
@@ -5245,7 +5245,7 @@ public class SOCServer extends Server
      *     If false, don't send if less than 1 completed game.
      * @since 2.2.00
      * @see #processDebugCommand_serverStats(Connection, SOCGame)
-     * @see SOCServerMessageHandler#processDebugCommand_gameStats(Connection, String, SOCGame, boolean)
+     * @see SOCServerMessageHandler#processDebugCommand_gameStats(Connection, SOCGame, boolean)
      */
     final void processDebugCommand_connStats
         (final Connection c, final SOCGame ga, final boolean skipWinLossBefore2)

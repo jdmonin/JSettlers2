@@ -1024,7 +1024,7 @@ public class SOCServerMessageHandler
      *</UL>
      * These commands are processed in this method.
      * Others can be run only by certain users or when certain server flags are set.
-     * Those are processed in {@link SOCServer#processDebugCommand(Connection, String, String, String)}.
+     * Those are processed in {@link SOCServer#processDebugCommand(Connection, SOCGame, String, String)}.
      *
      * @since 1.1.07
      */
@@ -1121,7 +1121,7 @@ public class SOCServerMessageHandler
         ///
         else if (cmdTxtUC.startsWith("*CHECKTIME*"))
         {
-            processDebugCommand_gameStats(c, gaName, ga, true);
+            processDebugCommand_gameStats(c, ga, true);
         }
         else if (cmdTxtUC.startsWith("*VERSION*"))
         {
@@ -1183,7 +1183,7 @@ public class SOCServerMessageHandler
             }
             else
             {
-                boolean isCmd = userIsDebug && srv.processDebugCommand(c, ga.getName(), cmdText, cmdTxtUC);
+                boolean isCmd = userIsDebug && srv.processDebugCommand(c, ga, cmdText, cmdTxtUC);
 
                 if (! isCmd)
                 {
@@ -1245,18 +1245,19 @@ public class SOCServerMessageHandler
      * Before v1.1.20, this method was {@code processDebugCommand_checktime(..)}.
      *
      * @param c  Client requesting the stats
-     * @param gaName  {@code gameData.getName()}
-     * @param gameData  Game to print stats
+     * @param gameData  Game to print stats; does nothing if {@code null}
      * @param isCheckTime  True if called from *CHECKTIME* server command, false for *STATS*.
      *     If true, mark text as urgent when sending remaining time before game expires.
-     * @see SOCServer#processDebugCommand_connStats(Connection, String, boolean)
+     * @see SOCServer#processDebugCommand_connStats(Connection, SOCGame, boolean)
      * @since 1.1.07
      */
     void processDebugCommand_gameStats
-        (Connection c, final String gaName, SOCGame gameData, final boolean isCheckTime)
+        (final Connection c, final SOCGame gameData, final boolean isCheckTime)
     {
         if (gameData == null)
             return;
+
+        final String gaName = gameData.getName();
 
         srv.messageToPlayerKeyed(c, gaName, "stats.game.title");  // "-- Game statistics: --"
         srv.messageToPlayerKeyed(c, gaName, "stats.game.rounds", gameData.getRoundCount());  // Rounds played: 20

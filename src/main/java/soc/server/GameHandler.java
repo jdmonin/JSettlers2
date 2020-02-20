@@ -79,20 +79,21 @@ public abstract class GameHandler
      * If game debug is on, called for every game text message (chat message) received from that player.
      *<P>
      * Server-wide debug commands are processed before gametype-specific debug commands;
-     * see {@link SOCServer#processDebugCommand(Connection, String, String, String)}.
+     * see {@link SOCServer#processDebugCommand(Connection, SOCGame, String, String)}.
      *
      * @param debugCli  Client sending the potential debug command
-     * @param gaName  Game in which the message is sent
+     * @param ga  Game in which the message is sent; not null
      * @param dcmd   Text message which may be a debug command
      * @param dcmdU  {@code dcmd} as uppercase, for efficiency (it's already been uppercased in caller)
      * @return true if {@code dcmd} is a recognized debug command, false otherwise
      * @see #getDebugCommandsHelp()
      */
-    public abstract boolean processDebugCommand(Connection debugCli, final String gaName, final String dcmd, final String dcmdU);
+    public abstract boolean processDebugCommand
+        (final Connection debugCli, final SOCGame ga, final String dcmd, final String dcmdU);
 
     /**
      * Get the debug commands for this game type, if any, used with
-     * {@link #processDebugCommand(Connection, String, String, String)}.
+     * {@link #processDebugCommand(Connection, SOCGame, String, String)}.
      * If client types the {@code *help*} debug command, the server will
      * send them all the general debug command help, and these strings.
      * @return  a set of lines of help text to send to a client after sending {@link SOCServer#DEBUG_COMMANDS_HELP},

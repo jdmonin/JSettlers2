@@ -1006,7 +1006,7 @@ public class SOCGameMessageHandler
         if (ga.isDebugFreePlacement())
         {
             // turn that off before ending current turn
-            handler.processDebugCommand_freePlace(c, gname, "0");
+            handler.processDebugCommand_freePlace(c, ga, "0");
         }
 
         ga.takeMonitor();
@@ -2293,7 +2293,7 @@ public class SOCGameMessageHandler
             if (ga.getGameState() >= SOCGame.OVER)
             {
                 // exit debug mode, announce end of game
-                handler.processDebugCommand_freePlace(c, gaName, "0");
+                handler.processDebugCommand_freePlace(c, ga, "0");
                 handler.sendGameState(ga, false, false);
             }
         } else {
