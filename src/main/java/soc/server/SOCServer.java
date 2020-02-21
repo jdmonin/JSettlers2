@@ -471,6 +471,15 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_GAMEOPT_PREFIX = "jsettlers.gameopt.";
 
     /**
+     * Property {@code jsettlers.savegame.dir} to enable SAVEGAME/LOADGAME debug commands
+     * and set the directory in which to store savegame files.
+     * If set, but isn't an existing directory, server will warn at startup.
+     * Property is ignored unless {@link #PROP_JSETTLERS_ALLOW_DEBUG}.
+     * @since 2.3.00
+     */
+    public static final String PROP_JSETTLERS_SAVEGAME_DIR = "jsettlers.savegame.dir";
+
+    /**
      * Boolean property {@code jsettlers.test.db} to test database methods,
      * then exit with code 0 if OK or 1 if any required tests failed.
      * @see SOCDBHelper#testDBHelper()
@@ -528,6 +537,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
         PROP_JSETTLERS_BOTS_START3P,            "Third-party bot client classes to start up with server",
         PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
+        PROP_JSETTLERS_SAVEGAME_DIR,            "Dir in which to store savegame files",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
         PROP_JSETTLERS_TEST_DB,                 "Flag to test database methods, then exit",
         SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR, "For user accounts in DB, password encryption Work Factor (see README) (9 to "
@@ -972,6 +982,14 @@ public class SOCServer extends Server
      * @since 1.1.08
      */
     public static final int NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP = 150;
+
+    /**
+     * Directory in which to save/load game files, from
+     * {@link #PROP_JSETTLERS_SAVEGAME_DIR}, or {@code null}.
+     * If not {@link #allowDebugUser}, will be {@code null}.
+     * @since 2.3.00
+     */
+    protected File savegameDir;
 
     /**
      * list of chat channels
@@ -1473,6 +1491,21 @@ public class SOCServer extends Server
         if (allowDebugUser)
         {
             System.err.println("Warning: Remote debug commands are allowed.");
+
+            String savegameDirPath = props.getProperty(PROP_JSETTLERS_SAVEGAME_DIR);
+            if (savegameDirPath != null)
+                try
+                {
+                    savegameDir = new File(savegameDirPath);
+                    if (! savegameDir.exists())
+                    {
+                        System.err.println("Warning: savegame.dir not found: " + savegameDirPath);
+                    } else if (! savegameDir.isDirectory()) {
+                        System.err.println("Warning: savegame.dir file exists but isn't a directory: " + savegameDirPath);
+                    }
+                } catch (SecurityException e) {
+                    System.err.println("Warning: Can't access savegame.dir " + savegameDirPath + ": " + e);
+                }
         }
 
         /**
@@ -2272,7 +2305,7 @@ public class SOCServer extends Server
     /**
      * Adds a connection to a game, unless they're already a member.
      * If the game doesn't yet exist, creates it and announces the new game to all clients
-     * by calling {@link #createGameAndBroadcast(Connection, String, Map, int, boolean, boolean)}.
+     * by calling {@link #createGameAndBroadcast(Connection, String, Map, SOCGame, int, boolean, boolean)}.
      * After this method returns, caller must call {@link #joinGame(SOCGame, Connection, boolean, boolean)}
      * to send game state to the player/observer.
      *<P>
@@ -2280,16 +2313,16 @@ public class SOCServer extends Server
      * someone clicks "Start Game". At that point, server will look for robots to fill empty seats.
      *
      * @param c    the Connection to be added to the game; its name, version, and locale should already be set.
-     * @param gaName  the name of the game.  Not validated or trimmed, see
+     * @param gaName  the name of the game; ignored if {@code loadedGame != null}. Not validated or trimmed, see
      *             {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)} for that.
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
      *                Must already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
-     *
+     * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
+     *          Should not be in server's gameList yet.
      * @return     true if {@code c} was not a member of the game before, or if new game created;
      *             false if {@code c} was already in this game
-     *
      * @throws SOCGameOptionVersionException if asking to create a game (gaOpts != null),
      *           but client's version is too low to join because of a
      *           requested game option's minimum version in gaOpts.
@@ -2306,7 +2339,8 @@ public class SOCServer extends Server
      * @see SOCServerMessageHandler#handleSTARTGAME(Connection, SOCStartGame)
      * @see SOCServerMessageHandler#handleJOINGAME(Connection, SOCJoinGame)
      */
-    public boolean connectToGame(Connection c, final String gaName, Map<String, SOCGameOption> gaOpts)
+    public boolean connectToGame
+        (Connection c, final String gaName, Map<String, SOCGameOption> gaOpts, final SOCGame loadedGame)
         throws SOCGameOptionVersionException, MissingResourceException, IllegalArgumentException
     {
         if (c == null)
@@ -2323,13 +2357,11 @@ public class SOCServer extends Server
         try
         {
             gameExists = gameList.isGame(gaName);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             D.ebugPrintStackTrace(e, "Exception in connectToGame");
+        } finally {
+            gameList.releaseMonitor();
         }
-
-        gameList.releaseMonitor();
 
         if (gameExists)
         {
@@ -2383,9 +2415,13 @@ public class SOCServer extends Server
         else
         {
             /**
-             * the game did not exist, create it after checking options
+             * the game did not exist: Create it after checking options,
+             * or if using loadedGame, check options and add it to game list.
              */
+
             final int gVers;
+            if (loadedGame != null)
+                gaOpts = loadedGame.getGameOptions();
             if (gaOpts == null)
             {
                 gVers = -1;
@@ -2404,8 +2440,9 @@ public class SOCServer extends Server
                 }
             }
 
-            // Create new game, expiring in SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES.
-            SOCGame newGame = createGameAndBroadcast(c, gaName, gaOpts, gVers, false, false);
+            // Create new game or add reloaded game to gameList, and announce it;
+            // will expire in SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES
+            SOCGame newGame = createGameAndBroadcast(c, gaName, gaOpts, loadedGame, gVers, false, false);
             if (newGame != null)
                 result = true;
         }
@@ -2414,8 +2451,11 @@ public class SOCServer extends Server
     }
 
     /**
-     * Create a new game, and announce it with a broadcast.
-     * Called from {@link #connectToGame(Connection, String, Map)}.
+     * Create a new game or connect to a reloaded one, and announce it with a broadcast.
+     * Called from {@link #connectToGame(Connection, String, Map, SOCGame)}.
+     *<P>
+     * Can also be used with a {@code loadedGame} being reloaded; will
+     * add it to game list and generally act as if a new game is being created.
      *<P>
      * The new game is created with {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}
      * and will expire in {@link SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES} unless extended during play.
@@ -2430,15 +2470,20 @@ public class SOCServer extends Server
      * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
      *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
      *             will be called.  Can be null, especially if {@code isBotsOnly}.
-     * @param gaName  the name of the game, no game should exist yet with this name. Not validated or trimmed, see
+     * @param gaName  the name of the game; no game should be in game list yet with this name.
+     *             Ignored if {@code loadedGame != null}. Not validated or trimmed, see
      *             {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)} for that.
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
+     *                Ignored if {@code loadedGame != null}.
      *                Must already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
+     * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
+     *             Should not be in server's gameList yet.
      * @param gVers  Game's minimum version, from
      *                {@link SOCVersionedItem#itemsMinimumVersion(Map) SOCVersionedItem.itemsMinimumVersion}
-     *                {@code (gaOpts)}, or -1 if null gaOpts
+     *                {@code (gaOpts)}, or -1 if null gaOpts.
+     *                This must always be calculated, even when using {@code loadedGame}.
      * @param isBotsOnly  True if the game's only players are bots, no humans and no owner
      * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already.
      *                If true, this method won't take or release that monitor.  Otherwise will take it before creating
@@ -2447,11 +2492,16 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     private SOCGame createGameAndBroadcast
-        (Connection c, final String gaName, Map<String, SOCGameOption> gaOpts,
+        (final Connection c, String gaName, Map<String, SOCGameOption> gaOpts, final SOCGame loadedGame,
          final int gVers, final boolean isBotsOnly, final boolean hasGameListMonitor)
     {
         final SOCClientData scd = (c != null) ? (SOCClientData) c.getAppData() : null;
         SOCGame newGame = null;
+        if (loadedGame != null)
+        {
+            gaName = loadedGame.getName();
+            gaOpts = loadedGame.getGameOptions();
+        }
 
         if (! hasGameListMonitor)
             gameList.takeMonitor();
@@ -2461,9 +2511,16 @@ public class SOCServer extends Server
         {
             // Create new game, expiring in SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES.
 
-            newGame = gameList.createGame
-                (gaName, (c != null) ? c.getData() : null, (scd != null) ? scd.localeStr : null,
-                 gaOpts, handler);
+            final String owner = (c != null) ? c.getData() : null,
+                localeStr = (scd != null) ? scd.localeStr : null;
+
+            if (loadedGame != null)
+            {
+                gameList.addGame(loadedGame, handler, owner, localeStr);
+                newGame = loadedGame;
+            } else {
+                newGame = gameList.createGame(gaName, owner, localeStr, gaOpts, handler);
+            }
 
             if (isBotsOnly)
                 newGame.isBotsOnly = true;
@@ -2498,8 +2555,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Announce a newly created game to all clients; called from
-     * {@link #createGameAndBroadcast(Connection, String, Map, int, boolean, boolean)}.
+     * Announce a newly created or reloaded game to all clients; called from
+     * {@link #createGameAndBroadcast(Connection, String, Map, SOCGame, int, boolean, boolean)}.
      * If some clients can't join, based on their version or limited {@link SOCClientData#feats},
      * announce to those clients with the "can't join" prefix flag.
      *
@@ -4983,6 +5040,8 @@ public class SOCServer extends Server
         "*KILLBOT*  botname  End a bot's connection",
         "*KILLGAME*  end the current game",
         "*RESETBOT* botname  End a bot's connection",
+        "*LOADGAME* savename  Load a previously saved game from snapshot file",
+        "*SAVEGAME* savename  Start this game's current state to snapshot file",
         "*STARTBOTGAME* [maxBots]  Start this game (no humans have sat) with bots only",
         "*STOP*  kill the server",
         };
@@ -5154,6 +5213,18 @@ public class SOCServer extends Server
 
             srvMsgHandler.handleSTARTGAME(debugCli, new SOCStartGame(gaName, 0), maxBots);
             return true;
+        }
+        else if (dcmdU.startsWith("*LOADGAME*"))
+        {
+            srvMsgHandler.processDebugCommand_loadGame(debugCli, gaName, dcmd.substring(10).trim());
+        }
+        else if (dcmdU.startsWith("*RESUMEGAME*"))
+        {
+            srvMsgHandler.processDebugCommand_resumeGame(debugCli, ga, dcmd.substring(12).trim());
+        }
+        else if (dcmdU.startsWith("*SAVEGAME*"))
+        {
+            srvMsgHandler.processDebugCommand_saveGame(debugCli, ga, dcmd.substring(10).trim());
         }
         else
         {
@@ -6066,7 +6137,8 @@ public class SOCServer extends Server
      *                  and be at most {@link SOCGameList#GAME_NAME_MAX_LENGTH} characters.
      *                  Calls {@link String#trim() gameName.trim()} before checking length.
      *                  Game name {@code "*"} is also rejected to avoid conflicts with admin commands.
-     * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game; if not null, will not join an existing game.
+     * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game;
+     *                  if not null, will not join an existing game.
      *                  Will validate and adjust by calling
      *                  {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                  with <tt>doServerPreadjust</tt> true.
@@ -6083,7 +6155,7 @@ public class SOCServer extends Server
 
         if (c.getData() != null)
         {
-            createOrJoinGameIfUserOK_postAuth(c, cliVers, gameName, gameOpts, AUTH_OR_REJECT__OK);
+            createOrJoinGame(c, cliVers, gameName, gameOpts, null, AUTH_OR_REJECT__OK);
         } else {
             /**
              * Check that the nickname is ok, check password if supplied; if not ok, sends a SOCStatusMessage.
@@ -6100,7 +6172,7 @@ public class SOCServer extends Server
                  {
                     public void success(Connection c, int authResult)
                     {
-                        createOrJoinGameIfUserOK_postAuth(c, cliVers, gName, gameOpts, authResult);
+                        createOrJoinGame(c, cliVers, gName, gameOpts, null, authResult);
                     }
                  });
         }
@@ -6109,84 +6181,131 @@ public class SOCServer extends Server
     /**
      * After successful client user auth, take care of the rest of
      * {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)}.
+     *<P>
+     * Can also be used with a {@code loadedGame} being reloaded
+     * (having current state {@link SOCGame#LOADING}); will check its name and game options,
+     * add it to game list, and generally act as if a new game is being created.
+     *<P>
+     * Before v2.3.00 this method was {@code createOrJoinGameIfUserOK_postAuth}.
+     *
+     * @param gaName  Name of game to create or join.
+     *     If {@code loadingGame != null}: Will instead check {@link SOCGame#getName() loadingGame.getGameName()} for
+     *     validity, and use {@code gaName} as the game name in which to send any error messages back to user {@code c}.
+     * @param gameOpts  New or reloaded game's {@link SOCGameOption}s, or null
+     *     to join an existing game as usual (not one that's currently being reloaded).
+     * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
+     *     Should not be in server's gameList yet.
+     * @param authResult  Auth check result flags: {@link SOCServer#AUTH_OR_REJECT__OK AUTH_OR_REJECT__OK},
+     *     {@link SOCServer#AUTH_OR_REJECT__SET_USERNAME AUTH_OR_REJECT__SET_USERNAME}, etc. See
+     *     {@link SOCServer#authOrRejectClientUser(Connection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
+     *     for details. If user is already auth'd, use {@link {@link SOCServer#AUTH_OR_REJECT__OK AUTH_OR_REJECT__OK}.
+     * @return  True if succeeded, false if failed and a message was sent to user {@code c}.
+     * @throws IllegalStateException if {@code loadedGame != null} but its gameState != {@code LOADING}
      * @since 1.2.00
      */
-    private void createOrJoinGameIfUserOK_postAuth
-        (final Connection c, final int cliVers, final String gameName,
-         final Map<String, SOCGameOption> gameOpts, final int authResult)
+    /*package*/ boolean createOrJoinGame
+        (final Connection c, final int cliVers, String gaName, final Map<String, SOCGameOption> gameOpts,
+         final SOCGame loadedGame, final int authResult)
+        throws IllegalStateException
     {
         final boolean isTakingOver = (0 != (authResult & AUTH_OR_REJECT__TAKING_OVER));
+        final boolean sendErrorViaStatus = ((loadedGame == null) || (gaName == null));
+
+        final String gameName;  // game name to check
+        if (loadedGame != null)
+        {
+            if (loadedGame.getGameState() != SOCGame.LOADING)
+                throw new IllegalStateException("gameState");
+
+            gameName = loadedGame.getName();
+        } else {
+            gameName = gaName;
+        }
 
         /**
          * Check that the game name length is ok
          */
         if (gameName.length() > SOCGameList.GAME_NAME_MAX_LENGTH)
         {
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
-                     c.getLocalized("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH)));
-            // "Please choose a shorter name; maximum length: 30"
+            final String txt = c.getLocalized("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH);
+                // "Please choose a shorter name; maximum length: 30"
 
-            return;  // <---- Early return ----
+            if (sendErrorViaStatus)
+                c.put(SOCStatusMessage.toCmd
+                       (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers, txt));
+            else
+                messageToPlayer(c, gaName, txt);
+
+            return false;  // <---- Early return ----
         }
 
         /**
-         * If creating a new game, check game name format
+         * If creating or loading a game, check game name format
          * and ensure they are below their max game count.
-         * (Don't limit max games on the practice server.)
+         * (Don't limit max games on the practice server
+         *  or games loaded by the debug/admin player.)
          */
         if (! gameList.isGame(gameName))
         {
             if (((strSocketName == null) || ! strSocketName.equals(PRACTICE_STRINGPORT))
+                && (loadedGame == null)
                 && (CLIENT_MAX_CREATE_GAMES >= 0)
                 && (CLIENT_MAX_CREATE_GAMES <= ((SOCClientData) c.getAppData()).getCurrentCreatedGames()))
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
+                       (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
                          c.getLocalized("netmsg.status.newgame_too_many_created", CLIENT_MAX_CREATE_GAMES)));
                 // "Too many of your games still active; maximum: 5"
 
-                return;  // <---- Early return ----
+                return false;  // <---- Early return ----
             }
+
+            String rejectText = null;
 
             if ( (! SOCMessage.isSingleLineAndSafe(gameName))
                  || "*".equals(gameName)
                  || (gameName.charAt(0) == '?') )
             {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         c.getLocalized("netmsg.status.common.newgame_name_rejected")));
-                // "This name is not permitted, please choose a different name."
-
-                return;  // <---- Early return ----
+                rejectText = c.getLocalized("netmsg.status.common.newgame_name_rejected");
+                    // "This name is not permitted, please choose a different name."
+            }
+            else if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(gameName).matches())
+            {
+                rejectText = c.getLocalized("netmsg.status.common.newgame_name_rejected_digits_or_punct");
+                    // "A name with only digits or punctuation is not permitted, please add a letter."
             }
 
-            if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(gameName).matches())
+            if (rejectText != null)
             {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         c.getLocalized("netmsg.status.common.newgame_name_rejected_digits_or_punct")));
-                // "A name with only digits or punctuation is not permitted, please add a letter."
+                if (sendErrorViaStatus)
+                    c.put(SOCStatusMessage.toCmd
+                           (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers, rejectText));
+                else
+                    messageToPlayer(c, gaName, rejectText);
 
-                return;  // <---- Early return ----
+                return false;  // <---- Early return ----
             }
         }
 
         /**
-         * If we have game options, we're being asked to create a new game.
-         * Validate them and ensure the game doesn't already exist.
+         * If we have game options, we're being asked to load a game or create a new one.
+         * Validate them and ensure the new game doesn't already exist.
          * For SOCScenarios, adjustOptionsToKnown will recognize game opt "SC".
          */
         if (gameOpts != null)
         {
             if (gameList.isGame(gameName))
             {
-                c.put(SOCStatusMessage.toCmd
-                      (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers,
-                       c.getLocalized("netmsg.status.common.newgame_already_exists")));
-                // "A game with this name already exists, please choose a different name."
+                final String txt = c.getLocalized("netmsg.status.common.newgame_already_exists");
+                    // "A game with this name already exists, please choose a different name."
 
-                return;  // <---- Early return ----
+                if (sendErrorViaStatus)
+                    c.put(SOCStatusMessage.toCmd
+                           (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers, txt));
+                else
+                    messageToPlayer(c, gaName, txt);
+
+                return false;  // <---- Early return ----
             }
 
             // Make sure all options are known.  If has game opt "SC" for scenarios,
@@ -6196,11 +6315,15 @@ public class SOCServer extends Server
             final StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null, true);
             if (optProblems != null)
             {
-                c.put(SOCStatusMessage.toCmd
-                      (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers,
-                       "Unknown game option(s) were requested, cannot create this game. " + optProblems));
+                final String txt = "Unknown game option(s) were requested, cannot create this game. " + optProblems;
 
-                return;  // <---- Early return ----
+                if (sendErrorViaStatus)
+                    c.put(SOCStatusMessage.toCmd
+                           (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers, txt));
+                else
+                    messageToPlayer(c, gaName, txt);
+
+                return false;  // <---- Early return ----
             }
         }
 
@@ -6243,7 +6366,7 @@ public class SOCServer extends Server
                         joinGame(allConnGames.get(i), c, false, true);
                 }
             }
-            else if (connectToGame(c, gameName, gameOpts))  // join or create the game
+            else if (connectToGame(c, gameName, gameOpts, loadedGame))  // join or create the game
             {
                 /**
                  * send JOINGAMEAUTH to client,
@@ -6265,6 +6388,7 @@ public class SOCServer extends Server
                 + Integer.toString(e.gameOptsVersion)
                 + SOCMessage.sep2_char + gameName
                 + SOCMessage.sep2_char + e.problemOptionsList()));
+            return false;
         } catch (MissingResourceException e)
         {
             // Let them know they can't join or create it because
@@ -6278,12 +6402,14 @@ public class SOCServer extends Server
                 "Cannot " + verb + "; this client is incompatible with features of the game"
                 + SOCMessage.sep2_char + gameName
                 + SOCMessage.sep2_char + feats));
+            return false;
         } catch (IllegalArgumentException e)
         {
             SOCGame game = gameList.getGameData(gameName);
             if (game == null)
             {
-                D.ebugPrintStackTrace(e, "Exception in createOrJoinGameIfUserOK");
+                D.ebugPrintStackTrace(e, "Exception in createOrJoinGame");
+                    // Troubleshooting note: Before v2.3.00, was "Exception in createOrJoinGameIfUserOK"
             } else {
                 // Let them know they can't join; include the game's version.
                 c.put(SOCStatusMessage.toCmd
@@ -6292,9 +6418,11 @@ public class SOCServer extends Server
                     + Integer.toString(game.getClientVersionMinRequired())
                     + ": " + gameName));
             }
+            return false;
         }
 
-    }  //  createOrJoinGameIfUserOK
+        return true;
+    }
 
     /**
      * Start a few robot-only games if {@link #numRobotOnlyGamesRemaining} &gt; 0.
@@ -6328,7 +6456,8 @@ public class SOCServer extends Server
             String gaName = "~botsOnly~" + numRobotOnlyGamesRemaining;
 
             SOCGame newGame = createGameAndBroadcast
-                (null, gaName, SOCGameOption.getAllKnownOptions(), Version.versionNumber(), true, hasGameListMonitor);
+                (null, gaName, SOCGameOption.getAllKnownOptions(), null, Version.versionNumber(),
+                 true, hasGameListMonitor);
 
             if (newGame != null)
             {
@@ -7302,7 +7431,7 @@ public class SOCServer extends Server
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      *
-     * @see #connectToGame(Connection, String, Map)
+     * @see #connectToGame(Connection, String, Map, SOCGame)
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @since 1.1.00
      */
@@ -9080,7 +9209,16 @@ public class SOCServer extends Server
 
         try
         {
-            int port = Integer.parseInt(argp.getProperty(PROP_JSETTLERS_PORT));
+            int port = 0;
+            try
+            {
+                port = Integer.parseInt(argp.getProperty(PROP_JSETTLERS_PORT));
+            }
+            catch (NumberFormatException e)
+            {
+                printUsage(false);
+                return;
+            }
 
             // SOCServer constructor will also print game options if we've set them on
             // commandline, or if any option defaults require a minimum client version.
@@ -9171,17 +9309,14 @@ public class SOCServer extends Server
                 System.exit(1);
             }
         }
-        catch (RuntimeException e)
+        catch (Throwable e)
         {
+            // runtime exception, problem in an initializer's method call, etc
             System.err.println
                 ("\n" + e.getMessage()
                  + "\n* Internal error during startup: Exiting now.\n");
             e.printStackTrace();
             System.exit(1);
-        }
-        catch (Throwable e)
-        {
-            printUsage(false);
         }
 
     }  // main

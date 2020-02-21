@@ -890,7 +890,7 @@ public class SOCGameHandler extends GameHandler
      * Does not add the client to the game's or server's list of players,
      * that should be done before calling this method.
      *<P>
-     * Assumes {@link SOCServer#connectToGame(Connection, String, Map)} was already called.
+     * Assumes {@link SOCServer#connectToGame(Connection, String, Map, SOCGame)} was already called.
      *<P>
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * The game's first message<B>*</B> sent to the connecting client is JOINGAMEAUTH, unless isReset.
@@ -2004,20 +2004,11 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Send all game members the current state of the game with a {@link SOCGameState} message.
-     * Assumes current player does not change during this state.
-     * May also send other messages to the current player.
-     * If state is {@link SOCGame#ROLL_OR_CARD}, sends game a {@link SOCRollDicePrompt}.
-     *<P>
-     * For more details and references, see {@link #sendGameState(SOCGame, boolean, boolean)}.
-     * Be sure that callers to {@code sendGameState} don't assume the game will still
-     * exist after calling this method, if the game state was {@link SOCGame#OVER OVER}.
+     * {@inheritDoc}
      *<P>
      * Equivalent to: {@link #sendGameState(SOCGame, boolean, boolean) sendGameState(ga, false, true)}.
-     *
-     * @param ga  the game
      */
-    void sendGameState(SOCGame ga)
+    public void sendGameState(SOCGame ga)
     {
         sendGameState(ga, false, true);
     }

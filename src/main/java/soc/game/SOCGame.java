@@ -216,11 +216,14 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX},
      * or gold revealed from {@link SOCBoardLarge#FOG_HEX} by a placed road, ship, or settlement.
+     *<P>
+     * This is the highest-numbered possible starting state; value is {@link #ROLL_OR_CARD} - 1.
+     *
      * @see #WAITING_FOR_PICK_GOLD_RESOURCE
      * @see #pickGoldHexResources(int, SOCResourceSet)
      * @since 2.0.00
      */
-    public static final int STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14;
+    public static final int STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14;  // value must be 1 less than ROLL_OR_CARD
 
     /**
      * Players place second road.  Next state is {@link #START2A} to place previous
@@ -671,6 +674,14 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     public transient List<Object> pendingMessagesOut;
+
+    /**
+     * For a game at server which was loaded from disk,
+     * its {@link soc.server.savegame.SavedGameModel}. Otherwise {@code null}.
+     * Declared as Object here to avoid needing server class at client.
+     * @since 2.3.00
+     */
+    public transient Object savedGameModel;
 
     /**
      * For games at the server, the owner (creator) of the game.
@@ -2344,6 +2355,9 @@ public class SOCGame implements Serializable, Cloneable
      * Are we in the Initial Placement part of the game?
      * Includes game states {@link #START1A} - {@link #START3B}
      * and {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     *<P>
+     * Returns false if game hasn't started yet (state &lt; {@link #START1A}),
+     * or is in normal gameplay or over (state &gt;= {@link #ROLL_OR_CARD}).
      *
      * @return true if in Initial Placement
      * @since 1.1.12
@@ -2351,7 +2365,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public final boolean isInitialPlacement()
     {
-        return (gameState >= START1A) && (gameState <= STARTS_WAITING_FOR_PICK_GOLD_RESOURCE);
+        return (gameState >= START1A) && (gameState < ROLL_OR_CARD);
     }
 
     /**

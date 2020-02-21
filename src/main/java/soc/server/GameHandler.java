@@ -20,7 +20,9 @@
 package soc.server;
 
 import soc.game.SOCGame;
+import soc.message.SOCGameState;
 import soc.message.SOCMessageForGame;
+import soc.message.SOCRollDicePrompt;
 import soc.server.genericServer.Connection;
 import soc.util.SOCGameList;
 
@@ -113,7 +115,7 @@ public abstract class GameHandler
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
      * Unless <tt>isTakingOver</tt>, announce {@link SOCJoinGame} client join event to other players.
      *<P>
-     * Assumes {@link SOCServer#connectToGame(Connection, String, java.util.Map)} was already called.
+     * Assumes {@link SOCServer#connectToGame(Connection, String, java.util.Map, SOCGame)} was already called.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * First message sent to connecting client is JOINGAMEAUTH, unless isReset.
      *<P>
@@ -156,6 +158,23 @@ public abstract class GameHandler
      * @since 1.1.08
      */
     public abstract void sitDown_sendPrivateInfo(SOCGame ga, Connection c, final int pn);
+
+    /**
+     * Send all game members the current state of the game with a {@link SOCGameState} message.
+     * Assumes current player does not change during this state.
+     * May also send other messages to the current player.
+     * If state is {@link SOCGame#ROLL_OR_CARD}, sends game a {@link SOCRollDicePrompt}.
+     *<P>
+     * Be sure that callers to {@code sendGameState} don't assume the game will still
+     * exist after calling this method, if the game state was {@link SOCGame#OVER OVER}.
+     *<P>
+     * This method has always been part of the server package.
+     * v2.3.00 is the first version to expose it as part of {@code GameHandler}.
+     *
+     * @param ga  the game
+     * @since 2.3.00
+     */
+    public abstract void sendGameState(SOCGame ga);
 
     /**
      * Do the things you need to do to start a game and send its data to the clients.

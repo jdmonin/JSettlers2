@@ -35,9 +35,12 @@ import soc.game.SOCGame;
  */
 public class SavedGameModel
 {
+    private SOCGame game = null;
+
     /**
      * Create an empty SavedGameModel to load a game file into.
-     * Once loaded, state will temporarily be {@link SOCGame#LOADING}:
+     * Once loaded, state will temporarily be {@link SOCGame#LOADING},
+     * and {@link SOCGame#savedGameModel} will be this SGM.
      * Call {@link #resumePlay(boolean)} to continue play.
      */
     public SavedGameModel()
@@ -46,33 +49,45 @@ public class SavedGameModel
 
     /**
      * Create a SavedGameModel to save as a game file.
+     * Game state must be {@link SOCGame#ROLL_OR_CARD} or higher.
      * @param ga  Game data to save
+     * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      */
     public SavedGameModel(final SOCGame ga)
+        throws IllegalStateException
     {
         this();
+
+        if (ga.getGameState() < SOCGame.ROLL_OR_CARD)
+            throw new IllegalStateException("gameState");
+
+        game = ga;
 
         // TODO implement
     }
 
     /**
-     * Get the completely loaded game, or the game to be saved.
+     * Get the completely loaded game, or the game which was "saved" into this model.
      * @return Game, or {@code null} if not loaded successfully
      */
     public SOCGame getGame()
     {
-        return null;  // TODO implement
+        return game;
     }
 
     /**
-     * Resume play of a loaded game.
+     * Resume play of a loaded game: Check any constraints, update gameState.
      * @param ignoreConstraints  If true, don't check any {@link Constraint}s in the model
-     * @return game ready to play, including current gameState
+     * @return game ready to play, with {@link SOCGame#getGameState()} same as when it was saved
+     * @throws UnsupportedOperationException if gameState != {@link SOCGame#LOADING}
      * @throws IllegalStateException if a constraint is not met
      */
     public SOCGame resumePlay(final boolean ignoreConstraints)
-        throws IllegalStateException
+        throws UnsupportedOperationException, IllegalStateException
     {
+        if (game.getGameState() != SOCGame.LOADING)
+            throw new UnsupportedOperationException("gameState");
+
         // TODO implement: maybe check constraints, load state from ga.oldState
 
         return null;

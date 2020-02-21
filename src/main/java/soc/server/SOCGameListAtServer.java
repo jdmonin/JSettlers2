@@ -388,6 +388,7 @@ public class SOCGameListAtServer extends SOCGameList
     /**
      * create a new game, and add to the list; game will expire in {@link #GAME_TIME_EXPIRE_MINUTES} minutes.
      * If a game already exists (per {@link #isGame(String)}), do nothing.
+     * Uses {@code handler} to call {@link SOCGame#setClientFeaturesRequired(SOCFeatureSet)}.
      *
      * @param gaName  the name of the game
      * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)
@@ -397,19 +398,46 @@ public class SOCGameListAtServer extends SOCGameList
      *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
      *                with <tt>doServerPreadjust</tt> true.
      *                That call is also needed to add any {@code "SC"} options into {@code gaOpts}.
-     * @param handler  Game type handler for this game
+     * @param handler  game type handler for this game; not null
      * @return new game object, or null if it already existed
      * @throws IllegalArgumentException  if {@code handler} is null
+     * @see #addGame(SOCGame, GameHandler, String, String)
      */
     public synchronized SOCGame createGame
         (final String gaName, final String gaOwner, final String gaLocaleStr,
          final Map<String, SOCGameOption> gaOpts, final GameHandler handler)
         throws IllegalArgumentException
     {
+        return addGame(new SOCGame(gaName, gaOpts), handler, gaOwner, gaLocaleStr);
+    }
+
+    /**
+     * Add a game to the list; game will expire in {@link #GAME_TIME_EXPIRE_MINUTES} minutes.
+     * If a game already exists (per {@link #isGame(String)}), do nothing.
+     * Uses {@code handler} to call {@link SOCGame#setClientFeaturesRequired(SOCFeatureSet)}.
+     *
+     * @param game  the game to be added
+     * @param handler  game type handler for this game; not null
+     * @param gaOwner the game owner/creator's player name, or null
+     * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed
+     * @return new game object, or null if it already existed
+     * @throws IllegalArgumentException  if {@code handler} is null
+     * @see #createGame(String, String, String, Map, GameHandler)
+     * @since 2.3.00
+     */
+    protected synchronized SOCGame addGame
+        (final SOCGame game, final GameHandler handler, final String gaOwner, final String gaLocaleStr)
+        throws IllegalArgumentException
+    {
+        final String gaName = game.getName();
+
         if (isGame(gaName))
             return null;
         if (handler == null)
             throw new IllegalArgumentException("handler");
+
+        if (gaOwner != null)
+            game.setOwner(gaOwner, gaLocaleStr);
 
         // Make sure server games have SOCBoardAtServer, for makeNewBoard.
         // Double-check class in case server is started at client after a client SOCGame.
@@ -419,10 +447,6 @@ public class SOCGameListAtServer extends SOCGameList
         Vector<Connection> members = new Vector<Connection>();
         gameMembers.put(gaName, members);
         gameChatBuffer.put(gaName, new SOCChatRecentBuffer());
-
-        SOCGame game = new SOCGame(gaName, gaOpts);
-        if (gaOwner != null)
-            game.setOwner(gaOwner, gaLocaleStr);
 
         game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_TIME_EXPIRE_MINUTES));
 

@@ -26,6 +26,7 @@ import soc.game.SOCGame;
 
 /**
  * Save a game and its board's current state to a JSON file.
+ * Game state must be {@link SOCGame#ROLL_OR_CARD} or higher.
  * Uses {@link SavedGameModel}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -46,15 +47,16 @@ public class GameSaverJSON
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save as; recommended suffix is {@link #FILENAME_EXTENSION}
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
+     * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      * @throws IOException  if a problem occurs while saving
      */
     public static void saveGame(final SOCGame ga, final File saveDir, final String saveFilename)
-        throws IllegalArgumentException, IOException
+        throws IllegalArgumentException, IllegalStateException, IOException
     {
         if (! saveDir.isDirectory())
             throw new IllegalArgumentException("Not found as directory: " + saveDir.getPath());
 
-        final SavedGameModel model = new SavedGameModel(ga);
+        final SavedGameModel sgm = new SavedGameModel(ga);
 
         // TODO use GSON to save model to disk
         throw new IOException("TODO implement");
