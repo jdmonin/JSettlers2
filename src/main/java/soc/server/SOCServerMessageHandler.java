@@ -1325,7 +1325,7 @@ public class SOCServerMessageHandler
             return;
         }
 
-        if (! processDebugCommand_loadSaveGame_checkDir(c, connGaName))
+        if (! processDebugCommand_loadSaveGame_checkDir("LOADGAME", c, connGaName))
             return;
 
         SavedGameModel sgm = null;
@@ -1407,6 +1407,9 @@ public class SOCServerMessageHandler
             return;
         }
 
+        if (! processDebugCommand_loadSaveGame_checkDir("SAVEGAME", c, gaName))
+            return;
+
         if (ga.getGameState() < SOCGame.ROLL_OR_CARD)
         {
             srv.messageToPlayer
@@ -1421,9 +1424,6 @@ public class SOCServerMessageHandler
             return;
         }
 
-        if (! processDebugCommand_loadSaveGame_checkDir(c, gaName))
-            return;
-
         try
         {
             GameSaverJSON.saveGame(ga, srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION);
@@ -1434,25 +1434,29 @@ public class SOCServerMessageHandler
     }
 
     /**
-     * Check status of {@link SOCServer#savegameDir}
+     * Check status of {@link SOCServer#savegameDir} and {@link SOCServer#savegameInitFailed}
      * for {@code *LOADGAME*} and {@code *SAVEGAME*} debug commands.
-     * If problem found (doesn't exist, etc), sends error message to client.
+     * If problem found (dir doesn't exist, etc), sends error message to client.
      *
+     * @param cmdName  "LOADGAME" or "SAVEGAME"
      * @param c  Client sending the debug command
      * @param connGaName  Client's current game, for sending error messages
-     * @return True if dir looks OK, false if a message was printed to user
+     * @return True if everything looks OK, false if a message was printed to user
      * @since 2.3.00
      */
-    private boolean processDebugCommand_loadSaveGame_checkDir(final Connection c, final String connGaName)
+    private boolean processDebugCommand_loadSaveGame_checkDir
+        (final String cmdName, final Connection c, final String connGaName)
     {
         final File dir = srv.savegameDir;
 
         String errMsgKey = null;  // i18n message key (TODO)
         Object errMsgObj, errMsgO2 = null;
 
-        if (dir == null)
+        if (srv.savegameInitFailed)
         {
-            errMsgKey = /*I*/"savegame.dir not configured."/*18N*/;
+            errMsgKey = /*I*/cmdName + " is disabled: Initialization failed. See startup messages on server console."/*18N*/;
+        } else if (dir == null) {
+            errMsgKey = /*I*/cmdName + " is disabled: Must set " + SOCServer.PROP_JSETTLERS_SAVEGAME_DIR + " property"/*18N*/;
         } else {
             errMsgObj = dir.getPath();
 

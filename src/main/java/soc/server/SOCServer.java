@@ -986,10 +986,19 @@ public class SOCServer extends Server
     /**
      * Directory in which to save/load game files, from
      * {@link #PROP_JSETTLERS_SAVEGAME_DIR}, or {@code null}.
+     * Not used if {@link #savegameInitFailed}.
      * If not {@link #allowDebugUser}, will be {@code null}.
      * @since 2.3.00
      */
     protected File savegameDir;
+
+    /**
+     * If true, {@code initSocServer} tried to set up {@link #savegameDir}
+     * and the classes it relies on, but failed. A warning was printed to console.
+     * {@link #savegameDir} may be non-null.
+     * @since 2.3.00
+     */
+    protected boolean savegameInitFailed;
 
     /**
      * list of chat channels
@@ -1494,6 +1503,7 @@ public class SOCServer extends Server
 
             String savegameDirPath = props.getProperty(PROP_JSETTLERS_SAVEGAME_DIR);
             if (savegameDirPath != null)
+            {
                 try
                 {
                     savegameDir = new File(savegameDirPath);
@@ -1506,6 +1516,26 @@ public class SOCServer extends Server
                 } catch (SecurityException e) {
                     System.err.println("Warning: Can't access savegame.dir " + savegameDirPath + ": " + e);
                 }
+
+                boolean foundGson = false;
+                Throwable loadErr = null;
+                try
+                {
+                    // TODO prop for gson jar filename, like jsettlers.db.jar handling in DBH.initialize
+
+                    foundGson = (null != Class.forName("com.google.gson.Gson"));
+                } catch(Throwable th) {
+                    loadErr = th;
+                }
+
+                if ((loadErr != null) || ! foundGson)
+                {
+                    savegameInitFailed = true;
+                    System.err.println
+                        ("Warning: savegame disabled: Can't find Gson class"
+                         + (((loadErr != null) && ! (loadErr instanceof ClassNotFoundException)) ? ": " + loadErr : ""));
+                }
+            }
         }
 
         /**
