@@ -20,9 +20,12 @@
 package soc.server.savegame;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import soc.game.SOCGame;
 
@@ -64,17 +67,18 @@ public class GameSaverJSON
         Gson gson;
         try
         {
-            gson = new Gson();
+            gson = new GsonBuilder().setPrettyPrinting().create();
         }
         catch (Throwable th)
         {
             throw new IOException("failed to load Gson class: " + th, th);
         }
-        System.err.println("L75 GSON class found: " + gson.getClass().getName());
 
-        // TODO use GSON to save model to disk
-
-        throw new IOException("TODO implement");
+        try(OutputStreamWriter writer = new OutputStreamWriter
+               (new FileOutputStream(new File(saveDir, saveFilename)), "UTF-8"))
+        {
+            gson.toJson(sgm, writer);
+        }
     }
 
 }

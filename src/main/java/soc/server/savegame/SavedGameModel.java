@@ -19,7 +19,11 @@
  **/
 package soc.server.savegame;
 
+import java.util.Map;
+
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
 
 /**
  * Data model for a game saved to/loaded from a file.
@@ -35,7 +39,34 @@ import soc.game.SOCGame;
  */
 public class SavedGameModel
 {
-    private SOCGame game = null;
+    /** Current model version: 2300 for v2.3.00 */
+    public static int MODEL_VERSION = 2300;
+
+    private transient SOCGame game = null;
+
+    /* DATA FIELDS to be saved into file */
+
+    /** Model version when saved, in same format as {@link #MODEL_VERSION} */
+    int modelVersion;
+
+    /** Game minimum version, from {@link SOCGame#getClientVersionMinRequired()} */
+    int gameVersion;
+
+    String gameName;
+
+    /** Game options (or null), from {@link SOCGameOption#packOptionsToString(Map, boolean)}. */
+    String gameOptions;
+
+    /** Game duration, from {@link SOCGame#getStartTime()} */
+    int gameDurationSeconds;
+
+    /** Current state, from {@link SOCGame#getGameState()} */
+    int gameState;
+
+    /** Player info and empty seats. Size is {@link SOCGame#maxPlayers}. */
+    PlayerInfo[] playerSeats;
+
+    /* End of DATA FIELDS */
 
     /**
      * Create an empty SavedGameModel to load a game file into.
@@ -61,9 +92,21 @@ public class SavedGameModel
         if (ga.getGameState() < SOCGame.ROLL_OR_CARD)
             throw new IllegalStateException("gameState");
 
+        modelVersion = MODEL_VERSION;
         game = ga;
 
-        // TODO implement
+        // save data fields:
+        gameName = ga.getName();
+        final Map<String, SOCGameOption> opts = ga.getGameOptions();
+        if (opts != null)
+            gameOptions = SOCGameOption.packOptionsToString(opts, false);
+        gameDurationSeconds = (int) (((System.currentTimeMillis() - ga.getStartTime().getTime()) + 500) / 1000L);
+            // same rounding calc as SSMH.processDebugCommand_gameStats
+        gameState = ga.getGameState();
+        gameVersion = ga.getClientVersionMinRequired();
+        playerSeats = new PlayerInfo[ga.maxPlayers];
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            playerSeats[pn] = new PlayerInfo(ga.getPlayer(pn), ga.isSeatVacant(pn));
     }
 
     /**
@@ -88,9 +131,34 @@ public class SavedGameModel
         if (game.getGameState() != SOCGame.LOADING)
             throw new UnsupportedOperationException("gameState");
 
-        // TODO implement: maybe check constraints, load state from ga.oldState
+        // TODO maybe check constraints
 
-        return null;
+        game.setGameState(gameState);
+
+        return game;
+    }
+
+    /**
+     * Info on one player position sitting in the game.
+     * @see soc.server.SOCClientData
+     */
+    static class PlayerInfo
+    {
+        String name;
+        boolean isSeatVacant;
+        int totalVP;
+        boolean isRobot, isBuiltInRobot;
+
+        // TODO resource counts, piece counts, dev cards
+
+        PlayerInfo(SOCPlayer pl, boolean isVacant)
+        {
+            name = pl.getName();
+            isSeatVacant = isVacant;
+            totalVP = pl.getTotalVP();
+            isRobot = pl.isRobot();
+            isBuiltInRobot = pl.isBuiltInRobot();
+        }
     }
 
     /**
