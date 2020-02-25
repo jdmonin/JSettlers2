@@ -22,6 +22,8 @@ package soc.server.savegame;
 import java.io.File;
 import java.io.IOException;
 
+import com.google.gson.Gson;
+
 import soc.game.SOCGame;
 
 /**
@@ -50,7 +52,8 @@ public class GameSaverJSON
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      * @throws IOException  if a problem occurs while saving
      */
-    public static void saveGame(final SOCGame ga, final File saveDir, final String saveFilename)
+    public static void saveGame
+        (final SOCGame ga, final File saveDir, final String saveFilename)
         throws IllegalArgumentException, IllegalStateException, IOException
     {
         if (! saveDir.isDirectory())
@@ -58,7 +61,19 @@ public class GameSaverJSON
 
         final SavedGameModel sgm = new SavedGameModel(ga);
 
+        Gson gson;
+        try
+        {
+            gson = new Gson();
+        }
+        catch (Throwable th)
+        {
+            throw new IOException("failed to load Gson class: " + th, th);
+        }
+        System.err.println("L75 GSON class found: " + gson.getClass().getName());
+
         // TODO use GSON to save model to disk
+
         throw new IOException("TODO implement");
     }
 

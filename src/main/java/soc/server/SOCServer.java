@@ -1501,41 +1501,8 @@ public class SOCServer extends Server
         {
             System.err.println("Warning: Remote debug commands are allowed.");
 
-            String savegameDirPath = props.getProperty(PROP_JSETTLERS_SAVEGAME_DIR);
-            if (savegameDirPath != null)
-            {
-                try
-                {
-                    savegameDir = new File(savegameDirPath);
-                    if (! savegameDir.exists())
-                    {
-                        System.err.println("Warning: savegame.dir not found: " + savegameDirPath);
-                    } else if (! savegameDir.isDirectory()) {
-                        System.err.println("Warning: savegame.dir file exists but isn't a directory: " + savegameDirPath);
-                    }
-                } catch (SecurityException e) {
-                    System.err.println("Warning: Can't access savegame.dir " + savegameDirPath + ": " + e);
-                }
-
-                boolean foundGson = false;
-                Throwable loadErr = null;
-                try
-                {
-                    // TODO prop for gson jar filename, like jsettlers.db.jar handling in DBH.initialize
-
-                    foundGson = (null != Class.forName("com.google.gson.Gson"));
-                } catch(Throwable th) {
-                    loadErr = th;
-                }
-
-                if ((loadErr != null) || ! foundGson)
-                {
-                    savegameInitFailed = true;
-                    System.err.println
-                        ("Warning: savegame disabled: Can't find Gson class"
-                         + (((loadErr != null) && ! (loadErr instanceof ClassNotFoundException)) ? ": " + loadErr : ""));
-                }
-            }
+            if (props.containsKey(PROP_JSETTLERS_SAVEGAME_DIR))
+                initSocServer_savegame();
         }
 
         /**
@@ -2073,6 +2040,50 @@ public class SOCServer extends Server
         if (errMsg != null)
             throw new IllegalArgumentException
                 ("Setup failed from property " + PROP_JSETTLERS_BOTS_START3P + ": " + errMsg);
+    }
+
+    /**
+     * Initialize optional savegame feature, as part of {@link #initSocServer(String, String)}.
+     * Sets {@link #savegameDir} or {@link #savegameInitFailed}.
+     * Call only if {@link #allowDebugUser} and if {@link #props} contains
+     * {@link #PROP_JSETTLERS_SAVEGAME_DIR}.
+     * @since 2.3.00
+     */
+    private void initSocServer_savegame()
+    {
+        String savegameDirPath = props.getProperty(PROP_JSETTLERS_SAVEGAME_DIR);
+        if (savegameDirPath == null)
+            return;
+
+        try
+        {
+            savegameDir = new File(savegameDirPath);
+            if (! savegameDir.exists())
+            {
+                System.err.println("Warning: savegame.dir not found: " + savegameDirPath);
+            } else if (! savegameDir.isDirectory()) {
+                System.err.println("Warning: savegame.dir file exists but isn't a directory: " + savegameDirPath);
+            }
+        } catch (SecurityException e) {
+            System.err.println("Warning: Can't access savegame.dir " + savegameDirPath + ": " + e);
+        }
+
+        boolean foundGson = false;
+        Throwable loadErr = null;
+        try
+        {
+            foundGson = (null != Class.forName("com.google.gson.Gson"));
+        } catch(Throwable th) {
+            loadErr = th;
+        }
+
+        if ((loadErr != null) || ! foundGson)
+        {
+            savegameInitFailed = true;
+            System.err.println
+                ("Warning: savegame disabled: Can't find Gson class"
+                 + (((loadErr != null) && ! (loadErr instanceof ClassNotFoundException)) ? ": " + loadErr : ""));
+        }
     }
 
     /**
