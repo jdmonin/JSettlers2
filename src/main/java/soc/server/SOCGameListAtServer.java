@@ -98,6 +98,11 @@ public class SOCGameListAtServer extends SOCGameList
     {
         super();
 
+        // Make sure server games have SOCBoardAtServer, for makeNewBoard.
+        // Double-check class in case server is started at client after a client SOCGame.
+        if (! (SOCGame.boardFactory instanceof SOCBoardAtServer.BoardFactoryAtServer))
+            SOCGame.boardFactory = new SOCBoardAtServer.BoardFactoryAtServer();
+
         gameData = new Hashtable<String, SOCGame>();
         gameMembers = new Hashtable<String, Vector<Connection>>();
         gameChatBuffer = new Hashtable<String, SOCChatRecentBuffer>();
@@ -438,11 +443,6 @@ public class SOCGameListAtServer extends SOCGameList
 
         if (gaOwner != null)
             game.setOwner(gaOwner, gaLocaleStr);
-
-        // Make sure server games have SOCBoardAtServer, for makeNewBoard.
-        // Double-check class in case server is started at client after a client SOCGame.
-        if ((SOCGame.boardFactory == null) || ! (SOCGame.boardFactory instanceof SOCBoardAtServer.BoardFactoryAtServer))
-            SOCGame.boardFactory = new SOCBoardAtServer.BoardFactoryAtServer();
 
         Vector<Connection> members = new Vector<Connection>();
         gameMembers.put(gaName, members);
