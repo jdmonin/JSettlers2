@@ -1010,90 +1010,20 @@ public class SOCGameHandler extends GameHandler
             //    been called for the creating player, and the board encoding is OK.
         }
 
+        for (final SOCPotentialSettlements psMsg : gatherBoardPotentials(gameData, cliVers))
+            c.put(psMsg);
+
         /**
-         * If game hasn't started yet, each player's potentialSettlements are identical,
-         * so send that info once for all players (unless clients are too old).
-         *
-         * Otherwise send each player's unique potential settlement list,
-         * to populate legal sets before sending any of their PutPieces.
+         * Any other misc data to send if game hasn't started yet:
          */
         if ((gameState < SOCGame.START1A)
             && (cliVers >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
         {
-            // Some boards may have multiple land areas.
-            // See also below, and startGame which has very similar code.
-            final HashSet<Integer> psSet;
-            final HashSet<Integer>[] lan;
-            final int pan;
-            if (gameData.hasSeaBoard)
-            {
-                final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
-                lan = bl.getLandAreasLegalNodes();
-                pan = bl.getStartingLandArea();
-                psSet = (lan == null)
-                    ? (gameData.getPlayer(0).getPotentialSettlements())
-                    : null;  // send lan instead of psList
-            } else {
-                psSet = gameData.getPlayer(0).getPotentialSettlements();
-                lan = null;
-                pan = 0;
-            }
-
-            final SOCPotentialSettlements psMsg;
-            if (lan == null)
-            {
-                psMsg = new SOCPotentialSettlements
-                    (gameName, -1, new ArrayList<Integer>(psSet));
-            } else {
-                final List<Integer> psList = (psSet != null) ? new ArrayList<Integer>(psSet) : null;
-                psMsg = new SOCPotentialSettlements
-                    (gameName, -1, psList, pan, lan, SOCBoardAtServer.getLegalSeaEdges(gameData));
-            }
-            c.put(psMsg);
-
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
                 c.put(SOCPlayerElement.toCmd
                     (gameName, -1, SOCPlayerElement.SET,
                      SOCPlayerElement.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
                 // individual villages' cloth counts are sent soon below
-        } else {
-            // Game has started (initial placement or normal play),
-            // and/or at least 1 client is too old for "all players" pn=-1 message
-
-            final int[][] lse = SOCBoardAtServer.getLegalSeaEdges(gameData);  // null except in SC_PIRI
-
-            for (int pn = 0; pn < gameData.maxPlayers; ++pn)
-            {
-                final SOCPlayer pl = gameData.getPlayer(pn);
-                final List<Integer> psList = new ArrayList<Integer>(pl.getPotentialSettlements());
-
-                // Some boards may have multiple land areas.
-                // See also above, and startGame which has very similar code.
-                final HashSet<Integer>[] lan;
-                if (gameData.hasSeaBoard && (pn == 0))
-                {
-                    // Send legal node info once, not per-player.
-                    // Assumes all players have same legal nodes.
-                    // Legal Sea Edges is sent once, as a list of all players' LSE, as part of pn=0 message.
-                    final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
-                    lan = bl.getLandAreasLegalNodes();
-                } else {
-                    lan = null;
-                }
-
-                final int[][] plLse = (lse != null) ? (new int[][] { lse[pn] }) : null;
-                final SOCPotentialSettlements psMsg;
-                if (lan == null)
-                {
-                    if (lse == null)
-                        psMsg = new SOCPotentialSettlements(gameName, pn, psList);
-                    else
-                        psMsg = new SOCPotentialSettlements(gameName, pn, psList, plLse);
-                } else {
-                    psMsg = new SOCPotentialSettlements(gameName, pn, psList, 0, lan, plLse);
-                }
-                c.put(psMsg);
-            }
         }
 
         /**
@@ -1517,6 +1447,106 @@ public class SOCGameHandler extends GameHandler
                  (hasRobot) ? "member.join.game.started.bots"  // "This game has started. To play, take over a robot."
                             : "member.join.game.started");     // "This game has started; no new players can sit down."
         }
+    }
+
+    /**
+     * Players' potential settlements and related values.
+     * Will have either 1 per player, or 1 for all players (playerNumber == -1):
+     *<P>
+     * If game hasn't started yet, each player's potentialSettlements are identical,
+     * so gather that info once for all players (unless clients are too old for a message having pn == -1).
+     *<P>
+     * Otherwise each player has a unique potential settlement list,
+     * to populate legal sets before sending any of their PutPieces.
+     *<P>
+     * Before v2.3.00 this code was part of {@code joinGame}.
+     * @param gameData  Game to gather potentials from
+     * @param cliVers  Client version, or {@link Integer#MAX_VALUE} for latest version
+     * @since 2.3.00
+     */
+    public static SOCPotentialSettlements[] gatherBoardPotentials
+        (final SOCGame gameData, final int cliVers)
+    {
+        final String gameName = gameData.getName();
+        final SOCPotentialSettlements[] ret;
+
+        if ((gameData.getGameState() < SOCGame.START1A)
+            && (cliVers >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
+        {
+            // Some boards may have multiple land areas.
+            // See also below, and startGame which has very similar code.
+            final HashSet<Integer> psSet;
+            final HashSet<Integer>[] lan;
+            final int pan;
+            if (gameData.hasSeaBoard)
+            {
+                final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+                lan = bl.getLandAreasLegalNodes();
+                pan = bl.getStartingLandArea();
+                psSet = (lan == null)
+                    ? (gameData.getPlayer(0).getPotentialSettlements())
+                    : null;  // send lan instead of psList
+            } else {
+                psSet = gameData.getPlayer(0).getPotentialSettlements();
+                lan = null;
+                pan = 0;
+            }
+
+            final SOCPotentialSettlements psMsg;
+            if (lan == null)
+            {
+                psMsg = new SOCPotentialSettlements
+                    (gameName, -1, new ArrayList<Integer>(psSet));
+            } else {
+                final List<Integer> psList = (psSet != null) ? new ArrayList<Integer>(psSet) : null;
+                psMsg = new SOCPotentialSettlements
+                    (gameName, -1, psList, pan, lan, SOCBoardAtServer.getLegalSeaEdges(gameData));
+            }
+
+            ret = new SOCPotentialSettlements[]{ psMsg };
+
+        } else {
+            // Game has started (initial placement or normal play),
+            // and/or at least 1 client is too old for "all players" pn=-1 message
+
+            ret = new SOCPotentialSettlements[gameData.maxPlayers];
+            final int[][] lse = SOCBoardAtServer.getLegalSeaEdges(gameData);  // null except in SC_PIRI
+
+            for (int pn = 0; pn < gameData.maxPlayers; ++pn)
+            {
+                final SOCPlayer pl = gameData.getPlayer(pn);
+                final List<Integer> psList = new ArrayList<Integer>(pl.getPotentialSettlements());
+
+                // Some boards may have multiple land areas.
+                // See also above, and startGame which has very similar code.
+                final HashSet<Integer>[] lan;
+                if (gameData.hasSeaBoard && (pn == 0))
+                {
+                    // Send legal node info once, not per-player.
+                    // Assumes all players have same legal nodes.
+                    // Legal Sea Edges is sent once, as a list of all players' LSE, as part of pn=0 message.
+                    final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+                    lan = bl.getLandAreasLegalNodes();
+                } else {
+                    lan = null;
+                }
+
+                final int[][] plLse = (lse != null) ? (new int[][] { lse[pn] }) : null;
+                final SOCPotentialSettlements psMsg;
+                if (lan == null)
+                {
+                    if (lse == null)
+                        psMsg = new SOCPotentialSettlements(gameName, pn, psList);
+                    else
+                        psMsg = new SOCPotentialSettlements(gameName, pn, psList, plLse);
+                } else {
+                    psMsg = new SOCPotentialSettlements(gameName, pn, psList, 0, lan, plLse);
+                }
+                ret[pn] = psMsg;
+            }
+        }
+
+        return ret;
     }
 
     /**
@@ -3098,7 +3128,7 @@ public class SOCGameHandler extends GameHandler
      * @return   a board layout message
      * @throws IllegalArgumentException  if game board's encoding is unrecognized
      */
-    private SOCMessage getBoardLayoutMessage(SOCGame ga)
+    public static SOCMessage getBoardLayoutMessage(SOCGame ga)
         throws IllegalArgumentException
     {
         final SOCBoard board;
@@ -3120,15 +3150,18 @@ public class SOCGameHandler extends GameHandler
             numbers = null;
         }
         robber = board.getRobberHex();
+
         if ((bef == 1) && (ga.getClientVersionMinRequired() < SOCBoardLayout2.VERSION_FOR_BOARDLAYOUT2))
         {
             // SOCBoard.BOARD_ENCODING_ORIGINAL: v1
             return new SOCBoardLayout(ga.getName(), hexes, numbers, robber);
         }
+
         switch (bef)
         {
         case SOCBoard.BOARD_ENCODING_ORIGINAL: // v1
             // fall through to v2
+
         case SOCBoard.BOARD_ENCODING_6PLAYER:  // v2
             return new SOCBoardLayout2(ga.getName(), bef, hexes, numbers, board.getPortsLayout(), robber);
 

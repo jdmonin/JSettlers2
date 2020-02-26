@@ -21,9 +21,12 @@ package soc.server.savegame;
 
 import java.util.Map;
 
-import soc.game.SOCGame;
-import soc.game.SOCGameOption;
-import soc.game.SOCPlayer;
+import soc.game.*;
+import soc.message.SOCBoardLayout;
+import soc.message.SOCBoardLayout2;
+import soc.message.SOCMessage;
+import soc.message.SOCPotentialSettlements;
+import soc.server.SOCGameHandler;
 
 /**
  * Data model for a game saved to/loaded from a file.
@@ -63,6 +66,9 @@ public class SavedGameModel
     /** Current state, from {@link SOCGame#getGameState()} */
     int gameState;
 
+    /** Board layout and contents */
+    BoardInfo boardInfo;
+
     /** Player info and empty seats. Size is {@link SOCGame#maxPlayers}. */
     PlayerInfo[] playerSeats;
 
@@ -83,9 +89,11 @@ public class SavedGameModel
      * Game state must be {@link SOCGame#ROLL_OR_CARD} or higher.
      * @param ga  Game data to save
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
+     * @throws IllegalArgumentException if {@link SOCGameHandler#getBoardLayoutMessage(SOCGame)}
+     *     returns an unexpected layout message type
      */
     public SavedGameModel(final SOCGame ga)
-        throws IllegalStateException
+        throws IllegalStateException, IllegalArgumentException
     {
         this();
 
@@ -104,6 +112,9 @@ public class SavedGameModel
             // same rounding calc as SSMH.processDebugCommand_gameStats
         gameState = ga.getGameState();
         gameVersion = ga.getClientVersionMinRequired();
+
+        boardInfo = new BoardInfo(ga);
+
         playerSeats = new PlayerInfo[ga.maxPlayers];
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
             playerSeats[pn] = new PlayerInfo(ga.getPlayer(pn), ga.isSeatVacant(pn));
@@ -158,6 +169,54 @@ public class SavedGameModel
             totalVP = pl.getTotalVP();
             isRobot = pl.isRobot();
             isBuiltInRobot = pl.isBuiltInRobot();
+        }
+    }
+
+    /**
+     * Board layout and contents.
+     * Leverages {@link SOCGameHandler#getBoardLayoutMessage(SOCGame)}
+     * to gather layout's elements into a generalized format.
+     *<P>
+     * The board's basic encoding format is stored here as {@code layout2.boardEncodingFormat}.
+     * If layout2 is null, it uses layout1 and boardEncodingFormat is {@link SOCBoard#BOARD_ENCODING_ORIGINAL}.
+     * Different encodings can use different coordinate systems and layout parts;
+     * see {@link SOCBoard#getBoardEncodingFormat()} javadoc for details.
+     *<P>
+     * Board height and width aren't recorded here; they're constant based on
+     * encoding format, unless game option {@code "_BHW"} specifies otherwise.
+     */
+    static class BoardInfo
+    {
+        /** Board layout elements, or null if using {@link #layout2} */
+        SOCBoardLayout layout1;
+
+        /** Board layout elements and encodingFormat, or null if using {@link #layout1} */
+        SOCBoardLayout2 layout2;
+
+        /**
+         * Players' potential settlements and related values.
+         * Will have either 1 per player, or 1 for all players (playerNumber == -1).
+         * From {@link SOCGameHandler#gatherBoardPotentials(SOCGame, int)}.
+         */
+        SOCPotentialSettlements[] playerPotentials;
+
+        /**
+         * @throws IllegalArgumentException if {@link SOCGameHandler#getBoardLayoutMessage(SOCGame)}
+         *     returns an unexpected layout message type
+         */
+        BoardInfo(final SOCGame ga)
+            throws IllegalArgumentException
+        {
+            SOCMessage m = SOCGameHandler.getBoardLayoutMessage(ga);
+            if (m instanceof SOCBoardLayout)
+                layout1 = (SOCBoardLayout) m;
+            else if (m instanceof SOCBoardLayout2)
+                layout2 = (SOCBoardLayout2) m;
+            else
+                throw new IllegalArgumentException
+                    ("unexpected boardlayout msg type " + m.getType() + " " + m.getClass().getSimpleName());
+
+            playerPotentials = SOCGameHandler.gatherBoardPotentials(ga, Integer.MAX_VALUE);
         }
     }
 

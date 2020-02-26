@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -93,16 +93,16 @@ import soc.util.DataUtils;
 public class SOCBoardLayout2 extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 2000L;
+    private static final long serialVersionUID = 2300L;
 
     /**
-     * Known layout part keys.  To be ignored by {@link #getAddedParts()} because the client calls
-     * specific {@link SOCBoardLarge} methods for each of these, instead of generically calling
+     * Known layout part keys. These are ignored by {@link #getAddedParts()} because the client calls
+     * specific {@link SOCBoardLarge} methods for each of them, instead of generically calling
      * {@link SOCBoardLarge#setAddedLayoutParts(HashMap)}.  See {@code getAddedParts()} javadoc
      * for details.
      * @since 2.0.00
      */
-    private final String[] KNOWN_KEYS = { "HL", "NL", "RH", "PL", "LH", "PH", "PX", "RX", "CV" };
+    private final static String[] KNOWN_KEYS = { "HL", "NL", "RH", "PL", "LH", "PH", "PX", "RX", "CV" };
 
     /**
      * Minimum version (1.1.08) of client/server which recognize
