@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -123,6 +123,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * Does the set contain any resources of this type?
      * @param resourceType  the type of resource, like {@link SOCResourceConstants#CLAY}
+     *     or {@link SOCResourceConstants#UNKNOWN}
      * @return true if the set's amount of this resource &gt; 0
      * @since 2.0.00
      * @see #getAmount(int)
@@ -138,6 +139,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * How many resources of this type are contained in the set?
      * @param resourceType  the type of resource, like {@link SOCResourceConstants#CLAY}
+     *     or {@link SOCResourceConstants#UNKNOWN}
      * @return the number of a kind of resource
      * @see #contains(int)
      * @see #getTotal()
@@ -250,6 +252,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * add an amount to a resource
      *
      * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
+     *     or {@link SOCResourceConstants#UNKNOWN}
      * @param amt   the amount; if below 0 (thus subtracting resources),
      *              the subtraction occurs and no special action is taken.
      *              {@link #subtract(int, int)} takes special action in some cases.
@@ -267,6 +270,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * As a result, UNKNOWN may be less than zero afterwards.
      *
      * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
+     *     or {@link SOCResourceConstants#UNKNOWN}
      * @param amt   the amount; unlike in {@link #add(int, int)}, any amount that
      *              takes the resource below 0 is treated specially.
      */

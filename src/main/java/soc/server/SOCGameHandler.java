@@ -1016,8 +1016,7 @@ public class SOCGameHandler extends GameHandler
         /**
          * Any other misc data to send if game hasn't started yet:
          */
-        if ((gameState < SOCGame.START1A)
-            && (cliVers >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
+        if (gameState < SOCGame.START1A)
         {
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
                 c.put(SOCPlayerElement.toCmd
@@ -2908,12 +2907,11 @@ public class SOCGameHandler extends GameHandler
 
             if (ga.hasSeaBoard)
             {
-                // See also joinGame which has very similar code,
+                // See also gatherBoardPotentials which has very similar code
                 // and sends classic game's sole SOCPotentialSettlements message.
 
-                // Send the updated Potential/Legal Settlement node list
-                // Note: Assumes all players have same potential settlements
-                //    (sends with playerNumber -1 == all)
+                // Send the updated Potential/Legal Settlement node list:
+                // Since game is starting, assumes all players have same potential settlements.
                 // Some boards may have multiple land areas.
 
                 final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();

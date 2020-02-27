@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -31,9 +31,10 @@ import java.util.List;
  * For the resources needed to build a piece type, see {@link #getResourcesToBuild(int)}.
  * See also soc.robot.SOCPossiblePiece.
  */
-@SuppressWarnings("serial")
 public abstract class SOCPlayingPiece implements Serializable, Cloneable
 {
+    private static final long serialVersionUID = 2300L;
+
     /**
      * Types of playing pieces: {@link SOCRoad Road}.
      * @see #getResourcesToBuild(int)
@@ -103,7 +104,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * such as {@link SOCVillage} which belong to the board and not to players.
      * Player is from same game as {@link #board}.
      */
-    protected SOCPlayer player;
+    protected transient SOCPlayer player;
 
     /**
      * Coordinates on the board for this piece. An edge or a node, depending on piece type.
@@ -114,7 +115,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Board, for coordinate-related operations. Should be from same game as {@link #player}.
      * @since 1.1.08
      */
-    protected SOCBoard board;
+    protected transient SOCBoard board;
 
     /**
      * Special Victory Points (SVP) awarded for placing this piece, if any.
@@ -138,7 +139,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Package access for SOCPlayer's benefit.
      * @since 2.0.00
      */
-    SOCPlayerEvent specialVPEvent;
+    transient SOCPlayerEvent specialVPEvent;
 
     /**
      * Make a new piece, which is owned by a player.

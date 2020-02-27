@@ -19,12 +19,14 @@
  **/
 package soc.server.savegame;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import soc.game.*;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
 import soc.message.SOCMessage;
+import soc.message.SOCPlayerElement;
 import soc.message.SOCPotentialSettlements;
 import soc.server.SOCGameHandler;
 
@@ -53,7 +55,7 @@ public class SavedGameModel
     int modelVersion;
 
     /** Game minimum version, from {@link SOCGame#getClientVersionMinRequired()} */
-    int gameVersion;
+    int gameMinVersion;
 
     String gameName;
 
@@ -63,8 +65,14 @@ public class SavedGameModel
     /** Game duration, from {@link SOCGame#getStartTime()} */
     int gameDurationSeconds;
 
+    /** Current player or -1, from {@link SOCGame#getCurrentPlayerNumber() */
+    int currentPlayerNumber;
+
     /** Current state, from {@link SOCGame#getGameState()} */
     int gameState;
+
+    /** Current dice roll results, from {@link SOCGame#getCurrentDice()} */
+    int currentDice;
 
     /** Board layout and contents */
     BoardInfo boardInfo;
@@ -110,8 +118,9 @@ public class SavedGameModel
             gameOptions = SOCGameOption.packOptionsToString(opts, false);
         gameDurationSeconds = (int) (((System.currentTimeMillis() - ga.getStartTime().getTime()) + 500) / 1000L);
             // same rounding calc as SSMH.processDebugCommand_gameStats
+        currentPlayerNumber = ga.getCurrentPlayerNumber();
         gameState = ga.getGameState();
-        gameVersion = ga.getClientVersionMinRequired();
+        gameMinVersion = ga.getClientVersionMinRequired();
 
         boardInfo = new BoardInfo(ga);
 
@@ -159,16 +168,82 @@ public class SavedGameModel
         boolean isSeatVacant;
         int totalVP;
         boolean isRobot, isBuiltInRobot;
+        int faceID;
 
-        // TODO resource counts, piece counts, dev cards
+        /**
+         * Resource counts, remaining piece counts, etc.
+         * Length is always even: Is a list of pairs:
+         * Element type-constant ({@link SOCPlayerElement#ROADS} etc) and value.
+         */
+        ArrayList<Integer> elements = new ArrayList<>();
+
+        /**
+         * Standard dev card types in player's hand,
+         * received in current turn (new) or previous turns
+         * (playable or kept until end of game).
+         * Each item is a card type like {@link SOCDevCardConstants#ROADS}.
+         */
+        ArrayList<Integer> oldDevCards = new ArrayList<>(),
+                           newDevCards = new ArrayList<>();
+
+        /**
+         * Player's pieces, from {@link SOCPlayer#getPieces()}.
+         * @see #fortressPiece
+         */
+        ArrayList<SOCPlayingPiece> pieces = new ArrayList<>();
+
+        /**
+         * Player's fortress, if any, from {@link SOCPlayer#getFortress()}; usually null.
+         * Not part of {@link #pieces} list.
+         */
+        SOCFortress fortressPiece;
 
         PlayerInfo(SOCPlayer pl, boolean isVacant)
         {
+            final SOCGame ga = pl.getGame();
+
             name = pl.getName();
             isSeatVacant = isVacant;
             totalVP = pl.getTotalVP();
             isRobot = pl.isRobot();
             isBuiltInRobot = pl.isBuiltInRobot();
+            faceID = pl.getFaceId();
+
+            SOCResourceSet res = pl.getResources();
+            for (int rtype = SOCPlayerElement.CLAY; rtype <= SOCPlayerElement.UNKNOWN; ++rtype)
+            {
+                elements.add(rtype);
+                elements.add(res.getAmount(rtype));  // SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
+            }
+            elements.add(SOCPlayerElement.NUMKNIGHTS);
+            elements.add(pl.getNumKnights());
+            for (int ptype = (ga.hasSeaBoard) ? SOCPlayingPiece.SHIP : SOCPlayingPiece.CITY,
+                     etype = (ga.hasSeaBoard) ? SOCPlayerElement.SHIPS : SOCPlayerElement.CITIES;
+                 ptype >= SOCPlayingPiece.ROAD;
+                 --ptype)
+            {
+                elements.add(etype);
+                elements.add(pl.getNumPieces(ptype));
+            }
+            int n = pl.getNumWarships();
+            if (n != 0)
+            {
+                elements.add(SOCPlayerElement.SCENARIO_WARSHIP_COUNT);
+                elements.add(n);
+            }
+
+            final SOCInventory cardsInv = pl.getInventory();
+            for (SOCInventoryItem item : cardsInv.getByState(SOCInventory.NEW))
+                if (item instanceof SOCDevCard)
+                    newDevCards.add(item.itype);
+            for (int dcState = SOCInventory.PLAYABLE; dcState <= SOCInventory.KEPT; ++dcState)
+                for (SOCInventoryItem item : cardsInv.getByState(dcState))
+                    if (item instanceof SOCDevCard)
+                        oldDevCards.add(item.itype);
+            // TODO other inventory item types: see SGH.sitDown_sendPrivateInfo
+
+            pieces.addAll(pl.getPieces());
+            fortressPiece = pl.getFortress();  // usually null
         }
     }
 

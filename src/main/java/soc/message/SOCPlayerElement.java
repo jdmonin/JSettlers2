@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -284,7 +284,8 @@ public class SOCPlayerElement extends SOCMessage
     private String game;
 
     /**
-     * Player number
+     * Player number; can be -1 for some elements.
+     * See {@link #getPlayerNumber()} for details and version restrictions.
      */
     private int playerNumber;
 
@@ -398,6 +399,7 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Get this element's player number.
+     *<P>
      * v1.1.19 and newer allow -1 for some elements (applies to board or to all players).
      * Earlier client versions will throw an exception accessing player -1.
      * If the element type allows -1, its constant's javadoc will mention that.
