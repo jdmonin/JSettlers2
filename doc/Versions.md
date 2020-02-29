@@ -25,6 +25,7 @@ and backport minor new features until `2.0.00` was ready.
 - Server:
 	- `*STATS*` command: Send client how long they've been connected and, if at least 1 game won or lost, their win-loss count for this session
 	- If client joins a game that's already over, send final scores and revealed VP cards
+	- Let debug user also chat and run commands while observing a game
 	- SQLite database:
 	  - For convenience, if JVM properties don't contain `org.sqlite.tmpdir` but that property is set in
 	    `jsserver.properties` file or command line, copy it into JVM properties

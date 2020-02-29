@@ -1040,165 +1040,172 @@ public class SOCServerMessageHandler
             return;  // <---- early return: no game by that name ----
 
         final String plName = c.getData();
-        if (null == ga.getPlayer(plName))
-        {
-            // c isn't a seated player in that game; have they joined it?
+
+        final boolean userIsDebug =
+            ((srv.isDebugUserEnabled() && plName.equals("debug"))
+            || (c instanceof StringConnection));
+            // 1.1.07: all practice games are debug mode, for ease of debugging;
+            //         not much use for a chat window in a practice game anyway.
+
+        final boolean canChat = userIsDebug
+            || (null != ga.getPlayer(plName))
+            || (gameList.isMember(c, gaName) && (ga.getGameState() < SOCGame.ROLL_OR_CARD));
             // To avoid disruptions by game observers, only players can chat after initial placement.
             // To help form the game, non-seated members can also participate in the chat until then.
-
-            final boolean canChat = (ga.getGameState() < SOCGame.ROLL_OR_CARD) && gameList.isMember(c, gaName);
-            if (! canChat)
-            {
-                srv.messageToPlayerKeyed(c, gaName, "member.chat.not_observers");  // "Observers can't chat during the game."
-
-                return;  // <---- early return: not a player in that game ----
-            }
-        }
 
         //currentGameEventRecord.setSnapshot(ga);
 
         final String cmdText = gameTextMsgMes.getText();
-        final String cmdTxtUC = cmdText.toUpperCase();
+        String cmdTxtUC = null;
 
-        ///
-        /// command to add time to a game
-        /// If the command text changes from '*ADDTIME*' to something else,
-        /// please update the warning text sent in checkForExpiredGames().
-        ///
-        if (cmdTxtUC.startsWith("*ADDTIME*") || cmdTxtUC.startsWith("ADDTIME"))
+        if (canChat && (cmdText.charAt(0) == '*'))
         {
-            // Unless this is a practice game, if reasonable
-            // add 30 minutes to the expiration time.  If this
-            // changes to another timespan, please update the
-            // warning text sent in checkForExpiredGames().
-            // Use ">>>" in message text to mark as urgent.
+            cmdTxtUC = cmdText.toUpperCase(Locale.US);
+            boolean matchedHere = true;
 
-            if (ga.isPractice)
+            if (cmdTxtUC.startsWith("*ADDTIME*") || cmdTxtUC.startsWith("ADDTIME"))
             {
-                srv.messageToPlayerKeyed(c, gaName, "reply.addtime.practice.never");  // ">>> Practice games never expire."
-            } else if (ga.getGameState() >= SOCGame.OVER) {
-                srv.messageToPlayerKeyed(c, gaName, "reply.addtime.game_over");  // "This game is over, cannot extend its time."
-            } else {
-                // check game time currently remaining: if already more than
-                // the original GAME_TIME_EXPIRE_MINUTES + GAME_TIME_EXPIRE_ADDTIME_MINUTES,
-                // don't add more now.
-                final long now = System.currentTimeMillis();
-                long exp = ga.getExpiration();
-                int minRemain = (int) ((exp - now) / (60 * 1000));
+                // Unless this is a practice game, if reasonable
+                // add 30 minutes to the expiration time.  If this
+                // changes to another timespan, please update the
+                // warning text sent in checkForExpiredGames().
+                // Use ">>>" in message text to mark as urgent.
+                // Note: If the command text changes from '*ADDTIME*' to something else,
+                // please update the warning text sent in checkForExpiredGames().
 
-                final int gameMaxMins = SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES
-                    + SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
-                if (minRemain > gameMaxMins - 4)
+                if (ga.isPractice)
                 {
-                    srv.messageToPlayerKeyed(c, gaName, "reply.addtime.not_expire_soon", Integer.valueOf(minRemain));
-                        // "Ask again later: This game does not expire soon, it has {0} minutes remaining."
-                    // This check time subtracts 4 minutes to keep too-frequent addtime requests
-                    // from spamming all game members with announcements
+                    srv.messageToPlayerKeyed(c, gaName, "reply.addtime.practice.never");
+                        // ">>> Practice games never expire."
+                } else if (ga.getGameState() >= SOCGame.OVER) {
+                    srv.messageToPlayerKeyed(c, gaName, "reply.addtime.game_over");
+                        // "This game is over, cannot extend its time."
                 } else {
-                    int minAdd = SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
-                    if (minRemain + minAdd > gameMaxMins)
-                        minAdd = gameMaxMins - minRemain;
-                    exp += (minAdd * 60 * 1000);
-                    minRemain += minAdd;
-                    if (minRemain < SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES)
-                    {
-                        // minRemain might be small or negative; can happen if server was on a sleeping laptop
-                        minRemain = SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
-                        exp = now + (minRemain * 60 * 1000);
-                    }
+                    // check game time currently remaining: if already more than
+                    // the original GAME_TIME_EXPIRE_MINUTES + GAME_TIME_EXPIRE_ADDTIME_MINUTES,
+                    // don't add more now.
+                    final long now = System.currentTimeMillis();
+                    long exp = ga.getExpiration();
+                    int minRemain = (int) ((exp - now) / (60 * 1000));
 
-                    ga.setExpiration(exp);
-                    srv.messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."
-                    srv.messageToGameKeyed(ga, true, "stats.game.willexpire.urgent",
-                        Integer.valueOf(minRemain));
-                        // ">>> This game will expire in 45 minutes."
+                    final int gameMaxMins = SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES
+                        + SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+                    if (minRemain > gameMaxMins - 4)
+                    {
+                        srv.messageToPlayerKeyed(c, gaName, "reply.addtime.not_expire_soon", Integer.valueOf(minRemain));
+                            // "Ask again later: This game does not expire soon, it has {0} minutes remaining."
+                        // This check time subtracts 4 minutes to keep too-frequent addtime requests
+                        // from spamming all game members with announcements
+                    } else {
+                        int minAdd = SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+                        if (minRemain + minAdd > gameMaxMins)
+                            minAdd = gameMaxMins - minRemain;
+                        exp += (minAdd * 60 * 1000);
+                        minRemain += minAdd;
+                        if (minRemain < SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES)
+                        {
+                            // minRemain might be small or negative; can happen if server was on a sleeping laptop
+                            minRemain = SOCServer.GAME_TIME_EXPIRE_ADDTIME_MINUTES;
+                            exp = now + (minRemain * 60 * 1000);
+                        }
+
+                        ga.setExpiration(exp);
+                        srv.messageToGameKeyed(ga, true, "reply.addtime.extended");  // ">>> Game time has been extended."
+                        srv.messageToGameKeyed(ga, true, "stats.game.willexpire.urgent",
+                            Integer.valueOf(minRemain));
+                            // ">>> This game will expire in 45 minutes."
+                    }
                 }
             }
-        }
-
-        ///
-        /// Check the time remaining for this game
-        ///
-        else if (cmdTxtUC.startsWith("*CHECKTIME*"))
-        {
-            processDebugCommand_gameStats(c, ga, true);
-        }
-        else if (cmdTxtUC.startsWith("*VERSION*"))
-        {
-            srv.messageToPlayer(c, gaName,
-                "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
-        }
-        else if (cmdTxtUC.startsWith("*STATS*"))
-        {
-            srv.processDebugCommand_serverStats(c, ga);
-        }
-        else if (cmdTxtUC.startsWith("*WHO*"))
-        {
-            processDebugCommand_who(c, ga, cmdText);
-        }
-        else if (cmdTxtUC.startsWith("*DBSETTINGS*"))
-        {
-            processDebugCommand_dbSettings(c, ga);
-        }
-
-        //
-        // check for admin/debugging commands
-        //
-        // 1.1.07: all practice games are debug mode, for ease of debugging;
-        //         not much use for a chat window in a practice game anyway.
-        //
-        else
-        {
-            final boolean userIsDebug =
-                ((srv.isDebugUserEnabled() && plName.equals("debug"))
-                || (c instanceof StringConnection));
-
-            if (cmdTxtUC.startsWith("*HELP"))
+            else if (cmdTxtUC.startsWith("*CHECKTIME*"))
             {
-                for (int i = 0; i < SOCServer.GENERAL_COMMANDS_HELP.length; ++i)
-                    srv.messageToPlayer(c, gaName, SOCServer.GENERAL_COMMANDS_HELP[i]);
-
-                if ((userIsDebug && ! (c instanceof StringConnection))  // no user admins in practice games
-                    || srv.isUserDBUserAdmin(plName))
-                {
-                    srv.messageToPlayer(c, gaName, SOCServer.ADMIN_COMMANDS_HEADING);
-                    for (int i = 0; i < SOCServer.ADMIN_USER_COMMANDS_HELP.length; ++i)
-                        srv.messageToPlayer(c, gaName, SOCServer.ADMIN_USER_COMMANDS_HELP[i]);
-                }
-
-                if (userIsDebug)
-                {
-                    for (int i = 0; i < SOCServer.DEBUG_COMMANDS_HELP.length; ++i)
-                        srv.messageToPlayer(c, gaName, SOCServer.DEBUG_COMMANDS_HELP[i]);
-
-                    GameHandler hand = gameList.getGameTypeHandler(gaName);
-                    if (hand != null)
-                    {
-                        final String[] GAMETYPE_DEBUG_HELP = hand.getDebugCommandsHelp();
-                        if (GAMETYPE_DEBUG_HELP != null)
-                            for (int i = 0; i < GAMETYPE_DEBUG_HELP.length; ++i)
-                                srv.messageToPlayer(c, gaName, GAMETYPE_DEBUG_HELP[i]);
-                    }
-                }
+                /// Check the time remaining for this game
+                processDebugCommand_gameStats(c, ga, true);
+            }
+            else if (cmdTxtUC.startsWith("*VERSION*"))
+            {
+                srv.messageToPlayer(c, gaName,
+                    "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+            }
+            else if (cmdTxtUC.startsWith("*STATS*"))
+            {
+                srv.processDebugCommand_serverStats(c, ga);
+            }
+            else if (cmdTxtUC.startsWith("*WHO*"))
+            {
+                processDebugCommand_who(c, ga, cmdText);
+            }
+            else if (cmdTxtUC.startsWith("*DBSETTINGS*"))
+            {
+                processDebugCommand_dbSettings(c, ga);
             }
             else
             {
-                boolean isCmd = userIsDebug && srv.processDebugCommand(c, ga, cmdText, cmdTxtUC);
+                matchedHere = false;
+            }
 
-                if (! isCmd)
+            if (matchedHere)
+                return;  // <---- early return: matched and ran a command ----
+        }
+
+        //
+        // check for admin/debugging commands; if not a command,
+        // send chat message text to game members
+        //
+        if (! canChat)
+        {
+            srv.messageToPlayerKeyed(c, gaName, "member.chat.not_observers");
+                // "Observers can't chat during the game."
+
+            return;  // <---- early return: not a player in that game ----
+        }
+
+        if (cmdTxtUC == null)
+            cmdTxtUC = cmdText.toUpperCase(Locale.US);
+
+        if (cmdTxtUC.startsWith("*HELP"))
+        {
+            for (int i = 0; i < SOCServer.GENERAL_COMMANDS_HELP.length; ++i)
+                srv.messageToPlayer(c, gaName, SOCServer.GENERAL_COMMANDS_HELP[i]);
+
+            if ((userIsDebug && ! (c instanceof StringConnection))  // no user admins in practice games
+                || srv.isUserDBUserAdmin(plName))
+            {
+                srv.messageToPlayer(c, gaName, SOCServer.ADMIN_COMMANDS_HEADING);
+                for (int i = 0; i < SOCServer.ADMIN_USER_COMMANDS_HELP.length; ++i)
+                    srv.messageToPlayer(c, gaName, SOCServer.ADMIN_USER_COMMANDS_HELP[i]);
+            }
+
+            if (userIsDebug)
+            {
+                for (int i = 0; i < SOCServer.DEBUG_COMMANDS_HELP.length; ++i)
+                    srv.messageToPlayer(c, gaName, SOCServer.DEBUG_COMMANDS_HELP[i]);
+
+                GameHandler hand = gameList.getGameTypeHandler(gaName);
+                if (hand != null)
                 {
-                    //
-                    // Send the message to the members of the game
-                    //
-                    srv.messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
-
-                    final SOCChatRecentBuffer buf = gameList.getChatBuffer(gaName);
-                    if (buf != null)
-                        synchronized(buf)
-                        {
-                            buf.add(plName, cmdText);
-                        }
+                    final String[] GAMETYPE_DEBUG_HELP = hand.getDebugCommandsHelp();
+                    if (GAMETYPE_DEBUG_HELP != null)
+                        for (int i = 0; i < GAMETYPE_DEBUG_HELP.length; ++i)
+                            srv.messageToPlayer(c, gaName, GAMETYPE_DEBUG_HELP[i]);
                 }
+            }
+        }
+        else
+        {
+            if (! (userIsDebug && srv.processDebugCommand(c, ga, cmdText, cmdTxtUC)))
+            {
+                //
+                // Send chat message text to the members of the game
+                //
+                srv.messageToGame(gaName, new SOCGameTextMsg(gaName, plName, cmdText));
+
+                final SOCChatRecentBuffer buf = gameList.getChatBuffer(gaName);
+                if (buf != null)
+                    synchronized(buf)
+                    {
+                        buf.add(plName, cmdText);
+                    }
             }
         }
 
@@ -1207,8 +1214,8 @@ public class SOCServerMessageHandler
 
     /**
      * Process the {@code *DBSETTINGS*} privileged admin command:
-     * Check {@link SOCServer#isUserDBUserAdmin(String)} and if OK and {@link SOCDBHelper#isInitialized()},
-     * send the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
+     * Checks {@link SOCServer#isUserDBUserAdmin(String)} and if OK and {@link SOCDBHelper#isInitialized()},
+     * sends the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
      * @param c  Client sending the admin command
      * @param gaName  Game in which to reply
      * @since 1.2.00
