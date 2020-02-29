@@ -5169,70 +5169,6 @@ public class SOCServer extends Server
     }
 
     /**
-     * Process the {@code *STATS*} unprivileged debug command:
-     * Send the client a list of server statistics, and stats for the game and connection they sent the command from.
-     * Calls {@link SOCServerMessageHandler#processDebugCommand_gameStats(Connection, SOCGame, boolean)}.
-     *<P>
-     * Before v2.0.00, this method was part of {@code handleGAMETEXTMSG(..)}.
-     * @param c  Client sending the {@code *STATS*} command
-     * @param ga  Game in which the message is sent
-     * @since 2.0.00
-     * @see SOCServerMessageHandler#processDebugCommand_dbSettings(Connection, SOCGame)
-     * @see #processDebugCommand_connStats(Connection, SOCGame, boolean)
-     */
-    final void processDebugCommand_serverStats(final Connection c, final SOCGame ga)
-    {
-        final long diff = System.currentTimeMillis() - startTime;
-        final long hours = diff / (60 * 60 * 1000),
-              minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000),
-              seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
-        Runtime rt = Runtime.getRuntime();
-        final String gaName = ga.getName();
-
-        if (hours < 24)
-        {
-            messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
-        } else {
-            final int days = (int) (hours / 24),
-                      hr   = (int) (hours - (days * 24L));
-            messageToPlayer(c, gaName, "> Uptime: " + days + "d " + hr + ":" + minutes + ":" + seconds);
-        }
-        messageToPlayer(c, gaName, "> Connections since startup: " + numberOfConnections);
-        messageToPlayer(c, gaName, "> Current named connections: " + getNamedConnectionCount());
-        messageToPlayer(c, gaName, "> Current connections including unnamed: " + getCurrentConnectionCount());
-        messageToPlayer(c, gaName, "> Total Users: " + numberOfUsers);
-        messageToPlayer(c, gaName, "> Games started: " + numberOfGamesStarted);
-        messageToPlayer(c, gaName, "> Games finished: " + numberOfGamesFinished);
-        messageToPlayer(c, gaName, "> Total Memory: " + rt.totalMemory());
-        messageToPlayer(c, gaName, "> Free Memory: " + rt.freeMemory());
-        final int vers = Version.versionNumber();
-        messageToPlayer(c, gaName, "> Version: "
-            + vers + " (" + Version.version() + ") build " + Version.buildnum());
-
-        if (! clientPastVersionStats.isEmpty())
-        {
-            if (clientPastVersionStats.size() == 1)
-            {
-                messageToPlayer(c, gaName, "> Client versions since startup: all "
-                        + Version.version(clientPastVersionStats.keySet().iterator().next()));
-            } else {
-                // TODO sort it
-                messageToPlayer(c, gaName, "> Client versions since startup: (includes bots)");
-                for (Integer v : clientPastVersionStats.keySet())
-                    messageToPlayer(c, gaName, ">   " + Version.version(v) + ": " + clientPastVersionStats.get(v));
-            }
-        }
-
-        // show range of current game's member client versions if not server version (added to *STATS* in 1.1.19)
-        if ((ga.clientVersionLowest != vers) || (ga.clientVersionLowest != ga.clientVersionHighest))
-            messageToPlayer(c, gaName, "> This game's client versions: "
-                + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
-
-        srvMsgHandler.processDebugCommand_gameStats(c, ga, false);
-        processDebugCommand_connStats(c, ga, false);
-    }
-
-    /**
      * Send connection stats text to a client, appearing in the message pane of a game they're a member of.
      *<UL>
      * <LI> How long they've been connected to server (duration in minutes)
@@ -5244,41 +5180,13 @@ public class SOCServer extends Server
      * @param skipWinLossBefore2  If true, don't send win/loss record if less than 2 completed games.
      *     If false, don't send if less than 1 completed game.
      * @since 2.2.00
-     * @see #processDebugCommand_serverStats(Connection, SOCGame)
+     * @see SOCServerMessageHandler#processDebugCommand_serverStats(Connection, SOCGame)
      * @see SOCServerMessageHandler#processDebugCommand_gameStats(Connection, SOCGame, boolean)
      */
     final void processDebugCommand_connStats
         (final Connection c, final SOCGame ga, final boolean skipWinLossBefore2)
     {
-        final String gaName = ga.getName();
-
-        final long connMinutes = (((System.currentTimeMillis() - c.getConnectTime().getTime())) + 30000L) / 60000L;
-        final String connMsgKey = (ga.isPractice)
-            ? "stats.cli.connected.minutes.prac"  // "You have been practicing # minutes."
-            : "stats.cli.connected.minutes";      // "You have been connected # minutes."
-        messageToPlayerKeyed(c, gaName, connMsgKey, connMinutes);
-
-        final SOCClientData scd = (SOCClientData) c.getAppData();
-        if (scd == null)
-            return;
-
-        int wins = scd.getWins();
-        int losses = scd.getLosses();
-        if (wins + losses < ((skipWinLossBefore2) ? 2 : 1))
-            return;  // Not enough games completed so far
-
-        if (wins > 0)
-        {
-            if (losses == 0)
-                messageToPlayerKeyed(c, gaName, "stats.cli.winloss.won", wins);
-                    // "You have won {0,choice, 1#1 game|1<{0,number} games} since connecting."
-            else
-                messageToPlayerKeyed(c, gaName, "stats.cli.winloss.wonlost", wins, losses);
-                    // "You have won {0,choice, 1#1 game|1<{0,number} games} and lost {1,choice, 1#1 game|1<{1,number} games} since connecting."
-        } else {
-            messageToPlayerKeyed(c, gaName, "stats.cli.winloss.lost", losses);
-                // "You have lost {0,choice, 1#1 game|1<{0,number} games} since connecting."
-        }
+        srvMsgHandler.processDebugCommand_connStats(c, ga, skipWinLossBefore2);
     }
 
     /**

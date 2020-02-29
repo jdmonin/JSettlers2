@@ -1129,7 +1129,7 @@ public class SOCServerMessageHandler
             }
             else if (cmdTxtUC.startsWith("*STATS*"))
             {
-                srv.processDebugCommand_serverStats(c, ga);
+                processDebugCommand_serverStats(c, ga);
             }
             else if (cmdTxtUC.startsWith("*WHO*"))
             {
@@ -1219,7 +1219,7 @@ public class SOCServerMessageHandler
      * @param c  Client sending the admin command
      * @param gaName  Game in which to reply
      * @since 1.2.00
-     * @see SOCServer#processDebugCommand_serverStats(Connection, SOCGame)
+     * @see #processDebugCommand_serverStats(Connection, SOCGame)
      */
     private void processDebugCommand_dbSettings(final Connection c, final SOCGame ga)
     {
@@ -1245,6 +1245,49 @@ public class SOCServerMessageHandler
     }
 
     /**
+     * Send connection stats text to a client, appearing in the message pane of a game they're a member of.
+     * Handles {@link SOCServer#processDebugCommand_connStats(Connection, SOCGame, boolean)};
+     * see that method's javadoc for details and parameters.
+     *
+     * @since 2.2.00
+     * @see #processDebugCommand_serverStats(Connection, SOCGame)
+     * @see #processDebugCommand_gameStats(Connection, SOCGame, boolean)
+     */
+    final void processDebugCommand_connStats
+        (final Connection c, final SOCGame ga, final boolean skipWinLossBefore2)
+    {
+        final String gaName = ga.getName();
+
+        final long connMinutes = (((System.currentTimeMillis() - c.getConnectTime().getTime())) + 30000L) / 60000L;
+        final String connMsgKey = (ga.isPractice)
+            ? "stats.cli.connected.minutes.prac"  // "You have been practicing # minutes."
+            : "stats.cli.connected.minutes";      // "You have been connected # minutes."
+        srv.messageToPlayerKeyed(c, gaName, connMsgKey, connMinutes);
+
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        if (scd == null)
+            return;
+
+        int wins = scd.getWins();
+        int losses = scd.getLosses();
+        if (wins + losses < ((skipWinLossBefore2) ? 2 : 1))
+            return;  // Not enough games completed so far
+
+        if (wins > 0)
+        {
+            if (losses == 0)
+                srv.messageToPlayerKeyed(c, gaName, "stats.cli.winloss.won", wins);
+                    // "You have won {0,choice, 1#1 game|1<{0,number} games} since connecting."
+            else
+                srv.messageToPlayerKeyed(c, gaName, "stats.cli.winloss.wonlost", wins, losses);
+                    // "You have won {0,choice, 1#1 game|1<{0,number} games} and lost {1,choice, 1#1 game|1<{1,number} games} since connecting."
+        } else {
+            srv.messageToPlayerKeyed(c, gaName, "stats.cli.winloss.lost", losses);
+                // "You have lost {0,choice, 1#1 game|1<{0,number} games} since connecting."
+        }
+    }
+
+    /**
      * Print time-remaining and other game stats.
      * Includes more detail beyond the end-game stats sent in
      * {@link SOCGameHandler#sendGameStateOVER(SOCGame, Connection)}.
@@ -1255,7 +1298,7 @@ public class SOCServerMessageHandler
      * @param gameData  Game to print stats; does nothing if {@code null}
      * @param isCheckTime  True if called from *CHECKTIME* server command, false for *STATS*.
      *     If true, mark text as urgent when sending remaining time before game expires.
-     * @see SOCServer#processDebugCommand_connStats(Connection, SOCGame, boolean)
+     * @see #processDebugCommand_connStats(Connection, SOCGame, boolean)
      * @since 1.1.07
      */
     void processDebugCommand_gameStats
@@ -1295,6 +1338,71 @@ public class SOCServerMessageHandler
                 ((isCheckTime) ? "stats.game.willexpire.urgent" : "stats.game.willexpire"),
                 Integer.valueOf((int) ((gameData.getExpiration() - System.currentTimeMillis()) / 60000)));
         }
+    }
+
+    /**
+     * Process the {@code *STATS*} unprivileged debug command:
+     * Send the client a list of server statistics, and stats for the game and connection they sent the command from.
+     * Calls {@link #processDebugCommand_gameStats(Connection, SOCGame, boolean)}.
+     *<P>
+     * Before v2.0.00 this method was part of {@code SOCServer.handleGAMETEXTMSG(..)}.
+     *
+     * @param c  Client sending the {@code *STATS*} command
+     * @param ga  Game in which the message is sent
+     * @since 2.0.00
+     * @see #processDebugCommand_dbSettings(Connection, SOCGame)
+     * @see #processDebugCommand_connStats(Connection, SOCGame, boolean)
+     */
+    final void processDebugCommand_serverStats(final Connection c, final SOCGame ga)
+    {
+        final long diff = System.currentTimeMillis() - srv.startTime;
+        final long hours = diff / (60 * 60 * 1000),
+            minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000),
+            seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
+        Runtime rt = Runtime.getRuntime();
+        final String gaName = ga.getName();
+
+        if (hours < 24)
+        {
+            srv.messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
+        } else {
+            final int days = (int) (hours / 24),
+                      hr   = (int) (hours - (days * 24L));
+            srv.messageToPlayer(c, gaName, "> Uptime: " + days + "d " + hr + ":" + minutes + ":" + seconds);
+        }
+        srv.messageToPlayer(c, gaName, "> Connections since startup: " + srv.getRunConnectionCount());
+        srv.messageToPlayer(c, gaName, "> Current named connections: " + srv.getNamedConnectionCount());
+        srv.messageToPlayer(c, gaName, "> Current connections including unnamed: " + srv.getCurrentConnectionCount());
+        srv.messageToPlayer(c, gaName, "> Total Users: " + srv.numberOfUsers);
+        srv.messageToPlayer(c, gaName, "> Games started: " + srv.numberOfGamesStarted);
+        srv.messageToPlayer(c, gaName, "> Games finished: " + srv.numberOfGamesFinished);
+        srv.messageToPlayer(c, gaName, "> Total Memory: " + rt.totalMemory());
+        srv.messageToPlayer(c, gaName, "> Free Memory: " + rt.freeMemory());
+        final int vers = Version.versionNumber();
+        srv.messageToPlayer(c, gaName, "> Version: "
+            + vers + " (" + Version.version() + ") build " + Version.buildnum());
+
+        if (! srv.clientPastVersionStats.isEmpty())
+        {
+            if (srv.clientPastVersionStats.size() == 1)
+            {
+                srv.messageToPlayer(c, gaName, "> Client versions since startup: all "
+                        + Version.version(srv.clientPastVersionStats.keySet().iterator().next()));
+            } else {
+                // TODO sort it
+                srv.messageToPlayer(c, gaName, "> Client versions since startup: (includes bots)");
+                for (Integer v : srv.clientPastVersionStats.keySet())
+                    srv.messageToPlayer(c, gaName, ">   " + Version.version(v) + ": " + srv.clientPastVersionStats.get(v));
+            }
+        }
+
+        // show range of current game's member client versions if not server version (added to *STATS* in 1.1.19)
+        if ((ga.clientVersionLowest != vers) || (ga.clientVersionLowest != ga.clientVersionHighest))
+            srv.messageToPlayer(c, gaName, "> This game's client versions: "
+                + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
+
+        processDebugCommand_gameStats(c, ga, false);
+        processDebugCommand_connStats(c, ga, false);
     }
 
     /**
