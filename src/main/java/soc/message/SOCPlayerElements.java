@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2014-2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2014-2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@ import java.util.List;
 
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.message.SOCPlayerElement.PEType;
 
 /**
  * This message from the server sends information on some parts of a player's status,
@@ -59,8 +60,9 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     private int actionType;
 
     /**
-     * Element types from {@link SOCPlayerElement}, such as {@link SOCPlayerElement#CLAY},
+     * Element types from {@link SOCPlayerElement} such as {@link PEType#CLAY} as ints,
      * each matching up with the same-index item of parallel array {@link #amounts}.
+     * See {@link #getElementTypes()} for details.
      */
     private int[] elementTypes;
 
@@ -78,13 +80,33 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * @param pn  the player number
      * @param ac  the type of action: {@link SOCPlayerElement#SET},
      *             {@link SOCPlayerElement#GAIN}, or {@link SOCPlayerElement#LOSE}
-     * @param et  array of the types of element, such as {@link SOCPlayerElement#SETTLEMENTS}
-     *             or {@link SOCPlayerElement#WHEAT}. For playing pieces in general,
-     *             see {@link SOCPlayerElement#elementTypeForPieceType(int)}.
+     * @param et  array of the types of element, such as {@link PEType#SETTLEMENTS} or {@link PEType#WHEAT}.
+     *             For playing pieces in general, see {@link SOCPlayerElement#elementTypeForPieceType(int)}.
+     * @param amt array of the amounts to set or change each element, corresponding to <tt>et[]</tt>
+     * @throws NullPointerException if {@code et} null or {@code amt} null, or {@code et} contains null values
+     * @since 2.3.00
+     */
+    public SOCPlayerElements(String ga, int pn, int ac, final PEType[] et, final int[] amt)
+        throws NullPointerException
+    {
+        this(ga, pn, ac, PEType.getValues(et), amt);
+    }
+
+    /**
+     * Constructor for server to tell client about player elements.
+     *
+     * @param ga  name of the game
+     * @param pn  the player number
+     * @param ac  the type of action: {@link SOCPlayerElement#SET},
+     *             {@link SOCPlayerElement#GAIN}, or {@link SOCPlayerElement#LOSE}
+     * @param et  array of the types of element, such as {@link PEType#SETTLEMENTS}
+     *             or {@link PEType#WHEAT}, from {@link PEType#getValues(PEType[])}.
+     *             For playing pieces in general, see {@link SOCPlayerElement#elementTypeForPieceType(int)}.
      * @param amt array of the amounts to set or change each element, corresponding to <tt>et[]</tt>
      * @throws NullPointerException if {@code et} null or {@code amt} null
+     * @see #SOCPlayerElements(String, int, int, PEType[], int[])
      */
-    public SOCPlayerElements(String ga, int pn, int ac, final int[] et, final int[] amt)
+    private SOCPlayerElements(String ga, int pn, int ac, final int[] et, final int[] amt)
         throws NullPointerException
     {
         super(PLAYERELEMENTS, ga, new int[2 + (2 * et.length)]);
@@ -177,7 +199,11 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
-     * @return the element types from {@link SOCPlayerElement}, such as {@link SOCPlayerElement#CLAY},
+     * Get the player info element types.
+     * These are ints to preserve values from unknown types from different versions.
+     * Converted to int at sending side with {@link PEType#getValue()}.
+     * To convert at receiving side to {@link PEType}s, use {@link PEType#valueOf(int)}.
+     * @return the element types from {@link SOCPlayerElement} such as {@link PEType#CLAY} as ints,
      *     each matching up with the same-index item of parallel array {@link #getAmounts()}.
      */
     public int[] getElementTypes()

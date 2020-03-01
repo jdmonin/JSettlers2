@@ -26,7 +26,7 @@ import soc.game.*;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
 import soc.message.SOCMessage;
-import soc.message.SOCPlayerElement;
+import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPotentialSettlements;
 import soc.server.SOCGameHandler;
 
@@ -170,12 +170,11 @@ public class SavedGameModel
         boolean isRobot, isBuiltInRobot;
         int faceID;
 
-        /**
-         * Resource counts, remaining piece counts, etc.
-         * Length is always even: Is a list of pairs:
-         * Element type-constant ({@link SOCPlayerElement#ROADS} etc) and value.
-         */
-        ArrayList<Integer> elements = new ArrayList<>();
+        /** Resources in hand */
+        SOCResourceSet resources;
+
+        /** Available piece counts, SVP, cloth count, etc. */
+        ArrayList<PETypeValue> elements = new ArrayList<>();
 
         /**
          * Standard dev card types in player's hand,
@@ -208,28 +207,18 @@ public class SavedGameModel
             isRobot = pl.isRobot();
             isBuiltInRobot = pl.isBuiltInRobot();
             faceID = pl.getFaceId();
+            resources = pl.getResources();
 
-            SOCResourceSet res = pl.getResources();
-            for (int rtype = SOCPlayerElement.CLAY; rtype <= SOCPlayerElement.UNKNOWN; ++rtype)
+            elements.add(new PETypeValue(PEType.NUMKNIGHTS, pl.getNumKnights()));
+            elements.add(new PETypeValue(PEType.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
+            elements.add(new PETypeValue(PEType.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
+            elements.add(new PETypeValue(PEType.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
+            if (ga.hasSeaBoard)
             {
-                elements.add(rtype);
-                elements.add(res.getAmount(rtype));  // SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
-            }
-            elements.add(SOCPlayerElement.NUMKNIGHTS);
-            elements.add(pl.getNumKnights());
-            for (int ptype = (ga.hasSeaBoard) ? SOCPlayingPiece.SHIP : SOCPlayingPiece.CITY,
-                     etype = (ga.hasSeaBoard) ? SOCPlayerElement.SHIPS : SOCPlayerElement.CITIES;
-                 ptype >= SOCPlayingPiece.ROAD;
-                 --ptype)
-            {
-                elements.add(etype);
-                elements.add(pl.getNumPieces(ptype));
-            }
-            int n = pl.getNumWarships();
-            if (n != 0)
-            {
-                elements.add(SOCPlayerElement.SCENARIO_WARSHIP_COUNT);
-                elements.add(n);
+                elements.add(new PETypeValue(PEType.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
+                int n = pl.getNumWarships();
+                if (n != 0)
+                    elements.add(new PETypeValue(PEType.SCENARIO_WARSHIP_COUNT, n));
             }
 
             final SOCInventory cardsInv = pl.getInventory();
@@ -243,7 +232,19 @@ public class SavedGameModel
             // TODO other inventory item types: see SGH.sitDown_sendPrivateInfo
 
             pieces.addAll(pl.getPieces());
-            fortressPiece = pl.getFortress();  // usually null
+            fortressPiece = pl.getFortress();
+        }
+
+        static class PETypeValue
+        {
+            public PEType type;
+            public int value;
+
+            public PETypeValue(PEType t, int v)
+            {
+                type = t;
+                value = v;
+            }
         }
     }
 

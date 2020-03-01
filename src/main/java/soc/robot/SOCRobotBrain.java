@@ -60,6 +60,7 @@ import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPlayerElement;
+import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPlayerElements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
@@ -1397,7 +1398,7 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.RESOURCECOUNT:
                         handlePLAYERELEMENT
                             (null, ((SOCResourceCount) mes).getPlayerNumber(), SOCPlayerElement.SET,
-                             SOCPlayerElement.RESOURCE_COUNT, ((SOCResourceCount) mes).getCount());
+                             PEType.RESOURCE_COUNT, ((SOCResourceCount) mes).getCount());
                         break;
 
                     case SOCMessage.DICERESULT:
@@ -3700,7 +3701,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Handle a PLAYERELEMENTS for this game.
-     * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, int, int)} for actions taken.
+     * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, PEType, int)} for actions taken.
      * @since 2.0.00
      */
     private void handlePLAYERELEMENTS(SOCPlayerElements mes)
@@ -3711,19 +3712,19 @@ public class SOCRobotBrain extends Thread
         final int[] etypes = mes.getElementTypes(), amounts = mes.getAmounts();
 
         for (int i = 0; i < etypes.length; ++i)
-            handlePLAYERELEMENT(pl, pn, action, etypes[i], amounts[i]);
+            handlePLAYERELEMENT(pl, pn, action, PEType.valueOf(etypes[i]), amounts[i]);
     }
 
     /**
      * Handle a PLAYERELEMENT for this game.
-     * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, int, int)} for actions taken.
+     * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, PEType, int)} for actions taken.
      * @since 1.1.08
      */
     private void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
         final int pn = mes.getPlayerNumber();
         final int action = mes.getAction(), amount = mes.getAmount();
-        final int etype = mes.getElementType();
+        final PEType etype = PEType.valueOf(mes.getElementType());
 
         handlePLAYERELEMENT(null, pn, action, etype, amount);
     }
@@ -3746,70 +3747,72 @@ public class SOCRobotBrain extends Thread
      * @param pn   Player number from message (sometimes -1 for none or all)
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
-     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param etype  Element type, such as {@link PEType#SETTLEMENTS} or {@link PEType#NUMKNIGHTS}
      * @param amount  The new value to set, or the delta to gain/lose
      * @since 2.0.00
      */
     private void handlePLAYERELEMENT
-        (SOCPlayer pl, final int pn, final int action, final int etype, final int amount)
+        (SOCPlayer pl, final int pn, final int action, final PEType etype, final int amount)
     {
+        if (etype == null)
+            return;
         if ((pl == null) && (pn != -1))
             pl = game.getPlayer(pn);
 
         switch (etype)
         {
-        case SOCPlayerElement.ROADS:
+        case ROADS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                 (pl, action, SOCPlayingPiece.ROAD, amount);
             break;
 
-        case SOCPlayerElement.SETTLEMENTS:
+        case SETTLEMENTS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                 (pl, action, SOCPlayingPiece.SETTLEMENT, amount);
             break;
 
-        case SOCPlayerElement.CITIES:
+        case CITIES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                 (pl, action, SOCPlayingPiece.CITY, amount);
             break;
 
-        case SOCPlayerElement.SHIPS:
+        case SHIPS:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                 (pl, action, SOCPlayingPiece.SHIP, amount);
             break;
 
-        case SOCPlayerElement.NUMKNIGHTS:
+        case NUMKNIGHTS:
             // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
                 (game, pl, action, amount);
             break;
 
-        case SOCPlayerElement.CLAY:
+        case CLAY:
             handlePLAYERELEMENT_numRsrc
                 (pl, action, SOCResourceConstants.CLAY, "CLAY", amount);
             break;
 
-        case SOCPlayerElement.ORE:
+        case ORE:
             handlePLAYERELEMENT_numRsrc
                 (pl, action, SOCResourceConstants.ORE, "ORE", amount);
             break;
 
-        case SOCPlayerElement.SHEEP:
+        case SHEEP:
             handlePLAYERELEMENT_numRsrc
                 (pl, action, SOCResourceConstants.SHEEP, "SHEEP", amount);
             break;
 
-        case SOCPlayerElement.WHEAT:
+        case WHEAT:
             handlePLAYERELEMENT_numRsrc
                 (pl, action, SOCResourceConstants.WHEAT, "WHEAT", amount);
             break;
 
-        case SOCPlayerElement.WOOD:
+        case WOOD:
             handlePLAYERELEMENT_numRsrc
                 (pl, action, SOCResourceConstants.WOOD, "WOOD", amount);
             break;
 
-        case SOCPlayerElement.UNKNOWN:
+        case UNKNOWN:
             /**
              * Note: if losing unknown resources, we first
              * convert player's known resources to unknown resources,
@@ -3819,7 +3822,7 @@ public class SOCRobotBrain extends Thread
                 (pl, action, SOCResourceConstants.UNKNOWN, "UNKNOWN", amount);
             break;
 
-        case SOCPlayerElement.RESOURCE_COUNT:
+        case RESOURCE_COUNT:
             if (amount != pl.getResources().getTotal())
             {
                 SOCResourceSet rsrcs = pl.getResources();
@@ -3841,7 +3844,7 @@ public class SOCRobotBrain extends Thread
             }
             break;
 
-        case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+        case SCENARIO_WARSHIP_COUNT:
             if (expectPLACING_ROBBER && (action == SOCPlayerElement.GAIN))
             {
                 // warship card successfully played; clear the flag fields

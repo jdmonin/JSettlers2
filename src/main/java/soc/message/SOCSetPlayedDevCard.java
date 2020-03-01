@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@ import java.util.StringTokenizer;
 /**
  * This message sets the flag which says if a player has played a development card this turn.
  *<P>
- * In games where all clients are v2.0.00 or newer, send {@link SOCPlayerElement#PLAYED_DEV_CARD_FLAG} instead:
+ * In games where all clients are v2.0.00 or newer, send {@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG} instead:
  * Check clients' version against {@link SOCPlayerElement#VERSION_FOR_CARD_ELEMENTS}.
  *
  * @author Robert S. Thomas

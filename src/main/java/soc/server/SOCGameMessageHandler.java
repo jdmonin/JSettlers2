@@ -48,6 +48,7 @@ import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.*;
+import soc.message.SOCPlayerElement.PEType;
 import soc.server.genericServer.Connection;
 import soc.util.SOCStringManager;
 
@@ -456,7 +457,7 @@ public class SOCGameMessageHandler
                                  * tell everyone else that the player lost unknown resources
                                  */
                                 srv.messageToGameExcept(gn, vCon, new SOCPlayerElement
-                                    (gn, vpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
+                                    (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN, lootTotal), true);
                                 srv.messageToGameKeyedSpecialExcept(ga, true, vCon,
                                     "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
                                     // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
@@ -597,7 +598,7 @@ public class SOCGameMessageHandler
                         if (roll.cloth[0] > 0)
                             // some taken from board general supply
                             srv.messageToGame(gn, new SOCPlayerElement
-                                (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT,
+                                (gn, -1, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT,
                                  ((SOCBoardLarge) ga.getBoard()).getCloth()));
 
                         String clplName = null;   // name of first player to receive cloth
@@ -611,7 +612,7 @@ public class SOCGameMessageHandler
                             final int pn = i - 1;
                             final SOCPlayer clpl = ga.getPlayer(pn);
                             srv.messageToGame(gn, new SOCPlayerElement
-                                (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
+                                (gn, pn, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
 
                             if (clplName == null)
                             {
@@ -681,7 +682,7 @@ public class SOCGameMessageHandler
                                 {
                                     srv.messageToGame(gn, new SOCPlayerElement
                                         (gn, pn, SOCPlayerElement.SET,
-                                         SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
+                                         PEType.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
                                     con.put
                                         (SOCSimpleRequest.toCmd
                                             (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
@@ -748,7 +749,7 @@ public class SOCGameMessageHandler
                 final int numRes = res.getTotal();
                 srv.messageToGameExcept
                     (gn, c, new SOCPlayerElement
-                        (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, numRes, true),
+                        (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN, numRes, true),
                      true);
                 srv.messageToGameKeyed(ga, true, "action.discarded", player.getName(), numRes);
                     // "{0} discarded {1} resources."
@@ -1104,7 +1105,7 @@ public class SOCGameMessageHandler
                     final int n = cp.getNumWarships();
                     if (n != prevNumWarships)
                         srv.messageToGame(gaName, new SOCPlayerElement
-                            (gaName, cpn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, n));
+                            (gaName, cpn, SOCPlayerElement.SET, PEType.SCENARIO_WARSHIP_COUNT, n));
                 } else {
                     // player won battle
 
@@ -1464,7 +1465,7 @@ public class SOCGameMessageHandler
                         ga.askSpecialBuild(pn, true);
                         srv.messageToGame
                             (gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                                (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                         handler.endGameTurn(ga, player, true);  // triggers start of SBP
                     } catch (IllegalStateException e) {
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
@@ -1487,7 +1488,7 @@ public class SOCGameMessageHandler
                         ga.askSpecialBuild(pn, true);  // will validate that they can build now
                         srv.messageToGame
                             (gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                                (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
                         sendDenyReply = true;
@@ -1557,9 +1558,9 @@ public class SOCGameMessageHandler
                         (gaName, pn, SOCPlayerElement.LOSE, SOCRoad.COST));
                 } else {
                     srv.messageToGame(gaName, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.CLAY, 1));
                     srv.messageToGame(gaName, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
@@ -1582,13 +1583,13 @@ public class SOCGameMessageHandler
                 } else {
                     srv.gameList.takeMonitorForGame(gaName);
                     srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.CLAY, 1));
                     srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
                     srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
                     srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
                     srv.gameList.releaseMonitorForGame(gaName);
                 }
                 if (sendGameState)
@@ -1611,9 +1612,9 @@ public class SOCGameMessageHandler
                         (gaName, pn, SOCPlayerElement.LOSE, SOCCity.COST));
                 } else {
                     srv.messageToGame(ga.getName(), new SOCPlayerElement
-                        (ga.getName(), pn, SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 3));
+                        (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.ORE, 3));
                     srv.messageToGame(ga.getName(), new SOCPlayerElement
-                        (ga.getName(), pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 2));
+                        (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.WHEAT, 2));
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
@@ -1635,9 +1636,9 @@ public class SOCGameMessageHandler
                         (gaName, pn, SOCPlayerElement.LOSE, SOCShip.COST));
                 } else {
                     srv.messageToGame(gaName, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
                     srv.messageToGame(gaName, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
@@ -1695,9 +1696,9 @@ public class SOCGameMessageHandler
                                     (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
                             } else {
                                 srv.messageToGame(gaName, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.CLAY, 1));
                                 srv.messageToGame(gaName, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
                             }
                         } else {
                             srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.r", player.getName());
@@ -1722,13 +1723,13 @@ public class SOCGameMessageHandler
                         } else {
                             srv.gameList.takeMonitorForGame(gaName);
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                                (gaName, pn, SOCPlayerElement.GAIN, PEType.CLAY, 1));
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
+                                (gaName, pn, SOCPlayerElement.GAIN, PEType.SHEEP, 1));
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1));
+                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 1));
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
                             srv.gameList.releaseMonitorForGame(gaName);
                         }
                     }
@@ -1759,9 +1760,9 @@ public class SOCGameMessageHandler
                                 (gaName, pn, SOCPlayerElement.GAIN, SOCCity.COST));
                         } else {
                             srv.messageToGame(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
+                                (gaName, pn, SOCPlayerElement.GAIN, PEType.ORE, 3));
                             srv.messageToGame(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
+                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 2));
                         }
                     } else {
                         srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a city."/*18N*/ );
@@ -1783,9 +1784,9 @@ public class SOCGameMessageHandler
                                     (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
                             } else {
                                 srv.messageToGame(gaName, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
+                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.SHEEP, 1));
                                 srv.messageToGame(gaName, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
                             }
                         } else {
                             srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.s", player.getName());
@@ -2353,11 +2354,11 @@ public class SOCGameMessageHandler
                             (gaName, new SOCGameElements(gaName, SOCGameElements.DEV_CARD_COUNT, devCount));
                     } else {
                         srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 1));
+                            (gaName, pn, SOCPlayerElement.LOSE, PEType.ORE, 1));
                         srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                            (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
                         srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
+                            (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
                         srv.messageToGameWithMon
                             (gaName, new SOCDevCardCount(gaName, devCount));
                     }
@@ -2439,7 +2440,7 @@ public class SOCGameMessageHandler
                     {
                         ga.askSpecialBuild(pn, true);
                         srv.messageToGame(gaName, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                            (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         srv.messageToPlayer(c, gaName, "You can't ask to buy a card now.");
                     }
@@ -2495,8 +2496,8 @@ public class SOCGameMessageHandler
 
                     if (ga.canPlayKnight(pn))
                     {
-                        final int peType = (isWarshipConvert)
-                            ? SOCPlayerElement.SCENARIO_WARSHIP_COUNT : SOCPlayerElement.NUMKNIGHTS;
+                        final PEType peType = (isWarshipConvert)
+                            ? PEType.SCENARIO_WARSHIP_COUNT : PEType.NUMKNIGHTS;
 
                         ga.playKnight();
 
@@ -2521,7 +2522,7 @@ public class SOCGameMessageHandler
                         }
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
+                                (gaName, pn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 1));
                         else
                             srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameWithMon
@@ -2549,7 +2550,7 @@ public class SOCGameMessageHandler
                             (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
+                                (gaName, pn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 1));
                         else
                             srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameKeyed(ga, false, "action.card.roadbuilding", player.getName());
@@ -2581,7 +2582,7 @@ public class SOCGameMessageHandler
                             (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
+                                (gaName, pn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 1));
                         else
                             srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameKeyed(ga, false, "action.card.discoveryplenty", player.getName());
@@ -2605,7 +2606,7 @@ public class SOCGameMessageHandler
                             (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                             srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 1));
+                                (gaName, pn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 1));
                         else
                             srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameKeyed(ga, false, "action.card.mono", player.getName());  // "played a Monopoly card."
@@ -2780,7 +2781,7 @@ public class SOCGameMessageHandler
                                 (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
                         else
                             srv.messageToPlayer(c, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+                                (gaName, pn, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, 0));
                     } else {
                         // Probably a game logic bug:
                         // Some recent action/event gave the player free resource(s)

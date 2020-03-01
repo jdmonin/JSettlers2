@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -129,7 +129,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *<UL>
      *      Messages sent if player does not win: <br>&nbsp;
      * <LI> {@link SOCRemovePiece} for each removed ship
-     * <LI> {@link SOCPlayerElement}({@link SOCPlayerElement#SCENARIO_WARSHIP_COUNT SCENARIO_WARSHIP_COUNT})
+     * <LI> {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#SCENARIO_WARSHIP_COUNT SCENARIO_WARSHIP_COUNT})
      *        if any of the player's warships were removed
      *      <P>&nbsp;<P>
      *      Messages sent if player wins: <br>&nbsp;

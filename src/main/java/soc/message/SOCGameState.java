@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,7 +59,7 @@ import soc.game.SOCGame;  // for javadoc's use
  * <LI>{@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
  *     Server sends game a "x, y, and z need to pick resources from the gold hex" prompt text.
  *     Sends the game
- *     {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
+ *     {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
  *     Sends specific player(s) {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
  * <LI>{@link SOCGame#ROLL_OR_CARD ROLL_OR_CARD}: Server sends game {@link SOCRollDicePrompt} with current player number.
  *     Current player: Send {@link SOCRollDice} or {@link SOCPlayDevCardRequest}
@@ -103,7 +103,7 @@ import soc.game.SOCGame;  // for javadoc's use
  * <LI>{@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}:
  *     Same message flow as {@code WAITING_FOR_DISCARDS}: Server sends game a
  *     "x, y, and z need to pick resources from the gold hex" prompt text. For each player who must pick, the game is sent
- *     {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES})
+ *     {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES})
  *     and the player is sent
  *     {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
  *     They must choose resource(s) and send {@link SOCPickResources}.

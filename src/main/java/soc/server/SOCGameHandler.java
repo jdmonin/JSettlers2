@@ -76,6 +76,7 @@ import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPieceValue;
 import soc.message.SOCPlayerElement;
+import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPlayerElements;
 import soc.message.SOCPlayerStats;
 import soc.message.SOCPotentialSettlements;
@@ -200,60 +201,58 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * The 5 resource types, for sending {@link SOCPlayerElements}:
-     * {@link SOCPlayerElement#CLAY}, ORE, SHEEP, WHEAT, {@link SOCPlayerElement#WOOD}.
+     * {@link PEType#CLAY}, ORE, SHEEP, WHEAT, {@link PEType#WOOD}.
      * @see #ELEM_RESOURCES_WITH_UNKNOWN
      * @since 2.0.00
      */
-    public static final int[] ELEM_RESOURCES =
-        {SOCPlayerElement.CLAY, SOCPlayerElement.ORE, SOCPlayerElement.SHEEP,
-         SOCPlayerElement.WHEAT, SOCPlayerElement.WOOD};
+    public static final PEType[] ELEM_RESOURCES =
+        {PEType.CLAY, PEType.ORE, PEType.SHEEP, PEType.WHEAT, PEType.WOOD};
 
     /**
      * The 5 resource types plus Unknown, for sending {@link SOCPlayerElements}:
-     * {@link SOCPlayerElement#CLAY}, ORE, SHEEP, WHEAT, {@link SOCPlayerElement#WOOD},
-     * {@link SOCPlayerElement#UNKNOWN}.
+     * {@link PEType#CLAY}, ORE, SHEEP, WHEAT, {@link PEType#WOOD},
+     * {@link PEType#UNKNOWN}.
      * @see #ELEM_RESOURCES
      * @since 2.0.00
      */
-    public static final int[] ELEM_RESOURCES_WITH_UNKNOWN =
-        {SOCPlayerElement.CLAY, SOCPlayerElement.ORE, SOCPlayerElement.SHEEP,
-         SOCPlayerElement.WHEAT, SOCPlayerElement.WOOD, SOCPlayerElement.UNKNOWN};
+    public static final PEType[] ELEM_RESOURCES_WITH_UNKNOWN =
+        {PEType.CLAY, PEType.ORE, PEType.SHEEP, PEType.WHEAT, PEType.WOOD, PEType.UNKNOWN};
 
     /**
      * Classic board piece type elements, for sending {@link SOCPlayerElements}:
-     * {@link #ELEM_PIECETYPES_SEA} without {@link SOCPlayerElement#SHIPS}.
+     * {@link #ELEM_PIECETYPES_SEA} without {@link PEType#SHIPS}.
      * @since 2.0.00
      */
-    private static final int[] ELEM_PIECETYPES_CLASSIC =
-        { SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES };
+    private static final PEType[] ELEM_PIECETYPES_CLASSIC =
+        { PEType.ROADS, PEType.SETTLEMENTS, PEType.CITIES };
 
     /**
      * Sea board piece type elements, for sending {@link SOCPlayerElements}:
-     * {@link #ELEM_PIECETYPES_CLASSIC} plus {@link SOCPlayerElement#SHIPS}.
+     * {@link #ELEM_PIECETYPES_CLASSIC} plus {@link PEType#SHIPS}.
      * @since 2.0.00
      */
-    private static final int[] ELEM_PIECETYPES_SEA =
-        { SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES, SOCPlayerElement.SHIPS };
+    private static final PEType[] ELEM_PIECETYPES_SEA =
+        { PEType.ROADS, PEType.SETTLEMENTS, PEType.CITIES, PEType.SHIPS };
 
     /**
      * For {@link #joinGame}; element types for last Settlement node, unknown resources,
-     * {@link SOCPlayerElement#NUMKNIGHTS}, and classic piece types, for sending {@link SOCPlayerElements}:
-     * {@link #ELEM_JOINGAME_WITH_PIECETYPES_SEA} without {@link SOCPlayerElement#SHIPS}.
+     * {@link PEType#NUMKNIGHTS}, and classic piece types, for sending {@link SOCPlayerElements}:
+     * {@link #ELEM_JOINGAME_WITH_PIECETYPES_SEA} without {@link PEType#SHIPS}.
      * @since 2.0.00
      */
-    private static final int[] ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC =
-        { SOCPlayerElement.LAST_SETTLEMENT_NODE, SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
-          SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES };
+    private static final PEType[] ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC =
+        { PEType.LAST_SETTLEMENT_NODE, PEType.UNKNOWN, PEType.NUMKNIGHTS,
+          PEType.ROADS, PEType.SETTLEMENTS, PEType.CITIES };
 
     /**
      * For {@link #joinGame}; element types for last Settlement node, unknown resources,
-     * {@link SOCPlayerElement#NUMKNIGHTS}, and classic piece types, for sending {@link SOCPlayerElements}:
-     * {@link #ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC} plus {@link SOCPlayerElement#SHIPS}.
+     * {@link PEType#NUMKNIGHTS}, and classic piece types, for sending {@link SOCPlayerElements}:
+     * {@link #ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC} plus {@link PEType#SHIPS}.
      * @since 2.0.00
      */
-    private static final int[] ELEM_JOINGAME_WITH_PIECETYPES_SEA =
-        { SOCPlayerElement.LAST_SETTLEMENT_NODE, SOCPlayerElement.UNKNOWN, SOCPlayerElement.NUMKNIGHTS,
-          SOCPlayerElement.ROADS, SOCPlayerElement.SETTLEMENTS, SOCPlayerElement.CITIES, SOCPlayerElement.SHIPS };
+    private static final PEType[] ELEM_JOINGAME_WITH_PIECETYPES_SEA =
+        { PEType.LAST_SETTLEMENT_NODE, PEType.UNKNOWN, PEType.NUMKNIGHTS,
+          PEType.ROADS, PEType.SETTLEMENTS, PEType.CITIES, PEType.SHIPS };
 
     /**
      * For {@link #joinGame}; {@link SOCGameElements} types for number of development cards,
@@ -634,7 +633,7 @@ public class SOCGameHandler extends GameHandler
                 pl = ga.getPlayer(ga.getCurrentPlayerNumber());
             pl.setAskedSpecialBuild(false);
             srv.messageToGame(gname, new SOCPlayerElement
-                    (gname, pl.getPlayerNumber(), SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
+                (gname, pl.getPlayerNumber(), SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 0));
         }
 
         final boolean hadBoardResetRequest = (-1 != ga.getResetVoteRequester());
@@ -719,7 +718,8 @@ public class SOCGameHandler extends GameHandler
         if (cp.hasAskedSpecialBuild())
         {
             cp.setAskedSpecialBuild(false);
-            srv.messageToGame(gaName, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
+            srv.messageToGame(gaName, new SOCPlayerElement
+                (gaName, cpn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 0));
         }
 
         final SOCForceEndTurnResult res = ga.forceEndTurn();
@@ -758,7 +758,7 @@ public class SOCGameHandler extends GameHandler
                 int totalRes = resGainLoss.getTotal();
                 srv.messageToGameExcept
                     (gaName, c, new SOCPlayerElement
-                        (gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes, true),
+                        (gaName, cpn, SOCPlayerElement.LOSE, PEType.UNKNOWN, totalRes, true),
                      true);
                 srv.messageToGameKeyed(ga, true, "action.discarded", plName, totalRes);  //  "{0} discarded {1} resources."
             }
@@ -1021,7 +1021,7 @@ public class SOCGameHandler extends GameHandler
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
                 c.put(SOCPlayerElement.toCmd
                     (gameName, -1, SOCPlayerElement.SET,
-                     SOCPlayerElement.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
+                     PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
                 // individual villages' cloth counts are sent soon below
         }
 
@@ -1185,7 +1185,7 @@ public class SOCGameHandler extends GameHandler
             if (itm != 0)
             {
                 srv.messageToPlayer(c, new SOCPlayerElement
-                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
+                    (gameName, i, SOCPlayerElement.SET, PEType.SCENARIO_SVP, itm));
 
                 ArrayList<SOCPlayer.SpecialVPInfo> svpis = pl.getSpecialVPInfo();
                 if (svpis != null)
@@ -1196,22 +1196,22 @@ public class SOCGameHandler extends GameHandler
             itm = pl.getPlayerEvents();
             if (itm != 0)
                 srv.messageToPlayer(c, new SOCPlayerElement
-                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.PLAYEREVENTS_BITMASK, itm));
+                    (gameName, i, SOCPlayerElement.SET, PEType.PLAYEREVENTS_BITMASK, itm));
 
             itm = pl.getScenarioSVPLandAreas();
             if (itm != 0)
                 srv.messageToPlayer(c, new SOCPlayerElement
-                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, itm));
+                    (gameName, i, SOCPlayerElement.SET, PEType.SCENARIO_SVP_LANDAREAS_BITMASK, itm));
 
             itm = pl.getStartingLandAreasEncoded();
             if (itm != 0)
                 srv.messageToPlayer(c, new SOCPlayerElement
-                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.STARTING_LANDAREAS, itm));
+                    (gameName, i, SOCPlayerElement.SET, PEType.STARTING_LANDAREAS, itm));
 
             itm = pl.getCloth();
             if (itm != 0)
                 srv.messageToPlayer(c, new SOCPlayerElement
-                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, itm));
+                    (gameName, i, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, itm));
 
             // Send piece info even if player has left the game (pl.getName() == null).
             // This lets them see "their" pieces before srv.sitDown(), if they rejoin at same position.
@@ -1246,7 +1246,7 @@ public class SOCGameHandler extends GameHandler
             itm = pl.getNumWarships();
             if (itm != 0)
                 srv.messageToPlayer(c, new SOCPlayerElement
-                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, itm));
+                    (gameName, i, SOCPlayerElement.SET, PEType.SCENARIO_WARSHIP_COUNT, itm));
 
             /**
              * send node coord of the last settlement, resources,
@@ -1271,7 +1271,7 @@ public class SOCGameHandler extends GameHandler
                 c.put(SOCLastSettlement.toCmd(gameName, i, counts[0]));
                     // client too old for SOCPlayerElement.LAST_SETTLEMENT_NODE
                 for (int j = 1; j < counts.length; ++j)
-                    c.put(SOCPlayerElement.toCmd
+                    c.put(new SOCPlayerElement
                         (gameName, i, SOCPlayerElement.SET, ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC[j], counts[j]));
             }
 
@@ -2271,7 +2271,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * Send a game text message "x, y, and z need to pick resources from the gold hex."
      * and, for each picking player, a
-     * {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
+     * {@link SOCPlayerElement}({@link PEType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
      * To prompt the specific players to choose a resource, also sends their clients a
      * {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
      *<P>
@@ -2348,7 +2348,7 @@ public class SOCGameHandler extends GameHandler
             if (num[pn] > 0)
             {
                 srv.messageToGame(gname, new SOCPlayerElement
-                    (gname, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, num[pn]));
+                    (gname, pn, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, num[pn]));
 
                 if (! singlePlayerGetsPickRequest)
                 {
@@ -2612,10 +2612,10 @@ public class SOCGameHandler extends GameHandler
 
             srv.messageToGame(gaName,
                 new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET,
-                    SOCPlayerElement.SCENARIO_CLOTH_COUNT, vi.getCloth(), true));
+                    PEType.SCENARIO_CLOTH_COUNT, vi.getCloth(), true));
             srv.messageToGame(gaName,
                 new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET,
-                    SOCPlayerElement.SCENARIO_CLOTH_COUNT, pe.getCloth()));
+                    PEType.SCENARIO_CLOTH_COUNT, pe.getCloth()));
             srv.messageToGameKeyed(ga, true, "robber.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
 
             return;  // <--- early return: cloth is announced to entire game ---
@@ -2643,8 +2643,8 @@ public class SOCGameHandler extends GameHandler
         List<Connection> sendNotTo = new ArrayList<Connection>(2);
         sendNotTo.add(peCon);
         sendNotTo.add(viCon);
-        gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, SOCPlayerElement.UNKNOWN, 1);
-        loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, 1);
+        gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN, 1);
+        loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN, 1);
         srv.messageToGameExcept(gaName, sendNotTo, gainUnknown, true);
         srv.messageToGameExcept(gaName, sendNotTo, loseUnknown, true);
 
@@ -2822,7 +2822,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * Report to game members what a player picked from the gold hex.
      * Sends {@link SOCPlayerElement} for resources and to reset the
-     * {@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES} counter.
+     * {@link PEType#NUM_PICK_GOLD_HEX_RESOURCES} counter.
      * Sends text "playername has picked ___ from the gold hex.".
      * @param ga      Game with gaining player
      * @param player  Player gaining
@@ -2847,7 +2847,7 @@ public class SOCGameHandler extends GameHandler
             ((includeGoldHexText) ? "action.picked.rsrcs.goldhex" : "action.picked.rsrcs"),
             player.getName(), rsrcs);
         srv.messageToGame(gn, new SOCPlayerElement
-            (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+            (gn, pn, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, 0));
     }
 
     // javadoc inherited from GameHandler
@@ -2987,7 +2987,7 @@ public class SOCGameHandler extends GameHandler
 
             if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                 srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                    (gaName, -1, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 0));
+                    (gaName, -1, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 0));
 
             /**
              * send the number of dev cards.
@@ -3104,7 +3104,7 @@ public class SOCGameHandler extends GameHandler
 
         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
             srv.messageToGame(gname, new SOCPlayerElement
-                (gname, cpn, SOCPlayerElement.SET, SOCPlayerElement.PLAYED_DEV_CARD_FLAG, 0));
+                (gname, cpn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 0));
         else
             srv.messageToGame(gname, new SOCSetPlayedDevCard(gname, cpn, false));
 
@@ -3687,7 +3687,7 @@ public class SOCGameHandler extends GameHandler
 
             srv.messageToGameExcept
                 (gaName, c, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes, true),
+                    (gaName, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN, totalRes, true),
                  true);
             srv.messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
 
@@ -3834,7 +3834,7 @@ public class SOCGameHandler extends GameHandler
                 if (las != 0)
                     ga.pendingMessagesOut.add(new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.SET,
-                         SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, las));
+                         PEType.SCENARIO_SVP_LANDAREAS_BITMASK, las));
             }
             break;
 
@@ -3854,7 +3854,7 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGame(gaName, new SOCPieceValue
                     (gaName, SOCPlayingPiece.VILLAGE, vi.getCoordinates(), vi.getCloth(), 0));
                 srv.messageToGame(gaName, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, pl.getCloth()));
+                    (gaName, pn, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, pl.getCloth()));
             }
             break;
 
@@ -3920,12 +3920,12 @@ public class SOCGameHandler extends GameHandler
         if (sendSVP)
             ga.pendingMessagesOut.add(new SOCPlayerElement
                 (gaName, pn, SOCPlayerElement.SET,
-                 SOCPlayerElement.SCENARIO_SVP, pl.getSpecialVP()));
+                 PEType.SCENARIO_SVP, pl.getSpecialVP()));
 
         if (sendPlayerEventsBitmask)
             ga.pendingMessagesOut.add(new SOCPlayerElement
                 (gaName, pn, SOCPlayerElement.SET,
-                 SOCPlayerElement.PLAYEREVENTS_BITMASK, pl.getPlayerEvents()));
+                 PEType.PLAYEREVENTS_BITMASK, pl.getPlayerEvents()));
     }
 
     /**
@@ -3964,7 +3964,7 @@ public class SOCGameHandler extends GameHandler
      * A player has been awarded Special Victory Points (SVP), so send
      * a {@link SOCSVPTextMessage} to the game about the SVP description,
      * and also call {@link SOCPlayer#addSpecialVPInfo(int, String)}.
-     * Should be called before {@link SOCPlayerElement}({@link SOCPlayerElement#SCENARIO_SVP SCENARIO_SVP}),
+     * Should be called before sending {@link SOCPlayerElement}({@link PEType#SCENARIO_SVP SCENARIO_SVP}),
      * not after.
      *<P>
      * Adds the message to {@link SOCGame#pendingMessagesOut}; note that
