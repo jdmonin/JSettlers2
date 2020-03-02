@@ -20,6 +20,7 @@
 package soc.server.savegame;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import soc.game.*;
@@ -174,7 +175,7 @@ public class SavedGameModel
         SOCResourceSet resources;
 
         /** Available piece counts, SVP, cloth count, etc. */
-        ArrayList<PETypeValue> elements = new ArrayList<>();
+        HashMap<PEType, Integer> elements = new HashMap<>();
 
         /**
          * Standard dev card types in player's hand,
@@ -209,16 +210,16 @@ public class SavedGameModel
             faceID = pl.getFaceId();
             resources = pl.getResources();
 
-            elements.add(new PETypeValue(PEType.NUMKNIGHTS, pl.getNumKnights()));
-            elements.add(new PETypeValue(PEType.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
-            elements.add(new PETypeValue(PEType.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
-            elements.add(new PETypeValue(PEType.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
+            elements.put(PEType.NUMKNIGHTS, pl.getNumKnights());
+            elements.put(PEType.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD));
+            elements.put(PEType.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+            elements.put(PEType.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY));
             if (ga.hasSeaBoard)
             {
-                elements.add(new PETypeValue(PEType.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
+                elements.put(PEType.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP));
                 int n = pl.getNumWarships();
                 if (n != 0)
-                    elements.add(new PETypeValue(PEType.SCENARIO_WARSHIP_COUNT, n));
+                    elements.put(PEType.SCENARIO_WARSHIP_COUNT, n);
             }
 
             final SOCInventory cardsInv = pl.getInventory();
@@ -233,18 +234,6 @@ public class SavedGameModel
 
             pieces.addAll(pl.getPieces());
             fortressPiece = pl.getFortress();
-        }
-
-        static class PETypeValue
-        {
-            public PEType type;
-            public int value;
-
-            public PETypeValue(PEType t, int v)
-            {
-                type = t;
-                value = v;
-            }
         }
     }
 
