@@ -526,14 +526,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * receive a board layout
              */
             case SOCMessage.BOARDLAYOUT:
-                handleBOARDLAYOUT((SOCBoardLayout) mes);
+                handleBOARDLAYOUT((SOCBoardLayout) mes, games.get(((SOCBoardLayout) mes).getGame()));
                 break;
 
             /**
              * receive a board layout (new format, as of 20091104 (v 1.1.08))
              */
             case SOCMessage.BOARDLAYOUT2:
-                handleBOARDLAYOUT2(games, (SOCBoardLayout2) mes);
+                handleBOARDLAYOUT2((SOCBoardLayout2) mes, games.get(((SOCBoardLayout2) mes).getGame()));
                 break;
 
             /**
@@ -709,7 +709,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * get a list of all the potential settlements for a player
              */
             case SOCMessage.POTENTIALSETTLEMENTS:
-                handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes, games);
+                handlePOTENTIALSETTLEMENTS
+                    ((SOCPotentialSettlements) mes, games.get(((SOCPotentialSettlements) mes).getGame()));
                 break;
 
             /**
@@ -1166,10 +1167,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * handle the "board layout" message
      * @param mes  the message
+     * @param ga  Game to apply layout to, for method reuse; does nothing if null
+     * @see #handleBOARDLAYOUT2(SOCBoardLayout2, SOCGame)
      */
-    protected void handleBOARDLAYOUT(SOCBoardLayout mes)
+    public static void handleBOARDLAYOUT(SOCBoardLayout mes, final SOCGame ga)
     {
-        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -1183,14 +1185,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "board layout" message, new format
-     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
+     * @param ga  Game to apply layout to, for method reuse; does nothing if null
      * @since 1.1.08
-     * @return True if game was found and layout understood, false otherwise
+     * @return True if layout was understood and game != null, false otherwise
+     * @see #handleBOARDLAYOUT(SOCBoardLayout, SOCGame)
      */
-    public static boolean handleBOARDLAYOUT2(Map<String, SOCGame> games, SOCBoardLayout2 mes)
+    public static boolean handleBOARDLAYOUT2(SOCBoardLayout2 mes, final SOCGame ga)
     {
-        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return false;
 
@@ -1397,8 +1399,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param etype  Element type, such as {@link PEType#SETTLEMENTS} or {@link PEType#NUMKNIGHTS}.
      *     Does nothing if {@code null}.
      * @param amount  The new value to set, or the delta to gain/lose
-     * @param nickname  Our client player nickname/username, for a few elements where that matters.
-     *     Some callers use {@code null} for elements where this isn't needed.
+     * @param nickname  Our client player nickname/username, for the only element where that matters:
+     *     {@link PEType#RESOURCE_COUNT}. Can be {@code null} otherwise.
      * @since 2.0.00
      */
     public static final void handlePLAYERELEMENT
@@ -2162,17 +2164,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * handle the "list of potential settlements" message
      * @param mes  the message
-     * @param games  The hashtable of client's {@link SOCGame}s; key = game name
+     * @param ga  Game to apply message to, for method reuse; does nothing if null
      * @throws IllegalStateException if the board has
      *     {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("AL")} != {@code null} but
      *     badly formed (node list number 0, or a node list number not followed by a land area number).
      *     This Added Layout Part is rarely used, and this would be discovered quickly while testing
      *     the board layout that contained it.
      */
-    public static void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes, Hashtable<String, SOCGame> games)
+    public static void handlePOTENTIALSETTLEMENTS
+        (SOCPotentialSettlements mes, final SOCGame ga)
         throws IllegalStateException
     {
-        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 

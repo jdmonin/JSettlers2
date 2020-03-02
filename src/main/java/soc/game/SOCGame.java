@@ -632,10 +632,10 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Is this the server's complete copy of the game, not the client's (with some details unknown)?
-     * Set during {@link #startGame()}.
+     * Set during {@link #startGame()}. Treat as read-only.
      * @since 1.1.17
      */
-    boolean isAtServer;
+    public boolean isAtServer;
 
     /**
      * For games at server, a convenient queue to hold any outbound SOCMessages during game actions.
@@ -1660,6 +1660,7 @@ public class SOCGame implements Serializable, Cloneable
      *     assumes single-threaded processing of incoming messages to this game.
      * @throws IllegalArgumentException if name isn't in this game.
      *           This exception was added in 1.1.07.
+     * @see #isSeatVacant(int)
      * @see #addPlayer(String, int)
      */
     public void removePlayer(final String name, final boolean hasReplacement)
@@ -1679,6 +1680,8 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn the number of the seat
      * @see #getAvailableSeatCount()
+     * @see #addPlayer(String, int)
+     * @see #removePlayer(String, boolean)
      */
     public boolean isSeatVacant(final int pn)
     {
@@ -2440,6 +2443,42 @@ public class SOCGame implements Serializable, Cloneable
     public void setNumDevCards(final int nd)
     {
         numDevCards = nd;
+    }
+
+    /**
+     * At server, get the dev cards remaining in the unplayed deck.
+     * @return Unplayed dev card deck: a copied array of ints from {@link SOCDevCardConstants}
+     * @see #setDevCardDeck(int[])
+     * @see #buyDevCard()
+     * @since 2.3.00
+     */
+    public int[] getDevCardDeck()
+    {
+        int[] cards = new int[numDevCards];
+        System.arraycopy(devCardDeck, 0, cards, 0, cards.length);
+        return cards;
+    }
+
+    /**
+     * At server, set the dev cards remaining in the unplayed deck.
+     * Useful for loading a saved game snapshot.
+     * @param cards Unplayed dev card deck: ints from {@link SOCDevCardConstants}.
+     *     Contents will be copied. Can be empty, but not null.
+     * @throws IllegalArgumentException if {@code cards} is null
+     * @see #getDevCardDeck()
+     * @since 2.3.00
+     */
+    public void setDevCardDeck(final int[] cards)
+        throws IllegalArgumentException
+    {
+        if (cards == null)
+            throw new IllegalArgumentException("cards");
+
+        final int L = cards.length;
+        if ((devCardDeck == null) || (L > devCardDeck.length))
+            devCardDeck = new int[L];
+        numDevCards = L;
+        System.arraycopy(cards, 0, devCardDeck, 0, L);
     }
 
     /**
@@ -4162,7 +4201,30 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * do the things involved in starting a game:
+     * Initialize server-only game fields.
+     * Called from {@link #startGame()} and saved-game loader.
+     * Sets {@link #isAtServer} and {@link #allOriginalPlayers()} flags.
+     * Updates {@link #lastActionTime}.
+     * Initializes misc fields like each player's {@link SOCPlayer#pendingMessagesOut}.
+     * @since 2.3.00
+     */
+    public void initAtServer()
+    {
+        isAtServer = true;
+
+        pendingMessagesOut = new ArrayList<Object>();
+        for (int i = 0; i < maxPlayers; ++i)
+            players[i].pendingMessagesOut = new ArrayList<Object>();
+
+        // make sure game doesn't look idle, in case first player is a robot
+        lastActionTime = System.currentTimeMillis();
+
+        allOriginalPlayers = true;
+    }
+
+    /**
+     * Do the things involved in starting a game at server:
+     * Call {@link #initAtServer()},
      * shuffle the tiles and cards, make a board,
      * set players' legal and potential piece locations,
      * choose first player.
@@ -4183,10 +4245,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void startGame()
     {
-        isAtServer = true;
-        pendingMessagesOut = new ArrayList<Object>();
-        for (int i = 0; i < maxPlayers; ++i)
-            players[i].pendingMessagesOut = new ArrayList<Object>();
+        initAtServer();
 
         startGame_setupDevCards();
 
@@ -4209,10 +4268,6 @@ public class SOCGame implements Serializable, Cloneable
         }
         updateAtBoardLayout();
 
-        // make sure game doesn't look idle, in case first player is a robot
-        lastActionTime = System.currentTimeMillis();
-
-        allOriginalPlayers = true;
         gameState = START1A;
 
         /**
@@ -4324,6 +4379,7 @@ public class SOCGame implements Serializable, Cloneable
      * Based on <code>pn</code> and on vacant seats, also recalculates lastPlayer.
      *
      * @param pn  the seat number of the first player, or -1 if not set yet
+     * @see #getFirstPlayer()
      */
     public void setFirstPlayer(final int pn)
     {
@@ -4356,6 +4412,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the first player number, who went first during initial placement.
+     * Not needed after initial placement.
      * @return the seat number of the first player
      */
     public int getFirstPlayer()
@@ -7540,6 +7598,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      *<b>Note:</b> Not checked for validity; please call {@link #couldBuyDevCard(int)} first.
      *<P>
+     * Called at server only.
+     *<P>
      * If called while the game is starting, when {@link #getCurrentPlayerNumber()} == -1,
      * removes and returns a dev card from the deck without giving it to any player.
      *
@@ -7559,6 +7619,7 @@ public class SOCGame implements Serializable, Cloneable
             players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.NEW, card);
             lastActionTime = System.currentTimeMillis();
             lastActionWasBankTrade = false;
+
             checkForWinner();
         }
 

@@ -124,11 +124,9 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      *<P>
      * <b>Note:</b> This is set when the piece was placed, so it's always accurate at server.
      * At client it may be 0 if the client joined the game after this piece was placed.
-     *<P>
-     * Package access for SOCPlayer's benefit.
      * @since 2.0.00
      */
-    int specialVP;
+    public int specialVP;
 
     /**
      * If {@link #specialVP} != 0, the event for which the SVP was awarded. Otherwise <tt>null</tt>.
@@ -158,6 +156,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     {
         if (pl == null)
             throw new IllegalArgumentException("player null");
+
         pieceType = ptype;
         player = pl;
         coord = co;
@@ -181,6 +180,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     {
         if (pboard == null)
             throw new IllegalArgumentException("board null");
+
         pieceType = ptype;
         player = null;
         coord = co;
@@ -244,6 +244,22 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     public int getCoordinates()
     {
         return coord;
+    }
+
+    /**
+     * Update piece's game info. Useful when loading from a persisted form.
+     * @param pl  Player; can be null for some piece types, like {@link SOCVillage}
+     * @param b   Board; not null
+     * @throws IllegalArgumentException if {@code b} is {@code null}
+     * @since 2.3.00
+     */
+    public void setGameInfo(SOCPlayer pl, SOCBoard b)
+    {
+        if (b == null)
+            throw new IllegalArgumentException("board");
+
+        player = pl;
+        board = b;
     }
 
     /**

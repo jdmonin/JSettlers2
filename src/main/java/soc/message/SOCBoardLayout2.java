@@ -19,6 +19,7 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -133,6 +134,10 @@ public class SOCBoardLayout2 extends SOCMessage
      * see class javadoc, {@link #getAddedParts()}, {@link #KNOWN_KEYS},
      * {@link SOCBoardLarge#getAddedLayoutParts()},
      * and {@link soc.server.SOCBoardAtServer#setAddedLayoutPart(String, int[])}.
+     *<P>
+     * In v2.3.00 and newer, this message can be part of a server game saved/loaded using json files.
+     * Reloaded layoutPart objects may be List<Number> or Number instead of the expected int[] or String;
+     * {@link #getIntArrayPart(String)} and {@link #getIntPart(String)} will convert as needed.
      */
     private Map<String, Object> layoutParts;
 
@@ -264,10 +269,23 @@ public class SOCBoardLayout2 extends SOCMessage
      *
      * @param pkey the part's key name
      * @return the component, or null if no part named <tt>pkey</tt>.
+     * @see #getIntPart(String)
      */
+    @SuppressWarnings("unchecked")
     public int[] getIntArrayPart(String pkey)
     {
-        final int[] iap = (int[]) layoutParts.get(pkey);
+        Object part = layoutParts.get(pkey);
+        final int[] iap;
+        if (part instanceof ArrayList)
+        {
+            // part can be ArrayList<Double> if message is loaded from JSON
+            final int L = ((ArrayList<?>) part).size();
+            iap = new int[L];
+            for (int i = 0; i < L; ++i)
+                iap[i] = ((ArrayList<Number>) part).get(i).intValue();
+        } else {
+            iap = (int[]) part;
+        }
         if (! pkey.equals("HL"))
             return iap;
 
@@ -294,10 +312,15 @@ public class SOCBoardLayout2 extends SOCMessage
      * Get a layout part of type int
      * @param pkey the part's key name
      * @return the part's value, or 0 if no part named <tt>pkey</tt>, or if it's not integer.
+     * @see #getIntArrayPart(String)
      */
     public int getIntPart(String pkey)
     {
-        String sobj = (String) layoutParts.get(pkey);
+        final Object obj = layoutParts.get(pkey);
+        if (obj instanceof Number)
+            return ((Number) obj).intValue();  // message was probably loaded from JSON
+
+        String sobj = (String) obj;
         if (sobj == null)
             return 0;
         try
@@ -359,7 +382,7 @@ public class SOCBoardLayout2 extends SOCMessage
             {
                 if (added == null)
                     added = new HashMap<String, int[]>();
-                added.put(key, (int[]) layoutParts.get(key));
+                added.put(key, getIntArrayPart(key));
             }
         }
 

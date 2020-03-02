@@ -1937,11 +1937,16 @@ public class SOCGameMessageHandler
                                }
                              */
                             srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameKeyed(ga, false, "action.built.road", plName);  // "Joe built a road."
-                            srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
-                            if (! ga.pendingMessagesOut.isEmpty())
-                                handler.sendGamePendingMessages(ga, false);
-                            srv.gameList.releaseMonitorForGame(gaName);
+                            try
+                            {
+                                srv.messageToGameKeyed(ga, false, "action.built.road", plName);  // "Joe built a road."
+                                srv.messageToGameWithMon
+                                    (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
+                                if (! ga.pendingMessagesOut.isEmpty())
+                                    handler.sendGamePendingMessages(ga, false);
+                            } finally {
+                                srv.gameList.releaseMonitorForGame(gaName);
+                            }
 
                             // If needed, call sendTurn or send SOCRollDicePrompt
                             handler.sendTurnStateAtInitialPlacement(ga, player, c, gameState);
@@ -1985,11 +1990,16 @@ public class SOCGameMessageHandler
                             ga.putPiece(se);   // Changes game state and (if initial placement) player
 
                             srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameKeyed(ga, false, "action.built.stlmt", plName);  // "Joe built a settlement."
-                            srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
-                            if (! ga.pendingMessagesOut.isEmpty())
-                                handler.sendGamePendingMessages(ga, false);
-                            srv.gameList.releaseMonitorForGame(gaName);
+                            try
+                            {
+                                srv.messageToGameKeyed(ga, false, "action.built.stlmt", plName);  // "Joe built a settlement."
+                                srv.messageToGameWithMon
+                                    (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
+                                if (! ga.pendingMessagesOut.isEmpty())
+                                    handler.sendGamePendingMessages(ga, false);
+                            } finally {
+                                srv.gameList.releaseMonitorForGame(gaName);
+                            }
 
                             // Check player and send new game state
                             if (! handler.checkTurn(c, ga))
@@ -2043,14 +2053,19 @@ public class SOCGameMessageHandler
                             ga.putPiece(ci);  // changes game state and maybe player
 
                             srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameKeyed(ga, false, "action.built.city", plName);  // "Joe built a city."
-                            srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
-                            if (! ga.pendingMessagesOut.isEmpty())
-                                handler.sendGamePendingMessages(ga, false);
-                            if (houseRuleFirstCity)
-                                srv.messageToGameKeyed(ga, false, "action.built.nextturn.7.houserule");
-                                // "Starting next turn, dice rolls of 7 may occur (house rule)."
-                            srv.gameList.releaseMonitorForGame(gaName);
+                            try
+                            {
+                                srv.messageToGameKeyed(ga, false, "action.built.city", plName);  // "Joe built a city."
+                                srv.messageToGameWithMon
+                                    (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
+                                if (! ga.pendingMessagesOut.isEmpty())
+                                    handler.sendGamePendingMessages(ga, false);
+                                if (houseRuleFirstCity)
+                                    srv.messageToGameKeyed(ga, false, "action.built.nextturn.7.houserule");
+                                    // "Starting next turn, dice rolls of 7 may occur (house rule)."
+                            } finally {
+                                srv.gameList.releaseMonitorForGame(gaName);
+                            }
 
                             // Check player and send new game state
                             if (! handler.checkTurn(c, ga))
@@ -2091,11 +2106,16 @@ public class SOCGameMessageHandler
                             ga.putPiece(sh);  // Changes game state and (during initial placement) sometimes player
 
                             srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameKeyed(ga, false, "action.built.ship", plName);  // "Joe built a ship."
-                            srv.messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
-                            if (! ga.pendingMessagesOut.isEmpty())
-                                handler.sendGamePendingMessages(ga, false);
-                            srv.gameList.releaseMonitorForGame(gaName);
+                            try
+                            {
+                                srv.messageToGameKeyed(ga, false, "action.built.ship", plName);  // "Joe built a ship."
+                                srv.messageToGameWithMon
+                                    (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
+                                if (! ga.pendingMessagesOut.isEmpty())
+                                    handler.sendGamePendingMessages(ga, false);
+                            } finally {
+                                srv.gameList.releaseMonitorForGame(gaName);
+                            }
 
                             // If needed, call sendTurn or send SOCRollDicePrompt
                             handler.sendTurnStateAtInitialPlacement(ga, player, c, gameState);
@@ -2347,23 +2367,27 @@ public class SOCGameMessageHandler
                     // Note: If this message sequence changes, update SOCBuyDevCardRequest javadoc
 
                     srv.gameList.takeMonitorForGame(gaName);
-                    if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
+                    try
                     {
-                        srv.messageToGameWithMon(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
-                        srv.messageToGameWithMon
-                            (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
-                    } else {
-                        srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.LOSE, PEType.ORE, 1));
-                        srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                        srv.messageToGameWithMon(gaName, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
-                        srv.messageToGameWithMon
-                            (gaName, new SOCDevCardCount(gaName, devCount));
+                        if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
+                        {
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElements
+                                (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
+                            srv.messageToGameWithMon
+                                (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
+                        } else {
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.LOSE, PEType.ORE, 1));
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
+                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
+                            srv.messageToGameWithMon
+                                (gaName, new SOCDevCardCount(gaName, devCount));
+                        }
+                    } finally {
+                        srv.gameList.releaseMonitorForGame(gaName);
                     }
-                    srv.gameList.releaseMonitorForGame(gaName);
 
                     if ((card == SOCDevCardConstants.KNIGHT)
                         && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
@@ -2395,32 +2419,36 @@ public class SOCGameMessageHandler
                     } else {
                         srv.gameList.takeMonitorForGame(gaName);
 
-                        srv.messageToGameForVersions
-                            (ga, SOCSimpleAction.VERSION_FOR_SIMPLEACTION, Integer.MAX_VALUE, actmsg, false);
+                        try
+                        {
+                            srv.messageToGameForVersions
+                                (ga, SOCSimpleAction.VERSION_FOR_SIMPLEACTION, Integer.MAX_VALUE, actmsg, false);
 
-                        // Only pre-1.1.19 clients will see the game text messages. Since they're
-                        // older than the i18n work: Skip text key lookups, always use english,
-                        // and use SOCGameTextMsg not SOCGameServerText.
+                            // Only pre-1.1.19 clients will see the game text messages. Since they're
+                            // older than the i18n work: Skip text key lookups, always use english,
+                            // and use SOCGameTextMsg not SOCGameServerText.
 
-                        final String boughtTxt = MessageFormat.format("{0} bought a development card.", player.getName());
-                        srv.messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
+                            final String boughtTxt = MessageFormat.format
+                                ("{0} bought a development card.", player.getName());
+                            srv.messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
                                 new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, boughtTxt), false);
 
-                        final String remainTxt;
-                        switch(remain)
-                        {
-                        case 0:
-                            remainTxt = "There are no more Development cards.";  break;
-                        case 1:
-                            remainTxt = "There is 1 card left.";  break;
-                        default:
-                            remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());
-                                // I18N OK: for old version compat
+                            final String remainTxt;
+                            switch(remain)
+                            {
+                            case 0:
+                                remainTxt = "There are no more Development cards.";  break;
+                            case 1:
+                                remainTxt = "There is 1 card left.";  break;
+                            default:
+                                remainTxt = MessageFormat.format("There are {0,number} cards left.", ga.getNumDevCards());
+                                    // I18N OK: for old version compat
+                            }
+                            srv.messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
+                                    new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, remainTxt), false);
+                        } finally {
+                            srv.gameList.releaseMonitorForGame(gaName);
                         }
-                        srv.messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
-                                new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, remainTxt), false);
-
-                        srv.gameList.releaseMonitorForGame(gaName);
                     }
 
                     handler.sendGameState(ga);

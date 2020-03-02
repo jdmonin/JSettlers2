@@ -34,7 +34,6 @@ import java.util.StringTokenizer;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
-import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
@@ -1337,19 +1336,16 @@ import soc.util.Version;
      */
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
     {
-        SOCGame ga = client.games.get(mes.getGame());
+        final String gaName = mes.getGame();
+        SOCGame ga = client.games.get(gaName);
         if (ga == null)
             return;
 
-        // BOARDLAYOUT is always the v1 board encoding (oldest format)
-        SOCBoard bd = ga.getBoard();
-        bd.setHexLayout(mes.getHexLayout());
-        bd.setNumberLayout(mes.getNumberLayout());
-        bd.setRobberHex(mes.getRobberHex(), false);
-        ga.updateAtBoardLayout();
+        SOCDisplaylessPlayerClient.handleBOARDLAYOUT(mes, ga);
 
-        PlayerClientListener pcl = client.getClientListener(mes.getGame());
-        pcl.boardLayoutUpdated();
+        PlayerClientListener pcl = client.getClientListener(gaName);
+        if (pcl != null)
+            pcl.boardLayoutUpdated();
     }
 
     /**
@@ -1382,10 +1378,12 @@ import soc.util.Version;
      */
     protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
     {
-        if (SOCDisplaylessPlayerClient.handleBOARDLAYOUT2(client.games, mes))
+        final String gaName = mes.getGame();
+        if (SOCDisplaylessPlayerClient.handleBOARDLAYOUT2(mes, client.games.get(gaName)))
         {
-            PlayerClientListener pcl = client.getClientListener(mes.getGame());
-            pcl.boardLayoutUpdated();
+            PlayerClientListener pcl = client.getClientListener(gaName);
+            if (pcl != null)
+                pcl.boardLayoutUpdated();
         }
     }
 
@@ -2206,9 +2204,10 @@ import soc.util.Version;
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
             throws IllegalStateException
     {
-        SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, client.games);
+        final String gaName = mes.getGame();
+        SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, client.games.get(gaName));
 
-        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl != null)
             pcl.boardPotentialsUpdated();
     }

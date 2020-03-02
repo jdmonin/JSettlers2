@@ -1269,26 +1269,31 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     @Override
     protected void handleSITDOWN(SOCSitDown mes)
     {
+        final String gaName = mes.getGame();
+
         /**
          * tell the game that a player is sitting
          */
-        SOCGame ga = games.get(mes.getGame());
+        final SOCGame ga = games.get(gaName);
 
         if (ga != null)
         {
-            ga.addPlayer(mes.getNickname(), mes.getPlayerNumber());
+            final String plName = mes.getNickname();
+            final int pn = mes.getPlayerNumber();
+
+            ga.addPlayer(plName, pn);
 
             /**
              * set the robot flag
              */
-            ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
+            ga.getPlayer(pn).setRobotFlag(mes.isRobot(), false);
 
             /**
              * let the robot brain find our player object if we sat down
              */
-            if (nickname.equals(mes.getNickname()))
+            if (nickname.equals(plName))
             {
-                SOCRobotBrain brain = robotBrains.get(mes.getGame());
+                SOCRobotBrain brain = robotBrains.get(gaName);
 
                 /**
                  * retrieve the proper face for our strategy
@@ -1310,14 +1315,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 /**
                  * change our face to the robot face
                  */
-                put(SOCChangeFace.toCmd(ga.getName(), mes.getPlayerNumber(), faceId));
+                put(SOCChangeFace.toCmd(ga.getName(), pn, faceId));
             }
             else
             {
                 /**
                  * add tracker for player in previously vacant seat
                  */
-                SOCRobotBrain brain = robotBrains.get(mes.getGame());
+                SOCRobotBrain brain = robotBrains.get(gaName);
 
                 if (brain != null)
                 {

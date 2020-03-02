@@ -1328,28 +1328,72 @@ public class SOCServerMessageHandler
         if (! processDebugCommand_loadSaveGame_checkDir("LOADGAME", c, connGaName))
             return;
 
+        if (SavedGameModel.glas == null)
+            SavedGameModel.glas = srv.gameList;
+
         SavedGameModel sgm = null;
         try
         {
             sgm = GameLoaderJSON.loadGame
                 (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
-        } catch(IllegalArgumentException|IOException e) {
+        } catch(Throwable th) {
             srv.messageToPlayer
-                (c, connGaName, /*I*/"Problem loading " + argsStr + ": " + e /*18N*/);
+                (c, connGaName, /*I*/"Problem loading " + argsStr + ": " + th /*18N*/);
             return;
         }
 
-        final SOCGame loadedGa = sgm.getGame();
+        final SOCGame ga = sgm.getGame();
 
         // validate name and opts, add to gameList, announce "new" game, have client join;
         // sends error text if validation fails
         if (! srv.createOrJoinGame
-               (c, c.getVersion(), connGaName, loadedGa.getGameOptions(), loadedGa, SOCServer.AUTH_OR_REJECT__OK))
+               (c, c.getVersion(), connGaName, ga.getGameOptions(), ga, SOCServer.AUTH_OR_REJECT__OK))
         {
             return;
         }
 
-        // TODO once sgm has player info: look for bots, ask them to join like in handleSTARTGAME
+        // Must tell debug player to sit down for debug user if they're a player here,
+        // since PI will show as seated if nickname matches player name
+        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+        {
+            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+            if (pi.isSeatVacant || ! pi.name.equals(c.getData()))
+                continue;
+
+            srv.sitDown(ga, c, pn, false, false);
+            break;
+        }
+
+        // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
+        final String gaName = ga.getName();
+        final GameHandler gh = gameList.getGameTypeHandler(gaName);
+        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+        {
+            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+            if (pi.isSeatVacant || ! pi.isRobot)
+                continue;
+
+            // TODO once we have bot details/constraints (fast or smart, 3rd-party bot class),
+            //   request those when calling findRobotAskJoinGame
+            //   instead of marking their seat as vacant
+
+            if (! ga.isSeatVacant(pn))
+                ga.removePlayer(ga.getPlayer(pn).getName(), true);
+            boolean foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
+            if (foundNoRobots)
+                break;
+            // TODO chk retval before break; send error msg to debug user in loaded game?
+        }
+
+        // Send Resume reminder prompt after delay, to appear after bots have joined
+        //     TODO if any problems, don't send this prompt
+        srv.miscTaskTimer.schedule(new TimerTask()
+        {
+            public void run()
+            {
+                srv.messageToGameUrgent(gaName, /*I*/"To continue playing, type *RESUMEGAME*"/*18N*/ );
+            }
+        }, 300 /* ms */ );
     }
 
     /**
@@ -1388,6 +1432,8 @@ public class SOCServerMessageHandler
 
         // Would anything else change besides state? If so, should it return a list of bots that joined etc?
         // Maybe nothing else would change, until constraints are done
+
+        srv.messageToGameUrgent(gaName, /*I*/"Resuming game play."/*18N*/);
     }
 
     /**
@@ -1414,6 +1460,12 @@ public class SOCServerMessageHandler
         {
             srv.messageToPlayer
                 (c, gaName, /*I*/"Must finish initial placement before saving."/*18N*/);
+            return;
+        }
+        else if (ga.getGameState() == SOCGame.LOADING)
+        {
+            srv.messageToPlayer
+                (c, gaName, /*I*/"Must resume loaded game before saving again."/*18N*/);
             return;
         }
 
