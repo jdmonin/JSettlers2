@@ -212,12 +212,12 @@ public class SOCGameHandler extends GameHandler
     /**
      * The 5 resource types plus Unknown, for sending {@link SOCPlayerElements}:
      * {@link PEType#CLAY}, ORE, SHEEP, WHEAT, {@link PEType#WOOD},
-     * {@link PEType#UNKNOWN}.
+     * {@link PEType#UNKNOWN_RESOURCE}.
      * @see #ELEM_RESOURCES
      * @since 2.0.00
      */
     public static final PEType[] ELEM_RESOURCES_WITH_UNKNOWN =
-        {PEType.CLAY, PEType.ORE, PEType.SHEEP, PEType.WHEAT, PEType.WOOD, PEType.UNKNOWN};
+        {PEType.CLAY, PEType.ORE, PEType.SHEEP, PEType.WHEAT, PEType.WOOD, PEType.UNKNOWN_RESOURCE};
 
     /**
      * Classic board piece type elements, for sending {@link SOCPlayerElements}:
@@ -242,7 +242,7 @@ public class SOCGameHandler extends GameHandler
      * @since 2.0.00
      */
     private static final PEType[] ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC =
-        { PEType.LAST_SETTLEMENT_NODE, PEType.UNKNOWN, PEType.NUMKNIGHTS,
+        { PEType.LAST_SETTLEMENT_NODE, PEType.UNKNOWN_RESOURCE, PEType.NUMKNIGHTS,
           PEType.ROADS, PEType.SETTLEMENTS, PEType.CITIES };
 
     /**
@@ -252,7 +252,7 @@ public class SOCGameHandler extends GameHandler
      * @since 2.0.00
      */
     private static final PEType[] ELEM_JOINGAME_WITH_PIECETYPES_SEA =
-        { PEType.LAST_SETTLEMENT_NODE, PEType.UNKNOWN, PEType.NUMKNIGHTS,
+        { PEType.LAST_SETTLEMENT_NODE, PEType.UNKNOWN_RESOURCE, PEType.NUMKNIGHTS,
           PEType.ROADS, PEType.SETTLEMENTS, PEType.CITIES, PEType.SHIPS };
 
     /**
@@ -759,7 +759,7 @@ public class SOCGameHandler extends GameHandler
                 int totalRes = resGainLoss.getTotal();
                 srv.messageToGameExcept
                     (gaName, c, new SOCPlayerElement
-                        (gaName, cpn, SOCPlayerElement.LOSE, PEType.UNKNOWN, totalRes, true),
+                        (gaName, cpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, totalRes, true),
                      true);
                 srv.messageToGameKeyed(ga, true, "action.discarded", plName, totalRes);  //  "{0} discarded {1} resources."
             }
@@ -2644,8 +2644,8 @@ public class SOCGameHandler extends GameHandler
         List<Connection> sendNotTo = new ArrayList<Connection>(2);
         sendNotTo.add(peCon);
         sendNotTo.add(viCon);
-        gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN, 1);
-        loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN, 1);
+        gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN_RESOURCE, 1);
+        loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, 1);
         srv.messageToGameExcept(gaName, sendNotTo, gainUnknown, true);
         srv.messageToGameExcept(gaName, sendNotTo, loseUnknown, true);
 
@@ -3688,7 +3688,7 @@ public class SOCGameHandler extends GameHandler
 
             srv.messageToGameExcept
                 (gaName, c, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN, totalRes, true),
+                    (gaName, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, totalRes, true),
                  true);
             srv.messageToGameKeyed(cg, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
 

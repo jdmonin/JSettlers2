@@ -1453,7 +1453,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WOOD, amount);
             break;
 
-        case UNKNOWN:
+        case UNKNOWN_RESOURCE:
             /**
              * Note: if losing unknown resources, we first
              * convert player's known resources to unknown resources,

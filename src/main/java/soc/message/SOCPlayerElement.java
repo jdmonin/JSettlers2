@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 import soc.game.SOCGame;    // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants; // for javadocs only
 
 
 /**
@@ -85,183 +86,184 @@ public class SOCPlayerElement extends SOCMessage
      */
     public enum PEType
     {
+        /**
+         * Type to use when converting from int but value is unknown.
+         * Note: {@link #valueOf(int)} returns {@code null} and not this value.
+         * @since 2.3.00
+         */
+        UNKNOWN_TYPE(0),
 
-    /**
-     * Type to use when converting from int but value is unknown.
-     * Note: {@link #valueOf(int)} returns {@code null} and not this value.
-     * @since 2.3.00
-     */
-    UNKNOWN_TYPE(0),
+        /**
+         * player element types.  CLAY has same {@link #getValue()}
+         * as {@link SOCResourceConstants#CLAY};
+         * ORE, SHEEP, WHEAT and WOOD values also match {@link SOCResourceConstants}.
+         */
+        CLAY(1),
+        ORE(2),
+        SHEEP(3),
+        WHEAT(4),
+        WOOD(5),
 
-    /**
-     * player element types.  CLAY has same value
-     * as {@link soc.game.SOCResourceConstants#CLAY};
-     * ORE, SHEEP, WHEAT and WOOD also match SOCResourceConstants.
-     */
-    CLAY(1),
-    ORE(2),
-    SHEEP(3),
-    WHEAT(4),
-    WOOD(5),
+        /**
+         * Amount of resources of unknown type; sent in messages about opponents' resources.
+         * For some loops which send resource types + unknown, this constant's {@link #getValue()} is 6
+         * (5 known resource types + 1), same numeric value as {@link SOCResourceConstants#UNKNOWN}.
+         *<P>
+         * Not to be confused with {@link #UNKNOWN_TYPE}.
+         *<P>
+         * Before v2.3.00 this was named {@code UNKNOWN}.
+         */
+        UNKNOWN_RESOURCE(6),
 
-    /**
-     * Amount of resources of unknown type; sent in messages about opponents' resources.
-     * For some loops which send resource types + unknown, this constant is assumed to be 6
-     * (5 known resource types + 1).
-     *<P>
-     * Not to be confused with {@link #UNKNOWN_TYPE}.
-     */
-    UNKNOWN(6),
+        /** Number of Road pieces available to place. */
+        ROADS(10),
 
-    /** Number of Road pieces available to place. */
-    ROADS(10),
+        /** Number of Settlement pieces available to place. */
+        SETTLEMENTS(11),
 
-    /** Number of Settlement pieces available to place. */
-    SETTLEMENTS(11),
+        /** Number of City pieces available to place. */
+        CITIES(12),
 
-    /** Number of City pieces available to place. */
-    CITIES(12),
+        /**
+         * Number of Ship pieces available to place.
+         * @since 2.0.00
+         */
+        SHIPS(13),
 
-    /**
-     * Number of Ship pieces available to place.
-     * @since 2.0.00
-     */
-    SHIPS(13),
+        /**
+         * Number of knights in player's army; sent after a Soldier card is played.
+         *<P>
+         * During normal gameplay, "largest army" indicator at client is updated
+         * by examining game state, not by {@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER} message from server:
+         *<BR>
+         * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
+         * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
+         * then update any related displays.
+         */
+        NUMKNIGHTS(15),
 
-    /**
-     * Number of knights in player's army; sent after a Soldier card is played.
-     *<P>
-     * During normal gameplay, "largest army" indicator at client is updated
-     * by examining game state, not by {@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER} message from server:
-     *<BR>
-     * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
-     * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
-     * then update any related displays.
-     */
-    NUMKNIGHTS(15),
+        /**
+         * For the 6-player board, player element type for asking to build
+         * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+         * This element is {@link #SET} to 1 or 0.
+         * @since 1.1.08
+         */
+        ASK_SPECIAL_BUILD(16),
 
-    /**
-     * For the 6-player board, player element type for asking to build
-     * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
-     * This element is {@link #SET} to 1 or 0.
-     * @since 1.1.08
-     */
-    ASK_SPECIAL_BUILD(16),
+        /**
+         * Total resources this player has available in hand to use,
+         * from their hand's {@link soc.game.SOCResourceSet#getTotal()}.
+         * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
+         *<P>
+         * Alternately, send that info as part of a {@link SOCDiceResultResources} message.
+         *<P>
+         * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
+         * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         * @since 2.0.00
+         */
+        RESOURCE_COUNT(17),
 
-    /**
-     * Total resources this player has available in hand to use,
-     * from their hand's {@link soc.game.SOCResourceSet#getTotal()}.
-     * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
-     *<P>
-     * Alternately, send that info as part of a {@link SOCDiceResultResources} message.
-     *<P>
-     * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
-     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
-     * @since 2.0.00
-     */
-    RESOURCE_COUNT(17),
+        /**
+         * Node coordinate location of this player's most recently placed settlement, or 0.
+         * Used for robots during initial placement at the start of a game.
+         * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
+         *<P>
+         * Games with clients older than v2.0.00 use {@link SOCLastSettlement} messages instead of this element:
+         * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         * @since 2.0.00
+         */
+        LAST_SETTLEMENT_NODE(18),
 
-    /**
-     * Node coordinate location of this player's most recently placed settlement, or 0.
-     * Used for robots during initial placement at the start of a game.
-     * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
-     *<P>
-     * Games with clients older than v2.0.00 use {@link SOCLastSettlement} messages instead of this element:
-     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
-     * @since 2.0.00
-     */
-    LAST_SETTLEMENT_NODE(18),
+        /**
+         * Has this player played a development card already this turn?
+         * Applies to all players if {@link #getPlayerNumber()} == -1.
+         * This element is {@link #SET} to 1 or 0, never sent with {@link #GAIN} or {@link #LOSE}.
+         *<P>
+         * Games with clients older than v2.0.00 use {@link SOCSetPlayedDevCard} messages instead of this element:
+         * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         * @since 2.0.00
+         */
+        PLAYED_DEV_CARD_FLAG(19),
 
-    /**
-     * Has this player played a development card already this turn?
-     * Applies to all players if {@link #getPlayerNumber()} == -1.
-     * This element is {@link #SET} to 1 or 0, never sent with {@link #GAIN} or {@link #LOSE}.
-     *<P>
-     * Games with clients older than v2.0.00 use {@link SOCSetPlayedDevCard} messages instead of this element:
-     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
-     * @since 2.0.00
-     */
-    PLAYED_DEV_CARD_FLAG(19),
+        //
+        // Elements related to scenarios and sea boards:
+        //
 
-    //
-    // Elements related to scenarios and sea boards:
-    //
+        /**
+         * For the {@link soc.game.SOCBoardLarge large sea board},
+         * player element type for asking to choose
+         * resources from the gold hex after a dice roll,
+         * during the {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
+         * game state.
+         * This element is {@link #SET} to 0 or to the number of resources to choose.
+         * Call {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
+         * @since 2.0.00
+         */
+        NUM_PICK_GOLD_HEX_RESOURCES(101),
 
-    /**
-     * For the {@link soc.game.SOCBoardLarge large sea board},
-     * player element type for asking to choose
-     * resources from the gold hex after a dice roll,
-     * during the {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
-     * game state.
-     * This element is {@link #SET} to 0 or to the number of resources to choose.
-     * Call {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
-     * @since 2.0.00
-     */
-    NUM_PICK_GOLD_HEX_RESOURCES(101),
+        /**
+         * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+         * the player's number of Special Victory Points (SVP).
+         * This element is {@link #SET} to 0 or to the player's
+         * {@link SOCPlayer#getSpecialVP()}.
+         * @since 2.0.00
+         */
+        SCENARIO_SVP(102),
 
-    /**
-     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
-     * the player's number of Special Victory Points (SVP).
-     * This element is {@link #SET} to 0 or to the player's
-     * {@link SOCPlayer#getSpecialVP()}.
-     * @since 2.0.00
-     */
-    SCENARIO_SVP(102),
+        /**
+         * For the {@link soc.game.SOCBoardLarge large sea board},
+         * bitmask of flags related to {@link soc.game.SOCPlayerEvent}s.
+         * This element is {@link #SET} to 0 or to the player's flags
+         * from {@link SOCPlayer#getPlayerEvents()}.
+         * @since 2.0.00
+         */
+        PLAYEREVENTS_BITMASK(103),
 
-    /**
-     * For the {@link soc.game.SOCBoardLarge large sea board},
-     * bitmask of flags related to {@link soc.game.SOCPlayerEvent}s.
-     * This element is {@link #SET} to 0 or to the player's flags
-     * from {@link SOCPlayer#getPlayerEvents()}.
-     * @since 2.0.00
-     */
-    PLAYEREVENTS_BITMASK(103),
+        /**
+         * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+         * bitmask of land areas for tracking Special Victory Points (SVP).
+         * This element is {@link #SET} to 0 or to the player's land areas
+         * from {@link SOCPlayer#getScenarioSVPLandAreas()}.
+         * @since 2.0.00
+         */
+        SCENARIO_SVP_LANDAREAS_BITMASK(104),
 
-    /**
-     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
-     * bitmask of land areas for tracking Special Victory Points (SVP).
-     * This element is {@link #SET} to 0 or to the player's land areas
-     * from {@link SOCPlayer#getScenarioSVPLandAreas()}.
-     * @since 2.0.00
-     */
-    SCENARIO_SVP_LANDAREAS_BITMASK(104),
+        /**
+         * Player's starting land area numbers.
+         * Sent only at reconnect, because these are also tracked during play at the client.
+         * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
+         * @since 2.0.00
+         */
+        STARTING_LANDAREAS(105),
 
-    /**
-     * Player's starting land area numbers.
-     * Sent only at reconnect, because these are also tracked during play at the client.
-     * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
-     * @since 2.0.00
-     */
-    STARTING_LANDAREAS(105),
+        /**
+         * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
+         * the number of cloth held by this player.
+         * This element is {@link #SET} to 0 or to the player's cloth count
+         * from {@link SOCPlayer#getCloth()}.
+         * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
+         *<P>
+         * The board's "general supply" is updated with this element type
+         * with {@link #getPlayerNumber()} == -1.
+         * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
+         * @since 2.0.00
+         */
+        SCENARIO_CLOTH_COUNT(106),
 
-    /**
-     * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
-     * the number of cloth held by this player.
-     * This element is {@link #SET} to 0 or to the player's cloth count
-     * from {@link SOCPlayer#getCloth()}.
-     * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
-     *<P>
-     * The board's "general supply" is updated with this element type
-     * with {@link #getPlayerNumber()} == -1.
-     * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
-     * @since 2.0.00
-     */
-    SCENARIO_CLOTH_COUNT(106),
-
-    /**
-     * For scenario game option <tt>_SC_PIRI</tt>,
-     * the player's total number of ships that have been converted to warships.
-     * See SOCPlayer.getNumWarships() for details.
-     * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of
-     * warships decreases, send {@link #SET}, never send {@link #LOSE}.
-     * {@link #GAIN} is sent only in response to a player's successful
-     * {@link SOCPlayDevCardRequest} to convert a ship to a warship.
-     *<P>
-     * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
-     * message is sent to their client only after sending their SOCShip piece positions.
-     * @since 2.0.00
-     */
-    SCENARIO_WARSHIP_COUNT(107);
+        /**
+         * For scenario game option <tt>_SC_PIRI</tt>,
+         * the player's total number of ships that have been converted to warships.
+         * See SOCPlayer.getNumWarships() for details.
+         * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of
+         * warships decreases, send {@link #SET}, never send {@link #LOSE}.
+         * {@link #GAIN} is sent only in response to a player's successful
+         * {@link SOCPlayDevCardRequest} to convert a ship to a warship.
+         *<P>
+         * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
+         * message is sent to their client only after sending their SOCShip piece positions.
+         * @since 2.0.00
+         */
+        SCENARIO_WARSHIP_COUNT(107);
 
         private int value;
 

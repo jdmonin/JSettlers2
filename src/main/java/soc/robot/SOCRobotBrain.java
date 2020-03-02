@@ -3812,7 +3812,7 @@ public class SOCRobotBrain extends Thread
                 (pl, action, SOCResourceConstants.WOOD, "WOOD", amount);
             break;
 
-        case UNKNOWN:
+        case UNKNOWN_RESOURCE:
             /**
              * Note: if losing unknown resources, we first
              * convert player's known resources to unknown resources,

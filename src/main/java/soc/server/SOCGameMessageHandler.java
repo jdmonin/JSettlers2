@@ -458,7 +458,7 @@ public class SOCGameMessageHandler
                                  * tell everyone else that the player lost unknown resources
                                  */
                                 srv.messageToGameExcept(gn, vCon, new SOCPlayerElement
-                                    (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN, lootTotal), true);
+                                    (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal), true);
                                 srv.messageToGameKeyedSpecialExcept(ga, true, vCon,
                                     "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
                                     // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
@@ -750,7 +750,7 @@ public class SOCGameMessageHandler
                 final int numRes = res.getTotal();
                 srv.messageToGameExcept
                     (gn, c, new SOCPlayerElement
-                        (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN, numRes, true),
+                        (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
                      true);
                 srv.messageToGameKeyed(ga, true, "action.discarded", player.getName(), numRes);
                     // "{0} discarded {1} resources."

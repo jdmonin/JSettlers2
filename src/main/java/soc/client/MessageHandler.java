@@ -1620,7 +1620,7 @@ import soc.util.Version;
             utype = PlayerClientListener.UpdateType.Wood;
             break;
 
-        case UNKNOWN:
+        case UNKNOWN_RESOURCE:
             /**
              * Note: if losing unknown resources, we first
              * convert player's known resources to unknown resources,
