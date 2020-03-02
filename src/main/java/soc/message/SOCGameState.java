@@ -111,8 +111,8 @@ import soc.game.SOCGame;  // for javadoc's use
  *     that state is still {@code WAITING_FOR_PICK_GOLD_RESOURCE} and another "need to pick" prompt text is also sent.
  * <LI>{@link SOCGame#SPECIAL_BUILDING SPECIAL_BUILDING}: Current player: Build, buy cards, etc. When done, send {@link SOCEndTurn}
  * <LI>{@link SOCGame#OVER OVER}: Server announces the winner with
- *     {@link SOCGameElements}({@link SOCGameElements#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages reporting
- *     winner's name, final score, each player's victory-point cards, game length, and a {@link SOCGameStats}.
+ *     {@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages
+ *     reporting winner's name, final score, each player's victory-point cards, game length, and a {@link SOCGameStats}.
  *     Each player is sent text with their resource roll totals. win-loss count for this session, and
  *     how long they've been connected.
  *</UL>

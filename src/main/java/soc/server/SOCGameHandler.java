@@ -57,6 +57,7 @@ import soc.message.SOCDiscard;
 import soc.message.SOCDiscardRequest;
 import soc.message.SOCFirstPlayer;
 import soc.message.SOCGameElements;
+import soc.message.SOCGameElements.GEType;
 import soc.message.SOCGameMembers;
 import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
@@ -259,9 +260,9 @@ public class SOCGameHandler extends GameHandler
      * number of rounds played, and player numbers for first player, longest road, largest army.
      * @since 2.0.00
      */
-    private static final int[] ELEM_JOINGAME_DEVCARDS_ROUNDS_PLNUMS_FIRST_LONGEST_LARGEST =
-        { SOCGameElements.DEV_CARD_COUNT, SOCGameElements.ROUND_COUNT, SOCGameElements.FIRST_PLAYER,
-          SOCGameElements.LONGEST_ROAD_PLAYER, SOCGameElements.LARGEST_ARMY_PLAYER };
+    private static final GEType[] ELEM_JOINGAME_DEVCARDS_ROUNDS_PLNUMS_FIRST_LONGEST_LARGEST =
+        { GEType.DEV_CARD_COUNT, GEType.ROUND_COUNT, GEType.FIRST_PLAYER,
+          GEType.LONGEST_ROAD_PLAYER, GEType.LARGEST_ARMY_PLAYER };
 
     /**
      * Game message handler for {@link SOCGameHandler}, shared by all game instances of this type.
@@ -860,7 +861,7 @@ public class SOCGameHandler extends GameHandler
                 final int fpn = ga.getFirstPlayer();
                 final SOCMessage msg =
                     (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
-                    ? new SOCGameElements(gaName, SOCGameElements.FIRST_PLAYER, fpn)
+                    ? new SOCGameElements(gaName, GEType.FIRST_PLAYER, fpn)
                     : new SOCFirstPlayer(gaName, fpn);
 
                 // will cause clients to recalculate lastPlayer too
@@ -1072,7 +1073,7 @@ public class SOCGameHandler extends GameHandler
          */
         if (cliVers >= SOCGameElements.MIN_VERSION)
             c.put(new SOCGameElements
-                (gameName, SOCGameElements.CURRENT_PLAYER, gameData.getCurrentPlayerNumber()));
+                (gameName, GEType.CURRENT_PLAYER, gameData.getCurrentPlayerNumber()));
         else
             c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
 
@@ -2120,7 +2121,7 @@ public class SOCGameHandler extends GameHandler
              * This helps the client's copy of game recognize winning condition.
              */
             srv.messageToGame(gname, (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
-                ? new SOCGameElements(gname, SOCGameElements.CURRENT_PLAYER, cpn)
+                ? new SOCGameElements(gname, GEType.CURRENT_PLAYER, cpn)
                 : new SOCSetTurn(gname, cpn));
         }
 
@@ -2994,7 +2995,7 @@ public class SOCGameHandler extends GameHandler
              * needed for SC_PIRI because if PL<4, startGame() removed some cards.
              */
             srv.messageToGameWithMon(gaName, (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
-                ? new SOCGameElements(gaName, SOCGameElements.DEV_CARD_COUNT, ga.getNumDevCards())
+                ? new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, ga.getNumDevCards())
                 : new SOCDevCardCount(gaName, ga.getNumDevCards()));
 
             /**

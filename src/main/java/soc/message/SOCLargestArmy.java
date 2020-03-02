@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
  * by examining game state, not by messages from server: See
  * {@link SOCPlayerElement.PEType#NUMKNIGHTS}.
  *<P>
- * In games where all clients are v2.0.00 or newer, send {@link SOCGameElements#LARGEST_ARMY_PLAYER}
+ * In games where all clients are v2.0.00 or newer, send {@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER}
  * instead: Check clients' version against {@link SOCGameElements#MIN_VERSION}.
  *
  * @author Robert S. Thomas

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,7 +38,7 @@ import soc.game.SOCDevCardConstants;  // for javadocs only
  *   <LI> Resource cost paid: {@link SOCPlayerElements}
             (gaName, playerNumber, {@link SOCPlayerElement#LOSE}, {@link SOCDevCard#COST})
  *   <LI> New remaining card count: {@link SOCGameElements}
- *          (gaName, {@link SOCGameElements#DEV_CARD_COUNT}, remainingUnboughtCount)
+ *          (gaName, {@link SOCGameElements.GEType#DEV_CARD_COUNT}, remainingUnboughtCount)
  *  </UL>
  * <LI> Action announcement/display:
  *  <UL>

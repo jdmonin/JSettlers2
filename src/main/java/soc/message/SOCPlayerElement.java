@@ -80,7 +80,7 @@ public class SOCPlayerElement extends SOCMessage
      * To send over the network as an int, use {@link #getValue()}.
      * When received from network as int, use {@link #valueOf(int)} to convert to {@link PEType}.
      *<P>
-     * Converted from int to enum in v2.3.00 for cleaner design and human-readable serialization.
+     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization.
      * @since 2.3.00
      */
     public enum PEType
@@ -132,7 +132,7 @@ public class SOCPlayerElement extends SOCMessage
      * Number of knights in player's army; sent after a Soldier card is played.
      *<P>
      * During normal gameplay, "largest army" indicator at client is updated
-     * by examining game state, not by {@link SOCGameElements#LARGEST_ARMY_PLAYER} message from server:
+     * by examining game state, not by {@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER} message from server:
      *<BR>
      * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
      * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
@@ -309,6 +309,7 @@ public class SOCPlayerElement extends SOCMessage
             final int[] iv = new int[L];
             for (int i = 0; i < L; ++i)
                 iv[i] = pe[i].value;
+
             return iv;
         }
     }
@@ -388,7 +389,8 @@ public class SOCPlayerElement extends SOCMessage
      * Before v2.3.00 this returned an int.
      *
      * @param ptype  Playing piece type constant, such as {@link SOCPlayingPiece#SETTLEMENT}
-     * @return  {@code ptype}'s element type for this message, such as {@link PEType#SETTLEMENTS}
+     * @return  {@code ptype}'s element type for this message, such as {@link PEType#SETTLEMENTS},
+     *     or {@link PEType#UNKNOWN_TYPE}
      * @since 2.0.00
      */
     public static PEType elementTypeForPieceType(final int ptype)

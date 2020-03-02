@@ -48,6 +48,7 @@ import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.*;
+import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
 import soc.server.genericServer.Connection;
 import soc.util.SOCStringManager;
@@ -2351,7 +2352,7 @@ public class SOCGameMessageHandler
                         srv.messageToGameWithMon(gaName, new SOCPlayerElements
                             (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
                         srv.messageToGameWithMon
-                            (gaName, new SOCGameElements(gaName, SOCGameElements.DEV_CARD_COUNT, devCount));
+                            (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
                     } else {
                         srv.messageToGameWithMon(gaName, new SOCPlayerElement
                             (gaName, pn, SOCPlayerElement.LOSE, PEType.ORE, 1));

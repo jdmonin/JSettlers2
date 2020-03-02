@@ -44,6 +44,7 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 
 import soc.message.*;
+import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
 
 import soc.server.genericServer.StringConnection;
@@ -1318,7 +1319,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleSETTURN(SOCSetTurn mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.CURRENT_PLAYER, mes.getPlayerNumber());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.CURRENT_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -1327,7 +1328,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleFIRSTPLAYER(SOCFirstPlayer mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.FIRST_PLAYER, mes.getPlayerNumber());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.FIRST_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -1740,7 +1741,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Handle the GameElements message: Finds game by name, and loops calling
-     * {@link #handleGAMEELEMENT(SOCGame, int, int)}.
+     * {@link #handleGAMEELEMENT(SOCGame, GEType, int)}.
      * @param mes  the message
      * @since 2.0.00
      */
@@ -1752,47 +1753,51 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final int[] etypes = mes.getElementTypes(), values = mes.getValues();
         for (int i = 0; i < etypes.length; ++i)
-            handleGAMEELEMENT(ga, etypes[i], values[i]);
+            handleGAMEELEMENT(ga, GEType.valueOf(etypes[i]), values[i]);
     }
 
     /**
      * Update one game element field from a {@link SOCGameElements} message.
      * @param ga   Game to update; does nothing if null
-     * @param etype  Element type, such as {@link SOCGameElements#ROUND_COUNT} or {@link SOCGameElements#DEV_CARD_COUNT}
+     * @param etype  Element type, such as {@link GEType#ROUND_COUNT} or {@link GEType#DEV_CARD_COUNT}.
+     *     Does nothing if {@code null}.
      * @param value  The new value to set
      * @since 2.0.00
      */
     public static final void handleGAMEELEMENT
-        (final SOCGame ga, final int etype, final int value)
+        (final SOCGame ga, final GEType etype, final int value)
     {
-        if (ga == null)
+        if ((ga == null) || (etype == null))
             return;
 
         switch (etype)
         {
-        case SOCGameElements.ROUND_COUNT:
+        case ROUND_COUNT:
             ga.setRoundCount(value);
             break;
 
-        case SOCGameElements.DEV_CARD_COUNT:
+        case DEV_CARD_COUNT:
             ga.setNumDevCards(value);
             break;
 
-        case SOCGameElements.FIRST_PLAYER:
+        case FIRST_PLAYER:
             ga.setFirstPlayer(value);
             break;
 
-        case SOCGameElements.CURRENT_PLAYER:
+        case CURRENT_PLAYER:
             ga.setCurrentPlayerNumber(value);
             break;
 
-        case SOCGameElements.LARGEST_ARMY_PLAYER:
+        case LARGEST_ARMY_PLAYER:
             ga.setPlayerWithLargestArmy((value != -1) ? ga.getPlayer(value) : null);
             break;
 
-        case SOCGameElements.LONGEST_ROAD_PLAYER:
+        case LONGEST_ROAD_PLAYER:
             ga.setPlayerWithLongestRoad((value != -1) ? ga.getPlayer(value) : null);
             break;
+
+        case UNKNOWN_TYPE:
+            ;  // no action needed, UNKNOWN_TYPE is mentioned only to avoid compiler warning
         }
     }
 
@@ -2031,7 +2036,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleDEVCARDCOUNT(SOCDevCardCount mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.DEV_CARD_COUNT, mes.getNumDevCards());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.DEV_CARD_COUNT, mes.getNumDevCards());
     }
 
     /**
@@ -2247,7 +2252,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleLONGESTROAD(SOCLongestRoad mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.LONGEST_ROAD_PLAYER, mes.getPlayerNumber());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.LONGEST_ROAD_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -2256,7 +2261,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleLARGESTARMY(SOCLargestArmy mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.LARGEST_ARMY_PLAYER, mes.getPlayerNumber());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.LARGEST_ARMY_PLAYER, mes.getPlayerNumber());
     }
 
     /**

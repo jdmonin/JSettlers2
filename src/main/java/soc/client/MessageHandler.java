@@ -51,6 +51,7 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 
 import soc.message.*;
+import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
 
 import soc.util.SOCFeatureSet;
@@ -309,14 +310,14 @@ import soc.util.Version;
              * set the current turn
              */
             case SOCMessage.SETTURN:
-                handleGAMEELEMENT(ga, SOCGameElements.CURRENT_PLAYER, ((SOCSetTurn) mes).getPlayerNumber());
+                handleGAMEELEMENT(ga, GEType.CURRENT_PLAYER, ((SOCSetTurn) mes).getPlayerNumber());
                 break;
 
             /**
              * set who the first player is
              */
             case SOCMessage.FIRSTPLAYER:
-                handleGAMEELEMENT(ga, SOCGameElements.FIRST_PLAYER, ((SOCFirstPlayer) mes).getPlayerNumber());
+                handleGAMEELEMENT(ga, GEType.FIRST_PLAYER, ((SOCFirstPlayer) mes).getPlayerNumber());
                 break;
 
             /**
@@ -462,7 +463,7 @@ import soc.util.Version;
              * the current number of development cards
              */
             case SOCMessage.DEVCARDCOUNT:
-                handleGAMEELEMENT(ga, SOCGameElements.DEV_CARD_COUNT, ((SOCDevCardCount) mes).getNumDevCards());
+                handleGAMEELEMENT(ga, GEType.DEV_CARD_COUNT, ((SOCDevCardCount) mes).getNumDevCards());
                 break;
 
             /**
@@ -505,14 +506,14 @@ import soc.util.Version;
              * handle the longest road message
              */
             case SOCMessage.LONGESTROAD:
-                handleGAMEELEMENT(ga, SOCGameElements.LONGEST_ROAD_PLAYER, ((SOCLongestRoad) mes).getPlayerNumber());
+                handleGAMEELEMENT(ga, GEType.LONGEST_ROAD_PLAYER, ((SOCLongestRoad) mes).getPlayerNumber());
                 break;
 
             /**
              * handle the largest army message
              */
             case SOCMessage.LARGESTARMY:
-                handleGAMEELEMENT(ga, SOCGameElements.LARGEST_ARMY_PLAYER, ((SOCLargestArmy) mes).getPlayerNumber());
+                handleGAMEELEMENT(ga, GEType.LARGEST_ARMY_PLAYER, ((SOCLargestArmy) mes).getPlayerNumber());
                 break;
 
             /**
@@ -1707,7 +1708,7 @@ import soc.util.Version;
 
     /**
      * Handle the GameElements message: Finds game by name, and loops calling
-     * {@link #handleGAMEELEMENT(SOCGame, int, int)}.
+     * {@link #handleGAMEELEMENT(SOCGame, GEType, int)}.
      * @param mes  the message
      * @since 2.0.00
      */
@@ -1719,7 +1720,7 @@ import soc.util.Version;
 
         final int[] etypes = mes.getElementTypes(), values = mes.getValues();
         for (int i = 0; i < etypes.length; ++i)
-            handleGAMEELEMENT(ga, etypes[i], values[i]);
+            handleGAMEELEMENT(ga, GEType.valueOf(etypes[i]), values[i]);
     }
 
     /**
@@ -1727,17 +1728,19 @@ import soc.util.Version;
      * then update game's {@link PlayerClientListener} display if appropriate.
      *<P>
      * To update game information, calls
-     * {@link SOCDisplaylessPlayerClient#handleGAMEELEMENT(SOCGame, int, int)}.
+     * {@link SOCDisplaylessPlayerClient#handleGAMEELEMENT(SOCGame, GEType, int)}.
      *
      * @param ga   Game to update; does nothing if null
-     * @param etype  Element type, such as {@link SOCGameElements#ROUND_COUNT} or {@link SOCGameElements#DEV_CARD_COUNT}
+     * @param etype  Element type, such as {@link GEType#ROUND_COUNT} or {@link GEType#DEV_CARD_COUNT}.
+     *     Does nothing if {@code null}.
      * @param value  The new value to set
      * @since 2.0.00
      */
+    @SuppressWarnings("incomplete-switch")
     protected void handleGAMEELEMENT
-        (final SOCGame ga, final int etype, final int value)
+        (final SOCGame ga, final GEType etype, final int value)
     {
-        if (ga == null)
+        if ((ga == null) || (etype == null))
             return;
 
         final PlayerClientListener pcl = client.getClientListener(ga.getName());
@@ -1752,7 +1755,7 @@ import soc.util.Version;
             // Doesn't need a case here because it's sent only during joingame;
             // SOCBoardPanel will check ga.getRoundCount() as part of joingame
 
-            case SOCGameElements.LARGEST_ARMY_PLAYER:
+            case LARGEST_ARMY_PLAYER:
             {
                 SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
                 SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, etype, value);
@@ -1760,10 +1763,11 @@ import soc.util.Version;
 
                 // Update player victory points; check for and announce change in largest army
                 pcl.largestArmyRefresh(oldLargestArmyPlayer, newLargestArmyPlayer);
-            }
-            return;
 
-            case SOCGameElements.LONGEST_ROAD_PLAYER:
+                return;
+            }
+
+            case LONGEST_ROAD_PLAYER:
             {
                 SOCPlayer oldLongestRoadPlayer = ga.getPlayerWithLongestRoad();
                 SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, etype, value);
@@ -1771,8 +1775,9 @@ import soc.util.Version;
 
                 // Update player victory points; check for and announce change in longest road
                 pcl.longestRoadRefresh(oldLongestRoadPlayer, newLongestRoadPlayer);
+
+                return;
             }
-            return;
             }
         }
 
@@ -1783,11 +1788,11 @@ import soc.util.Version;
 
         switch (etype)
         {
-        case SOCGameElements.DEV_CARD_COUNT:
+        case DEV_CARD_COUNT:
             pcl.devCardDeckUpdated();
             break;
 
-        case SOCGameElements.CURRENT_PLAYER:
+        case CURRENT_PLAYER:
             pcl.playerTurnSet(value);
             break;
         }
