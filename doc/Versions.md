@@ -15,8 +15,11 @@ and backport minor new features until `2.0.00` was ready.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.2.00` (build JM2020xxxx)
+## `2.3.00` (build JM2020xxxx)
 - Currently being developed
+
+
+## `2.2.00` (build JM20200229)
 - Client:
 	- Game window:
 	  - Remember recently sent chat text; browse history with Up/Down arrow keys in input field (based on Chad McHenry idea)
