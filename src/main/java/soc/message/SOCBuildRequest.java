@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,7 +33,7 @@ import java.util.StringTokenizer;
  * When sent during other game states, and other players' turns, this is a request
  * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
  * If that request is currently allowed, server announces a {@link SOCPlayerElement}
- * ({@code pn, SET,} {@link SOCPlayerElement#ASK_SPECIAL_BUILD}, 1).
+ * ({@code pn, SET,} {@link SOCPlayerElement.PEType#ASK_SPECIAL_BUILD}, 1).
  *<P>
  * If the build request or Special Building request is not possible,
  * server responds to humans with a {@link SOCGameServerText} or to bots with a {@link SOCCancelBuildRequest}.

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,63 +45,130 @@ public class SOCGameElements extends SOCMessageTemplateMi
      */
     public static final int MIN_VERSION = 2000;
 
-    // -----------------------------------------------------------
-    // Game element type list:
-
-    /** Current round of play, from {@link SOCGame#getRoundCount()}. */
-    public static final int ROUND_COUNT = 1;
-
     /**
-     * Number of development cards remaining in the deck to be bought,
-     * from {@link SOCGame#getNumDevCards()}.
+     * Game element type list.
+     * To send over the network as an int, use {@link #getValue()}.
+     * When received from network as int, use {@link #valueOf(int)} to convert to {@link GEType}.
      *<P>
-     * Sent to clients during game join/start. When a dev card is bought,
-     * is sent to clients as part of game data before action announcement/display:
-     * See {@link SOCBuyDevCardRequest} javadoc.
-     *<P>
-     * Versions before v2.0.00 sent {@link SOCDevCardCount} instead.
+     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization.
+     * @since 2.3.00
      */
-    public static final int DEV_CARD_COUNT = 2;
+    public enum GEType
+    {
+        /**
+         * Type to use when converting from int but value is unknown.
+         * Note: {@link #valueOf(int)} returns {@code null} and not this value.
+         * @since 2.3.00
+         */
+        UNKNOWN_TYPE(0),
 
-    /**
-     * Player number of first player in this game, from {@link SOCGame#getFirstPlayer()}.
-     *<P>
-     * Versions before v2.0.00 sent {@link SOCFirstPlayer} instead.
-     */
-    public static final int FIRST_PLAYER = 3;
+        /** Current round of play, from {@link SOCGame#getRoundCount()}. */
+        ROUND_COUNT(1),
 
-    /**
-     * Player number of current player, or -1, from {@link SOCGame#getCurrentPlayerNumber()}.
-     *<P>
-     * Versions before v2.0.00 sent {@link SOCSetTurn} instead.
-     */
-    public static final int CURRENT_PLAYER = 4;
+        /**
+         * Number of development cards remaining in the deck to be bought,
+         * from {@link SOCGame#getNumDevCards()}.
+         *<P>
+         * Sent to clients during game join/start. When a dev card is bought,
+         * is sent to clients as part of game data before action announcement/display:
+         * See {@link SOCBuyDevCardRequest} javadoc.
+         *<P>
+         * Versions before v2.0.00 sent {@link SOCDevCardCount} instead.
+         */
+        DEV_CARD_COUNT(2),
 
-    /**
-     * Player number of player with largest army, or -1, from {@link SOCGame#getPlayerWithLargestArmy()}.
-     * Sent when a client joins a game. Not sent during game play when Largest Army player changes:
-     * Client updates that display by examining game state; see {@link SOCPlayerElement#NUMKNIGHTS}.
-     *<P>
-     * Versions before v2.0.00 sent {@link SOCLargestArmy} instead.
-     */
-    public static final int LARGEST_ARMY_PLAYER = 5;
+        /**
+         * Player number of first player in this game, from {@link SOCGame#getFirstPlayer()}.
+         *<P>
+         * Versions before v2.0.00 sent {@link SOCFirstPlayer} instead.
+         */
+        FIRST_PLAYER(3),
 
-    /**
-     * Player number of player with longest road, or -1, from {@link SOCGame#getPlayerWithLongestRoad()}.
-     * Sent when a client joins a game. Not sent during game play when Longest Road player changes:
-     * Client updates that display by examining game state;
-     * see {@link SOCPutPiece}({@link soc.game.SOCPlayingPiece#ROAD ROAD}).
-     *<P>
-     * Versions before v2.0.00 sent {@link SOCLongestRoad} instead.
-     */
-    public static final int LONGEST_ROAD_PLAYER = 6;
+        /**
+         * Player number of current player, or -1, from {@link SOCGame#getCurrentPlayerNumber()}.
+         *<P>
+         * Versions before v2.0.00 sent {@link SOCSetTurn} instead.
+         */
+        CURRENT_PLAYER(4),
+
+        /**
+         * Player number of player with largest army, or -1, from {@link SOCGame#getPlayerWithLargestArmy()}.
+         * Sent when a client joins a game. Not sent during game play when Largest Army player changes:
+         * Client updates that display by examining game state;
+         * see {@link SOCPlayerElement.PEType#NUMKNIGHTS} javadoc.
+         *<P>
+         * Versions before v2.0.00 sent {@link SOCLargestArmy} instead.
+         */
+        LARGEST_ARMY_PLAYER(5),
+
+        /**
+         * Player number of player with longest road, or -1, from {@link SOCGame#getPlayerWithLongestRoad()}.
+         * Sent when a client joins a game. Not sent during game play when Longest Road player changes:
+         * Client updates that display by examining game state;
+         * see {@link SOCPutPiece} javadoc section on {@link soc.game.SOCPlayingPiece#ROAD}.
+         *<P>
+         * Versions before v2.0.00 sent {@link SOCLongestRoad} instead.
+         */
+        LONGEST_ROAD_PLAYER(6);
+
+        private int value;
+
+        private GEType(final int v)
+        {
+            value = v;
+        }
+
+        /**
+         * Get a type's integer value ({@link #DEV_CARD_COUNT} == 2, etc).
+         * @see #valueOf(int)
+         */
+        public int getValue()
+        {
+            return value;
+        }
+
+        /**
+         * Get a GEType from its int {@link #getValue()}, if type is known.
+         * @param ti  Type int value ({@link #DEV_CARD_COUNT} == 2, etc).
+         * @return  GEType for that value, or {@code null} if unknown
+         */
+        public static GEType valueOf(final int ti)
+        {
+            for (GEType et : values())
+                if (et.value == ti)
+                    return et;
+
+            return null;
+        }
+
+        /**
+         * Get a type array's integer values. Calls {@link #getValue()} for each element.
+         * @param pe Element array, or {@code null}
+         * @return  Int value array of same size as {@code ge}, or {@code null}
+         * @throws NullPointerException if {@code ge} contains null values
+         */
+        public static int[] getValues(GEType[] ge)
+            throws NullPointerException
+        {
+            if (ge == null)
+                return null;
+
+            final int L = ge.length;
+            final int[] iv = new int[L];
+            for (int i = 0; i < L; ++i)
+                iv[i] = ge[i].value;
+
+            return iv;
+        }
+    }
 
     // End of element type list.
     // -----------------------------------------------------------
 
     /**
-     * Element types such as {@link #DEV_CARD_COUNT}, each matching up
+     * Element types such as {@link GEType#DEV_CARD_COUNT} as ints, each matching up
      * with the same-index item of parallel array {@link #values}.
+     * See {@link #getElementTypes()} for details.
      */
     private int[] elementTypes;
 
@@ -115,13 +182,20 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * Create a GameElements message about multiple elements.
      *
      * @param ga  name of the game
-     * @param etypes  element types to set, such as {@link #DEV_CARD_COUNT}
+     * @param etypes  element types to set, such as {@link GEType#DEV_CARD_COUNT}
      * @param values  new values for each element, corresponding to <tt>etypes[]</tt>
-     * @see #SOCGameElements(String, int, int)
+     * @see #SOCGameElements(String, GEType, int)
      * @throws NullPointerException if {@code etypes} null or {@code values} null
+     *     or {@code etypes} contains {@code null}
      * @throws IllegalArgumentException if {@code etypes.length != values.length}
      */
-    public SOCGameElements(final String ga, final int[] etypes, final int[] values)
+    public SOCGameElements(final String ga, final GEType[] etypes, final int[] values)
+        throws NullPointerException, IllegalArgumentException
+    {
+        this(ga, GEType.getValues(etypes), values);
+    }
+
+    private SOCGameElements(final String ga, final int[] etypes, final int[] values)
         throws NullPointerException, IllegalArgumentException
     {
         super(GAMEELEMENTS, ga, new int[2 * etypes.length]);
@@ -144,13 +218,15 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * Create a GameElements message about one element.
      *
      * @param ga  name of the game
-     * @param etype  the type of element, such as {@link #DEV_CARD_COUNT}
+     * @param etype  the type of element, such as {@link GEType#DEV_CARD_COUNT}
      * @param value  the value to set the element to
-     * @see #SOCGameElements(String, int[], int[])
+     * @throws NullPointerException if {@code etype} is null
+     * @see #SOCGameElements(String, GEType[], int[])
      */
-    public SOCGameElements(final String ga, final int etype, final int value)
+    public SOCGameElements(final String ga, final GEType etype, final int value)
+        throws NullPointerException
     {
-        this(ga, new int[]{etype}, new int[]{value});
+        this(ga, new int[]{etype.value}, new int[]{value});
     }
 
     /**
@@ -162,7 +238,10 @@ public class SOCGameElements extends SOCMessageTemplateMi
     public final int getMinimumVersion() { return MIN_VERSION; }
 
     /**
-     * @return the element types such as {@link #DEV_CARD_COUNT}, each matching up
+     * Get the element types. These are ints to preserve values from unknown types from different versions.
+     * Converted at sending side with {@link GEType#getValue()}.
+     * To convert at receiving side to a {@link GEType}, use {@link GEType#valueOf(int)}.
+     * @return the element types such as {@link GEType#DEV_CARD_COUNT} as ints, each matching up
      *     with the same-index item of parallel array {@link #getValues()}.
      */
     public int[] getElementTypes()

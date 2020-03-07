@@ -29,6 +29,9 @@ repositories {
 
 dependencies {
     testCompile 'junit:junit:4.12'
+    implementation 'com.google.code.gson:gson:2.8.6'  // optional at runtime, for savegame feature
+        // If version changes, update Readme.developer.md and jsserver.properties.sample
+        // Same version is used by v3 branch (dependency of protobuf-java-util)
 }
 
 sourceSets {
@@ -130,6 +133,7 @@ task serverJar(type: Jar) {
             'Main-Class': 'soc.server.SOCServer',
             'Implementation-Version': project.version,
             'Build-Revision': project.git_revision,
+            'Class-Path': 'gson.jar',
         )
     }
     from(sourceSets.main.output) {
@@ -157,6 +161,7 @@ task fullJar(type: Jar) {
             'Main-Class': 'soc.client.SOCPlayerClient',
             'Implementation-Version': project.version,
             'Build-Revision': project.git_revision,
+            'Class-Path': 'gson.jar',  // in case client launches a server, or another project uses fullJar
         )
     }
     from(sourceSets.main.output) {

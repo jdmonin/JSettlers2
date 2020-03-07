@@ -23,6 +23,8 @@
  **/
 package soc.server;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import soc.debug.D;
 import soc.game.SOCGame;
@@ -48,6 +51,7 @@ import soc.message.*;
 import soc.server.database.SOCDBHelper;
 import soc.server.genericServer.Connection;
 import soc.server.genericServer.StringConnection;
+import soc.server.savegame.*;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.SOCRobotParameters;
@@ -71,6 +75,15 @@ import soc.util.Version;
  */
 public class SOCServerMessageHandler
 {
+    /**
+     * Filename regex for {@code *LOADGAME*} and {@code *SAVEGAME*} debug commands:
+     * Allows letters and digits ({@link Character#isLetterOrDigit(int)})
+     * along with dashes (-) and underscores (_).
+     * @since 2.3.00
+     */
+    private static final Pattern DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX
+        = Pattern.compile("^[\\p{IsLetter}\\p{IsDigit}_-]+$");
+
     private final SOCServer srv;
 
     /**
@@ -1403,6 +1416,242 @@ public class SOCServerMessageHandler
 
         processDebugCommand_gameStats(c, ga, false);
         processDebugCommand_connStats(c, ga, false);
+    }
+
+    /**
+     * Process the {@code *LOADGAME*} debug command: Load the named game and have this client join it.
+     * @param c  Client sending the debug command
+     * @param connGaName  Client's current game in which the command was sent, for sending response messages
+     * @param argsStr  Args for debug command (trimmed) or ""
+     * @since 2.3.00
+     */
+    /* package */ void processDebugCommand_loadGame(final Connection c, final String connGaName, final String argsStr)
+    {
+        if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
+        {
+            srv.messageToPlayer(c, connGaName, /*I*/"Usage: *LOADGAME* gamename"/*18N*/);
+            return;
+        }
+
+        if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(argsStr).matches())
+        {
+            srv.messageToPlayer
+                (c, connGaName, /*I*/"gamename can only include letters, numbers, dashes, underscores."/*18N*/);
+            return;
+        }
+
+        if (! processDebugCommand_loadSaveGame_checkDir("LOADGAME", c, connGaName))
+            return;
+
+        if (SavedGameModel.glas == null)
+            SavedGameModel.glas = srv.gameList;
+
+        SavedGameModel sgm = null;
+        try
+        {
+            sgm = GameLoaderJSON.loadGame
+                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
+        } catch(Throwable th) {
+            srv.messageToPlayer
+                (c, connGaName, /*I*/"Problem loading " + argsStr + ": " + th /*18N*/);
+            return;
+        }
+
+        final SOCGame ga = sgm.getGame();
+
+        // validate name and opts, add to gameList, announce "new" game, have client join;
+        // sends error text if validation fails
+        if (! srv.createOrJoinGame
+               (c, c.getVersion(), connGaName, ga.getGameOptions(), ga, SOCServer.AUTH_OR_REJECT__OK))
+        {
+            return;
+        }
+
+        // Must tell debug player to sit down for debug user if they're a player here,
+        // since PI will show as seated if nickname matches player name
+        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+        {
+            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+            if (pi.isSeatVacant || ! pi.name.equals(c.getData()))
+                continue;
+
+            srv.sitDown(ga, c, pn, false, false);
+            break;
+        }
+
+        // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
+        final String gaName = ga.getName();
+        final GameHandler gh = gameList.getGameTypeHandler(gaName);
+        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+        {
+            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+            if (pi.isSeatVacant || ! pi.isRobot)
+                continue;
+
+            // TODO once we have bot details/constraints (fast or smart, 3rd-party bot class),
+            //   request those when calling findRobotAskJoinGame
+            //   instead of marking their seat as vacant
+
+            if (! ga.isSeatVacant(pn))
+                ga.removePlayer(ga.getPlayer(pn).getName(), true);
+            boolean foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
+            if (foundNoRobots)
+                break;
+            // TODO chk retval before break; send error msg to debug user in loaded game?
+        }
+
+        // Send Resume reminder prompt after delay, to appear after bots have joined
+        //     TODO if any problems, don't send this prompt
+        srv.miscTaskTimer.schedule(new TimerTask()
+        {
+            public void run()
+            {
+                srv.messageToGameUrgent(gaName, /*I*/"To continue playing, type *RESUMEGAME*"/*18N*/ );
+            }
+        }, 300 /* ms */ );
+    }
+
+    /**
+     * Process the {@code *RESUMEGAME*} debug command: Resume the current game,
+     * which was recently loaded with {@code *LOADGAME*}.
+     * Must be in state {@link SOCGame#LOADING}.
+     * @param c  Client sending the debug command
+     * @param ga  Game in which the command was sent
+     * @param argsStr  Args for debug command (trimmed) or ""
+     * @since 2.3.00
+     */
+    /* package */ void processDebugCommand_resumeGame(final Connection c, final SOCGame ga, final String argsStr)
+    {
+        final String gaName = ga.getName();
+
+        if (! argsStr.isEmpty())
+        {
+            // TODO once constraints are implemented: have an arg to override them
+
+            srv.messageToPlayer(c, gaName, /*I*/"Usage: *RESUMEGAME* with no arguments"/*18N*/);
+            return;
+        }
+
+        Object sgm = ga.savedGameModel;
+        if ((ga.getGameState() != SOCGame.LOADING) || (sgm == null))
+        {
+            srv.messageToPlayer
+                (c, gaName, /*I*/"This game is not waiting to be resumed."/*18N*/);
+            return;
+        }
+
+        ((SavedGameModel) sgm).resumePlay(false);
+        final GameHandler hand = gameList.getGameTypeHandler(gaName);
+        if (hand != null)
+            hand.sendGameState(ga);
+
+        // Would anything else change besides state? If so, should it return a list of bots that joined etc?
+        // Maybe nothing else would change, until constraints are done
+
+        srv.messageToGameUrgent(gaName, /*I*/"Resuming game play."/*18N*/);
+    }
+
+    /**
+     * Process the {@code *SAVEGAME*} debug command: Save the current game.
+     * @param c  Client sending the debug command
+     * @param ga  Game in which the command was sent
+     * @param argsStr  Args for debug command (trimmed) or ""
+     * @since 2.3.00
+     */
+    /* package */ void processDebugCommand_saveGame(final Connection c, final SOCGame ga, final String argsStr)
+    {
+        final String gaName = ga.getName();
+
+        if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
+        {
+            srv.messageToPlayer(c, gaName, /*I*/"Usage: *SAVEGAME* gamename"/*18N*/);
+            return;
+        }
+
+        if (! processDebugCommand_loadSaveGame_checkDir("SAVEGAME", c, gaName))
+            return;
+
+        if (ga.getGameState() < SOCGame.ROLL_OR_CARD)
+        {
+            srv.messageToPlayer
+                (c, gaName, /*I*/"Must finish initial placement before saving."/*18N*/);
+            return;
+        }
+        else if (ga.getGameState() == SOCGame.LOADING)
+        {
+            srv.messageToPlayer
+                (c, gaName, /*I*/"Must resume loaded game before saving again."/*18N*/);
+            return;
+        }
+
+        if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(argsStr).matches())
+        {
+            srv.messageToPlayer
+                (c, gaName, /*I*/"gamename can only include letters, numbers, dashes, underscores."/*18N*/);
+            return;
+        }
+
+        try
+        {
+            final String fname = argsStr + GameSaverJSON.FILENAME_EXTENSION;
+            GameSaverJSON.saveGame(ga, srv.savegameDir, fname);
+            srv.messageToPlayer
+                (c, gaName, /*I*/"Saved game to " + fname /*18N*/);
+        } catch(IllegalArgumentException|IOException e) {
+            srv.messageToPlayer
+                (c, gaName, /*I*/"Problem saving " + argsStr + ": " + e /*18N*/);
+        }
+    }
+
+    /**
+     * Check status of {@link SOCServer#savegameDir} and {@link SOCServer#savegameInitFailed}
+     * for {@code *LOADGAME*} and {@code *SAVEGAME*} debug commands.
+     * If problem found (dir doesn't exist, etc), sends error message to client.
+     *
+     * @param cmdName  "LOADGAME" or "SAVEGAME"
+     * @param c  Client sending the debug command
+     * @param connGaName  Client's current game, for sending error messages
+     * @return True if everything looks OK, false if a message was printed to user
+     * @since 2.3.00
+     */
+    private boolean processDebugCommand_loadSaveGame_checkDir
+        (final String cmdName, final Connection c, final String connGaName)
+    {
+        final File dir = srv.savegameDir;
+
+        String errMsgKey = null;  // i18n message key (TODO)
+        Object errMsgObj, errMsgO2 = null;
+
+        if (srv.savegameInitFailed)
+        {
+            errMsgKey = /*I*/cmdName + " is disabled: Initialization failed. See startup messages on server console."/*18N*/;
+        } else if (dir == null) {
+            errMsgKey = /*I*/cmdName + " is disabled: Must set " + SOCServer.PROP_JSETTLERS_SAVEGAME_DIR + " property"/*18N*/;
+        } else {
+            errMsgObj = dir.getPath();
+
+            try
+            {
+                if (! dir.exists())
+                {
+                    errMsgKey = /*I*/"savegame.dir not found: " + errMsgObj/*18N*/;
+                } else if (! dir.isDirectory()) {
+                    errMsgKey = /*I*/"savegame.dir file exists but isn't a directory: " + errMsgObj/*18N*/;
+                }
+            } catch (SecurityException e) {
+                errMsgO2 = e;
+                errMsgKey = /*I*/"Warning: Can't access savegame.dir " + errMsgObj + ": " + e /*18N*/;
+            }
+        }
+
+        if (errMsgKey != null)
+        {
+            // TODO i18n
+            srv.messageToPlayer(c, connGaName, errMsgKey);
+            return false;
+        }
+
+        return true;
     }
 
     /**

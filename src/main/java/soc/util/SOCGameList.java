@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -338,7 +338,8 @@ public class SOCGameList
      * If a game already exists (per {@link #isGame(String)}), at most clear its canJoin flag.
      *<P>
      * Server should instead call
-     * {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)}.
+     * {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)}
+     * or {@link soc.server.SOCGameListAtServer#addGame(SOCGame, soc.server.GameHandler, String, String)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.

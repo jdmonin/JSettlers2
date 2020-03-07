@@ -216,11 +216,14 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX},
      * or gold revealed from {@link SOCBoardLarge#FOG_HEX} by a placed road, ship, or settlement.
+     *<P>
+     * This is the highest-numbered possible starting state; value is {@link #ROLL_OR_CARD} - 1.
+     *
      * @see #WAITING_FOR_PICK_GOLD_RESOURCE
      * @see #pickGoldHexResources(int, SOCResourceSet)
      * @since 2.0.00
      */
-    public static final int STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14;
+    public static final int STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14;  // value must be 1 less than ROLL_OR_CARD
 
     /**
      * Players place second road.  Next state is {@link #START2A} to place previous
@@ -484,6 +487,14 @@ public class SOCGame implements Serializable, Cloneable
     public static final int SPECIAL_BUILDING = 100;  // see advanceTurnToSpecialBuilding()
 
     /**
+     * A saved game is being loaded. Its actual state is saved in {@code oldGameState} field.
+     * Before resuming play, server or user may need to satisfy conditions or constraints
+     * (have a certain type of bot sit down at a given player number, etc).
+     * @since 2.3.00
+     */
+    public static final int LOADING = 999;
+
+    /**
      * The game is over.  A player has accumulated enough ({@link #vp_winner}) victory points,
      * or all players have left the game.
      * The winning player, if any, is {@link #getPlayerWithWin()}.
@@ -621,10 +632,10 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Is this the server's complete copy of the game, not the client's (with some details unknown)?
-     * Set during {@link #startGame()}.
+     * Set during {@link #startGame()}. Treat as read-only.
      * @since 1.1.17
      */
-    boolean isAtServer;
+    public boolean isAtServer;
 
     /**
      * For games at server, a convenient queue to hold any outbound SOCMessages during game actions.
@@ -663,6 +674,14 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     public transient List<Object> pendingMessagesOut;
+
+    /**
+     * For a game at server which was loaded from disk,
+     * its {@link soc.server.savegame.SavedGameModel}. Otherwise {@code null}.
+     * Declared as Object here to avoid needing server class at client.
+     * @since 2.3.00
+     */
+    public transient Object savedGameModel;
 
     /**
      * For games at the server, the owner (creator) of the game.
@@ -977,6 +996,8 @@ public class SOCGame implements Serializable, Cloneable
      *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *        Can be {@link #ROLL_OR_CARD} in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}:
      *        See {@link #pickGoldHexResources(int, SOCResourceSet)} and {@link #rollDice_update7gameState()}.
+     *<LI> {@link #LOADING}:
+     *        Holds the actual game state, to be resumed once optional constraints are met.
      *</UL>
      * Also used if the game board was reset: {@link #getResetOldGameState()} holds the state before the reset.
      */
@@ -1639,6 +1660,7 @@ public class SOCGame implements Serializable, Cloneable
      *     assumes single-threaded processing of incoming messages to this game.
      * @throws IllegalArgumentException if name isn't in this game.
      *           This exception was added in 1.1.07.
+     * @see #isSeatVacant(int)
      * @see #addPlayer(String, int)
      */
     public void removePlayer(final String name, final boolean hasReplacement)
@@ -1658,6 +1680,8 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn the number of the seat
      * @see #getAvailableSeatCount()
+     * @see #addPlayer(String, int)
+     * @see #removePlayer(String, boolean)
      */
     public boolean isSeatVacant(final int pn)
     {
@@ -2334,6 +2358,9 @@ public class SOCGame implements Serializable, Cloneable
      * Are we in the Initial Placement part of the game?
      * Includes game states {@link #START1A} - {@link #START3B}
      * and {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     *<P>
+     * Returns false if game hasn't started yet (state &lt; {@link #START1A}),
+     * or is in normal gameplay or over (state &gt;= {@link #ROLL_OR_CARD}).
      *
      * @return true if in Initial Placement
      * @since 1.1.12
@@ -2341,7 +2368,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public final boolean isInitialPlacement()
     {
-        return (gameState >= START1A) && (gameState <= STARTS_WAITING_FOR_PICK_GOLD_RESOURCE);
+        return (gameState >= START1A) && (gameState < ROLL_OR_CARD);
     }
 
     /**
@@ -2416,6 +2443,42 @@ public class SOCGame implements Serializable, Cloneable
     public void setNumDevCards(final int nd)
     {
         numDevCards = nd;
+    }
+
+    /**
+     * At server, get the dev cards remaining in the unplayed deck.
+     * @return Unplayed dev card deck: a copied array of ints from {@link SOCDevCardConstants}
+     * @see #setDevCardDeck(int[])
+     * @see #buyDevCard()
+     * @since 2.3.00
+     */
+    public int[] getDevCardDeck()
+    {
+        int[] cards = new int[numDevCards];
+        System.arraycopy(devCardDeck, 0, cards, 0, cards.length);
+        return cards;
+    }
+
+    /**
+     * At server, set the dev cards remaining in the unplayed deck.
+     * Useful for loading a saved game snapshot.
+     * @param cards Unplayed dev card deck: ints from {@link SOCDevCardConstants}.
+     *     Contents will be copied. Can be empty, but not null.
+     * @throws IllegalArgumentException if {@code cards} is null
+     * @see #getDevCardDeck()
+     * @since 2.3.00
+     */
+    public void setDevCardDeck(final int[] cards)
+        throws IllegalArgumentException
+    {
+        if (cards == null)
+            throw new IllegalArgumentException("cards");
+
+        final int L = cards.length;
+        if ((devCardDeck == null) || (L > devCardDeck.length))
+            devCardDeck = new int[L];
+        numDevCards = L;
+        System.arraycopy(cards, 0, devCardDeck, 0, L);
     }
 
     /**
@@ -4138,7 +4201,30 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * do the things involved in starting a game:
+     * Initialize server-only game fields.
+     * Called from {@link #startGame()} and saved-game loader.
+     * Sets {@link #isAtServer} and {@link #allOriginalPlayers()} flags.
+     * Updates {@link #lastActionTime}.
+     * Initializes misc fields like each player's {@link SOCPlayer#pendingMessagesOut}.
+     * @since 2.3.00
+     */
+    public void initAtServer()
+    {
+        isAtServer = true;
+
+        pendingMessagesOut = new ArrayList<Object>();
+        for (int i = 0; i < maxPlayers; ++i)
+            players[i].pendingMessagesOut = new ArrayList<Object>();
+
+        // make sure game doesn't look idle, in case first player is a robot
+        lastActionTime = System.currentTimeMillis();
+
+        allOriginalPlayers = true;
+    }
+
+    /**
+     * Do the things involved in starting a game at server:
+     * Call {@link #initAtServer()},
      * shuffle the tiles and cards, make a board,
      * set players' legal and potential piece locations,
      * choose first player.
@@ -4159,10 +4245,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void startGame()
     {
-        isAtServer = true;
-        pendingMessagesOut = new ArrayList<Object>();
-        for (int i = 0; i < maxPlayers; ++i)
-            players[i].pendingMessagesOut = new ArrayList<Object>();
+        initAtServer();
 
         startGame_setupDevCards();
 
@@ -4185,10 +4268,6 @@ public class SOCGame implements Serializable, Cloneable
         }
         updateAtBoardLayout();
 
-        // make sure game doesn't look idle, in case first player is a robot
-        lastActionTime = System.currentTimeMillis();
-
-        allOriginalPlayers = true;
         gameState = START1A;
 
         /**
@@ -4300,6 +4379,7 @@ public class SOCGame implements Serializable, Cloneable
      * Based on <code>pn</code> and on vacant seats, also recalculates lastPlayer.
      *
      * @param pn  the seat number of the first player, or -1 if not set yet
+     * @see #getFirstPlayer()
      */
     public void setFirstPlayer(final int pn)
     {
@@ -4332,6 +4412,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the first player number, who went first during initial placement.
+     * Not needed after initial placement.
      * @return the seat number of the first player
      */
     public int getFirstPlayer()
@@ -7516,6 +7598,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      *<b>Note:</b> Not checked for validity; please call {@link #couldBuyDevCard(int)} first.
      *<P>
+     * Called at server only.
+     *<P>
      * If called while the game is starting, when {@link #getCurrentPlayerNumber()} == -1,
      * removes and returns a dev card from the deck without giving it to any player.
      *
@@ -7535,6 +7619,7 @@ public class SOCGame implements Serializable, Cloneable
             players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.NEW, card);
             lastActionTime = System.currentTimeMillis();
             lastActionWasBankTrade = false;
+
             checkForWinner();
         }
 

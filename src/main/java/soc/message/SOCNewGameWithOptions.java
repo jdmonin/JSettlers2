@@ -127,7 +127,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean)},
+     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
      *            or null
      * @param minVers Minimum client version required, or -1
      * @return the command string

@@ -10,6 +10,7 @@
 - To configure a sqlite database for testing
 - Current partially-done work
 - To do: The current TODO list
+- Saving and loading games at server
 - Developing with a database (JDBC)
 - Internationalization (I18N)
 - Robots (AI)
@@ -533,6 +534,29 @@ ideas.
       need to deal with multiple game types
     - SOCJoinGame message: Add optional gametype field at end (blank for
       current type SOC; older clients wouldn't send the field)
+
+
+## Saving and loading games at server
+
+To help with testing, the server can save a game and board's state to a file
+and load it later, using debug commands.
+
+**Usage/UI** TBD; might be something like:
+
+- Set value of server property `jsettlers.savegame.dir` to point to the game-saves directory
+- Start a game, place pieces as needed, etc
+- Debug command to save a snapshot: \*SAVEGAME\* mygamename
+- Debug command to load a snapshot: \*LOADGAME\* mygamename  
+  Server parses the snapshot and create a game with its contents.
+  Debug user joins, bots are then asked to join. (Maybe optionally require certain types of bots?)
+  Temporarily set gamestate to a new hold/pause state, so current player won't take action until everyone has joined.
+- Debug command to resume play of loaded game: \*RESUMEGAME\*
+
+Optional GSON jar must be on classpath, or named `gson.jar` (no version number)
+in same directory as JSettlersServer.jar. Download GSON 2.8.6 or higher from
+https://search.maven.org/artifact/com.google.code.gson/gson/2.8.6/jar or
+https://mvnrepository.com/artifact/com.google.code.gson/gson/2.8.6 .  
+If using Eclipse, also add GSON to the project's build path -> Libraries -> Add External JAR
 
 
 ## Developing with a database (JDBC)

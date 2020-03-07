@@ -44,6 +44,8 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 
 import soc.message.*;
+import soc.message.SOCGameElements.GEType;
+import soc.message.SOCPlayerElement.PEType;
 
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCFeatureSet;
@@ -524,14 +526,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * receive a board layout
              */
             case SOCMessage.BOARDLAYOUT:
-                handleBOARDLAYOUT((SOCBoardLayout) mes);
+                handleBOARDLAYOUT((SOCBoardLayout) mes, games.get(((SOCBoardLayout) mes).getGame()));
                 break;
 
             /**
              * receive a board layout (new format, as of 20091104 (v 1.1.08))
              */
             case SOCMessage.BOARDLAYOUT2:
-                handleBOARDLAYOUT2(games, (SOCBoardLayout2) mes);
+                handleBOARDLAYOUT2((SOCBoardLayout2) mes, games.get(((SOCBoardLayout2) mes).getGame()));
                 break;
 
             /**
@@ -707,7 +709,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * get a list of all the potential settlements for a player
              */
             case SOCMessage.POTENTIALSETTLEMENTS:
-                handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes, games);
+                handlePOTENTIALSETTLEMENTS
+                    ((SOCPotentialSettlements) mes, games.get(((SOCPotentialSettlements) mes).getGame()));
                 break;
 
             /**
@@ -1123,7 +1126,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (! skipResourceCount)
                 handlePLAYERELEMENT_simple
                     (ga, pl, pn, SOCPlayerElement.SET,
-                     SOCPlayerElement.RESOURCE_COUNT, mes.playerResTotal.get(p), nickname);
+                     PEType.RESOURCE_COUNT, mes.playerResTotal.get(p), nickname);
         }
     }
 
@@ -1164,10 +1167,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * handle the "board layout" message
      * @param mes  the message
+     * @param ga  Game to apply layout to, for method reuse; does nothing if null
+     * @see #handleBOARDLAYOUT2(SOCBoardLayout2, SOCGame)
      */
-    protected void handleBOARDLAYOUT(SOCBoardLayout mes)
+    public static void handleBOARDLAYOUT(SOCBoardLayout mes, final SOCGame ga)
     {
-        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -1181,14 +1185,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "board layout" message, new format
-     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
+     * @param ga  Game to apply layout to, for method reuse; does nothing if null
      * @since 1.1.08
-     * @return True if game was found and layout understood, false otherwise
+     * @return True if layout was understood and game != null, false otherwise
+     * @see #handleBOARDLAYOUT(SOCBoardLayout, SOCGame)
      */
-    public static boolean handleBOARDLAYOUT2(Map<String, SOCGame> games, SOCBoardLayout2 mes)
+    public static boolean handleBOARDLAYOUT2(SOCBoardLayout2 mes, final SOCGame ga)
     {
-        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return false;
 
@@ -1317,7 +1321,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleSETTURN(SOCSetTurn mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.CURRENT_PLAYER, mes.getPlayerNumber());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.CURRENT_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -1326,7 +1330,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleFIRSTPLAYER(SOCFirstPlayer mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.FIRST_PLAYER, mes.getPlayerNumber());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.FIRST_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -1363,7 +1367,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final int[] etypes = mes.getElementTypes(), amounts = mes.getAmounts();
 
         for (int i = 0; i < etypes.length; ++i)
-            handlePLAYERELEMENT(ga, pl, pn, action, etypes[i], amounts[i], nickname);
+            handlePLAYERELEMENT(ga, pl, pn, action, PEType.valueOf(etypes[i]), amounts[i], nickname);
     }
 
     /**
@@ -1379,7 +1383,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final int pn = mes.getPlayerNumber();
         final int action = mes.getAction(), amount = mes.getAmount();
-        final int etype = mes.getElementType();
+        final PEType etype = PEType.valueOf(mes.getElementType());
 
         handlePLAYERELEMENT(ga, null, pn, action, etype, amount, nickname);
     }
@@ -1392,65 +1396,66 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param pn   Player number from message (sometimes -1 for none or all)
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
-     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param etype  Element type, such as {@link PEType#SETTLEMENTS} or {@link PEType#NUMKNIGHTS}.
+     *     Does nothing if {@code null}.
      * @param amount  The new value to set, or the delta to gain/lose
-     * @param nickname  Our client player nickname/username, for a few elements where that matters.
-     *     Some callers use {@code null} for elements where this isn't needed.
+     * @param nickname  Our client player nickname/username, for the only element where that matters:
+     *     {@link PEType#RESOURCE_COUNT}. Can be {@code null} otherwise.
      * @since 2.0.00
      */
     public static final void handlePLAYERELEMENT
         (final SOCGame ga, SOCPlayer pl, final int pn, final int action,
-         final int etype, final int amount, final String nickname)
+         final PEType etype, final int amount, final String nickname)
     {
-        if (ga == null)
+        if ((ga == null) || (etype == null))
             return;
         if ((pl == null) && (pn != -1))
             pl = ga.getPlayer(pn);
 
         switch (etype)
         {
-        case SOCPlayerElement.ROADS:
+        case ROADS:
             handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.ROAD, amount);
             break;
 
-        case SOCPlayerElement.SETTLEMENTS:
+        case SETTLEMENTS:
             handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SETTLEMENT, amount);
             break;
 
-        case SOCPlayerElement.CITIES:
+        case CITIES:
             handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.CITY, amount);
             break;
 
-        case SOCPlayerElement.SHIPS:
+        case SHIPS:
             handlePLAYERELEMENT_numPieces(pl, action, SOCPlayingPiece.SHIP, amount);
             break;
 
-        case SOCPlayerElement.NUMKNIGHTS:
+        case NUMKNIGHTS:
             // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
             handlePLAYERELEMENT_numKnights(ga, pl, action, amount);
             break;
 
-        case SOCPlayerElement.CLAY:
+        case CLAY:
             handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.CLAY, amount);
             break;
 
-        case SOCPlayerElement.ORE:
+        case ORE:
             handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.ORE, amount);
             break;
 
-        case SOCPlayerElement.SHEEP:
+        case SHEEP:
             handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.SHEEP, amount);
             break;
 
-        case SOCPlayerElement.WHEAT:
+        case WHEAT:
             handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WHEAT, amount);
             break;
 
-        case SOCPlayerElement.WOOD:
+        case WOOD:
             handlePLAYERELEMENT_numRsrc(pl, action, SOCResourceConstants.WOOD, amount);
             break;
 
-        case SOCPlayerElement.UNKNOWN:
+        case UNKNOWN_RESOURCE:
             /**
              * Note: if losing unknown resources, we first
              * convert player's known resources to unknown resources,
@@ -1484,22 +1489,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param pn   Player number from message (sometimes -1 for none)
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
-     * @param etype  Element type, such as {@link SOCPlayerElement#SETTLEMENTS} or {@link SOCPlayerElement#NUMKNIGHTS}
+     * @param etype  Element type, such as {@link PEType#SETTLEMENTS} or {@link PEType#NUMKNIGHTS}.
+     *     Does nothing if {@code null}.
      * @param val  The new value to set, or the delta to gain/lose
      * @param nickname  Our client player nickname/username, for the only element where that matters:
-     *     {@link SOCPlayerElement#RESOURCE_COUNT}. Can be {@code null} otherwise.
+     *     {@link PEType#RESOURCE_COUNT}. Can be {@code null} otherwise.
      * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_simple
         (SOCGame ga, SOCPlayer pl, final int pn, final int action,
-         final int etype, final int val, final String nickname)
+         final PEType etype, final int val, final String nickname)
     {
+        if (etype == null)
+            return;
         if ((pl == null) && (pn != -1))
             pl = ga.getPlayer(pn);
 
         switch (etype)
         {
-        case SOCPlayerElement.ASK_SPECIAL_BUILD:
+        case ASK_SPECIAL_BUILD:
             if (0 != val)
             {
                 try {
@@ -1511,7 +1519,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
             break;
 
-        case SOCPlayerElement.RESOURCE_COUNT:
+        case RESOURCE_COUNT:
             if (val != pl.getResources().getTotal())
             {
                 SOCResourceSet rsrcs = pl.getResources();
@@ -1532,11 +1540,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
             break;
 
-        case SOCPlayerElement.LAST_SETTLEMENT_NODE:
+        case LAST_SETTLEMENT_NODE:
             pl.setLastSettlementCoord(val);
             break;
 
-        case SOCPlayerElement.PLAYED_DEV_CARD_FLAG:
+        case PLAYED_DEV_CARD_FLAG:
             {
                 final boolean changeTo = (val != 0);
                 if (pn != -1)
@@ -1547,34 +1555,34 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
             break;
 
-        case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
+        case NUM_PICK_GOLD_HEX_RESOURCES:
             pl.setNeedToPickGoldHexResources(val);
             break;
 
-        case SOCPlayerElement.SCENARIO_SVP:
+        case SCENARIO_SVP:
             pl.setSpecialVP(val);
             break;
 
-        case SOCPlayerElement.PLAYEREVENTS_BITMASK:
+        case PLAYEREVENTS_BITMASK:
             pl.setPlayerEvents(val);
             break;
 
-        case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
+        case SCENARIO_SVP_LANDAREAS_BITMASK:
             pl.setScenarioSVPLandAreas(val);
             break;
 
-        case SOCPlayerElement.STARTING_LANDAREAS:
+        case STARTING_LANDAREAS:
             pl.setStartingLandAreasEncoded(val);
             break;
 
-        case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
+        case SCENARIO_CLOTH_COUNT:
             if (pn != -1)
                 pl.setCloth(val);
             else
                 ((SOCBoardLarge) (ga.getBoard())).setCloth(val);
             break;
 
-        case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+        case SCENARIO_WARSHIP_COUNT:
             switch (action)
             {
             case SOCPlayerElement.SET:
@@ -1587,6 +1595,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
             break;
 
+        default:
+            ;  // no action needed, default is only to avoid compiler warning
         }
     }
 
@@ -1733,7 +1743,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Handle the GameElements message: Finds game by name, and loops calling
-     * {@link #handleGAMEELEMENT(SOCGame, int, int)}.
+     * {@link #handleGAMEELEMENT(SOCGame, GEType, int)}.
      * @param mes  the message
      * @since 2.0.00
      */
@@ -1745,47 +1755,51 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final int[] etypes = mes.getElementTypes(), values = mes.getValues();
         for (int i = 0; i < etypes.length; ++i)
-            handleGAMEELEMENT(ga, etypes[i], values[i]);
+            handleGAMEELEMENT(ga, GEType.valueOf(etypes[i]), values[i]);
     }
 
     /**
      * Update one game element field from a {@link SOCGameElements} message.
      * @param ga   Game to update; does nothing if null
-     * @param etype  Element type, such as {@link SOCGameElements#ROUND_COUNT} or {@link SOCGameElements#DEV_CARD_COUNT}
+     * @param etype  Element type, such as {@link GEType#ROUND_COUNT} or {@link GEType#DEV_CARD_COUNT}.
+     *     Does nothing if {@code null}.
      * @param value  The new value to set
      * @since 2.0.00
      */
     public static final void handleGAMEELEMENT
-        (final SOCGame ga, final int etype, final int value)
+        (final SOCGame ga, final GEType etype, final int value)
     {
-        if (ga == null)
+        if ((ga == null) || (etype == null))
             return;
 
         switch (etype)
         {
-        case SOCGameElements.ROUND_COUNT:
+        case ROUND_COUNT:
             ga.setRoundCount(value);
             break;
 
-        case SOCGameElements.DEV_CARD_COUNT:
+        case DEV_CARD_COUNT:
             ga.setNumDevCards(value);
             break;
 
-        case SOCGameElements.FIRST_PLAYER:
+        case FIRST_PLAYER:
             ga.setFirstPlayer(value);
             break;
 
-        case SOCGameElements.CURRENT_PLAYER:
+        case CURRENT_PLAYER:
             ga.setCurrentPlayerNumber(value);
             break;
 
-        case SOCGameElements.LARGEST_ARMY_PLAYER:
+        case LARGEST_ARMY_PLAYER:
             ga.setPlayerWithLargestArmy((value != -1) ? ga.getPlayer(value) : null);
             break;
 
-        case SOCGameElements.LONGEST_ROAD_PLAYER:
+        case LONGEST_ROAD_PLAYER:
             ga.setPlayerWithLongestRoad((value != -1) ? ga.getPlayer(value) : null);
             break;
+
+        case UNKNOWN_TYPE:
+            ;  // no action needed, UNKNOWN_TYPE is mentioned only to avoid compiler warning
         }
     }
 
@@ -1801,7 +1815,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         handlePLAYERELEMENT_simple
             (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
-             SOCPlayerElement.RESOURCE_COUNT, mes.getCount(), nickname);
+             PEType.RESOURCE_COUNT, mes.getCount(), nickname);
     }
 
     /**
@@ -1819,7 +1833,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         handlePLAYERELEMENT_simple
             (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
-                SOCPlayerElement.LAST_SETTLEMENT_NODE, mes.getCoordinates(), null);
+             PEType.LAST_SETTLEMENT_NODE, mes.getCoordinates(), null);
     }
 
     /**
@@ -2024,7 +2038,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleDEVCARDCOUNT(SOCDevCardCount mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.DEV_CARD_COUNT, mes.getNumDevCards());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.DEV_CARD_COUNT, mes.getNumDevCards());
     }
 
     /**
@@ -2086,7 +2100,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         handlePLAYERELEMENT_simple
             (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
-             SOCPlayerElement.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
+             PEType.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
     }
 
     /**
@@ -2150,17 +2164,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * handle the "list of potential settlements" message
      * @param mes  the message
-     * @param games  The hashtable of client's {@link SOCGame}s; key = game name
+     * @param ga  Game to apply message to, for method reuse; does nothing if null
      * @throws IllegalStateException if the board has
      *     {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("AL")} != {@code null} but
      *     badly formed (node list number 0, or a node list number not followed by a land area number).
      *     This Added Layout Part is rarely used, and this would be discovered quickly while testing
      *     the board layout that contained it.
      */
-    public static void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes, Hashtable<String, SOCGame> games)
+    public static void handlePOTENTIALSETTLEMENTS
+        (SOCPotentialSettlements mes, final SOCGame ga)
         throws IllegalStateException
     {
-        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -2240,7 +2254,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleLONGESTROAD(SOCLongestRoad mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.LONGEST_ROAD_PLAYER, mes.getPlayerNumber());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.LONGEST_ROAD_PLAYER, mes.getPlayerNumber());
     }
 
     /**
@@ -2249,7 +2263,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleLARGESTARMY(SOCLargestArmy mes)
     {
-        handleGAMEELEMENT(games.get(mes.getGame()), SOCGameElements.LARGEST_ARMY_PLAYER, mes.getPlayerNumber());
+        handleGAMEELEMENT(games.get(mes.getGame()), GEType.LARGEST_ARMY_PLAYER, mes.getPlayerNumber());
     }
 
     /**
