@@ -177,6 +177,7 @@ public class SavedGameModel
 
         // TODO maybe check constraints
 
+        game.lastActionTime = System.currentTimeMillis();
         game.setGameState(gameState);
 
         return game;

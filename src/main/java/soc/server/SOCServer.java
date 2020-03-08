@@ -7945,13 +7945,12 @@ public class SOCServer extends Server
                 if (lastActionTime > (ga.isCurrentPlayerStubbornRobot() ? inactiveTimeStubborn : inactiveTime))
                     continue;
 
-                if (ga.getGameState() >= SOCGame.OVER)
+                final int gs = ga.getGameState();
+                if ((gs >= SOCGame.OVER) || (gs == SOCGame.LOADING))
                 {
                     // nothing to do.
-                    // bump out that time, so we don't see
-                    // it again every few seconds
-                    ga.lastActionTime
-                        += (SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES * 60 * 1000);
+                    // bump out that time, so we don't see it again every few seconds
+                    ga.lastActionTime = currentTimeMillis + (SOCGameListAtServer.GAME_TIME_EXPIRE_MINUTES * 60 * 1000);
                     continue;
                 }
 

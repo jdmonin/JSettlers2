@@ -1249,6 +1249,7 @@ public class SOCRobotBrain extends Thread
                     {
                         handleGAMESTATE(((SOCGameState) mes).getState());
                             // clears waitingForGameState, updates oldGameState, calls ga.setGameState
+                            // If state is LOADING, sets waitingForGameState
                     }
 
                     else if (mesType == SOCMessage.STARTGAME)
@@ -2150,10 +2151,11 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Handle a game state change from {@link SOCGameState} or another message
-     * which has a Game State field. Clears {@link #waitingForGameState},
+     * which has a Game State field. Clears {@link #waitingForGameState}
+     * (unless {@code gs} is {@link SOCGame#LOADING}),
      * updates {@link #oldGameState} if state value is actually changing, then calls
      * {@link SOCDisplaylessPlayerClient#handleGAMESTATE(SOCGame, int)}.
-     * @param gs  New game state; if 0, does nothing
+     * @param gs  New game state, like {@link SOCGame#ROLL_OR_CARD}; if 0, does nothing
      * @since 2.0.00
      */
     protected void handleGAMESTATE(final int gs)
@@ -2161,10 +2163,11 @@ public class SOCRobotBrain extends Thread
         if (gs == 0)
             return;
 
-        waitingForGameState = false;
+        waitingForGameState = (gs == SOCGame.LOADING);  // almost always false
         int currGS = game.getGameState();
         if (currGS != gs)
             oldGameState = currGS;  // if no actual change, don't overwrite previously known oldGameState
+
         SOCDisplaylessPlayerClient.handleGAMESTATE(game, gs);
     }
 
