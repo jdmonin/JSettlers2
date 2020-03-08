@@ -3317,7 +3317,8 @@ public class SOCGame implements Serializable, Cloneable
      * Revealing a gold hex from fog will set that player field and also
      * sets gamestate to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      *<P>
-     * Calls {@link #checkForWinner()} and otherwise advances turn or state.
+     * Calls {@link #checkForWinner()} and otherwise advances turn or state,
+     * unless gamestate is {@link #LOADING}.
      * At the client, {@link #advanceTurnStateAfterPutPiece()} won't change the current player;
      * the server will send a message when the current player changes.
      *<P>
@@ -3439,6 +3440,11 @@ public class SOCGame implements Serializable, Cloneable
             }
 
             board.removePiece(se);
+        }
+
+        if (gameState == LOADING)
+        {
+            return;  // <---- Early return: Loading game, so skip any side effects ----
         }
 
         /**
@@ -8182,6 +8188,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * The win is determined not by who has the highest point total, but
      * solely by reaching enough victory points ({@link #vp_winner}) during your own turn.
+     * Does nothing if gameState is {@link #SPECIAL_BUILDING} or {@link #LOADING}.
      *<P>
      * Some game scenarios have other special win conditions ({@link #hasScenarioWinCondition}):
      *<UL>
@@ -8209,7 +8216,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void checkForWinner()
     {
-        if (gameState == SPECIAL_BUILDING)
+        if ((gameState == SPECIAL_BUILDING) || (gameState == LOADING))
             return;  // Can't win in this state, it's not really anyone's turn
 
         final int pn = currentPlayerNumber;

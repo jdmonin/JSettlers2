@@ -6149,7 +6149,8 @@ public class SOCServer extends Server
      *     {@link SOCServer#authOrRejectClientUser(Connection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
      *     for details. If user is already auth'd, use {@link {@link SOCServer#AUTH_OR_REJECT__OK AUTH_OR_REJECT__OK}.
      * @return  True if succeeded, false if failed and a message was sent to user {@code c}.
-     * @throws IllegalStateException if {@code loadedGame != null} but its gameState != {@code LOADING}
+     * @throws IllegalStateException if {@code loadedGame != null} but its gameState isn't {@link SOCGame#LOADING}
+     *     or {@link SOCGame#OVER}
      * @since 1.2.00
      */
     /*package*/ boolean createOrJoinGame
@@ -6163,7 +6164,8 @@ public class SOCServer extends Server
         final String gameName;  // game name to check
         if (loadedGame != null)
         {
-            if (loadedGame.getGameState() != SOCGame.LOADING)
+            final int gs = loadedGame.getGameState();
+            if ((gs != SOCGame.LOADING) && (gs != SOCGame.OVER))
                 throw new IllegalStateException("gameState");
 
             gameName = loadedGame.getName();
@@ -7413,7 +7415,8 @@ public class SOCServer extends Server
      * @param robot  true if this player is a robot
      * @param isReset Game is a board-reset of an existing game
      */
-    void sitDown(final SOCGame ga, Connection c, int pn, boolean robot, boolean isReset)
+    void sitDown
+        (final SOCGame ga, Connection c, int pn, final boolean robot, final boolean isReset)
     {
         if ((c == null) || (ga == null))
             return;

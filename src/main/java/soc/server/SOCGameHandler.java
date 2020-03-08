@@ -2571,8 +2571,11 @@ public class SOCGameHandler extends GameHandler
 
         }  // send game timing stats, win-loss stats
 
-        srv.gameOverIncrGamesFinishedCount();
-        srv.storeGameScores(ga);
+        if (null == ga.savedGameModel)
+        {
+            srv.gameOverIncrGamesFinishedCount();
+            srv.storeGameScores(ga);
+        }
 
         if (ga.isBotsOnly)
         {

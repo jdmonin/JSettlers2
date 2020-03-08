@@ -1446,7 +1446,7 @@ public class SOCServerMessageHandler
         if (SavedGameModel.glas == null)
             SavedGameModel.glas = srv.gameList;
 
-        SavedGameModel sgm = null;
+        final SavedGameModel sgm;
         try
         {
             sgm = GameLoaderJSON.loadGame
@@ -1500,15 +1500,24 @@ public class SOCServerMessageHandler
             // TODO chk retval before break; send error msg to debug user in loaded game?
         }
 
-        // Send Resume reminder prompt after delay, to appear after bots have joined
+        // Send Resume reminder prompt after delay, or announce winner if over,
+        //     to appear after bots have joined
         //     TODO if any problems, don't send this prompt
         srv.miscTaskTimer.schedule(new TimerTask()
         {
             public void run()
             {
-                srv.messageToGameUrgent(gaName, /*I*/"To continue playing, type *RESUMEGAME*"/*18N*/ );
+                if (sgm.gameState < SOCGame.OVER)
+                {
+                    srv.messageToGameUrgent(gaName, /*I*/"To continue playing, type *RESUMEGAME*"/*18N*/ );
+                } else {
+                    sgm.resumePlay(true);
+                    final GameHandler hand = gameList.getGameTypeHandler(gaName);
+                    if (hand != null)
+                        hand.sendGameState(ga);
+                }
             }
-        }, 300 /* ms */ );
+        }, 350 /* ms */ );
     }
 
     /**

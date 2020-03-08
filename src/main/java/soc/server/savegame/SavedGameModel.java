@@ -74,7 +74,7 @@ public class SavedGameModel
     int gameDurationSeconds;
 
     /** Current state, from {@link SOCGame#getGameState()} */
-    int gameState;
+    public int gameState;
 
     /** Current dice roll results, from {@link SOCGame#getCurrentDice()} */
     int currentDice;
