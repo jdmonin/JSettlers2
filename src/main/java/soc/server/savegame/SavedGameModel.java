@@ -248,6 +248,9 @@ public class SavedGameModel
         /** Available piece counts, SVP, cloth count, etc. */
         HashMap<PEType, Integer> elements = new HashMap<>();
 
+        /** Resource roll stats, from {@link SOCPlayer#getResourceRollStats()} */
+        int[] resRollStats;
+
         /**
          * Standard dev card types in player's hand,
          * received in current turn (new) or previous turns
@@ -294,6 +297,8 @@ public class SavedGameModel
                     elements.put(PEType.SCENARIO_WARSHIP_COUNT, n);
             }
 
+            resRollStats = pl.getResourceRollStats();
+
             final SOCInventory cardsInv = pl.getInventory();
             for (SOCInventoryItem item : cardsInv.getByState(SOCInventory.NEW))
                 if (item instanceof SOCDevCard)
@@ -322,6 +327,9 @@ public class SavedGameModel
 
             final SOCGame ga = pl.getGame();
             final int pn = pl.getPlayerNumber();
+
+            if ((resRollStats != null) && (resRollStats.length > 0))
+                pl.setResourceRollStats(resRollStats);
 
             {
                 final SOCInventory inv = pl.getInventory();

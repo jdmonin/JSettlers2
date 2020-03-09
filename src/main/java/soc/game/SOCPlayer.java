@@ -2080,11 +2080,29 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   Index 0 is unused.
      *   In v2.0.00 and newer, index {@link SOCResourceConstants#GOLD_LOCAL} tracks how many
      *   resource picks the player has received from gold hexes.
+     * @see #addRolledResources(SOCResourceSet)
      * @since 1.1.09
      */
     public int[] getResourceRollStats()
     {
         return resourceStats;
+    }
+
+    /**
+     * On server, set this player's {@link #getResourceRollStats()}. Useful for reloading a saved game snapshot.
+     * @param stats  Resource roll stats to copy into player data; see {@link #getResourceRollStats()} for format.
+     *     If longer than required length, extra elements are ignored.
+     * @throws IllegalArgumentException if {@code stats} is null,
+     *     or length &lt; 1 + {@link SOCResourceConstants#GOLD_LOCAL}
+     * @since 2.3.00
+     */
+    public void setResourceRollStats(final int[] stats)
+        throws IllegalArgumentException
+    {
+        if ((stats == null) || (stats.length < resourceStats.length))
+            throw new IllegalArgumentException("stats.length < " + resourceStats.length);
+
+        System.arraycopy(stats, 0, resourceStats, 0, resourceStats.length);
     }
 
     /**
