@@ -1856,6 +1856,25 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Rename this game. Useful for reloading a saved game snapshot.
+     * Should do so only before adding to server's game list.
+     * @param newName  New name for this game
+     * @throws IllegalStateException if {@link #getGameState()} != {@link #LOADING}
+     * @throws IllegalArgumentException if {@code newName} fails {@link SOCMessage#isSingleLineAndSafe(String)}
+     * @since 2.3.00
+     */
+    public void setName(final String newName)
+        throws IllegalStateException, IllegalArgumentException
+    {
+        if (gameState != SOCGame.LOADING)
+            throw new IllegalStateException("gameState");
+        if (! SOCMessage.isSingleLineAndSafe(newName))
+            throw new IllegalArgumentException("newName");
+
+        name = newName;
+    }
+
+    /**
      * @return this game's options ({@link SOCGameOption}), or null
      * @since 1.1.07
      * @see #isGameOptionDefined(String)

@@ -34,6 +34,7 @@ import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPotentialSettlements;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
+import soc.server.genericServer.Connection;
 
 /**
  * Data model for a game saved to/loaded from a file.
@@ -65,7 +66,7 @@ public class SavedGameModel
     /** Game minimum version, from {@link SOCGame#getClientVersionMinRequired()} */
     int gameMinVersion;
 
-    String gameName;
+    public String gameName;
 
     /** Game options (or null), from {@link SOCGameOption#packOptionsToString(Map, boolean)}. */
     String gameOptions;
@@ -185,7 +186,11 @@ public class SavedGameModel
 
     /**
      * Create the {@link SOCGame} and its objects based on data loaded into this SGM.
-     * Game state will be {@link SOCGame#LOADING}.
+     * Game state will be {@link SOCGame#LOADING}. Doesn't add to game list {@link #glas}
+     * or check whether game name is already taken, because
+     * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
+     * will rename the loaded game to avoid name collisions.
+     *
      * @throws IllegalStateException if this method's already been called
      *     or if required static game list field {@link SavedGameModel#glas} is null
      */
@@ -196,12 +201,6 @@ public class SavedGameModel
             throw new IllegalStateException("already called createLoadedGame");
         if (glas == null)
             throw new IllegalStateException("SavedGameModel.glas is null");
-
-        if (glas.isGame(gameName))
-        {
-            // TODO handle name dupe/already exists
-            return;
-        }
 
         // TODO what if name invalid/some other inconsistency/unable to create? throw an exception?
         //    also gameMinVersion, modelVersion vs server version

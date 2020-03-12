@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -1011,7 +1012,7 @@ public class SOCServer extends Server
     /**
      * list of soc games
      */
-    protected SOCGameListAtServer gameList = new SOCGameListAtServer();
+    protected SOCGameListAtServer gameList = new SOCGameListAtServer(rand);
 
     /**
      * Server message handler to process inbound messages from clients.
@@ -2363,7 +2364,8 @@ public class SOCServer extends Server
      * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
      *          Should not be in server's gameList yet.
      * @return     true if {@code c} was not a member of the game before, or if new game created;
-     *             false if {@code c} was already in this game
+     *             false if {@code c} was already in this game;
+     *             false if {@code loadedGame != null} but couldn't create the game
      * @throws SOCGameOptionVersionException if asking to create a game (gaOpts != null),
      *           but client's version is too low to join because of a
      *           requested game option's minimum version in gaOpts.
@@ -2374,6 +2376,8 @@ public class SOCServer extends Server
      *           The missing feature(s) are in the {@link MissingResourceException#getKey()} field,
      *           in the format returned by {@link SOCGame#checkClientFeatures(SOCFeatureSet, boolean)}.
      *           (this exception was added in 2.0.00)
+     * @throws NoSuchElementException if {@code loadedGame != null}, its game name is already in use,
+     *           and an unused name couldn't be generated.
      * @throws IllegalArgumentException if client's version is too low to join for any
      *           other reason. (this exception was added in 1.1.06)
      * @see #joinGame(SOCGame, Connection, boolean, boolean)
@@ -2382,7 +2386,8 @@ public class SOCServer extends Server
      */
     public boolean connectToGame
         (Connection c, final String gaName, Map<String, SOCGameOption> gaOpts, final SOCGame loadedGame)
-        throws SOCGameOptionVersionException, MissingResourceException, IllegalArgumentException
+        throws SOCGameOptionVersionException, MissingResourceException, NoSuchElementException,
+            IllegalArgumentException, RuntimeException
     {
         if (c == null)
         {
@@ -2393,16 +2398,17 @@ public class SOCServer extends Server
 
         final int cliVers = c.getVersion();
         boolean gameExists = false;
-        gameList.takeMonitor();
 
-        try
-        {
-            gameExists = gameList.isGame(gaName);
-        } catch (Exception e) {
-            D.ebugPrintStackTrace(e, "Exception in connectToGame");
-        } finally {
-            gameList.releaseMonitor();
-        }
+        if (loadedGame == null)
+            try
+            {
+                gameList.takeMonitor();
+                gameExists = gameList.isGame(gaName);
+            } catch (Exception e) {
+                D.ebugPrintStackTrace(e, "Exception in connectToGame");
+            } finally {
+                gameList.releaseMonitor();
+            }
 
         if (gameExists)
         {
@@ -2530,19 +2536,19 @@ public class SOCServer extends Server
      *                If true, this method won't take or release that monitor.  Otherwise will take it before creating
      *                the game, and release it before calling {@link #broadcast(String)}.
      * @return  Newly created game, or null if game name exists or an unexpected error occurs during creation
+     * @throws NoSuchElementException if {@code loadedGame != null}, its game name is already in use,
+     *           and an unused name couldn't be generated.
      * @since 2.0.00
      */
     private SOCGame createGameAndBroadcast
         (final Connection c, String gaName, Map<String, SOCGameOption> gaOpts, final SOCGame loadedGame,
          final int gVers, final boolean isBotsOnly, final boolean hasGameListMonitor)
+        throws NoSuchElementException
     {
         final SOCClientData scd = (c != null) ? (SOCClientData) c.getAppData() : null;
         SOCGame newGame = null;
         if (loadedGame != null)
-        {
-            gaName = loadedGame.getName();
             gaOpts = loadedGame.getGameOptions();
-        }
 
         if (! hasGameListMonitor)
             gameList.takeMonitor();
@@ -2557,8 +2563,8 @@ public class SOCServer extends Server
 
             if (loadedGame != null)
             {
-                gameList.addGame(loadedGame, handler, owner, localeStr);
-                newGame = loadedGame;
+                newGame = gameList.addGame(loadedGame, handler, owner, localeStr);  // may throw NoSuchElementException
+                gaName = loadedGame.getName();  // in case was renamed
             } else {
                 newGame = gameList.createGame(gaName, owner, localeStr, gaOpts, handler);
             }
@@ -2584,7 +2590,10 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintStackTrace(e, "Exception in createGameAndBroadcast");
+            if ((e instanceof NoSuchElementException) && (loadedGame != null))
+                throw e;
+            else
+                D.ebugPrintStackTrace(e, "Exception in createGameAndBroadcast");
         }
         finally
         {
@@ -6154,14 +6163,14 @@ public class SOCServer extends Server
      * @since 1.2.00
      */
     /*package*/ boolean createOrJoinGame
-        (final Connection c, final int cliVers, String gaName, final Map<String, SOCGameOption> gameOpts,
+        (final Connection c, final int cliVers, final String connGaName, final Map<String, SOCGameOption> gameOpts,
          final SOCGame loadedGame, final int authResult)
         throws IllegalStateException
     {
         final boolean isTakingOver = (0 != (authResult & AUTH_OR_REJECT__TAKING_OVER));
-        final boolean sendErrorViaStatus = ((loadedGame == null) || (gaName == null));
+        final boolean sendErrorViaStatus = ((loadedGame == null) || (connGaName == null));
 
-        final String gameName;  // game name to check
+        String gameName;  // game name to check
         if (loadedGame != null)
         {
             final int gs = loadedGame.getGameState();
@@ -6169,8 +6178,10 @@ public class SOCServer extends Server
                 throw new IllegalStateException("gameState");
 
             gameName = loadedGame.getName();
+                // if this game name is already taken,
+                // GLAS.addGame will rename it during connectToGame
         } else {
-            gameName = gaName;
+            gameName = connGaName;
         }
 
         /**
@@ -6185,7 +6196,7 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                        (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers, txt));
             else
-                messageToPlayer(c, gaName, txt);
+                messageToPlayer(c, connGaName, txt);
 
             return false;  // <---- Early return ----
         }
@@ -6232,7 +6243,7 @@ public class SOCServer extends Server
                     c.put(SOCStatusMessage.toCmd
                            (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers, rejectText));
                 else
-                    messageToPlayer(c, gaName, rejectText);
+                    messageToPlayer(c, connGaName, rejectText);
 
                 return false;  // <---- Early return ----
             }
@@ -6245,7 +6256,8 @@ public class SOCServer extends Server
          */
         if (gameOpts != null)
         {
-            if (gameList.isGame(gameName))
+            // Check for name in use, unless loadedGame != null (if so, GLAS will rename if needed)
+            if ((loadedGame == null) && gameList.isGame(gameName))
             {
                 final String txt = c.getLocalized("netmsg.status.common.newgame_already_exists");
                     // "A game with this name already exists, please choose a different name."
@@ -6254,7 +6266,7 @@ public class SOCServer extends Server
                     c.put(SOCStatusMessage.toCmd
                            (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers, txt));
                 else
-                    messageToPlayer(c, gaName, txt);
+                    messageToPlayer(c, connGaName, txt);
 
                 return false;  // <---- Early return ----
             }
@@ -6272,7 +6284,7 @@ public class SOCServer extends Server
                     c.put(SOCStatusMessage.toCmd
                            (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers, txt));
                 else
-                    messageToPlayer(c, gaName, txt);
+                    messageToPlayer(c, connGaName, txt);
 
                 return false;  // <---- Early return ----
             }
@@ -6319,6 +6331,9 @@ public class SOCServer extends Server
             }
             else if (connectToGame(c, gameName, gameOpts, loadedGame))  // join or create the game
             {
+                if (loadedGame != null)
+                    gameName = loadedGame.getName();  // in case GLAS renamed it to avoid duplicate
+
                 /**
                  * send JOINGAMEAUTH to client,
                  * send the entire state of the game to client,
@@ -6369,6 +6384,14 @@ public class SOCServer extends Server
                     + Integer.toString(game.getClientVersionMinRequired())
                     + ": " + gameName));
             }
+            return false;
+        } catch (NoSuchElementException e)
+        {
+            if (loadedGame != null)
+                messageToPlayer
+                    (c, connGaName, /*I*/"Game name in use, couldn't generate an alternate: Try again."/*I18N*/);
+            else
+                D.ebugPrintStackTrace(e, "Exception in createOrJoinGame");
             return false;
         }
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@
 package soctest.game;
 
 import java.util.List;
+import java.util.Random;
 
 import soc.game.SOCCity;
 import soc.game.SOCGame;
@@ -54,7 +55,7 @@ public class TestScenarioRules
     public static void setup()
     {
         sgh = new SOCGameHandler(null);
-        gl = new SOCGameListAtServer();
+        gl = new SOCGameListAtServer(new Random());
     }
 
     /**

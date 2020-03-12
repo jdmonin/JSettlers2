@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -90,7 +91,7 @@ public class TestBoardLayouts
     {
         allScens = SOCScenario.getAllKnownScenarios();
         sgh = new SOCGameHandler(null);
-        gl = new SOCGameListAtServer();
+        gl = new SOCGameListAtServer(new Random());
     }
 
     /**

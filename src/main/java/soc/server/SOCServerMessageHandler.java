@@ -1459,8 +1459,9 @@ public class SOCServerMessageHandler
 
         final SOCGame ga = sgm.getGame();
 
-        // validate name and opts, add to gameList, announce "new" game, have client join;
-        // sends error text if validation fails
+        // Validate name and opts, add to gameList, announce "new" game, have client join;
+        // sends error text if validation fails. Might rename loaded game if its name is already taken
+        // by an existing game
         if (! srv.createOrJoinGame
                (c, c.getVersion(), connGaName, ga.getGameOptions(), ga, SOCServer.AUTH_OR_REJECT__OK))
         {
@@ -1507,6 +1508,10 @@ public class SOCServerMessageHandler
         {
             public void run()
             {
+                if (! gaName.equals(sgm.gameName))
+                    srv.messageToPlayer
+                        (c, gaName, /*I*/"Game was renamed: Original name " + sgm.gameName + " is already used."/*18N*/);
+
                 if (sgm.gameState < SOCGame.OVER)
                 {
                     srv.messageToGameUrgent(gaName, /*I*/"To continue playing, type *RESUMEGAME*"/*18N*/ );
