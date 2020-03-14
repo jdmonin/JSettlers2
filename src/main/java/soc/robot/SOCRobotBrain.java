@@ -2115,8 +2115,8 @@ public class SOCRobotBrain extends Thread
                         ++turnExceptionCount;  // TODO end our turn if too many
 
                         String eMsg = (turnExceptionCount == 1)
-                            ? "*** Robot caught an exception - " + e
-                            : "*** Robot caught an exception (" + turnExceptionCount + " this turn) - " + e;
+                            ? "*** Robot " + ourPlayerName + " caught an exception - " + e
+                            : "*** Robot " + ourPlayerName + " caught an exception (" + turnExceptionCount + " this turn) - " + e;
                         D.ebugPrintln(eMsg);
                         System.out.println(eMsg);
                         e.printStackTrace();
