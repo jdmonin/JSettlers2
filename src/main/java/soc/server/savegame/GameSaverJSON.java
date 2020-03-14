@@ -47,6 +47,9 @@ public class GameSaverJSON
 
     /**
      * Save this game to a JSON file.
+     *<P>
+     * Assumes caller has checked that gson jar is on classpath
+     * by calling {@code Class.forName("com.google.gson.Gson")} or similar.
      *
      * @param ga  Game to save
      * @param saveDir  Existing directory into which to save the file

@@ -58,6 +58,9 @@ public class GameLoaderJSON
 
     /**
      * Load a game from a JSON file.
+     *<P>
+     * Assumes caller has checked that gson jar is on classpath
+     * by calling {@code Class.forName("com.google.gson.Gson")} or similar.
      *
      * @param loadFrom File to load from; filename should end with {@link GameSaverJSON#FILENAME_EXTENSION}
      * @return  loaded game model
@@ -82,7 +85,10 @@ public class GameLoaderJSON
         return sgm;
     }
 
-    /** Initialize {@link #gsonb} once when needed, including registering a deserializer. */
+    /**
+     * Initialize {@link #gsonb} once when needed, including registering a deserializer.
+     * Assumes gson jar is on classpath, and caller has checked {@link soc.server.SOCServer#savegameInitFailed}.
+     */
     private static void initGson()
     {
         GsonBuilder gb = gsonb;

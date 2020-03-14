@@ -2364,8 +2364,7 @@ public class SOCServer extends Server
      * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
      *          Should not be in server's gameList yet.
      * @return     true if {@code c} was not a member of the game before, or if new game created;
-     *             false if {@code c} was already in this game;
-     *             false if {@code loadedGame != null} but couldn't create the game
+     *             false if {@code c} was already in this game
      * @throws SOCGameOptionVersionException if asking to create a game (gaOpts != null),
      *           but client's version is too low to join because of a
      *           requested game option's minimum version in gaOpts.
