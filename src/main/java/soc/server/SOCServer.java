@@ -5069,6 +5069,8 @@ public class SOCServer extends Server
         "*WHO* gameName   show players and observers of gameName",
         "*WHO* *  show all connected clients",
         "*DBSETTINGS*  show current database settings, if any",  // processed in SOCServerMessageHandler
+        "*LOADGAME* savename  Load a previously saved game from snapshot file",
+        "*SAVEGAME* savename  Start this game's current state to snapshot file",
         };
 
     /**
@@ -5089,8 +5091,6 @@ public class SOCServer extends Server
         "*KILLBOT*  botname  End a bot's connection",
         "*KILLGAME*  end the current game",
         "*RESETBOT* botname  End a bot's connection",
-        "*LOADGAME* savename  Load a previously saved game from snapshot file",
-        "*SAVEGAME* savename  Start this game's current state to snapshot file",
         "*STARTBOTGAME* [maxBots]  Start this game (no humans have sat) with bots only",
         "*STOP*  kill the server",
         };
@@ -5262,18 +5262,6 @@ public class SOCServer extends Server
 
             srvMsgHandler.handleSTARTGAME(debugCli, new SOCStartGame(gaName, 0), maxBots);
             return true;
-        }
-        else if (dcmdU.startsWith("*LOADGAME*"))
-        {
-            srvMsgHandler.processDebugCommand_loadGame(debugCli, gaName, dcmd.substring(10).trim());
-        }
-        else if (dcmdU.startsWith("*RESUMEGAME*"))
-        {
-            srvMsgHandler.processDebugCommand_resumeGame(debugCli, ga, dcmd.substring(12).trim());
-        }
-        else if (dcmdU.startsWith("*SAVEGAME*"))
-        {
-            srvMsgHandler.processDebugCommand_saveGame(debugCli, ga, dcmd.substring(10).trim());
         }
         else
         {

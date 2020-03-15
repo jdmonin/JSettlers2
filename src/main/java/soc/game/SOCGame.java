@@ -1453,6 +1453,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the time at which this game was created.
+     * Used only at server.
      * @return the start time for this game, or null if not active when created
      * @see #getExpiration()
      */

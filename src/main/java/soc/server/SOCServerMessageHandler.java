@@ -1148,12 +1148,29 @@ public class SOCServerMessageHandler
             {
                 processDebugCommand_who(c, ga, cmdText);
             }
-            else if (cmdTxtUC.startsWith("*DBSETTINGS*"))
+            else if (userIsDebug || srv.isUserDBUserAdmin(plName))
             {
-                processDebugCommand_dbSettings(c, ga);
-            }
-            else
-            {
+                if (cmdTxtUC.startsWith("*LOADGAME*"))
+                {
+                    processDebugCommand_loadGame(c, gaName, cmdText.substring(10).trim());
+                }
+                else if (cmdTxtUC.startsWith("*RESUMEGAME*"))
+                {
+                    processDebugCommand_resumeGame(c, ga, cmdText.substring(12).trim());
+                }
+                else if (cmdTxtUC.startsWith("*SAVEGAME*"))
+                {
+                    processDebugCommand_saveGame(c, ga, cmdText.substring(10).trim());
+                }
+                else if (cmdTxtUC.startsWith("*DBSETTINGS*"))
+                {
+                    processDebugCommand_dbSettings(c, ga);
+                }
+                else
+                {
+                    matchedHere = false;
+                }
+            } else {
                 matchedHere = false;
             }
 
@@ -1227,8 +1244,11 @@ public class SOCServerMessageHandler
 
     /**
      * Process the {@code *DBSETTINGS*} privileged admin command:
-     * Checks {@link SOCServer#isUserDBUserAdmin(String)} and if OK and {@link SOCDBHelper#isInitialized()},
+     * If {@link SOCDBHelper#isInitialized()},
      * sends the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
+     *<P>
+     * Assumes caller has verified the client is an admin; doesn't check {@link SOCServer#isUserDBUserAdmin(String)}.
+     *
      * @param c  Client sending the admin command
      * @param gaName  Game in which to reply
      * @since 1.2.00
@@ -1236,13 +1256,6 @@ public class SOCServerMessageHandler
      */
     private void processDebugCommand_dbSettings(final Connection c, final SOCGame ga)
     {
-        final String msgUser = c.getData();
-        if (! (srv.isUserDBUserAdmin(msgUser)
-               || (srv.isDebugUserEnabled() && msgUser.equals("debug"))))
-        {
-            return;
-        }
-
         final String gaName = ga.getName();
 
         if (! SOCDBHelper.isInitialized())
@@ -1419,10 +1432,10 @@ public class SOCServerMessageHandler
     }
 
     /**
-     * Process the {@code *LOADGAME*} debug command: Load the named game and have this client join it.
-     * @param c  Client sending the debug command
+     * Process the {@code *LOADGAME*} debug/admin command: Load the named game and have this client join it.
+     * @param c  Client sending the command
      * @param connGaName  Client's current game in which the command was sent, for sending response messages
-     * @param argsStr  Args for debug command (trimmed) or ""
+     * @param argsStr  Args for command (trimmed), or ""
      * @since 2.3.00
      */
     /* package */ void processDebugCommand_loadGame(final Connection c, final String connGaName, final String argsStr)
@@ -1526,12 +1539,12 @@ public class SOCServerMessageHandler
     }
 
     /**
-     * Process the {@code *RESUMEGAME*} debug command: Resume the current game,
+     * Process the {@code *RESUMEGAME*} debug/admin command: Resume the current game,
      * which was recently loaded with {@code *LOADGAME*}.
      * Must be in state {@link SOCGame#LOADING}.
-     * @param c  Client sending the debug command
+     * @param c  Client sending the command
      * @param ga  Game in which the command was sent
-     * @param argsStr  Args for debug command (trimmed) or ""
+     * @param argsStr  Args for command (trimmed), or ""
      * @since 2.3.00
      */
     /* package */ void processDebugCommand_resumeGame(final Connection c, final SOCGame ga, final String argsStr)
@@ -1566,10 +1579,10 @@ public class SOCServerMessageHandler
     }
 
     /**
-     * Process the {@code *SAVEGAME*} debug command: Save the current game.
-     * @param c  Client sending the debug command
+     * Process the {@code *SAVEGAME*} debug/admin command: Save the current game.
+     * @param c  Client sending the command
      * @param ga  Game in which the command was sent
-     * @param argsStr  Args for debug command (trimmed) or ""
+     * @param argsStr  Args for command (trimmed), or ""
      * @since 2.3.00
      */
     /* package */ void processDebugCommand_saveGame(final Connection c, final SOCGame ga, final String argsStr)
