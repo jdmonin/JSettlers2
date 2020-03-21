@@ -2,7 +2,8 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * This file appears (by its comments) to be (C) 1999 Brian Davies
- * Portions of this file Copyright (C) 2009,2012,2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2004 Chad McHenry
+ * Portions of this file Copyright (C) 2009,2012,2018-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +32,9 @@ import java.awt.TextArea;
  */
 
 /**
- * Limits lines displayed to MaximumLines.  Note that the empty string is also
- * considered a line.
+ * A {@link TextArea} that limits lines displayed to MaximumLines on most platforms.
+ * (Skips MacOSX because of a platform-specific halting bug.)
+ * Note that the empty string is also considered a line.
  */
 @SuppressWarnings("serial")
 /*package*/ class SnippingTextArea extends TextArea
@@ -69,7 +71,7 @@ import java.awt.TextArea;
 
     /**
      * Creates a SnippingTextArea which limits hard line breaks to maxLines,
-     * and uses SCROLLBARS_VERTICAL_ONLY.
+     * and uses {@link TextArea#SCROLLBARS_VERTICAL_ONLY}.
      */
     public SnippingTextArea(int rows, int columns, int maxLines)
     {
@@ -78,7 +80,7 @@ import java.awt.TextArea;
 
     /**
      * Creates a new SnippingTextArea object with specified text, which limits
-     * hard line breaks to maxLines, and uses SCROOBARS_VERTICAL_ONLY.
+     * hard line breaks to maxLines, and uses {@link TextArea#SCROLLBARS_VERTICAL_ONLY}.
      */
     public SnippingTextArea(String text, int maxLines)
     {
