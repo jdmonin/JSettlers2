@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -274,12 +274,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int STATUSMESSAGE = 1069;
     public static final int CREATEACCOUNT = 1070;
     public static final int UPDATEROBOTPARAMS = 1071;
-    public static final int ROLLDICEPROMPT = 1072;     // autoroll, 20071003, sf patch #1812254
-    public static final int RESETBOARDREQUEST = 1073;  // resetboard, 20080217, sf patch#tbd
-    public static final int RESETBOARDAUTH = 1074;     // resetboard, 20080217, sf patch#tbd
-    public static final int RESETBOARDVOTEREQUEST = 1075; // resetboard, 20080223, sf patch#tbd
-    public static final int RESETBOARDVOTE = 1076;     // resetboard, 20080223, sf patch#tbd
-    public static final int RESETBOARDREJECT = 1077;   // resetboard, 20080223, sf patch#tbd
+    public static final int ROLLDICEPROMPT = 1072;     // autoroll, 20071003, sf patch #1812254, v1.1.00
+    public static final int RESETBOARDREQUEST = 1073;  // resetboard, 20080217, v1.1.00
+    public static final int RESETBOARDAUTH = 1074;     // resetboard, 20080217, v1.1.00
+    public static final int RESETBOARDVOTEREQUEST = 1075; // resetboard, 20080223, v1.1.00
+    public static final int RESETBOARDVOTE = 1076;     // resetboard, 20080223, v1.1.00
+    public static final int RESETBOARDREJECT = 1077;   // resetboard, 20080223, v1.1.00
 
     /**
      * {@link SOCNewGameWithOptionsRequest}: Requesting creation of a new game
@@ -429,15 +429,21 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final String sep = "|";
 
     /**
-     * secondary separator token SEP2, as string. SEP2 is ",".
+     * Secondary separator token SEP2, as string. SEP2 is ",".
      * @see #sep2_char
      */
     public static final String sep2 = ",";
 
-    /** main separator token {@link #sep}, as character. SEP is '|'. */
+    /**
+     * Main separator token {@link #sep}, as character. SEP is '|'.
+     * @since 1.1.00
+     */
     public static final char sep_char = '|';
 
-    /** secondary separator token {@link #sep2}, as character. SEP2 is ','. */
+    /**
+     * Secondary separator token {@link #sep2}, as character. SEP2 is ','.
+     * @since 1.1.00
+     */
     public static final char sep2_char = ',';
 
     /**
@@ -475,6 +481,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * visibility of the version when searching the source code.
      *
      * @return Version number, as in 1006 for JSettlers 1.0.06.
+     * @since 1.1.00
      */
     public int getMinimumVersion() { return 1000; }
 
@@ -482,6 +489,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * To identify obsolete message types, give the maximum version where this
      * type is used.  Default (for active messages) returns {@link Integer#MAX_VALUE}.
      * @return Version number, as in 1006 for JSettlers 1.0.06, or {@link Integer#MAX_VALUE}.
+     * @since 1.1.00
      */
     public int getMaximumVersion()
     {
@@ -505,7 +513,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public abstract String toCmd();
 
-    /** Simple human-readable representation, used for debug purposes. */
+    /**
+     * Simple human-readable representation, used for debug purposes.
+     * @since 1.1.00
+     */
     @Override
     public abstract String toString();
 

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -545,6 +545,7 @@ public class SOCPlayerTracker
 
     /**
      * @return the pending-placement initial settlement
+     * @since 1.1.00
      */
     public SOCSettlement getPendingInitSettlement()
     {
@@ -559,6 +560,7 @@ public class SOCPlayerTracker
      * This is just a place to store the settlement data.
      *
      * @param s Settlement, or null
+     * @since 1.1.00
      */
     public void setPendingInitSettlement(SOCSettlement s)
     {
@@ -585,10 +587,12 @@ public class SOCPlayerTracker
 
     /**
      * Remove our incorrect road or ship placement, it's been rejected by the server.
+     *<P>
+     * Before v2.0.00 this method was {@code cancelWrongRoad}.
      *
      * @param rs  Location of our bad road or ship
      *
-     * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @see SOCRobotBrain#cancelWrongPiecePlacement(soc.message.SOCCancelBuildRequest)
      * @since 1.1.00
      */
     public void cancelWrongRoadOrShip(SOCRoutePiece rs)
@@ -625,6 +629,8 @@ public class SOCPlayerTracker
      * Look for new adjacent possible settlements.
      * Calls {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
      * on newly possible adjacent roads or ships.
+     *<P>
+     * Before v2.0.00 this method was {@code addOurNewRoad}.
      *
      * @param rs           the road or ship
      * @param trackers     player trackers for the players
@@ -862,6 +868,8 @@ public class SOCPlayerTracker
      * pirate fortress). Scenario rules require the route to be as short as possible. Even if another (human)
      * player might want to do so, they couldn't interfere with the bot's own route, so we don't track
      * that possibility.
+     *<P>
+     * Before v2.0.00 this method was {@code expandRoad}.
      *
      * @param targetRoad   the possible road
      * @param player    the player who owns the original road
@@ -1135,6 +1143,8 @@ public class SOCPlayerTracker
      * add another player's new road or ship, or cancel our own bad road
      * by acting as if another player has placed there.
      * (That way, we won't decide to place there again.)
+     *<P>
+     * Before v2.0.00 this method was {@code addTheirNewRoad}.
      *
      * @param rs  the new road or ship
      * @param isCancel Is this our own robot's road placement, rejected by the server?

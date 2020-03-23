@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,7 +45,7 @@ import javax.swing.WindowConstants;
  * Sets up its {@link #getContentPane()} with a {@link BorderLayout} having
  * a prompt at the top, a center "middle panel" that can be centered instead of
  * stretched to fill the entire {@link BorderLayout#CENTER}, and an optional
- * button panel centered horizontally at the bottom.
+ * bottom button panel centered horizontally.
  *<P>
  * Uses JSettlers dialog colors of black on {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}
  * with default dialog font, increased to 12 points if default is smaller.
@@ -74,7 +74,6 @@ public abstract class SOCDialog
 {
     /**
      * i18n text strings; will use same locale as SOCPlayerClient's string manager.
-     * @since 2.0.00
      */
     protected static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 

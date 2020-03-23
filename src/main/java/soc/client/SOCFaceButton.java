@@ -77,13 +77,22 @@ import java.net.URL;
      */
     public static final int NUM_ROBOT_FACES = 2;
 
-    /** width,height of button showing only the face icon (standard mode) */
+    /**
+     * Width,height of button showing only the face icon (standard mode).
+     * @since 1.1.00
+     */
     public static final int FACE_WIDTH_PX = 40;
 
-    /** width of border (per side), used in FACE_WIDTH_BORDERED_PX */
+    /**
+     * Width of border (per side), used in {@link #FACE_WIDTH_BORDERED_PX}.
+     * @since 1.1.00
+     */
     public static final int FACE_BORDER_WIDTH_PX = 2;
 
-    /** width,height of button with border around the face icon (bordered mode) */
+    /**
+     * Width,height of button with border around the face icon (bordered mode).
+     * @since 1.1.00
+     */
     public static final int FACE_WIDTH_BORDERED_PX = FACE_WIDTH_PX + 2 * FACE_BORDER_WIDTH_PX;
 
     /**

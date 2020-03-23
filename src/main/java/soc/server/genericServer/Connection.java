@@ -1,6 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2007-2009,2013,2015-2018,2020 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2009,2013,2015-2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ import soc.util.SOCStringManager;
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
  *  1.0.1 - 2008-06-28 - add getConnectTime
  *  1.0.2 - 2008-07-30 - no change in this file
- *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion
+ *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion (jsettlers 1.1.00 release)
  *  1.0.4 - 2008-09-04 - add appData
  *  1.0.5 - 2009-05-31 - add isVersionKnown, setVersion(int,bool),
  *                       setVersionTracking, isInputAvailable,
@@ -86,6 +86,7 @@ public abstract class Connection
     /**
      * The arbitrary app-specific data associated with this connection, or {@code null}.
      * Not used or referenced by generic server.
+     * @since 1.0.4
      */
     protected Object appData;
 
@@ -107,9 +108,31 @@ public abstract class Connection
      */
     protected SOCStringManager stringMgr;
 
+    /**
+     * Version of the other end (client) of this connection, or 0 if unknown.
+     * @see #remoteVersionKnown
+     * @since 1.0.3
+     */
     protected int remoteVersion;
+
+    /**
+     * True if {@link #remoteVersion} should be considered confirmed/known.
+     * @since 1.0.5
+     */
     protected boolean remoteVersionKnown;
+
+    /**
+     * Flag value from {@link #setVersionTracking(boolean)};
+     * see that method for details.
+     * @since 1.0.5
+     */
     protected boolean remoteVersionTrack;
+
+    /**
+     * True if {@link #wantsHideTimeoutMessage()};
+     * see that method for details.
+     * @since 1.0.5
+     */
     protected boolean hideTimeoutMessage;
 
     /**
@@ -121,7 +144,10 @@ public abstract class Connection
     /** Any error encountered, or {@code null} */
     protected Exception error;
 
-    /** Time of connection to server, or of object creation if that time's not available */
+    /**
+     * Time of connection to server, or of object creation if that time's not available.
+     * @since 1.0.1
+     */
     protected Date connectTime = new Date();
 
     /**
@@ -185,6 +211,7 @@ public abstract class Connection
      * Accept no further input, allow output to drain, don't immediately close the socket.
      * Once called, {@link #isConnected()} will return false, even if output is still being
      * sent to the other side.
+     * @since 1.0.3
      */
     public abstract void disconnectSoft();
 
@@ -195,6 +222,7 @@ public abstract class Connection
      *
      * @return The name key for this connection, or null.
      * @see #getAppData()
+     * @since 1.0.3
      */
     public String getData()
     {
@@ -207,6 +235,7 @@ public abstract class Connection
      *
      * @return The app-specific data for this connection.
      * @see #getData()
+     * @since 1.0.4
      */
     public Object getAppData()
     {
@@ -226,6 +255,7 @@ public abstract class Connection
      * For anything else your application wants to associate with the connection,
      * see {@link #setAppData(Object)}.
      * @param data The new name key, or null
+     * @since 1.0.3
      */
     public void setData(String data)
     {
@@ -241,6 +271,7 @@ public abstract class Connection
      *
      * @param data The new data, or null
      * @see #setData(String)
+     * @since 1.0.4
      */
     public void setAppData(Object data)
     {
@@ -341,6 +372,7 @@ public abstract class Connection
 
     /**
      * @return Any error encountered, or null
+     * @since 1.0.0
      */
     public Exception getError()
     {
@@ -349,6 +381,7 @@ public abstract class Connection
 
     /**
      * @return Time of connection to server, or of object creation if that time's not available
+     * @since 1.0.1
      * @see #connect()
      */
     public Date getConnectTime()
@@ -360,6 +393,7 @@ public abstract class Connection
      * Give the version number (if known) of the remote end of this connection.
      * The meaning of this number is application-defined.
      * @return Version number, or 0 if unknown.
+     * @since 1.0.3
      */
     public int getVersion()
     {
@@ -376,6 +410,7 @@ public abstract class Connection
      * @param version Version number, or 0 if unknown.
      *                If version is greater than 0, future calls to {@link #isVersionKnown()}
      *                should return true.
+     * @since 1.0.3
      */
     public void setVersion(final int version)
     {

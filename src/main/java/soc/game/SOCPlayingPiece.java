@@ -290,6 +290,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * </UL>
      *
      * @param other The object to compare with, or null.
+     * @since 1.1.00
      */
     @Override
     public boolean equals(Object other)
@@ -302,7 +303,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
             &&  (this.coord == ((SOCPlayingPiece) other).coord)
             &&  (this.player == ((SOCPlayingPiece) other).player));
 
-        // board is based on player; no need to check board too.
+        // board field is based on player, so no need to compare it too.
     }
 
     /**

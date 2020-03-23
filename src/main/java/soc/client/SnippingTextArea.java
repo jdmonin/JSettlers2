@@ -121,6 +121,7 @@ import java.awt.TextArea;
 
     /**
      * @return current number of lines in text
+     * @since 1.1.06
      */
     public int lines() {
         return lines;
@@ -163,7 +164,10 @@ import java.awt.TextArea;
         snipText();
     }
 
-    /** Count the lines in a string of text. */
+    /**
+     * Count the lines in a string of text.
+     * Before v1.1.06 this method was {@code countLines}.
+     */
     protected  int countNewLines(String s)
     {
         int lines = 0;

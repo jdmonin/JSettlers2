@@ -124,11 +124,18 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected Socket s;
     protected DataInputStream in;
     protected DataOutputStream out;
-    protected StringConnection sLocal;  // if strSocketName not null
+
+    /**
+     * Local server connection, if {@link ServerConnectInfo#stringSocketName} != null.
+     * @see #sLocalVersion
+     * @since 1.1.00
+     */
+    protected StringConnection sLocal;
 
     /**
      * Server version number, sent soon after connect, or -1 if unknown.
      * {@link #sLocalVersion} should always equal our own version.
+     * @since 1.1.00
      */
     protected int sVersion, sLocalVersion;
 
@@ -145,6 +152,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * were we rejected from server? (full or robot name taken)
+     * @since 1.1.00
      */
     protected boolean rejected = false;
 
@@ -906,6 +914,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param isLocal  Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
      * @param mes  the message
+     * @since 1.1.00
      */
     private void handleVERSION(boolean isLocal, SOCVersion mes)
     {
@@ -1615,7 +1624,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param pieceType Playing piece type, like {@link SOCPlayingPiece#ROAD}
      * @param amount    The new value to set, or the delta to gain/lose
-     * @since 2.0.00
+     * @since 1.1.00
      */
     public static void handlePLAYERELEMENT_numPieces
         (final SOCPlayer pl, final int action, final int pieceType, final int amount)
@@ -1652,6 +1661,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param amount    The new value to set, or the delta to gain/lose
+     * @since 1.1.00
      */
     public static void handlePLAYERELEMENT_numKnights
         (final SOCGame ga, final SOCPlayer pl, final int action, final int amount)
@@ -1697,6 +1707,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param rtype  Type of resource, like {@link SOCResourceConstants#CLAY}
      * @param amount    The new value to set, or the delta to gain/lose
+     * @since 1.1.00
      */
     public static void handlePLAYERELEMENT_numRsrc
         (final SOCPlayer pl, final int action, final int rtype, final int amount)

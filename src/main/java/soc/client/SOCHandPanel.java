@@ -89,7 +89,10 @@ import javax.swing.UIManager;
 /*package*/ class SOCHandPanel extends JPanel
     implements ActionListener, MouseListener
 {
-    /** Minimum desired width, in pixels */
+    /**
+     * Minimum desired width, in pixels.
+     * @since 1.1.00
+     */
     public static final int WIDTH_MIN = 218;
 
     /** Items to update via {@link #updateValue(PlayerClientListener.UpdateType)};
@@ -107,7 +110,10 @@ import javax.swing.UIManager;
         LARGESTARMY = -8,
         SPECIALVICTORYPOINTS = 9;
 
-    /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
+    /**
+     * Auto-roll timer countdown, 5 seconds unless changed at program start.
+     * @since 1.1.00
+     */
     public static final int AUTOROLL_TIME = 5;
 
     /** Array of five zeroes, one per resource type; for {@link #sqPanel}. */
@@ -117,8 +123,12 @@ import javax.swing.UIManager;
      *  @since 2.0.00 */
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
-    /** Before game starts, use {@link #pname} to show if a seat is no-robots-allowed. */
+    /**
+     * Before game starts, use {@link #pname} to show if a seat is no-robots-allowed.
+     * @since 1.1.00
+     */
     protected static final String SITLOCKED = strings.get("hpan.sit.locked.norobot");  // "Locked: No robot"
+
     protected static final String SIT = strings.get("hpan.sit.here");  // "Sit Here"
     protected static final String START = strings.get("hpan.start.game");  // "Start Game"
     protected static final String ROBOT = strings.get("hpan.sit.robot");
@@ -133,8 +143,14 @@ import javax.swing.UIManager;
     protected static final String ROLL = strings.get("hpan.roll");
     protected static final String QUIT = strings.get("hpan.quit");
     protected static final String DONE = strings.get("hpan.done");
-    /** Text of Done button at end of game becomes Restart button. If you set this, set {@link #doneButIsRestart}. */
+
+    /**
+     * Text of Done button at end of game becomes Restart button.
+     * If you set this, set {@link #doneButIsRestart}.
+     * @since 1.1.00
+     */
     protected static final String DONE_RESTART = strings.get("base.restart");
+
     protected static final String CLEAR = strings.get("hpan.trade.clear");
     protected static final String SEND = strings.get("hpan.trade.offer");
     protected static final String BANK = strings.get("hpan.trade.bankport");  // "Bank/Port"
@@ -149,12 +165,33 @@ import javax.swing.UIManager;
     private static final String DEVCARD_NEW = strings.get("hpan.devcards.prefix.new");
     private static final String RESOURCES = strings.get("hpan.rsrc") + " ";  // for other players (! playerIsClient)
     private static final String RESOURCES_TOTAL = strings.get("hpan.rsrc.total") + " ";  // "Total: " for playerIsClient
+
+    /**
+     * Auto-roll countdown text.
+     * @since 1.1.00
+     */
     protected static final String AUTOROLL_COUNTDOWN = strings.get("hpan.roll.auto_countdown");  // "Auto-Roll in: {0}"
+
+    /**
+     * Prompt text to roll or play a card.
+     * @since 1.1.00
+     */
     protected static final String ROLL_OR_PLAY_CARD = strings.get("hpan.roll.rollorplaycard");  // "Roll or Play Card"
+
+    /**
+     * Trade Offer button Tooltip text when enabled.
+     * @since 1.1.00
+     */
     private static final String OFFERBUTTIP_ENA = strings.get("hpan.trade.offer.tip.send");
         // "Send trade offer to other players"
+
+    /**
+     * Trade Offer button Tooltip text/hint message when disabled: "First, click resources".
+     * @since 1.1.00
+     */
     private static final String OFFERBUTTIP_DIS = strings.get("hpan.trade.offer.tip.first");
         // "To offer a trade, first click resources"
+
     private static final String ROBOTLOCKBUT_U = strings.get("hpan.sit.unlocked");
     private static final String ROBOTLOCKBUT_L = strings.get("hpan.sit.locked");
     private static final String ROBOTLOCKBUT_M = strings.get("hpan.sit.marked");  // for lockstate Clear on Reset
@@ -185,7 +222,10 @@ import javax.swing.UIManager;
      */
     private static final String TRADEMSG_PICKING = strings.get("hpan.picking.rsrcs");  // "Picking\nResources..."
 
-    /** Panel text color, and player name color when not current player */
+    /**
+     * Panel text color, and player name color when not current player.
+     * @since 1.1.00
+     */
     protected static final Color COLOR_FOREGROUND = Color.BLACK;
 
     /**
@@ -195,7 +235,10 @@ import javax.swing.UIManager;
      */
     private static boolean didSwingTooltipDefaults;
 
-    /** Player name background color when current player (foreground does not change) */
+    /**
+     * Player name background color when current player (foreground does not change)
+     * @since 1.1.00
+     */
     protected Color pnameActiveBG;
 
     /**
@@ -240,6 +283,7 @@ import javax.swing.UIManager;
      *  This affects {@link #sitBut} and not {@link #sittingRobotLockBut}.
      *  @see #addPlayer(String)
      *  @see #updateSeatLockButton()
+     *  @since 1.1.00
      */
     protected boolean sitButIsLock;
 
@@ -289,6 +333,7 @@ import javax.swing.UIManager;
      * of bank/port trade per resource. Index 0 unused; index 1 is
      * {@link SOCResourceConstants#CLAY}, etc. Highest index is 5.
      * Null, unless playerIsClient and addPlayer has been called.
+     * @since 1.1.00
      */
     protected int[] resourceTradeCost;
 
@@ -297,6 +342,7 @@ import javax.swing.UIManager;
      * to bank/port trade resources. Index 0 unused; index 1 is
      * {@link SOCResourceConstants#CLAY}, etc. Highest index is 5.
      * Null, unless playerIsClient and addPlayer has been called.
+     * @since 1.1.00
      */
     protected ResourceTradeTypeMenu[] resourceTradeMenu;
 
@@ -446,16 +492,33 @@ import javax.swing.UIManager;
 
     /** displays auto-roll countdown, or prompts to roll/play card.
      * @see #setRollPrompt(String, boolean)
+     * @since 1.1.00
      */
     protected JLabel rollPromptCountdownLab;
+
+    /**
+     * If true, roll prompt is not empty.
+     * @see #setRollPrompt(String, boolean)
+     * @since 1.1.00
+     */
     protected boolean rollPromptInUse;
-    protected TimerTask autoRollTimerTask;  // Created every turn when countdown needed
+
+    /**
+     * Reference to auto-roll timer when active, otherwise null.
+     * Created each time {@link #autoRollSetupTimer()} is called.
+     * @since 1.1.00
+     */
+    protected TimerTask autoRollTimerTask;
+
     protected JButton rollBut;
 
     /** "Done" with turn during play; also "Restart" for board reset at end of game */
     protected JButton doneBut;
 
-    /** True when {@link #doneBut}'s label is Restart ({@link #DONE_RESTART}) */
+    /**
+     * True when {@link #doneBut}'s label is Restart ({@link #DONE_RESTART}).
+     * @since 1.1.00
+     */
     protected boolean doneButIsRestart;
 
     protected JButton quitBut;
@@ -482,10 +545,16 @@ import javax.swing.UIManager;
      */
     private final int playerNumber;
 
-    /** Does this panel represent our client's own hand?  If true, implies {@link #interactive}. */
+    /**
+     * Does this panel represent our client's own hand?  If true, implies {@link #interactive}.
+     * @since 1.1.00
+     */
     protected boolean playerIsClient;
 
-    /** Is this panel's player the game's current player?  Used for hilight - set in updateAtTurn() */
+    /**
+     * Is this panel's player the game's current player?  Used for highlight - set in {@link #updateAtTurn()}.
+     * @since 1.1.00
+     */
     protected boolean playerIsCurrent;
 
     /**
@@ -594,6 +663,7 @@ import javax.swing.UIManager;
      *
      * @see #messageIsDiscardOrPick
      * @see #offerIsHiddenByMessage
+     * @since 1.1.00
      */
     protected boolean messageIsReset;
 
@@ -608,6 +678,7 @@ import javax.swing.UIManager;
      *
      * @see #messageIsReset
      * @see #offerIsHiddenByMessage
+     * @since 1.1.00
      */
     private boolean messageIsDiscardOrPick;
 
@@ -617,6 +688,7 @@ import javax.swing.UIManager;
      * and the message was temporarily hidden.
      *<P>
      * Before v2.0.00 this field was {@code offerIsMessageWasTrade}.
+     * @since 1.1.00
      */
     protected boolean offerIsHiddenByMessage;
 
@@ -1520,6 +1592,7 @@ import javax.swing.UIManager;
      * If one of these is chosen, this method calls {@link #clickPlayInventorySpecialItem(SOCInventoryItem)}.
      *<P>
      * Called from actionPerformed()
+     * @since 1.1.00
      */
     public void clickPlayCardButton()
     {
@@ -1709,8 +1782,10 @@ import javax.swing.UIManager;
         // clickPlayCardButton checks these and prints a message to the user.
     }
 
-    /** Handle a click on the roll button.
-     *  Called from actionPerformed() and the auto-roll timer task.
+    /**
+     * Handle a click on the roll button.
+     * Called from actionPerformed() and the auto-roll timer task.
+     * @since 1.1.00
      */
     public void clickRollButton()
     {
@@ -2832,6 +2907,7 @@ import javax.swing.UIManager;
 
     /**
      * DOCUMENT ME!
+     * @since 1.1.00
      */
     public void removeRobotBut()
     {
@@ -3184,6 +3260,7 @@ import javax.swing.UIManager;
      *      will not automatically wrap based on message length.
      * @see #hideMessage()
      * @see #showMiscInfo(String)
+     * @since 1.1.00
      */
     private void showMessage(String message)
     {
@@ -3248,6 +3325,7 @@ import javax.swing.UIManager;
      * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
      * @param isDiscard  True to show {@link #TRADEMSG_DISCARD}, false for {@link #TRADEMSG_PICKING}.
      * @return true if set, false if not set because was in reset-mode already.
+     * @since 1.1.00
      */
     public boolean setDiscardOrPickMsg(final boolean isDiscard)
     {
@@ -3266,6 +3344,7 @@ import javax.swing.UIManager;
      * Assumes player can't be discarding and asking for board-reset at same time.
      * If wasn't in discardMessage mode, do nothing.
      * @see #setDiscardOrPickMsg(boolean)
+     * @since 1.1.00
      */
     public void clearDiscardOrPickMsg()
     {
@@ -3741,6 +3820,7 @@ import javax.swing.UIManager;
      * Update resourceTradeCost numbers and resourceTradeMenu text.
      *
      * @param doInit If true, fill resourceTradeMenu[] with newly constructed menus.
+     * @since 1.1.00
      */
     public void updateResourceTradeCosts(boolean doInit)
     {
@@ -3799,6 +3879,7 @@ import javax.swing.UIManager;
      * Is this panel showing the client's player?
      * @see #isClientAndCurrentPlayer()
      * @see SOCPlayerInterface#getClientHand()
+     * @since 1.1.00
      */
     public boolean isClientPlayer()
     {

@@ -156,6 +156,7 @@ public class SOCRobotBrain extends Thread
      * requests that the server denies, stop trying.
      *
      * @see #failedBuildingAttempts
+     * @since 1.1.00
      */
     public static int MAX_DENIED_BUILDING_PER_TURN = 3;
 
@@ -258,6 +259,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Dummy player for cancelling bad placements
+     * @since 1.1.00
      */
     protected SOCPlayer dummyCancelPlayerData;
 
@@ -330,6 +332,7 @@ public class SOCRobotBrain extends Thread
      *
      * @see #whatWeWantToBuild
      * @see #failedBuildingAttempts
+     * @since 1.1.00
      */
     protected SOCPlayingPiece whatWeFailedToBuild;
 
@@ -341,6 +344,7 @@ public class SOCRobotBrain extends Thread
      *
      * @see #whatWeFailedToBuild
      * @see #MAX_DENIED_BUILDING_PER_TURN
+     * @since 1.1.00
      */
     protected int failedBuildingAttempts;
 
@@ -851,6 +855,7 @@ public class SOCRobotBrain extends Thread
      * each SITDOWN received after our player's.
      *
      * @param pn Player number
+     * @since 1.1.00
      */
     public void addPlayerTracker(int pn)
     {
@@ -3902,6 +3907,7 @@ public class SOCRobotBrain extends Thread
      * @param rtype    Type of resource, like {@link SOCResourceConstants#CLAY}
      * @param rtypeStr Resource type name, for debugging
      * @param amount   The new value to set, or the delta to gain/lose
+     * @since 1.1.00
      */
     @SuppressWarnings("unused")  // unnecessary dead-code warning "if (D.ebugOn)"
     protected void handlePLAYERELEMENT_numRsrc
@@ -3972,6 +3978,7 @@ public class SOCRobotBrain extends Thread
      * @param newSettlement The newly placed settlement for the playerTrackers
      * @param isCancel Is this our own robot's settlement placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data.
+     * @since 1.1.00
      */
     protected void trackNewSettlement(SOCSettlement newSettlement, final boolean isCancel)
     {
@@ -4114,6 +4121,7 @@ public class SOCRobotBrain extends Thread
      * @param newCity  The newly placed city
      * @param isCancel Is this our own robot's city placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data.
+     * @since 1.1.00
      */
     private void trackNewCity(final SOCCity newCity, final boolean isCancel)
     {
@@ -4188,10 +4196,13 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Run a newly placed road or ship through the playerTrackers.
+     *<P>
+     * Before v2.0.00 this method was {@code trackNewRoad}.
      *
      * @param newPiece  The newly placed road or ship
      * @param isCancel Is this our own robot's placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data.
+     * @since 1.1.00
      */
     protected void trackNewRoadOrShip(final SOCRoutePiece newPiece, final boolean isCancel)
     {
@@ -4321,6 +4332,7 @@ public class SOCRobotBrain extends Thread
      *</UL>
      *
      * @param mes  Cancel message from server, including piece type
+     * @since 1.1.00
      */
     protected void cancelWrongPiecePlacement(SOCCancelBuildRequest mes)
     {
@@ -4490,6 +4502,7 @@ public class SOCRobotBrain extends Thread
      * clearPotentialRoad, or clearPotentialCity.
      *
      * @param cancelPiece Type and coordinates of the piece to cancel; null is allowed but not very useful.
+     * @since 1.1.00
      */
     protected void cancelWrongPiecePlacementLocal(SOCPlayingPiece cancelPiece)
     {

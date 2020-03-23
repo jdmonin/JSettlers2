@@ -528,6 +528,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * {@link #boardResetVotes} per-player states: no vote sent; yes; no.
+     * @since 1.1.00
      */
     public static final int VOTE_NONE = 0;
     public static final int VOTE_YES  = 1;
@@ -554,6 +555,7 @@ public class SOCGame implements Serializable, Cloneable
      * minimum number of players in a game (was assumed =={@link #MAXPLAYERS} in standard 1.0.6).
      * Use {@link #isSeatVacant(int)} to determine if a player is present;
      * <tt>players[i]</tt> will be non-null although no player is there.
+     * @since 1.1.00
      */
     public static final int MINPLAYERS = 2;
 
@@ -562,8 +564,8 @@ public class SOCGame implements Serializable, Cloneable
      * Per-game copy is {@link #vp_winner}, can be changed from 10 in
      * constructor with the <tt>"VP"</tt> {@link SOCGameOption}.
      *<P>
-     * Before v1.1.14, this was public static final int <tt>VP_WINNER</tt>.
-     * @since 1.1.14
+     * Before v1.1.14 this was {@code VP_WINNER}.
+     * @since 1.1.00
      */
     public static final int VP_WINNER_STANDARD = 10;
 
@@ -773,11 +775,13 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * For use at server; are there clients connected which aren't at the latest version?
+     * @since 1.1.00
      */
     public boolean hasOldClients;
 
     /**
      * For use at server; lowest and highest version of connected clients.
+     * @since 1.1.00
      */
     public int clientVersionLowest, clientVersionHighest;
 
@@ -790,6 +794,7 @@ public class SOCGame implements Serializable, Cloneable
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
      * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
      * @see #clientFeaturesRequired
+     * @since 1.1.06
      */
     private int clientVersionMinRequired;
 
@@ -1012,6 +1017,7 @@ public class SOCGame implements Serializable, Cloneable
      * should be returned to the player's hand.
      *
      * @see #robberyWithPirateNotRobber
+     * @since 1.1.00
      */
     private boolean placingRobberForKnightCard;
 
@@ -1022,6 +1028,7 @@ public class SOCGame implements Serializable, Cloneable
      * to discard in gamestate {@link #WAITING_FOR_DISCARDS}.  Once all players have
      * discarded, the turn should be ended.
      * @see #forceEndTurn()
+     * @since 1.1.00
      */
     private boolean forcingEndTurn;
 
@@ -2424,6 +2431,7 @@ public class SOCGame implements Serializable, Cloneable
      * to discard in gamestate {@link #WAITING_FOR_DISCARDS}.  Once all players have
      * discarded, the turn should be ended.
      * @see #forceEndTurn()
+     * @since 1.1.00
      */
     public boolean isForcingEndTurn()
     {
@@ -3698,6 +3706,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return true if game is still active, false if all players have left and
      *          the gamestate has been changed here to {@link #OVER}.
+     * @since 1.1.00
      */
     private boolean advanceTurnStateAfterPutPiece()
     {
@@ -4148,6 +4157,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pp  the piece to remove from the board
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *            game's {@link SOCGameEventListener}.
+     * @since 1.1.00
      */
     protected void undoPutPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
     {
@@ -4798,6 +4808,7 @@ public class SOCGame implements Serializable, Cloneable
      *     (gamestate < {@link #START1A} or >= {@link #OVER})
      * @see #canEndTurn(int)
      * @see #endTurn()
+     * @since 1.1.00
      */
     public SOCForceEndTurnResult forceEndTurn()
         throws IllegalStateException
@@ -4960,6 +4971,7 @@ public class SOCGame implements Serializable, Cloneable
      *         {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_ADV},
      *         {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_ADVBACK},
      *         or {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_TURN}.
+     * @since 1.1.00
      */
     private SOCForceEndTurnResult forceEndTurnStartState(final boolean advTurnForward)
     {
@@ -5101,6 +5113,7 @@ public class SOCGame implements Serializable, Cloneable
      *         Type will be {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD}
      *         or {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD_WAIT}.
      * @see #playerDiscardOrGainRandom(int, boolean)
+     * @since 1.1.00
      */
     private SOCForceEndTurnResult forceEndTurnChkDiscardOrGain(final int pn, final boolean isDiscard)
     {
@@ -5132,6 +5145,8 @@ public class SOCGame implements Serializable, Cloneable
      * Choose discards or picks at random; does not actually discard or gain anything or change game state.
      * For discards, randomly choose from contents of <tt>fromHand</tt>.
      * For gains, randomly choose resource types least plentiful in <tt>fromHand</tt>.
+     *<P>
+     * Before v2.0.00 this method was {@code discardPickRandom}.
      *
      * @param fromHand     Discard from this set, or gain to add to this set
      * @param numToPick    This many must be discarded or gained
@@ -5140,6 +5155,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param rand         Source of random
      * @throws IllegalArgumentException if <tt>isDiscard</tt> and
      *     <tt>numDiscards</tt> &gt; {@link SOCResourceSet#getKnownTotal() fromHand.getKnownTotal()}
+     * @since 1.1.00
      */
     public static void discardOrGainPickRandom
         (SOCResourceSet fromHand, int numToPick, final boolean isDiscard, SOCResourceSet picks, Random rand)
@@ -5248,7 +5264,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> {@link #PLACING_ROBBER} or {@link #WAITING_FOR_ROBBER_OR_PIRATE},
      *      if everyone has discarded and {@link #isForcingEndTurn()} is not set
      *</UL>
-     * Before v2.0.00, this method was {@code playerDiscardRandom(..)}.
+     * Before v2.0.00 this method was {@code playerDiscardRandom}.
      *
      * @param pn Player number to discard; player must must need to discard,
      *           must not be current player (use {@link #forceEndTurn()} for that)
@@ -5259,6 +5275,7 @@ public class SOCGame implements Serializable, Cloneable
      *                               or if pn's {@link SOCPlayer#getNeedToDiscard()} is false
      *                                  and their {@link SOCPlayer#getNeedToPickGoldHexResources()} == 0,
      *                               or if pn == currentPlayer.
+     * @since 1.1.00
      */
     public SOCResourceSet playerDiscardOrGainRandom(final int pn, final boolean isDiscard)
         throws IllegalStateException

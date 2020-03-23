@@ -181,9 +181,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     private static final String MESSAGE_PANEL = "message";
 
     /** Connect-or-practice panel (if jar launch), in cardlayout.
-      * Panel field is {@link #connectOrPracticePane}.
-      * Available if {@link #hasConnectOrPractice}.
-      */
+     * Panel field is {@link #connectOrPracticePane}.
+     * Available if {@link #hasConnectOrPractice}.
+     * @since 1.1.00
+     */
     private static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
 
     /**
@@ -321,6 +322,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Uses {@link SOCConnectOrPracticePanel}.
      *
      * @see #cardLayout
+     * @since 1.1.00
      */
     protected final boolean hasConnectOrPractice;
 
@@ -328,6 +330,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * If applicable, is set up in {@link #initVisualElements()}.
      * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
      * @see #hasConnectOrPractice
+     * @since 1.1.00
      */
     protected SOCConnectOrPracticePanel connectOrPracticePane;
 
@@ -454,6 +457,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Local Server indicator in main panel: blank, or 'server is running' if
      * {@link ClientNetwork#localTCPServer} has been started.
      * If so, localTCPServer's port number is shown in {@link #versionOrlocalTCPPortLabel}.
+     * @since 1.1.00
      */
     private JLabel localTCPServerLabel;
 
@@ -462,6 +466,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * When running {@link ClientNetwork#localTCPServer}, shows that
      * server's port number (see also {@link #localTCPServerLabel}).
      * In either mode, has a tooltip with more info.
+     *<P>
+     * Before v1.1.06 this field was {@code localTCPPortLabel}.
+     *
+     * @since 1.1.00
      */
     private JLabel versionOrlocalTCPPortLabel;
 
@@ -1442,11 +1450,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             gm = client.DEFAULT_PRACTICE_GAMENAME;  // "Practice"
 
             // If blank, fill in player name
+            // (v1.x used DEFAULT_PLAYER_NAME const field here)
 
             if (0 == nick.getText().trim().length())
-            {
                 nick.setText(client.strings.get("default.name.practice.player"));  // "Player"
-            }
         }
         else if (target == ng)  // "New Game" button
         {
@@ -1942,6 +1949,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      *     instead of {@link #playerInterfaces}?
      * @return Any found game of ours which is active (state not OVER), or null if none.
      * @see ClientNetwork#anyHostedActiveGames()
+     * @since 1.1.00
      */
     protected SOCPlayerInterface findAnyActiveGame(boolean fromPracticeServer)
     {
@@ -2524,7 +2532,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
     }
 
-    /** Print the current chat ignorelist in a channel. */
+    /**
+     * Print the current chat ignorelist to a channel window.
+     * @since 1.1.00
+     */
     protected void printIgnoreList(ChannelFrame fr)
     {
         fr.print("* "+/*I*/"Ignore list:"/*18N*/);
@@ -2535,6 +2546,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
     }
 
+    /**
+     * Print the current chat ignorelist to a game window.
+     * @since 1.1.00
+     */
     public void printIgnoreList(SOCPlayerInterface pi)
     {
         pi.print("* "+/*I*/"Ignore list:"/*18N*/);
@@ -2750,7 +2765,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     }   // JoinableListItem
 
 
-    /** React to windowOpened, windowClosing events for SwingMainDisplay's Frame. */
+    /**
+     * React to windowOpened, windowClosing events for SwingMainDisplay's Frame.
+     *<P>
+     * Before v2.0.00 this class was {@code SOCPlayerClient.MyWindowAdapter}.
+     */
     private static class ClientWindowAdapter extends WindowAdapter
     {
         private final SwingMainDisplay md;

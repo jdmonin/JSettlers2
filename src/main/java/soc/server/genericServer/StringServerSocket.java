@@ -1,6 +1,6 @@
 /**
  * Local ({@link StringConnection}) network message system.
- * This file Copyright (C) 2007-2009,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2009,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ import java.util.Vector;
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
- *  1.0.3 - 2008-08-08 - add change history; no other changes in this file since 1.0.0
+ *  1.0.3 - 2008-08-08 - add change history; no other changes in this file since 1.0.0 (jsettlers 1.1.00 release)
  *  1.0.4 - 2008-09-04 - no change in this file
  *  1.0.5 - 2009-05-31 - no change in this file
  *  1.0.5.1- 2009-10-26- no change in this file

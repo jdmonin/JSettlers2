@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012-2013,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012-2013,2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -65,14 +65,15 @@ public interface SOCDevCardConstants
     /**
      * Minimum valid card type constant ({@link #UNKNOWN}).
      * Lower than {@link #MIN_KNOWN}.
+     * @since 1.1.00
      */
     public static final int MIN = 0;
 
     /**
-     * Dev-card of unknown type, for reporting to other players.
+     * Dev card of unknown type, for reporting to other players.
      * Lower than {@link #MIN_KNOWN}.
      */
-    public static final int UNKNOWN = 0; // unknown card
+    public static final int UNKNOWN = 0;
 
     /**
      * Minimum known card type ({@link #ROADS}).

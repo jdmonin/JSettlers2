@@ -698,6 +698,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * On the large sea board, there can optionally be multiple "land areas"
      * (groups of islands), if {@link SOCBoardLarge#getLandAreasLegalNodes()} != null.
      * In that case, <tt>nodesOnLand</tt> contains all nodes of all land areas.
+     *<P>
+     * Before v2.0.00 this was {@code nodesOnBoard}.
      */
     protected HashSet<Integer> nodesOnLand = new HashSet<Integer>();
 
@@ -3124,6 +3126,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *
      * @param nodeCoord Location coordinate (as returned by SOCBoardPanel.findNode)
      * @return  Settlement or city at <tt>nodeCoord</tt>, or null
+     * @since 1.1.00
      */
     public SOCPlayingPiece settlementAtNode(final int nodeCoord)
     {
@@ -3155,6 +3158,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @return road or ship, or null.  Use {@link SOCPlayingPiece#getType()}
      *   or {@link SOCRoutePiece#isRoadNotShip()} to determine the returned piece type.
      *   At most one road or ship can be placed at any one edge.
+     * @since 1.1.00
      */
     public SOCRoutePiece roadOrShipAtEdge(int edgeCoord)
     {
@@ -3169,6 +3173,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * Is this node on a land hex, and thus a legal settlement location?
+     *<P>
+     * Before v2.0.00 this was {@code isNodeOnBoard}.
+     *
      * @param node  Node coordinate, not checked for validity
      * @return  True if node is on a land hex (including if coastal), not water,
      *     and thus a legal settlement coordinate, based on the set of all nodes on land

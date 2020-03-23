@@ -525,6 +525,7 @@ public class SOCPlayerInterface extends Frame
      * begins (state changes from {@link SOCGame#START2B} or {@link SOCGame#START3B}
      * to {@link SOCGame#ROLL_OR_CARD}). Initially set in {@link #startGame()} while leaving
      * state {@link SOCGame#NEW}. Checked/cleared in {@link #updateAtGameState()}.
+     * @since 1.1.00
      */
     protected boolean gameIsStarting;
 
@@ -547,27 +548,34 @@ public class SOCPlayerInterface extends Frame
      * Null if no board reset vote is under way.
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
+     * @since 1.1.00
      */
     protected SOCHandPanel boardResetRequester;
 
     /**
      * Board reset voting: If voting is active and we haven't yet voted,
      * track our dialog; this lets us dispose of it if voting is cancelled.
+     * @since 1.1.00
      */
     protected ResetBoardVoteDialog boardResetVoteDia;
 
     /** Is one or more {@link SOCHandPanel} (of other players) showing a
      *  "Discarding..." or "Picking resource..." message?
+     * @since 1.1.00
      */
     private boolean showingPlayerDiscardOrPick;
 
     /**
      * Synchronize access to {@link #showingPlayerDiscardOrPick}
      * and {@link #showingPlayerDiscardOrPick_task}
+     * @since 1.1.00
      */
     private Object showingPlayerDiscardOrPick_lock;
 
-    /** May be null if not {@link #showingPlayerDiscardOrPick}. */
+    /**
+     * Task reference, in case need to cancel. May be null if not {@link #showingPlayerDiscardOrPick}.
+     * @since 1.1.00
+     */
     private SOCPIDiscardOrPickMsgTask showingPlayerDiscardOrPick_task;
 
     /**
@@ -1332,6 +1340,7 @@ public class SOCPlayerInterface extends Frame
      * @return the normal or "ghosted" color of a player
      * @param pn  the player number
      * @param isGhost Do we want the "ghosted" color, not the normal color?
+     * @since 1.1.00
      */
     public Color getPlayerColor(int pn, boolean isGhost)
     {
@@ -1370,6 +1379,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @see SOCHandPanel#autoRollSetupTimer()
      * @see SOCBoardPanel#popupSetBuildRequest(int, int)
+     * @since 1.1.00
      */
     public Timer getEventTimer()
     {
@@ -1439,6 +1449,7 @@ public class SOCPlayerInterface extends Frame
      * @param isRoadNotArmy Longest-road, not largest-army, has just changed
      * @param oldp  Previous player with longest/largest, or null if none
      * @param newp  New player with longest/largest, or null if none
+     * @since 1.1.00
      */
     public void updateLongestLargest
         (boolean isRoadNotArmy, SOCPlayer oldp, SOCPlayer newp)
@@ -2039,6 +2050,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Another player has voted on a board reset request.
      * Show the vote.
+     * @since 1.1.00
      */
     public void resetBoardVoted(int pn, boolean vyes)
     {
@@ -2056,6 +2068,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Voting complete, board reset was rejected.
      * Display text message and clear the offer.
+     * @since 1.1.00
      */
     public void resetBoardRejected()
     {
@@ -2088,6 +2101,7 @@ public class SOCPlayerInterface extends Frame
      * but don't vote.
      *
      * @param pnRequester Player number of the player requesting the board reset
+     * @since 1.1.00
      */
     public void resetBoardAskVote(int pnRequester)
     {
@@ -2122,6 +2136,7 @@ public class SOCPlayerInterface extends Frame
 
     /** Callback from ResetBoardVoteDialog, to clear our reference when
      *  button is clicked and dialog is going away.
+     * @since 1.1.00
      */
     private void resetBoardClearDia()
     {
@@ -3110,7 +3125,11 @@ public class SOCPlayerInterface extends Frame
      * Set up a timer to wait 1 second before showing "Discarding..."
      * or "Picking Resources..." balloons in players' handpanels.
      * Uses {@link SOCPIDiscardOrPickMsgTask}.
+     *<P>
+     * Before v2.0.00 this was {@code discardTimerSet}.
+     *
      * @param isDiscard  True for discard, false for picking gold-hex resources
+     * @since 1.1.00
      */
     private void discardOrPickTimerSet(final boolean isDiscard)
     {
@@ -3129,6 +3148,10 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Cancel any "discarding..." or "picking resources..." timer, and clear the message if showing.
+     *<P>
+     * Before v2.0.00 this was {@code discardTimerClear}.
+     *
+     * @since 1.1.00
      */
     private void discardOrPickTimerClear()
     {
@@ -3237,6 +3260,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * if debug is enabled, print this in the chat display.
+     * @since 1.1.00
      */
     public void chatPrintDebug(String debugMsg)
     {
@@ -3256,6 +3280,7 @@ public class SOCPlayerInterface extends Frame
         chatPrintStackTrace(th, false);
     }
 
+    // @since 1.1.00
     private void chatPrintStackTrace(Throwable th, boolean isNested)
     {
         if (! D.ebugIsEnabled())
@@ -5019,6 +5044,9 @@ public class SOCPlayerInterface extends Frame
     /**
      * When timer fires, show discard message or picking-resource message
      * for any other player (not client player) who must discard or pick.
+     *<P>
+     * Before v2.0.00 this class was {@code SOCPIDiscardMsgTask}.
+     *
      * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
      * @author jdmonin
      * @since 1.1.00

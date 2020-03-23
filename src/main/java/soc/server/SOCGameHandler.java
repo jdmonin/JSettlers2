@@ -618,6 +618,7 @@ public class SOCGameHandler extends GameHandler
      * @param callEndTurn  Almost always true; if false, don't call {@link SOCGame#endTurn()}
      *           because it was called before calling this method.
      *           If false, be sure to set {@code pl} to the player whose turn it was before {@code endTurn()} was called.
+     * @since 1.1.00
      */
     void endGameTurn(SOCGame ga, SOCPlayer pl, final boolean callEndTurn)
     {
@@ -708,6 +709,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @see #endGameTurnOrForce(SOCGame, int, String, Connection, boolean)
      * @see SOCGame#forceEndTurn()
+     * @since 1.1.00
      */
     private final boolean forceEndGameTurn(SOCGame ga, final String plName)
     {
@@ -967,7 +969,7 @@ public class SOCGameHandler extends GameHandler
             /**
              * send them the already-seated player information;
              * if isReset, don't send, because sitDown will
-             * be sent from resetBoardAndNotify.
+             * be sent from SOCServer.resetBoardAndNotify.
              */
             if (! isReset)
             {
@@ -2792,6 +2794,7 @@ public class SOCGameHandler extends GameHandler
      * @see SOCGameMessageHandler#handleDISCARD(SOCGame, Connection, SOCDiscard)
      * @see SOCGameMessageHandler#handlePICKRESOURCES(SOCGame, Connection, SOCPickResources)
      * @see SOCGameMessageHandler#handleROLLDICE(SOCGame, Connection, SOCRollDice)
+     * @since 1.1.00
      */
     void reportRsrcGainLoss
         (final String gaName, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
@@ -3669,6 +3672,7 @@ public class SOCGameHandler extends GameHandler
      * @param pn  Player number who must discard/gain resources
      * @throws IllegalStateException if {@code pn} is current player, or if incorrect game state or incorrect
      *     player status; see {@link SOCGame#playerDiscardOrGainRandom(int, boolean)} for details
+     * @since 1.1.00
      */
     private final void forceGamePlayerDiscardOrGain
         (final SOCGame cg, final int cpn, final Connection c, final String plName, final int pn)

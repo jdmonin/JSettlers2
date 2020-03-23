@@ -301,6 +301,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * This is filled at the server (because it has the text strings) when
      * {@link SOCGame#gameEventListener} != null, and sent out to clients.
      * @see #addSpecialVPInfo(int, String)
+     * @since 2.0.00
      */
     private ArrayList<SpecialVPInfo> svpInfo;
 
@@ -309,6 +310,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * or 0 if no score has been forced.
      *
      * @see #forceFinalVP(int)
+     * @since 1.1.00
      */
     private int finalTotalVP;
 
@@ -1270,6 +1272,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Note that if a ship is moved on the board, it may go to the end of this list.
      *<P>
      * Before v2.0.00 this method was {@code getRoads}.
+     *
      * @return the list of roads/ships in play
      * @see #getRoadOrShip(int)
      * @see #getMostRecentShip()
@@ -1281,6 +1284,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's road or ship on an edge.
+     *<P>
+     * Before v2.0.00 this method was {@code getRoad}.
+     *
      * @param  edge  Edge coordinate of the road or ship
      * @return  The player's road or ship in play at this edge, or null
      * @see #getMostRecentShip()
@@ -2167,6 +2173,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return whether this player has any unplayed dev cards
      *
      * @see #getInventory()
+     * @since 1.1.00
      */
     public boolean hasUnplayedDevCards()
     {
@@ -2308,6 +2315,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * getTotalVP() and getPublicVP() will report this, if set.
      *
      * @param score Total score for the player, or 0 for no forced total.
+     * @since 1.1.00
      */
     public void forceFinalVP(int score)
     {

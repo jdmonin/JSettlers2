@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -50,11 +50,12 @@ import soc.util.Version;
 
 
 /**
- * This is the dialog for standalone client startup (JAR or otherwise)
+ * This is the dialog panel for standalone client startup (JAR or otherwise)
  * if no command-line arguments.  Give choice of connect to server, start local server,
  * or create practice game.  Prompt for parameters for connect or start-server.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+ * @since 1.1.00
  */
 @SuppressWarnings("serial")
 /*package*/ class SOCConnectOrPracticePanel extends JPanel
