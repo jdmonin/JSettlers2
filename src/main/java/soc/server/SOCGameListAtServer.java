@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import soc.debug.D;
 import soc.game.SOCGame;
@@ -485,10 +487,31 @@ public class SOCGameListAtServer extends SOCGameList
     private synchronized String makeUnusedName(final String baseName)
     {
         // + digits suffix
-        //     TODO see if it's already -\d+  maybe? Start at that + 1 instead of 2
-        for (int i = 2; i <= 20; ++i)
+        int i0 = 2;
+        String base = baseName;
+        if (Character.isDigit(baseName.charAt(baseName.length() - 1)))
         {
-            String name = baseName + '-' + i;
+            // if name is already -\d+ , start at that + 1 instead of at 2;
+            // tries to avoid making a name like "mygame-6-2"
+
+            final Matcher m = Pattern.compile("-(\\d+)$").matcher(baseName);
+            if (m.find())
+            {
+                base = baseName.substring(0, m.start());  // "mygame-6" -> "mygame"
+                try
+                {
+                    i0 = Integer.parseInt(m.group(1));
+                    if (i0 < Integer.MAX_VALUE)
+                        ++i0;
+                    else
+                        i0 = 2;
+                }
+                catch(NumberFormatException e) {}
+            }
+        }
+        for (int i = i0; i <= (i0 + 20); ++i)
+        {
+            String name = base + '-' + i;
             if (! isGame(name))
                 return name;
         }
@@ -501,7 +524,7 @@ public class SOCGameListAtServer extends SOCGameList
                 return name;
         }
 
-        // just random alphanumeric
+        // "game-" + just random alphanumeric
         for (int i = 1; i < 200; ++i)
         {
             String name = "game-" + randomAlphanumericLegibles(6);
