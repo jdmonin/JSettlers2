@@ -94,6 +94,7 @@ public interface MainDisplay
      * @param tport  TCP port number to host on
      * @throws IllegalArgumentException If port is 0 or negative
      * @throws IllegalStateException  if already connected to a server
+     * @since 1.1.00
      */
     void startLocalTCPServer(final int tport)
         throws IllegalArgumentException, IllegalStateException;
@@ -134,8 +135,10 @@ public interface MainDisplay
     /**
      * Act as if the "practice game" button has been clicked.
      * Assumes the dialog panels are all initialized.
+     * @since 1.1.00
      */
     void clickPracticeButton();
+
     void practiceGameStarting();
 
     void setMessage(String string);

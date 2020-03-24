@@ -900,6 +900,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Status {@link SOCStatusMessage#SV_SERVER_SHUTDOWN} calls {@link #disconnect()}
      * so as to not print futile reconnect attempts on the terminal.
      * @param mes  the message
+     * @since 1.1.00
      */
     @Override
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
@@ -1458,6 +1459,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @see #handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest)
+     * @since 1.1.00
      */
     @Override
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
@@ -1485,6 +1487,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param key  Recorder key for strings to send; not {@code null}
      * @param oldNotCurrent  True if should use {@link SOCRobotBrain#getOldDRecorder()
      *     instead of {@link SOCRobotBrain#getDRecorder() .getDRecorder()}
+     * @since 1.1.00
      */
     protected void sendRecordsText
         (final String gaName, final String key, final boolean oldNotCurrent)

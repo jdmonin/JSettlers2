@@ -400,6 +400,7 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * @return the status value, as in {@link #SV_OK}
+     * @since 1.1.06
      */
     public int getStatusValue()
     {

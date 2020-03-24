@@ -88,6 +88,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * TCP or Practice-mode server socket.
      * Runs on port number {@link #port}, or {@link #strSocketName} in Practice mode.
+     * @since 1.1.00
      */
     SOCServerSocket ss;
 
@@ -165,6 +166,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *  Adding/removing/naming/versioning of connections synchronizes on this Vector.
      *  @see #conns
      *  @see SOCServer#limitedConns
+     *  @since 1.1.00
      */
     protected Vector<Connection> unnamedConns = new Vector<Connection>();
 
@@ -336,6 +338,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Minor init tasks from both constructors.
      * Set up the recurring schedule of {@link #cliVersionsConnected} here.
      * If <tt>{@link #error} != null</tt> already, do nothing.
+     * @since 1.1.06
      */
     private void initMisc()
     {
@@ -355,6 +358,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @param connKey Case-sensitive client name key, from {@link Connection#getData()}; if that's null, returns null
      * @return The connection with this name, or null if none
      * @see #getConnection(String, boolean)
+     * @since 1.1.00
      */
     public Connection getConnection(final String connKey)
     {
@@ -613,6 +617,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @return true if processed here, false if this message should be
      *     queued up and processed as normal by
      *     {@link Server.InboundMessageDispatcher#dispatch(SOCMessage, Connection)}.
+     * @since 1.1.06
      */
     public boolean processFirstCommand(SOCMessage mes, Connection con)
     {
@@ -666,6 +671,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #addConnection(Connection)
      * @see #newConnection2(Connection)
      * @see #nameConnection(Connection, boolean)
+     * @since 1.1.00
      */
     protected boolean newConnection1(Connection c) { return true; }
 
@@ -677,6 +683,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      *  This method is called within a per-client thread.
      *  You can send to client, but can't yet receive messages from them.
+     *
+     * @since 1.1.00
      */
     protected void newConnection2(Connection c) {}
 
@@ -889,6 +897,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *          a connection with this name (case-insensitive) and {@code ! isReplacing}
      * @see #addConnection(Connection)
      * @see #getConnection(String, boolean)
+     * @since 1.1.00
      */
     public void nameConnection(Connection c, final boolean isReplacing)
         throws IllegalArgumentException
@@ -1275,10 +1284,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @param vmin Minimum version, as returned by {@link Connection#getVersion()},
      *             or {@link Integer#MIN_VALUE}
      * @param vmax Maximum version, or {@link Integer#MAX_VALUE}
-     * @since 1.1.06
      * @see #broadcastToVers(SOCMessage, int, int)
      * @see #broadcast(String)
      * @throws IllegalArgumentException if {@code m} is {@code null}
+     * @since 1.1.06
      */
     public synchronized void broadcastToVers(final String m, final int vmin, final int vmax)
         throws IllegalArgumentException

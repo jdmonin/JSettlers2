@@ -203,6 +203,7 @@ import javax.swing.SwingConstants;
      * Client's player data.  Initially null; call setPlayer once seat is chosen.
      *
      * @see #setPlayer()
+     * @since 1.1.00
      */
     SOCPlayer player;
 
@@ -1124,6 +1125,7 @@ import javax.swing.SwingConstants;
      *
      * @throws IllegalStateException If the player data has already been set,
      *    and this isn't a new game (a board reset).
+     * @since 1.1.00
      */
     public void setPlayer()
         throws IllegalStateException

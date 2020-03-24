@@ -66,7 +66,11 @@ import java.util.Vector;
     protected String hst;
 
     protected boolean connected = false;
-    /** @see #disconnectSoft() */
+
+    /**
+     * @see #disconnectSoft()
+     * @since 1.0.3
+     */
     protected boolean inputConnected = false;
 
     /** Messages from server to client, sent in {@link Putter} thread */
@@ -153,6 +157,7 @@ import java.util.Vector;
     /**
      * Is input available now, without blocking?
      * Same idea as {@link java.io.DataInputStream#available()}.
+     * @since 1.0.5
      */
     public boolean isInputAvailable()
     {
@@ -363,6 +368,7 @@ import java.util.Vector;
      * Accept no further input, allow output to drain, don't immediately close the socket.
      * Once called, {@link #isConnected()} will return false, even if output is still being
      * sent to the other side.
+     * @since 1.0.3
      */
     public void disconnectSoft()
     {

@@ -717,6 +717,7 @@ import soc.util.Version;
      * @param isPractice Is the server {@link ClientNetwork#practiceServer}, not remote?  Client can be connected
      *                only to one at a time.
      * @param mes  the message
+     * @since 1.1.00
      */
     private void handleVERSION(final boolean isPractice, SOCVersion mes)
     {
@@ -2266,6 +2267,7 @@ import soc.util.Version;
      *   either set the auto-roll timer, or prompt to roll or choose card.
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleROLLDICEPROMPT(SOCRollDicePrompt mes)
     {
@@ -2288,6 +2290,7 @@ import soc.util.Version;
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @see soc.game.SOCGame#resetAsCopy()
+     * @since 1.1.00
      */
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
@@ -2311,6 +2314,7 @@ import soc.util.Version;
      * local game state, and vote unless we are the requester.
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleRESETBOARDVOTEREQUEST(SOCResetBoardVoteRequest mes)
     {
@@ -2330,6 +2334,7 @@ import soc.util.Version;
      * another player has voted on a board reset request: display the vote.
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleRESETBOARDVOTE(SOCResetBoardVote mes)
     {
@@ -2349,6 +2354,7 @@ import soc.util.Version;
      * voting complete, board reset request rejected
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleRESETBOARDREJECT(SOCResetBoardReject mes)
     {

@@ -488,6 +488,7 @@ public class SOCInventory
      * @see #getNumVPItems()
      * @see #getTotal()
      * @see #getByState(int)
+     * @since 1.1.00
      */
     public int getNumUnplayed()
     {

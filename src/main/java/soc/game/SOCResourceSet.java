@@ -371,6 +371,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *    resSet.clear();
      *    resSet.setAmount (SOCResourceConstants.UNKNOWN, numTotal);
      * </code>
+     * @since 1.1.00
      */
     public void convertToUnknown()
     {
@@ -459,6 +460,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @return a human readable longer form of the set;
      *         if the set is empty, return the string "nothing".
      * @see #toShortString()
+     * @since 1.1.00
      */
     public String toFriendlyString()
     {
@@ -475,6 +477,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @param sb Append into this buffer.
      * @return true if anything was appended, false if sb unchanged (this resource set is empty).
      * @see #toFriendlyString()
+     * @since 1.1.00
      */
     public boolean toFriendlyString(StringBuffer sb)
     {

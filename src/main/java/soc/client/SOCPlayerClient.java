@@ -284,6 +284,7 @@ public class SOCPlayerClient
      *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if version unknown.
      *  A local practice server's version is always {@link Version#versionNumber()}, not {@code sVersion},
      *  so always check {@link SOCGame#isPractice} before checking this field.
+     * @since 1.1.00
      */
     protected int sVersion;
 
@@ -358,6 +359,7 @@ public class SOCPlayerClient
 
     /**
      * face ID chosen most recently (for use in new games)
+     * @since 1.1.00
      */
     protected int lastFaceChange;
 
@@ -491,6 +493,7 @@ public class SOCPlayerClient
      * @param cport Port number to connect to
      * @param cuser User nickname
      * @param cpass User optional password
+     * @since 1.1.00
      */
     public void connect(final String chost, final int cport, final String cuser, final String cpass)
     {

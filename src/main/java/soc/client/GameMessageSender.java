@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -520,6 +520,7 @@ import soc.message.SOCStartGame;
      * or will tell other players to vote yes/no on the request.
      * Before calling, check player.hasAskedBoardReset()
      * and game.getResetVoteActive().
+     * @since 1.1.00
      */
     public void resetBoardRequest(SOCGame ga)
     {
@@ -536,6 +537,7 @@ import soc.message.SOCStartGame;
      * @param ga Game to vote on
      * @param pn Player number of our player who is voting
      * @param voteYes If true, this player votes yes; if false, no
+     * @since 1.1.00
      */
     public void resetBoardVote(SOCGame ga, int pn, boolean voteYes)
     {

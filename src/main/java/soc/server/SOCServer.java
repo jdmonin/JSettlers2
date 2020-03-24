@@ -571,6 +571,7 @@ public class SOCServer extends Server
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Currently there is no enforced minimum (0000).
      * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
+     * @since 1.1.00
      */
     public static final int CLI_VERSION_MIN = 0000;
 
@@ -4339,6 +4340,7 @@ public class SOCServer extends Server
      * @see #messageToGameExcept(String, Connection, String, boolean)
      * @see #messageToGameExcept(String, List, SOCMessage, boolean)
      * @see #messageToGameForVersionsExcept(SOCGame, int, int, Connection, SOCMessage, boolean)
+     * @since 1.1.00
      */
     public void messageToGameExcept(String gn, Connection ex, SOCMessage mes, boolean takeMon)
     {
@@ -4582,6 +4584,7 @@ public class SOCServer extends Server
      * @see #addConnection(Connection)
      * @see #newConnection2(Connection)
      * @see #nameConnection(Connection, boolean)
+     * @since 1.1.00
      */
     @Override
     public boolean newConnection1(Connection c)
@@ -4659,6 +4662,8 @@ public class SOCServer extends Server
      *<P>
      * This method is called within a per-client thread.
      * You can send to client, but can't yet receive messages from them.
+     *
+     * @since 1.1.00
      */
     @Override
     protected void newConnection2(Connection c)
@@ -4998,6 +5003,7 @@ public class SOCServer extends Server
      * @return true if processed here (VERSION), false if this message should be
      *         queued up and processed as normal by
      *         {@link SOCMessageDispatcher#dispatch(SOCMessage, Connection)}.
+     * @since 1.1.06
      */
     @Override
     public boolean processFirstCommand(final SOCMessage mes, Connection con)
@@ -6784,6 +6790,7 @@ public class SOCServer extends Server
      * @param pn      Player number who is voting
      * @param plName  Name of player who is voting
      * @param vyes    Player's vote, Yes or no
+     * @since 1.1.01
      */
     void resetBoardVoteNotifyOne(SOCGame ga, final int pn, final String plName, final boolean vyes)
     {
@@ -7540,6 +7547,7 @@ public class SOCServer extends Server
      *     JOINGAME and SITDOWN, as they do when joining a newly created game.
      *     Once all robots have re-joined, the game will begin.
      *</OL>
+     *
      * @since 1.1.00
      */
     void resetBoardAndNotify(final String gaName, final int requestingPlayer)
