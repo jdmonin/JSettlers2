@@ -210,6 +210,7 @@ public class SavedGameModel
         ga.setGameState(SOCGame.LOADING);
         game = ga;
         ga.savedGameModel = this;
+        ga.setTimeSinceCreated(gameDurationSeconds);
         ga.setCurrentDice(currentDice);
         // TODO set other entire-game fields
         if (devCardDeck != null)

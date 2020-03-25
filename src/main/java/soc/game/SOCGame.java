@@ -1462,12 +1462,34 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get the time at which this game was created.
      * Used only at server.
+     *P>
+     * To overwrite this time, call {@link #setTimeSinceCreated(int)}.
+     *
      * @return the start time for this game, or null if not active when created
      * @see #getExpiration()
      */
     public Date getStartTime()
     {
         return startTime;
+    }
+
+    /**
+     * Set how long this game has existed.
+     * Overwrites and replaces the time returned by {@link #getStartTime()}.
+     * @param seconds Game's new age in seconds; can be 0 but not negative
+     * @since 2.3.00
+     */
+    public void setTimeSinceCreated(final int seconds)
+        throws IllegalArgumentException
+    {
+        if (seconds < 0)
+            throw new IllegalArgumentException("seconds");
+
+        final long t = System.currentTimeMillis() - (1000L * seconds);
+        if (startTime == null)
+            startTime = new Date(t);
+        else
+            startTime.setTime(t);
     }
 
     /**
