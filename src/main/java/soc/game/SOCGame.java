@@ -907,6 +907,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * The seat number of the current player within {@link #players}[],
      * or -1 if the game isn't started yet.
+     * @see #specialBuildPhase_afterPlayerNumber
      */
     private int currentPlayerNumber;
 
@@ -1041,15 +1042,10 @@ public class SOCGame implements Serializable, Cloneable
     private boolean askedSpecialBuildPhase;
 
     /**
-     * For the 6-player board's Special Building Phase, the player number whose
+     * During the 6-player board's Special Building Phase, the player number whose
      * normal turn (roll, place, etc) has just ended.
      * Game state is {@link #SPECIAL_BUILDING}.
-     * The Special Building Phase changes {@link #currentPlayerNumber}.
-     * So, it begins by calling {@link #advanceTurn()} to
-     * the next player, and continues clockwise until
-     * {@link #currentPlayerNumber} == {@link #specialBuildPhase_afterPlayerNumber}.
-     * At that point, the Special Building Phase is over,
-     * and it's the next player's turn as usual.
+     * See {@link #getSpecialBuildingPlayerNumberAfter()} for gameplay details.
      * @see #askedSpecialBuildPhase
      * @since 1.1.08
      */
@@ -2273,6 +2269,42 @@ public class SOCGame implements Serializable, Cloneable
             if ((pn >= 0) && ((players[pn].getTotalVP() >= vp_winner) || hasScenarioWinCondition))
                 checkForWinner();
         }
+    }
+
+    /**
+     * During the 6-player board's Special Building Phase, the player number whose
+     * normal turn (roll, place, etc) has just ended.
+     *<P>
+     * The Special Building Phase changes {@link #getCurrentPlayerNumber()}.
+     * So, it begins by calling {@link #advanceTurn()} to
+     * the next player, and continues clockwise until
+     * {@code getCurrentPlayerNumber()} == {@code getSpecialBuildingPlayerNumberAfter()}.
+     * At that point, the Special Building Phase is over
+     * and it's the next player's turn as usual.
+     *
+     * @return that player number if game state is {@link #SPECIAL_BUILDING}, -1 otherwise
+     * @since 2.3.00
+     */
+    public int getSpecialBuildingPlayerNumberAfter()
+    {
+        return (gameState == SPECIAL_BUILDING) ? specialBuildPhase_afterPlayerNumber : -1;
+    }
+
+    /**
+     * For use while reloading a saved game, sets {@link #getSpecialBuildingPlayerNumberAfter()}.
+     * This field is ignored except during gameState {@link #SPECIAL_BUILDING}.
+     * @param pn  Player number, or -1 to do nothing
+     * @throws IllegalArgumentException if {@code pn} &lt; -1 or >= {@link #maxPlayers}
+     * @since 2.3.00
+     */
+    public void setSpecialBuildingPlayerNumberAfter(final int pn)
+    {
+        if (pn == -1)
+            return;
+        if ((pn < -1) || (pn >= maxPlayers))
+            throw new IllegalArgumentException("pn");
+
+        specialBuildPhase_afterPlayerNumber = pn;
     }
 
     /**

@@ -109,7 +109,18 @@ public class SOCGameElements extends SOCMessageTemplateMi
          *<P>
          * Versions before v2.0.00 sent {@link SOCLongestRoad} instead.
          */
-        LONGEST_ROAD_PLAYER(6);
+        LONGEST_ROAD_PLAYER(6),
+
+        /**
+         * During 6-player game's Special Building Phase,
+         * the value of {@link SOCGame#getSpecialBuildingPlayerNumberAfter()}.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel}
+         * when gameState is {@link SOCGame#SPECIAL_BUILDING}.
+         * 
+         * @since 2.3.00
+         */
+        SPECIAL_BUILDING_AFTER_PLAYER(7);
 
         private int value;
 

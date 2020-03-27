@@ -145,6 +145,8 @@ public class SavedGameModel
             elements.put(GEType.CURRENT_PLAYER, game.getCurrentPlayerNumber());
             elements.put(GEType.LONGEST_ROAD_PLAYER, (lrPlayer != null) ? lrPlayer.getPlayerNumber() : -1);
             elements.put(GEType.LARGEST_ARMY_PLAYER, (laPlayer != null) ? laPlayer.getPlayerNumber() : -1);
+            if (gameState == SOCGame.SPECIAL_BUILDING)
+                elements.put(GEType.SPECIAL_BUILDING_AFTER_PLAYER, ga.getSpecialBuildingPlayerNumberAfter());
         }
 
         boardInfo = new BoardInfo(ga);
@@ -273,7 +275,7 @@ public class SavedGameModel
          */
         SOCFortress fortressPiece;
 
-        PlayerInfo(SOCPlayer pl, boolean isVacant)
+        PlayerInfo(final SOCPlayer pl, final boolean isVacant)
         {
             final SOCGame ga = pl.getGame();
 
@@ -289,6 +291,12 @@ public class SavedGameModel
             elements.put(PEType.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD));
             elements.put(PEType.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
             elements.put(PEType.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY));
+            if ((! isVacant) && (ga.maxPlayers > 4))
+            {
+                elements.put(PEType.ASK_SPECIAL_BUILD, (pl.hasAskedSpecialBuild()) ? 1 : 0);
+                if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
+                    elements.put(PEType.HAS_SPECIAL_BUILT, (pl.hasSpecialBuilt()) ? 1 : 0);
+            }
             if (ga.hasSeaBoard)
             {
                 elements.put(PEType.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP));

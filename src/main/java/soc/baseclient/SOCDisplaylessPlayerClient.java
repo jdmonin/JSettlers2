@@ -1528,6 +1528,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
             break;
 
+        case HAS_SPECIAL_BUILT:
+            pl.setSpecialBuilt((0 != val));
+            break;
+
         case RESOURCE_COUNT:
             if (val != pl.getResources().getTotal())
             {
@@ -1807,6 +1811,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case LONGEST_ROAD_PLAYER:
             ga.setPlayerWithLongestRoad((value != -1) ? ga.getPlayer(value) : null);
+            break;
+
+        case SPECIAL_BUILDING_AFTER_PLAYER:
+            ga.setSpecialBuildingPlayerNumberAfter(value);
             break;
 
         case UNKNOWN_TYPE:
