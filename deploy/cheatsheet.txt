@@ -1,0 +1,16 @@
+#mariadb mysql commands
+mysql -u socuser -p
+socpass
+
+GRANT ALL PRIVILEGES   ON socdata.*   TO 'socuser'@'192.168.0.%'  IDENTIFIED BY 'socpass'   WITH GRANT OPTION;
+
+show tables;
+
+select user, host from mysql.user;
+
+
+#docker
+docker run -it -p 8880:8880 japp 
+
+
+#az cli - TODO
