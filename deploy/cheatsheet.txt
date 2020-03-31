@@ -1,3 +1,7 @@
+#run the client
+java -jar jsettlers-2.2.00-full.jar
+java -jar jsettlers-2.2.00-full.jar HOSTNAME 8880
+
 #mariadb mysql commands
 mysql -u socuser -p
 socpass
