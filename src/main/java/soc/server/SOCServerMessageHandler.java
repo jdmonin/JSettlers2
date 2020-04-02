@@ -1367,6 +1367,94 @@ public class SOCServerMessageHandler
     }
 
     /**
+     * Convenience method to add a pair of strings (a statistic's name and value)
+     * to this list of server statistics.
+     * @param li  List to add to; not null
+     * @param name  Stat name to add
+     * @param val  Stat value
+     * @see #listAddStat(List, String, int)
+     * @see #getSettingsFormatted()
+     * @since 2.3.00
+     */
+    private void listAddStat(final List<String> li, final String name, final String val)
+    {
+        li.add(name);
+        li.add(val);
+    }
+
+    /**
+     * Convenience method to add a pair of strings (a statistic's name and int value as string)
+     * to this list of server statistics.
+     * @param li  List to add to; not null
+     * @param name  Stat name to add
+     * @param val  Stat value
+     * @see #listAddStat(List, String, String)
+     * @see #getSettingsFormatted()
+     * @since 2.3.00
+     */
+    private void listAddStat(final List<String> li, final String name, final int val)
+    {
+        li.add(name);
+        li.add(Integer.toString(val));
+    }
+
+    /**
+     * Build a list of server stats for {@link #processDebugCommand_serverStats(Connection, SOCGame)}.
+     * @return Formatted list of server stats strings.
+     *     Always an even number of items, a name and then a value for each setting.
+     *     A few stats are multi-line lists; each continuation lines is a pair whose "name" is {@code "  "}.
+     * @see SOCDBHelper#getSettingsFormatted()
+     * @since 2.3.00
+     */
+    final List<String> getSettingsFormatted()
+    {
+        final long diff = System.currentTimeMillis() - srv.startTime;
+        final long hours = diff / (60 * 60 * 1000),
+            minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000),
+            seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
+        Runtime rt = Runtime.getRuntime();
+
+        ArrayList<String> li = new ArrayList<>();
+
+        if (hours < 24)
+        {
+            listAddStat(li, "Uptime", hours + ":" + minutes + ":" + seconds);
+        } else {
+            final int days = (int) (hours / 24),
+                      hr   = (int) (hours - (days * 24L));
+            listAddStat(li, "Uptime", days + "d " + hr + ":" + minutes + ":" + seconds);
+        }
+        listAddStat(li, "Connections since startup", srv.getRunConnectionCount());
+        listAddStat(li, "Current named connections", srv.getNamedConnectionCount());
+        listAddStat(li, "Current connections including unnamed", srv.getCurrentConnectionCount());
+        listAddStat(li, "Total Users", srv.numberOfUsers);
+        listAddStat(li, "Games started", srv.numberOfGamesStarted);
+        listAddStat(li, "Games finished", srv.numberOfGamesFinished);
+        listAddStat(li, "Total Memory", Long.toString(rt.totalMemory()));
+        listAddStat(li, "Free Memory", Long.toString(rt.freeMemory()));
+        listAddStat
+            (li, "Version", Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+
+        if (! srv.clientPastVersionStats.isEmpty())
+        {
+            if (srv.clientPastVersionStats.size() == 1)
+            {
+                listAddStat
+                    (li, "Client versions since startup",
+                     "all " + Version.version(srv.clientPastVersionStats.keySet().iterator().next()));
+            } else {
+                // TODO sort it
+                listAddStat(li, "Client versions since startup", "(includes bots)");
+                for (Integer v : srv.clientPastVersionStats.keySet())
+                    listAddStat
+                        (li, "  ", Version.version(v) + ": " + srv.clientPastVersionStats.get(v));
+            }
+        }
+
+        return li;
+    }
+
+    /**
      * Process the {@code *STATS*} unprivileged debug command:
      * Send the client a list of server statistics, and stats for the game and connection they sent the command from.
      * Calls {@link #processDebugCommand_gameStats(Connection, SOCGame, boolean)}.
@@ -1381,49 +1469,15 @@ public class SOCServerMessageHandler
      */
     final void processDebugCommand_serverStats(final Connection c, final SOCGame ga)
     {
-        final long diff = System.currentTimeMillis() - srv.startTime;
-        final long hours = diff / (60 * 60 * 1000),
-            minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000),
-            seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
-        Runtime rt = Runtime.getRuntime();
         final String gaName = ga.getName();
 
-        if (hours < 24)
-        {
-            srv.messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
-        } else {
-            final int days = (int) (hours / 24),
-                      hr   = (int) (hours - (days * 24L));
-            srv.messageToPlayer(c, gaName, "> Uptime: " + days + "d " + hr + ":" + minutes + ":" + seconds);
-        }
-        srv.messageToPlayer(c, gaName, "> Connections since startup: " + srv.getRunConnectionCount());
-        srv.messageToPlayer(c, gaName, "> Current named connections: " + srv.getNamedConnectionCount());
-        srv.messageToPlayer(c, gaName, "> Current connections including unnamed: " + srv.getCurrentConnectionCount());
-        srv.messageToPlayer(c, gaName, "> Total Users: " + srv.numberOfUsers);
-        srv.messageToPlayer(c, gaName, "> Games started: " + srv.numberOfGamesStarted);
-        srv.messageToPlayer(c, gaName, "> Games finished: " + srv.numberOfGamesFinished);
-        srv.messageToPlayer(c, gaName, "> Total Memory: " + rt.totalMemory());
-        srv.messageToPlayer(c, gaName, "> Free Memory: " + rt.freeMemory());
-        final int vers = Version.versionNumber();
-        srv.messageToPlayer(c, gaName, "> Version: "
-            + vers + " (" + Version.version() + ") build " + Version.buildnum());
-
-        if (! srv.clientPastVersionStats.isEmpty())
-        {
-            if (srv.clientPastVersionStats.size() == 1)
-            {
-                srv.messageToPlayer(c, gaName, "> Client versions since startup: all "
-                        + Version.version(srv.clientPastVersionStats.keySet().iterator().next()));
-            } else {
-                // TODO sort it
-                srv.messageToPlayer(c, gaName, "> Client versions since startup: (includes bots)");
-                for (Integer v : srv.clientPastVersionStats.keySet())
-                    srv.messageToPlayer(c, gaName, ">   " + Version.version(v) + ": " + srv.clientPastVersionStats.get(v));
-            }
-        }
+        Iterator<String> it = getSettingsFormatted().iterator();
+        while (it.hasNext())
+            srv.messageToPlayer(c, gaName, "> " + it.next() + ": " + it.next());
 
         // show range of current game's member client versions if not server version (added to *STATS* in 1.1.19)
-        if ((ga.clientVersionLowest != vers) || (ga.clientVersionLowest != ga.clientVersionHighest))
+        if ((ga.clientVersionLowest != Version.versionNumber())
+            || (ga.clientVersionLowest != ga.clientVersionHighest))
             srv.messageToPlayer(c, gaName, "> This game's client versions: "
                 + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
 
