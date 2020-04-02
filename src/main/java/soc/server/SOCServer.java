@@ -474,11 +474,22 @@ public class SOCServer extends Server
     /**
      * Property {@code jsettlers.savegame.dir} to enable SAVEGAME/LOADGAME debug commands
      * and set the directory in which to store savegame files.
+     *<P>
      * If set, but isn't an existing directory, server will warn at startup.
      * Property is ignored unless {@link #PROP_JSETTLERS_ALLOW_DEBUG}.
      * @since 2.3.00
      */
     public static final String PROP_JSETTLERS_SAVEGAME_DIR = "jsettlers.savegame.dir";
+
+    /**
+     * Property {@code jsettlers.stats.file.name} is the filename to append an optional daily stats summary
+     * with the same information as the {@code *STATS*} command, using {@link StatsFileWriterTask}.
+     *<P>
+     * Can be a full path, or relative to the JSettlers startup directory which contains {@code jsserver.properties}.
+     * If this file's directory is not writable, server will warn at startup.
+     * @since 2.3.00
+     */
+    public static final String PROP_JSETTLERS_STATS_FILE_NAME = "jsettlers.stats.file.name";
 
     /**
      * Boolean property {@code jsettlers.test.db} to test database methods,
@@ -539,6 +550,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_START3P,            "Third-party bot client classes to start up with server",
         PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
         PROP_JSETTLERS_SAVEGAME_DIR,            "Dir in which to store savegame files",
+        PROP_JSETTLERS_STATS_FILE_NAME,         "If set, filename to append daily *STATS* into",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
         PROP_JSETTLERS_TEST_DB,                 "Flag to test database methods, then exit",
         SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR, "For user accounts in DB, password encryption Work Factor (see README) (9 to "
@@ -1623,6 +1635,14 @@ public class SOCServer extends Server
             serverRobotPinger.start();
             gameTimeoutChecker = new SOCGameTimeoutChecker(this);
             gameTimeoutChecker.start();
+
+            if (props.containsKey(PROP_JSETTLERS_STATS_FILE_NAME))
+            {
+                final String statsFilePath = props.getProperty(PROP_JSETTLERS_STATS_FILE_NAME);
+                final File statsFile = new File(statsFilePath).getAbsoluteFile();
+                new StatsFileWriterTask(srvMsgHandler, statsFile, statsFilePath, miscTaskTimer);
+                System.err.println("Stats file: Will append to " + statsFile.getPath());
+            }
         }
 
         this.databaseUserName = databaseUserName;
@@ -2053,7 +2073,7 @@ public class SOCServer extends Server
      */
     private void initSocServer_savegame()
     {
-        String savegameDirPath = props.getProperty(PROP_JSETTLERS_SAVEGAME_DIR);
+        final String savegameDirPath = props.getProperty(PROP_JSETTLERS_SAVEGAME_DIR);
         if (savegameDirPath == null)
             return;
 

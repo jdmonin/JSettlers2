@@ -17,10 +17,13 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.3.00` (build JM2020xxxx)
 - Currently being developed
-- Server can save/load games using local files and debug commands
-	- This is work in progress: Currently works with classic and sea board games, but no scenarios
-	- Server config must designate a directory
-	- Optional GSON jar must be on classpath or same dir as server
+- Server:
+	- Daily Stats file: New optional server property `jsettlers.stats.file.name`: Appends output of `*STATS*` command daily  
+	  (see `jsserver.properties.sample` for details)
+	- Can save/load games using local files and debug commands
+	  - This is work in progress: Currently works with classic and sea board games, but no scenarios
+	  - Server config must designate a directory
+	  - Optional GSON jar must be on classpath or same dir as server
 - For AI/Robot development:
 	- SOCRobotBrain debug stack trace: Print bot name
 

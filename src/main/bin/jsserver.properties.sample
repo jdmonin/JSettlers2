@@ -160,7 +160,22 @@
 # jsettlers version was released, you must specify the JDBC driver class name.
 # jsettlers.db.driver=com.mysql.jdbc.Driver
 
-# Debug Options for developers:
+# - Server admin:
+
+# (See also jsettlers.accounts.admins)
+
+# Enable a daily stats summary with the same information as
+# the {@code *STATS*} command, and set the filename to which
+# to append that summary. Can be a full path, or relative to the
+# JSettlers startup directory which contains jsserver.properties.
+# First summary will be written 60 minutes after server starts,
+# so that a quick test-run won't write to the file, and then
+# daily at 00:01 (just after midnight local time).
+# If this file's directory is not writable, server will warn at startup.
+# Not set by default.
+# jsettlers.stats.file.name=/home/jsuser/jsettlers/stats_daily.txt
+
+# - Debug Options for developers:
 
 # Flag to allow remote debug commands over TCP connections, from a user named
 # "debug". If you set this, for security you should use sqlite or another
@@ -247,18 +262,17 @@
 # This starts 2 of the example "third-party" bot:
 # jsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient
 
-
 # Robot turn timeout (seconds) for third-party robots, which may have more
 # complex logic than the built-in bots. The third-party bots will have this
 # many seconds to make a move before the server ends their turn.
 # Default is 8 seconds, the same limit as the built-in bots.
 # jsettlers.bots.timeout.turn=8
 
-
 # Enable SAVEGAME/LOADGAME debug commands and set the directory in which to
 # store savegame files. If set, but isn't an existing directory, server will
 # warn at startup. Ignored unless jsettlers.allow.debug is set.
 # Requires gson 2.8.6 or higher; for details search Readme.developer.md for gson.
+# Not set by default.
 # jsettlers.savegame.dir=/home/jsuser/jsettlers/savegame
 
 
