@@ -18,9 +18,14 @@ and backport minor new features until `2.0.00` was ready.
 ## `2.3.00` (build JM2020xxxx)
 - Currently being developed
 - Server:
-	- Daily Stats file: New optional server property `jsettlers.stats.file.name`: Appends output of `*STATS*` command daily
-	  (see `jsserver.properties.sample` comments for details)
-	- `*STATS*` command: Also show memory as MB or GB, % free of total
+	- Administration:
+	  - Can now run these commands from any admin account, not only as Debug:  
+	    `*BCAST*, *BOTLIST*, *BOTLIST*, *RESETBOT*, *KILLBOT*, *GC*`
+	  - Daily Stats file: New optional server property `jsettlers.stats.file.name`: Appends output of `*STATS*` command daily
+	    (see `jsserver.properties.sample` comments for details)
+	  - `*STATS*`, `*GC*` also show memory as MB or GB, % free of total
+	  - `*BOTLIST*` no longer invites all bots to join admin user's game
+- For developers:
 	- Can save/load games using local files and debug commands
 	  - This is work in progress: Currently works with classic and sea board games, but no scenarios
 	  - Server config must designate a directory

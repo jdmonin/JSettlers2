@@ -2217,6 +2217,32 @@ public class SOCServer extends Server
     public final int getRobotCount() { return robots.size(); }
 
     /**
+     * Get a connected robot client, from server's list of bots
+     * (clients which have auth'd using {@link SOCImARobot}).
+     * @param botName Case-sensitive bot name key, from {@link Connection#getData()}; if null, returns null
+     * @return That bot's connection, or {@code null} if not found
+     * @see Server#getConnection(String)
+     * @see #getRobotCount()
+     * @see #getConnectedRobotNames(StringBuilder)
+     * @since 2.3.00
+     */
+    public final Connection getRobotConnection(final String botName)
+    {
+        if (botName == null)
+            return null;
+
+        Enumeration<Connection> robotsEnum = robots.elements();
+        while (robotsEnum.hasMoreElements())
+        {
+            Connection robotConn = robotsEnum.nextElement();
+            if (botName.equals(robotConn.getData()))
+                return robotConn;
+        }
+
+        return null;
+    }
+
+    /**
      * The 16 hex characters to use in {@link #generateRobotCookie()}.
      * @since 1.1.19
      */
@@ -4509,6 +4535,7 @@ public class SOCServer extends Server
      * If {@code c} is a robot, looks for any games waiting for that bot to join
      * in order to start the game. If any found, tries to find another bot instead
      * by calling {@link GameHandler#findRobotAskJoinGame(SOCGame, Object, boolean)}.
+     * Also removes from server's bot list.
      *<P>
      * This method is called within a per-client thread,
      * after connection is removed from conns collection
@@ -4810,9 +4837,13 @@ public class SOCServer extends Server
      * @param sbs  List of {@link StringBuilder}s to hold reply to clients,
      *     max length 50 chars. Not null.
      * @return The number of <B>unnamed</B> connections, for statistics
+     * @throws NullPointerException if {@code sbs} is null
+     * @see #getConnectedRobotNames(StringBuilder)
+     * @see #getConnection(String, boolean)
      * @since 2.0.00
      */
     final Integer getConnectedClientNames(final List<StringBuilder> sbs)
+        throws NullPointerException
     {
         StringBuilder sb = new StringBuilder("- ");
         sbs.add(sb);
@@ -4843,6 +4874,38 @@ public class SOCServer extends Server
         }
 
         return Integer.valueOf(nUnnamed);
+    }
+
+    /**
+     * Get the list of bots, formatted like "robot 3, droid 7, robot 2".
+     * @param sb  Append bot name list into here
+     * @return  True if any bots are connected
+     * @throws NullPointerException if {@code sb} is null
+     * @see #getConnectedClientNames(List)
+     * @see #getRobotCount()
+     * @see #getRobotConnection(String)
+     * @since 2.3.00
+     */
+    final boolean getConnectedRobotNames(final StringBuilder sb)
+        throws NullPointerException
+    {
+        ArrayList<String> names = new ArrayList<>();
+
+        for (Connection rc : robots)
+            names.add(rc.getData());
+
+        boolean hadAny = false;
+        for (String botName : names)
+        {
+            if (hadAny)
+                sb.append(", ");
+            else
+                hadAny = true;
+
+            sb.append(botName);
+        }
+
+        return hadAny;
     }
 
     /**
@@ -5086,6 +5149,8 @@ public class SOCServer extends Server
      * when {@code *HELP*} is requested by a debug/admin user who passes
      * {@link #isUserDBUserAdmin(String) isUserDBUserAdmin(username)}.
      * Preceded by {@link #ADMIN_COMMANDS_HEADING}.
+     * Most of these are processed in
+     * {@link SOCServerMessageHandler#processAdminCommand(Connection, SOCGame, String, String)}.
      * @since 1.1.20
      * @see #GENERAL_COMMANDS_HELP
      * @see #DEBUG_COMMANDS_HELP
@@ -5094,7 +5159,11 @@ public class SOCServer extends Server
         {
         "*WHO* gameName   show players and observers of gameName",
         "*WHO* *  show all connected clients",
-        "*DBSETTINGS*  show current database settings, if any",  // processed in SOCServerMessageHandler
+        "*BCAST*  Broadcast msg to all games/channels",
+        "*DBSETTINGS*  Show current database settings, if any",
+        "*GC*  Trigger the java garbage-collect",
+        "*KILLBOT*  botname  End a bot's connection",
+        "*RESETBOT* botname  End a bot's connection",
         "*LOADGAME* savename  Load a previously saved game from snapshot file",
         "*SAVEGAME* savename  Start this game's current state to snapshot file",
         };
@@ -5112,11 +5181,7 @@ public class SOCServer extends Server
     public static final String[] DEBUG_COMMANDS_HELP =
         {
         "--- Debug Commands ---",
-        "*BCAST*  broadcast msg to all games/channels",
-        "*GC*    trigger the java garbage-collect",
-        "*KILLBOT*  botname  End a bot's connection",
         "*KILLGAME*  end the current game",
-        "*RESETBOT* botname  End a bot's connection",
         "*STARTBOTGAME* [maxBots]  Start this game (no humans have sat) with bots only",
         "*STOP*  kill the server",
         };
@@ -5131,6 +5196,8 @@ public class SOCServer extends Server
      * Check {@link #allowDebugUser} before calling this method.
      * For list of commands see {@link #GENERAL_COMMANDS_HELP}, {@link #DEBUG_COMMANDS_HELP},
      * {@link #ADMIN_USER_COMMANDS_HELP}, and {@link GameHandler#getDebugCommandsHelp()}.
+     * Some admin commands are handled by
+     * {@link SOCServerMessageHandler#processAdminCommand(Connection, SOCGame, String, String)}.
      * "Unprivileged" general commands are handled by
      * {@link SOCServerMessageHandler#handleGAMETEXTMSG(Connection, SOCGameTextMsg)}.
      *
@@ -5139,6 +5206,7 @@ public class SOCServer extends Server
      * @param dcmd   Text message which may be a debug command
      * @param dcmdU  {@code dcmd} as uppercase, for efficiency (it's already been uppercased in caller)
      * @return true if {@code dcmd} is a recognized debug command, false otherwise
+     * @since 1.1.00
      */
     public boolean processDebugCommand
         (final Connection debugCli, final SOCGame ga, final String dcmd, final String dcmdU)
@@ -5153,13 +5221,6 @@ public class SOCServer extends Server
         {
             messageToGameUrgent(gaName, ">>> ********** " + debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
             destroyGameAndBroadcast(gaName, "KILLGAME");
-        }
-        else if (dcmdU.startsWith("*GC*"))
-        {
-            Runtime rt = Runtime.getRuntime();
-            rt.gc();
-            messageToGame(gaName, "> GARBAGE COLLECTING DONE");
-            messageToGame(gaName, "> Free Memory: " + rt.freeMemory());
         }
         else if (dcmd.startsWith("*STOP*"))  // dcmd to force case-sensitivity
         {
@@ -5195,72 +5256,6 @@ public class SOCServer extends Server
                 stopServer(stopMsg);
                 System.exit(0);
             }
-        }
-        else if (dcmdU.startsWith("*BCAST* "))
-        {
-            ///
-            /// broadcast to all chat channels and games
-            ///
-            broadcast(SOCBCastTextMsg.toCmd(dcmd.substring(8)));
-        }
-        else if (dcmdU.startsWith("*BOTLIST*"))
-        {
-            Enumeration<Connection> robotsEnum = robots.elements();
-
-            while (robotsEnum.hasMoreElements())
-            {
-                Connection robotConn = robotsEnum.nextElement();
-                messageToGame(gaName, "> Robot: " + robotConn.getData());
-                robotConn.put(SOCAdminPing.toCmd((gaName)));
-            }
-        }
-        else if (dcmdU.startsWith("*RESETBOT* "))
-        {
-            String botName = dcmd.substring(11).trim();
-            messageToGame(gaName, "> botName = '" + botName + "'");
-
-            Enumeration<Connection> robotsEnum = robots.elements();
-
-            boolean botFound = false;
-            while (robotsEnum.hasMoreElements())
-            {
-                Connection robotConn = robotsEnum.nextElement();
-                if (botName.equals(robotConn.getData()))
-                {
-                    botFound = true;
-                    messageToGame(gaName, "> SENDING RESET COMMAND TO " + botName);
-
-                    robotConn.put(new SOCAdminReset());
-
-                    break;
-                }
-            }
-            if (! botFound)
-                D.ebugPrintln("L2590 Bot not found to reset: " + botName);
-        }
-        else if (dcmdU.startsWith("*KILLBOT* "))
-        {
-            String botName = dcmd.substring(10).trim();
-            messageToGame(gaName, "> botName = '" + botName + "'");
-
-            Enumeration<Connection> robotsEnum = robots.elements();
-
-            boolean botFound = false;
-            while (robotsEnum.hasMoreElements())
-            {
-                Connection robotConn = robotsEnum.nextElement();
-
-                if (botName.equals(robotConn.getData()))
-                {
-                    botFound = true;
-                    messageToGame(gaName, "> DISCONNECTING " + botName);
-                    removeConnection(robotConn, true);
-
-                    break;
-                }
-            }
-            if (! botFound)
-                D.ebugPrintln("L2614 Bot not found to disconnect: " + botName);
         }
         else if (dcmdU.startsWith("*STARTBOTGAME*"))
         {

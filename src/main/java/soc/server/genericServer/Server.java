@@ -355,9 +355,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      * Before v1.2.00 this method was protected and took an Object, not String, for {@code connKey}.
      *
-     * @param connKey Case-sensitive client name key, from {@link Connection#getData()}; if that's null, returns null
-     * @return The connection with this name, or null if none
+     * @param connKey Case-sensitive client name key, from {@link Connection#getData()}; if null, returns null
+     * @return The connection with this name, or null if not found
      * @see #getConnection(String, boolean)
+     * @see SOCServer#getRobotConnection(String)
      * @since 1.1.00
      */
     public Connection getConnection(final String connKey)

@@ -1037,9 +1037,15 @@ public class SOCServerMessageHandler
      * <LI> *WHO*
      *</UL>
      * These commands are processed in this method.
+     *<P>
+     * Some admin/debug commands like {@code *BCAST*} and {@code *DBSETTINGS*} are processed here,
+     * by calling {@link #processAdminCommand(Connection, SOCGame, String, String)}.
+     *<P>
      * Others can be run only by certain users or when certain server flags are set.
      * Those are processed in {@link SOCServer#processDebugCommand(Connection, SOCGame, String, String)}.
      *
+     * @param c  User sending the text message which may be a debug/admin command
+     * @param gameTextMsgMes  Text message/command to process
      * @since 1.1.07
      */
     void handleGAMETEXTMSG(Connection c, SOCGameTextMsg gameTextMsgMes)
@@ -1151,26 +1157,7 @@ public class SOCServerMessageHandler
             }
             else if (userIsDebug || srv.isUserDBUserAdmin(plName))
             {
-                if (cmdTxtUC.startsWith("*LOADGAME*"))
-                {
-                    processDebugCommand_loadGame(c, gaName, cmdText.substring(10).trim());
-                }
-                else if (cmdTxtUC.startsWith("*RESUMEGAME*"))
-                {
-                    processDebugCommand_resumeGame(c, ga, cmdText.substring(12).trim());
-                }
-                else if (cmdTxtUC.startsWith("*SAVEGAME*"))
-                {
-                    processDebugCommand_saveGame(c, ga, cmdText.substring(10).trim());
-                }
-                else if (cmdTxtUC.startsWith("*DBSETTINGS*"))
-                {
-                    processDebugCommand_dbSettings(c, ga);
-                }
-                else
-                {
-                    matchedHere = false;
-                }
+                matchedHere = processAdminCommand(c, ga, cmdText, cmdTxtUC);
             } else {
                 matchedHere = false;
             }
@@ -1199,8 +1186,7 @@ public class SOCServerMessageHandler
             for (int i = 0; i < SOCServer.GENERAL_COMMANDS_HELP.length; ++i)
                 srv.messageToPlayer(c, gaName, SOCServer.GENERAL_COMMANDS_HELP[i]);
 
-            if ((userIsDebug && ! (c instanceof StringConnection))  // no user admins in practice games
-                || srv.isUserDBUserAdmin(plName))
+            if (userIsDebug || srv.isUserDBUserAdmin(plName))
             {
                 srv.messageToPlayer(c, gaName, SOCServer.ADMIN_COMMANDS_HEADING);
                 for (int i = 0; i < SOCServer.ADMIN_USER_COMMANDS_HELP.length; ++i)
@@ -1244,6 +1230,98 @@ public class SOCServerMessageHandler
     }
 
     /**
+     * Recognize and process admin commands, runnable if
+     * {@link SOCServer#isUserDBUserAdmin(String)} or is debug user.
+     * Handles the commands listed in {@link SOCServer#ADMIN_USER_COMMANDS_HELP}.
+     *<P>
+     * <B>Security:</B> Assumes caller has already checked authorization; does not do so here.
+     *
+     * @param c  Client sending the admin command
+     * @param ga  Game in which to reply
+     * @param cmdText  Command text
+     * @param cmdTextUC  For convenience, {@link String#toUpperCase() cmdText.toUpperCase(Locale.US)} from caller
+     * @return true if {@code cmdText} is an admin command and has been handled here, false otherwise
+     * @since 2.3.00
+     */
+    boolean processAdminCommand
+        (final Connection c, final SOCGame ga, final String cmdText, final String cmdTextUC)
+    {
+        final String gaName = ga.getName();
+        boolean matchedHere = true;
+
+        if (cmdTextUC.startsWith("*GC*"))
+        {
+            Runtime rt = Runtime.getRuntime();
+            rt.gc();
+            srv.messageToGame(gaName, "> GARBAGE COLLECTING DONE");
+            srv.messageToGame
+                (gaName, "> Free Memory: "
+                 + getSettingsFormatted_freeMemory(rt.freeMemory(), rt.totalMemory()));  // as MB, % total
+        }
+        else if (cmdTextUC.startsWith("*BCAST* "))
+        {
+            srv.broadcast(SOCBCastTextMsg.toCmd(cmdText.substring(8).trim()));
+        }
+        else if (cmdTextUC.startsWith("*BOTLIST*"))
+        {
+            StringBuilder sb = new StringBuilder("Currently connected bots: ");
+            if (! srv.getConnectedRobotNames(sb))
+                sb.append("(None)");
+            srv.messageToPlayer(c, gaName, sb.toString());
+        }
+        else if (cmdTextUC.startsWith("*RESETBOT* "))
+        {
+            String botName = cmdText.substring(11).trim();
+            srv.messageToGame(gaName, "> Admin: RESETBOT " + botName);
+
+            final Connection robotConn = srv.getRobotConnection(botName);
+            if (robotConn != null)
+            {
+                srv.messageToGame(gaName, "> Admin: SENDING RESET COMMAND TO " + botName);
+                robotConn.put(new SOCAdminReset());
+            } else {
+                srv.messageToPlayer(c, gaName, "Bot not found to reset: " + botName);
+            }
+        }
+        else if (cmdTextUC.startsWith("*KILLBOT* "))
+        {
+            final String botName = cmdText.substring(10).trim();
+            srv.messageToGame(gaName, "> Admin: KILLBOT " + botName);
+
+            final Connection robotConn = srv.getRobotConnection(botName);
+            if (robotConn != null)
+            {
+                srv.messageToGame(gaName, "> Admin: DISCONNECTING " + botName);
+                srv.removeConnection(robotConn, true);
+            } else {
+                srv.messageToPlayer(c, gaName, "Bot not found to disconnect: " + botName);
+            }
+        }
+        else if (cmdTextUC.startsWith("*LOADGAME*"))
+        {
+            processDebugCommand_loadGame(c, gaName, cmdText.substring(10).trim());
+        }
+        else if (cmdTextUC.startsWith("*RESUMEGAME*"))
+        {
+            processDebugCommand_resumeGame(c, ga, cmdText.substring(12).trim());
+        }
+        else if (cmdTextUC.startsWith("*SAVEGAME*"))
+        {
+            processDebugCommand_saveGame(c, ga, cmdText.substring(10).trim());
+        }
+        else if (cmdTextUC.startsWith("*DBSETTINGS*"))
+        {
+            processDebugCommand_dbSettings(c, ga);
+        }
+        else
+        {
+            matchedHere = false;
+        }
+
+        return matchedHere;
+    }
+
+    /**
      * Process the {@code *DBSETTINGS*} privileged admin command:
      * If {@link SOCDBHelper#isInitialized()},
      * sends the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
@@ -1251,7 +1329,7 @@ public class SOCServerMessageHandler
      * Assumes caller has verified the client is an admin; doesn't check {@link SOCServer#isUserDBUserAdmin(String)}.
      *
      * @param c  Client sending the admin command
-     * @param gaName  Game in which to reply
+     * @param ga  Game in which to reply
      * @since 1.2.00
      * @see #processDebugCommand_serverStats(Connection, SOCGame)
      */
@@ -1435,8 +1513,7 @@ public class SOCServerMessageHandler
         listAddStat
             (li, "Total Memory", totalMem + " (" + I18n.bytesToHumanUnits(totalMem) + ')');
         listAddStat
-            (li, "Free Memory", freeMem + " (" + I18n.bytesToHumanUnits(freeMem) + ": "
-             + ((100 * freeMem) / totalMem) + "%)");
+            (li, "Free Memory", getSettingsFormatted_freeMemory(freeMem, totalMem));  // as MB, % total
         listAddStat
             (li, "Version", Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
 
@@ -1457,6 +1534,20 @@ public class SOCServerMessageHandler
         }
 
         return li;
+    }
+
+    /**
+     * For display, format the runtime Free Memory stat for {@code *STATS*} and {@code *GC*},
+     * incuding MB or GB and % of total: {@code "92384376 (88.1 MB: 71%)"}
+     * @param freeMem  Free memory in bytes, from {@link Runtime#freeMemory()}
+     * @param totalMem  Total memory in bytes, from {@link Runtime#totalMemory()}
+     * @return Formatted display string for free memory
+     * @since 2.3.00
+     */
+    private String getSettingsFormatted_freeMemory(final long freeMem, final long totalMem)
+    {
+        return freeMem + " (" + I18n.bytesToHumanUnits(freeMem) + ": "
+            + ((100 * freeMem) / totalMem) + "%)";
     }
 
     /**
@@ -1770,9 +1861,10 @@ public class SOCServerMessageHandler
                 // Check if using user admins; if not, if using debug user
 
                 final String uname = c.getData();
-                boolean isAdmin = srv.isUserDBUserAdmin(uname);
-                if (! isAdmin)
-                    isAdmin = (srv.isDebugUserEnabled() && uname.equals("debug"));
+                final boolean isAdmin =
+                    (c instanceof StringConnection)  // practice game
+                    || srv.isUserDBUserAdmin(uname)
+                    || (srv.isDebugUserEnabled() && uname.equals("debug"));
                 if (! isAdmin)
                 {
                     srv.messageToPlayerKeyed(c, gaName, "reply.must_be_admin.view");
