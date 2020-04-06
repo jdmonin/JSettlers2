@@ -24,6 +24,7 @@ and backport minor new features until `2.0.00` was ready.
 	  - Daily Stats file: New optional server property `jsettlers.stats.file.name`: Appends output of `*STATS*` command daily
 	    (see `jsserver.properties.sample` comments for details)
 	  - `*STATS*`, `*GC*` also show memory as MB or GB, % free of total
+	  - `*BCAST*` broadcast text now prefixed with admin username who sent it
 	  - `*BOTLIST*` no longer invites all bots to join admin user's game
 - For developers:
 	- Can save/load games using local files and debug commands

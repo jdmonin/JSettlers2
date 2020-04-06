@@ -1260,7 +1260,7 @@ public class SOCServerMessageHandler
         }
         else if (cmdTextUC.startsWith("*BCAST* "))
         {
-            srv.broadcast(SOCBCastTextMsg.toCmd(cmdText.substring(8).trim()));
+            srv.broadcast(SOCBCastTextMsg.toCmd(c.getData() + ": " + cmdText.substring(8).trim()));
         }
         else if (cmdTextUC.startsWith("*BOTLIST*"))
         {

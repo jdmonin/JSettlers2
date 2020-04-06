@@ -24,6 +24,8 @@ package soc.message;
 /**
  * This message contains a text message for everyone connected.
  * Client should show it in all chat channels and games they're a member of.
+ *<P>
+ * Server 2.3.00 and higher prepend sendingUsername + {@code ": "} to the requested text when broadcasting.
  *
  * @author Robert S Thomas
  */
