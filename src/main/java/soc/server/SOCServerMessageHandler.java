@@ -52,6 +52,7 @@ import soc.server.database.SOCDBHelper;
 import soc.server.genericServer.Connection;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.*;
+import soc.util.I18n;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.SOCRobotParameters;
@@ -1430,8 +1431,12 @@ public class SOCServerMessageHandler
         listAddStat(li, "Total Users", srv.numberOfUsers);
         listAddStat(li, "Games started", srv.numberOfGamesStarted);
         listAddStat(li, "Games finished", srv.numberOfGamesFinished);
-        listAddStat(li, "Total Memory", Long.toString(rt.totalMemory()));
-        listAddStat(li, "Free Memory", Long.toString(rt.freeMemory()));
+        final long totalMem = rt.totalMemory(), freeMem = rt.freeMemory();
+        listAddStat
+            (li, "Total Memory", totalMem + " (" + I18n.bytesToHumanUnits(totalMem) + ')');
+        listAddStat
+            (li, "Free Memory", freeMem + " (" + I18n.bytesToHumanUnits(freeMem) + ": "
+             + ((100 * freeMem) / totalMem) + "%)");
         listAddStat
             (li, "Version", Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
 
