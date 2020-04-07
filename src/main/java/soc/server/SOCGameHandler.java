@@ -2575,7 +2575,7 @@ public class SOCGameHandler extends GameHandler
 
         if (null == ga.savedGameModel)
         {
-            srv.gameOverIncrGamesFinishedCount();
+            srv.gameOverIncrGamesFinishedCount(ga);
             srv.storeGameScores(ga);
         }
 

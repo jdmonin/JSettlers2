@@ -1509,6 +1509,8 @@ public class SOCServerMessageHandler
         listAddStat(li, "Total Users", srv.numberOfUsers);
         listAddStat(li, "Games started", srv.numberOfGamesStarted);
         listAddStat(li, "Games finished", srv.numberOfGamesFinished);
+        listAddStat(li, "Games finished which had bots", srv.numberOfGamesFinishedWithBots);
+        listAddStat(li, "Number of bots in finished games", srv.numberOfBotsInFinishedGames);
         final long totalMem = rt.totalMemory(), freeMem = rt.freeMemory();
         listAddStat
             (li, "Total Memory", totalMem + " (" + I18n.bytesToHumanUnits(totalMem) + ')');

@@ -1085,15 +1085,33 @@ public class SOCServer extends Server
 
     /**
      * The total number of games finished: Game state became {@link SOCGame#OVER} or higher
-     * from an earlier/lower state. Incremented in {@link #gameOverIncrGamesFinishedCount()}.
+     * from an earlier/lower state. Incremented in {@link #gameOverIncrGamesFinishedCount(SOCGame)}.
      *<P>
      * Before v1.1.20 this was the number of games destroyed, and {@code *STATS*}
      * wouldn't reflect a newly finished game until all players had left that game.
+     * @see #numberOfGamesFinishedWithBots
      */
     protected int numberOfGamesFinished;
 
     /**
-     * Synchronization for {@link #numberOfGamesFinished} writes.
+     * The total number of games finished which had at least 1 robot at the end of the game.
+     * See {@link #numberOfGamesFinished} for details.
+     * @see #numberOfGamesFinished
+     * @see #numberOfBotsInFinishedGames
+     * @since 2.3.00
+     */
+    protected int numberOfGamesFinishedWithBots;
+
+    /**
+     * Total number of bots who were in {@link #numberOfGamesFinishedWithBots}
+     * at the end of those games. Updated in {@link #gameOverIncrGamesFinishedCount(SOCGame)}.
+     * @since 2.3.00
+     */
+    protected int numberOfBotsInFinishedGames;
+
+    /**
+     * Synchronization for {@link #numberOfGamesFinished} writes,
+     * along with related fields like {@link #numberOfBotsInFinishedGames}.
      * @since 2.0.00
      */
     private Object countFieldSync = new Object();
@@ -7719,7 +7737,7 @@ public class SOCServer extends Server
     }  // resetBoardAndNotify_finish
 
     /**
-     * Increment the "number of games finished" server-statistics field.
+     * Increment {@link #numberOfGamesFinished} and related server-statistics fields.
      * Call when a game's state becomes {@link SOCGame#OVER} (or higher)
      * from a lower/earlier state.
      *<P>
@@ -7727,11 +7745,21 @@ public class SOCServer extends Server
      * Package-level access for calls from {@link GameHandler}s.
      * @since 2.0.00
      */
-    void gameOverIncrGamesFinishedCount()
+    void gameOverIncrGamesFinishedCount(final SOCGame ga)
     {
+        int nBots = 0;
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            if ((! ga.isSeatVacant(pn)) && ga.getPlayer(pn).isRobot())
+                ++nBots;
+
         synchronized (countFieldSync)
         {
             ++numberOfGamesFinished;
+            if (nBots > 0)
+            {
+                ++numberOfGamesFinishedWithBots;
+                numberOfBotsInFinishedGames += nBots;
+            }
         }
     }
 
