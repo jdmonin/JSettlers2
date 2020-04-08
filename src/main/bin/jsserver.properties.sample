@@ -84,7 +84,9 @@
 
 # - DB: Server features:
 
-# Flag to save all games in DB: Game name, start time, players, final scores.
+# Flag to save all completed games in DB: Game name, start time, players,
+# winner, game options, final scores, etc. For details search /doc/Database.md
+# for this property name.
 # jsettlers.db.save.games=N
 
 # Flag to require all players to have a user account and password. By default,

@@ -276,7 +276,7 @@ Game scores and stats can optionally be saved for reports or community-building.
         jsettlers.db.save.games=Y
 
   Game stats and scores are kept in the `games2` and `games2_players` tables.
-  (Or if DB hasn't been upgraded, `games`.)
+  (Or if DB hasn't been upgraded to schema v2000, `games`.)
 
 ### Creating JSettlers Player Accounts in the DB (optional)
 

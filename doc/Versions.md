@@ -27,6 +27,7 @@ and backport minor new features until `2.0.00` was ready.
 	  - `*STATS*`, `*GC*` also show memory as MB or GB, % free of total
 	  - `*BCAST*` broadcast text now starts with admin username who sent it
 	  - `*BOTLIST*` no longer invites all bots to join admin user's game
+	  - `*DBSETTINGS*` also shows whether game results are saved in DB
 - For developers:
 	- Can save/load games using local files and debug commands
 	  - This is work in progress: Currently works with classic and sea board games, but no scenarios

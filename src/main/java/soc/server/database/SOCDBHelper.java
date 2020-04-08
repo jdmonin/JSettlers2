@@ -23,7 +23,7 @@ package soc.server.database;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
-import soc.server.SOCServer;  // solely for javadocs and ROBOT_PARAMS_*
+import soc.server.SOCServer;  // solely for javadocs, ROBOT_PARAMS_*, and getSettingsFormatted callback
 import soc.util.IntPair;
 import soc.util.SOCRobotParameters;
 
@@ -102,7 +102,7 @@ import java.util.concurrent.Executors;
  *<H3>Settings:</H3>
  * When using {@link #SCHEMA_VERSION_1200} and above, the DB has a {@code settings} table to
  * store things like {@link #SETTING_BCRYPT_WORK__FACTOR}. See {@link #checkSettings(boolean, boolean)},
- * {@link #getSettingsFormatted()}, and {@link #PROP_JSETTLERS_DB_SETTINGS}.
+ * {@link #getSettingsFormatted(SOCServer)}, and {@link #PROP_JSETTLERS_DB_SETTINGS}.
  *
  *<H3>Password Hashing:</H3>
  * When using {@link #SCHEMA_VERSION_1200} and above, user account passwords are hashed
@@ -212,7 +212,7 @@ public class SOCDBHelper
 
     /**
      * Property <tt>jsettlers.db.save.games</tt> to ask to save
-     * all game results in the database.
+     * all game results and scores in the database.
      * Set this to 1 or Y to activate this feature.
      *<P>
      * If not set, but DB schema is new enough to save users' win-loss counts
@@ -1346,7 +1346,7 @@ public class SOCDBHelper
      *     Set this when running the initial DB setup script.
      * @throws SQLException  if any unexpected error occurs
      * @throws DBSettingMismatchException  if any value mismatches found in settings table versus props
-     * @see #getSettingsFormatted()
+     * @see #getSettingsFormatted(SOCServer)
      * @since 1.2.00
      */
     public static final void checkSettings(boolean checkAll, final boolean writeIfNeeded)
@@ -2407,13 +2407,15 @@ public class SOCDBHelper
      * formatted for printing for an admin user: friendly names and values, not technical name keys.
      * Includes all known settings, such as {@link #SETTING_BCRYPT_WORK__FACTOR}.
      * Also includes JDBC version, {@link DatabaseMetaData#supportsGetGeneratedKeys()}, etc.
+     *
+     * @param srv  Server, solely to call {@link SOCServer#getConfigBoolProperty(String, boolean)}
      * @return Formatted list of DB settings. Always an even number of items, a name and then a value
      *     for each setting. Some values might be {@code null}.
      * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
      * @see #checkSettings(boolean, boolean)
      * @since 1.2.00
      */
-    public static List<String> getSettingsFormatted()
+    public static List<String> getSettingsFormatted(final SOCServer srv)
     {
         if (! isInitialized())
             throw new IllegalStateException();
@@ -2462,6 +2464,10 @@ public class SOCDBHelper
             li.add("Error retrieving DB version info");
             li.add(e.getMessage());  // might be null
         }
+
+        li.add("Game results saved in DB?");
+        li.add(Boolean.toString
+            (srv.getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false)));
 
         return li;
     }

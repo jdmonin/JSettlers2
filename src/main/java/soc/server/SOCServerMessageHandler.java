@@ -1324,7 +1324,8 @@ public class SOCServerMessageHandler
     /**
      * Process the {@code *DBSETTINGS*} privileged admin command:
      * If {@link SOCDBHelper#isInitialized()},
-     * sends the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
+     * sends the client a formatted list of server DB settings
+     * from {@link SOCDBHelper#getSettingsFormatted(SOCServer)}.
      *<P>
      * Assumes caller has verified the client is an admin; doesn't check {@link SOCServer#isUserDBUserAdmin(String)}.
      *
@@ -1344,7 +1345,7 @@ public class SOCServerMessageHandler
         }
 
         srv.messageToPlayer(c, gaName, "Database settings:");
-        Iterator<String> it = SOCDBHelper.getSettingsFormatted().iterator();
+        Iterator<String> it = SOCDBHelper.getSettingsFormatted(srv).iterator();
         while (it.hasNext())
             srv.messageToPlayer(c, gaName, "> " + it.next() + ": " + it.next());
     }
@@ -1482,7 +1483,7 @@ public class SOCServerMessageHandler
      * @return Formatted list of server stats strings.
      *     Always an even number of items, a name and then a value for each setting.
      *     A few stats are multi-line lists; each continuation lines is a pair whose "name" is {@code "  "}.
-     * @see SOCDBHelper#getSettingsFormatted()
+     * @see SOCDBHelper#getSettingsFormatted(SOCServer)
      * @since 2.3.00
      */
     final List<String> getSettingsFormatted()
