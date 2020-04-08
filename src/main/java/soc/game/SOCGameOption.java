@@ -36,31 +36,37 @@ import soc.message.SOCMessage;
  *<UL>
  * <LI> Per-game values of options
  * <LI> Static dictionary of known options;
- *    see {@link #initAllOptions()} for the current list.
+ *      see {@link #initAllOptions()} for the current list.
  *</UL>
  * To get the list of known options, use {@link #getAllKnownOptions()}.
  *<P>
  * For information about adding or changing game options in a
  * later version of JSettlers, please see {@link #initAllOptions()}.
+ *
+ *<H3>Naming and referencing Game Options</H3>
+ *
+ * Each game option has a short unique name key. Most keys are 2 or 3 uppercase letters.
+ * Numbers and underscores are also permitted (details below).
+ * Before v2.0, the maximum length was 3. The maximum key length is currently 8,
+ * but v1.x clients will reject keys longer than 3 or having underscores.
+ * Such options must have {@link SOCVersionedItem#minVersion} >= 2000.
  *<P>
- * All in-game code uses the 2-letter or 3-letter key strings to query and change
- * game option settings; only a very few places use SOCGameOption
+ * All in-game code uses those key strings to refer to and change
+ * game option settings; only a few places use SOCGameOption
  * objects.  To search the code for uses of a game option, search for
- * its capitalized key string.
- * You will see calls to {@link SOCGame#isGameOptionDefined(String)},
+ * its key. You will see calls to {@link SOCGame#isGameOptionDefined(String)},
  * {@link SOCGame#getGameOptionIntValue(Map, String, int, boolean)}, etc.
  * Also search {@link SOCScenario} for the option as part of a string,
  * such as <tt>"SBL=t,VP=12"</tt>.
- *<P>
- * Most option name keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
- * The maximum key length is now 8, but older clients will reject keys longer than 3.
- *<P>
+ *
+ *<H3>Name and value formats</H3>
+ *
  * Option name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z') and digits ('0' through '9'), in order to normalize
  * handling and network message formats.  This is enforced in constructors via
  * {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)}.
- * Version 2.0.00 and newer allow '_'; please check {@link #minVersion},
- * name keys with '_' can't be sent to older clients.
+ * Version 2.0 and newer allow '_'; please check {@link #minVersion},
+ * name keys with '_' or longer than 3 characters can't be sent to older clients.
  * Options starting with '_' are meant to be set by the server during game creation,
  * not requested by the client. They're set during
  * {@link #adjustOptionsToKnown(Map, Map, boolean) adjustOptionsToKnown(opts, null, true)}.
@@ -68,7 +74,9 @@ import soc.message.SOCMessage;
  * For the same reason, option string values (and enum choices) must not contain
  * certain characters or span more than 1 line; this is checked by calling
  * {@link SOCMessage#isSingleLineAndSafe(String)} within constructors and setters.
- *<P>
+ *
+ *<H3>Known Options and interaction</H3>
+ *
  * The "known options" are initialized via {@link #initAllOptions()}.  See that
  * method's description for more details on adding an option.
  * If a new option changes previously expected behavior of the game, it should default to
@@ -78,15 +86,17 @@ import soc.message.SOCMessage;
  * options can be changed on-screen for consistency; see {@link SOCGameOption.ChangeListener} for details.
  * If you create a ChangeListener, consider adding equivalent code to
  * {@link #adjustOptionsToKnown(Map, Map, boolean)} for the server side.
- *<P>
- * <B>Sea Board Scenarios:</B><br>
- * Game scenarios were introduced with the large sea board in 2.0.00.
+ *
+ *<H3>Sea Board Scenarios</H3>
+ *
+ * Game scenarios were introduced with the large sea board in 2.0.
  * Game options are used to indicate which {@link SOCGameEvent}s, {@link SOCPlayerEvent}s,
  * and rules are possible in the current game.
  * These all start with <tt>"_SC_"</tt> and have a static key string;
  * an example is {@link #K_SC_SANY} for scenario game option <tt>"_SC_SANY"</tt>.
- *<P>
- * <B>Version negotiation:</B><br>
+ *
+ *<H3>Version negotiation</H3>
+ *
  * Game options were introduced in 1.1.07; check server, client versions against
  * {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
  * Each option has version information, because options can be added or changed
@@ -95,8 +105,9 @@ import soc.message.SOCMessage;
  * server's older set of known options.  At client connect, the client compares its
  * JSettlers version number to the server's, and asks for any changes to options if
  * their versions differ.
- *<P>
- * <B>I18N:</B><br>
+ *
+ *<H3>I18N</H3>
+ *
  * Game option descriptions are also stored as {@code gameopt.*} in
  * {@code server/strings/toClient_*.properties} to be sent to clients if needed
  * during version negotiation. At the client, option's text can be localized with {@link #setDesc(String)}.
@@ -851,9 +862,9 @@ public class SOCGameOption
      * Create a new game option of unknown type ({@link #OTYPE_UNKNOWN}).
      * Minimum version will be {@link Integer#MAX_VALUE}.
      * Value will be false/0. desc will be an empty string.
-     * @param key   Alphanumeric 2-character code for this option;
+     * @param key   Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
-     * @throws IllegalArgumentException if {@code key} length is &gt; 3 or not alphanumeric
+     * @throws IllegalArgumentException if key is not alphanumeric or length is > 8
      */
     public SOCGameOption(final String key)
         throws IllegalArgumentException
@@ -864,15 +875,17 @@ public class SOCGameOption
     /**
      * Create a new boolean game option ({@link #OTYPE_BOOL}).
      *
-     * @param key     Alphanumeric 2-character code for this option;
+     * @param key     Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
+     *                See {@link SOCGameOption} class javadoc for max length, which depends on {@code minVers}.
      * @param minVers Minimum client version if this option is set (is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default value (true if set, false if not set)
      * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
      *                Remember that older clients won't recognize some gameoption flags.
      * @param desc    Descriptive brief text, to appear in the options dialog
-     * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
+     * @throws IllegalArgumentException if key is not alphanumeric or length is > 8,
+     *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -889,8 +902,9 @@ public class SOCGameOption
      * If {@link #FLAG_DROP_IF_UNUSED} is set, the option will be dropped if == {@link #defaultIntValue}.<BR>
      * Before v2.0.00, there was no dropIfUnused flag for integer options.
      *
-     * @param key     Alphanumeric 2-character code for this option;
+     * @param key     Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
+     *                See {@link SOCGameOption} class javadoc for max length, which depends on {@code minVers}.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value
@@ -904,7 +918,8 @@ public class SOCGameOption
      *             If no placeholder is found, the value text field appears at left,
      *             like boolean options.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
-     *        or if key length is > 3 or not alphanumeric,
+     *        or if key is not alphanumeric or length is > 8,
+     *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -919,8 +934,9 @@ public class SOCGameOption
 
     /**
      * Create a new int+boolean game option ({@link #OTYPE_INTBOOL}).
-     * @param key     Alphanumeric 2-character code for this option;
+     * @param key     Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
+     *                See {@link SOCGameOption} class javadoc for max length, which depends on {@code minVers}.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
@@ -933,7 +949,8 @@ public class SOCGameOption
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
-     *        or if key length is > 3 or not alphanumeric,
+     *        or if key is not alphanumeric or length is > 8,
+     *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -953,8 +970,9 @@ public class SOCGameOption
      * If {@link #FLAG_DROP_IF_UNUSED} is set, the option will be dropped if == {@link #defaultIntValue}.<BR>
      * Before v2.0.00, there was no dropIfUnused flag for enum options.
      *
-     * @param key     Alphanumeric 2-character code for this option;
+     * @param key     Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
+     *                See {@link SOCGameOption} class javadoc for max length, which depends on {@code minVers}.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
@@ -968,7 +986,8 @@ public class SOCGameOption
      *             If no placeholder is found, the value field appears at left,
      *             like boolean options.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
-     *        or if key length is > 3 or not alphanumeric,
+     *        or if key is not alphanumeric or length is > 8,
+     *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -984,8 +1003,9 @@ public class SOCGameOption
      * Create a new enumerated + boolean game option ({@link #OTYPE_ENUMBOOL}).
      * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
      *
-     * @param key     Alphanumeric 2-character code for this option;
+     * @param key     Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
+     *                See {@link SOCGameOption} class javadoc for max length, which depends on {@code minVers}.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
@@ -998,7 +1018,8 @@ public class SOCGameOption
      *             If no placeholder is found, the value field appears at left,
      *             like boolean options.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
-     *        or if key length is > 3 or not alphanumeric,
+     *        or if key is not alphanumeric or length is > 8,
+     *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -1014,8 +1035,9 @@ public class SOCGameOption
     /**
      * Create a new text game option ({@link #OTYPE_STR} or {@link #OTYPE_STRHIDE}).
      * The {@link #maxIntValue} field will hold {@code maxLength}.
-     * @param key     Alphanumeric 2-character code for this option;
+     * @param key     Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
+     *                See {@link SOCGameOption} class javadoc for max length, which depends on {@code minVers}.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param maxLength   Maximum length, between 1 and 255 ({@link #TEXT_OPTION_MAX_LENGTH})
@@ -1028,7 +1050,8 @@ public class SOCGameOption
      *             If no placeholder is found, the value text field appears at left,
      *             like boolean options.
      * @throws IllegalArgumentException if maxLength > {@link #TEXT_OPTION_MAX_LENGTH},
-     *        or if key length is > 3 or not alphanumeric,
+     *        or if key is not alphanumeric or length is > 8,
+     *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -1047,10 +1070,9 @@ public class SOCGameOption
      * Create a new game option - common constructor.
      * @param otype   Option type; use caution, as this is unvalidated against
      *                {@link #OTYPE_MIN} or {@link #OTYPE_MAX}.
-     * @param key     Alphanumeric uppercase code for this option;
+     * @param key     Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
-     *                Most option keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
-     *                The maximum key length is now 8, but older clients will reject keys longer than 3.
+     *                See {@link SOCGameOption} class javadoc for max length, which depends on {@code minVers}.
      * @param minVers Minimum client version for games where this option is set (its boolean field is true), or -1.
      *                If <tt>key</tt> is longer than 3 characters, <tt>minVers</tt> must be at least 2000
      *                ({@link #VERSION_FOR_LONGER_OPTNAMES}).

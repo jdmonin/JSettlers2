@@ -447,8 +447,10 @@ public abstract class SOCVersionedItem implements Cloneable
      * handling and network message formats.
      *<P>
      * Version 2.0.00 and newer allow '_' in game item and {@link SOCGameOption} names;
-     * please check {@link #minVersion} vs '_' outside of this method,
-     * name keys with '_' can't be sent to older clients.
+     * please check {@link #minVersion} vs '_' outside of this method.
+     * Name keys with '_' can't be sent to older clients.
+     *<P>
+     * Does not check length; see the item's class javadoc ({@link SOCGameOption}, etc) for max length.
      *<P>
      * This method is placed in this class because versioned items (and their keys)
      * are sometimes sent across a network.
