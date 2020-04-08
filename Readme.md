@@ -1,6 +1,6 @@
 # ![logo](doc/graf/Logo32.png?raw=true) Java Settlers
 
-A web-based client-server version of Settlers of Catan
+A desktop client-server version of Settlers of Catan
 
 
 ## Introduction
