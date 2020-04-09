@@ -17,6 +17,9 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.3.00` (build JM2020xxxx)
 - Currently being developed
+- Client:
+	- Game window:
+	  - Draw ships with slimmer sails, for better spacing next to other pieces
 - Server:
 	- Administration:
 	  - Can now run these commands from any admin account, not only as Debug:  

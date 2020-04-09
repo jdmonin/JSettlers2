@@ -377,21 +377,21 @@ import javax.swing.JComponent;
      * @since 2.0.00
      */
     private static final int[] shipX =           // center is (x=0.5, y=32)
-        { -4,  3,  7,  7,  5, 13, 11,-12,-12, -3, -1, -1, -3, -4 },
+        { -2,  3,  6,  6,  4, 13, 11, -11, -11, -1, -1,  0,  0, -2 },
                                shipY =
-        { 22, 23, 28, 32, 37, 37, 42, 42, 37, 37, 34, 30, 25, 22 };
+        { 22, 24, 28, 33, 36, 36, 43,  43,  36, 36, 34, 32, 27, 22 };
 
     /**
      * Warship for scenario <tt>SC_PIRI</tt>.
      * Center is (x=0.5, y=32 == {@link #HALF_HEXHEIGHT}).
      * Design is based on the normal ship ({@link #shipX}, {@link #shipY})
-     * with a second sail and a taller hull.
+     * with two sails (offset x-5 and +5 from single-sail model).
      * @since 2.0.00
      */
     private static final int[] warshipX =        // center is (x=0.5, y=32)
-        { -8, -2,  1,  1, -1,     3,  5,  5,  3,  2,  8, 11, 11, 9,     13, 10,-10,-12, -7, -5, -5, -7, -8 },
+        { -7, -2,  1,  1, -1,    4,  4,  5,  5, 3,   8, 11, 11,  9,    13, 11, -11, -11, -6, -6, -5, -5, -7 },
                                warshipY =
-        { 21, 22, 27, 31, 36,    36, 33, 29, 24, 21, 22, 27, 31, 36,    36, 43, 43, 36, 36, 33, 29, 24, 21 };
+        { 22, 24, 28, 33, 36,   36, 34, 32, 27, 22, 24, 28, 33, 36,    36, 43,  43,  36, 36, 34, 32, 27, 22 };
 
     /**
      * Fortress polygon for scenario <tt>SC_PIRI</tt>.
