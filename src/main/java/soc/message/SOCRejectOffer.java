@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ public class SOCRejectOffer extends SOCMessage
     private String game;
 
     /**
-     * The seat number rejecting all offers made to them
+     * From server, the player number rejecting all offers made to them; see {@link #getPlayerNumber()}.
      */
     private int playerNumber;
 
@@ -55,8 +55,8 @@ public class SOCRejectOffer extends SOCMessage
      * Create a RejectOffer message.
      *
      * @param ga  the name of the game
-     * @param pn  the seat number rejecting all offers made to them.
-     *     Sent from server, ignored if sent from client.
+     * @param pn  the player number rejecting all offers made to them.
+     *     Sent from server, always ignored when sent from client.
      */
     public SOCRejectOffer(String ga, int pn)
     {
@@ -74,8 +74,9 @@ public class SOCRejectOffer extends SOCMessage
     }
 
     /**
-     * @return the seat number rejecting all offers made to them,
-     *     if sent from server, or any value sent from client (not used by server)
+     * The player number rejecting all offers made to them, when sent from server.
+     * When sent from client, server has always ignored this field; could be any value.
+     * @return the player number from server
      */
     public int getPlayerNumber()
     {
@@ -96,8 +97,8 @@ public class SOCRejectOffer extends SOCMessage
      * REJECTOFFER sep game sep2 playerNumber
      *
      * @param ga  the name of the game
-     * @param pn  the seat number rejecting all offers made to them.
-     *     Sent from server, ignored if sent from client.
+     * @param pn  the player number rejecting all offers made to them.
+     *     Sent from server, always ignored when sent from client.
      * @return the command string
      */
     public static String toCmd(String ga, int pn)
@@ -138,4 +139,5 @@ public class SOCRejectOffer extends SOCMessage
     {
         return "SOCRejectOffer:game=" + game + "|playerNumber=" + playerNumber;
     }
+
 }

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2013-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2013-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -60,7 +60,8 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
     /**
      * Create a Join Game message.
      *
-     * @param nn  nickname, or "-" if already auth'd to server
+     * @param nn  nickname when announced from server, or "-" from client if already auth'd to server;
+     *     server has always ignored this field from client after auth, can send "-" but not blank
      * @param pw  optional password, or "" if none
      * @param hn  unused; optional server host name to which client is connected, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
@@ -83,7 +84,8 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
     /**
      * JOINGAME sep nickname sep2 password sep2 host sep2 game
      *
-     * @param nn  the nickname, or "-" if already auth'd to server
+     * @param nn  the nickname when announced from server, or "-" from client if already auth'd to server;
+     *     server has always ignored this field from client after auth, can send "-" but not blank
      * @param pw  the optional password, or "" if none
      * @param hn  unused; the optional server host name to which client is connected,
      *     or "-" or {@link SOCMessage#EMPTYSTR}

@@ -5951,6 +5951,9 @@ import javax.swing.JComponent;
     /**
      * Set the player that is using this board panel to be the client's player in this game.
      * Called when observing user sits down to become a player.
+     *<P>
+     * Call only after {@link SOCPlayerInterface#addPlayer(String, int)} has been called for client player.
+     *
      * @see #setPlayer(SOCPlayer)
      */
     public void setPlayer()
@@ -5962,7 +5965,12 @@ import javax.swing.JComponent;
      * Set or change the player that is using this board panel.
      * Initially {@code null} when first joining or observing a game.
      * Also used for temporary change during {@link SOCGame#debugFreePlacement} mode.
+     *<P>
+     * If {@code pl} is null, call only after {@link SOCPlayerInterface#addPlayer(String, int)}
+     * has been called for client player.
+     *
      * @param pl Player to set, or null to change back to the client player
+     *     using {@link SOCPlayerInterface#getClientPlayer()}
      * @see #getPlayerNumber()
      * @see #setPlayer()
      * @since 1.1.12
@@ -5970,7 +5978,7 @@ import javax.swing.JComponent;
     void setPlayer(SOCPlayer pl)
     {
         if (pl == null)
-            pl = game.getPlayer(playerInterface.getClient().getNickname());
+            pl = playerInterface.getClientPlayer();
         if (pl == player)
             return;
 

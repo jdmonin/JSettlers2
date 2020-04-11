@@ -688,6 +688,11 @@ Start with a recently-created database with latest schema/setup scripts.
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
   should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+- Practice Games vs Server connection:
+    - Launch the player client and start a practice game (past end of initial placement)
+    - Connect to a server, change client's nickname from "Player", start or join a game there
+    - In practice game, should still be able to accept/reject trade offers from bots
+    - Should be able to create and start playing a new practice game
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  

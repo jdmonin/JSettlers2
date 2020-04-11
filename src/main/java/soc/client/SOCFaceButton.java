@@ -121,9 +121,12 @@ import java.net.URL;
     private int currentImageNum = DEFAULT_FACE;
     private int panelx;  // Width
     private int panely;  // Height
-    /** player number */
-    private int pNumber;
-    private SOCGame game;
+
+    /** player number in {@link #game}, or -1 */
+    private final int pNumber;
+
+    /** game for player {@link #pNumber}, or null if -1 */
+    private final SOCGame game;
 
     /**
      * Our PI, for callbacks and stack-trace print.
@@ -246,7 +249,7 @@ import java.net.URL;
      * @param pi  the interface that this button is attached to
      * @param pn  the number of the player that owns this button. Must be in range 0 to ({@link SOCGame#maxPlayers} - 1).
      *
-     * @throws IllegalArgumentException if pn is < -1 or >= SOCGame.MAXPLAYERS.
+     * @throws IllegalArgumentException if pn is &lt; -1 or >= SOCGame.MAXPLAYERS.
      */
     public SOCFaceButton(SOCPlayerInterface pi, int pn)
         throws IllegalArgumentException
@@ -360,7 +363,8 @@ import java.net.URL;
      * If we don't have a popup menu, and player is client, add it.
      * If we already have one, nothing happens.
      *
-     * @throws IllegalStateException if player isn't client (checks getName vs client.getNickname)
+     * @throws IllegalStateException if player isn't client or game is null
+     *     (checks our PN vs {@link SOCPlayerInterface#getClientPlayerNumber()})
      * @since 1.1.00
      */
     public void addFacePopupMenu()
@@ -368,7 +372,7 @@ import java.net.URL;
     {
         if (popupMenu == null)
         {
-            if ((game == null) || ! game.getPlayer(pNumber).getName().equals(pi.getClient().getNickname()))
+            if ((game == null) || (pNumber != pi.getClientPlayerNumber()))
                 throw new IllegalStateException("Player must be client");
 
             popupMenu = new FaceButtonPopupMenu(this);

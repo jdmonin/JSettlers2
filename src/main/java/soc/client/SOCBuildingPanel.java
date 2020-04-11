@@ -1122,9 +1122,12 @@ import javax.swing.SwingConstants;
     /**
      * Set our game and player data based on client's nickname,
      * via game.getPlayer(client.getNickname()).
+     *<P>
+     * Call only after {@link SOCPlayerInterface#addPlayer(String, int)} has been called for client player.
      *
-     * @throws IllegalStateException If the player data has already been set,
-     *    and this isn't a new game (a board reset).
+     * @throws IllegalStateException If the player data has already been set
+     *    and this isn't a new game (a board reset),
+     *    or if {@link SOCPlayerInterface#getClientPlayer()} is null
      * @since 1.1.00
      */
     public void setPlayer()
@@ -1134,7 +1137,9 @@ import javax.swing.SwingConstants;
         if ((player != null) && ! game.isBoardReset())
             throw new IllegalStateException("Player data is already set");
 
-        player = game.getPlayer(pi.getClient().getNickname());
+        player = pi.getClientPlayer();
+        if (player == null)
+            throw new IllegalStateException("null PI.clientPlayer");
     }
 
     /**

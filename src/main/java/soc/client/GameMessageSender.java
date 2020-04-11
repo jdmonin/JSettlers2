@@ -247,12 +247,12 @@ import soc.message.SOCStartGame;
      * send a text message to the people in the game
      *
      * @param ga   the game
-     * @param me   the message
+     * @param me   the message text
      * @see MainDisplay#sendToChannel(String, String)
      */
     public void sendText(SOCGame ga, String me)
     {
-        put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, me), ga.isPractice);
+        put(SOCGameTextMsg.toCmd(ga.getName(), "-", me), ga.isPractice);
     }
 
     /**
@@ -264,7 +264,7 @@ import soc.message.SOCStartGame;
     {
         clientListeners.remove(ga.getName());
         client.games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(client.nickname, "-", ga.getName()), ga.isPractice);
+        put(SOCLeaveGame.toCmd("-", "-", ga.getName()), ga.isPractice);
     }
 
     /**
@@ -378,18 +378,18 @@ import soc.message.SOCStartGame;
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber()), ga.isPractice);
+        put(SOCRejectOffer.toCmd(ga.getName(), 0), ga.isPractice);
     }
 
     /**
      * the user is accepting an offer
      *
      * @param ga  the game
-     * @param from the number of the player that is making the offer
+     * @param offeringPN  the number of the player that is making the offer
      */
-    public void acceptOffer(SOCGame ga, int from)
+    public void acceptOffer(SOCGame ga, final int offeringPN)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber(), from), ga.isPractice);
+        put(SOCAcceptOffer.toCmd(ga.getName(), 0, offeringPN), ga.isPractice);
     }
 
     /**
@@ -399,7 +399,7 @@ import soc.message.SOCStartGame;
      */
     public void clearOffer(SOCGame ga)
     {
-        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber()), ga.isPractice);
+        put(SOCClearOffer.toCmd(ga.getName(), 0), ga.isPractice);
     }
 
     /**
@@ -488,15 +488,15 @@ import soc.message.SOCStartGame;
     }
 
     /**
-     * the user is changing the face image
+     * the user is changing their face image
      *
      * @param ga  the game
-     * @param id  the image id
+     * @param id  the new image id
      */
     public void changeFace(SOCGame ga, int id)
     {
         client.lastFaceChange = id;
-        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber(), id), ga.isPractice);
+        put(SOCChangeFace.toCmd(ga.getName(), 0, id), ga.isPractice);
     }
 
     /**
@@ -535,13 +535,12 @@ import soc.message.SOCStartGame;
      * or will tell other players to vote yes/no on the request.
      *
      * @param ga Game to vote on
-     * @param pn Player number of our player who is voting
      * @param voteYes If true, this player votes yes; if false, no
      * @since 1.1.00
      */
-    public void resetBoardVote(SOCGame ga, int pn, boolean voteYes)
+    public void resetBoardVote(final SOCGame ga, final boolean voteYes)
     {
-        put(SOCResetBoardVote.toCmd(ga.getName(), pn, voteYes), ga.isPractice);
+        put(SOCResetBoardVote.toCmd(ga.getName(), 0, voteYes), ga.isPractice);
     }
 
     /**
@@ -580,7 +579,7 @@ import soc.message.SOCStartGame;
         }
 
         msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+        put(SOCGameTextMsg.toCmd(ga.getName(), client.getNickname(ga.isPractice), msg), ga.isPractice);
     }
 
     /**
@@ -619,7 +618,7 @@ import soc.message.SOCStartGame;
         }
 
         msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+        put(SOCGameTextMsg.toCmd(ga.getName(), client.getNickname(ga.isPractice), msg), ga.isPractice);
     }
 
 }

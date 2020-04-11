@@ -100,7 +100,7 @@ import javax.swing.SwingConstants;
     {
         super(pi,
             strings.get
-                (isDiscard ? "dialog.discard.title" : "dialog.discard.title.gain", pi.getClient().getNickname()),
+                (isDiscard ? "dialog.discard.title" : "dialog.discard.title.gain", pi.getClientNickname()),
                  // "Discard [{0}]" or "Gain Resources [{0}]"
             strings.get((isDiscard) ? "dialog.discard.please.discard.n" : "dialog.discard.please.pick.n", numPickNeeded),
                  // "Please discard {0} resources." or "Please pick {0} resources.",
@@ -177,7 +177,7 @@ import javax.swing.SwingConstants;
 
         // set initial values
         final SOCResourceSet resources
-            = playerInterface.getGame().getPlayer(playerInterface.getClientPlayerNumber()).getResources();
+            = playerInterface.getClientPlayer().getResources();
         keep[0].setIntValue(resources.getAmount(SOCResourceConstants.CLAY));
         keep[1].setIntValue(resources.getAmount(SOCResourceConstants.ORE));
         keep[2].setIntValue(resources.getAmount(SOCResourceConstants.SHEEP));

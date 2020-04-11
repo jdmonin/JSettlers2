@@ -322,8 +322,19 @@ public class SOCPlayerClient
     public final String DEFAULT_PRACTICE_GAMENAME;
 
     /**
-     * the nickname; null until validated and set by
-     * {@link SwingMainDisplay#getValidNickname(boolean) getValidNickname(true)}
+     * Client's nickname as a player in practice games; null until validated and set by
+     * {@link SwingMainDisplay#getValidNickname(boolean) SwingMainDisplay.getValidNickname(false)}.
+     * Returned by {@link #getNickname(boolean) getNickname(true)}.
+     * @see #nickname
+     * @since 2.3.00
+     */
+    protected String practiceNickname = null;
+
+    /**
+     * Client nickname as a player; null until validated and set by
+     * {@link SwingMainDisplay#getValidNickname(boolean) SwingMainDisplay.getValidNickname(false)}.
+     * Returned by {@link #getNickname(boolean) getNickname(false)}.
+     * @see #practiceNickname
      */
     protected String nickname = null;
 
@@ -511,12 +522,14 @@ public class SOCPlayerClient
     }
 
     /**
-     * @return the nickname of this user
-     * @see SwingMainDisplay#getValidNickname(boolean)
+     * Get the client user's nickname used on the remote/TCP server or practice server, if set.
+     * @param forPractice  If true return nickname for practice games, not for the remote server
+     * @return the nickname of this user, or {@code null}
+     *     if {@link SwingMainDisplay#getValidNickname(boolean)} hasn't been called
      */
-    public String getNickname()
+    public String getNickname(final boolean forPractice)
     {
-        return nickname;
+        return (forPractice) ? practiceNickname : nickname;
     }
 
     /**
@@ -784,7 +797,7 @@ public class SOCPlayerClient
     public void leaveChannel(String ch)
     {
         mainDisplay.channelLeft(ch);
-        net.putNet(SOCLeaveChannel.toCmd(nickname, "-", ch));
+        net.putNet(SOCLeaveChannel.toCmd("-", "-", ch));
     }
 
     /**

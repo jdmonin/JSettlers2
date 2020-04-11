@@ -20,6 +20,9 @@ and backport minor new features until `2.0.00` was ready.
 - Client:
 	- Game window:
 	  - Draw ships with slimmer sails, for better spacing next to other pieces
+	- Bugfix: If started a practice game, then connected to a server game:
+	  - Practice game trades stopped working
+	  - Might've joined server game as "Player" or "null"
 - Server:
 	- Administration:
 	  - Can now run these commands from any admin account, not only as Debug:  
@@ -38,6 +41,8 @@ and backport minor new features until `2.0.00` was ready.
 	  - Optional GSON jar must be on classpath or same dir as server
 - For AI/Robot development:
 	- SOCRobotBrain debug stack trace: Print bot name
+- Network/Message traffic:
+	- Client: Omit unneeded player name/number in some message types
 
 
 ## `2.2.00` (build JM20200229)

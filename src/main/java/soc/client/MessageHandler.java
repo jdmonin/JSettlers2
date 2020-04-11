@@ -857,6 +857,9 @@ import soc.util.Version;
                 client.nickname = statusText.substring(0, i);
                 statusText = statusText.substring(i + 1);
                 client.getMainDisplay().setNickname(client.nickname);
+
+                // SV_OK_SET_NICKNAME won't ever come from to the practice server;
+                // leave client.practiceNickname unchanged.
             }
         }
 
@@ -1315,18 +1318,14 @@ import soc.util.Version;
         pcl.playerSitdown(mesPN, mes.getNickname());
 
         /**
-         * let the board panel & building panel find our player object if we sat down
+         * if player is client, use face icon from last requested change instead of default
+         * (this is so that an old face isn't requested anew); skip if reset.
          */
-        if (client.getNickname().equals(mes.getNickname()))
+        if (client.getNickname(ga.isPractice).equals(mes.getNickname())
+            && (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A)))
         {
-            /**
-             * change the face (this is so that old faces don't 'stick')
-             */
-            if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
-            {
-                ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
-                gms.changeFace(ga, client.lastFaceChange);
-            }
+            ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
+            gms.changeFace(ga, client.lastFaceChange);
         }
     }
 
@@ -1632,7 +1631,7 @@ import soc.util.Version;
 
         case ASK_SPECIAL_BUILD:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, null);
             // This case is not really an element update, so route as a 'request'
             pcl.requestedSpecialBuild(pl);
             break;
@@ -1647,7 +1646,7 @@ import soc.util.Version;
                     //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
                 }
 
-                boolean isClientPlayer = pl.getName().equals(client.getNickname());
+                boolean isClientPlayer = pl.getName().equals(client.getNickname(ga.isPractice));
 
                 //
                 //  fix it
@@ -1664,7 +1663,7 @@ import soc.util.Version;
 
         case NUM_PICK_GOLD_HEX_RESOURCES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, null);
             pcl.requestedGoldResourceCountUpdated(pl, 0);
             break;
 
@@ -1685,13 +1684,13 @@ import soc.util.Version;
 
         case SCENARIO_WARSHIP_COUNT:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, null);
             utype = PlayerClientListener.UpdateType.Warship;
             break;
 
         default:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, null);
         }
 
         if ((pcl != null) && (utype != null))
@@ -2685,7 +2684,7 @@ import soc.util.Version;
         if (pcl == null)
             return;
 
-        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga, client.getNickname(), true);
+        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga, null, true);
         pcl.diceRolledResources(mes.playerNum, mes.playerRsrc);
 
         // handle total counts here, visually updating any discrepancies

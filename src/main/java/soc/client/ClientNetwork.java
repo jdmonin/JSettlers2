@@ -279,10 +279,10 @@ import soc.util.Version;
                 prCli = StringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
                 new LocalStringReaderTask(prCli);  // Reader will start its own thread
 
-                // Send VERSION right away (1.1.06 and later)
+                // Send VERSION right away
                 sendVersion(true);
 
-                // Practice server will support per-game options
+                // Practice server supports per-game options
                 mainDisplay.enableOptions();
             }
             catch (ConnectException e)
@@ -295,10 +295,10 @@ import soc.util.Version;
 
         // Ask internal practice server to create the game
         if (gameOpts == null)
-            putPractice(SOCJoinGame.toCmd(client.nickname, "", SOCMessage.EMPTYSTR, practiceGameName));
+            putPractice(SOCJoinGame.toCmd(client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName));
         else
             putPractice(SOCNewGameWithOptionsRequest.toCmd
-                (client.nickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts));
+                (client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts));
 
         return true;
     }

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009,2014 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2014,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,8 +27,8 @@ import java.util.StringTokenizer;
  *<UL>
  * <LI> This message to server is in response to a {@link SOCResetBoardRequest}
  *      sent earlier this turn to all non-robot clients. (Robots' vote is always Yes.)
- * <LI> Followed by (from server, to all clients) {@link SOCResetBoardVote} with the same data,
- *      informing all players of this client's vote.
+ * <LI> Followed by (from server, to all game member clients) {@link SOCResetBoardVote} with that player number,
+ *      informing all players of the client's vote.
  * <LI> Once voting is complete, server sends to all either a {@link SOCResetBoardAuth} or
  *      {@link SOCResetBoardReject} message.
  *</UL>
@@ -46,7 +46,8 @@ public class SOCResetBoardVote extends SOCMessageTemplate2i
      * Create a SOCResetBoardVote message.
      *
      * @param ga  the name of the game
-     * @param pn  the player position who voted (used when sending to other clients)
+     * @param pn  the voter's player number.
+     *     Used only from server when sending to other players; server has always ignored this param from client.
      * @param pyes  did they vote yes
      */
     public SOCResetBoardVote(String ga, int pn, boolean pyes)
@@ -55,7 +56,7 @@ public class SOCResetBoardVote extends SOCMessageTemplate2i
     }
 
     /**
-     * @return the voter's player number
+     * @return the voter's player number, when message is from server
      */
     public int getPlayerNumber()
     {
@@ -74,7 +75,8 @@ public class SOCResetBoardVote extends SOCMessageTemplate2i
      * RESETBOARDVOTE sep game sep2 playernumber sep2 yesno [Yes is 1, No is 0]
      *
      * @param ga  the name of the game
-     * @param pn  the voter's player number
+     * @param pn  the voter's player number.
+     *     Used only from server when sending to other players; server has always ignored this param from client.
      * @param pyes if the vote was yes
      * @return the command string
      */

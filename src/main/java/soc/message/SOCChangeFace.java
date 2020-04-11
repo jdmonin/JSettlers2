@@ -41,7 +41,8 @@ public class SOCChangeFace extends SOCMessage
     private String game;
 
     /**
-     * The number player that is changing
+     * The player number changing their face, from server;
+     * see {@link #getPlayerNumber()}.
      */
     private int playerNumber;
 
@@ -54,7 +55,7 @@ public class SOCChangeFace extends SOCMessage
      * Create a ChangeFace message.
      *
      * @param ga  the name of the game
-     * @param pn  the number of the changing player
+     * @param pn  the player number changing their face; sent from server, always ignored when sent from client
      * @param id  the id of the face image;
      *            1 and higher are human face images, 0 is the default robot, -1 is the smarter robot.
      */
@@ -75,7 +76,9 @@ public class SOCChangeFace extends SOCMessage
     }
 
     /**
-     * @return the number of changing player
+     * The player number that is changing their face, when sent from server.
+     * When sent from client, server has always ignored this field; could be any value.
+     * @return the changing player number from server
      */
     public int getPlayerNumber()
     {
@@ -105,7 +108,7 @@ public class SOCChangeFace extends SOCMessage
      * CHANGEFACE sep game sep2 playerNumber sep2 faceId
      *
      * @param ga  the name of the game
-     * @param pn  the number of the changing player
+     * @param pn  the player number changing their face; sent from server, always ignored when sent from client
      * @param id  the id of the face image; see {@link #getFaceId()} for values
      * @return the command string
      */
@@ -123,7 +126,7 @@ public class SOCChangeFace extends SOCMessage
     public static SOCChangeFace parseDataStr(String s)
     {
         String ga; // the game name
-        int pn; // the number of the changing player
+        int pn; // the changing player number
         int id; // the id of the face image
 
         StringTokenizer st = new StringTokenizer(s, sep2);
@@ -149,4 +152,5 @@ public class SOCChangeFace extends SOCMessage
     {
         return "SOCChangeFace:game=" + game + "|playerNumber=" + playerNumber + "|faceId=" + faceId;
     }
+
 }

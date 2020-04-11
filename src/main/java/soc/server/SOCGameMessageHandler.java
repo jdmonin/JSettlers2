@@ -1268,8 +1268,12 @@ public class SOCGameMessageHandler
         try
         {
             final String gaName = ga.getName();
-            ga.getPlayer(c.getData()).setCurrentOffer(null);
-            srv.messageToGame(gaName, new SOCClearOffer(gaName, ga.getPlayer(c.getData()).getPlayerNumber()));
+            final SOCPlayer pl = ga.getPlayer(c.getData());
+            if (pl == null)
+                return;
+
+            pl.setCurrentOffer(null);
+            srv.messageToGame(gaName, new SOCClearOffer(gaName, pl.getPlayerNumber()));
             srv.recordGameEvent(gaName, mes);
 
             /**
@@ -1332,55 +1336,61 @@ public class SOCGameMessageHandler
     private void handleACCEPTOFFER
         (final SOCGame ga, final Connection c, final SOCAcceptOffer mes)
     {
+        SOCPlayer player = ga.getPlayer(c.getData());
+        if (player == null)
+            return;
+
         ga.takeMonitor();
 
         try
         {
-            SOCPlayer player = ga.getPlayer(c.getData());
+            final int acceptingNumber = player.getPlayerNumber();
+            final int offeringNumber = mes.getOfferingNumber();
+            final String gaName = ga.getName();
 
-            if (player != null)
+            if (ga.canMakeTrade(offeringNumber, acceptingNumber))
             {
-                final int acceptingNumber = player.getPlayerNumber();
-                final int offeringNumber = mes.getOfferingNumber();
-                final String gaName = ga.getName();
+                ga.makeTrade(offeringNumber, acceptingNumber);
+                handler.reportTrade(ga, offeringNumber, acceptingNumber);
 
-                if (ga.canMakeTrade(offeringNumber, acceptingNumber))
+                /**
+                 * announce the accepted offer to game; won't re-send mes from client
+                 * because its acceptingNumber isn't required or sanitized
+                 */
+                final SOCAcceptOffer mesOut
+                    = new SOCAcceptOffer(gaName, acceptingNumber, offeringNumber);
+                srv.messageToGame(gaName, mesOut);
+                srv.recordGameEvent(gaName, mesOut);
+
+                /**
+                 * clear all offers
+                 */
+                for (int i = 0; i < ga.maxPlayers; i++)
+                    ga.getPlayer(i).setCurrentOffer(null);
+
+                try
                 {
-                    ga.makeTrade(offeringNumber, acceptingNumber);
-                    handler.reportTrade(ga, offeringNumber, acceptingNumber);
-
-                    /**
-                     * announce the accepted offer to game; won't re-send mes from client
-                     * because its acceptingNumber isn't required or sanitized
-                     */
-                    final SOCAcceptOffer mesOut
-                        = new SOCAcceptOffer(gaName, acceptingNumber, offeringNumber);
-                    srv.messageToGame(gaName, mesOut);
-                    srv.recordGameEvent(gaName, mesOut);
-
-                    /**
-                     * clear all offers
-                     */
-                    for (int i = 0; i < ga.maxPlayers; i++)
-                        ga.getPlayer(i).setCurrentOffer(null);
                     srv.gameList.takeMonitorForGame(gaName);
                     if (ga.clientVersionLowest >= SOCClearOffer.VERSION_FOR_CLEAR_ALL)
                         srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, -1));
                     else
                         for (int i = 0; i < ga.maxPlayers; i++)
                             srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, i));
+                } finally {
                     srv.gameList.releaseMonitorForGame(gaName);
-                } else {
-                    srv.messageToPlayer(c, gaName, "You can't make that trade.");
                 }
+            } else {
+                srv.messageToPlayer(c, gaName, /*I*/"You can't make that trade."/*18N*/ );
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**

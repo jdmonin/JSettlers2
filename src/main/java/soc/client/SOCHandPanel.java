@@ -21,8 +21,6 @@
  **/
 package soc.client;
 
-import soc.disableDebug.D;
-
 import soc.game.SOCBoard;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
@@ -530,6 +528,7 @@ import javax.swing.UIManager;
 
     /**
      * Our player; should use only when {@link #inPlay} and {@link SOCPlayer#getName()} is not null.
+     * See {@link #getPlayer()}.
      * @see #playerNumber
      * @see #playerIsClient
      * @see #playerIsCurrent
@@ -547,6 +546,7 @@ import javax.swing.UIManager;
 
     /**
      * Does this panel represent our client's own hand?  If true, implies {@link #interactive}.
+     * Updated by {@link #addPlayer(String)}, cleared by {@link #removePlayer()}.
      * @since 1.1.00
      */
     protected boolean playerIsClient;
@@ -1214,7 +1214,9 @@ import javax.swing.UIManager;
     }
 
     /**
-     * @return the player
+     * Get our player; should use only after calling {@link #addPlayer(String)},
+     * only when {@link SOCPlayer#getName()} is not null.
+     * @return the player passed into constructor; never null
      */
     public SOCPlayer getPlayer()
     {
@@ -1866,7 +1868,7 @@ import javax.swing.UIManager;
     {
         // cancelRejectCountdown();  -- TODO soon
 
-        final SOCPlayer cliPlayer = game.getPlayer(client.getNickname());
+        final SOCPlayer cliPlayer = playerInterface.getClientPlayer();
 
         if (game.getGameState() != SOCGame.PLAY1)
             return;  // send button should've been disabled
@@ -2259,19 +2261,17 @@ import javax.swing.UIManager;
      */
     public void addPlayer(String name)
     {
+        // hide temporarily to avoid flicker
         if (blankStandIn != null)
             blankStandIn.setVisible(true);
         setVisible(false);
 
-        /* This is visible for both our hand and opponent hands */
+        /* Items which are visible for any hand, client player or opponent */
+
         if (! game.isBoardReset())
-        {
             faceImg.setDefaultFace();
-        }
         else
-        {
             changeFace(player.getFaceId());
-        }
         faceImg.setVisible(true);
 
         pname.setText(name);
@@ -2320,7 +2320,7 @@ import javax.swing.UIManager;
 
         playerIsCurrent = (game.getCurrentPlayerNumber() == playerNumber);
 
-        if (player.getName().equals(client.getNickname()))
+        if (player.getName().equals(playerInterface.getClientNickname()))
         {
             // this is our hand
 
@@ -2440,20 +2440,15 @@ import javax.swing.UIManager;
             /* This is another player's hand */
 
             final boolean isRobot = player.isRobot();
-            D.ebugPrintln("**** SOCHandPanel.addPlayer(name) ****");
-            D.ebugPrintln("player.getPlayerNumber() = " + playerNumber);
-            D.ebugPrintln("player.isRobot() = " + isRobot);
-            D.ebugPrintln("player.getSeatLock(" + playerNumber + ") = " + game.getSeatLock(playerNumber));
-            D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
             knightsSq.setToolTipText(strings.get("hpan.soldiers.sizeoppoarmy"));  // "Size of this opponent's army"
 
             // To see if client already sat down at this game,
-            // we can't call playerInterface.getClientHand() yet,
+            // we can't call playerInterface.getClientHand() or .getClientPlayer() yet
             // because it may not have been set at this point.
-            // Use game.getPlayer(client.getNickname()) instead:
+            // Use game.getPlayer(clientNickname) instead:
 
-            final boolean clientIsASeatedPlayer = (game.getPlayer(client.getNickname()) != null);
+            final boolean clientIsASeatedPlayer = (game.getPlayer(playerInterface.getClientNickname()) != null);
 
             if (isRobot && (! clientIsASeatedPlayer)
                 && (game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED))
@@ -4277,7 +4272,7 @@ import javax.swing.UIManager;
                         yb -= (lineH + space);
 
                     final int pix9 = 9 * displayScale;
-                    if (game.getPlayer(client.getNickname()) == null)
+                    if (playerInterface.getClientPlayer() == null)
                     {
                         takeOverBut.setBounds(pix9, yb, dim.width - 2 * pix9, lineH + space);
                         hasTakeoverBut = true;

@@ -1115,9 +1115,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Game players gain resources.
      * @param mes  Message data
      * @param ga  Game to update
-     * @param nickname  Our client player's nickname, needed for element data update
+     * @param nickname  Our client player's nickname, needed only if {@code skipResourceCount} is false.
+     *     Can be {@code null} otherwise.
+     *     See {@link #handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
      * @param skipResourceCount  If true, ignore the resource part of the message
-     *     because caller will handle that separately.
+     *     because caller will handle that separately; {@code nickname} can be {@code null}
      * @since 2.0.00
      */
     public static final void handleDICERESULTRESOURCES

@@ -724,7 +724,7 @@ public class SOCPlayerInterface extends Frame
         throws IllegalArgumentException
     {
         super(strings.get("interface.title.game", title)
-              + (ga.isPractice ? "" : " [" + md.getClient().getNickname() + "]"));
+              + (ga.isPractice ? "" : " [" + md.getClient().getNickname(false) + "]"));
             // "Settlers of Catan Game: {0}"
 
         layoutNotReadyYet = true;  // will set to false at end of doLayout
@@ -1650,6 +1650,7 @@ public class SOCPlayerInterface extends Frame
      * @return our player's hand interface, or null if not in a game.
      * @see #clientIsCurrentPlayer()
      * @see #isClientPlayer(SOCPlayer)
+     * @see #getClientPlayer()
      * @see #getClientPlayerNumber()
      * @since 1.1.00
      */
@@ -1660,11 +1661,14 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Update the client player's {@link SOCHandPanel} reference, for joining
-     * or leaving a game.
-     *
-     * Set by SOCHandPanel's removePlayer() and addPlayer() methods.
+     * or leaving a game. Also updates {@link #getClientPlayerNumber()}.
+     *<P>
+     * Called by {@link SOCHandPanel#removePlayer()} and {@link SOCHandPanel#addPlayer(String)}.
      *
      * @param h  The SOCHandPanel for us, or null if none (leaving).
+     *     Will update {@link #getClientPlayerNumber()} from
+     *     {@link SOCHandPanel#getPlayer() h.getPlayer()}{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()},
+     *     or -1 if null.
      * @see #getClientHand()
      * @since 1.1.00
      */
@@ -1693,11 +1697,41 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * If client player is active in game, their player number.
-     *
-     * @return client's player ID, or -1.
-     * @see #clientIsCurrentPlayer()
+     * Client player's nickname used on the remote/TCP server or practice server,
+     * depending on this game's {@link SOCGame#isPractice} flag.
+     * Unlike {@link #getClientHand()} or {@link #getClientPlayer()},
+     * this return value doesn't change before/after client player sits down.
+     * @return Client player's nickname, from {@link SOCPlayerClient#getNickname(boolean)}
+     * @since 2.3.00
+     */
+    public final String getClientNickname()
+    {
+        return client.getNickname(game.isPractice);
+    }
+
+    /**
+     * If client player is seated and active in game, their player object.
+     * Set by {@link #setClientHand(SOCHandPanel)}.
+     * @return Client's player if active, or {@code null}
+     * @see #getClientPlayerNumber()
      * @see #getClientHand()
+     * @see #getClientNickname()
+     * @since 2.3.00
+     */
+    public final SOCPlayer getClientPlayer()
+    {
+        return (clientHandPlayerNum >= 0) ? game.getPlayer(clientHandPlayerNum) : null;
+    }
+
+    /**
+     * If client player is seated and active in game, their player number.
+     * Set by {@link #setClientHand(SOCHandPanel)}.
+     *
+     * @return client's player ID, or -1 if not seated
+     * @see #clientIsCurrentPlayer()
+     * @see #getClientPlayer()
+     * @see #getClientHand()
+     * @see #getClientNickname()
      * @since 1.1.00
      */
     public final int getClientPlayerNumber()
@@ -2364,7 +2398,7 @@ public class SOCPlayerInterface extends Frame
             final String mname = members.get(i);
             if (null != game.getPlayer(mname))
                 continue;
-            if (mname.equals(client.getNickname()))
+            if (mname.equals(getClientNickname()))
                 continue;
             if (obs == null)
                 obs = new ArrayList<String>();
@@ -2381,17 +2415,19 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * A player has sat down to play. Update the display.
-     * Calls {@link SOCHandPanel#addPlayer(String)}, which does additional actions if the
-     * player sitting down now is the client (not another human or robot).
+     * Calls {@link SOCHandPanel#addPlayer(String)} which does additional actions if that
+     * player is the client (not a different human or robot), including a call to {@link #setClientHand(SOCHandPanel)}.
+     *<P>
+     * Called by {@link ClientBridge#playerSitdown(int, String)}.
      *
-     * @param n   the name of the player. Checks if is client player by calling {@link SOCPlayerClient#getNickname()}.
+     * @param name   the name of the player. Checks if is client player by calling {@link #getClientNickname()}.
      * @param pn  the seat number of the player
      */
-    public void addPlayer(String n, int pn)
+    public void addPlayer(final String name, final int pn)
     {
-        hands[pn].addPlayer(n);  // This will also update all other hands' buttons ("sit here" -> "lock", etc)
+        hands[pn].addPlayer(name);  // This will also update all other hands' buttons ("sit here" -> "lock", etc)
 
-        if (n.equals(client.getNickname()))
+        if (name.equals(getClientNickname()))
         {
             for (int i = 0; i < game.maxPlayers; i++)
             {
@@ -2516,7 +2552,7 @@ public class SOCPlayerInterface extends Frame
         }
 
         setTitle(strings.get("interface.title.game.over", game.getName()) +
-                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+                 (game.isPractice ? "" : " [" + getClientNickname() + "]"));
                 // "Settlers of Catan Game Over: {0}"
 
         boardPanel.updateMode();
@@ -3221,7 +3257,7 @@ public class SOCPlayerInterface extends Frame
 
         // Clear from possible "game over" titlebar
         setTitle(strings.get("interface.title.game", game.getName()) +
-                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+                 (game.isPractice ? "" : " [" + getClientNickname() + "]"));
                 // "Settlers of Catan Game: {0}"
         boardPanel.debugShowPotentials = boardDebugShow;
 
@@ -3789,6 +3825,14 @@ public class SOCPlayerInterface extends Frame
      */
     public void mouseReleased(MouseEvent e) { }
 
+    /**
+     * Is this player shown as the current player?
+     * Calls handPanels[{@link SOCPlayer#getPlayerNumber()}]
+     * {@link SOCHandPanel#isClientPlayer() .isClientPlayer()}.
+     * @param p  Player object; uses only its {@code playerNumber}
+     * @return True if {@link SOCHandPanel#isClientPlayer()}
+     * @since 2.0.00
+     */
     protected boolean isClientPlayer(SOCPlayer p)
     {
         if (p == null)
@@ -3892,16 +3936,25 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-        public void playerSitdown(int playerNumber, String sitterNickname)
+        /**
+         * {@inheritDoc}
+         *<P>
+         * Calls {@link SOCPlayerInterface#addPlayer(String, int)},
+         * then for client player (based on {@code sitterNickname})
+         * calls {@link SOCBoardPanel#setPlayer()} and
+         * {@link SOCBuildingPanel#setPlayer()}.
+         * Updates {@link SOCHandPanel}'s displayed values.
+         */
+        public void playerSitdown(final int playerNumber, final String sitterNickname)
         {
             pi.addPlayer(sitterNickname, playerNumber);
 
-            String nickname = pi.getClient().getNickname();
+            final boolean clientIsSitter = pi.getClientNickname().equals(sitterNickname);
 
             /**
              * let the board panel & building panel find our player object if we sat down
              */
-            if (nickname.equals(sitterNickname))
+            if (clientIsSitter)
             {
                 pi.getBoardPanel().setPlayer();
                 pi.getBuildingPanel().setPlayer();
@@ -3921,7 +3974,7 @@ public class SOCPlayerInterface extends Frame
             hp.updateValue(PlayerClientListener.UpdateType.LongestRoad);
             hp.updateValue(PlayerClientListener.UpdateType.LargestArmy);
 
-            if (nickname.equals(sitterNickname))
+            if (clientIsSitter)
             {
                 hp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
                 hp.updateDevCards(false);
@@ -4640,7 +4693,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            md.getGameMessageSender().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
+            md.getGameMessageSender().resetBoardVote(pi.getGame(), true);
             pi.resetBoardClearDia();
         }
 
@@ -4650,7 +4703,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            md.getGameMessageSender().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
+            md.getGameMessageSender().resetBoardVote(pi.getGame(), false);
             pi.resetBoardClearDia();
         }
 

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ public class SOCChannelTextMsg extends SOCMessage
     private String channel;
 
     /**
-     * Nickname of sender, or {@link SOCGameTextMsg#SERVER_FOR_CHAT}
+     * Nickname of sender from server, or {@link SOCGameTextMsg#SERVER_FOR_CHAT}; see {@link #getNickname()}.
      */
     private String nickname;
 
@@ -63,7 +63,8 @@ public class SOCChannelTextMsg extends SOCMessage
      *
      * @param ch  name of chat channel
      * @param nn  nickname of sender;
-     *     announcements from the server (not from a player) use {@link SOCGameTextMsg#SERVER_FOR_CHAT}
+     *     announcements from the server (not from a player) use {@link SOCGameTextMsg#SERVER_FOR_CHAT}.
+     *     Ignored from client by server 1.2.01 and newer, can send "-" but not blank.
      * @param tm  text message. For expected format when {@code nn} is {@link SOCGameTextMsg#SERVER_FOR_CHAT},
      *     see that constant's javadoc.
      * @param tm  text message
@@ -85,8 +86,10 @@ public class SOCChannelTextMsg extends SOCMessage
     }
 
     /**
+     * Get the sender's nickname when message is from server; field ignored from client.
      * @return the nickname, or {@link SOCGameTextMsg#SERVER_FOR_CHAT} ({@code ":"})
-     *     for server messages which should appear in the chat area (recap, etc)
+     *     for server messages which should appear in the chat area (recap, etc).
+     *     Ignored from client by server 1.2.01 and newer, can send "-" but not blank.
      */
     public String getNickname()
     {
@@ -117,7 +120,7 @@ public class SOCChannelTextMsg extends SOCMessage
      * CHANNELTEXTMSG sep channel sep2 nickname sep2 text
      *
      * @param ch  the channel name
-     * @param nn  the nickname
+     * @param nn  the nickname; ignored from client by server 1.2.01 and newer, can send "-" but not blank
      * @param tm  the text message
      * @return    the command string
      */
@@ -163,4 +166,5 @@ public class SOCChannelTextMsg extends SOCMessage
 
         return s;
     }
+
 }

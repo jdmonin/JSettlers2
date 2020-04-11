@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,8 +48,8 @@ public class SOCClearOffer extends SOCMessage
     private String game;
 
     /**
-     * The seat number, or -1 for all.
-     * Sent from server, ignored if sent from client.
+     * The seat number, or -1 for all, when sent from server.
+     * Server has always ignored this field when sent from client.
      */
     private int playerNumber;
 
@@ -58,7 +58,7 @@ public class SOCClearOffer extends SOCMessage
      *
      * @param ga  the name of the game
      * @param pn  the seat number, or -1 for all (1.1.09 or newer only).
-     *     Sent from server, ignored if sent from client.
+     *     Sent from server, always ignored when sent from client.
      */
     public SOCClearOffer(String ga, int pn)
     {
@@ -76,7 +76,8 @@ public class SOCClearOffer extends SOCMessage
     }
 
     /**
-     * @return the seat number, or -1 for all. Sent from server, ignored if sent from client.
+     * @return the seat number, or -1 for all. Sent from server, ignored when sent from client
+     *     (server has always ignored this field).
      */
     public int getPlayerNumber()
     {
@@ -97,7 +98,7 @@ public class SOCClearOffer extends SOCMessage
      * CLEAROFFER sep game sep2 playerNumber
      *
      * @param ga  the name of the game
-     * @param pn  the seat number; ignored if sent from client
+     * @param pn  the seat number from server, or -1 for all; always ignored when sent from client
      * @return the command string
      */
     public static String toCmd(String ga, int pn)
@@ -138,4 +139,5 @@ public class SOCClearOffer extends SOCMessage
     {
         return "SOCClearOffer:game=" + game + "|playerNumber=" + playerNumber;
     }
+
 }

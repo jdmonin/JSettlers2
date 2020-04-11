@@ -118,7 +118,7 @@ import soc.game.SOCGame;
             SOCPlayerInterface gamePI, int pnum, int faceID, int faceWidth)
         throws IllegalArgumentException
     {
-        super(strings.get("facechooser.title", gamePI.getGame().getName(), cli.getNickname()));
+        super(strings.get("facechooser.title", gamePI.getGame().getName(), gamePI.getClientNickname()));
             // "Choose Face Icon: {0} [{1}]"
 
         if (fbutton == null)
