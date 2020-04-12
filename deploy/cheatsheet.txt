@@ -20,7 +20,7 @@ GRANT ALL PRIVILEGES   ON socdata.*   TO 'socuser'@'192.168.0.%'  IDENTIFIED BY 
 #grant access from Docker network containers
 GRANT ALL PRIVILEGES   ON socdata.*   TO 'socuser'@'172.17.0.%'  IDENTIFIED BY 'socpass'   WITH GRANT OPTION;
 
-#unattended script to grant privs inside a container instance (e.g. container_name=mariadb)
+#unattended commands to grant privs inside a container instance (e.g. container_name=mariadb)
 $ docker exec -it mariadb bash
 root@..:/sqlscripts#  mysql -u root -p"abc123" -e "SOURCE jsettlers-create-mysql.sql"
 root@..:/sqlscripts# mysql -u root -D socdata -p"abc123" -e "SOURCE jsettlers-tables-mysql.sql"
@@ -34,7 +34,7 @@ use socdata;
 #verify which tables are in the database
 show tables;
 
-#Docker commands (run from root directory of repo)
+##Docker commands (run from root directory of repo)
 
 #docker build only the server
 docker build -t jsettlers-server .
