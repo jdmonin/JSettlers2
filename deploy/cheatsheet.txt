@@ -3,18 +3,26 @@ java -jar jsettlers-2.2.00-full.jar
 java -jar jsettlers-2.2.00-full.jar HOSTNAME 8880
 
 #mariadb mysql commands
+mysql -u root -p
+rootpass
+
 mysql -u socuser -p
 socpass
 
 GRANT ALL PRIVILEGES   ON socdata.*   TO 'socuser'@'192.168.0.%'  IDENTIFIED BY 'socpass'   WITH GRANT OPTION;
+GRANT ALL PRIVILEGES   ON socdata.*   TO 'socuser'@'172.17.0.%'  IDENTIFIED BY 'socpass'   WITH GRANT OPTION;
 
 show tables;
 
 select user, host from mysql.user;
 
 
-#docker
-docker run -it -p 8880:8880 japp 
+#docker build only the server
+docker build -t jsettlers-server .
+docker images
 
+#docker run the server in background and return to terminal (use sudo if needed)
+docker run -it -p 8880:8880 jsettlers-server &
+docker ps
 
 #az cli - TODO

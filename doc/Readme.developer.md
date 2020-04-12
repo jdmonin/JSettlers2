@@ -12,6 +12,7 @@
 - To do: The current TODO list
 - Saving and loading games at server
 - Developing with a database (JDBC)
+- Developing with Docker containers and Docker Compose
 - Internationalization (I18N)
 - Robots (AI)
 - Network Communication and interop with other versions or languages
@@ -424,6 +425,95 @@ jsettlers JAR from the command line, not running inside the IDE.
   The first account you create should be `adm` (named in property
   `-Djsettlers.accounts.admins=adm`) which can then create others.
 
+## To develop and run with Docker containers and Docker Compose
+
+This is optional.  JSettlers Server and MariaDB (open source MySQL database) can be run 
+inside containers and honor properties set in `jsserver.properties`.  
+
+This dev-ops environment has the benefits that you can run the server and database
+in containers and eliminate all other dependencies in the runtime or development 
+environment (e.g. Java VM, JDK, MariaDb, ODBC drivers).  It also makes hosting 
+this server much easier in a range of Docker hosts, including VMs, public clouds, 
+container registries, RaspberryPi (ARM based architecture), etc.  Last, it adds extra 
+confidence that your infrastructure matches what you built from source code.
+
+These instructions are written for any IDE or command line.  
+- Download and install Docker Desktop for Windows/Mac from https://www.docker.com/products/docker-desktop, or Docker Engine + Docker Compose for Linux 
+- See the following Docker enablement files in the root folder of this repo
+  - `docker-compose.yml` - this can build and run all containers (i.e. server, db) in a normal mode
+  - `docker-compose.debug.yml` - this can build and run all containers (i.e. server, db) in a verbose 
+  debug traffic mode
+  - `Dockerfile` - this can build and run a single container for JSettlersServer and 
+  is leveraged by docker-compose files
+  - `\build\libs` - jar files created by `gradle build` or `gradle assemble` get copied by 
+  Dockerfile into the container (you can point to any alternate .jar files, releases, etc)
+  - `\deploy` - dependency files needed in container image including `jsserver.properties` and 
+  the `mariadb-java-client-2-6-0.jar` ODBC driver for Mariadb/MySQL. Add any custom dependency
+  content here and reference it in Dockerfile or docker-compose files
+- Set your IDE or terminal to work in the JSettlers root directory, e.g. %clonepath%/JSettlers2
+- Build and run a single docker container image for JSettlersServer (including properties)
+  - Ensure your database properties are correct in `/deploy/jsserver.properties` or comment out for
+  no database
+  - Build a single docker container image for JSettlersServer (including properties) with
+  ```
+  $ docker build -t jsettlers-server .
+  ```
+  - Verify images and tags (this defaults to :latest) with
+  ```
+  $ docker images
+  ```
+  - Run a single docker container image for JSettlersServer with (& char optionally runs in 
+  background, remove to run interactively in foreground)
+  ```
+  $ docker run -it -p 8880:8880 jsettlers-server &
+  ```
+  - Verify running docker processes and container names with:
+  ```
+  $ docker ps
+  ```
+- Build and run JSettlersServer + Database (including properties)
+  - Build all containers and content from repo source with:
+  ```
+  $ docker-compose build
+  ```
+  - Run or refresh deployment of all containers with:
+  ```
+  $ docker-compose up
+  ```
+  - Verify running docker processes and name with:
+  ```
+  $ docker ps
+  ```
+  - Turn on verbose traffic debugging (same as -Djsettlers.debug.traffic=Y) with:
+  ```
+  $ docker-compose -f ./docker-compose.debug.yml up
+  ```
+  - Given the initialization requirements of the socdata database discussed in database docs, expect the `server container to fail until initialized`, meaning sql scripts are run and the db is initialized.  One easy way to do this with the sql scripts already mounted inside your running container image in /sqlscripts, which you can run by exec'ing into the running container:
+  ```
+  $ docker exec -it mariadb bash
+  root@..:/sqlscripts#  mysql -u root -p"abc123" -e "SOURCE jsettlers-create-mysql.sql"
+  root@..:/sqlscripts# mysql -u root -D socdata -p"abc123" -e "SOURCE jsettlers-tables-mysql.sql"
+  ```
+  - The next time you docker-compose up you should see the server find the db and fully initialize in
+  a healthy state.  Note a db container health check probe is added (causing up to 30 s of delay) to 
+  avoid timing issues between the server and the dependent db container starts. 
+  - Notes
+    - The compose file assumes a container called 'mysqldb' and the other container above 
+    for JSettlersServer called 'jsettlers-server' will be started in the same default virtual 
+    Docker network.  
+    - Mysql will start on port `3306` and will have the network name `mariadb`.  The default connection string URL in `/deploy/jsserver.properties` is `jsettlers.db.url=jdbc:mariadb://mariadb/socdata`. 
+    - Mysql data and configuration will persist in a docker volume by default until the volume is deleted
+    - the Expose command additionally exposes port 3306 on this host machine (e.g. localhost, 
+    or your server) which allows more development flexibility, but less network security. Remove this if only
+    one container needs to reach the ip of the other, but not external calls.  Note GRANT ALL 
+    permissions is only allowed for root and socuser users connecting from localhost and the docker network 
+    subnet (172.%.%.%) for extra security.  See updates to `jsettlers-create-mysql.sql` for GRANT permissions.  
+    - The gradle build and test environments are not yet part of this docker environment.  If there is 
+    interest we can edit Dockerfiles etc with multi-stage build to enable containerized build and test.  
+    Meanwhile, it is assumed gradle is run as a pre-step to all docker build and run steps. 
+    - The container images and ODBC JAR dependencies assume `x86-64` hardware architecture, however the 
+    Docker assets have been tested on more architectures like ARM (e.g. RaspberryPi).  Suggestion: verify
+    all docker images and binaries copied to images support and match the target architecture. If there is more interest we can add multi-architecture builds to these assets.  
 
 ## Current partially-done work
 

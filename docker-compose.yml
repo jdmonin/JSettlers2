@@ -1,0 +1,38 @@
+version: '2.1'
+
+services:
+  mysqldb:
+    image: mariadb
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    expose:
+      - 3306
+    restart: always
+    volumes: 
+      - ./src/main/bin/sql:/sqlscripts
+    working_dir: /sqlscripts
+    environment: 
+    #  MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: abc123  #CHANGE ME
+      MYSQL_USER: socuser
+      MYSQL_PASSWORD: socpass #CHANGE ME
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "socuser", "--password=socpass"]
+      timeout: 3s
+      retries: 10
+ #   command:
+ #     - /bin/bash
+ #     - -c 
+ #     - mysql -u root -p"abc123" -e "SOURCE jsettlers-create-mysql.sql"
+ #     - mysql -u root -D socdata -p"abc123" -e "SOURCE jsettlers-tables-mysql.sql"
+  jsettlers-server:
+    image: jsettlers-server
+    container_name: jsettlers-server
+    working_dir: /opt/app
+    build: .
+    ports:
+      - "8880:8880"
+    depends_on:
+      mysqldb:
+        condition: service_healthy
