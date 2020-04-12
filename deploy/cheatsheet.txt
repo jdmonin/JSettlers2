@@ -1,21 +1,40 @@
-#run the client
+##run the SOC client
 java -jar jsettlers-2.2.00-full.jar
 java -jar jsettlers-2.2.00-full.jar HOSTNAME 8880
 
-#mariadb mysql commands
+##run the SOC server (using adjacent jsserver.properties file)
+java -jar JSettlersServer-2.3.00.jar
+
+##mariadb mysql commands
+#mysql admin with root account
 mysql -u root -p
 rootpass
 
+#mysql admin with socuser account
 mysql -u socuser -p
 socpass
 
+#examples of grants for a user and client/subnet mask (a user is a username + host its coming from)
+#grant your local subnet
 GRANT ALL PRIVILEGES   ON socdata.*   TO 'socuser'@'192.168.0.%'  IDENTIFIED BY 'socpass'   WITH GRANT OPTION;
+#grant access from Docker network containers
 GRANT ALL PRIVILEGES   ON socdata.*   TO 'socuser'@'172.17.0.%'  IDENTIFIED BY 'socpass'   WITH GRANT OPTION;
 
-show tables;
+#unattended script to grant privs inside a container instance (e.g. container_name=mariadb)
+$ docker exec -it mariadb bash
+root@..:/sqlscripts#  mysql -u root -p"abc123" -e "SOURCE jsettlers-create-mysql.sql"
+root@..:/sqlscripts# mysql -u root -D socdata -p"abc123" -e "SOURCE jsettlers-tables-mysql.sql"
 
+#view and verify all permissions (must be run with root)
 select user, host from mysql.user;
 
+#set socdata as current database
+use socdata;
+
+#verify which tables are in the database
+show tables;
+
+#Docker commands (run from root directory of repo)
 
 #docker build only the server
 docker build -t jsettlers-server .
@@ -25,4 +44,11 @@ docker images
 docker run -it -p 8880:8880 jsettlers-server &
 docker ps
 
-#az cli - TODO
+#docker-compose build all containers from source
+docker-compose build
+
+#docker-compose run or refresh containers
+docker-compose up
+
+#docker-compose run with debug traffic verbose mode
+docker-compose -f ./docker-compose.debug.yml up
