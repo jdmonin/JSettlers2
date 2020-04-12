@@ -14,15 +14,10 @@ GRANT ALL PRIVILEGES
   TO 'socuser'@'localhost'
   IDENTIFIED BY 'socpass';
 
--- the following enables socuser access for Docker network in the 172.17.0.x and 172.19.0.x subnets.  
+-- the following enables socuser access for default Docker network in the 172.x.x.x subnets.  
 GRANT ALL PRIVILEGES
   ON socdata.*
-  TO 'socuser'@'172.17.0.%'
-  IDENTIFIED BY 'socpass';
-
-GRANT ALL PRIVILEGES
-  ON socdata.*
-  TO 'socuser'@'172.19.0.%'
+  TO 'socuser'@'172.%.%.%'
   IDENTIFIED BY 'socpass';
 
 -- Tested with mysql 5.1 and 5.5 on centos 6, 5.5 on MacOSX 10.9, mariadb 10.4 on centos 7
