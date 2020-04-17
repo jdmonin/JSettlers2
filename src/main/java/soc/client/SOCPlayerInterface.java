@@ -2414,28 +2414,31 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * A player has sat down to play. Update the display.
-     * Calls {@link SOCHandPanel#addPlayer(String)} which does additional actions if that
-     * player is the client (not a different human or robot), including a call to {@link #setClientHand(SOCHandPanel)}.
-     *<P>
-     * Called by {@link ClientBridge#playerSitdown(int, String)}.
+     * A player has sat down to play. Update the display:
+     *<UL>
+     * <LI> Calls {@link SOCHandPanel#addPlayer(String)} which does additional actions if that
+     *     player is the client (not a different human or robot), including a call back up
+     *     to {@link #setClientHand(SOCHandPanel)}.
+     * <LI> Calls {@link SOCBoardPanel#setPlayer()} and {@link SOCBuildingPanel#setPlayer()}
+     *     if being called for client player (based on {@code name}).
+     * <LI> Updates {@link SOCHandPanel}'s displayed values.
+     *</UL>
      *
      * @param name   the name of the player. Checks if is client player by calling {@link #getClientNickname()}.
      * @param pn  the seat number of the player
+     * @see #removePlayer(int)
      */
     public void addPlayer(final String name, final int pn)
     {
         hands[pn].addPlayer(name);  // This will also update all other hands' buttons ("sit here" -> "lock", etc)
 
-        if (name.equals(getClientNickname()))
+        final boolean sitterIsClientPlayer = (name.equals(getClientNickname()));
+
+        if (sitterIsClientPlayer)
         {
             for (int i = 0; i < game.maxPlayers; i++)
-            {
                 if (game.getPlayer(i).isRobot())
-                {
                     hands[i].addSittingRobotLockBut();
-                }
-            }
 
             if (is6player)
             {
@@ -2456,6 +2459,38 @@ public class SOCPlayerInterface extends Frame
             // Retain face after reset
             hands[pn].changeFace(hands[pn].getPlayer().getFaceId());
         }
+
+        /**
+         * if client sat down, let the board panel & building panel find our player object
+         */
+        if (sitterIsClientPlayer)
+        {
+            getBoardPanel().setPlayer();
+            getBuildingPanel().setPlayer();
+        }
+
+        /**
+         * update the hand panel's displayed values
+         */
+        final SOCHandPanel hp = getPlayerHandPanel(pn);
+        hp.updateValue(PlayerClientListener.UpdateType.Road);
+        hp.updateValue(PlayerClientListener.UpdateType.Settlement);
+        hp.updateValue(PlayerClientListener.UpdateType.City);
+        if (game.hasSeaBoard)
+            hp.updateValue(PlayerClientListener.UpdateType.Ship);
+        hp.updateValue(PlayerClientListener.UpdateType.Knight);
+        hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
+        hp.updateValue(PlayerClientListener.UpdateType.LongestRoad);
+        hp.updateValue(PlayerClientListener.UpdateType.LargestArmy);
+
+        if (sitterIsClientPlayer)
+        {
+            hp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+            hp.updateDevCards(false);
+        } else {
+            hp.updateValue(PlayerClientListener.UpdateType.Resources);
+            hp.updateValue(PlayerClientListener.UpdateType.DevCards);
+        }
     }
 
     /**
@@ -2467,6 +2502,7 @@ public class SOCPlayerInterface extends Frame
      * {@link SOCGame#removePlayer(String, boolean)}.
      *
      * @param pn the number of the player
+     * @see #addPlayer(String, int)
      */
     public void removePlayer(int pn)
     {
@@ -3939,51 +3975,11 @@ public class SOCPlayerInterface extends Frame
         /**
          * {@inheritDoc}
          *<P>
-         * Calls {@link SOCPlayerInterface#addPlayer(String, int)},
-         * then for client player (based on {@code sitterNickname})
-         * calls {@link SOCBoardPanel#setPlayer()} and
-         * {@link SOCBuildingPanel#setPlayer()}.
-         * Updates {@link SOCHandPanel}'s displayed values.
+         * Calls {@link SOCPlayerInterface#addPlayer(String, int)}.
          */
         public void playerSitdown(final int playerNumber, final String sitterNickname)
         {
             pi.addPlayer(sitterNickname, playerNumber);
-
-            final boolean clientIsSitter = pi.getClientNickname().equals(sitterNickname);
-
-            /**
-             * let the board panel & building panel find our player object if we sat down
-             */
-            if (clientIsSitter)
-            {
-                pi.getBoardPanel().setPlayer();
-                pi.getBuildingPanel().setPlayer();
-            }
-
-            /**
-             * update the hand panel's displayed values
-             */
-            final SOCHandPanel hp = pi.getPlayerHandPanel(playerNumber);
-            hp.updateValue(PlayerClientListener.UpdateType.Road);
-            hp.updateValue(PlayerClientListener.UpdateType.Settlement);
-            hp.updateValue(PlayerClientListener.UpdateType.City);
-            if (pi.game.hasSeaBoard)
-                hp.updateValue(PlayerClientListener.UpdateType.Ship);
-            hp.updateValue(PlayerClientListener.UpdateType.Knight);
-            hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
-            hp.updateValue(PlayerClientListener.UpdateType.LongestRoad);
-            hp.updateValue(PlayerClientListener.UpdateType.LargestArmy);
-
-            if (clientIsSitter)
-            {
-                hp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
-                hp.updateDevCards(false);
-            }
-            else
-            {
-                hp.updateValue(PlayerClientListener.UpdateType.Resources);
-                hp.updateValue(PlayerClientListener.UpdateType.DevCards);
-            }
         }
 
         /**
