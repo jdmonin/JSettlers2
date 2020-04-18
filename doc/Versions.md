@@ -23,6 +23,8 @@ and backport minor new features until `2.0.00` was ready.
 	- Bugfix: If started a practice game, then connected to a server game:
 	  - Practice game trades stopped working
 	  - Might've joined server game as "Player" or "null"
+- Bots/AI:
+	- When offering a trade to human players, shorten max wait to 30 seconds (was 100)
 - Server:
 	- Administration:
 	  - Can now run these commands from any admin account, not only as Debug:  

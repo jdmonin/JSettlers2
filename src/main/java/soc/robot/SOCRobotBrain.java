@@ -164,9 +164,13 @@ public class SOCRobotBrain extends Thread
      * When a trade has been offered to humans (and maybe also to bots),
      * maximum wait in seconds for responses: {@link #tradeResponseTimeoutSec}.
      * Longer than {@link #TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY}.
+     *<P>
+     * Before v2.3.00 this was 100 seconds, which felt glacially slow
+     * compared to the quick pace of most bot activity.
+     *
      * @since 2.0.00
      */
-    protected static final int TRADE_RESPONSE_TIMEOUT_SEC_HUMANS = 100;
+    protected static final int TRADE_RESPONSE_TIMEOUT_SEC_HUMANS = 30;
 
     /**
      * When a trade has been offered to only bots (not to any humans),
