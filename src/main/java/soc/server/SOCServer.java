@@ -7700,41 +7700,39 @@ public class SOCServer extends Server
                 sitDown(reGame, huConns[pn], pn, false /* isRobot*/, true /*isReset */ );
         }
 
-        /**
-         * 5a. If no robots in new game, send to game as if someone else has
-         *     clicked "start game", and set up state to begin game play.
-         */
         if (! reBoard.hasRobots)
         {
+            /**
+             * 5a. If no robots in new game, send to game as if someone else has
+             *     clicked "start game", and set up state to begin game play.
+             */
+
             final GameHandler hand = gameList.getGameTypeHandler(reGame.getName());
             if (hand != null)
                 hand.startGame(reGame);
-        }
-        else
-        {
+        } else {
+            /**
+             * 5b. If there are robots, set up wait-request queue
+             *     (robotJoinRequests) and ask robots to re-join.
+             *     Game will wait for robots to send JOINGAME and SITDOWN,
+             *     as they do when joining a newly created game.
+             *     Once all robots have re-joined, the game will begin.
+             */
 
-        /**
-         * 5b. If there are robots, set up wait-request queue
-         *     (robotJoinRequests) and ask robots to re-join.
-         *     Game will wait for robots to send JOINGAME and SITDOWN,
-         *     as they do when joining a newly created game.
-         *     Once all robots have re-joined, the game will begin.
-         */
             reGame.setGameState(SOCGame.READY);
             if (! readyGameAskRobotsJoin
                     (reGame, resetWithShuffledBots ? null : reBoard.robotConns, 0))
             {
                 // Unlikely, since we were just playing this game with bots
+
                 reGame.setGameState(SOCGame.OVER);
                 final GameHandler hand = gameList.getGameTypeHandler(reGame.getName());
                 if (hand != null)
-                    handler.sendGameState(reGame);
+                    hand.sendGameState(reGame);
                 messageToGameKeyed(reGame, true, "member.bot.join.cantfind");  // "*** Can't find a robot! ***"
             }
         }
-
-        // All set.
-    }  // resetBoardAndNotify_finish
+    }
 
     /**
      * Increment {@link #numberOfGamesFinished} and related server-statistics fields.
