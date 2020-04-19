@@ -2737,7 +2737,7 @@ public class SOCRobotBrain extends Thread
      * @since 1.1.08
      * @throws IllegalStateException  if {@link #buildingPlan}{@link Stack#isEmpty() .isEmpty()}
      */
-    private void buildOrGetResourceByTradeOrCard()
+    protected void buildOrGetResourceByTradeOrCard()
         throws IllegalStateException
     {
         if (buildingPlan.isEmpty())
@@ -3442,7 +3442,7 @@ public class SOCRobotBrain extends Thread
      * @param pieceType  Piece type, as in {@link SOCPlayingPiece#SETTLEMENT}
      * @since 1.1.08
      */
-    private void handlePUTPIECE_updateTrackers(final int pn, final int coord, final int pieceType)
+    protected void handlePUTPIECE_updateTrackers(final int pn, final int coord, final int pieceType)
     {
         switch (pieceType)
         {
@@ -3577,7 +3577,7 @@ public class SOCRobotBrain extends Thread
      * @see #placeIfExpectPlacing()
      * @since 1.1.08
      */
-    private void buildRequestPlannedPiece()
+    protected void buildRequestPlannedPiece()
     {
         final SOCPossiblePiece targetPiece = buildingPlan.pop();
         D.ebugPrintln("$ POPPED " + targetPiece);
@@ -3700,7 +3700,7 @@ public class SOCRobotBrain extends Thread
      *
      * @since 1.1.08
      */
-    private final void planBuilding()
+    protected void planBuilding()
     {
         decisionMaker.planStuff(robotParameters.getStrategyType());
 
@@ -3763,7 +3763,7 @@ public class SOCRobotBrain extends Thread
      * @param amount  The new value to set, or the delta to gain/lose
      * @since 2.0.00
      */
-    private void handlePLAYERELEMENT
+    protected void handlePLAYERELEMENT
         (SOCPlayer pl, final int pn, final int action, final PEType etype, final int amount)
     {
         if (etype == null)
@@ -5220,7 +5220,7 @@ public class SOCRobotBrain extends Thread
      * @return  true if we need <tt>numChoose</tt> resources
      * @since 2.0.00
      */
-    private boolean chooseFreeResourcesIfNeeded
+    protected boolean chooseFreeResourcesIfNeeded
         (SOCResourceSet targetResources, final int numChoose, final boolean chooseIfNotNeeded)
     {
         if (targetResources == null)
