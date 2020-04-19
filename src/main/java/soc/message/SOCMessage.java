@@ -569,6 +569,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 (Character.isSpaceChar(c) && (Character.getType(c) != Character.SPACE_SEPARATOR)))
                 return false;
         }
+
         return true;
     }
 

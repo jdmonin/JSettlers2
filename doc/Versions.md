@@ -27,6 +27,8 @@ and backport minor new features until `2.0.00` was ready.
 	- When offering a trade to human players, shorten max wait to 30 seconds (was 100)
 - Server:
 	- Administration:
+	  - Customized client welcome message, with optional server property `jsettlers.admin.welcome`  
+	    (see `jsserver.properties.sample` comments for details)
 	  - Can now run these commands from any admin account, not only as Debug:  
 	    `*BCAST*, *BOTLIST*, *BOTLIST*, *RESETBOT*, *KILLBOT*, *GC*`
 	  - Daily Stats file: New optional server property `jsettlers.stats.file.name`: Appends output of `*STATS*` command daily

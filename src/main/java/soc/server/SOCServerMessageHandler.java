@@ -443,7 +443,7 @@ public class SOCServerMessageHandler
             }
         }
 
-        final String txt = c.getLocalized("netmsg.status.welcome");  // "Welcome to Java Settlers of Catan!"
+        final String txt = srv.getClientWelcomeMessage(c);  // "Welcome to Java Settlers of Catan!"
         if (0 == (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
             c.put(SOCStatusMessage.toCmd
                 (SOCStatusMessage.SV_OK, txt));
@@ -2060,7 +2060,7 @@ public class SOCServerMessageHandler
         /**
          * Tell the client that everything is good to go
          */
-        final String txt = c.getLocalized("netmsg.status.welcome");  // "Welcome to Java Settlers of Catan!"
+        final String txt = srv.getClientWelcomeMessage(c);  // "Welcome to Java Settlers of Catan!"
         if (! mustSetUsername)
         {
             if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))

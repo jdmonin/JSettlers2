@@ -166,6 +166,16 @@
 
 # (See also jsettlers.accounts.admins)
 
+# Customize the welcome message text sent to clients when they connect
+# or create their first game. This text appears on the client's
+# main panel status line.
+# Default text in english is "Welcome to Java Settlers of Catan!".
+# Custom message is not currently localizable.
+# Text can't start with a digit or comma. May contain any symbols except '|',
+# newlines, or control characters. If format is invalid, server halts startup.
+# Not set by default.
+# jsettlers.admin.welcome = Welcome to JSettlers beta test version!
+
 # Enable a daily stats summary with the same information as
 # the {@code *STATS*} command, and set the filename to which
 # to append that summary. Can be a full path, or relative to the

@@ -431,6 +431,28 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_ACCOUNTS_ADMINS = "jsettlers.accounts.admins";
 
     /**
+     * Optional property {@code jsettlers.admin.welcome} to customize
+     * the welcome message text sent to clients when they connect
+     * or create their first game. This text appears on the client's
+     * main panel status line.
+     *<P>
+     * Default text in english is "Welcome to Java Settlers of Catan!".
+     * Custom message is not currently localizable.
+     *<P>
+     * Text can't start with digit or comma, to ensure correct handling
+     * at client by {@link SOCStatusMessage#parseDataStr(String)} when sent with status value 0.
+     * May contain any symbols except {@link SOCMessage#sep_char}, newlines, or control characters.
+     *<P>
+     * At startup, server checks the format of this property, trims whitespace,
+     * and if empty, removes it from internal props list. If format is invalid,
+     * server halts startup.
+     *
+     * @see #getClientWelcomeMessage(Connection)
+     * @since 2.3.00
+     */
+    public static final String PROP_JSETTLERS_ADMIN_WELCOME = "jsettlers.admin.welcome";
+
+    /**
      * Property <tt>jsettlers.allow.debug</tt> to permit debug commands over TCP.
      * (The default is N; to allow, set to Y)
      * @since 1.1.14
@@ -533,6 +555,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_ACCOUNTS_OPEN, "Permit open self-registration of new user accounts? (if Y and using a DB)",
         PROP_JSETTLERS_ACCOUNTS_REQUIRED, "Require all players to have a user account? (if Y; requires a DB)",
         PROP_JSETTLERS_ACCOUNTS_ADMINS, "Permit only these usernames to create accounts (comma-separated)",
+        PROP_JSETTLERS_ADMIN_WELCOME, "If set, welcome message text to send when clients connect",
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
@@ -1535,6 +1558,38 @@ public class SOCServer extends Server
 
             if (props.containsKey(PROP_JSETTLERS_SAVEGAME_DIR))
                 initSocServer_savegame();
+        }
+
+        /**
+         * Check other misc optional properties
+         */
+        if (props.containsKey(PROP_JSETTLERS_ADMIN_WELCOME))
+        {
+            String txt0 = props.getProperty(PROP_JSETTLERS_ADMIN_WELCOME),
+                   txt = txt0.trim();
+            if (txt.isEmpty())
+            {
+                props.remove(PROP_JSETTLERS_ADMIN_WELCOME);
+            } else {
+                String err = null;
+
+                final char ch0 = txt.charAt(0);
+                if (ch0 == SOCMessage.sep2_char)
+                    err = "Cannot start with comma";
+                else if (Character.isDigit(ch0))
+                    err = "Cannot start with digit";
+                else if (txt.indexOf(SOCMessage.sep_char) != -1)
+                    err = "Cannot contain '|'";
+                else if (! SOCMessage.isSingleLineAndSafe(txt, true))
+                    err = "Cannot contain control character or newline";
+
+                if (err != null)
+                    throw new IllegalArgumentException
+                        ("Config: " + PROP_JSETTLERS_ADMIN_WELCOME + ": " + err);
+
+                if (! txt.equals(txt0))
+                    props.put(PROP_JSETTLERS_ADMIN_WELCOME, txt);  // use trimmed text
+            }
         }
 
         /**
@@ -5697,6 +5752,26 @@ public class SOCServer extends Server
     }
 
     /**
+     * Localize the standard "Welcome to Java Settlers of Catan!" text,
+     * or return the custom welcome text from {@link #PROP_JSETTLERS_ADMIN_WELCOME}
+     * if set.
+     *
+     * @param c  Client to localize for
+     * @return  Server's welcome text
+     * @throws NullPointerException if {@code c} is null
+     * @since 2.3.00
+     */
+    /*package*/ String getClientWelcomeMessage(final Connection c)
+        throws NullPointerException
+    {
+        String welcomeText = props.getProperty(PROP_JSETTLERS_ADMIN_WELCOME);
+        if (welcomeText == null)
+            welcomeText = c.getLocalized("netmsg.status.welcome");  // "Welcome to Java Settlers of Catan!"
+
+        return welcomeText;
+    }
+
+    /**
      * Set client's version and locale, and check against minimum required version {@link #CLI_VERSION_MIN}.
      * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}
      * and call {@link #removeConnection(Connection, boolean)}.
@@ -5781,29 +5856,21 @@ public class SOCServer extends Server
         // Message to send/log if client must be disconnected
         String rejectMsg = null;
         String rejectLogMsg = null;
-        // Message to warn user, localized if possible, but continue the connection
-        String warnMsg = null;
+
+        // Message to welcome user or warn them about something, localized if possible;
+        // will send message text and continue the connection.
+        // If not null, should be a sentence ending with '.' in case must append other info.
+        String warnText = null;
 
         if (clocale == null)
             clocale = "en_US";  // backwards compatibility with clients older than v2.0.00
 
-        final int hashIdx = clocale.indexOf("_#");
-        if (hashIdx != -1)
-        {
-            // extended info from java 1.7+ Locale.toString();
-            // if our server is an older JRE version, strip that out.
-            final String jreVersStr = System.getProperty("java.specification.version");
-            if (jreVersStr.startsWith("1.5") || jreVersStr.startsWith("1.6"))
-            {
-                clocale = clocale.substring(0, hashIdx);
-            }
-        }
         scd.localeStr = clocale;
         try
         {
             scd.locale = StringManager.parseLocale(clocale);
         } catch (IllegalArgumentException e) {
-            warnMsg = "Sorry, cannot parse your locale.";  // i18n OK: We don't know client locale
+            warnText = "Sorry, cannot parse your locale.";  // i18n OK: We don't know client locale
             scd.localeStr = "en_US";  // fallback
             scd.locale = Locale.US;
         }
@@ -5865,25 +5932,38 @@ public class SOCServer extends Server
         // prevVers is ignored unless already sent game list.
         gameList.sendGameList(c, prevVers);
 
+        // Check for custom welcome message
+        final String welcomeText = props.getProperty(PROP_JSETTLERS_ADMIN_WELCOME);
+        if (welcomeText != null)
+        {
+            if (warnText == null)
+                warnText = welcomeText;
+            else
+                warnText += " " + welcomeText;
+        }
+
         // Warn if debug commands are allowed.
         // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
         {
             StringBuilder txt = new StringBuilder(c.getLocalized("netmsg.status.welcome.debug"));  // "Debugging is On."
-            txt.append(' ');
-            if (warnMsg != null)
+            if (warnText != null)
             {
-                txt.append(warnMsg);
                 txt.append(' ');
+                txt.append(warnText);
             }
-            txt.append(c.getLocalized("netmsg.status.welcome"));  // "Welcome to Java Settlers of Catan!"
+            if (welcomeText == null)
+            {
+                txt.append(' ');
+                txt.append(c.getLocalized("netmsg.status.welcome"));  // "Welcome to Java Settlers of Catan!"
+            }
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers, txt.toString()));
         }
-        else if (warnMsg != null)
+        else if (warnText != null)
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK, cvers, warnMsg));
+                    (SOCStatusMessage.SV_OK, cvers, warnText));
         }
 
         // Increment version stats; this method is called from per-client threads.
@@ -6332,7 +6412,7 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK_SET_NICKNAME,
                      c.getData() + SOCMessage.sep2_char +
-                     c.getLocalized("netmsg.status.welcome")));  // "Welcome to Java Settlers of Catan!"
+                     getClientWelcomeMessage(c)));  // "Welcome to Java Settlers of Catan!"
 
             if (isTakingOver)
             {

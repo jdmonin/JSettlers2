@@ -259,10 +259,13 @@ When preparing to release a new version, testing should include:
            during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
     - Versions to test against: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
-      latest **1.x.xx** (before Scenarios/sea boards)
+      latest **1.x.xx** (before Scenarios/sea boards); **2.0.00** (many message format changes, i18n)
     - New client, old server
     - New server, old client
     - Test these specific things for each version:
+        - Server config:
+            - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`;  
+              all client versions should see that custom text when they connect
         - With an older client connected to a newer server, available new-game options
           should adapt to the older client version.  
           With a newer client connected to an older server, available new-game options
@@ -492,6 +495,8 @@ When preparing to release a new version, testing should include:
       Client main panel should not see channel create/join/list controls
     - Start server with prop `jsettlers.startrobots=0`:  
       Connect client and try to start a game, should see "No robots on this server" in game text area
+    - Start server with prop `jsettlers.stats.file.name=/tmp/stats.txt`:  
+      After 60 minutes, server should write `*STATS*` output to that file
 
 ## Database setup and Account Admins list
 
