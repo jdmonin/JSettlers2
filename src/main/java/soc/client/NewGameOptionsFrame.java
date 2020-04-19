@@ -1383,20 +1383,21 @@ import soc.util.Version;
 
         String errMsg = null;
         if (L > SOCGameList.GAME_NAME_MAX_LENGTH)
-        {
             errMsg = strings.get("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH);
                 // "Please choose a shorter name; maximum length: {0}"
-        }
+        else if (-1 != gmName.indexOf(SOCMessage.sep_char))  // '|'
+            errMsg = strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep_char);
+                // Name must not contain "|", please choose a different name.
+        else if (-1 != gmName.indexOf(SOCMessage.sep2_char))  // ','
+            errMsg = strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep2_char);
+                // Name must not contain ",", please choose a different name.
         else if ((gmName.charAt(0) == '?') || ! SOCMessage.isSingleLineAndSafe(gmName))
-        {
             errMsg = strings.get("netmsg.status.common.newgame_name_rejected");
                 // "This name is not permitted, please choose a different name."
-        }
         else if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(gmName).matches())
-        {
             errMsg = strings.get("netmsg.status.common.newgame_name_rejected_digits_or_punct");
                 // "A name with only digits or punctuation is not permitted, please add a letter."
-        }
+
         if (errMsg != null)
         {
             msgText.setText(errMsg);

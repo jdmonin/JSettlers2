@@ -1670,10 +1670,21 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             return null;
         }
 
-        if (! SOCMessage.isSingleLineAndSafe(n))
-        {
-            status.setText(client.strings.get("netmsg.status.common.newgame_name_rejected"));
+        String errMsg = null;
+        if (-1 != n.indexOf(SOCMessage.sep_char))  // '|'
+            errMsg = client.strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep_char);
+                // Name must not contain "|", please choose a different name.
+        else if (-1 != n.indexOf(SOCMessage.sep2_char))  // ','
+            errMsg = client.strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep2_char);
+                // Name must not contain ",", please choose a different name.
+        else if (! SOCMessage.isSingleLineAndSafe(n))
+            errMsg = client.strings.get("netmsg.status.common.newgame_name_rejected");
                 // "This name is not permitted, please choose a different name."
+
+        if (errMsg != null)
+        {
+            status.setText(errMsg);
+
             return null;
         }
 
