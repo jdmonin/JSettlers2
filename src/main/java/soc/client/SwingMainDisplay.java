@@ -1349,7 +1349,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * If target is {@link #chlist} itself, will call {@link JList#getSelectedValue()}
      * to get which channel name was clicked.
      * @param target Target as in actionPerformed
-     * @return True if OK, false if caller needs to show popup "cannot join"
+     * @return True if OK or no action taken, false if caller needs to show popup "cannot join"
      * @see #guardedActionPerform_games(Object)
      * @since 1.1.06
      */
@@ -1377,9 +1377,18 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 return false;
 
             ch = itm.name.trim();
+        } else if (! ch.isEmpty()) {
+            String errMsg = checkNameFormat(ch);
+
+            if (errMsg != null)
+            {
+                status.setText(errMsg);
+                channel.requestFocusInWindow();
+                ch = "";
+            }
         }
 
-        if (ch.length() == 0)
+        if (ch.isEmpty())
         {
             return true;
         }
@@ -1670,17 +1679,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             return null;
         }
 
-        String errMsg = null;
-        if (-1 != n.indexOf(SOCMessage.sep_char))  // '|'
-            errMsg = client.strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep_char);
-                // Name must not contain "|", please choose a different name.
-        else if (-1 != n.indexOf(SOCMessage.sep2_char))  // ','
-            errMsg = client.strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep2_char);
-                // Name must not contain ",", please choose a different name.
-        else if (! SOCMessage.isSingleLineAndSafe(n))
-            errMsg = client.strings.get("netmsg.status.common.newgame_name_rejected");
-                // "This name is not permitted, please choose a different name."
-
+        String errMsg = checkNameFormat(n);
         if (errMsg != null)
         {
             status.setText(errMsg);
@@ -1698,6 +1697,36 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
 
         return n;
+    }
+
+    /**
+     * Check format of an entered nickname or channel name;
+     * if problems, return error text to explain.
+     *<UL>
+     * <LI> Can't contain {@code '|'} or {@code ','}
+     * <LI> Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
+     *</UL>
+     * Doesn't check a few additional requirements that don't apply to channels.
+     *
+     * @param n Name to check; should not be null or empty
+     * @return {@code null} if name is OK, otherwise localized error text
+     * @since 2.3.00
+     */
+    private String checkNameFormat(final String n)
+    {
+        String errMsg = null;
+
+        if (-1 != n.indexOf(SOCMessage.sep_char))  // '|'
+            errMsg = client.strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep_char);
+                // Name must not contain "|", please choose a different name.
+        else if (-1 != n.indexOf(SOCMessage.sep2_char))  // ','
+            errMsg = client.strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep2_char);
+                // Name must not contain ",", please choose a different name.
+        else if (! SOCMessage.isSingleLineAndSafe(n))
+            errMsg = client.strings.get("netmsg.status.common.newgame_name_rejected");
+                // "This name is not permitted, please choose a different name."
+
+        return errMsg;
     }
 
     /**

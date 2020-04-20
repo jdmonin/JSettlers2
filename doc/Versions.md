@@ -23,7 +23,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Bugfix: If started a practice game, then connected to a server game:
 	  - Practice game trades stopped working
 	  - Might've joined server game as "Player" or "null"
-	- If nickname or game name contains disallowed character ',' or '|', explanation text mentions that character
+	- If nickname or channel/game name contains disallowed character ',' or '|', explanation text mentions that character
 - Bots/AI:
 	- When offering a trade to human players, shorten max wait to 30 seconds (was 100)
 - Server:

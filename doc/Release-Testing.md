@@ -684,9 +684,9 @@ Start with a recently-created database with latest schema/setup scripts.
 
 ## Other misc testing
 
-- Client/player nickname and game name:
-    - When joining a server or starting a game, check for enforcement and a helpful error message:
-        - Name can't be entirely digits
+- Client/player nickname and game/channel names:
+    - When joining a server or starting a game and a channel, check for enforcement and a helpful error message:
+        - Name can't be entirely digits (is OK for channel)
         - Name can't contain `,` or `|`
         - Game name can't start with `?`
 - "Replace/Take Over" on lost connection:
