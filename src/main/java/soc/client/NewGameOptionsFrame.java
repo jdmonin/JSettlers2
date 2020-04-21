@@ -46,6 +46,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
@@ -560,9 +561,15 @@ import soc.util.Version;
         }
 
         // Sort and lay out options; remove unknowns and internal-onlys from opts.
+
         // TreeSet sorts game options by description, using gameopt.compareTo.
         // The array lets us remove from opts without disrupting an iterator.
         SOCGameOption[] optArr = new TreeSet<SOCGameOption>(opts.values()).toArray(new SOCGameOption[0]);
+
+        // Some game options from sameLineOpts, sorted by key.
+        // Declared up here for occasional reuse within the loop.
+        TreeMap<String, SOCGameOption> optGroup = new TreeMap<>();
+
         for (int i = 0; i < optArr.length; ++i)
         {
             SOCGameOption op = optArr[i];
@@ -596,17 +603,22 @@ import soc.util.Version;
             if (sharesLine)
             {
                 // Group them under this one.
+                // Sort by each opt's key, for stability across localizations.
                 // TODO group on same line, not following lines, if there's only 1.
+
+                optGroup.clear();
+
                 for (final String kf3 : sameLineOpts.keySet())
                 {
                     final String kf2 = sameLineOpts.get(kf3);
                     if ((kf2 == null) || ! kf2.equals(op.key))
                         continue;  // <-- Goes with a a different option --
 
-                    final SOCGameOption op3 = opts.get(kf3);
-                    if (op3 != null)
-                        initInterface_OptLine(op3, bp, gbl, gbc);
+                    optGroup.put(kf3, opts.get(kf3));
                 }
+
+                for (final SOCGameOption op3 : optGroup.values())
+                    initInterface_OptLine(op3, bp, gbl, gbc);
             }
 
         }  // for(opts)
