@@ -532,6 +532,8 @@ public class SOCGameOption
         final SOCGameOption plb = new SOCGameOption
                 ("PLB", 1108, 1113, false, FLAG_DROP_IF_UNUSED, "Use 6-player board");
         opt.put("PLB", plb);
+        opt.put("PLP", new SOCGameOption
+                ("PLP", 1108, 2300, false, FLAG_DROP_IF_UNUSED, "6-player board: Can Special Build only if 5 or 6 players in game"));
         opt.put("SBL", new SOCGameOption
                 ("SBL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Use sea board"));  // see also SOCBoardLarge
         opt.put("_BHW", new SOCGameOption
@@ -1076,6 +1078,7 @@ public class SOCGameOption
      * @param minVers Minimum client version for games where this option is set (its boolean field is true), or -1.
      *                If <tt>key</tt> is longer than 3 characters, <tt>minVers</tt> must be at least 2000
      *                ({@link #VERSION_FOR_LONGER_OPTNAMES}).
+     *                For {@link #OTYPE_UNKNOWN}, use {@link Integer#MAX_VALUE}.
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
      * @param defaultIntValue Default int value, to use if option is set
@@ -1447,6 +1450,7 @@ public class SOCGameOption
      * Make and return a copy of all known objects. Calls {@link #cloneOptions(Map)}.
      * @return a deep copy of all known option objects
      * @see #addKnownOption(SOCGameOption)
+     * @see #initAllOptions()
      */
     public static Map<String, SOCGameOption> getAllKnownOptions()
     {

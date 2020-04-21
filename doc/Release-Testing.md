@@ -76,6 +76,10 @@ When preparing to release a new version, testing should include:
       join one as observer to make sure the pause is shorter than normal games
 - New features in previous 2 versions from [Versions.md](Versions.md)
 - Each available game option
+    - For house rule game opt "6-player board: Can Special Build only if 5 or 6 players in game",  
+      also test latest server version against client v2.2.00 or older:
+        - Client can create a game with this option, 4 players, on 6-player board
+        - When client clicks Special Building button, server sends text explaining the house rule is active
 - Basic rules and game play
     - Can build pieces by right-clicking board or with the Build Panel
     - Can trade with ports by right-clicking board or using Trade Offer Bank/Port button

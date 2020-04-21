@@ -1719,8 +1719,10 @@ public class SOCRobotBrain extends Thread
                              * and if we haven't given up building attempts this turn.
                              */
 
-                            if (buildingPlan.empty() && (ourPlayerData.getResources().getTotal() > 1)
-                                && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+                            if (buildingPlan.empty()
+                                && (ourPlayerData.getResources().getTotal() > 1)
+                                && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN)
+                                && ! (game.isGameOptionSet("PLP") && (game.getPlayerCount() < 5)))
                             {
                                 planBuilding();
 

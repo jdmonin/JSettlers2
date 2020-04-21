@@ -17,6 +17,8 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.3.00` (build JM2020xxxx)
 - Currently being developed
+- Gameplay:
+	- New optional house rule: On 6-player board, allow Special Building phase only if game actually has 5 or 6 players
 - Client:
 	- Game window:
 	  - Draw ships with slimmer sails, for better spacing next to other pieces

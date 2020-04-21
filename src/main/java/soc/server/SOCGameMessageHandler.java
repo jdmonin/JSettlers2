@@ -26,6 +26,7 @@ package soc.server;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import soc.debug.D;
 import soc.game.SOCBoardLarge;
@@ -1478,6 +1479,10 @@ public class SOCGameMessageHandler
                             (gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                         handler.endGameTurn(ga, player, true);  // triggers start of SBP
+                    } catch (NoSuchElementException e) {
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.special.PLP.common");
+                            // "House rule: Special Building phase requires 5 or 6 players."
+                        sendDenyReply = true;
                     } catch (IllegalStateException e) {
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
                         sendDenyReply = true;
@@ -1500,6 +1505,10 @@ public class SOCGameMessageHandler
                         srv.messageToGame
                             (gaName, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
+                    } catch (NoSuchElementException e) {
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.special.PLP.common");
+                            // "House rule: Special Building phase requires 5 or 6 players."
+                        sendDenyReply = true;
                     } catch (IllegalStateException e) {
                         srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
                         sendDenyReply = true;
@@ -2464,15 +2473,16 @@ public class SOCGameMessageHandler
                     handler.sendGameState(ga);
                 } else {
                     if (ga.getNumDevCards() == 0)
-                        srv.messageToPlayer(c, gaName, "There are no more Development cards.");
+                        srv.messageToPlayer(c, gaName, /*I*/"There are no more Development cards."/*18N*/ );
                     else
-                        srv.messageToPlayer(c, gaName, "You can't buy a development card now.");
+                        srv.messageToPlayer(c, gaName, /*I*/"You can't buy a development card now."/*18N*/ );
                     sendDenyReply = true;
                 }
             } else {
+                sendDenyReply = true;
                 if (ga.maxPlayers <= 4)
                 {
-                    srv.messageToPlayer(c, gaName, "It's not your turn.");
+                    srv.messageToPlayer(c, gaName, /*I*/"It's not your turn."/*18N*/ );
                 } else {
                     // 6-player board: Special Building Phase
                     try
@@ -2480,11 +2490,14 @@ public class SOCGameMessageHandler
                         ga.askSpecialBuild(pn, true);
                         srv.messageToGame(gaName, new SOCPlayerElement
                             (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
+                        sendDenyReply = false;
+                    } catch (NoSuchElementException e) {
+                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.special.PLP.common");
+                            // "House rule: Special Building phase requires 5 or 6 players."
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayer(c, gaName, "You can't ask to buy a card now.");
+                        srv.messageToPlayer(c, gaName, /*I*/"You can't ask to buy a card now."/*18N*/ );
                     }
                 }
-                sendDenyReply = true;
             }
 
             if (sendDenyReply && ga.getPlayer(pn).isRobot())

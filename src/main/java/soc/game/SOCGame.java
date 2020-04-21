@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
@@ -895,12 +896,15 @@ public class SOCGame implements Serializable, Cloneable
     private SOCPlayer[] players;
 
     /**
-     * the states for the player's seats
+     * State of each player number's seat: {@link #OCCUPIED}, {@link #VACANT}, etc.
+     * Length is {@link #maxPlayers}.
+     * @see #seatLocks
      */
     private int[] seats;
 
     /**
      * The lock state for each player number's seat. Length is {@link #maxPlayers}.
+     * @see #seats
      */
     private SeatLockState[] seatLocks;
 
@@ -929,6 +933,9 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * The 6-player extensions are orthogonal to other board type/expansion flags such as {@link #hasSeaBoard};
      * one doesn't imply or exclude the other.
+     *
+     * @see #getAvailableSeatCount()
+     * @see #getPlayerCount()
      * @since 1.1.08
      */
     public final int maxPlayers;
@@ -1726,6 +1733,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return number of available vacant seats
      * @see #isSeatVacant(int)
+     * @see #getPlayerCount()
      * @since 1.1.07
      */
     public int getAvailableSeatCount()
@@ -1815,6 +1823,26 @@ public class SOCGame implements Serializable, Cloneable
 
         for (int pn = 0; pn < sls.length; ++pn)
             seatLocks[pn] = sls[pn];
+    }
+
+    /**
+     * How many players are currently sitting/playing in the game?
+     * That is, how many seats are currently occupied by players?
+     * Useful for house rule game option {@code "PLP"} on 6-player board.
+     *
+     * @return  Number of seats where {@link #isSeatVacant(int)} is false;
+     *     minimum 0, maximum {@link #maxPlayers}.
+     * @see #getAvailableSeatCount()
+     * @since 2.3.00
+     */
+    public int getPlayerCount()
+    {
+        int n = 0;
+        for (int pn = 0; pn < seats.length; ++pn)
+            if (seats[pn] == OCCUPIED)
+                ++n;
+
+        return n;
     }
 
     /**
@@ -8801,18 +8829,23 @@ public class SOCGame implements Serializable, Cloneable
      * own turn, only if they haven't yet rolled or played a dev card.
      * To do so, call {@link #askSpecialBuild(int, boolean)} and then {@link #endTurn()}.
      *
-     * @param pn  The player's number
+     * @param pn  The asking player number
+     * @param throwExceptions  Behavior when player can't currently special build:
+     *     If true, throw one of the exceptions listed here to explain why.
+     *     If false, just return false.
      * @throws IllegalStateException  if game is not 6-player, or pn is current player,
      *            or {@link SOCPlayer#hasAskedSpecialBuild() pn.hasAskedSpecialBuild()}
      *            or {@link SOCPlayer#hasSpecialBuilt() pn.hasSpecialBuilt()} is true,
      *            or if gamestate is earlier than {@link #ROLL_OR_CARD}, or >= {@link #OVER},
      *            or if the first player is asking before completing their first turn.
+     * @throws NoSuchElementException  if house rule game option {@code "PLP"} is active
+     *            and {@link #getPlayerCount()} returns fewer then 5 sitting players.
      * @throws IllegalArgumentException  if pn is not a valid player (vacant seat, etc).
      * @see #canBuyOrAskSpecialBuild(int)
      * @since 1.1.08
      */
     public boolean canAskSpecialBuild(final int pn, final boolean throwExceptions)
-        throws IllegalStateException, IllegalArgumentException
+        throws IllegalStateException, NoSuchElementException, IllegalArgumentException
     {
         if (maxPlayers <= 4)
         {
@@ -8834,6 +8867,14 @@ public class SOCGame implements Serializable, Cloneable
         {
             if (throwExceptions)
                 throw new IllegalArgumentException("pn not valid");
+            else
+                return false;
+        }
+
+        if (isGameOptionSet("PLP") && (getPlayerCount() < 5))
+        {
+            if (throwExceptions)
+                throw new NoSuchElementException("house rule PLP, not enough players");
             else
                 return false;
         }
@@ -8882,11 +8923,13 @@ public class SOCGame implements Serializable, Cloneable
      *            Should always be <tt>true</tt> for server calls.
      * @throws IllegalStateException  if game is not 6-player, or is currently this player's turn,
      *            or if gamestate is earlier than {@link #ROLL_OR_CARD}, or >= {@link #OVER}.
+     * @throws NoSuchElementException  if {@code onlyIfCan}, and house rule game option {@code "PLP"} is active,
+     *     and {@link #getPlayerCount()} returns fewer then 5 sitting players.
      * @throws IllegalArgumentException  if pn is not a valid player (vacant seat, etc).
      * @since 1.1.08
      */
     public void askSpecialBuild(final int pn, final boolean onlyIfCan)
-        throws IllegalStateException, IllegalArgumentException
+        throws IllegalStateException, NoSuchElementException, IllegalArgumentException
     {
         if ((! onlyIfCan) || canAskSpecialBuild(pn, true))
         {
