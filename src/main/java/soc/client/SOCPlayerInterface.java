@@ -2004,9 +2004,8 @@ public class SOCPlayerInterface extends Frame
         SOCPlayer pl = game.getPlayer(botPlName.trim());
         if (pl != null)
         {
-            final SOCBoardPanel bp = getBoardPanel();
-            bp.setOtherPlayer(pl);
-            bp.setMode(mode);
+            boardPanel.setOtherPlayer(pl);
+            boardPanel.setMode(mode);
 
             String modeName;
             try
@@ -2465,8 +2464,8 @@ public class SOCPlayerInterface extends Frame
          */
         if (sitterIsClientPlayer)
         {
-            getBoardPanel().setPlayer();
-            getBuildingPanel().setPlayer();
+            boardPanel.setPlayer();
+            buildingPanel.setPlayer();
         }
 
         if (is6player)
@@ -2870,16 +2869,16 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-        getBoardPanel().updateMode();
-        getBuildingPanel().updateButtonStatus();
-        getBoardPanel().repaint();
+        boardPanel.updateMode();
+        buildingPanel.updateButtonStatus();
+        boardPanel.repaint();
 
         // Check for placement states (board panel popup, build via right-click)
         if ((gs == SOCGame.PLACING_ROAD) || (gs == SOCGame.PLACING_SETTLEMENT)
             || (gs == SOCGame.PLACING_CITY) || (gs == SOCGame.PLACING_SHIP))
         {
-            if (getBoardPanel().popupExpectingBuildRequest())
-                getBoardPanel().popupFireBuildingRequest();
+            if (boardPanel.popupExpectingBuildRequest())
+                boardPanel.popupFireBuildingRequest();
         }
 
         if ((gs == SOCGame.PLACING_INV_ITEM) && clientIsCurrentPlayer()
@@ -3119,7 +3118,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void updateAtRobberMoved(final int newHex, final boolean isPirate)
     {
-        getBoardPanel().repaint();
+        boardPanel.repaint();
     }
 
     /**
@@ -4088,7 +4087,7 @@ public class SOCPlayerInterface extends Frame
                     hpan.updateValue(utype);
                     hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // 2 cloth = 1 VP
                 } else {
-                    pi.getBuildingPanel().updateClothCount();
+                    pi.buildingPanel.updateClothCount();
                 }
                 break;
 
@@ -4132,7 +4131,7 @@ public class SOCPlayerInterface extends Frame
             }
 
             if (hpan.isClientPlayer() && (pi.getGame().getGameState() != SOCGame.NEW))
-                pi.getBuildingPanel().updateButtonStatus();
+                pi.buildingPanel.updateButtonStatus();
         }
 
         public void requestedSpecialBuild(SOCPlayer player)
@@ -4140,7 +4139,7 @@ public class SOCPlayerInterface extends Frame
             if (player.hasAskedSpecialBuild())
                 pi.printKeyed("game.sbp.wants.to", player.getName());  // * "{0} wants to Special Build."
             if (pi.isClientPlayer(player))
-                pi.getBuildingPanel().updateButtonStatus();
+                pi.buildingPanel.updateButtonStatus();
         }
 
         public void requestedGoldResourceCountUpdated(SOCPlayer player, int countToPick)
@@ -4236,17 +4235,17 @@ public class SOCPlayerInterface extends Frame
 
         public void boardUpdated()
         {
-            pi.getBoardPanel().flushBoardLayoutAndRepaint();
+            pi.boardPanel.flushBoardLayoutAndRepaint();
         }
 
         public void pieceValueUpdated(final SOCPlayingPiece piece)
         {
-            pi.getBoardPanel().pieceValueUpdated(piece);
+            pi.boardPanel.pieceValueUpdated(piece);
         }
 
         public void boardPotentialsUpdated()
         {
-            pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
+            pi.boardPanel.flushBoardLayoutAndRepaintIfDebugShowPotentials();
         }
 
         public void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber)
@@ -4428,7 +4427,7 @@ public class SOCPlayerInterface extends Frame
         public void buildRequestCanceled(SOCPlayer player)
         {
             pi.getPlayerHandPanel(player.getPlayerNumber()).updateResourcesVP();
-            pi.getBoardPanel().updateMode();
+            pi.boardPanel.updateMode();
         }
 
         public void invItemPlayRejected(final int type, final int reasonCode)
