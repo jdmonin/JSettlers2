@@ -2469,6 +2469,9 @@ public class SOCPlayerInterface extends Frame
             getBuildingPanel().setPlayer();
         }
 
+        if (is6player)
+            buildingPanel.updatePlayerCount();
+
         /**
          * update the hand panel's displayed values
          */
@@ -2512,11 +2515,16 @@ public class SOCPlayerInterface extends Frame
         else
             hands[pn].addSitButton(clientHand != null);  // Is the client player already sitting down at this game?
 
-        if (is6player && (clientHand == null))
+        if (is6player)
         {
-            // handpanel sizes change when client leaves in a 6-player game.
-            invalidate();
-            doLayout();
+            buildingPanel.updatePlayerCount();
+
+            if (clientHand == null)
+            {
+                // handpanel sizes change when client leaves in a 6-player game
+                invalidate();
+                doLayout();
+            }
         }
     }
 

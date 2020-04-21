@@ -532,8 +532,9 @@ public class SOCGameOption
         final SOCGameOption plb = new SOCGameOption
                 ("PLB", 1108, 1113, false, FLAG_DROP_IF_UNUSED, "Use 6-player board");
         opt.put("PLB", plb);
-        opt.put("PLP", new SOCGameOption
-                ("PLP", 1108, 2300, false, FLAG_DROP_IF_UNUSED, "6-player board: Can Special Build only if 5 or 6 players in game"));
+        final SOCGameOption plp = new SOCGameOption
+                ("PLP", 1108, 2300, false, FLAG_DROP_IF_UNUSED, "6-player board: Can Special Build only if 5 or 6 players in game");
+        opt.put("PLP", plp);
         opt.put("SBL", new SOCGameOption
                 ("SBL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Use sea board"));  // see also SOCBoardLarge
         opt.put("_BHW", new SOCGameOption
@@ -666,6 +667,23 @@ public class SOCGameOption
 
                 if (refreshPl)
                     pl.refreshDisplay();
+            }
+        });
+
+        // If PLP is set or cleared, also set or clear PLB unless user's already changed it
+        plp.addChangeListener(new ChangeListener()
+        {
+            public void valueChanged(SOCGameOption opt, Object oldValue, Object newValue,
+                    Map<String, SOCGameOption> currentOpts)
+            {
+                final boolean changedTo = (Boolean.TRUE.equals(newValue));
+
+                SOCGameOption plb = currentOpts.get("PLB");
+                if ((plb == null) || plb.userChanged || (changedTo == plb.getBoolValue()))
+                    return;
+
+                plb.setBoolValue(changedTo);
+                plb.refreshDisplay();
             }
         });
 

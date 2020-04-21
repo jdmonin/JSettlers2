@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2009,2013-2014,2016,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009,2013-2014,2016,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ public class NotifyDialog extends AskDialog
      * Creates and shows a new NotifyDialog.
      * Calls {@link EventQueue#invokeLater(Runnable)} to ensure it displays from the proper thread.
      *
-     * @param md       Player client's main display
+     * @param md       Player client's main display. Not null, required by parent {@link AskDialog}'s constructor
      * @param gamePI   Current game's player interface, or another Frame or Dialog for our parent window,
      *                 or null to look for cli's Frame/Dialog as parent
      * @param promptText  Prompt text appearing above button; also used for the dialog title.
@@ -68,7 +68,7 @@ public class NotifyDialog extends AskDialog
     /**
      * Creates a new NotifyDialog.
      *
-     * @param md       Player client's main display
+     * @param md       Player client's main display. Not null, required by parent {@link AskDialog}'s constructor
      * @param gamePI   Current game's player interface, or another Frame or Dialog for our parent window,
      *                 or null to look for cli's Frame/Dialog as parent
      * @param promptText  Prompt text appearing above button; also used for the dialog title.

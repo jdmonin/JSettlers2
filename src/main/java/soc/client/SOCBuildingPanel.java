@@ -158,13 +158,32 @@ import javax.swing.SwingConstants;
      *  Given variable custom layout in v2.0.00 for i18n. Contains {@link #sbLab} and {@link #sbBut}
      *  centered on 1 line or 2 lines based on their text widths.
      *  (Large Board omits {@code sbLab}.)
+     *  @see #sbIsHilight
      *  @since 1.1.08
      */
     private JPanel sbPanel;
+
+    /**
+     * Button in {@link #sbPanel} to request Special Building phase.
+     * @see #sbNeedsMorePlayers
+     */
     private JButton sbBut;
+
     /** "Special Building Phase" label. Not used on Large Board due to space constraints. */
     private JLabel sbLab;
-    private boolean sbIsHilight;  // Yellow, not grey, when true
+
+    /** {@link #sbPanel} background is yellow, not grey, when true. */
+    private boolean sbIsHilight;
+
+    /**
+     * If true, Special Building phase is allowed only when game has 5 or 6 sitting players,
+     * due to house rule game option {@code "PLP"}, as counted by {@link SOCGame#getPlayerCount()}.
+     * Affects {@link #sbBut}: When true, button is enabled but clicking it only brings up a message box
+     * explaining the active house rule.
+     * Updated by {@link #updatePlayerCount()}.
+     * @since 2.3.00
+     */
+    private boolean sbNeedsMorePlayers;
 
     /**
      * Piece-purchase button status; either all "Buy", or when placing a piece, 1 type "Cancel" and the rest disabled.
@@ -453,6 +472,8 @@ import javax.swing.SwingConstants;
             sbPanel.setToolTipText(TTIP_SBP_TEXT);
             if (sbLab != null)
                 sbLab.setToolTipText(TTIP_SBP_TEXT);
+
+            sbNeedsMorePlayers = (ga.isGameOptionSet("PLP") && (ga.getPlayerCount() < 5));
         }
 
         // make all labels and buttons use panel's font and background color;
@@ -933,6 +954,11 @@ import javax.swing.SwingConstants;
         {
             if (canAskSBP)
                 sendBuildRequest = -1;
+            else if (sbNeedsMorePlayers)
+                NotifyDialog.createAndShow
+                    (pi.getMainDisplay(), pi,
+                     strings.get("action.build.cannot.special.PLP.common"), null, true);
+                         // "House rule: Special Building phase requires 5 or 6 players."
         }
 
         if (sendBuildRequest != -9)
@@ -1091,7 +1117,12 @@ import javax.swing.SwingConstants;
                         sbLab.setBackground(want);
                     sbIsHilight = askedSB;
                 }
-                sbBut.setEnabled(game.canAskSpecialBuild(pnum, false) && ! askedSB);
+
+                final boolean enable =
+                    (sbNeedsMorePlayers)
+                    ? ((! isCurrent) && (gstate >= SOCGame.ROLL_OR_CARD))
+                    : (game.canAskSpecialBuild(pnum, false) && ! askedSB);
+                sbBut.setEnabled(enable);
             }
         }
     }
@@ -1117,6 +1148,27 @@ import javax.swing.SwingConstants;
         if (cloth == null)
             return;
         cloth.setIntValue( ((SOCBoardLarge) pi.getGame().getBoard()).getCloth() );
+    }
+
+    /**
+     * The number of seated players has changed. Update the display.
+     * If not using the 6-player board, don't need to call this method:
+     * Used with Special Building house rule game option {@code "PLP"}.
+     * Calls {@link #updateButtonStatus()} if needed.
+     * @since 2.3.00
+     */
+    public void updatePlayerCount()
+    {
+        final SOCGame game = pi.getGame();
+        if ((game.maxPlayers < 6) || ! game.isGameOptionSet("PLP"))
+            return;
+
+        final boolean newStatus = (game.getPlayerCount() < 5);
+        if (newStatus == sbNeedsMorePlayers)
+            return;
+
+        sbNeedsMorePlayers = newStatus;
+        updateButtonStatus();
     }
 
     /**
