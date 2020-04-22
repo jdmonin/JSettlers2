@@ -359,14 +359,21 @@ public class SOCRobotBrain extends Thread
     protected SOCResourceSet resourceChoices;
 
     /**
-     * our player tracker
+     * Our player tracker within {@link #playerTrackers}.
      */
     protected SOCPlayerTracker ourPlayerTracker;
 
     /**
-     * trackers for all players (one per player, including this robot)
+     * Trackers for all players (one per player number, including this robot).
+     * Null until {@link #setOurPlayerData()}; see {@link #addPlayerTracker(int)} for lifecycle info.
+     * Elements for vacant seats are {@code null}.
+     *<P>
+     * Before v2.3.00 this was a {@link HashMap}.
+     * Converted to array to avoid iterator ConcurrentModificationExceptions.
+     *
+     * @see #ourPlayerTracker
      */
-    protected HashMap<Integer, SOCPlayerTracker> playerTrackers;
+    protected SOCPlayerTracker[] playerTrackers;
 
     /**
      * the thing that determines what we want to build next
@@ -829,9 +836,9 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * @return the player trackers (one per player, including this robot)
+     * @return the player trackers (one per player number, including this robot; vacant seats are null)
      */
-    public HashMap<Integer, SOCPlayerTracker> getPlayerTrackers()
+    public SOCPlayerTracker[] getPlayerTrackers()
     {
         return playerTrackers;
     }
@@ -871,11 +878,9 @@ public class SOCRobotBrain extends Thread
 
             return;
         }
-        if (null == playerTrackers.get(Integer.valueOf(pn)))
-        {
-            SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
-            playerTrackers.put(Integer.valueOf(pn), tracker);
-        }
+
+        if (null == playerTrackers[pn])
+            playerTrackers[pn] = new SOCPlayerTracker(game.getPlayer(pn), this);
     }
 
     /**
@@ -996,15 +1001,15 @@ public class SOCRobotBrain extends Thread
         ourPlayerData = game.getPlayer(client.getNickname());
         ourPlayerTracker = new SOCPlayerTracker(ourPlayerData, this);
         ourPlayerNumber = ourPlayerData.getPlayerNumber();
-        playerTrackers = new HashMap<Integer, SOCPlayerTracker>();
-        playerTrackers.put(Integer.valueOf(ourPlayerNumber), ourPlayerTracker);
+        playerTrackers = new SOCPlayerTracker[game.maxPlayers];
+        playerTrackers[ourPlayerNumber] = ourPlayerTracker;
 
         for (int pn = 0; pn < game.maxPlayers; pn++)
         {
             if ((pn != ourPlayerNumber) && ! game.isSeatVacant(pn))
             {
                 SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
-                playerTrackers.put(Integer.valueOf(pn), tracker);
+                playerTrackers[pn] = tracker;
             }
         }
 
@@ -3053,7 +3058,7 @@ public class SOCRobotBrain extends Thread
                 // This was deferred until road placement, in case a human player decides
                 // to cancel their settlement and place it elsewhere.
                 //
-                SOCPlayerTracker tr = playerTrackers.get(Integer.valueOf(mes.getPlayerNumber()));
+                SOCPlayerTracker tr = playerTrackers[mes.getPlayerNumber()];
                 SOCSettlement se = tr.getPendingInitSettlement();
                 if (se != null)
                     trackNewSettlement(se, false);
@@ -3121,7 +3126,7 @@ public class SOCRobotBrain extends Thread
                 // "forget" to track this cancelled initial settlement.
                 // Wait for human player to place a new one.
                 //
-                SOCPlayerTracker tr = playerTrackers.get(Integer.valueOf(pnum));
+                SOCPlayerTracker tr = playerTrackers[pnum];
                 tr.setPendingInitSettlement(null);
             }
             break;
@@ -3464,7 +3469,7 @@ public class SOCRobotBrain extends Thread
                 // Track it soon, after the road is placed
                 // (in handlePUTPIECE_updateGameData)
                 // but not yet, in case player cancels placement.
-                SOCPlayerTracker tr = playerTrackers.get(Integer.valueOf(newSettlementPl.getPlayerNumber()));
+                SOCPlayerTracker tr = playerTrackers[newSettlementPl.getPlayerNumber()];
                 tr.setPendingInitSettlement(newSettlement);
             }
             else
@@ -3988,22 +3993,22 @@ public class SOCRobotBrain extends Thread
      */
     protected void trackNewSettlement(SOCSettlement newSettlement, final boolean isCancel)
     {
-        Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             if (! isCancel)
                 tracker.addNewSettlement(newSettlement, playerTrackers);
             else
                 tracker.cancelWrongSettlement(newSettlement);
         }
 
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             Iterator<SOCPossibleRoad> posRoadsIter = tracker.getPossibleRoads().values().iterator();
 
             while (posRoadsIter.hasNext())
@@ -4019,12 +4024,10 @@ public class SOCRobotBrain extends Thread
             }
         }
 
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
-            tracker.updateThreats(playerTrackers);
+            if (tracker != null)
+                tracker.updateThreats(playerTrackers);
         }
 
         if (isCancel)
@@ -4055,19 +4058,11 @@ public class SOCRobotBrain extends Thread
                     ///
                     /// this settlement bisects another players road
                     ///
-                    trackersIter = playerTrackers.values().iterator();
-
-                    while (trackersIter.hasNext())
+                    final SOCPlayerTracker tracker = playerTrackers[roadPN];
+                    if (tracker != null)
                     {
-                        SOCPlayerTracker tracker = trackersIter.next();
-
-                        if (tracker.getPlayer().getPlayerNumber() == roadPN)
-                        {
-                            //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
-                            //tracker.updateLRValues();
-                        }
-
-                        //tracker.recalcLongestRoadETA();
+                        //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
+                        //tracker.updateLRValues();
                     }
                 }
 
@@ -4080,44 +4075,28 @@ public class SOCRobotBrain extends Thread
         ///
         /// update the speedups from possible settlements
         ///
-        trackersIter = playerTrackers.values().iterator();
+        final SOCPlayerTracker tracker = playerTrackers[pNum];
 
-        while (trackersIter.hasNext())
+        if (tracker != null)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            Iterator<SOCPossibleSettlement> posSetsIter = tracker.getPossibleSettlements().values().iterator();
 
-            if (tracker.getPlayer().getPlayerNumber() == pNum)
+            while (posSetsIter.hasNext())
             {
-                Iterator<SOCPossibleSettlement> posSetsIter = tracker.getPossibleSettlements().values().iterator();
-
-                while (posSetsIter.hasNext())
-                {
-                    posSetsIter.next().updateSpeedup();
-                }
-
-                break;
+                posSetsIter.next().updateSpeedup();
             }
         }
 
         ///
         /// update the speedups from possible cities
         ///
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        if (tracker != null)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            Iterator<SOCPossibleCity> posCitiesIter = tracker.getPossibleCities().values().iterator();
 
-            if (tracker.getPlayer().getPlayerNumber() == pNum)
+            while (posCitiesIter.hasNext())
             {
-                Iterator<SOCPossibleCity> posCitiesIter = tracker.getPossibleCities().values().iterator();
-
-                while (posCitiesIter.hasNext())
-                {
-                    posCitiesIter.next().updateSpeedup();
-                }
-
-                break;
+                posCitiesIter.next().updateSpeedup();
             }
         }
     }
@@ -4133,11 +4112,10 @@ public class SOCRobotBrain extends Thread
     {
         final int newCityPN = newCity.getPlayerNumber();
 
-        Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
 
             if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
@@ -4158,11 +4136,10 @@ public class SOCRobotBrain extends Thread
         ///
         /// update the speedups from possible settlements
         ///
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
 
             if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
@@ -4180,11 +4157,10 @@ public class SOCRobotBrain extends Thread
         ///
         /// update the speedups from possible cities
         ///
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
 
             if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
@@ -4214,11 +4190,11 @@ public class SOCRobotBrain extends Thread
     {
         final int newRoadPN = newPiece.getPlayerNumber();
 
-        Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             tracker.takeMonitor();
 
             try
@@ -4236,16 +4212,16 @@ public class SOCRobotBrain extends Thread
                     System.out.println("Exception caught - " + e);
                     e.printStackTrace();
                 }
+            } finally {
+                tracker.releaseMonitor();
             }
-
-            tracker.releaseMonitor();
         }
 
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             tracker.takeMonitor();
 
             try
@@ -4272,19 +4248,19 @@ public class SOCRobotBrain extends Thread
                     System.out.println("Exception caught - " + e);
                     e.printStackTrace();
                 }
+            } finally {
+                tracker.releaseMonitor();
             }
-
-            tracker.releaseMonitor();
         }
 
         ///
         /// update LR values and ETA
         ///
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             tracker.updateThreats(playerTrackers);
             tracker.takeMonitor();
 
@@ -4306,9 +4282,9 @@ public class SOCRobotBrain extends Thread
                     System.out.println("Exception caught - " + e);
                     e.printStackTrace();
                 }
+            } finally {
+                tracker.releaseMonitor();
             }
-
-            tracker.releaseMonitor();
         }
     }
 

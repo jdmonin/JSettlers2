@@ -25,7 +25,6 @@ package soc.robot;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -110,7 +109,10 @@ public class SOCRobotDM
   public static final int FAST_STRATEGY = 1;
 
   protected SOCRobotBrain brain;
-  protected HashMap<Integer,SOCPlayerTracker> playerTrackers;
+
+  /** player trackers, one per player number; vacant seats are null */
+  protected SOCPlayerTracker[] playerTrackers;
+
   protected SOCPlayerTracker ourPlayerTracker;
   protected final SOCPlayer ourPlayerData;
 
@@ -200,14 +202,14 @@ public class SOCRobotDM
    * Constructor to use if you don't want to use a brain.
    *
    * @param params  the robot parameters
-   * @param pt   the player trackers
+   * @param pt   the player trackers, same format as {@link SOCRobotBrain#getPlayerTrackers()}
    * @param opt  our player tracker
    * @param opd  our player data
    * @param bp   our building plan
    */
   public SOCRobotDM
       (SOCRobotParameters params,
-       HashMap<Integer, SOCPlayerTracker> pt,
+       SOCPlayerTracker[] pt,
        SOCPlayerTracker opt,
        SOCPlayer opd,
        Stack<SOCPossiblePiece> bp)
@@ -281,7 +283,7 @@ public class SOCRobotDM
    *        with our current resources and ports
    * <LI> Clear lists threatened and good settlements and roads
    * <LI> Set favoriteRoad, favoriteSettlement, favoriteCity to null
-   * <LI> If {@code SMART_STRATEGY}, update all {@link SOCPlayerTracker#updateWinGameETAs(HashMap)}
+   * <LI> If {@code SMART_STRATEGY}, update all {@link SOCPlayerTracker#updateWinGameETAs(SOCPlayerTracker[])}
    * <LI> Get each player's win ETA from their tracker; find leading player (shortest win ETA)
    * <LI> For each of our possible pieces in our tracker, call its {@link SOCPossiblePiece#resetScore() resetScore()}
    *        and {@link SOCPossiblePiece#clearBiggestThreats() clearBiggestThreats()}
@@ -339,10 +341,11 @@ public class SOCRobotDM
     }
 
     int leadersCurrentWGETA = ourPlayerTracker.getWinGameETA();
-    Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-    while (trackersIter.hasNext())
+    for (final SOCPlayerTracker tracker : playerTrackers)
     {
-      SOCPlayerTracker tracker = trackersIter.next();
+      if (tracker == null)
+          continue;
+
       int wgeta = tracker.getWinGameETA();
       if (wgeta < leadersCurrentWGETA)
           leadersCurrentWGETA = wgeta;
@@ -1037,19 +1040,20 @@ public class SOCRobotDM
         else
             tmpRS = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
 
-        HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, playerTrackers);
+        SOCPlayerTracker[] trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, playerTrackers);
         SOCPlayerTracker.updateWinGameETAs(trackersCopy);
 
-        SOCPlayerTracker ourPlayerTrackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
+        SOCPlayerTracker ourPlayerTrackerCopy = trackersCopy[ourPlayerNumber];
 
         final int ourCurrentWGETACopy = ourPlayerTrackerCopy.getWinGameETA();
         D.ebugPrintln("ourCurrentWGETACopy = "+ourCurrentWGETACopy);
 
         int leadersCurrentWGETACopy = ourCurrentWGETACopy;
-        Iterator<SOCPlayerTracker> trackersCopyIter = trackersCopy.values().iterator();
-        while (trackersCopyIter.hasNext())
+        for (final SOCPlayerTracker tracker : trackersCopy)
         {
-          SOCPlayerTracker tracker = trackersCopyIter.next();
+          if (tracker == null)
+            continue;
+
           int wgeta = tracker.getWinGameETA();
           if (wgeta < leadersCurrentWGETACopy) {
             leadersCurrentWGETACopy = wgeta;
@@ -1439,10 +1443,11 @@ public class SOCRobotDM
     D.ebugPrintln("ourCurrentWGETA = "+ourCurrentWGETA);
 
     int leadersCurrentWGETA = ourCurrentWGETA;
-    Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-    while (trackersIter.hasNext())
+    for (final SOCPlayerTracker tracker : playerTrackers)
     {
-      SOCPlayerTracker tracker = trackersIter.next();
+      if (tracker == null)
+        continue;
+
       int wgeta = tracker.getWinGameETA();
       if (wgeta < leadersCurrentWGETA) {
         leadersCurrentWGETA = wgeta;
@@ -1719,8 +1724,8 @@ public class SOCRobotDM
     ///
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.CITY) > 0)
     {
-      HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.copyPlayerTrackers(playerTrackers);
-      SOCPlayerTracker ourTrackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
+      SOCPlayerTracker[] trackersCopy = SOCPlayerTracker.copyPlayerTrackers(playerTrackers);
+      SOCPlayerTracker ourTrackerCopy = trackersCopy[ourPlayerNumber];
       int originalWGETAs[] = new int[game.maxPlayers];
       int WGETAdiffs[] = new int[game.maxPlayers];
       Vector<SOCPlayerTracker> leaders = new Vector<SOCPlayerTracker>();
@@ -1749,10 +1754,11 @@ public class SOCRobotDM
 
         // TODO refactor? This section is like a copy of calcWGETABonus, with something added in the middle
 
-        Iterator<SOCPlayerTracker> trackersBeforeIter = trackersCopy.values().iterator();
-        while (trackersBeforeIter.hasNext())
+        for (final SOCPlayerTracker trackerBefore : trackersCopy)
         {
-          SOCPlayerTracker trackerBefore = trackersBeforeIter.next();
+          if (trackerBefore == null)
+            continue;
+
           final int pn = trackerBefore.getPlayer().getPlayerNumber();
           D.ebugPrintln("$$$ win game ETA for player " + pn + " = " + trackerBefore.getWinGameETA());
           originalWGETAs[pn] = trackerBefore.getWinGameETA();
@@ -2449,7 +2455,7 @@ public class SOCRobotDM
           brain.getDRecorder().record("Estimate value of settlement at "+board.nodeCoordToString(posSet.getCoordinates()));
         }
 
-        HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.tryPutPiece(tmpSet, game, playerTrackers);
+        SOCPlayerTracker[] trackersCopy = SOCPlayerTracker.tryPutPiece(tmpSet, game, playerTrackers);
         SOCPlayerTracker.updateWinGameETAs(trackersCopy);
         float wgetaScore = calcWGETABonus(playerTrackers, trackersCopy);
         D.ebugPrintln("***  wgetaScore = "+wgetaScore);
@@ -2484,7 +2490,7 @@ public class SOCRobotDM
    */
   protected float getWinGameETABonus(final SOCPossiblePiece posPiece)
   {
-    HashMap<Integer, SOCPlayerTracker> trackersCopy = null;
+    SOCPlayerTracker[] trackersCopy = null;
     SOCSettlement tmpSet = null;
     SOCCity tmpCity = null;
     SOCRoutePiece tmpRS = null;  // road or ship
@@ -2506,7 +2512,7 @@ public class SOCRobotDM
       trackersCopy = SOCPlayerTracker.copyPlayerTrackers(playerTrackers);
       tmpCity = new SOCCity(ourPlayerData, posPiece.getCoordinates(), null);
       game.putTempPiece(tmpCity);
-      SOCPlayerTracker trackerCopy = trackersCopy.get(Integer.valueOf(ourPlayerNumber));
+      SOCPlayerTracker trackerCopy = trackersCopy[ourPlayerNumber];
       if (trackerCopy != null) {
         trackerCopy.addOurNewCity(tmpCity);
       }
@@ -2568,11 +2574,11 @@ public class SOCRobotDM
    * based on the change in win game ETA for this one road or ship
    * (possible settlements are 1 road closer, longest road bonus, etc).
    *<UL>
-   * <LI> Calls {@link SOCPlayerTracker#tryPutPiece(SOCPlayingPiece, SOCGame, HashMap)}
+   * <LI> Calls {@link SOCPlayerTracker#tryPutPiece(SOCPlayingPiece, SOCGame, SOCPlayerTracker[])}
    *      which makes a copy of the player trackers and puts the piece there.
    *      This also updates our player's VP total, including any special VP from placement.
-   * <LI> Calls {@link SOCPlayerTracker#updateWinGameETAs(HashMap)} on that copy
-   * <LI> Calls {@link #calcWGETABonus(HashMap, HashMap)} to compare WGETA before and after placement
+   * <LI> Calls {@link SOCPlayerTracker#updateWinGameETAs(SOCPlayerTracker[])} on that copy
+   * <LI> Calls {@link #calcWGETABonus(SOCPlayerTracker[], SOCPlayerTracker[])} to compare WGETA before and after placement
    * <LI> Calls {@link #getETABonus(int, int, float)} to weigh that bonus
    * <LI> Adds that to {@code posRoad}'s {@link SOCPossiblePiece#getScore()}
    * <LI> Cleans up with {@link SOCPlayerTracker#undoTryPutPiece(SOCPlayingPiece, SOCGame)}
@@ -2585,13 +2591,13 @@ public class SOCRobotDM
    */
   protected float getWinGameETABonusForRoad
       (final SOCPossibleRoad posRoad, final int roadETA, final int leadersCurrentWGETA,
-       HashMap<Integer, SOCPlayerTracker> playerTrackers)
+       final SOCPlayerTracker[] playerTrackers)
   {
     D.ebugPrintln("--- addWinGameETABonusForRoad");
     int ourCurrentWGETA = ourPlayerTracker.getWinGameETA();
     D.ebugPrintln("ourCurrentWGETA = "+ourCurrentWGETA);
 
-    HashMap<Integer, SOCPlayerTracker> trackersCopy = null;
+    SOCPlayerTracker[] trackersCopy = null;
     SOCRoutePiece tmpRS = null;
     // Building road or ship?  TODO Better ETA calc for coastal road/ship
     final boolean isShip = (posRoad instanceof SOCPossibleShip)
@@ -2615,6 +2621,7 @@ public class SOCRobotDM
     tmpRS = (isShip)
         ? new SOCShip(ourPlayerData, posRoad.getCoordinates(), null)
         : new SOCRoad(ourPlayerData, posRoad.getCoordinates(), null);
+
     trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, playerTrackers);
     SOCPlayerTracker.updateWinGameETAs(trackersCopy);
     float score = calcWGETABonus(playerTrackers, trackersCopy);
@@ -2650,12 +2657,12 @@ public class SOCRobotDM
    * The bonus is based on lowering your bot's WGETA and increasing the leaders' WGETA.
    *
    * @param  trackersBefore   list of player trackers before move
-   * @param  trackersAfter    list of player trackers after move;
-   *           call {@link SOCPlayerTracker#updateWinGameETAs(HashMap) SOCPlayerTracker.updateWinGameETAs(trackersAfter)}
+   * @param  trackersAfter    list of player trackers after move; call
+   *           {@link SOCPlayerTracker#updateWinGameETAs(SOCPlayerTracker[]) SOCPlayerTracker.updateWinGameETAs(trackersAfter)}
    *           before calling this method
    */
   protected float calcWGETABonus
-      (HashMap<Integer, SOCPlayerTracker> trackersBefore, HashMap<Integer, SOCPlayerTracker> trackersAfter)
+      (final SOCPlayerTracker[] trackersBefore, final SOCPlayerTracker[] trackersAfter)
   {
     D.ebugPrintln("^^^^^ calcWGETABonus");
     int originalWGETAs[] = new int[game.maxPlayers];
@@ -2664,10 +2671,11 @@ public class SOCRobotDM
     int bestWGETA = 1000;  // Lower is better
     float bonus = 0;
 
-    Iterator<SOCPlayerTracker> trackersBeforeIter = trackersBefore.values().iterator();
-    while (trackersBeforeIter.hasNext())
+    for (final SOCPlayerTracker trackerBefore : trackersBefore)
     {
-      SOCPlayerTracker trackerBefore = trackersBeforeIter.next();
+      if (trackerBefore == null)
+        continue;
+
       final int pn = trackerBefore.getPlayer().getPlayerNumber();
       D.ebugPrintln("$$$ win game ETA for player " + pn + " = " + trackerBefore.getWinGameETA());
       originalWGETAs[pn] = trackerBefore.getWinGameETA();
@@ -2697,15 +2705,15 @@ public class SOCRobotDM
    * The bonus is based on lowering your bot's WGETA and increasing the leaders' WGETA.
    *
    * @param originalWGETAs   the original WGETAs; each player's {@link SOCPlayerTracker#getWinGameETA()} before the change
-   * @param trackersAfter    the playerTrackers after the change;
-   *          call {@link SOCPlayerTracker#updateWinGameETAs(HashMap) SOCPlayerTracker.updateWinGameETAs(trackersAfter)}
+   * @param trackersAfter    the playerTrackers after the change; call
+   *          {@link SOCPlayerTracker#updateWinGameETAs(SOCPlayerTracker[]) SOCPlayerTracker.updateWinGameETAs(trackersAfter)}
    *          before calling this method
    * @param leaders          a list of leaders (players winning soonest);
    *          the player(s) with lowest {@link SOCPlayerTracker#getWinGameETA()}.
    *          Contains only one element, unless there is an ETA tie.
    */
   protected float calcWGETABonusAux
-      (final int[] originalWGETAs, HashMap<Integer, SOCPlayerTracker> trackersAfter, Vector<SOCPlayerTracker> leaders)
+      (final int[] originalWGETAs, final SOCPlayerTracker[] trackersAfter, final Vector<SOCPlayerTracker> leaders)
   {
     int WGETAdiffs[] = new int[game.maxPlayers];
     int bestWGETA = 1000;
@@ -2718,10 +2726,11 @@ public class SOCRobotDM
         bestWGETA = originalWGETAs[i];
     }
 
-    Iterator<SOCPlayerTracker> trackersAfterIter = trackersAfter.values().iterator();
-    while (trackersAfterIter.hasNext())
+    for (final SOCPlayerTracker trackerAfter : trackersAfter)
     {
-      SOCPlayerTracker trackerAfter = trackersAfterIter.next();
+      if (trackerAfter == null)
+        continue;
+
       final int pn = trackerAfter.getPlayer().getPlayerNumber();
       WGETAdiffs[pn] -= trackerAfter.getWinGameETA();
       D.ebugPrintln("$$$ win game ETA diff for player " + pn + " = " + WGETAdiffs[pn]);
@@ -2835,7 +2844,7 @@ public class SOCRobotDM
    * and effects on the leading opponent players' WGETAs.
    *<P>
    * Assumes {@link SOCPlayerTracker#getWinGameETA()} is accurate at time of call.
-   * Calls {@link SOCPlayerTracker#updateWinGameETAs(HashMap)} after temporarily adding
+   * Calls {@link SOCPlayerTracker#updateWinGameETAs(SOCPlayerTracker[])} after temporarily adding
    * a knight or +1VP card, but doesn't call it after cleaning up from the temporary add,
    * so {@link SOCPlayerTracker#getWinGameETA()} will be inaccurate afterwards.
    */
@@ -2852,10 +2861,11 @@ public class SOCRobotDM
     int originalWGETAs[] = new int[game.maxPlayers];
     int bestWGETA = 1000;
     Vector<SOCPlayerTracker> leaders = new Vector<SOCPlayerTracker>();
-    Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-    while (trackersIter.hasNext())
+    for (final SOCPlayerTracker tracker : playerTrackers)
     {
-      SOCPlayerTracker tracker = trackersIter.next();
+      if (tracker == null)
+        continue;
+
       final int pn = tracker.getPlayer().getPlayerNumber();
       originalWGETAs[pn] = tracker.getWinGameETA();
       WGETAdiffs[pn] = tracker.getWinGameETA();
@@ -2978,7 +2988,8 @@ public class SOCRobotDM
    *          From {@link SOCBuildingSpeedEstimate#getEstimatesFromNowFast(SOCResourceSet, boolean[])}.
    * @param leadWGETA  the WGETA (Win Game ETA) of the leader
    * @param bonus  Base WGETA bonus, before weight adjustment.
-   *          From {@link #calcWGETABonus(HashMap, HashMap)}, {@link #calcWGETABonusAux(int[], HashMap, Vector)}, etc.
+   *          From {@link #calcWGETABonus(SOCPlayerTracker[], SOCPlayerTracker[])},
+   *          {@link #calcWGETABonusAux(int[], SOCPlayerTracker[], Vector)}, etc.
    * @return the weighted ETA bonus
    */
   float getETABonus(final int eta, final int leadWGETA, final float bonus)
