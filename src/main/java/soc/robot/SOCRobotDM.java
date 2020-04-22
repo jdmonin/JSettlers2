@@ -110,10 +110,16 @@ public class SOCRobotDM
 
   protected SOCRobotBrain brain;
 
-  /** player trackers, one per player number; vacant seats are null */
+  /**
+   * Player trackers, one per player number; vacant seats are null.
+   * Same format as {@link SOCRobotBrain#getPlayerTrackers()}.
+   * @see #ourPlayerTracker
+   */
   protected SOCPlayerTracker[] playerTrackers;
 
+  /** Player tracker for {@link #ourPlayerData}. */
   protected SOCPlayerTracker ourPlayerTracker;
+
   protected final SOCPlayer ourPlayerData;
 
   /**

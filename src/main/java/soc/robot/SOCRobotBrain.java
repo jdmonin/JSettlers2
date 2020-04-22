@@ -369,7 +369,8 @@ public class SOCRobotBrain extends Thread
      * Elements for vacant seats are {@code null}.
      *<P>
      * Before v2.3.00 this was a {@link HashMap}.
-     * Converted to array to avoid iterator ConcurrentModificationExceptions.
+     * Converted to array to avoid iterator ConcurrentModificationExceptions
+     * during {@code *LOADGAME*} debug command.
      *
      * @see #ourPlayerTracker
      */

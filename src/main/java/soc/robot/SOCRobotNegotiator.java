@@ -84,16 +84,24 @@ public class SOCRobotNegotiator
      */
     protected Stack<SOCPossiblePiece> buildingPlan;
 
-    /** player trackers, one per player number; vacant seats are null */
+    /**
+     * Player trackers, one per player number; vacant seats are null.
+     * Same format as {@link SOCRobotBrain#getPlayerTrackers()}.
+     * @see #ourPlayerTracker
+     */
     protected SOCPlayerTracker[] playerTrackers;
 
+    /** Player tracker for {@link #ourPlayerData}. */
     protected SOCPlayerTracker ourPlayerTracker;
+
     protected final SOCPlayer ourPlayerData;
+
     /**
      * {@link #ourPlayerData}'s player number.
      * @since 2.0.00
      */
     protected final int ourPlayerNumber;
+
     protected SOCRobotDM decisionMaker;
     protected boolean[][] isSellingResource;
     protected boolean[][] wantsAnotherOffer;

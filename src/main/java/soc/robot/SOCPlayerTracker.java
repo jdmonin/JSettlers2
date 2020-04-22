@@ -259,7 +259,7 @@ public class SOCPlayerTracker
     public static SOCPlayerTracker[] copyPlayerTrackers(final SOCPlayerTracker[] trackers)
     {
         final SOCPlayerTracker[] trackersCopy
-            = new SOCPlayerTracker[trackers.length];  // length == SOCGame.MAXPLAYERS
+            = new SOCPlayerTracker[trackers.length];  // length == SOCGame.maxPlayers
 
         //
         // copy the trackers but not the connections between the pieces
@@ -4028,6 +4028,9 @@ public class SOCPlayerTracker
 
         for (final SOCPlayerTracker tracker : playerTrackers)
         {
+            if (tracker == null)
+                continue;
+
             D.ebugPrintln("%%%%%%%%% TRACKER FOR PLAYER " + tracker.getPlayer().getPlayerNumber());
             D.ebugPrintln("   LONGEST ROAD ETA = " + tracker.getLongestRoadETA());
             D.ebugPrintln("   LARGEST ARMY ETA = " + tracker.getLargestArmyETA());
