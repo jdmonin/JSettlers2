@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import soc.message.SOCMessage;
+import soc.server.savegame.SavedGameModel;  // for javadocs only
 
 /**
  * Game-specific options, configurable at game creation.
@@ -469,6 +470,13 @@ public class SOCGameOption
      *   This would include places like
      *   {@link soc.util.SOCRobotParameters#copyIfOptionChanged(Map)}
      *   which ignore most, but not all, game options.
+     *<LI> If the new option adds new game/player/board fields or piece types which aren't
+     *   currently in {@link SavedGameModel}:
+     *   <UL>
+     *   <LI> Either add the fields there, and test to make sure SAVEGAME/LOADGAME handles their data properly
+     *   <LI> Or, check for the new option in {@link SavedGameModel#checkCanSave(SOCGame)}
+     *       and reject the save; add a TODO to later add support to SavedGameModel.
+     *   </UL>
      *</UL>
      *
      * <h3>If you want to change a game option (in a later version):</h3>

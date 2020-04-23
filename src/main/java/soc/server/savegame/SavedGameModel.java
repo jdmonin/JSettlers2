@@ -95,6 +95,22 @@ public class SavedGameModel
     /* End of DATA FIELDS */
 
     /**
+     * Can this game be saved to a {@link SavedGameModel}, or does it have options or features
+     * which haven't yet been implemented here?
+     * @param ga  Game to check; not null
+     * @throws UnsupportedOperationException  if game has an option or feature not yet supported
+     *     by {@link SavedGameModel}; {@link Throwable#getMessage()} will name the unsupported option/feature.
+     */
+    public static void checkCanSave(final SOCGame ga)
+        throws UnsupportedOperationException
+    {
+        if (null != ga.getGameOptionStringValue("SC"))
+            throw new UnsupportedOperationException("a scenario");
+
+        // all current non-scenario game opts are supported
+    }
+
+    /**
      * Create an empty SavedGameModel to load a game file into.
      * Once data is loaded and {@link #createLoadedGame()} is called,
      * state will temporarily be {@link SOCGame#LOADING}
@@ -108,15 +124,19 @@ public class SavedGameModel
     /**
      * Create a SavedGameModel to save as a game file.
      * Game state must be {@link SOCGame#ROLL_OR_CARD} or higher.
-     * @param ga  Game data to save
+     * @param ga  Game data to save; not null
+     * @throws UnsupportedOperationException  if game has an option or feature not yet supported
+     *     by {@link SavedGameModel}; see {@link #checkCanSave(SOCGame)} for details.
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      * @throws IllegalArgumentException if {@link SOCGameHandler#getBoardLayoutMessage(SOCGame)}
      *     returns an unexpected layout message type
      */
     public SavedGameModel(final SOCGame ga)
-        throws IllegalStateException, IllegalArgumentException
+        throws UnsupportedOperationException, IllegalStateException, IllegalArgumentException
     {
         this();
+
+        checkCanSave(ga);
 
         if (ga.getGameState() < SOCGame.ROLL_OR_CARD)
             throw new IllegalStateException("gameState");

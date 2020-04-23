@@ -46,6 +46,7 @@ and backport minor new features until `2.0.00` was ready.
 	  - This is work in progress: Currently works with classic and sea board games, but no scenarios
 	  - Server config must designate a directory
 	  - Optional GSON jar must be on classpath or same dir as server
+	  - For details see [Readme.developer.md](Readme.developer.md): Search text for `*SAVEGAME*`
 - For AI/Robot development:
 	- SOCRobotBrain debug stack trace: Print bot name
 - Network/Message traffic:

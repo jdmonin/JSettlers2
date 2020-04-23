@@ -541,22 +541,28 @@ ideas.
 To help with testing, the server can save a game and board's state to a file
 and load it later, using debug commands.
 
-**Usage/UI** TBD; might be something like:
+This feature is experimental and still being developed, so the notes here are very basic.
+
+Games with a scenario can't yet be saved, because of their special pieces or game/player data fields.
+
+**Usage/UI**
 
 - Set value of server property `jsettlers.savegame.dir` to point to the game-saves directory
-- Start a game, place pieces as needed, etc
+- Start a game, place pieces as needed, begin game play
 - Debug command to save a snapshot: \*SAVEGAME\* mygamename
 - Debug command to load a snapshot: \*LOADGAME\* mygamename  
   Server parses the snapshot and create a game with its contents.
-  Debug user joins, bots are then asked to join. (Maybe optionally require certain types of bots?)
-  Temporarily set gamestate to a new hold/pause state, so current player won't take action until everyone has joined.
+  Debug user joins, bots are then asked to join. (Might optionally support requiring certain types of bots)
+  Temporarily set gamestate to new hold/pause state `LOADING`, so current player won't take action until everyone has joined.
 - Debug command to resume play of loaded game: \*RESUMEGAME\*
 
-Optional GSON jar must be on classpath, or named `gson.jar` (no version number)
+This feature requires a GSON jar which must be on the classpath, or named `gson.jar` (no version number)
 in same directory as JSettlersServer.jar. Download GSON 2.8.6 or higher from
 https://search.maven.org/artifact/com.google.code.gson/gson/2.8.6/jar or
 https://mvnrepository.com/artifact/com.google.code.gson/gson/2.8.6 .  
 If using Eclipse, also add GSON to the project's build path -> Libraries -> Add External JAR
+
+If you're not using this feature, JSettlers doesn't require or use the GSON jar.
 
 
 ## Developing with a database (JDBC)

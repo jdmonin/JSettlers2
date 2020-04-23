@@ -1777,7 +1777,10 @@ public class SOCServerMessageHandler
             GameSaverJSON.saveGame(ga, srv.savegameDir, fname);
             srv.messageToPlayer
                 (c, gaName, /*I*/"Saved game to " + fname /*18N*/);
-        } catch(IllegalArgumentException|IOException e) {
+        } catch (UnsupportedOperationException e) {
+            srv.messageToPlayer
+                (c, gaName, /*I*/"Cannot save this game, because it has " + e.getMessage() /*18N*/);
+        } catch (IllegalArgumentException|IllegalStateException|IOException e) {
             srv.messageToPlayer
                 (c, gaName, /*I*/"Problem saving " + argsStr + ": " + e /*18N*/);
         }

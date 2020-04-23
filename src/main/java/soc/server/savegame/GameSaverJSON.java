@@ -51,16 +51,18 @@ public class GameSaverJSON
      * Assumes caller has checked that gson jar is on classpath
      * by calling {@code Class.forName("com.google.gson.Gson")} or similar.
      *
-     * @param ga  Game to save
+     * @param ga  Game to save; not null
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save as; recommended suffix is {@link #FILENAME_EXTENSION}
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
+     * @throws UnsupportedOperationException  if game has an option or feature not yet supported
+     *     by {@link SavedGameModel}; see {@link SavedGameModel#checkCanSave(SOCGame)} for details.
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      * @throws IOException  if a problem occurs while saving
      */
     public static void saveGame
         (final SOCGame ga, final File saveDir, final String saveFilename)
-        throws IllegalArgumentException, IllegalStateException, IOException
+        throws IllegalArgumentException, UnsupportedOperationException, IllegalStateException, IOException
     {
         if (! saveDir.isDirectory())
             throw new IllegalArgumentException("Not found as directory: " + saveDir.getPath());
