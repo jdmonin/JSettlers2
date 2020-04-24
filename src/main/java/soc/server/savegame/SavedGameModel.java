@@ -22,6 +22,7 @@ package soc.server.savegame;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.game.*;
@@ -39,18 +40,42 @@ import soc.server.genericServer.Connection;
 /**
  * Data model for a game saved to/loaded from a file.
  *<P>
- * To save, use the {@link #SavedGameModel(SOCGame)} constructor.
- * To load, use {@link #SavedGameModel()}.
+ * To save, use the {@link #SavedGameModel(SOCGame)} constructor and {@link GameSaverJSON}.
+ * To load, use {@link #SavedGameModel()} and {@link GameLoaderJSON}.
  * See those constructors' javadocs for usage details.
  *<P>
  * This standalone model is cleaner than trying to serialize/deserialize {@link SOCGame}, SOCBoard, etc.
+ *<P>
+ * Like the optional database, this data model has a {@link #modelVersion} which may be older than the
+ * current JSettlers version. See {@link #MODEL_VERSION} for lifecycle details.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.3.00
  */
 public class SavedGameModel
 {
-    /** Current model schema version: 2300 for v2.3.00 */
+    /**
+     * Current model schema version: 2300 for v2.3.00.
+     *<P>
+     * Like the JSettlers database schema, this version may be older than the current JSettlers version.
+     * The model version should change only when its fields require changes which would prevent
+     * older JSettlers versions from understanding and loading a file using the new model.
+     *<P>
+     * Within the same schema version:
+     *<UL>
+     * <LI> New fields can be added, as long as they're optional and the game data is complete without them
+     * <LI> When a newer JSettlers version loads an older file, such added fields will be their type's default value
+     *      (0, null, etc)
+     * <LI> When an older JSettlers version loads a file with added fields
+     *      which aren't in its copy of the model, the GSON parser ignores them
+     *</UL>
+     * {@link #createLoadedGame()} will reject a loaded game if its {@link #modelVersion}
+     * is newer than {@code MODEL_VERSION}. If you need to make a saved-game file for use by
+     * multiple model versions, save it from the JSettlers version having the lowest model version.
+     *<P>
+     * When {@code MODEL_VERSION} is changed, that will be documented here and in {@code /doc/Versions.md}.
+     * The earliest version number is 2300.
+     */
     public static int MODEL_VERSION = 2300;
 
     /** Server's game list, for checking name and creating game */
@@ -60,7 +85,10 @@ public class SavedGameModel
 
     /* DATA FIELDS to be saved into file */
 
-    /** Model schema version when saved, in same format as {@link #MODEL_VERSION} */
+    /**
+     * Model schema version when saved, in same format as {@link #MODEL_VERSION}.
+     * See that field's javadoc for lifecycle details.
+     */
     int modelVersion;
 
     /** Game minimum version, from {@link SOCGame#getClientVersionMinRequired()} */
@@ -97,6 +125,12 @@ public class SavedGameModel
     /**
      * Can this game be saved to a {@link SavedGameModel}, or does it have options or features
      * which haven't yet been implemented here?
+     *<P>
+     * Currently unsupported:
+     *<UL>
+     * <LI> Any game scenario: {@link SOCGameOption} {@code "SC"} != null
+     *</UL>
+     *
      * @param ga  Game to check; not null
      * @throws UnsupportedOperationException  if game has an option or feature not yet supported
      *     by {@link SavedGameModel}; {@link Throwable#getMessage()} will name the unsupported option/feature.
@@ -215,14 +249,23 @@ public class SavedGameModel
      *
      * @throws IllegalStateException if this method's already been called
      *     or if required static game list field {@link SavedGameModel#glas} is null
+     * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
+     *     is newer than the current {@link SavedGameModel#MODEL_VERSION}
+     *     and important fields might not be in our version of the model.
+     *     Exception's {@link Throwable#getMessage()} will be of the form:
+     *     "model version 9170 newer than our version 2300"
      */
     /*package*/ void createLoadedGame()
-        throws IllegalStateException
+        throws IllegalStateException, NoSuchElementException
     {
         if (game != null)
             throw new IllegalStateException("already called createLoadedGame");
         if (glas == null)
             throw new IllegalStateException("SavedGameModel.glas is null");
+
+        if (modelVersion > MODEL_VERSION)
+            throw new NoSuchElementException
+                ("model version " + modelVersion + " newer than our version " + MODEL_VERSION);
 
         // TODO what if name invalid/some other inconsistency/unable to create? throw an exception?
         //    also gameMinVersion, modelVersion vs server version

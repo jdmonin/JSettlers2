@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.NoSuchElementException;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -1617,7 +1618,11 @@ public class SOCServerMessageHandler
         {
             sgm = GameLoaderJSON.loadGame
                 (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
-        } catch(Throwable th) {
+        } catch (NoSuchElementException e) {
+            srv.messageToPlayer
+                (c, connGaName, /*I*/"Problem loading " + argsStr + ": Too new: " + e.getMessage() /*18N*/);
+            return;
+        } catch (Throwable th) {
             srv.messageToPlayer
                 (c, connGaName, /*I*/"Problem loading " + argsStr + ": " + th /*18N*/);
             return;

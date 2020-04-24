@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.util.NoSuchElementException;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -58,6 +59,7 @@ public class GameLoaderJSON
 
     /**
      * Load a game from a JSON file.
+     * Loads into a Model and calls {@link SavedGameModel#createLoadedGame()}.
      *<P>
      * Assumes caller has checked that gson jar is on classpath
      * by calling {@code Class.forName("com.google.gson.Gson")} or similar.
@@ -65,10 +67,13 @@ public class GameLoaderJSON
      * @param loadFrom File to load from; filename should end with {@link GameSaverJSON#FILENAME_EXTENSION}
      * @return  loaded game model
      * @throws IllegalStateException if required static game list field {@link SavedGameModel#glas} is null
+     * @throws NoSuchElementException if file's model schema version is newer than the
+     *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#createLoadedGame()}
+     *     javadoc for details.
      * @throws IOException  if a problem occurs while loading
      */
     public static SavedGameModel loadGame(final File loadFrom)
-        throws IllegalStateException, IOException
+        throws IllegalStateException, NoSuchElementException, IOException
     {
         if (SavedGameModel.glas == null)
             throw new IllegalStateException("SavedGameModel.glas is null");
