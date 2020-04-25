@@ -68,12 +68,14 @@ public class GameLoaderJSON
      * @return  loaded game model
      * @throws IllegalStateException if required static game list field {@link SavedGameModel#glas} is null
      * @throws NoSuchElementException if file's model schema version is newer than the
-     *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#createLoadedGame()}
-     *     javadoc for details.
+     *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#checkCanLoad()}
+     *     for details
+     * @throws UnsupportedOperationException if loaded game model has an option or feature not yet supported
+     *     by {@link SavedGameModel#createLoadedGame()}; see {@link SavedGameModel#checkCanLoad()} for details
      * @throws IOException  if a problem occurs while loading
      */
     public static SavedGameModel loadGame(final File loadFrom)
-        throws IllegalStateException, NoSuchElementException, IOException
+        throws IllegalStateException, NoSuchElementException, UnsupportedOperationException, IOException
     {
         if (SavedGameModel.glas == null)
             throw new IllegalStateException("SavedGameModel.glas is null");

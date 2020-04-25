@@ -1618,7 +1618,7 @@ public class SOCServerMessageHandler
         {
             sgm = GameLoaderJSON.loadGame
                 (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
-        } catch (NoSuchElementException e) {
+        } catch (NoSuchElementException|UnsupportedOperationException e) {
             srv.messageToPlayer
                 (c, connGaName, /*I*/"Problem loading " + argsStr + ": Too new: " + e.getMessage() /*18N*/);
             return;

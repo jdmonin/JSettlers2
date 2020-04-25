@@ -36,6 +36,7 @@ import soc.message.SOCPotentialSettlements;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
 import soc.server.genericServer.Connection;
+import soc.util.Version;
 
 /**
  * Data model for a game saved to/loaded from a file.
@@ -70,8 +71,8 @@ public class SavedGameModel
      *      which aren't in its copy of the model, the GSON parser ignores them
      *</UL>
      * {@link #createLoadedGame()} will reject a loaded game if its {@link #modelVersion}
-     * is newer than {@code MODEL_VERSION}. If you need to make a saved-game file for use by
-     * multiple model versions, save it from the JSettlers version having the lowest model version.
+     * is newer than {@code MODEL_VERSION}, or if the game has features/options that it can't save.
+     * If you need to make a saved-game file for use by multiple JSettlers versions, save it from the oldest version.
      *<P>
      * When {@code MODEL_VERSION} is changed, that will be documented here and in {@code /doc/Versions.md}.
      * The earliest version number is 2300.
@@ -90,6 +91,14 @@ public class SavedGameModel
      * See that field's javadoc for lifecycle details.
      */
     int modelVersion;
+
+    /**
+     * Version of JSettlers which saved this game file, from {@link Version#versionNumber()}.
+     * This field is only for reference, not important when loading a saved game.
+     * @see #modelVersion
+     * @see #gameMinVersion
+     */
+    int savedByVersion;
 
     /** Game minimum version, from {@link SOCGame#getClientVersionMinRequired()} */
     int gameMinVersion;
@@ -134,6 +143,7 @@ public class SavedGameModel
      * @param ga  Game to check; not null
      * @throws UnsupportedOperationException  if game has an option or feature not yet supported
      *     by {@link SavedGameModel}; {@link Throwable#getMessage()} will name the unsupported option/feature.
+     * @see #checkCanLoad()
      */
     public static void checkCanSave(final SOCGame ga)
         throws UnsupportedOperationException
@@ -176,6 +186,7 @@ public class SavedGameModel
             throw new IllegalStateException("gameState");
 
         modelVersion = MODEL_VERSION;
+        savedByVersion = Version.versionNumber();
         game = ga;
 
         // save data fields:
@@ -241,34 +252,80 @@ public class SavedGameModel
     }
 
     /**
-     * Create the {@link SOCGame} and its objects based on data loaded into this SGM.
-     * Game state will be {@link SOCGame#LOADING}. Doesn't add to game list {@link #glas}
-     * or check whether game name is already taken, because
+     * Can the game data loaded into this {@link SavedGameModel} become a {@link SOCGame}
+     * in {@link #createLoadedGame()}, or does it have options or features which haven't yet been implemented here?
+     *<P>
+     * See {@link #checkCanSave(SOCGame)} for list of unsupported features checked here.
+     *<P>
+     * This is needed because within the same {@link #MODEL_VERSION}, a new JSettlers version could
+     * add fields or logic to support saving/loading more features; for example, certain scenarios but not all.
+     * The older version isn't able to load that saved game.
+     *
+     * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
+     *     is newer than the current {@link SavedGameModel#MODEL_VERSION}
+     *     and important fields might not be in our version of the model.
+     *     Exception's {@link Throwable#getMessage()} will be of the form:
+     *     "model version 9170 newer than our version 2300"
+     * @throws UnsupportedOperationException if game has an option or feature not yet supported
+     *     by {@link #createLoadedGame()}. {@link Throwable#getMessage()} will name the unsupported option/feature
+     *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String)}.
+     *     In that case, {@link Throwable#getMessage()} will contain that method's IllegalArgumentException message
+     *     and {@link Throwable#getCause()} will not be null.
+     */
+    public void checkCanLoad()
+        throws NoSuchElementException, UnsupportedOperationException
+    {
+        if (modelVersion > MODEL_VERSION)
+            throw new NoSuchElementException
+                ("model version " + modelVersion + " newer than our version " + MODEL_VERSION);
+
+        if ((gameOptions == null) || gameOptions.isEmpty())
+            return;
+
+        Map<String, SOCGameOption> opts;
+        try
+        {
+            opts = SOCGameOption.parseOptionsToMap(gameOptions);
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedOperationException("Problem opt in gameOptions: " + e.getMessage(), e);
+        }
+        if (opts == null)
+            return;
+
+        final SOCGameOption oSC = opts.get("SC");
+        if ((oSC != null) && (null != oSC.getStringValue()))
+            throw new UnsupportedOperationException("a scenario");
+
+        // all current non-scenario game opts are supported
+    }
+
+    /**
+     * Try to create the {@link SOCGame} and its objects based on data loaded into this SGM.
+     * Calls {@link #checkCanLoad()}. If successful (no exception thrown), game state will be {@link SOCGame#LOADING}.
+     * Doesn't add to game list {@link #glas} or check whether game name is already taken, because
      * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
      * will rename the loaded game to avoid name collisions.
      *
      * @throws IllegalStateException if this method's already been called
      *     or if required static game list field {@link SavedGameModel#glas} is null
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
-     *     is newer than the current {@link SavedGameModel#MODEL_VERSION}
-     *     and important fields might not be in our version of the model.
-     *     Exception's {@link Throwable#getMessage()} will be of the form:
-     *     "model version 9170 newer than our version 2300"
+     *     is newer than the current {@link SavedGameModel#MODEL_VERSION};
+     *     see {@link #checkCanLoad()} for details
+     * @throws UnsupportedOperationException if loaded game model has an option or feature not yet supported
+     *     by {@code createLoadedGame()}; see {@link #checkCanLoad()} for details
      */
     /*package*/ void createLoadedGame()
-        throws IllegalStateException, NoSuchElementException
+        throws IllegalStateException, NoSuchElementException, UnsupportedOperationException
     {
         if (game != null)
             throw new IllegalStateException("already called createLoadedGame");
         if (glas == null)
             throw new IllegalStateException("SavedGameModel.glas is null");
 
-        if (modelVersion > MODEL_VERSION)
-            throw new NoSuchElementException
-                ("model version " + modelVersion + " newer than our version " + MODEL_VERSION);
+        checkCanLoad();
 
         // TODO what if name invalid/some other inconsistency/unable to create? throw an exception?
-        //    also gameMinVersion, modelVersion vs server version
+        //    also gameMinVersion vs server version
 
         final SOCGame ga = new SOCGame(gameName, SOCGameOption.parseOptionsToMap(gameOptions));
         ga.initAtServer();

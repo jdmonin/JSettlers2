@@ -474,8 +474,8 @@ public class SOCGameOption
      *   currently in {@link SavedGameModel}:
      *   <UL>
      *   <LI> Either add the fields there, and test to make sure SAVEGAME/LOADGAME handles their data properly
-     *   <LI> Or, check for the new option in {@link SavedGameModel#checkCanSave(SOCGame)}
-     *       and reject the save; add a TODO to later add support to SavedGameModel.
+     *   <LI> Or, check for and reject the new option in {@link SavedGameModel#checkCanSave(SOCGame)}
+     *       and {@link SavedGameModel#checkCanLoad()}; add a TODO to later add support to SavedGameModel
      *   </UL>
      *</UL>
      *
@@ -892,7 +892,8 @@ public class SOCGameOption
      * Value will be false/0. desc will be an empty string.
      * @param key   Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
-     * @throws IllegalArgumentException if key is not alphanumeric or length is > 8
+     * @throws IllegalArgumentException if key is not alphanumeric or length is > 8;
+     *        {@link Throwable#getMessage()} will have details
      */
     public SOCGameOption(final String key)
         throws IllegalArgumentException
@@ -915,7 +916,8 @@ public class SOCGameOption
      * @throws IllegalArgumentException if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or if minVers or lastModVers is under 1000 but not -1
+     *        or if minVers or lastModVers is under 1000 but not -1;
+     *        {@link Throwable#getMessage()} will have details
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
         final boolean defaultValue, final int flags, final String desc)
@@ -949,7 +951,8 @@ public class SOCGameOption
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or if minVers or lastModVers is under 1000 but not -1
+     *        or if minVers or lastModVers is under 1000 but not -1;
+     *        {@link Throwable#getMessage()} will have details
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
         final int defaultValue, final int minValue, final int maxValue,
@@ -980,7 +983,8 @@ public class SOCGameOption
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or if minVers or lastModVers is under 1000 but not -1
+     *        or if minVers or lastModVers is under 1000 but not -1;
+     *        {@link Throwable#getMessage()} will have details
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
         final boolean defaultBoolValue, final int defaultIntValue,
@@ -1017,7 +1021,8 @@ public class SOCGameOption
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or if minVers or lastModVers is under 1000 but not -1
+     *        or if minVers or lastModVers is under 1000 but not -1;
+     *        {@link Throwable#getMessage()} will have details
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
         final int defaultValue, final String[] enumVals, final int flags, final String desc)
@@ -1049,7 +1054,8 @@ public class SOCGameOption
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or if minVers or lastModVers is under 1000 but not -1
+     *        or if minVers or lastModVers is under 1000 but not -1;
+     *        {@link Throwable#getMessage()} will have details
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers, final boolean defaultBoolValue,
         final int defaultIntValue, final String[] enumVals, final int flags, final String desc)
@@ -1081,7 +1087,8 @@ public class SOCGameOption
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or if minVers or lastModVers is under 1000 but not -1
+     *        or if minVers or lastModVers is under 1000 but not -1;
+     *        {@link Throwable#getMessage()} will have details
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
         final int maxLength, final boolean hideTyping, final int flags, final String desc)
@@ -1123,7 +1130,8 @@ public class SOCGameOption
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *        or if minVers or lastModVers is under 1000 but not -1
+     *        or if minVers or lastModVers is under 1000 but not -1;
+     *        {@link Throwable#getMessage()} will have details
      */
     protected SOCGameOption(int otype, String key, int minVers, int lastModVers,
         boolean defaultBoolValue, int defaultIntValue,
@@ -1899,7 +1907,7 @@ public class SOCGameOption
      *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if {@code optkey} is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @throws IllegalArgumentException if {@code optkey} is unknown and not a valid alphanumeric keyname
-     *         by the rules listed at {@link #SOCGameOption(String)}
+     *         by the rules listed at {@link #SOCGameOption(String)}; {@link Throwable#getMessage()} will have details
      * @see #parseOptionNameValue(String, boolean)
      * @see #parseOptionsToMap(String)
      * @see #packValue(StringBuilder)
