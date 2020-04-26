@@ -1570,6 +1570,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
             break;
 
+        case DISCARD_FLAG:
+            pl.setNeedToDiscard(val != 0);
+            break;
+
         case NUM_PICK_GOLD_HEX_RESOURCES:
             pl.setNeedToPickGoldHexResources(val);
             break;

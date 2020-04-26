@@ -49,7 +49,7 @@ import java.util.Vector;
  * At the start of each player's turn, {@link SOCGame#updateAtTurn()} will call {@link SOCPlayer#updateAtTurn()},
  * then call the current player's {@link #updateAtOurTurn()}.
  *<P>
- * The player's hand holds resource cards, unplayed building pieces, and an inventory of development cards
+ * The player's hand holds resource cards, unplayed building pieces, and their {@link SOCInventory} of development cards
  * and sometimes scenario-specific items.
  *<P>
  * For more information about the "legal" and "potential" road/settlement/city terms,
@@ -1024,6 +1024,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param set  if the player has asked to build
      * @see SOCGame#askSpecialBuild(int, boolean)
+     * @see #setSpecialBuilt(boolean)
      * @since 1.1.08
      */
     public void setAskedSpecialBuild(boolean set)
@@ -1051,6 +1052,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * To read this flag, use {@link #hasSpecialBuilt()}.
      *
      * @param set  if the player special-built this turn
+     * @see #setAskedSpecialBuild(boolean)
      * @since 1.1.09
      */
     public void setSpecialBuilt(boolean set)
@@ -1069,12 +1071,28 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Does this player need to discard?
+     * If so, see {@link #getCountToDiscard()} for how many to discard.
+     *
      * @return true if this player needs to discard
      * @see #getNeedToPickGoldHexResources()
      */
     public boolean getNeedToDiscard()
     {
         return needToDiscard;
+    }
+
+    /**
+     * For {@link #getNeedToDiscard()}, get how many resources must be discarded.
+     * The amount is half, rounded down:
+     * <tt>{@link #getResources()}.{@link SOCResourceSet#getTotal() getTotal()} / 2</tt>.
+     * @return how many resources to discard. Always returns half of player's total,
+     *     even when {@link #getNeedToDiscard()} is false.
+     * @since 2.3.00
+     */
+    public int getCountToDiscard()
+    {
+        return resources.getTotal() / 2;
     }
 
     /**
@@ -2149,6 +2167,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Resources gained from dice roll of the current turn.
      * Valid at server only, not at client.
      * Please treat the returned set as read-only.
+     * See {@link SOCGame#rollDice()} for details on what is and isn't included here.
      * @return the resources, if any, gained by this player from the
      *     current turn's {@link SOCGame#rollDice()}.
      * @since 2.0.00

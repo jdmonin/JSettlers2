@@ -354,6 +354,7 @@ public class SavedGameModel
 
     /**
      * Info on one player position sitting in the game.
+     * @see SOCPlayer
      * @see soc.server.SOCClientData
      */
     public static class PlayerInfo
@@ -367,8 +368,10 @@ public class SavedGameModel
         /** Resources in hand */
         KnownResourceSet resources;
 
-        /** Available piece counts, SVP, cloth count, etc. */
+        /** Available piece counts, SVP, cloth count, hasPlayedDevCard and other flags, etc. */
         HashMap<PEType, Integer> elements = new HashMap<>();
+
+        // TODO: future: add field for pl.getCurrentOffer()
 
         /** Resource roll stats, from {@link SOCPlayer#getResourceRollStats()} */
         int[] resRollStats;
@@ -382,6 +385,7 @@ public class SavedGameModel
          */
         ArrayList<Integer> oldDevCards = new ArrayList<>(),
                            newDevCards = new ArrayList<>();
+        // TODO: future: support general SOCInventoryItems/SOCSpecialItems for scenarios
 
         /**
          * Player's pieces, from {@link SOCPlayer#getPieces()}.
@@ -389,11 +393,13 @@ public class SavedGameModel
          */
         ArrayList<SOCPlayingPiece> pieces = new ArrayList<>();
 
-        /**
+        /*
          * Player's fortress, if any, from {@link SOCPlayer#getFortress()}; usually null.
          * Not part of {@link #pieces} list.
-         */
+         * This field was part of the experimental early SGM; no released version supports scenarios yet.
+         * TODO: SGM in a future JSettlers version should support "special pieces" in a more general way.
         SOCFortress fortressPiece;
+         */
 
         PlayerInfo(final SOCPlayer pl, final boolean isVacant)
         {
@@ -411,11 +417,25 @@ public class SavedGameModel
             elements.put(PEType.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD));
             elements.put(PEType.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
             elements.put(PEType.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY));
-            if ((! isVacant) && (ga.maxPlayers > 4))
+            if (! isVacant)
             {
-                elements.put(PEType.ASK_SPECIAL_BUILD, (pl.hasAskedSpecialBuild()) ? 1 : 0);
-                if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
-                    elements.put(PEType.HAS_SPECIAL_BUILT, (pl.hasSpecialBuilt()) ? 1 : 0);
+                if (pl.getNeedToDiscard())
+                    elements.put(PEType.DISCARD_FLAG, 1);
+                else
+                {
+                    int n = pl.getNeedToPickGoldHexResources();
+                    if (n != 0)
+                        elements.put(PEType.NUM_PICK_GOLD_HEX_RESOURCES, n);
+                }
+                if (pl.hasPlayedDevCard())
+                    elements.put(PEType.PLAYED_DEV_CARD_FLAG, 1);
+                if (ga.maxPlayers > 4)
+                {
+                    if (pl.hasAskedSpecialBuild())
+                        elements.put(PEType.ASK_SPECIAL_BUILD, 1);
+                    if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
+                        elements.put(PEType.HAS_SPECIAL_BUILT, (pl.hasSpecialBuilt()) ? 1 : 0);
+                }
             }
             if (ga.hasSeaBoard)
             {
@@ -438,7 +458,7 @@ public class SavedGameModel
             // TODO other inventory item types: see SGH.sitDown_sendPrivateInfo
 
             pieces.addAll(pl.getPieces());
-            fortressPiece = pl.getFortress();
+            // fortressPiece = pl.getFortress();
         }
 
         /**
@@ -474,11 +494,13 @@ public class SavedGameModel
                 pp.setGameInfo(pl, b);
                 ga.putPiece(pp);
             }
+            /*
             if (fortressPiece != null)
             {
                 fortressPiece.setGameInfo(pl, b);
                 ga.putPiece(fortressPiece);
             }
+             */
 
             // Set player elements only after putPieces,
             // so remaining-piece counts aren't reduced twice
@@ -524,6 +546,8 @@ public class SavedGameModel
      *<P>
      * Board height and width aren't recorded here; they're constant based on
      * encoding format, unless game option {@code "_BHW"} specifies otherwise.
+     *
+     * @see SOCBoard
      */
     static class BoardInfo
     {

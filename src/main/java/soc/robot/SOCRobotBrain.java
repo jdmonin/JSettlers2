@@ -1095,7 +1095,7 @@ public class SOCRobotBrain extends Thread
         if (waitingForPickSpecialItem != null)
             rbSta.add("  waitingForPickSpecialItem = " + waitingForPickSpecialItem);
         if (game.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-            rbSta.add("  bot card count = " + ourPlayerData.getResources().getTotal());
+            rbSta.add("  bot resource count = " + ourPlayerData.getResources().getTotal());
         if (rejectedPlayDevCardType != -1)
             rbSta.add("  rejectedPlayDevCardType = " + rejectedPlayDevCardType);
         if (rejectedPlayInvItem != null)

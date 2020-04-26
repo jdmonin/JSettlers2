@@ -1706,7 +1706,7 @@ public class SOCGameHandler extends GameHandler
 
         if ((ga.getCurrentDice() == 7) && pl.getNeedToDiscard())
         {
-            srv.messageToPlayer(c, new SOCDiscardRequest(gaName, pl.getResources().getTotal() / 2));
+            srv.messageToPlayer(c, new SOCDiscardRequest(gaName, pl.getCountToDiscard()));
         }
         else if (ga.hasSeaBoard)
         {
@@ -2248,8 +2248,8 @@ public class SOCGameHandler extends GameHandler
      * sent by {@code sendGameState}.
      *<P>
      * Checks each player's {@link SOCGame#isSeatVacant(int)} and {@link SOCPlayer#getNeedToDiscard()} flags.
-     * Number of resources to discard is calculated here:
-     * <tt>{@link SOCPlayer#getResources()}.{@link SOCResourceSet#getTotal() getTotal()} / 2</tt>.
+     * Number of resources to discard is {@link SOCPlayer#getCountToDiscard()}:
+     * Half of {@link SOCPlayer#getResources()}.
      *
      * @param ga  Game to prompt
      * @param gaName  Game name for convenience; not {@code null}
@@ -2262,10 +2262,9 @@ public class SOCGameHandler extends GameHandler
             final SOCPlayer pl = ga.getPlayer(pn);
             if (( ! ga.isSeatVacant(pn)) && pl.getNeedToDiscard())
             {
-                // Request to discard half (round down)
                 Connection con = srv.getConnection(pl.getName());
                 if (con != null)
-                    con.put(SOCDiscardRequest.toCmd(gaName, pl.getResources().getTotal() / 2));
+                    con.put(SOCDiscardRequest.toCmd(gaName, pl.getCountToDiscard()));
             }
         }
     }

@@ -146,6 +146,9 @@ public class SOCPlayerElement extends SOCMessage
          * For the 6-player board, player element type for asking to build
          * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
          * This element is {@link #SET} to 1 or 0.
+         *<P>
+         * Also used by {@link soc.server.savegame.SavedGameModel}, omitted when value is 0.
+         *
          * @see #HAS_SPECIAL_BUILT
          * @since 1.1.08
          */
@@ -187,6 +190,17 @@ public class SOCPlayerElement extends SOCMessage
         PLAYED_DEV_CARD_FLAG(19),
 
         /**
+         * Is {@link SOCPlayer#getNeedToDiscard()} true?
+         * This element is 1 if so, otherwise 0 or omitted.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel}.
+         * Clients are sent {@link SOCDiscardRequest} instead.
+         *
+         * @since 2.3.00
+         */
+        DISCARD_FLAG(20),
+
+        /**
          * In 6-player game's Special Building Phase, has the player already Special Built this turn?
          * From {@link SOCPlayer#hasSpecialBuilt()}.
          * This element is 1 or 0.
@@ -197,7 +211,7 @@ public class SOCPlayerElement extends SOCMessage
          * @see #ASK_SPECIAL_BUILD
          * @since 2.3.00
          */
-        HAS_SPECIAL_BUILT(20),
+        HAS_SPECIAL_BUILT(21),
 
         //
         // Elements related to scenarios and sea boards:

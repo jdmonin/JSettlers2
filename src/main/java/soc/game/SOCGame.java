@@ -5204,7 +5204,7 @@ public class SOCGame implements Serializable, Cloneable
         SOCResourceSet hand = players[pn].getResources();
         if (isDiscard)
         {
-            discardOrGainPickRandom(hand, hand.getTotal() / 2, true, picks, rand);
+            discardOrGainPickRandom(hand, players[pn].getCountToDiscard(), true, picks, rand);
             discard(pn, picks);  // Checks for other discarders, sets gameState
         } else {
             discardOrGainPickRandom(hand, players[pn].getNeedToPickGoldHexResources(), false, picks, rand);
@@ -5404,8 +5404,8 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or {@link #PLACING_ROBBER}.
      *<P>
      * For dice roll total, see returned {@link RollResult} or call {@link #getCurrentDice()} afterwards.
-     * Each player's {@link SOCPlayer#getRolledResources()} will show their resources gained, if any,
-     * but not gold or scenario-specific items from {@link RollResult}.
+     * You can call each player's {@link SOCPlayer#getRolledResources()} for their resources gained, if any,
+     * not including gold or scenario-specific items from {@link RollResult}.
      *<P>
      * Checks game option N7: Roll no 7s during first # rounds
      * and N7C: Roll no 7s until a city is built.
@@ -5727,12 +5727,12 @@ public class SOCGame implements Serializable, Cloneable
 
         SOCResourceSet resources = players[pn].getResources();
 
-        if (!players[pn].getNeedToDiscard())
+        if (! players[pn].getNeedToDiscard())
         {
             return false;
         }
 
-        if (rs.getTotal() != (resources.getTotal() / 2))
+        if (rs.getTotal() != players[pn].getCountToDiscard())
         {
             return false;
         }
@@ -7186,6 +7186,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (! lastActionWasBankTrade)
             return false;
+
         final SOCPlayer currPlayer = players[currentPlayerNumber];
         return ((currPlayer.lastActionBankTrade_get != null)
                 && currPlayer.lastActionBankTrade_get.equals(undo_got)
@@ -7203,9 +7204,7 @@ public class SOCGame implements Serializable, Cloneable
     public boolean canMakeBankTrade(ResourceSet give, ResourceSet get)
     {
         if (gameState != PLAY1)
-        {
             return false;
-        }
 
         if (lastActionWasBankTrade && canUndoBankTrade(get, give))
             return true;

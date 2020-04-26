@@ -90,7 +90,7 @@ import soc.server.genericServer.Connection;
              + " in game " + ga.getName() + " pn=" + plNum + " state " + gs
              + (pl.isStubbornRobot() ? " (stubborn)" : ""));
         if (gs == SOCGame.WAITING_FOR_DISCARDS)
-            System.err.println("  srv card count = " + pl.getResources().getTotal());
+            System.err.println("  srv resource count = " + pl.getResources().getTotal());
         else if (gs == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
             System.err.println("  pl's gold pick count = " + pl.getNeedToPickGoldHexResources());
 
