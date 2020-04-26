@@ -30,8 +30,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
 
 import soc.game.*;
 
@@ -72,20 +74,32 @@ public class GameLoaderJSON
      *     for details
      * @throws UnsupportedOperationException if loaded game model has an option or feature not yet supported
      *     by {@link SavedGameModel#createLoadedGame()}; see {@link SavedGameModel#checkCanLoad()} for details
-     * @throws IOException  if a problem occurs while loading
+     * @throws StringIndexOutOfBoundsException  if a {@link JsonSyntaxException} occurs while loading, this wraps it
+     *     so the caller doesn't need to know GSON-specific exception types
+     * @throws IOException  if a problem occurs while loading, including a {@link JsonIOException}
      */
     public static SavedGameModel loadGame(final File loadFrom)
-        throws IllegalStateException, NoSuchElementException, UnsupportedOperationException, IOException
+        throws IllegalStateException, NoSuchElementException, UnsupportedOperationException,
+        StringIndexOutOfBoundsException, IOException
     {
         if (SavedGameModel.glas == null)
             throw new IllegalStateException("SavedGameModel.glas is null");
 
         initGson();
 
-        InputStreamReader reader = new InputStreamReader
-            (new FileInputStream(loadFrom), "UTF-8");
-        SavedGameModel sgm = gsonb.create().fromJson(reader, SavedGameModel.class);
-        reader.close();
+        final SavedGameModel sgm;
+        try
+            (final FileInputStream fis = new FileInputStream(loadFrom);
+             final InputStreamReader reader = new InputStreamReader(fis, "UTF-8"); )
+        {
+            sgm = gsonb.create().fromJson(reader, SavedGameModel.class);
+        } catch (JsonIOException e) {
+            throw new IOException("JSON: " + e.getMessage(), e);
+        } catch (JsonSyntaxException e) {
+            StringIndexOutOfBoundsException wrap = new StringIndexOutOfBoundsException("JSON: " + e.getMessage());
+            wrap.initCause(e);
+            throw wrap;
+        }
 
         sgm.createLoadedGame();
 

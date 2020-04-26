@@ -1655,7 +1655,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Follow a trade route (a line of {@link SOCShip}s) away from a newly closed end, to
      * determine if the other end is closed or still open, and close this route if
-     * necessary.
+     * necessary. Calls {@link #isTradeRouteFarEndClosed(SOCShip, int, HashSet, List)}.
      *<P>
      * We check the route in one direction towards <tt>edgeFarNode</tt>, because we
      * assume that the other end of <tt>newShipEdge</tt>
@@ -1679,11 +1679,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param edgeFarNode  The unvisited node at the far end of <tt>fromEdge</tt>.
      *                  We'll examine this node and then continue to move along edges past it.
      * @return  null if open, otherwise all the newly-closed {@link SOCShip}s
-     * @since 2.0.00
      * @throws IllegalStateException  if not {@link SOCGame#hasSeaBoard}
+     * @throws IllegalArgumentException if {@link SOCShip#isClosed() newShipEdge.isClosed()} is already true
+     * @since 2.0.00
      */
     private List<SOCShip> checkTradeRouteFarEndClosed(final SOCShip newShipEdge, final int edgeFarNode)
-        throws IllegalStateException
+        throws IllegalStateException, IllegalArgumentException
     {
         if (! game.hasSeaBoard)
             throw new IllegalStateException();
@@ -2837,14 +2838,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Their trade route probably contains pieces from a real player and a temporary dummy player,
      * and closing the route would call the real player's {@link SOCShip#setClosed()}.
      *
+     *<H5>Saving and Loading Game:</H5>
+     * When reloading a game at the server, its pieces' fields (including {@link SOCShip#isClosed()})
+     * already have been calculated during gameplay before game was saved, and then reloaded as part of the game model.
+     * So if game state is {@link SOCGame#LOADING} and we're at the server, won't re-check them here
+     * or throw exceptions for already-closed ship routes.
+     *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roadsAndShips}
      * @param board  game board
+     * @throws IllegalArgumentException if {@link SOCShip#isClosed() newShip.isClosed()} is already true
      * @since 2.0.00
      */
     private void putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
         (final SOCShip newShip, final SOCBoardLarge board)
+        throws IllegalArgumentException
     {
+        if (game.isAtServer && (game.getGameState() == SOCGame.LOADING))
+            return;  // <--- Early return ---
+
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
         final int edge = newShip.getCoordinates();
         final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);

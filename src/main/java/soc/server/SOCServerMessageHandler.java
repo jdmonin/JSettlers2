@@ -1613,18 +1613,27 @@ public class SOCServerMessageHandler
         if (SavedGameModel.glas == null)
             SavedGameModel.glas = srv.gameList;
 
-        final SavedGameModel sgm;
+        SavedGameModel sgm = null;
+        String errText = null;
         try
         {
             sgm = GameLoaderJSON.loadGame
                 (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
         } catch (NoSuchElementException|UnsupportedOperationException e) {
-            srv.messageToPlayer
-                (c, connGaName, /*I*/"Problem loading " + argsStr + ": Too new: " + e.getMessage() /*18N*/);
-            return;
+            errText = /*I*/"Problem loading " + argsStr + ": Too new: " + e.getMessage() /*18N*/;
+        } catch (IOException|StringIndexOutOfBoundsException e) {
+            errText = /*I*/"Problem loading " + argsStr + ": " + e.getMessage() /*18N*/;
         } catch (Throwable th) {
-            srv.messageToPlayer
-                (c, connGaName, /*I*/"Problem loading " + argsStr + ": " + th /*18N*/);
+            errText = /*I*/"Problem loading " + argsStr + ": " + th /*18N*/;
+            if ("debug".equals(c.getData()))
+            {
+                soc.debug.D.ebugPrintStackTrace(th, errText);  // in case of syntax error
+                errText += /*I*/": See server console"/*18N*/;
+            }
+        }
+        if (errText != null)
+        {
+            srv.messageToPlayer(c, connGaName, errText);
             return;
         }
 
@@ -1675,19 +1684,20 @@ public class SOCServerMessageHandler
         // Send Resume reminder prompt after delay, or announce winner if over,
         //     to appear after bots have joined
         //     TODO if any problems, don't send this prompt
+        final SavedGameModel sgmf = sgm;  // satify compiler
         srv.miscTaskTimer.schedule(new TimerTask()
         {
             public void run()
             {
-                if (! gaName.equals(sgm.gameName))
+                if (! gaName.equals(sgmf.gameName))
                     srv.messageToPlayer
-                        (c, gaName, /*I*/"Game was renamed: Original name " + sgm.gameName + " is already used."/*18N*/);
+                        (c, gaName, /*I*/"Game was renamed: Original name " + sgmf.gameName + " is already used."/*18N*/);
 
-                if (sgm.gameState < SOCGame.OVER)
+                if (sgmf.gameState < SOCGame.OVER)
                 {
                     srv.messageToGameUrgent(gaName, /*I*/"To continue playing, type *RESUMEGAME*"/*18N*/ );
                 } else {
-                    sgm.resumePlay(true);
+                    sgmf.resumePlay(true);
                     final GameHandler hand = gameList.getGameTypeHandler(gaName);
                     if (hand != null)
                         hand.sendGameState(ga);
