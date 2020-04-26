@@ -1704,6 +1704,13 @@ public class SOCServerMessageHandler
                 }
             }
         }, 350 /* ms */ );
+
+        // In case game duration/expire time was extended before save and would now expire very soon,
+        // postpone expiration long enough to run at least 1 expiration check before warning
+        final long now = System.currentTimeMillis();
+        final long thresholdMin = SOCServer.GAME_TIME_EXPIRE_CHECK_MINUTES + SOCServer.GAME_TIME_EXPIRE_WARN_MINUTES;
+        if (thresholdMin >= (int) ((ga.getExpiration() - now) / (60 * 1000L)))
+            ga.setExpiration(now + (60 * 1000 * (1 + thresholdMin)));
     }
 
     /**
