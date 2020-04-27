@@ -67,7 +67,7 @@ class StatsFileWriterTask
      * in {@link #INITIAL_RUN_DELAY_MINUTES}. Calls {@link #checkIfWritable()} now
      * to print a warning message if not writable.
      *
-     * @param ssmh  Server message handler, for {@link SOCServerMessageHandler#getSettingsFormatted()}
+     * @param ssmh  Server message handler, for {@link SOCServerMessageHandler#getSettingsFormatted(soc.util.SOCStringManager)}
      * @param statsFile  File to create or append to; assumes is from caller using {@link File#getAbsoluteFile()}
      * @param filename  for printing warning
      * @param timer  Timer on which to schedule
@@ -158,7 +158,7 @@ class StatsFileWriterTask
             sb.append("Server stats at ");
             sb.append(SDF.format(localCal.getTime()));
             sb.append("\n\n");
-            Iterator<String> it = ssmh.getSettingsFormatted().iterator();
+            Iterator<String> it = ssmh.getSettingsFormatted(null).iterator();
             while (it.hasNext())
                 sb.append(it.next() + ": " + it.next() + "\n");
             sb.append("\n\n");

@@ -30,8 +30,8 @@ import soc.util.SOCGameList;
 import soc.util.SOCStringManager;  // for javadoc
 
 /**
- * The server's place to track client-specific information across games.
- * The win-loss count is kept here.
+ * The server's place to track client-specific information across games
+ * for a {@link Connection} session: Win-loss count, features, localization status, etc.
  * Not tied to the optional database; information here is only for the current
  * session, not persistent across disconnects/reconnects by clients.
  *

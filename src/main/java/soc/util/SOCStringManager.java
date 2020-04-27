@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
- * Some parts of this file Copyright (C) 2013,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Some parts of this file Copyright (C) 2013,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -415,6 +415,7 @@ public class SOCStringManager extends StringManager
      * @param loc  Locale to use, or {@code null} to fall back to {@link Locale#US} ({@code en_US}) to
      *     localize server announcement text for v1.x.xx clients.
      * @return  The server manager for that client locale
+     * @see #getFallbackServerManagerForClient()
      */
     public static SOCStringManager getServerManagerForClient(Locale loc)
     {

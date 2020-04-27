@@ -42,6 +42,7 @@ import java.util.Vector;
  *  2.0.0 - 2017-11-01 - Rename StringServerSocket -> SOCServerSocket, NetStringServerSocket -> NetServerSocket,
  *                       LocalStringServerSocket -> StringServerSocket. Remove unused broadcast(..).
  *  2.1.0 - 2020-01-09 - Only TCP-server changes: See {@link SOCServerSocket}
+ *  2.3.0 - 2020-04-27 - no change in this file
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

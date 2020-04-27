@@ -35,6 +35,7 @@ import java.net.SocketException;
  *  2.0.0 - 2017-11-01 - Rename StringServerSocket -> SOCServerSocket, NetStringServerSocket -> NetServerSocket,
  *                       LocalStringServerSocket -> StringServerSocket
  *  2.1.0 - 2020-01-09 - NetServerSocket call setReuseAddress (SO_REUSEADDR)
+ *  2.3.0 - 2020-04-27 - no change in this file
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

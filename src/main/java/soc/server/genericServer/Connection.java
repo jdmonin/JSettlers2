@@ -51,6 +51,7 @@ import soc.util.SOCStringManager;
  *                       For I18N, add {@link #setI18NStringManager(SOCStringManager, String)} and
  *                       {@link #getLocalized(String)}.
  *  2.1.0 - 2020-01-09 - Connection +put({@link SOCMessage}). Misc server-side changes: See {@link SOCServerSocket}
+ *  2.3.0 - 2020-04-27 - Connection +getI18NStringManager
  *</PRE>
  *<P>
  * Implementation note: {@code Connection} is used as a key in the server's client-management collections.
@@ -281,11 +282,24 @@ public abstract class Connection
     /**
      * Get the locale for this connection, as reported to {@link #setI18NStringManager(SOCStringManager, String)}.
      * @return the locale passed to {@code setI18NStringManager}, which may be {@code null}
+     * @see #getI18NStringManager()
      * @since 2.0.0
      */
     public String getI18NLocale()
     {
         return localeStr;
+    }
+
+    /**
+     * Get the string manager for this connection, as reported
+     * to {@link #setI18NStringManager(SOCStringManager, String)}.
+     * @return the string manager, which may be {@code null}
+     * @see #getI18NLocale()
+     * @since 2.3.0
+     */
+    public SOCStringManager getI18NStringManager()
+    {
+        return stringMgr;
     }
 
     /**

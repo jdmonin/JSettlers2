@@ -23,6 +23,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import soc.util.I18n;
+import soc.util.SOCStringManager;
 
 /**
  * Tests for I18N - Some tests for {@link I18n} class methods.
@@ -87,6 +88,62 @@ public class TestI18N
     public void testBytesToHumanUnits_badInput()
     {
         bytesToHumanUnits_testOne(-1, "unused");  // any negative should throw exception
+    }
+
+    private void testDurationToDaysHoursMinutesSeconds_testOne
+        (final long millis, final String expectedDayPrefix, final String expected)
+    {
+        assertEquals
+            ("for millis=" + millis,
+             expectedDayPrefix + expected,
+             I18n.durationToDaysHoursMinutesSeconds
+                 (millis, SOCStringManager.getFallbackServerManagerForClient()));
+    }
+
+    /**
+     * Test {@link I18n#durationToDaysHoursMinutesSeconds(long, soc.util.SOCStringManager)}.
+     */
+    @Test
+    public void testDurationToDaysHoursMinutesSeconds()
+    {
+        final long HOUR = 60 * 60 * 1000;
+        for (int day = 0; day <= 4; ++day)
+        {
+            long millis = day * HOUR * 24;
+            final String dayStr;
+            switch (day)
+            {
+                case 0:  dayStr = "";        break;
+                case 1:  dayStr = "1 day ";  break;
+                default: dayStr = day + " days ";
+            }
+
+            testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "0:00:00");
+
+            millis += 1100;   testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "0:00:01");
+            millis += 32000;  testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "0:00:33");
+            millis += 30000;  testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "0:01:03");
+            millis += 9000;   testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "0:01:12");
+            millis += 50000;  testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "0:02:02");
+            millis += 600000; testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "0:12:02");
+
+            millis += (HOUR - 600000);
+            testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "1:02:02");
+            millis += HOUR;   testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "2:02:02");
+            millis += 20000;  testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "2:02:22");
+            millis += 600000; testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "2:12:22");
+            millis -= 20000;  testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "2:12:02");
+            millis += (8 * HOUR); testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "10:12:02");
+            millis += HOUR;   testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "11:12:02");
+
+            millis += (12 * HOUR); testDurationToDaysHoursMinutesSeconds_testOne(millis, dayStr, "23:12:02");
+        }
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testDurationToDaysHoursMinutesSeconds_badInput()
+    {
+        testDurationToDaysHoursMinutesSeconds_testOne(-1, "unused", "unused");  // any negative should throw exception
     }
 
     public static void main(String[] args)

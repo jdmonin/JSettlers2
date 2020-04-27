@@ -103,6 +103,8 @@ public abstract class I18n
      */
     private static String numTo3SigFigs(final BigDecimal amount, final String unit)
     {
+        // TODO i18n: require locale/SOCStringManager param, to localize decimal point
+
         final long wholeAmount = amount.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
         StringBuilder sb = new StringBuilder();
         if (wholeAmount >= 100)
@@ -156,6 +158,39 @@ public abstract class I18n
             (bytes >= BYTES_1_GB)
             ? numTo3SigFigs(BigDecimal.valueOf(bytes / (double) BYTES_1_GB), "GB")
             : numTo3SigFigs(BigDecimal.valueOf(bytes / (double) BYTES_1_MB), "MB");
+
+        // TODO i18n: require locale/SOCStringManager param, to localize decimal point
+    }
+
+    /**
+     * Localize a duration as either hours:minutes:seconds, leading with days if needed.
+     * @param millis Duration in milliseconds
+     * @param strings  StringManager to retrieve localized formatting
+     * @return localized equivalent of duration, like "1:03:52" or "2 days 1:03:52"
+     * @throws IllegalArgumentException if {@code millis} &lt; 0
+     * @throws NullPointerException if {@code strings} is null
+     * @since 2.3.00
+     */
+    public static String durationToDaysHoursMinutesSeconds(final long millis, final SOCStringManager strings)
+        throws IllegalArgumentException, NullPointerException
+    {
+        if (millis < 0)
+            throw new IllegalArgumentException("negative");
+
+        final long hours = millis / (60 * 60 * 1000),
+            hoursAsMillis = hours * 60 * 60 * 1000,
+            minutes = (millis - hoursAsMillis) / (60 * 1000),
+            seconds = (millis - hoursAsMillis - (minutes * 60 * 1000)) / 1000;
+
+        if (hours < 24)
+        {
+            return strings.get("i18n.duration.hours_min_sec", hours, minutes, seconds);
+        } else {
+            final int days = (int) (hours / 24),
+                      hr   = (int) (hours - (days * 24L));
+            return strings.get("i18n.duration.days_hours_min_sec", days, hr, minutes, seconds);
+        }
+
     }
 
 }

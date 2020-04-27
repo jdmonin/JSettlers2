@@ -1454,7 +1454,7 @@ public class SOCServerMessageHandler
      * @param name  Stat name to add
      * @param val  Stat value
      * @see #listAddStat(List, String, int)
-     * @see #getSettingsFormatted()
+     * @see #getSettingsFormatted(SOCStringManager)
      * @since 2.3.00
      */
     private void listAddStat(final List<String> li, final String name, final String val)
@@ -1470,7 +1470,7 @@ public class SOCServerMessageHandler
      * @param name  Stat name to add
      * @param val  Stat value
      * @see #listAddStat(List, String, String)
-     * @see #getSettingsFormatted()
+     * @see #getSettingsFormatted(SOCStringManager)
      * @since 2.3.00
      */
     private void listAddStat(final List<String> li, final String name, final int val)
@@ -1481,30 +1481,26 @@ public class SOCServerMessageHandler
 
     /**
      * Build a list of server stats for {@link #processDebugCommand_serverStats(Connection, SOCGame)}.
+     * @param strings  String manager for localization if this is for a client connection,
+     *     or {@code null} to use {@link SOCStringManager#getFallbackServerManagerForClient()}
      * @return Formatted list of server stats strings.
      *     Always an even number of items, a name and then a value for each setting.
      *     A few stats are multi-line lists; each continuation lines is a pair whose "name" is {@code "  "}.
      * @see SOCDBHelper#getSettingsFormatted(SOCServer)
      * @since 2.3.00
      */
-    final List<String> getSettingsFormatted()
+    final List<String> getSettingsFormatted(SOCStringManager strings)
     {
-        final long diff = System.currentTimeMillis() - srv.startTime;
-        final long hours = diff / (60 * 60 * 1000),
-            minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000),
-            seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
-        Runtime rt = Runtime.getRuntime();
+        if (strings == null)
+            strings = SOCStringManager.getFallbackServerManagerForClient();
+        // TODO i18n: localize field names
+
+        final Runtime rt = Runtime.getRuntime();
 
         ArrayList<String> li = new ArrayList<>();
 
-        if (hours < 24)
-        {
-            listAddStat(li, "Uptime", hours + ":" + minutes + ":" + seconds);
-        } else {
-            final int days = (int) (hours / 24),
-                      hr   = (int) (hours - (days * 24L));
-            listAddStat(li, "Uptime", days + "d " + hr + ":" + minutes + ":" + seconds);
-        }
+        listAddStat(li, "Uptime", I18n.durationToDaysHoursMinutesSeconds
+            (System.currentTimeMillis() - srv.startTime, strings));
         listAddStat(li, "Connections since startup", srv.getRunConnectionCount());
         listAddStat(li, "Current named connections", srv.getNamedConnectionCount());
         listAddStat(li, "Current connections including unnamed", srv.getCurrentConnectionCount());
@@ -1571,7 +1567,7 @@ public class SOCServerMessageHandler
     {
         final String gaName = ga.getName();
 
-        Iterator<String> it = getSettingsFormatted().iterator();
+        Iterator<String> it = getSettingsFormatted(c.getI18NStringManager()).iterator();
         while (it.hasNext())
             srv.messageToPlayer(c, gaName, "> " + it.next() + ": " + it.next());
 

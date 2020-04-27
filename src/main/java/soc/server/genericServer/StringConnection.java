@@ -60,6 +60,7 @@ import soc.message.SOCMessage;
  *                       LocalStringConnection -> StringConnection.
  *                       Connection is now a superclass, not an interface.
  *  2.1.0 - 2020-01-09 - Only server-side changes: See {@link SOCServerSocket}
+ *  2.3.0 - 2020-04-27 - no change in this file
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
