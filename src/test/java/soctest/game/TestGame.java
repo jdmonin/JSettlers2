@@ -29,6 +29,7 @@ import static org.junit.Assert.*;
  * A few tests for {@link SOCGame}.
  *
  * @see TestBoard
+ * @see TestPlayer
  * @since 2.3.00
  */
 public class TestGame

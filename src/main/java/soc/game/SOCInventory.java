@@ -317,16 +317,18 @@ public class SOCInventory
     }
 
     /**
-     * Add an amount to a type of dev card.
-     * VP cards will be added with state {@link #KEPT}.  Otherwise, cards with {@code age} == {@link #OLD}
+     * Add an amount of a type of dev card.
+     * VP cards (for which {@link SOCDevCard#isVPCard(int) SOCDevCard.isVPCard(ctype)} is true)
+     * will be added with state {@link #KEPT}.
+     * Otherwise, cards with {@code age} == {@link #OLD}
      * will have state {@link #PLAYABLE}, new cards will have {@link #NEW}.
      *<P>
      * Before v2.0.00, this method was {@code add(amt, age, ctype)}.
      *
+     * @param amt   the amount; 1, except for debugging or maybe joining a game in progress
      * @param age   either {@link #OLD} or {@link #NEW}
      * @param ctype the type of development card, at least
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
-     * @param amt   the amount
      * @see #addItem(SOCInventoryItem)
      * @see #removeDevCard(int, int)
      */
