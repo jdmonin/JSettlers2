@@ -483,7 +483,7 @@ public class SavedGameModel
                 for (SOCInventoryItem item : cardsInv.getByState(dcState))
                     if (item instanceof SOCDevCard)
                         oldDevCards.add(item.itype);
-            // TODO other inventory item types: see SGH.sitDown_sendPrivateInfo
+            // TODO: future: for scenarios, other inventory item types: see SGH.sitDown_sendPrivateInfo
 
             pieces.addAll(pl.getPieces());
             // fortressPiece = pl.getFortress();
@@ -518,7 +518,7 @@ public class SavedGameModel
             final SOCBoard b = ga.getBoard();
             for (SOCPlayingPiece pp : pieces)
             {
-                // TODO handle SOCVillage
+                // TODO future: scenario SC_CLVI: handle SOCVillage
                 pp.setGameInfo(pl, b);
                 ga.putPiece(pp);
             }

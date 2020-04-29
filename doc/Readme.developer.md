@@ -457,7 +457,7 @@ ideas.
   - For clarity, decide case-by-case whether to use diamond with deeply nested types like  
     `new Stack<Pair<NodeLenVis<Integer>, List<Integer>>>()`
 - Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
-- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
+- Kick and replace robots if inactive but current player in game, assume they're buggy (see forceEndTurn, SOCPlayer.isStubbornRobot())
 - Control the speed of robots, in practice games and with other humans
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
 - For bot test runs with `-Djsettlers.bots.botgames.shutdown=Y` (`SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN`):
@@ -469,6 +469,7 @@ ideas.
   - Medium-level example: Add a board-geometry unit test to `soctest.game.TestBoardLayouts`
     to check all scenarios' layouts against the "Layout placement rules for special situations"
     mentioned in `SOCBoardAtServer` class javadocs
+  - Could add a test flag or method to server to load a saved game from JSON to test specific situations
 - Possibly: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
@@ -548,6 +549,7 @@ Games with a scenario can't yet be saved, because of their special pieces or gam
 **Usage/UI**
 
 - Set value of server property `jsettlers.savegame.dir` to point to the game-saves directory
+- Log in as `debug` or an admin user
 - Start a game, place pieces as needed, begin game play
 - Debug command to save a snapshot: \*SAVEGAME\* mygamename
 - Debug command to load a snapshot: \*LOADGAME\* mygamename  

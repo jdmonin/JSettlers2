@@ -1452,10 +1452,10 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Players' potential settlements and related values.
-     * Will have either 1 per player, or 1 for all players (playerNumber == -1):
+     * Will return either 1 per player, or 1 for all players with {@code playerNumber} == -1:
      *<P>
      * If game hasn't started yet, each player's potentialSettlements are identical,
-     * so gather that info once for all players (unless clients are too old for a message having pn == -1).
+     * so gather that info once for all players (unless clients are too old for a message having PN -1).
      *<P>
      * Otherwise each player has a unique potential settlement list,
      * to populate legal sets before sending any of their PutPieces.
