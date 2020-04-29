@@ -507,7 +507,7 @@ public class SOCGame implements Serializable, Cloneable
      * This game is an obsolete old copy of a new (reset) game with the same name.
      * To assist logic, numeric constant value is greater than {@link #OVER}.
      * @see #resetAsCopy()
-     * @see #getResetOldGameState()
+     * @see #getOldGameState()
      * @since 1.1.00
      */
     public static final int RESET_OLD = 1001;
@@ -1012,7 +1012,7 @@ public class SOCGame implements Serializable, Cloneable
      *<LI> {@link #LOADING}:
      *        Holds the actual game state, to be resumed once optional constraints are met.
      *</UL>
-     * Also used if the game board was reset: {@link #getResetOldGameState()} holds the state before the reset.
+     * Also used if the game board was reset: Holds the state before the reset.
      */
     private int oldGameState;
 
@@ -1086,14 +1086,15 @@ public class SOCGame implements Serializable, Cloneable
     private int playerWithWin;
 
     /**
-     * the number of development cards left in {@link #devCardDeck} for {@link #buyDevCard()}.
+     * The number of development cards remaining in {@link #devCardDeck};
+     * {@code numDevCards - 1} is index of the next card to buy for {@link #buyDevCard()}.
      */
     private int numDevCards;
 
     /**
-     * the development card deck.
+     * The development card deck's remaining and already-drawn cards.
      * Each element is a dev card type from {@link SOCDevCardConstants}.
-     * {@link #numDevCards} tracks the cards remaining to buy.
+     * {@link #numDevCards} counts down to track the next card to buy for {@link #buyDevCard()}.
      */
     private int[] devCardDeck;
 
@@ -1198,9 +1199,10 @@ public class SOCGame implements Serializable, Cloneable
      * List of ship edge coordinates placed this turn.
      * A ship cannot be placed and moved on the same turn.
      * Null when not {@link #hasSeaBoard}.
+     * @see #canMoveShip(int, int)
      * @since 2.0.00
      */
-    private Vector<Integer> placedShipsThisTurn;
+    private Vector<Integer> shipsPlacedThisTurn;
 
     /**
      * The special inventory item currently being placed in state {@link #PLACING_INV_ITEM}, or null.
@@ -1374,7 +1376,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
         movedShipThisTurn = false;
         if (hasSeaBoard)
-            placedShipsThisTurn = new Vector<Integer>();
+            shipsPlacedThisTurn = new Vector<Integer>();
 
         if (op == null)
         {
@@ -1434,6 +1436,83 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * For saving a game snapshot, get the values of several private boolean fields:
+     *<UL>
+     * <LI> placingRobberForKnightCard
+     * <LI> robberyWithPirateNotRobber (also available from {@link #getRobberyPirateFlag()})
+     * <LI> askedSpecialBuildPhase
+     * <LI> movedShipThisTurn
+     *</UL>
+     * For some other fields to save, see
+     * {@link #setFieldsForLoad(int[], int, List, boolean, boolean, boolean, boolean)}.
+     *
+     * @return an array with the current values of those fields, in the order listed here
+     * @since 2.3.00
+     */
+    public final boolean[] getFlagFieldsForSave()
+    {
+        return new boolean[]
+        {
+            placingRobberForKnightCard, robberyWithPirateNotRobber,
+            askedSpecialBuildPhase, movedShipThisTurn
+        };
+    }
+
+    /**
+     * To help load a saved game snapshot, set the values of the private fields
+     * previously returned from {@link #getFlagFieldsForSave()}, along with
+     * values saved from some other getters where mentioned in parameter javadocs.
+     *
+     * @param cards  Deck from {@link #getDevCardDeck()}.
+     *     Contents will be copied. Can be empty, but not null.
+     * @param oldGameState  State from {@link #getOldGameState()}
+     * @param shipsPlacedThisTurn  Ships from {@link #getShipsPlacedThisTurn()}. May be null or empty.
+     * @param placingRobberForKnightCard
+     * @param robberyWithPirateNotRobber
+     * @param askedSpecialBuildPhase
+     * @param movedShipThisTurn
+     * @throws IllegalArgumentException if {@code cards} is null
+     * @since 2.3.00
+     */
+    public void setFieldsForLoad
+        (final int[] cards, final int oldGameState, final List<Integer> shipsPlacedThisTurn,
+         final boolean placingRobberForKnightCard, final boolean robberyWithPirateNotRobber,
+         final boolean askedSpecialBuildPhase, final boolean movedShipThisTurn)
+        throws IllegalArgumentException
+    {
+        if (cards == null)
+            throw new IllegalArgumentException("cards");
+
+        final int L = cards.length;
+        if ((devCardDeck == null) || (L > devCardDeck.length))
+            devCardDeck = new int[L];
+        numDevCards = L;
+        System.arraycopy(cards, 0, devCardDeck, 0, L);
+
+        this.oldGameState = oldGameState;
+
+        if (shipsPlacedThisTurn == null)
+        {
+            if (this.shipsPlacedThisTurn != null)
+                this.shipsPlacedThisTurn.clear();
+        } else {
+            if (this.shipsPlacedThisTurn == null)
+                this.shipsPlacedThisTurn = new Vector<>(shipsPlacedThisTurn);
+            else
+                synchronized (this.shipsPlacedThisTurn)
+                {
+                    this.shipsPlacedThisTurn.clear();
+                    this.shipsPlacedThisTurn.addAll(shipsPlacedThisTurn);
+                }
+        }
+
+        this.placingRobberForKnightCard = placingRobberForKnightCard;
+        this.robberyWithPirateNotRobber = robberyWithPirateNotRobber;
+        this.askedSpecialBuildPhase = askedSpecialBuildPhase;
+        this.movedShipThisTurn = movedShipThisTurn;
+    }
+
+    /**
      * @return allOriginalPlayers
      * @see #hasHumanPlayers()
      */
@@ -1479,16 +1558,17 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Set how long this game has existed.
      * Overwrites and replaces the time returned by {@link #getStartTime()}.
-     * @param seconds Game's new age in seconds; can be 0 but not negative
+     * @param ageSeconds Game's new age in seconds; can be 0 but not negative
+     * @throws IllegalArgumentException if {@code ageSeconds} &lt; 0
      * @since 2.3.00
      */
-    public void setTimeSinceCreated(final int seconds)
+    public void setTimeSinceCreated(final int ageSeconds)
         throws IllegalArgumentException
     {
-        if (seconds < 0)
-            throw new IllegalArgumentException("seconds");
+        if (ageSeconds < 0)
+            throw new IllegalArgumentException("ageSeconds");
 
-        final long t = System.currentTimeMillis() - (1000L * seconds);
+        final long t = System.currentTimeMillis() - (1000L * ageSeconds);
         if (startTime == null)
             startTime = new Date(t);
         else
@@ -1904,6 +1984,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return the name of the game
+     * @see #setName(String)
      */
     public String getName()
     {
@@ -2406,6 +2487,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return the current game state
      * @see #isInitialPlacement()
      * @see #isSpecialBuilding()
+     * @see #getOldGameState()
      */
     public int getGameState()
     {
@@ -2414,9 +2496,11 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * set the current game state.
-     * If the new state is {@link #OVER}, and no playerWithWin yet determined, call checkForWinner.
      * For general information about what states are expected when,
      * please see the javadoc for {@link #NEW}.
+     *<P>
+     * If the new state is {@link #OVER} and no playerWithWin yet determined, calls {@link #checkForWinner()};
+     * caller should check {@link #getPlayerWithWin()} afterwards.
      *<P>
      * This method is generally called at the client, due to messages from the server
      * based on the server's complete game data.
@@ -2426,7 +2510,6 @@ public class SOCGame implements Serializable, Cloneable
      * calls {@link #updateAtGameFirstTurn()}.
      *
      * @param gs  the game state
-     * @see #checkForWinner()
      */
     public void setGameState(final int gs)
     {
@@ -2450,6 +2533,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * If the game board was reset, get the old game state.
      *
+     * @deprecated Use {@link #getOldGameState()} to get the old game state without usage restrictions
      * @return the old game state
      * @throws IllegalStateException Game state must be RESET_OLD
      *    when called; during normal game play, oldGameState is private.
@@ -2461,6 +2545,17 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException
                 ("Current state is not RESET_OLD: " + gameState);
 
+        return oldGameState;
+    }
+
+    /**
+     * Get the old game state, for saving the game while state is temporarily changed
+     * or reference at old copy of game (having current state {@link #RESET_OLD}) after a game reset.
+     * @return the old {@link #getGameState()}
+     * @since 2.3.00
+     */
+    public int getOldGameState()
+    {
         return oldGameState;
     }
 
@@ -2558,9 +2653,11 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * At server, get the dev cards remaining in the unplayed deck.
-     * @return Unplayed dev card deck: a copied array of ints from {@link SOCDevCardConstants}
-     * @see #setDevCardDeck(int[])
+     * Useful for saving and loading game snapshots.
+     * @return Unplayed dev card deck: a copied array of dev card types from {@link SOCDevCardConstants}.
+     *     May be empty, but never null.
      * @see #buyDevCard()
+     * @see #getNumDevCards()
      * @since 2.3.00
      */
     public int[] getDevCardDeck()
@@ -2568,28 +2665,6 @@ public class SOCGame implements Serializable, Cloneable
         int[] cards = new int[numDevCards];
         System.arraycopy(devCardDeck, 0, cards, 0, cards.length);
         return cards;
-    }
-
-    /**
-     * At server, set the dev cards remaining in the unplayed deck.
-     * Useful for loading a saved game snapshot.
-     * @param cards Unplayed dev card deck: ints from {@link SOCDevCardConstants}.
-     *     Contents will be copied. Can be empty, but not null.
-     * @throws IllegalArgumentException if {@code cards} is null
-     * @see #getDevCardDeck()
-     * @since 2.3.00
-     */
-    public void setDevCardDeck(final int[] cards)
-        throws IllegalArgumentException
-    {
-        if (cards == null)
-            throw new IllegalArgumentException("cards");
-
-        final int L = cards.length;
-        if ((devCardDeck == null) || (L > devCardDeck.length))
-            devCardDeck = new int[L];
-        numDevCards = L;
-        System.arraycopy(cards, 0, devCardDeck, 0, L);
     }
 
     /**
@@ -3395,6 +3470,19 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the list of ships placed this turn by the current player, if {@link #hasSeaBoard}.
+     * @return copy of the list of ships placed this turn, if any.
+     *     May be empty; won't be {@code null} unless ! {@link #hasSeaBoard}
+     * @since 2.3.00
+     */
+    public List<Integer> getShipsPlacedThisTurn()
+    {
+        return (shipsPlacedThisTurn != null)
+            ? new ArrayList<>(shipsPlacedThisTurn)
+            : null;
+    }
+
+    /**
      * Put this piece on the board and update all related game state.
      * May change current player (at server) and gamestate.
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}.
@@ -3682,7 +3770,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pp.getType() == SOCPlayingPiece.SHIP)
         {
-            placedShipsThisTurn.add(Integer.valueOf(coord));
+            shipsPlacedThisTurn.add(Integer.valueOf(coord));
         }
 
         /**
@@ -4096,7 +4184,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (movedShipThisTurn || ! (hasSeaBoard && (currentPlayerNumber == pn) && (gameState == PLAY1)))
             return null;
-        if (placedShipsThisTurn.contains(Integer.valueOf(fromEdge)))
+        if (shipsPlacedThisTurn.contains(Integer.valueOf(fromEdge)))
             return null;
 
         // check fromEdge vs. pirate hex
@@ -4188,7 +4276,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #canMoveShip(int, int, int)} before calling this method.
      *<P>
      * The call to putPiece incorrectly adds the moved ship's
-     * new location to <tt>placedShipsThisTurn</tt>, but since
+     * new location to {@link #getShipsPlacedThisTurn()}, but since
      * we can only move 1 ship per turn, the add is harmless.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
@@ -4207,8 +4295,7 @@ public class SOCGame implements Serializable, Cloneable
     public void moveShip(SOCShip sh, final int toEdge)
     {
         undoPutPieceCommon(sh, false);
-        SOCShip sh2 = new SOCShip(sh.getPlayer(), toEdge, board);
-        putPiece(sh2);  // calls checkForWinner, etc
+        putPiece(new SOCShip(sh.getPlayer(), toEdge, board));  // calls checkForWinner, etc
         movedShipThisTurn = true;
     }
 
@@ -4794,7 +4881,7 @@ public class SOCGame implements Serializable, Cloneable
         if (hasSeaBoard)
         {
             movedShipThisTurn = false;
-            placedShipsThisTurn.clear();
+            shipsPlacedThisTurn.clear();
         }
         placingItem = null;
 
@@ -8535,7 +8622,7 @@ public class SOCGame implements Serializable, Cloneable
      * Any vacant seats will be locked, so a robot won't sit there.
      *<P>
      * Old game's state becomes {@link #RESET_OLD}.
-     * Old game's previous state is saved to {@link #getResetOldGameState()}.
+     * Old game's previous state is saved to {@link #getOldGameState()}.
      * Please call destroyGame() on old game when done examining its state.
      *<P>
      * Assumes that if the game had more than one human player,
@@ -8549,7 +8636,7 @@ public class SOCGame implements Serializable, Cloneable
             // the constructor will set most fields, based on game options
 
         cp.isFromBoardReset = true;
-        oldGameState = gameState;  // for getResetOldGameState()
+        oldGameState = gameState;  // for reference if needed
         active = false;
         gameState = RESET_OLD;
 

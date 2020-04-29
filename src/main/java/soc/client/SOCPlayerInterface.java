@@ -3277,7 +3277,7 @@ public class SOCPlayerInterface extends Frame
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         // Clear out old state (similar to constructor)
-        int oldGameState = game.getResetOldGameState();
+        int oldGameState = game.getOldGameState();
         game = newGame;
         knowsGameState = (game.getGameState() != 0);
         if (gameStats != null)

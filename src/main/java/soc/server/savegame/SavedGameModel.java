@@ -21,6 +21,7 @@ package soc.server.savegame;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -111,8 +112,17 @@ public class SavedGameModel
     /** Game duration, from {@link SOCGame#getStartTime()} */
     int gameDurationSeconds;
 
-    /** Current state, from {@link SOCGame#getGameState()} */
+    /**
+     * Current gameState, from {@link SOCGame#getGameState()}
+     * @see #oldGameState
+     */
     public int gameState;
+
+    /**
+     * Old gameState, from {@link SOCGame#getOldGameState()}
+     * @see #gameState
+     */
+    int oldGameState;
 
     /** Current dice roll results, from {@link SOCGame#getCurrentDice()} */
     int currentDice;
@@ -122,6 +132,13 @@ public class SavedGameModel
 
     /** Remaining unplayed dev cards, from {@link SOCGame#getDevCardDeck()} */
     int[] devCardDeck;
+
+    /** Flag fields, from {@link SOCGame#getFlagFieldsForSave()} */
+    boolean placingRobberForKnightCard, robberyWithPirateNotRobber,
+        askedSpecialBuildPhase, movedShipThisTurn;
+
+    /** Ships placed this turn if {@link SOCGame#hasSeaBoard}, from {@link SOCGame#getShipsPlacedThisTurn()}, or null */
+    List<Integer> shipsPlacedThisTurn;
 
     /** Board layout and contents */
     BoardInfo boardInfo;
@@ -197,9 +214,18 @@ public class SavedGameModel
         gameDurationSeconds = (int) (((System.currentTimeMillis() - ga.getStartTime().getTime()) + 500) / 1000L);
             // same rounding calc as SSMH.processDebugCommand_gameStats
         gameState = ga.getGameState();
+        oldGameState = ga.getOldGameState();
         currentDice = ga.getCurrentDice();
         gameMinVersion = ga.getClientVersionMinRequired();
         devCardDeck = ga.getDevCardDeck();
+
+        final boolean[] flags = ga.getFlagFieldsForSave();
+        placingRobberForKnightCard = flags[0];
+        robberyWithPirateNotRobber = flags[1];
+        askedSpecialBuildPhase = flags[2];
+        movedShipThisTurn = flags[3];
+
+        shipsPlacedThisTurn = ga.getShipsPlacedThisTurn();
 
         {
             final SOCPlayer lrPlayer = ga.getPlayerWithLongestRoad(),
@@ -334,9 +360,11 @@ public class SavedGameModel
         ga.savedGameModel = this;
         ga.setTimeSinceCreated(gameDurationSeconds);
         ga.setCurrentDice(currentDice);
-        // TODO set other entire-game fields
-        if (devCardDeck != null)
-            ga.setDevCardDeck(devCardDeck);
+        if (devCardDeck == null)
+            devCardDeck = new int[0];
+        ga.setFieldsForLoad
+            (devCardDeck, oldGameState, shipsPlacedThisTurn,
+             placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn);
         if (elements != null)
             for (GEType elem : elements.keySet())
                 SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, elem, elements.get(elem));
