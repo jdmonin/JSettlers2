@@ -62,6 +62,7 @@ public class SavedGameModel
      * Like the JSettlers database schema, this version may be older than the current JSettlers version.
      * The model version should change only when its fields require changes which would prevent
      * older JSettlers versions from understanding and loading a file using the new model.
+     *<BR>
      * For example:
      *<UL>
      * <LI> Adding a new important field
@@ -100,7 +101,7 @@ public class SavedGameModel
 
     /**
      * Model schema version when saved, in same format as {@link #MODEL_VERSION}.
-     * See that field's javadoc for lifecycle details.
+     * See that constant field's javadoc for lifecycle details.
      */
     int modelVersion;
 
@@ -112,7 +113,10 @@ public class SavedGameModel
      */
     int savedByVersion;
 
-    /** Game minimum version, from {@link SOCGame#getClientVersionMinRequired()} */
+    /**
+     * Game minimum version, from {@link SOCGame#getClientVersionMinRequired()}.
+     * Server won't load a game if its {@code gameMinVersion} is newer than server version.
+     */
     int gameMinVersion;
 
     public String gameName;
@@ -303,6 +307,10 @@ public class SavedGameModel
      *     and important fields might not be in our version of the model.
      *     Exception's {@link Throwable#getMessage()} will be of the form:
      *     "model version 9170 newer than our version 2300"
+     * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
+     *     is newer than the server's {@link Version#versionNumber()}.
+     *     Exception's {@link Throwable#getMessage()} will be generic,
+     *     but its {@link SOCGameOptionVersionException#gameOptsVersion} will be {@code gameMinVersion}
      * @throws UnsupportedOperationException if game has an option or feature not yet supported
      *     by {@link #createLoadedGame()}. {@link Throwable#getMessage()} will name the unsupported option/feature
      *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String)}.
@@ -310,11 +318,14 @@ public class SavedGameModel
      *     and {@link Throwable#getCause()} will not be null.
      */
     public void checkCanLoad()
-        throws NoSuchElementException, UnsupportedOperationException
+        throws NoSuchElementException, SOCGameOptionVersionException, UnsupportedOperationException
     {
         if (modelVersion > MODEL_VERSION)
             throw new NoSuchElementException
                 ("model version " + modelVersion + " newer than our version " + MODEL_VERSION);
+        final int serverVersion = Version.versionNumber();
+        if (gameMinVersion > serverVersion)
+            throw new SOCGameOptionVersionException(gameMinVersion, serverVersion, null);
 
         if ((gameOptions == null) || gameOptions.isEmpty())
             return;
@@ -341,18 +352,25 @@ public class SavedGameModel
      * Calls {@link #checkCanLoad()}. If successful (no exception thrown), game state will be {@link SOCGame#LOADING}.
      * Doesn't add to game list {@link #glas} or check whether game name is already taken, because
      * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
-     * will rename the loaded game to avoid name collisions.
+     * is better able to do so and can rename the loaded game if needed to avoid name collisions.
      *
      * @throws IllegalStateException if this method's already been called
      *     or if required static game list field {@link SavedGameModel#glas} is null
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
      *     is newer than the current {@link SavedGameModel#MODEL_VERSION};
      *     see {@link #checkCanLoad()} for details
+     * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
+     *     is newer than the server's {@link Version#versionNumber()};
+     *     see {@link #checkCanLoad()} for details
      * @throws UnsupportedOperationException if loaded game model has an option or feature not yet supported
      *     by {@code createLoadedGame()}; see {@link #checkCanLoad()} for details
+     * @throws IllegalArgumentException if there's a problem while creating the loaded game.
+     *     {@link Throwable#getCause()} will have the exception thrown by the SOCGame/SOCPlayer method responsible.
+     *     Catch subclass {@code SOCGameOptionVersionException} before this one.
      */
     /*package*/ void createLoadedGame()
-        throws IllegalStateException, NoSuchElementException, UnsupportedOperationException
+        throws IllegalStateException, NoSuchElementException,
+            SOCGameOptionVersionException, UnsupportedOperationException, IllegalArgumentException
     {
         if (game != null)
             throw new IllegalStateException("already called createLoadedGame");
@@ -361,33 +379,35 @@ public class SavedGameModel
 
         checkCanLoad();
 
-        // TODO what if name invalid/some other inconsistency/unable to create? throw an exception?
-        //    also gameMinVersion vs server version
-
-        final SOCGame ga = new SOCGame(gameName, SOCGameOption.parseOptionsToMap(gameOptions));
-        ga.initAtServer();
-        ga.setGameState(SOCGame.LOADING);
-        game = ga;
-        ga.savedGameModel = this;
-        ga.setTimeSinceCreated(gameDurationSeconds);
-        ga.setCurrentDice(currentDice);
-        if (devCardDeck == null)
-            devCardDeck = new int[0];
-        ga.setFieldsForLoad
-            (devCardDeck, oldGameState, shipsPlacedThisTurn,
-             placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn);
-        if (elements != null)
-            for (GEType elem : elements.keySet())
-                SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, elem, elements.get(elem));
-
-        boardInfo.loadInto(ga);
-        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        try
         {
-            final SOCPlayer pl = ga.getPlayer(pn);
-            final PlayerInfo pinfo = playerSeats[pn];
-            if (! pinfo.isSeatVacant)
-                ga.addPlayer(pinfo.name, pn);
-            pinfo.loadInto(pl);
+            final SOCGame ga = new SOCGame(gameName, SOCGameOption.parseOptionsToMap(gameOptions));
+            ga.initAtServer();
+            ga.setGameState(SOCGame.LOADING);
+            game = ga;
+            ga.savedGameModel = this;
+            ga.setTimeSinceCreated(gameDurationSeconds);
+            ga.setCurrentDice(currentDice);
+            if (devCardDeck == null)
+                devCardDeck = new int[0];
+            ga.setFieldsForLoad
+                (devCardDeck, oldGameState, shipsPlacedThisTurn,
+                 placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn);
+            if (elements != null)
+                for (GEType elem : elements.keySet())
+                    SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, elem, elements.get(elem));
+
+            boardInfo.loadInto(ga);
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            {
+                final SOCPlayer pl = ga.getPlayer(pn);
+                final PlayerInfo pinfo = playerSeats[pn];
+                if (! pinfo.isSeatVacant)
+                    ga.addPlayer(pinfo.name, pn);
+                pinfo.loadInto(pl);
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Problem initializing game: " + e, e);
         }
     }
 

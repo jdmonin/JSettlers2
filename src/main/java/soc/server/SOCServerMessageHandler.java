@@ -45,6 +45,7 @@ import java.util.regex.Pattern;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionVersionException;
 import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
@@ -1615,10 +1616,14 @@ public class SOCServerMessageHandler
         {
             sgm = GameLoaderJSON.loadGame
                 (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
+        } catch (SOCGameOptionVersionException e) {
+            errText = /*I*/"Problem loading " + argsStr + ": Too new: gameMinVersion is " + e.gameOptsVersion /*18N*/;
         } catch (NoSuchElementException|UnsupportedOperationException e) {
             errText = /*I*/"Problem loading " + argsStr + ": Too new: " + e.getMessage() /*18N*/;
         } catch (IOException|StringIndexOutOfBoundsException e) {
             errText = /*I*/"Problem loading " + argsStr + ": " + e.getMessage() /*18N*/;
+        } catch (IllegalArgumentException e) {
+            errText = /*I*/"Problem loading " + argsStr + ": Can't create game: " + e.getCause() /*18N*/;
         } catch (Throwable th) {
             errText = /*I*/"Problem loading " + argsStr + ": " + th /*18N*/;
             if ("debug".equals(c.getData()))

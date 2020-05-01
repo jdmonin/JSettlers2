@@ -1233,19 +1233,19 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * create a new, active game
      *
-     * @param n  the name of the game.  For network message safety, must not contain
+     * @param gameName  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
-    public SOCGame(final String n)
+    public SOCGame(final String gameName)
     {
-        this(n, true, null);
+        this(gameName, true, null);
     }
 
     /**
      * create a new, active game with options and optionally a scenario (game option {@code "SC"}).
      *
-     * @param n  the name of the game.  For network message safety, must not contain
+     * @param gameName  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param op if game has options, map of {@link SOCGameOption}; otherwise null.
@@ -1263,33 +1263,33 @@ public class SOCGame implements Serializable, Cloneable
      *             object class besides {@link SOCGameOption}
      * @since 1.1.07
      */
-    public SOCGame(final String n, Map<String, SOCGameOption> op)
+    public SOCGame(final String gameName, Map<String, SOCGameOption> op)
         throws IllegalArgumentException
     {
-        this(n, true, op);
+        this(gameName, true, op);
     }
 
     /**
      * create a new game that can be ACTIVE or INACTIVE
      *
-     * @param n  the name of the game.  For network message safety, must not contain
+     * @param gameName  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param isActive  true if this is an active game, false for inactive
      * @throws IllegalArgumentException if game name fails
      *           {@link SOCMessage#isSingleLineAndSafe(String)}. This check was added in 1.1.07.
      */
-    public SOCGame(final String n, final boolean isActive)
+    public SOCGame(final String gameName, final boolean isActive)
         throws IllegalArgumentException
     {
-        this(n, isActive, null);
+        this(gameName, isActive, null);
     }
 
     /**
      * create a new game that can be ACTIVE or INACTIVE, and have options
      * and optionally a scenario (game option {@code "SC"}).
      *
-     * @param n  the name of the game.  For network message safety, must not contain
+     * @param gameName  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param isActive  true if this is an active game, false for inactive
@@ -1309,17 +1309,17 @@ public class SOCGame implements Serializable, Cloneable
      *             fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @since 1.1.07
      */
-    public SOCGame(final String n, final boolean isActive, Map<String, SOCGameOption> op)
+    public SOCGame(final String gameName, final boolean isActive, Map<String, SOCGameOption> op)
         throws IllegalArgumentException
     {
         // For places to initialize fields, see also resetAsCopy().
 
-        if (! SOCMessage.isSingleLineAndSafe(n))
-            throw new IllegalArgumentException("n");
+        if (! SOCMessage.isSingleLineAndSafe(gameName))
+            throw new IllegalArgumentException("gameName");
 
         active = isActive;
         inUse = false;
-        name = n;
+        name = gameName;
         if (op != null)
         {
             hasSeaBoard = isGameOptionSet(op, "SBL");

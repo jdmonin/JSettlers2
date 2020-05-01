@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -42,8 +42,8 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
     public final int cliVersion;
 
     /**
-     * The {@link SOCGameOption}(s) which are too new,
-     *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}
+     * The {@link SOCGameOption}(s) which are too new, as passed to constructor; may be {@code null}.
+     * Typically from {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}.
      */
     public final List<SOCGameOption> problemOptionsTooNew;
 
