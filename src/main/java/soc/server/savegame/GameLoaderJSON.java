@@ -24,6 +24,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import com.google.gson.GsonBuilder;
@@ -34,8 +36,11 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 import soc.game.*;
+import soc.message.SOCGameElements.GEType;
+import soc.message.SOCPlayerElement.PEType;
 
 /**
  * Load a game and board's current state from a JSON file into a {@link SavedGameModel}.
@@ -118,12 +123,18 @@ public class GameLoaderJSON
 
         gb = new GsonBuilder();
         gb.registerTypeAdapter(SOCPlayingPiece.class, new PPieceDeserializer());
+        gb.registerTypeAdapter
+            (new TypeToken<HashMap<GEType, Integer>>(){}.getType(),
+             new EnumKeyedMapDeserializer<GEType>(GEType.class));
+        gb.registerTypeAdapter
+            (new TypeToken<HashMap<PEType, Integer>>(){}.getType(),
+             new EnumKeyedMapDeserializer<PEType>(PEType.class));
 
         gsonb = gb;
     }
 
     /**
-     * Deserialize abstract {@link SOCPlayingPiece} as {@link SOCRoad}, {@link SOCSettlement}, etc
+     * Deserialize an abstract {@link SOCPlayingPiece} as {@link SOCRoad}, {@link SOCSettlement}, etc
      * based on {@code pieceType} field. Unknown pieceTypes throw {@link JsonParseException}.
      */
     private static class PPieceDeserializer implements JsonDeserializer<SOCPlayingPiece>
@@ -175,4 +186,60 @@ public class GameLoaderJSON
             return pp;
         }
     }
+
+    /**
+     * Custom deserializer for a {@link HashMap} that has enum keys, to ignore any unknown enum constant names
+     * it may possibly contain (for forwards compatibility).
+     *<P>
+     * GSON's built-in deserializer returns {@code null} for unknown enum constants, so one unknown puts a null
+     * key into the map, and a second halts parsing with a "duplicate key" exception for the two nulls.
+     * This custom class avoids the problem by not adding null unknown constants to the Map.
+     *<P>
+     * Used for loading {@link SavedGameModel}'s {@link GEType} and {@link PEType} maps.
+     */
+    public static class EnumKeyedMapDeserializer<E extends Enum<E>>
+        implements JsonDeserializer<HashMap<E, Integer>>
+    {
+        private final Class<E> enumClassType;
+
+        EnumKeyedMapDeserializer(final Class<E> enumClass)
+        {
+            enumClassType = enumClass;
+        }
+
+        public HashMap<E, Integer> deserialize
+            (JsonElement elem, final Type t, final JsonDeserializationContext ctx)
+            throws JsonParseException
+        {
+            HashMap<E, Integer> ret = new HashMap<>();
+
+            for (Map.Entry<String, JsonElement> ent : elem.getAsJsonObject().entrySet())
+            {
+                final String key = ent.getKey();
+                if (key == null)
+                    continue;  // unlikely
+
+                final E ev;
+                try
+                {
+                    ev = E.valueOf(enumClassType, key);
+                    if (ev == null)
+                        continue;
+                } catch (IllegalArgumentException e) {
+                    continue;  // not found in enum
+                }
+
+                final JsonElement val = ent.getValue();
+                try
+                {
+                    ret.put(ev, val.getAsInt());
+                } catch (ClassCastException | IllegalStateException e) {
+                    throw new JsonParseException("Expected int values in map", e);
+                }
+            }
+
+            return ret;
+        }
+    }
+
 }

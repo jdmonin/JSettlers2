@@ -81,7 +81,8 @@ public class SOCPlayerElement extends SOCMessage
      * To send over the network as an int, use {@link #getValue()}.
      * When received from network as int, use {@link #valueOf(int)} to convert to {@link PEType}.
      *<P>
-     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization.
+     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization
+     * for {@link soc.server.savegame.SavedGameModel}.
      * @since 2.3.00
      */
     public enum PEType

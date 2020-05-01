@@ -50,7 +50,8 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * To send over the network as an int, use {@link #getValue()}.
      * When received from network as int, use {@link #valueOf(int)} to convert to {@link GEType}.
      *<P>
-     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization.
+     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization
+     * for {@link soc.server.savegame.SavedGameModel}.
      * @since 2.3.00
      */
     public enum GEType

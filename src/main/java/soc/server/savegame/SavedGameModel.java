@@ -62,14 +62,25 @@ public class SavedGameModel
      * Like the JSettlers database schema, this version may be older than the current JSettlers version.
      * The model version should change only when its fields require changes which would prevent
      * older JSettlers versions from understanding and loading a file using the new model.
+     * For example:
+     *<UL>
+     * <LI> Adding a new important field
+     * <LI> Using a new {@link GEType} or {@link PEType} constant to label an important game or player element value
+     *</UL>
+     * If the older version can't understand the loaded game without having the new field/constant,
+     * the model version must be increased.
      *<P>
      * Within the same schema version:
      *<UL>
-     * <LI> New fields can be added, as long as they're optional and the game data is complete without them
-     * <LI> When a newer JSettlers version loads an older file, such added fields will be their type's default value
+     * <LI> New fields or {@link GEType} or {@link PEType} constants can be added,
+     *      as long as they're optional and the game data is usable without them
+     * <LI> When a newer JSettlers version loads an older file, added fields will be their type's default value
      *      (0, null, etc)
      * <LI> When an older JSettlers version loads a file with added fields
      *      which aren't in its copy of the model, the GSON parser ignores them
+     * <LI> When an older JSettlers version loads a file which has {@link GEType} or {@link PEType}
+     *      constant values which aren't in that version's copy of those enums,
+     *      {@link GameLoaderJSON} ignores them
      *</UL>
      * {@link #createLoadedGame()} will reject a loaded game if its {@link #modelVersion}
      * is newer than {@code MODEL_VERSION}, or if the game has features/options that it can't save.
