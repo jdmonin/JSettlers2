@@ -479,9 +479,17 @@ public class SavedGameModel
             if (ga.hasSeaBoard)
             {
                 elements.put(PEType.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP));
-                int n = pl.getNumWarships();
+                int n;
+                n = pl.getNumWarships();
                 if (n != 0)
                     elements.put(PEType.SCENARIO_WARSHIP_COUNT, n);
+                n = pl.getStartingLandAreasEncoded();
+                if (n != 0)
+                    elements.put(PEType.STARTING_LANDAREAS, n);
+                n = pl.getPlayerEvents();
+                if (n != 0)
+                    elements.put(PEType.PLAYEREVENTS_BITMASK, n);
+                // TODO: future: SCENARIO_SVP
             }
 
             resRollStats = pl.getResourceRollStats();
@@ -507,7 +515,6 @@ public class SavedGameModel
         void loadInto(final SOCPlayer pl)
         {
             pl.setName(name);
-            // TODO set totalVP/SVP
             pl.setRobotFlag(isRobot, isBuiltInRobot);
             pl.setFaceId(faceID);
             resources.loadInto(pl.getResources());
