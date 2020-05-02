@@ -551,8 +551,10 @@ Games with a scenario can't yet be saved, because of their special pieces or gam
 - Set value of server property `jsettlers.savegame.dir` to point to the game-saves directory
 - Log in as `debug` or an admin user
 - Start a game, place pieces as needed, begin game play
-- Debug command to save a snapshot: \*SAVEGAME\* mygamename
-- Debug command to load a snapshot: \*LOADGAME\* mygamename  
+- Debug command to save a snapshot: \*SAVEGAME\* savename
+  - savename can contain letters and digits (Character.isLetterOrDigit), dashes (`-`), underscores (`_`)
+  - If snapshot already exists, use flag `-f` to force overwriting it with the new save
+- Debug command to load a snapshot: \*LOADGAME\* savename  
   Server parses the snapshot and create a game with its contents.
   Debug user joins, bots are then asked to join. (Might optionally support requiring certain types of bots)
   Temporarily set gamestate to new hold/pause state `LOADING`, so current player won't take action until everyone has joined.

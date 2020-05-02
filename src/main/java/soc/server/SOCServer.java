@@ -5297,7 +5297,7 @@ public class SOCServer extends Server
         "*KILLBOT*  botname  End a bot's connection",
         "*RESETBOT* botname  End a bot's connection",
         "*LOADGAME* savename  Load a previously saved game from snapshot file",
-        "*SAVEGAME* savename  Start this game's current state to snapshot file",
+        "*SAVEGAME* [-f] savename  Start this game's current state to snapshot file",
         };
 
     /**

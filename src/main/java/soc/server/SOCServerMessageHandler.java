@@ -1743,18 +1743,48 @@ public class SOCServerMessageHandler
      * @param argsStr  Args for command (trimmed), or ""
      * @since 2.3.00
      */
-    /* package */ void processDebugCommand_saveGame(final Connection c, final SOCGame ga, final String argsStr)
+    /* package */ void processDebugCommand_saveGame(final Connection c, final SOCGame ga, String argsStr)
     {
         final String gaName = ga.getName();
+        boolean askedForce = false;
+
+        // very basic flag parse, as a stopgap until something better is needed
+        if (argsStr.startsWith("-f "))
+        {
+            askedForce = true;
+            argsStr = argsStr.substring(3).trim();
+        } else {
+            int i = argsStr.indexOf(' ');
+            if ((i != -1) && (argsStr.substring(i + 1).trim().equals("-f")))
+            {
+                askedForce = true;
+                argsStr = argsStr.substring(0, i);
+            }
+        }
 
         if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
         {
-            srv.messageToPlayer(c, gaName, /*I*/"Usage: *SAVEGAME* gamename"/*18N*/);
+            srv.messageToPlayer(c, gaName, /*I*/"Usage: *SAVEGAME* [-f] gamename"/*18N*/);
             return;
         }
 
         if (! processDebugCommand_loadSaveGame_checkDir("SAVEGAME", c, gaName))
             return;
+
+        final String fname = argsStr + GameSaverJSON.FILENAME_EXTENSION;
+
+        if (! askedForce)
+            try
+            {
+                File f = new File(srv.savegameDir, fname);
+                if (f.exists())
+                {
+                    srv.messageToPlayer
+                        (c, gaName, /*I*/"Game file already exists: Add -f flag to force, or use a different name"/*18N*/);
+                    return;
+                }
+            } catch (SecurityException e) {}
+                // ignore until actual save, since it catches other things too
 
         if (ga.getGameState() < SOCGame.ROLL_OR_CARD)
         {
@@ -1778,7 +1808,6 @@ public class SOCServerMessageHandler
 
         try
         {
-            final String fname = argsStr + GameSaverJSON.FILENAME_EXTENSION;
             GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);
             srv.messageToPlayer
                 (c, gaName, /*I*/"Saved game to " + fname /*18N*/);
