@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
@@ -278,19 +279,62 @@ public class SavedGameModel
     }
 
     /**
+     * Check whether this game has any non-vacant seats which don't have a player.
+     * Typically those seats were human players when the game was saved,
+     * so they weren't automatically filled by robots when loading it,
+     * and no human player has sat down to take over. Caller should get bots or
+     * human players to sit at those seats.
+     * @return null if no more bots/players needed, or an array where
+     *     {@code array[pn]} is true if seat with that player number still needs a player
+     */
+    public boolean[] findSeatsNeedingBots()
+    {
+        boolean[] ret = null;
+
+        final String gaName = game.getName();
+        for (int pn = 0; pn < game.maxPlayers; ++pn)
+        {
+            if (playerSeats[pn].isSeatVacant)
+                continue;
+            final String plName = game.getPlayer(pn).getName();
+            if ((plName != null) && (! plName.isEmpty()) && glas.isMember(plName, gaName))
+                continue;
+
+            if (ret == null)
+                ret = new boolean[game.maxPlayers];
+            ret[pn] = true;
+        }
+
+        return ret;
+    }
+
+    /**
      * Resume play of a loaded game: Check any constraints, update gameState.
+     * Calls {@link #findSeatsNeedingBots()} to check if the game still needs bots or human players
+     * at any seat before resuming.
+     *<P>
+     * If model's game state is {@link SOCGame#OVER}, skips constraint and seat/bot checks.
+     *
      * @param ignoreConstraints  If true, don't check any {@link Constraint}s in the model
      * @return game ready to play, with {@link SOCGame#getGameState()} same as when it was saved
-     * @throws UnsupportedOperationException if gameState != {@link SOCGame#LOADING}
+     * @throws UnsupportedOperationException if gameState != {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}
+     * @throws MissingResourceException if non-vacant seats still need a bot or human player
      * @throws IllegalStateException if a constraint is not met
      */
     public SOCGame resumePlay(final boolean ignoreConstraints)
-        throws UnsupportedOperationException, IllegalStateException
+        throws UnsupportedOperationException, MissingResourceException, IllegalStateException
     {
-        if (game.getGameState() != SOCGame.LOADING)
+        final int gstate = game.getGameState();
+        if ((gstate != SOCGame.LOADING) && (gstate != SOCGame.LOADING_RESUMING))
             throw new UnsupportedOperationException("gameState");
 
-        // TODO maybe check constraints
+        if (gameState != SOCGame.OVER)
+        {
+            if (null != findSeatsNeedingBots())
+                throw new MissingResourceException("Still need players to fill non-vacant seats", "unused", "unused");
+
+            // TODO maybe check constraints
+        }
 
         game.lastActionTime = System.currentTimeMillis();
         game.setGameState(gameState);
@@ -373,6 +417,7 @@ public class SavedGameModel
      * @throws IllegalArgumentException if there's a problem while creating the loaded game.
      *     {@link Throwable#getCause()} will have the exception thrown by the SOCGame/SOCPlayer method responsible.
      *     Catch subclass {@code SOCGameOptionVersionException} before this one.
+     *     Also thrown if {@link #playerSeats}.length != created game's {@link SOCGame#maxPlayers}.
      */
     /*package*/ void createLoadedGame()
         throws IllegalStateException, NoSuchElementException,
@@ -390,6 +435,9 @@ public class SavedGameModel
             final SOCGame ga = new SOCGame(gameName, SOCGameOption.parseOptionsToMap(gameOptions));
             ga.initAtServer();
             ga.setGameState(SOCGame.LOADING);
+            if (ga.maxPlayers != playerSeats.length)
+                throw new IllegalArgumentException
+                    ("maxPlayers " + ga.maxPlayers + " != playerSeats.length " + playerSeats.length);
             game = ga;
             ga.savedGameModel = this;
             ga.setTimeSinceCreated(gameDurationSeconds);

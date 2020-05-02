@@ -219,7 +219,7 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * get a game's members (client connections)
-     * @param   gaName  game name
+     * @param   gaName  game name; not null
      * @return  list of members: a Vector of {@link Connection}s
      */
     public synchronized Vector<Connection> getMembers(String gaName)
@@ -229,18 +229,45 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * is this connection a member of the game?
-     * @param  gaName   the name of the game
-     * @param  conn     the member's connection
-     * @return true if memName is a member of the game
+     * @param  gaName   the name of the game; not null
+     * @param  conn     the member's connection; null is safe
+     * @return true if {@code conn} is a member of the game
+     * @see #isMember(String, String)
      */
-    public synchronized boolean isMember(Connection conn, String gaName)
+    public boolean isMember(Connection conn, String gaName)
     {
-        Vector<Connection> members = getMembers(gaName);
+        final Vector<Connection> members = getMembers(gaName);
 
         if ((members != null) && (members.contains(conn)))
             return true;
         else
             return false;
+    }
+
+    /**
+     * Is this member name in the game?
+     * Will compare {@code memberName} to game members' {@link Connection#getData()}.
+     * @param memberName  member name, from {@link Connection#getData()}.
+     *     {@code null} is safe.
+     * @param gaName  the name of the game; not null
+     * @return true if {@code memberName} is a member of the game
+     * @see {@link #isMember(Connection, String)}
+     * @since 2.3.00
+     */
+    public boolean isMember(String memberName, String gaName)
+    {
+        final Vector<Connection> members = getMembers(gaName);
+        if (members == null)
+            return false;
+
+        for (final Connection c : members)
+        {
+            final String na = c.getData();
+            if ((na != null) && na.equals(memberName))
+                return true;
+        }
+
+        return false;
     }
 
     /**

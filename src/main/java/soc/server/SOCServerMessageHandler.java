@@ -57,7 +57,6 @@ import soc.server.savegame.*;
 import soc.util.I18n;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
-import soc.util.SOCRobotParameters;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -1664,6 +1663,17 @@ public class SOCServerMessageHandler
             // TODO chk retval before break; send error msg to debug user in loaded game?
         }
 
+        // Now that the bots are invited, change any other saved human players' flags to look like bots
+        // so other clients can take over those seats
+        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+        {
+            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+            if (pi.isSeatVacant || pi.isRobot || pi.name.equals(c.getData()))
+                continue;
+
+            ga.getPlayer(pn).setRobotFlag(true, true);
+        }
+
         // Send Resume reminder prompt after delay, or announce winner if over,
         //     to appear after bots have joined
         //     TODO if any problems, don't send this prompt
@@ -1699,8 +1709,9 @@ public class SOCServerMessageHandler
     /**
      * Process the {@code *RESUMEGAME*} debug/admin command: Resume the current game,
      * which was recently loaded with {@code *LOADGAME*}.
-     * Must be in state {@link SOCGame#LOADING}.
-     * @param c  Client sending the command
+     * Must be in state {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}.
+     * @param c  Client sending the command, game owner if being called by server after last bot has sat down,
+     *     or null if owner not available
      * @param ga  Game in which the command was sent
      * @param argsStr  Args for command (trimmed), or ""
      * @since 2.3.00
@@ -1717,23 +1728,62 @@ public class SOCServerMessageHandler
             return;
         }
 
-        Object sgm = ga.savedGameModel;
-        if ((ga.getGameState() != SOCGame.LOADING) || (sgm == null))
+        SavedGameModel sgm = (SavedGameModel) ga.savedGameModel;
+        if (((ga.getGameState() != SOCGame.LOADING) && (ga.getGameState() != SOCGame.LOADING_RESUMING))
+            || (sgm == null))
         {
             srv.messageToPlayer
                 (c, gaName, /*I*/"This game is not waiting to be resumed."/*18N*/);
             return;
         }
 
-        ((SavedGameModel) sgm).resumePlay(false);
-        final GameHandler hand = gameList.getGameTypeHandler(gaName);
-        if (hand != null)
-            hand.sendGameState(ga);
+        final boolean[] botsNeeded = sgm.findSeatsNeedingBots();
+        if (botsNeeded != null)
+        {
+            ga.setGameState(SOCGame.LOADING_RESUMING);
+            final GameHandler hand = gameList.getGameTypeHandler(gaName);
+            if (hand != null)
+                hand.sendGameState(ga);
 
-        // Would anything else change besides state? If so, should it return a list of bots that joined etc?
-        // Maybe nothing else would change, until constraints are done
+            boolean invitedBots = false;
+            IllegalStateException e = null;
+            try
+            {
+                invitedBots = srv.readyGameAskRobotsJoin(ga, botsNeeded, null, 0);
+                    // will also send game a text message like "Fetching a robot..."
+            } catch (IllegalStateException ex) {
+                e = ex;
+            }
 
-        srv.messageToGameUrgent(gaName, /*I*/"Resuming game play."/*18N*/);
+            if (! invitedBots)
+            {
+                // recover, so human players can try and fill those seats
+                ga.setGameState(SOCGame.LOADING);
+                if (hand != null)
+                    hand.sendGameState(ga);
+
+                if (e != null)
+                    srv.messageToPlayerKeyed(c, gaName,"start.robots.cannot.join.problem", e.getMessage());
+                        // "Sorry, robots cannot join this game: {0}"
+                else
+                    srv.messageToPlayer
+                        (c, gaName, /*I*/"Cannot resume: Not enough bots to fill non-vacant seats."/*18N*/);
+            }
+
+            return;
+        }
+
+        try
+        {
+            sgm.resumePlay(false);
+            final GameHandler hand = gameList.getGameTypeHandler(gaName);
+            if (hand != null)
+                hand.sendGameState(ga);
+
+            srv.messageToGameUrgent(gaName, /*I*/"Resuming game play."/*18N*/);
+        } catch (MissingResourceException e) {
+            srv.messageToGameUrgent(gaName, /*I*/"Cannot resume: Not enough bots to fill non-vacant seats."/*18N*/);
+        }
     }
 
     /**
@@ -1784,15 +1834,16 @@ public class SOCServerMessageHandler
                     return;
                 }
             } catch (SecurityException e) {}
-                // ignore until actual save, since it catches other things too
+                // ignore until actual save; that code covers this & other situations
 
-        if (ga.getGameState() < SOCGame.ROLL_OR_CARD)
+        final int gstate = ga.getGameState();
+        if (gstate < SOCGame.ROLL_OR_CARD)
         {
             srv.messageToPlayer
                 (c, gaName, /*I*/"Must finish initial placement before saving."/*18N*/);
             return;
         }
-        else if (ga.getGameState() == SOCGame.LOADING)
+        else if ((gstate == SOCGame.LOADING) || (gstate == SOCGame.LOADING_RESUMING))
         {
             srv.messageToPlayer
                 (c, gaName, /*I*/"Must resume loaded game before saving again."/*18N*/);
@@ -2437,6 +2488,7 @@ public class SOCServerMessageHandler
                 if (gameIsFull || (gameAlreadyStarted && ! isBotJoinRequest))
                     canSit = false;
             } else {
+                canSit = false;
                 SOCPlayer seatedPlayer = ga.getPlayer(pn);
 
                 if (seatedPlayer.isRobot()
@@ -2446,29 +2498,43 @@ public class SOCServerMessageHandler
                     /**
                      * boot the robot out of the game
                      */
-                    Connection robotCon = srv.getConnection(seatedPlayer.getName());
-                    robotCon.put(SOCRobotDismiss.toCmd(gaName));
+                    final String seatedName = seatedPlayer.getName();
+                    final Connection robotCon = srv.getConnection(seatedName);
 
-                    /**
-                     * this connection has to wait for the robot to leave,
-                     * will then be told they've sat down
-                     */
-                    Vector<SOCReplaceRequest> disRequests = srv.robotDismissRequests.get(gaName);
-                    SOCReplaceRequest req = new SOCReplaceRequest(c, robotCon, mes);
+                    if ((robotCon != null) && gameList.isMember(robotCon, gaName))
+                    {
+                        robotCon.put(SOCRobotDismiss.toCmd(gaName));
 
-                    if (disRequests == null)
-                    {
-                        disRequests = new Vector<SOCReplaceRequest>();
-                        disRequests.addElement(req);
-                        srv.robotDismissRequests.put(gaName, disRequests);
-                    }
-                    else
-                    {
-                        disRequests.addElement(req);
+                        /**
+                         * this connection has to wait for the robot to leave,
+                         * will then be told they've sat down
+                         */
+                        Vector<SOCReplaceRequest> disRequests = srv.robotDismissRequests.get(gaName);
+                        SOCReplaceRequest req = new SOCReplaceRequest(c, robotCon, mes);
+
+                        if (disRequests == null)
+                        {
+                            disRequests = new Vector<SOCReplaceRequest>();
+                            disRequests.addElement(req);
+                            srv.robotDismissRequests.put(gaName, disRequests);
+                        } else {
+                            disRequests.addElement(req);
+                        }
+                    } else {
+                        /**
+                         * robotCon wasn't in the game.
+                         * Is this a game being reloaded, where robotCon player was
+                         * originally a human player, relabeled as a bot during load?
+                         * If so, tell game robotCon has left so clients see seat as available
+                         * for player sitting now to take over.
+                         */
+                        if ((ga.savedGameModel != null) && (ga.getGameState() >= SOCGame.LOADING))
+                        {
+                            canSit = true;
+                            srv.messageToGame(gaName, new SOCLeaveGame(seatedName, "-", gaName));
+                        }
                     }
                 }
-
-                canSit = false;
             }
         }
         catch (Exception e)
@@ -2504,8 +2570,9 @@ public class SOCServerMessageHandler
 
     /**
      * handle "start game" message.  Game state must be NEW, or this message is ignored.
-     * {@link SOCServer#readyGameAskRobotsJoin(SOCGame, Connection[], int) Ask some robots} to fill
-     * empty seats, or {@link GameHandler#startGame(SOCGame) begin the game} if no robots needed.
+     * Calls {@link SOCServer#readyGameAskRobotsJoin(SOCGame, boolean[], Connection[], int)}
+     * to ask some robots to fill empty seats,
+     * or {@link GameHandler#startGame(SOCGame) begin the game} if no robots needed.
      *<P>
      * Called when clients have sat at a new game and a client asks to start it,
      * not called during game board reset.
@@ -2647,10 +2714,8 @@ public class SOCServerMessageHandler
                             IllegalStateException e = null;
                             try
                             {
-                                invitedBots = srv.readyGameAskRobotsJoin(ga, null, numEmpty);
-                            }
-                            catch (IllegalStateException ex)
-                            {
+                                invitedBots = srv.readyGameAskRobotsJoin(ga, null, null, numEmpty);
+                            } catch (IllegalStateException ex) {
                                 e = ex;
                             }
 

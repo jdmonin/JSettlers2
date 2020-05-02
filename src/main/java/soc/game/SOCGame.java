@@ -164,6 +164,7 @@ public class SOCGame implements Serializable, Cloneable
      * Once robots have joined the game (this happens in other threads, possibly in other
      * processes), gameState will become {@link #START1A}.
      * @see #READY_RESET_WAIT_ROBOT_DISMISS
+     * @see #LOADING_RESUMING
      */
     public static final int READY = 1; // Ready to start playing
 
@@ -488,12 +489,26 @@ public class SOCGame implements Serializable, Cloneable
     public static final int SPECIAL_BUILDING = 100;  // see advanceTurnToSpecialBuilding()
 
     /**
-     * A saved game is being loaded. Its actual state is saved in {@code oldGameState} field.
+     * A saved game is being loaded. Its actual state is saved in field {@code oldGameState}.
+     * Bots have joined to sit in seats which were bots in the saved game, and human seats
+     * are currently unclaimed except for the requesting user if they were named as a player.
      * Before resuming play, server or user may need to satisfy conditions or constraints
      * (have a certain type of bot sit down at a given player number, etc).
+     * If there are unclaimed non-vacant seats where bots will need to join,
+     * next state is {@link #LOADING_RESUMING}, otherwise will resume at {@code oldGameState}.
      * @since 2.3.00
      */
-    public static final int LOADING = 999;
+    public static final int LOADING = 990;
+
+    /**
+     * A saved game was loaded and is about to resume, now waiting for some bots to rejoin.
+     * Game's actual state is saved in field {@code oldGameState}.
+     * Before we can resume play, server has requested some bots to fill unclaimed non-vacant seats,
+     * which had humans when the game was saved. Server is waiting for the bots to join and sit down
+     * (like state {@link #READY}). Once all bots have joined, gameState can resume at {@code oldGameState}.
+     * @since 2.3.00
+     */
+    public static final int LOADING_RESUMING = 992;
 
     /**
      * The game is over.  A player has accumulated enough ({@link #vp_winner}) victory points,
@@ -1009,8 +1024,8 @@ public class SOCGame implements Serializable, Cloneable
      *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *        Can be {@link #ROLL_OR_CARD} in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}:
      *        See {@link #pickGoldHexResources(int, SOCResourceSet)} and {@link #rollDice_update7gameState()}.
-     *<LI> {@link #LOADING}:
-     *        Holds the actual game state, to be resumed once optional constraints are met.
+     *<LI> {@link #LOADING}, {@link #LOADING_RESUMING}:
+     *        Holds the actual game state, to be resumed once optional constraints are met and all bots have joined.
      *</UL>
      * Also used if the game board was reset: Holds the state before the reset.
      */

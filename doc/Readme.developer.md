@@ -556,9 +556,13 @@ Games with a scenario can't yet be saved, because of their special pieces or gam
   - If snapshot already exists, use flag `-f` to force overwriting it with the new save
 - Debug command to load a snapshot: \*LOADGAME\* savename  
   Server parses the snapshot and create a game with its contents.
-  Debug user joins, bots are then asked to join. (Might optionally support requiring certain types of bots)
+  Debug/admin user joins, bots are asked to join
+  - A later version might optionally support requiring certain types of bots
   Temporarily set gamestate to new hold/pause state `LOADING`, so current player won't take action until everyone has joined.
+- If other human players will be in the game, have them join and sit down now
 - Debug command to resume play of loaded game: \*RESUMEGAME\*
+  - If game was saved with human players who haven't rejoined, bots will join now for those players
+  - Game play now resumes, at the current player and state it was saved with
 
 This feature requires a GSON jar which must be on the classpath, or named `gson.jar` (no version number)
 in same directory as JSettlersServer.jar. Download GSON 2.8.6 or higher from

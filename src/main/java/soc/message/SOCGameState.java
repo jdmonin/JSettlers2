@@ -110,6 +110,8 @@ import soc.game.SOCGame;  // for javadoc's use
  *     After each client response, server sends game its {@link SOCGameState}; if multiple players had to pick,
  *     that state is still {@code WAITING_FOR_PICK_GOLD_RESOURCE} and another "need to pick" prompt text is also sent.
  * <LI>{@link SOCGame#SPECIAL_BUILDING SPECIAL_BUILDING}: Current player: Build, buy cards, etc. When done, send {@link SOCEndTurn}
+ * <LI>{@link SOCGame#LOADING LOADING}: -
+ * <LI>{@link SOCGame#LOADING_RESUMING LOADING_RESUMING}: -
  * <LI>{@link SOCGame#OVER OVER}: Server announces the winner with
  *     {@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages
  *     reporting winner's name, final score, each player's victory-point cards, game length, and a {@link SOCGameStats}.

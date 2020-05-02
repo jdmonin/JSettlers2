@@ -1070,7 +1070,7 @@ public class SOCServer extends Server
      * Before v2.0.00 the per-game value was a {@code Vector<Connection>}
      * without per-bot related data.
      *
-     * @see #readyGameAskRobotsJoin(SOCGame, Connection[], int)
+     * @see #readyGameAskRobotsJoin(SOCGame, boolean[], Connection[], int)
      * @see #leaveConnection(Connection)
      * @see GameHandler#findRobotAskJoinGame(SOCGame, Object, boolean)
      * @see #robotDismissRequests
@@ -5297,7 +5297,7 @@ public class SOCServer extends Server
         "*KILLBOT*  botname  End a bot's connection",
         "*RESETBOT* botname  End a bot's connection",
         "*LOADGAME* savename  Load a previously saved game from snapshot file",
-        "*SAVEGAME* [-f] savename  Start this game's current state to snapshot file",
+        "*SAVEGAME* [-f] savename  Save this game's current state to snapshot file",
         };
 
     /**
@@ -6604,7 +6604,7 @@ public class SOCServer extends Server
 
                 System.out.println("Started bot-only game: " + gaName);
                 newGame.setGameState(SOCGame.READY);
-                if (! readyGameAskRobotsJoin(newGame, null, 0))
+                if (! readyGameAskRobotsJoin(newGame, null, null, 0))
                 {
                     System.out.println("Bot-only game " + gaName + ": Not enough bots can join, not starting");
                     newGame.setGameState(SOCGame.OVER);
@@ -6617,12 +6617,18 @@ public class SOCServer extends Server
 
     /**
      * Fill all the unlocked empty seats with robots, by asking them to join.
+     * Also sends game a server text message like "Fetching a robot player...".
+     *<P>
      * Builds a set of the {@link Connection}s of robots asked to join,
      * and adds it to the {@code robotJoinRequests} table.
-     * Game state should be {@code READY}.
+     * Game state should be {@link SOCGame#READY READY} or {@link SOCGame#LOADING_RESUMING LOADING_RESUMING}.
      *<P>
-     * At most {@link SOCGame#getAvailableSeatCount()} robots will
-     * be asked. If third-party bots are connected to the server,
+     * if {@code forSeats} is null:
+     *<UL>
+     * <LI> Assumes no bots currently in game
+     * <LI> At most {@link SOCGame#getAvailableSeatCount()} robots will be asked
+     *</UL>
+     * If third-party bots are connected to the server,
      * optional property {@link #PROP_JSETTLERS_BOTS_PERCENT3P} can
      * set a goal for the minimum percentage of third-party bots in
      * the game; see its javadoc.
@@ -6636,25 +6642,29 @@ public class SOCServer extends Server
      * Before v1.1.00, this method was part of {@code handleSTARTGAME}.
      *
      * @param ga  Game to ask robots to join
+     * @param forSeats  If non-null, a {@link SOCGame#maxPlayers}-sized array; if {@code forSeats[pn]} is true,
+     *     will find a bot for that seat. If null, will fill all unlocked empty seats.
      * @param robotSeats If null, robots are randomly selected. May be non-null for a board reset.
-     *                   If non-null, a MAXPLAYERS-sized array of Connections.
+     *                   If non-null, a {@link SOCGame#maxPlayers}-sized array of Connections.
      *                   Any vacant non-locked seat, with index i,
      *                   is filled with the robot whose connection is robotSeats[i].
      *                   Other indexes should be null, and won't be used.
      * @param maxBots Maximum number of bots to add, or 0 to fill all empty seats
      * @return  True if some bots were found and invited, false if none could be invited
-     * @throws IllegalStateException if {@link SOCGame#getGameState() ga.gamestate} is not {@link SOCGame#READY},
-     *         or if {@link SOCGame#getClientVersionMinRequired()} is
+     * @throws IllegalStateException if {@link SOCGame#getGameState() ga.gamestate} is not {@link SOCGame#READY}
+     *         or {@link SOCGame#LOADING_RESUMING}, or if {@link SOCGame#getClientVersionMinRequired()} is
      *         somehow newer than server's version (which is assumed to be robots' version).
      * @throws IllegalArgumentException if robotSeats is not null but wrong length,
      *           or if a robotSeat element is null but that seat wants a robot (vacant non-locked).
      * @since 1.1.00
      */
-    boolean readyGameAskRobotsJoin(SOCGame ga, Connection[] robotSeats, final int maxBots)
+    boolean readyGameAskRobotsJoin
+        (final SOCGame ga, final boolean[] forSeats, final Connection[] robotSeats, final int maxBots)
         throws IllegalStateException, IllegalArgumentException
     {
-        if (ga.getGameState() != SOCGame.READY)
-            throw new IllegalStateException("SOCGame state not READY: " + ga.getGameState());
+        final int gstate = ga.getGameState();
+        if ((gstate != SOCGame.READY) && (gstate != SOCGame.LOADING_RESUMING))
+            throw new IllegalStateException("SOCGame state not READY or LOADING_RESUMING: " + gstate);
 
         if (ga.getClientVersionMinRequired() > Version.versionNumber())
             throw new IllegalStateException("SOCGame min version somehow newer than server and robots, it's "
@@ -6681,7 +6691,16 @@ public class SOCServer extends Server
         final String gname = ga.getName();
         final Map<String, SOCGameOption> gopts = ga.getGameOptions();
         final boolean gameHasLimitedFeats = (ga.getClientFeaturesRequired() != null);
-        int seatsOpen = ga.getAvailableSeatCount();
+        int seatsOpen;
+        if (forSeats == null)
+        {
+            seatsOpen = ga.getAvailableSeatCount();
+        } else {
+            seatsOpen = 0;
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                if (forSeats[pn])
+                    ++seatsOpen;
+        }
         if ((maxBots > 0) && (maxBots < seatsOpen))
             seatsOpen = maxBots;
 
@@ -6690,53 +6709,59 @@ public class SOCServer extends Server
 
         for (int i = 0; (i < ga.maxPlayers) && (seatsOpen > 0); i++)
         {
-            if (ga.isSeatVacant(i) && (ga.getSeatLock(i) == SOCGame.SeatLockState.UNLOCKED))
+            if (forSeats != null)
             {
-                /**
-                 * fetch a robot player; game will start when all bots have arrived.
-                 * Similar to SOCGameHandler.findRobotAskJoinGame (called from SGH.leaveGame),
-                 * where a player has left and must be replaced by a bot.
-                 */
-                if (idx < nRobotsAvailable)
+                if (! forSeats[i])
+                    continue;
+            } else {
+                if (! (ga.isSeatVacant(i) && (ga.getSeatLock(i) == SOCGame.SeatLockState.UNLOCKED)))
+                    continue;
+            }
+
+            /**
+             * fetch a robot player; game will start/resume when all bots have arrived.
+             * Similar to SOCGameHandler.findRobotAskJoinGame (called from SGH.leaveGame),
+             * where a player has left and must be replaced by a bot.
+             */
+            if (idx < nRobotsAvailable)
+            {
+                messageToGameKeyed(ga, true, "member.bot.join.fetching");  // "Fetching a robot player..."
+
+                Connection robotConn;
+                if (robotSeats != null)
                 {
-                    messageToGameKeyed(ga, true, "member.bot.join.fetching");  // "Fetching a robot player..."
-
-                    Connection robotConn;
-                    if (robotSeats != null)
-                    {
-                        robotConn = robotSeats[i];
-                        if (robotConn == null)
-                            throw new IllegalArgumentException("robotSeats[" + i + "] was needed but null");
-                    }
-                    else
-                    {
-                        do
-                        {
-                            robotConn = robots.get(robotIndexes[idx]);
-                            if (gameHasLimitedFeats &&
-                                ! ga.canClientJoin(((SOCClientData) (robotConn.getAppData())).feats))
-                            {
-                                // try the next bot instead
-                                robotConn = null;
-                                ++idx;
-                            }
-                        } while ((robotConn == null) && (idx < nRobotsAvailable));
-
-                        if (robotConn == null)
-                            break;
-                    }
-
-                    idx++;
-                    --seatsOpen;
-                    robotSeatsConns[i] = robotConn;
-
-                    /**
-                     * record the request
-                     */
-                    if (robotsRequested == null)
-                        robotsRequested = new Hashtable<Connection, Object>();
-                    robotsRequested.put(robotConn, Integer.valueOf(i));
+                    robotConn = robotSeats[i];
+                    if (robotConn == null)
+                        throw new IllegalArgumentException("robotSeats[" + i + "] was needed but null");
                 }
+                else
+                {
+                    do
+                    {
+                        robotConn = robots.get(robotIndexes[idx]);
+                        if (gameHasLimitedFeats &&
+                            ! ga.canClientJoin(((SOCClientData) (robotConn.getAppData())).feats))
+                        {
+                            // try the next bot instead
+                            robotConn = null;
+                            ++idx;
+                        }
+                    } while ((robotConn == null) && (idx < nRobotsAvailable));
+
+                    if (robotConn == null)
+                        break;
+                }
+
+                idx++;
+                --seatsOpen;
+                robotSeatsConns[i] = robotConn;
+
+                /**
+                 * record the request
+                 */
+                if (robotsRequested == null)
+                    robotsRequested = new Hashtable<Connection, Object>();
+                robotsRequested.put(robotConn, Integer.valueOf(i));
             }
         }
 
@@ -6768,7 +6793,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * While readying a game in {@link #readyGameAskRobotsJoin(SOCGame, Connection[], int)},
+     * While readying a game in {@link #readyGameAskRobotsJoin(SOCGame, boolean[], Connection[], int)},
      * try to adjust the mix of requested bots as needed when third-party bots are wanted.
      * Third-party bots will be randomly picked and swapped into {@code robotsRequested} and {@code robotSeatsConns}
      * until enough are added or no more are available to add.
@@ -7654,14 +7679,22 @@ public class SOCServer extends Server
                 requestedBots = null;  // Game already has all players from old game
             }
 
-            final boolean willStartGame = (requestedBots != null) && requestedBots.isEmpty()
-                && (ga.getGameState() < SOCGame.START1A);
+            final boolean willStartGame, willFinishResuming;
 
             /**
-             * if the request list is now empty, remove it from request tracking
+             * if the request list is now empty, remove it from request tracking and check for start-game condition
              */
             if ((requestedBots != null) && requestedBots.isEmpty())
+            {
                 robotJoinRequests.remove(gaName);
+
+                final int gstate = ga.getGameState();
+                willStartGame = (gstate < SOCGame.START1A);
+                willFinishResuming = (gstate == SOCGame.LOADING_RESUMING);
+            } else {
+                willStartGame = false;
+                willFinishResuming = false;
+            }
 
             /**
              * send all the private information
@@ -7672,11 +7705,17 @@ public class SOCServer extends Server
                 hand.sitDown_sendPrivateInfo(ga, c, pn);
 
             /**
-             * if the request list is now empty and the game hasn't started yet,
-             * then start the game
+             * if the request list is now empty and the game hasn't started/resumed yet,
+             * everyone's here so start or resume the game
              */
             if (willStartGame && (hand != null))
-                hand.startGame(ga);    // <--- Everyone's here, start the game ---
+            {
+                hand.startGame(ga);    // <--- Start the game ---
+            } else if (willFinishResuming) {
+                final String owner = ga.getOwner();
+                final Connection ownC = ((owner != null) ? getConnection(owner) : null);
+                srvMsgHandler.processDebugCommand_resumeGame(ownC, ga, "");  // <--- Resume the game ---
+            }
         }
         catch (Throwable e)
         {
@@ -7860,7 +7899,7 @@ public class SOCServer extends Server
 
             reGame.setGameState(SOCGame.READY);
             if (! readyGameAskRobotsJoin
-                    (reGame, resetWithShuffledBots ? null : reBoard.robotConns, 0))
+                    (reGame, null, resetWithShuffledBots ? null : reBoard.robotConns, 0))
             {
                 // Unlikely, since we were just playing this game with bots
 
