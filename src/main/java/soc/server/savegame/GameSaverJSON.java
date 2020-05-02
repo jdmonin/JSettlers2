@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import soc.game.SOCGame;
+import soc.server.SOCServer;
 
 /**
  * Save a game and its board's current state to a JSON file.
@@ -54,6 +55,7 @@ public class GameSaverJSON
      * @param ga  Game to save; not null
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save as; recommended suffix is {@link #FILENAME_EXTENSION}
+     * @param srv  Server, for game/player info lookups; not null
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
      * @throws UnsupportedOperationException  if game has an option or feature not yet supported
      *     by {@link SavedGameModel}; see {@link SavedGameModel#checkCanSave(SOCGame)} for details.
@@ -61,13 +63,13 @@ public class GameSaverJSON
      * @throws IOException  if a problem occurs while saving
      */
     public static void saveGame
-        (final SOCGame ga, final File saveDir, final String saveFilename)
+        (final SOCGame ga, final File saveDir, final String saveFilename, final SOCServer srv)
         throws IllegalArgumentException, UnsupportedOperationException, IllegalStateException, IOException
     {
         if (! saveDir.isDirectory())
             throw new IllegalArgumentException("Not found as directory: " + saveDir.getPath());
 
-        final SavedGameModel sgm = new SavedGameModel(ga);
+        final SavedGameModel sgm = new SavedGameModel(ga, srv);
 
         Gson gson;
         try

@@ -34,15 +34,19 @@ import soc.message.SOCMessage;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPotentialSettlements;
+import soc.robot.SOCRobotDM;
+import soc.server.SOCClientData;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
-import soc.server.genericServer.Connection;
+import soc.server.SOCServer;
+import soc.server.genericServer.Connection;  // for javadocs only
+import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
 /**
  * Data model for a game saved to/loaded from a file.
  *<P>
- * To save, use the {@link #SavedGameModel(SOCGame)} constructor and {@link GameSaverJSON}.
+ * To save, use the {@link #SavedGameModel(SOCGame, SOCServer)} constructor and {@link GameSaverJSON}.
  * To load, use {@link #SavedGameModel()} and {@link GameLoaderJSON}.
  * See those constructors' javadocs for usage details.
  *<P>
@@ -201,13 +205,15 @@ public class SavedGameModel
      * Create a SavedGameModel to save as a game file.
      * Game state must be {@link SOCGame#ROLL_OR_CARD} or higher.
      * @param ga  Game data to save; not null
+     * @param srv  Server, for game/player info lookups; not null.
+     *     Not retained in object fields, used only during construction.
      * @throws UnsupportedOperationException  if game has an option or feature not yet supported
      *     by {@link SavedGameModel}; see {@link #checkCanSave(SOCGame)} for details.
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      * @throws IllegalArgumentException if {@link SOCGameHandler#getBoardLayoutMessage(SOCGame)}
      *     returns an unexpected layout message type
      */
-    public SavedGameModel(final SOCGame ga)
+    public SavedGameModel(final SOCGame ga, final SOCServer srv)
         throws UnsupportedOperationException, IllegalStateException, IllegalArgumentException
     {
         this();
@@ -259,7 +265,7 @@ public class SavedGameModel
 
         playerSeats = new PlayerInfo[ga.maxPlayers];
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
-            playerSeats[pn] = new PlayerInfo(ga.getPlayer(pn), ga.isSeatVacant(pn));
+            playerSeats[pn] = new PlayerInfo(ga.getPlayer(pn), ga.isSeatVacant(pn), srv);
     }
 
     /**
@@ -421,7 +427,29 @@ public class SavedGameModel
         public String name;
         public boolean isSeatVacant;
         int totalVP;
-        public boolean isRobot, isBuiltInRobot;
+
+        /**
+         * Robot status flag, from {@link SOCPlayer#isRobot()}
+         * @see #isBuiltInRobot
+         * @see #isRobotWithSmartStrategy
+         */
+        public boolean isRobot;
+
+        /**
+         * Robot status flag, from {@link SOCPlayer#isBuiltInRobot()}
+         * @see #robot3rdPartyBrainClass
+         */
+        public boolean isBuiltInRobot;
+
+        /**
+         * True if {@link #isRobot} and bot's {@link SOCRobotParameters#getStrategyType()}
+         * is {@link SOCRobotDM#SMART_STRATEGY}
+         */
+        public boolean isRobotWithSmartStrategy;
+
+        /** Bot's declared brain class; {@code null} when {@link #isBuiltInRobot} or non-robot player */
+        public String robot3rdPartyBrainClass;
+
         int faceID;
 
         /** Resources in hand */
@@ -460,7 +488,7 @@ public class SavedGameModel
         SOCFortress fortressPiece;
          */
 
-        PlayerInfo(final SOCPlayer pl, final boolean isVacant)
+        PlayerInfo(final SOCPlayer pl, final boolean isVacant, final SOCServer srv)
         {
             final SOCGame ga = pl.getGame();
 
@@ -469,6 +497,19 @@ public class SavedGameModel
             totalVP = pl.getTotalVP();
             isRobot = pl.isRobot();
             isBuiltInRobot = pl.isBuiltInRobot();
+            if (isRobot)
+            {
+                SOCRobotParameters params = srv.getRobotParameters(name);
+                if ((params != null) && (params.getStrategyType() == SOCRobotDM.SMART_STRATEGY))
+                    isRobotWithSmartStrategy = true;
+
+                if (! isBuiltInRobot)
+                {
+                    SOCClientData scd = srv.getClientData(name);
+                    if (scd != null)
+                        robot3rdPartyBrainClass = scd.robot3rdPartyBrainClass;
+                }
+            }
             faceID = pl.getFaceId();
             resources = new KnownResourceSet(pl.getResources());
 

@@ -38,7 +38,7 @@ import soc.util.SOCStringManager;  // for javadoc
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.04
  */
-/*package*/ class SOCClientData
+public class SOCClientData
 {
     /**
      * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client

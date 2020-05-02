@@ -358,6 +358,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @param connKey Case-sensitive client name key, from {@link Connection#getData()}; if null, returns null
      * @return The connection with this name, or null if not found
      * @see #getConnection(String, boolean)
+     * @see SOCServer#getClientData(String)
      * @see SOCServer#getRobotConnection(String)
      * @since 1.1.00
      */

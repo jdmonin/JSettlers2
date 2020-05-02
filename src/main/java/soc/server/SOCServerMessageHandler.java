@@ -468,7 +468,7 @@ public class SOCServerMessageHandler
      * {@link SOCServer#removeConnection(Connection, boolean)}.
      *<P>
      * Bot tuning parameters are sent here to the bot, from
-     * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
+     * {@link SOCServer#getRobotParameters(String)}.
      * See that method for default bot params.
      * See {@link SOCServer#authOrRejectClientRobot(Connection, String, String, String)}
      * for {@link SOCClientData} flags and fields set for the bot's connection
@@ -514,25 +514,7 @@ public class SOCServerMessageHandler
         //
         // send the current robot parameters
         //
-        SOCRobotParameters params = null;
-        try
-        {
-            params = SOCDBHelper.retrieveRobotParams(botName, true);
-                // if no DB in use, returns srv.ROBOT_PARAMS_SMARTER (uses SOCRobotDM.SMART_STRATEGY)
-                // or srv.ROBOT_PARAMS_DEFAULT (SOCRobotDM.FAST_STRATEGY).
-            if ((params != null) && (params != SOCServer.ROBOT_PARAMS_SMARTER)
-                && (params != SOCServer.ROBOT_PARAMS_DEFAULT) && D.ebugIsEnabled())
-                D.ebugPrintln("*** Robot Parameters for " + botName + " = " + params);
-        }
-        catch (SQLException sqle)
-        {
-            System.err.println("Error retrieving robot parameters from db: Using defaults.");
-        }
-
-        if (params == null)
-            params = SOCServer.ROBOT_PARAMS_DEFAULT;  // fallback in case of SQLException
-
-        c.put(SOCUpdateRobotParams.toCmd(params));
+        c.put(SOCUpdateRobotParams.toCmd(srv.getRobotParameters(botName)));
     }
 
 
@@ -1797,7 +1779,7 @@ public class SOCServerMessageHandler
         try
         {
             final String fname = argsStr + GameSaverJSON.FILENAME_EXTENSION;
-            GameSaverJSON.saveGame(ga, srv.savegameDir, fname);
+            GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);
             srv.messageToPlayer
                 (c, gaName, /*I*/"Saved game to " + fname /*18N*/);
         } catch (UnsupportedOperationException e) {

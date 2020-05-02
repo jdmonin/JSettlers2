@@ -31,6 +31,7 @@ import soc.message.*;
 
 import soc.robot.SOCRobotBrain;
 import soc.robot.SOCRobotClient;
+import soc.robot.SOCRobotDM;
 import soc.server.database.DBSettingMismatchException;
 import soc.server.database.SOCDBHelper;
 
@@ -131,9 +132,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     and the game-lifecycle message handlers in {@link SOCServerMessageHandler}.
  *<LI> See {@link SOCMessage} for details of the client/server protocol.
  *<LI> To get a player's connection, use {@link Server#getConnection(String) getConnection(plName)}.
- *<LI> To get a client's nickname, use <tt>(String)</tt> {@link Connection#getData() connection.getData()}.
- *<LI> To get the rest of a client's data, use ({@link SOCClientData})
- *     {@link Connection#getAppData() connection.getAppData()}.
+ *<LI> To get a client's nickname, use {@link Connection#getData()}.
+ *<LI> To get the rest of a client's data, use {@link #getClientData(String)}
+ *     or <tt>({@link SOCClientData}) {@link Connection#getAppData()}</tt>.
  *<LI> To send a message to all players in a game, use {@link #messageToGame(String, SOCMessage)}
  *     and related methods. Send text with {@link #messageToGameKeyed(SOCGame, boolean, String)}.
  *<LI> For i18n, nearly all text sent from the server starts as a unique key
@@ -913,10 +914,12 @@ public class SOCServer extends Server
     /**
      * Robot default parameters; copied for each newly connecting robot.
      * Changing this will not change parameters of any robots already connected.
+     * Uses {@link SOCRobotDM#FAST_STRATEGY}.
      *
+     * @see #ROBOT_PARAMS_SMARTER
      * @see #authOrRejectClientRobot(Connection, String, String, String)
      * @see SOCServerMessageHandler#handleIMAROBOT(Connection, soc.message.SOCImARobot)
-     * @see SOCDBHelper#retrieveRobotParams(String, boolean)
+     * @see #getRobotParameters(String)
      * @see soc.robot.SOCRobotDM
      * @since 1.1.00
      */
@@ -925,15 +928,14 @@ public class SOCServer extends Server
         // Formerly a literal in handleIMAROBOT.
         // Strategy type 1 == SOCRobotDM.FAST_STRATEGY.
         // If you change values here, see authOrRejectClientRobot(..),
-        // setupLocalRobots(..), SOCDBHelper.retrieveRobotParams(..),
+        // setupLocalRobots(..), getRobotParameters(..),
         // and SOCPlayerClient.startPracticeGame(..)
         // for assumptions which may also need to be changed.
 
     /**
-     * Smarter robot default parameters. (For practice games; not referenced by server)
-     * Same as ROBOT_PARAMS_DEFAULT but with SMART_STRATEGY, not FAST_STRATEGY.
+     * Smarter robot default parameters.
+     * Same as {@link #ROBOT_PARAMS_DEFAULT} but with {@link SOCRobotDM#SMART_STRATEGY}, not {@code FAST_STRATEGY}.
      *
-     * @see #ROBOT_PARAMS_DEFAULT
      * @see soc.robot.SOCRobotDM
      * @since 1.1.00
      */
@@ -2295,6 +2297,7 @@ public class SOCServer extends Server
      * @param botName Case-sensitive bot name key, from {@link Connection#getData()}; if null, returns null
      * @return That bot's connection, or {@code null} if not found
      * @see Server#getConnection(String)
+     * @see #getRobotParameters(String)
      * @see #getRobotCount()
      * @see #getConnectedRobotNames(StringBuilder)
      * @since 2.3.00
@@ -2313,6 +2316,46 @@ public class SOCServer extends Server
         }
 
         return null;
+    }
+
+    /**
+     * Get this robot's specialized parameters from the optional database if it has an entry there,
+     * or defaults for its type based on {@code botName}. Calls {@link SOCDBHelper#retrieveRobotParams(String)}.
+     *<P>
+     * Default bot params are {@link #ROBOT_PARAMS_SMARTER} if the robot name
+     * starts with "robot ", or {@link #ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
+     * This matches the bot names generated in {@link #setupLocalRobots(int, int)}.
+     *
+     * @param botName Name of robot for parameter lookup
+     * @return Bot parameters from DB if used and bot name found there,
+     *     or defaults for bot type as described above.
+     *     Never {@code null} unless {@code botName} is {@code null}.
+     * @since 2.3.00
+     */
+    public final SOCRobotParameters getRobotParameters(final String botName)
+    {
+        if (botName == null)
+            return null;
+
+        SOCRobotParameters params = null;
+        try
+        {
+            params = SOCDBHelper.retrieveRobotParams(botName);
+            if ((params != null) && D.ebugIsEnabled())
+                D.ebugPrintln("*** Robot Parameters for " + botName + " = " + params);
+        } catch (SQLException sqle) {
+            System.err.println("Error retrieving robot parameters from db: Using defaults.");
+        }
+
+        if (params == null)
+        {
+            if (botName.startsWith("robot "))
+                params = SOCServer.ROBOT_PARAMS_SMARTER;  // uses SOCRobotDM.SMART_STRATEGY
+            else  // startsWith("droid ")
+                params = SOCServer.ROBOT_PARAMS_DEFAULT;  // uses SOCRobotDM.FAST_STRATEGY
+        }
+
+        return params;
     }
 
     /**
@@ -3151,7 +3194,8 @@ public class SOCServer extends Server
      *<P>
      * The bots will start up and connect in separate threads, then be given their
      * {@code FAST} or {@code SMART} strategy params in {@link #handleIMAROBOT(Connection, SOCImARobot)}
-     * based on their name prefixes ("droid " or "robot " respectively).
+     * based on their name prefixes ("droid " or "robot " respectively):
+     * See {@link #getRobotParameters(String)}.
      *<P>
      * Some third-party bot clients can automatically be started here,
      * if they're named in {@link #PROP_JSETTLERS_BOTS_START3P} and meet the criteria documented there.
@@ -4950,6 +4994,21 @@ public class SOCServer extends Server
     }
 
     /**
+     * Get the client data for this nickname's connection, if found.
+     * @param nickname  Case-sensitive client name key, like {@link Connection#getData()}
+     * @return client data if found, or {@code null}
+     * @since 2.3.00
+     */
+    public SOCClientData getClientData(final String nickname)
+    {
+        final Connection c = getConnection(nickname);
+        return
+            (c == null)
+            ? null
+            : (SOCClientData) c.getAppData();
+    }
+
+    /**
      * Get the list of bots, formatted like "robot 3, droid 7, robot 2".
      * @param sb  Append bot name list into here
      * @return  True if any bots are connected
@@ -5995,7 +6054,10 @@ public class SOCServer extends Server
      * are also cleared.
      *<P>
      * If this method returns sucessful auth, caller must send bot tuning parameters to the bot from
-     * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
+     * {@link #getRobotParameters(String)}.
+     * Bot params can be stored in the database; see {@link SOCDBHelper#retrieveRobotParams(String)}.
+     * Default bot params are {@link #ROBOT_PARAMS_SMARTER} if the robot name starts with "robot "
+     * or {@link #ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
      *<P>
      * If a bot is rejected, returns a disconnect reason to send to the bot client;
      * returns {@code null} if accepted.  If the returned reason is
@@ -6004,9 +6066,6 @@ public class SOCServer extends Server
      * before sending the disconnect message.
      *<P>
      * Before connecting here, bot clients are named and started in {@link #setupLocalRobots(int, int)}.
-     * Bot params can be stored in the database, see {@link SOCDBHelper#retrieveRobotParams(String, boolean)}:
-     * Default bot params are {@link #ROBOT_PARAMS_SMARTER} if the robot name starts with "robot "
-     * or {@link #ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
      *<P>
      * Sometimes a bot disconnects and quickly reconnects.  In that case
      * this method removes the disconnect/reconnect messages from
