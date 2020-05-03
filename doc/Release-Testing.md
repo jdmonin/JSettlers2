@@ -523,8 +523,15 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Run SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
   status from server, as if they were found but password was wrong
 - SOCPlayerClient: Log in with a case-insensitive account nickname (use all-caps or all-lowercase)
-- SOCPlayerClient: Log in as non-admin user, create game: `*who*` works (not an admin command),
-  `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
+- SOCPlayerClient: Log in as non-admin user, create game
+  - `*who*` works (not an admin command)
+  - `*who* testgame` and `*who* *` shouldn't work
+  - `*help*` shouldn't show any admin commands
+  - In an ongoing game where user is observing, shouldn't be able to chat
+- SOCPlayerClient: Log in as admin user, join a game but don't sit down
+  - `*who* testgame` and `*who* *` shouldn work
+  - `*help*` should show any admin commands
+  - Should be able to chat in game
 - Test SOCServer parameter `--pw-reset username`  
   SOCPlayerClient: Log in afterwards with new password and start a game
 - Server prop to require accounts (`jsettlers.accounts.required=Y`):  

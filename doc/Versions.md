@@ -32,6 +32,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Administration:
 	  - Customized client welcome message, with optional server property `jsettlers.admin.welcome`  
 	    (see `jsserver.properties.sample` comments for details)
+	  - Admin users can chat and run commands while observing a game
 	  - Can now run these commands from any admin account, not only as Debug:  
 	    `*BCAST*, *BOTLIST*, *BOTLIST*, *RESETBOT*, *KILLBOT*, *GC*`
 	  - Daily Stats file: New optional server property `jsettlers.stats.file.name`: Appends output of `*STATS*` command daily
