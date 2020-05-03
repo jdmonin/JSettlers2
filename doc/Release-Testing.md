@@ -483,6 +483,55 @@ When preparing to release a new version, testing should include:
         - Start that game (with the two human players)
         - After initial placement, have one player leave
         - Server should tell game it can't find a robot
+- Saving and loading games at server
+    - Basics
+        - Start server with debug user enabled, but not savegame feature: `-Djsettlers.allow.debug=Y`
+          - Log in as debug user, start a game
+          - Try command `*SAVEGAME* tmp`
+          - Should fail with a message like: "SAVEGAME is disabled: Must set jsettlers.savegame.dir property"
+          - Shut down the server
+        - Saving basics
+          - Start server with debug user and savegame: Use command-line property to set path to save-dir, like  
+            `-Djsettlers.savegame.dir=/tmp/jsgame`
+          - Log in as debug user, start a game, play past initial placement
+          - Try command `*SAVEGAME* tmp`
+          - If that directory doesn't exist, should fail with a message like: "savegame.dir not found: /tmp/jsgame"
+          - Make the directory
+          - Again try command `*SAVEGAME* tmp`
+          - Should succeed with a message like: "Saved game to tmp.game.json"
+          - Again try command `*SAVEGAME* tmp`
+          - Should fail with a message like: "Game file already exists: Add -f flag to force, or use a different name"
+          - Again try command, adding that flag: `*SAVEGAME* -f tmp`
+          - Should succeed
+          - Run `*STATS*` command, note the game duration ("game started 4 minutes ago")
+          - Make and start a new game
+          - Try to save during initial placement: Should fail with a message like: "Must finish initial placement before saving"
+        - Loading basics
+          - As debug user in any game, run command `*LOADGAME* tmp`
+          - Game and its window should get created
+            - Debug user should be sitting at a player position
+            - Bots should be sitting at bot player positions
+            - If loaded game would duplicate name of a game already on server, should have a numeric suffix like "-2"
+          - In loaded game, run `*STATS*`; duration should match what's noted in previous test
+          - In loaded game, run `*LOADGAME* tmp` again
+          - Should create another game with a numeric suffix like "-2" or "-3"
+          - Run `*RESUMEGAME*` to resume game play; should do so
+          - Play 2 rounds; bots and human player actions should function normally
+          - Close all loaded games' windows
+    - Loading and resuming games
+        - Second human client should be able to sit, taking over a robot position, and have debug user resume game as usual
+        - Save and then load a game containing a human player who's connected to server but not part of the resumed game.  
+          When resuming that game, server shouldn't send that client any messages, but instead should get a bot to sit at their seat
+        - Can load and start game which doesn't include debug player
+          - Edit a saved game file to change player name from "debug"
+          - Load that game
+          - Should see "Take Over" buttons for every occupied player seat (bot or human)
+          - Sit down as current player, make sure resumes properly
+          - Re-test, sitting as non-current player
+          - Re-test, resume without sitting: Should resume as robots-only game
+    - Saved bot properties
+        - Save a game having no bots, mix of smart/fast bots, one with at least 1 Sample3PClient
+        - For each of those, examine the players in the save file for correct values for: isRobot, isBuiltInRobot, isRobotWithSmartStrategy, and (for Sample3PClient) `"robot3rdPartyBrainClass": "soc.robot.sample3p.Sample3PClient"`
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
@@ -523,15 +572,6 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Run SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
   status from server, as if they were found but password was wrong
 - SOCPlayerClient: Log in with a case-insensitive account nickname (use all-caps or all-lowercase)
-- SOCPlayerClient: Log in as non-admin user, create game
-  - `*who*` works (not an admin command)
-  - `*who* testgame` and `*who* *` shouldn't work
-  - `*help*` shouldn't show any admin commands
-  - In an ongoing game where user is observing, shouldn't be able to chat
-- SOCPlayerClient: Log in as admin user, join a game but don't sit down
-  - `*who* testgame` and `*who* *` shouldn work
-  - `*help*` should show any admin commands
-  - Should be able to chat in game
 - Test SOCServer parameter `--pw-reset username`  
   SOCPlayerClient: Log in afterwards with new password and start a game
 - Server prop to require accounts (`jsettlers.accounts.required=Y`):  
@@ -621,6 +661,24 @@ Start with a recently-created database with latest schema/setup scripts.
       TU1: W 4 L 0  
       TU2: W 2 L 4  
       TU3: W 0 L 4
+- Admin commands
+    - Be sure server is started with savegame feature: Use command-line property to set path to save-dir, like  
+      `-Djsettlers.savegame.dir=/tmp/jsgame`
+    - SOCPlayerClient: Log in as non-admin user, create game
+        - `*who*` works (not an admin command)
+        - `*who* testgame` and `*who* *` shouldn't work
+        - `*help*` shouldn't show any admin commands
+        - In a different game where user is observing (ongoing, past initial placement), shouldn't be able to chat
+    - SOCPlayerClient: Log in as admin user, join an ongoing game but don't sit down
+        - `*who* testgame` and `*who* *` should work
+        - `*help*` should show admin commands
+        - Should be able to chat in game
+    - As an admin user, save and load games
+        - Start a game, play past initial placement
+        - Try command `*SAVEGAME* tmp`
+        - Should succeed with a message like: "Saved game to tmp.game.json"
+        - As admin user in any other game, run command `*LOADGAME* tmp`
+        - Should succeed and load game into a new window
 - DB schema upgrade rollback/recovery
     - Get a copy of the original schema SQL file (not latest version):
         - `git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql`
