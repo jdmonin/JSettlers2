@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,17 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that a player wants to sit down to play.
- * Although it's a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
+ * This message from client means that a player wants to sit down to play;
+ * from server it announces a client has sat down to play.
+ *<P>
+ * If human clients are joining a game which was reloaded from a saved snapshot
+ * (game state {@link soc.game.SOCGame#LOADING}), the game might have unclaimed non-vacant seats
+ * which were a human player when game was saved, but no client is currently connected to.
+ * SOCSitDown for those seats is sent with {@link #isRobot()} true so the client will show
+ * a "Take Over" button for them.
+ *<P>
+ * Although it's a game-specific message, this game-lifecycle message
+ * is handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
  * @author Robert S. Thomas
  */

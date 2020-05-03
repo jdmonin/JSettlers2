@@ -3395,7 +3395,9 @@ import javax.swing.UIManager;
     public void updateTakeOverButton()
     {
         if ((game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED) &&
-            (game.getCurrentPlayerNumber() != playerNumber))
+            ((game.getCurrentPlayerNumber() != playerNumber)
+             || (game.getGameState() == SOCGame.NEW)
+             || (game.getGameState() == SOCGame.LOADING)))
         {
             takeOverBut.setText(TAKEOVER);
         } else {

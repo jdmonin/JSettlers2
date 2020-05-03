@@ -133,6 +133,7 @@ public abstract class GameHandler
      * @param isReset  Game is a board-reset of an existing game.  This is always false when
      *                 called from SOCServer instead of from inside the GameHandler.
      *                 Not all game types may be reset.
+     * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
      * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
@@ -140,7 +141,8 @@ public abstract class GameHandler
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, java.util.Map)
      * @since 1.1.00
      */
-    public abstract void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isTakingOver);
+    public abstract void joinGame
+        (SOCGame gameData, Connection c, boolean isReset, boolean isLoading, boolean isTakingOver);
 
     /**
      * When player has just sat down at a seat, send them all the private information.

@@ -917,6 +917,7 @@ public class SOCGameHandler extends GameHandler
      * @param c        The connection of joining client
      * @param isReset  Game is a board-reset of an existing game.  This is always false when
      *          called from SOCServer instead of from inside the SOCGameHandler.
+     * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
      * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
      *          is defunct because of a network problem.
      *          If <tt>isTakingOver</tt>, don't send anything to other players.
@@ -925,7 +926,8 @@ public class SOCGameHandler extends GameHandler
      */
     @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
     public void joinGame
-        (final SOCGame gameData, final Connection c, final boolean isReset, final boolean isTakingOver)
+        (final SOCGame gameData, final Connection c,
+         final boolean isReset, final boolean isLoading, final boolean isTakingOver)
     {
         boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         final String gameName = gameData.getName(), cliName = c.getData();
@@ -963,6 +965,27 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
+        /**
+         * When sending seated player info and this client is loading a saved game:
+         * if client isn't a player in the game, give them option to sit at any player's seat.
+         */
+        boolean allSeatsBots;
+        if (isLoading)
+        {
+            allSeatsBots = true;
+            for (int pn = 0; pn < gameData.maxPlayers; ++pn)
+            {
+                if ((! gameData.isSeatVacant(pn))
+                    && gameData.getPlayer(pn).getName().equals(cliName))
+                {
+                    allSeatsBots = false;
+                    break;
+                }
+            }
+        } else {
+            allSeatsBots = false;
+        }
+
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
             /**
@@ -979,7 +1002,7 @@ public class SOCGameHandler extends GameHandler
                     final boolean isRobot = pl.isRobot();
                     if (isRobot)
                         hasRobot = true;
-                    c.put(SOCSitDown.toCmd(gameName, plName, i, isRobot));
+                    c.put(SOCSitDown.toCmd(gameName, plName, i, isRobot || allSeatsBots));
                 }
             }
 
@@ -1558,7 +1581,7 @@ public class SOCGameHandler extends GameHandler
      * {@link SOCBoardLarge#getAddedLayoutPart(String)} which defines special edges
      * (currently {@code "CE"}, {@code "VE"}).
      *<P>
-     * Called as part of {@link #joinGame(SOCGame, Connection, boolean, boolean)}.
+     * Called as part of {@link #joinGame(SOCGame, Connection, boolean, boolean, boolean)}.
      * @param game   Game being joined
      * @param board  Game's board layout
      * @param c      Client joining

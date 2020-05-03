@@ -1627,22 +1627,26 @@ public class SOCServerMessageHandler
 
         // Validate name and opts, add to gameList, announce "new" game, have client join;
         // sends error text if validation fails. Might rename loaded game if its name is already taken
-        // by an existing game
+        // by an existing game.
+        // If debug/admin user isn't a player, will send each sitDown with isRobot=true
+        // to let them sit down at any player's seat.
         if (! srv.createOrJoinGame
                (c, c.getVersion(), connGaName, ga.getGameOptions(), ga, SOCServer.AUTH_OR_REJECT__OK))
         {
             return;
         }
 
-        // Must tell debug player to sit down for debug user if they're a player here,
+        // Must tell debug/admin player to sit down if they're a player here,
         // since PI will show as seated if nickname matches player name
+        int clientPN = -1;
         for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
         {
             final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
             if (pi.isSeatVacant || ! pi.name.equals(c.getData()))
                 continue;
 
-            srv.sitDown(ga, c, pn, false, false);
+            clientPN = pn;
+            srv.sitDown(ga, c, clientPN, false, false);
             break;
         }
 
@@ -1672,7 +1676,7 @@ public class SOCServerMessageHandler
         for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
         {
             final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
-            if (pi.isSeatVacant || pi.isRobot || pi.name.equals(c.getData()))
+            if ((pn == clientPN) || pi.isSeatVacant || pi.isRobot)
                 continue;
 
             ga.getPlayer(pn).setRobotFlag(true, true);
@@ -1776,6 +1780,8 @@ public class SOCServerMessageHandler
 
             return;
         }
+
+        // TODO if no human players, set botsOnly flag so game will actually resume
 
         try
         {
@@ -2478,6 +2484,7 @@ public class SOCServerMessageHandler
          * requested bot sits to replace them, so let the bot sit at that vacant seat.
          */
         final int pn = mes.getPlayerNumber();
+        final int gameState = ga.getGameState();
 
         ga.takeMonitor();
 
@@ -2485,7 +2492,7 @@ public class SOCServerMessageHandler
         {
             if (ga.isSeatVacant(pn))
             {
-                gameAlreadyStarted = (ga.getGameState() >= SOCGame.START2A);
+                gameAlreadyStarted = (gameState >= SOCGame.START2A);
                 if (! gameAlreadyStarted)
                     gameIsFull = (1 > ga.getAvailableSeatCount());
 
@@ -2497,7 +2504,9 @@ public class SOCServerMessageHandler
 
                 if (seatedPlayer.isRobot()
                     && (ga.getSeatLock(pn) != SOCGame.SeatLockState.LOCKED)
-                    && (ga.getCurrentPlayerNumber() != pn))
+                    && ((gameState == SOCGame.LOADING)
+                        || (gameState == SOCGame.LOADING_RESUMING)
+                        || (ga.getCurrentPlayerNumber() != pn)))
                 {
                     /**
                      * boot the robot out of the game
@@ -2532,7 +2541,7 @@ public class SOCServerMessageHandler
                          * If so, tell game robotCon has left so clients see seat as available
                          * for player sitting now to take over.
                          */
-                        if ((ga.savedGameModel != null) && (ga.getGameState() >= SOCGame.LOADING))
+                        if ((ga.savedGameModel != null) && (gameState >= SOCGame.LOADING))
                         {
                             canSit = true;
                             srv.messageToGame(gaName, new SOCLeaveGame(seatedName, "-", gaName));

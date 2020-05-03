@@ -2511,7 +2511,7 @@ public class SOCServer extends Server
      * Adds a connection to a game, unless they're already a member.
      * If the game doesn't yet exist, creates it and announces the new game to all clients
      * by calling {@link #createGameAndBroadcast(Connection, String, Map, SOCGame, int, boolean, boolean)}.
-     * After this method returns, caller must call {@link #joinGame(SOCGame, Connection, boolean, boolean)}
+     * After this method returns, caller must call {@link #joinGame(SOCGame, Connection, boolean, boolean, boolean)}
      * to send game state to the player/observer.
      *<P>
      * If this method creates a new game: After it returns, other human players may join until
@@ -2542,7 +2542,6 @@ public class SOCServer extends Server
      *           and an unused name couldn't be generated.
      * @throws IllegalArgumentException if client's version is too low to join for any
      *           other reason. (this exception was added in 1.1.06)
-     * @see #joinGame(SOCGame, Connection, boolean, boolean)
      * @see SOCServerMessageHandler#handleSTARTGAME(Connection, SOCStartGame)
      * @see SOCServerMessageHandler#handleJOINGAME(Connection, SOCJoinGame)
      */
@@ -6255,8 +6254,10 @@ public class SOCServer extends Server
      *      and this method will check that against cli's version.
      *  <LI> announce to all players using NEWGAMEWITHOPTIONS;
      *       older clients get NEWGAME, won't see the options
-     *  <LI> send JOINGAMEAUTH to requesting client, via {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean)}
-     *  <LI> send game status details to requesting client, via {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean)}
+     *  <LI> send JOINGAMEAUTH to requesting client,
+     *       via {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)}
+     *  <LI> send game status details to requesting client,
+     *       via {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)}
      *       -- If the game is already in progress, this will include all pieces on the board, and the rest of game state.
      *</UL>
      *
@@ -6317,6 +6318,8 @@ public class SOCServer extends Server
      * Can also be used with a {@code loadedGame} being reloaded
      * (having current state {@link SOCGame#LOADING}); will check its name and game options,
      * add it to game list, and generally act as if a new game is being created.
+     * If {@code c} isn't a player in {@code loadedGame}, they'll be given the option to
+     * sit down and take over any seat as if all players were bots.
      *<P>
      * Before v2.3.00 this method was {@code createOrJoinGameIfUserOK_postAuth}.
      *
@@ -6500,7 +6503,7 @@ public class SOCServer extends Server
                 } else {
                     // Send list backwards: requested game will be sent last.
                     for (int i = allConnGames.size() - 1; i >= 0; --i)
-                        joinGame(allConnGames.get(i), c, false, true);
+                        joinGame(allConnGames.get(i), c, false, false, true);
                 }
             }
             else if (connectToGame(c, gameName, gameOpts, loadedGame))  // join or create the game
@@ -6515,7 +6518,7 @@ public class SOCServer extends Server
                  */
                 SOCGame gameData = gameList.getGameData(gameName);
                 if (gameData != null)
-                    joinGame(gameData, c, false, false);
+                    joinGame(gameData, c, false, (loadedGame != null), false);
             }
         } catch (SOCGameOptionVersionException e)
         {
@@ -7595,13 +7598,14 @@ public class SOCServer extends Server
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
      * Unless <tt>isTakingOver</tt>, announces {@link SOCJoinGame} client join event to other players.
-     * Gets the game's handler and calls {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean)};
+     * Gets the game's handler and calls {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)};
      * see that method's javadoc for details.
      *<P>
      * @param gameData Game to join
      * @param c        The connection of joining client
      * @param isReset  Game is a board-reset of an existing game; should always be false when server is calling,
      *                 board resets are up to the GameHandler.
+     * @param isLoading Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
      * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
@@ -7610,7 +7614,7 @@ public class SOCServer extends Server
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @since 1.1.00
      */
-    private void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isTakingOver)
+    private void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isLoading, boolean isTakingOver)
     {
         final String gameName = gameData.getName();
         GameHandler hand = gameList.getGameTypeHandler(gameName);
@@ -7621,7 +7625,7 @@ public class SOCServer extends Server
             return;
         }
 
-        hand.joinGame(gameData, c, isReset, isTakingOver);
+        hand.joinGame(gameData, c, isReset, isLoading, isTakingOver);
     }
 
     /**
@@ -7876,7 +7880,7 @@ public class SOCServer extends Server
         for (int pn = 0; pn < reGame.maxPlayers; ++pn)
         {
             if (huConns[pn] != null)
-                joinGame(reGame, huConns[pn], true, false);
+                joinGame(reGame, huConns[pn], true, false, false);
         }
 
         /**
