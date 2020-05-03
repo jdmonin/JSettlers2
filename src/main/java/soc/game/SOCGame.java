@@ -496,6 +496,10 @@ public class SOCGame implements Serializable, Cloneable
      * (have a certain type of bot sit down at a given player number, etc).
      * If there are unclaimed non-vacant seats where bots will need to join,
      * next state is {@link #LOADING_RESUMING}, otherwise will resume at {@code oldGameState}.
+     *<P>
+     * This game state is higher-numbered than actively-playing states, slightly lower than {@link #OVER}
+     * or {@link #LOADING_RESUMING}.
+     *
      * @since 2.3.00
      */
     public static final int LOADING = 990;
@@ -506,6 +510,10 @@ public class SOCGame implements Serializable, Cloneable
      * Before we can resume play, server has requested some bots to fill unclaimed non-vacant seats,
      * which had humans when the game was saved. Server is waiting for the bots to join and sit down
      * (like state {@link #READY}). Once all bots have joined, gameState can resume at {@code oldGameState}.
+     *<P>
+     * This game state is higher-numbered than actively-playing states, slightly lower than {@link #OVER}
+     * but higher than {@link #LOADING}.
+     *
      * @since 2.3.00
      */
     public static final int LOADING_RESUMING = 992;

@@ -1050,11 +1050,15 @@ public class SOCServerMessageHandler
             // 1.1.07: all practice games are debug mode, for ease of debugging;
             //         not much use for a chat window in a practice game anyway.
 
-        final boolean canChat = userIsDebug
-            || (null != ga.getPlayer(plName))
-            || (gameList.isMember(c, gaName) && (ga.getGameState() < SOCGame.ROLL_OR_CARD));
+        boolean canChat = userIsDebug || (null != ga.getPlayer(plName));
+        if ((! canChat) && gameList.isMember(c, gaName))
+        {
             // To avoid disruptions by game observers, only players can chat after initial placement.
             // To help form the game, non-seated members can also participate in the chat until then.
+            final int gstate = ga.getGameState();
+            canChat =
+                (gstate < SOCGame.ROLL_OR_CARD) || (gstate == SOCGame.LOADING) || (gstate == SOCGame.LOADING_RESUMING);
+        }
 
         //currentGameEventRecord.setSnapshot(ga);
 

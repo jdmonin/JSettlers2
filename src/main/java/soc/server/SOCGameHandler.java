@@ -701,7 +701,7 @@ public class SOCGameHandler extends GameHandler
      * </UL>
      * @param ga Game to force end turn
      * @param plName Current player's name. Needed because if they have been disconnected by
-     *          {@link #leaveGame(SOCGame, Connection, boolean)},
+     *          {@link #leaveGame(SOCGame, Connection, boolean, boolean)},
      *          their name within game object is already null.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
@@ -1723,12 +1723,13 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler. Return true if game is empty and should be ended.
-    public boolean leaveGame(SOCGame ga, Connection c, final boolean hasReplacement)
+    public boolean leaveGame
+        (SOCGame ga, Connection c, final boolean hasReplacement, final boolean hasHumanReplacement)
     {
         final String gm = ga.getName();
         final String plName = c.getData();  // Retain name, since will become null within game obj.
 
-        boolean gameHasHumanPlayer = false;
+        boolean gameHasHumanPlayer = hasHumanReplacement;
         boolean gameHasObserver = false;
         @SuppressWarnings("unused")
         boolean gameVotingActiveDuringStart = false;  // TODO checks/messages; added in v1.1.01, TODO not used yet
@@ -1790,16 +1791,17 @@ public class SOCGameHandler extends GameHandler
         /**
          * check if there is at least one person playing the game
          */
-        for (int pn = 0; pn < ga.maxPlayers; pn++)
-        {
-            SOCPlayer player = ga.getPlayer(pn);
-
-            if ((player != null) && (player.getName() != null) && (!ga.isSeatVacant(pn)) && (!player.isRobot()))
+        if (! hasHumanReplacement)
+            for (int pn = 0; pn < ga.maxPlayers; pn++)
             {
-                gameHasHumanPlayer = true;
-                break;
+                SOCPlayer player = ga.getPlayer(pn);
+
+                if ((player != null) && (player.getName() != null) && ! (player.isRobot() || ga.isSeatVacant(pn)))
+                {
+                    gameHasHumanPlayer = true;
+                    break;
+                }
             }
-        }
 
         //D.ebugPrintln("*** gameHasHumanPlayer = "+gameHasHumanPlayer+" for "+gm);
 
@@ -1837,7 +1839,7 @@ public class SOCGameHandler extends GameHandler
                 }
             }
 
-            if (gameHasObserver && ! ((gameState == SOCGame.NEW) || ga.isBotsOnly))
+            if (gameHasObserver && ! ((gameState == SOCGame.NEW) || (gameState == SOCGame.LOADING) || ga.isBotsOnly))
             {
                 if (0 == srv.getConfigIntProperty(SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
                     gameHasObserver = false;
@@ -1857,7 +1859,7 @@ public class SOCGameHandler extends GameHandler
                 && ((ga.getPlayer(playerNumber).getPublicVP() > 0)
                     || (gameState == SOCGame.START1A)
                     || (gameState == SOCGame.START1B))
-                && (gameState < SOCGame.OVER)
+                && (gameState < SOCGame.LOADING)
                 && ! (gameState < SOCGame.START1A))
         {
             boolean foundNoRobots;

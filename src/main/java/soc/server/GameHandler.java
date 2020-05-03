@@ -232,15 +232,16 @@ public abstract class GameHandler
      *           in case they are still connected and in other games.
      * @param hasReplacement  If true the leaving connection is a bot, and there's a waiting client who will be told
      *           next to sit down in this bot's seat, so that isn't really becoming vacant
+     * @param hasHumanReplacement  if true, {@code hasReplacement}'s client is human, not a bot
      * @return true if the game should be ended and deleted (does not have other observers or non-robot players,
-     *           and game's {@code isBotsOnly} flag is false).
+     *           not {@code hasHumanReplacement}, and game's {@code isBotsOnly} flag is false).
      *           <P>
      *           If {@code isBotsOnly} is false, and the game is now only robots and observers,
      *           game should end unless the "allow robots-only games" property is nonzero: Check
      *           {@link SOCServer#getConfigIntProperty(String, int) SOCServer.getConfigIntProperty}
      *           ({@link SOCServer#PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}, 0).
      */
-    public abstract boolean leaveGame(SOCGame ga, Connection c, boolean hasReplacement);
+    public abstract boolean leaveGame(SOCGame ga, Connection c, boolean hasReplacement, boolean hasHumanReplacement);
 
     /**
      * When a human player has left an active game, or a game is starting and a

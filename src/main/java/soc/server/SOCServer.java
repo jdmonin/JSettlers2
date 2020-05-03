@@ -2955,9 +2955,10 @@ public class SOCServer extends Server
      * the connection c leaves the game gm.  Clean up; if needed, force the current player's turn to end.
      *<P>
      * If the game becomes empty after removing {@code c}, this method can destroy it if all these
-     * conditions are true (determined by {@link GameHandler#leaveGame(SOCGame, Connection)}):
+     * conditions are true (determined by {@link GameHandler#leaveGame(SOCGame, Connection, boolean, boolean)}):
      * <UL>
      *  <LI> {@code c} was the last non-robot player
+     *  <LI> {@code c} not being replaced by a human player
      *  <LI> No one was watching/observing
      *  <LI> {@link SOCGame#isBotsOnly} flag is false
      * </UL>
@@ -2980,17 +2981,19 @@ public class SOCServer extends Server
      * @param gm  game name, if {@code ga} object not already known
      * @param hasReplacement  If true the leaving connection is a bot, and there's a waiting client who will be told
      *           next to sit down in this bot's seat, so that isn't really becoming vacant
+     * @param hasHumanReplacement  if true, {@code hasReplacement}'s client is human, not a bot
      * @param destroyIfEmpty  if true, this method will destroy the game if it's now empty.
      *           If false, the caller must call {@link #destroyGame(String)}
      *           before calling {@link SOCGameList#releaseMonitor()}.
-     * @param gameListLock  true if caller holds the {@link SOCGameList#takeMonitor()} lock when called;
+     * @param hasGameListLock  true if caller holds the {@link SOCGameList#takeMonitor()} lock when called;
      *           false if it must be acquired and released within this method
      * @return true only if the game was destroyed, or if it would have been destroyed but {@code destroyIfEmpty} is false
      * @throws IllegalArgumentException if both {@code ga} and {@code gm} are null
      */
     public boolean leaveGame
         (final Connection c, SOCGame ga, String gm,
-         final boolean hasReplacement, final boolean destroyIfEmpty, final boolean gameListLock)
+         final boolean hasReplacement, final boolean hasHumanReplacement,
+         final boolean destroyIfEmpty, final boolean hasGameListLock)
         throws IllegalArgumentException
     {
         if (c == null)
@@ -3021,7 +3024,7 @@ public class SOCServer extends Server
         GameHandler hand = gameList.getGameTypeHandler(gm);
         if (hand != null)
         {
-            gameDestroyed = hand.leaveGame(ga, c, hasReplacement) || gameList.isGameEmpty(gm);
+            gameDestroyed = hand.leaveGame(ga, c, hasReplacement, hasHumanReplacement) || gameList.isGameEmpty(gm);
         } else {
             gameDestroyed = true;
                 // should not happen. If no handler, game data is inconsistent
@@ -3033,7 +3036,7 @@ public class SOCServer extends Server
              * if the game has no players, or if they're all
              * robots, then end the game and update stats.
              */
-            if (gameListLock)
+            if (hasGameListLock)
             {
                 destroyGame(gm);
             }
@@ -3044,13 +3047,11 @@ public class SOCServer extends Server
                 try
                 {
                     destroyGame(gm);
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     D.ebugPrintStackTrace(e, "Exception in leaveGame (destroyGame)");
+                } finally {
+                    gameList.releaseMonitor();
                 }
-
-                gameList.releaseMonitor();
             }
         }
 
@@ -3062,7 +3063,7 @@ public class SOCServer extends Server
      * Handle a member leaving the game:
      *<UL>
      * <LI> Manages game list locks
-     * <LI> Calls {@link #leaveGame(Connection, SOCGame, String, boolean, boolean)}
+     * <LI> Calls {@link #leaveGame(Connection, SOCGame, String, boolean, boolean, boolean, boolean)}
      * <LI> If game now destroyed, announces game deletion
      * <LI> If leaving member was a bot, remove it from {@link #robotDismissRequests} for this game.
      *      Calls {@link #sitDown(SOCGame, Connection, int, boolean, boolean)} if a human player
@@ -3117,7 +3118,12 @@ public class SOCServer extends Server
                 }
             }
 
-            gameDestroyed = leaveGame(c, game, gaName, (req != null), true, false);
+            final boolean hasReplacement = (req != null);
+            final SOCClientData repScd = (hasReplacement)
+                ? (SOCClientData) (req.getArriving().getAppData())
+                : null;
+            gameDestroyed = leaveGame
+                (c, game, gaName, hasReplacement, (repScd != null) && ! repScd.isRobot, true, false);
         }
         catch (Exception e)
         {
@@ -3149,6 +3155,9 @@ public class SOCServer extends Server
 
             if (game == null)
                 game = gameList.getGameData(gaName);
+            if (gameDestroyed || (game == null))
+                return;  // game was destroyed; maybe was robots-only?
+
             final int pn = req.getSitDownMessage().getPlayerNumber();
             final boolean isRobot = req.getSitDownMessage().isRobot();
             if (! isRobot)
@@ -3292,7 +3301,7 @@ public class SOCServer extends Server
      * before calling this method.
      *
      * @param gm  Name of the game to destroy
-     * @see #leaveGame(Connection, SOCGame, String, boolean, boolean, boolean)
+     * @see #leaveGame(Connection, SOCGame, String, boolean, boolean, boolean, boolean)
      * @see #destroyGameAndBroadcast(String, String)
      */
     public void destroyGame(String gm)
@@ -3629,7 +3638,7 @@ public class SOCServer extends Server
 
                     try
                     {
-                        thisGameDestroyed = leaveGame(c, null, ga, false, false, true);
+                        thisGameDestroyed = leaveGame(c, null, ga, false, false, false, true);
                     }
                     catch (Exception e)
                     {
