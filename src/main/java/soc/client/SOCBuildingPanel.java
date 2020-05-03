@@ -1185,12 +1185,16 @@ import javax.swing.SwingConstants;
     public void setPlayer()
         throws IllegalStateException
     {
-        SOCGame game = pi.getGame();
+        final SOCGame game = pi.getGame();
+        final SOCPlayer cliPl = pi.getClientPlayer();
+        if (cliPl == player)
+            return;  // ignore duplicate call from extra SitDown message when loading saved game
+
         if ((player != null) && ! game.isBoardReset())
             throw new IllegalStateException("Player data is already set");
 
-        player = pi.getClientPlayer();
-        if (player == null)
+        player = cliPl;
+        if (cliPl == null)
             throw new IllegalStateException("null PI.clientPlayer");
     }
 
