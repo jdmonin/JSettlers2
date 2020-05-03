@@ -1636,7 +1636,7 @@ public class SOCServerMessageHandler
             return;
         }
 
-        // Must tell debug/admin player to sit down if they're a player here,
+        // Must tell debug/admin player to sit down at this point if they're a player,
         // since PI will show as seated if nickname matches player name
         int clientPN = -1;
         for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
@@ -1781,7 +1781,18 @@ public class SOCServerMessageHandler
             return;
         }
 
-        // TODO if no human players, set botsOnly flag so game will actually resume
+        // if no human players, set game's isBotsOnly flag so it won't be destroyed
+        boolean isBotsOnly = true;
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            if (! (ga.isSeatVacant(pn) || ga.getPlayer(pn).isRobot()))
+            {
+                isBotsOnly = false;
+                break;
+            }
+        }
+        if (isBotsOnly)
+            ga.isBotsOnly = true;
 
         try
         {

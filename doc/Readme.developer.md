@@ -562,6 +562,7 @@ Games with a scenario can't yet be saved, because of their special pieces or gam
 - If other human players will be in the game, have them join and sit down now
 - Debug command to resume play of loaded game: \*RESUMEGAME\*
   - If game was saved with human players who haven't rejoined, bots will join now for those players
+  - If no human players have sat down, game will play as robots-only even if server isn't set to allow bot-only games
   - Game play now resumes, at the current player and state it was saved with
 
 This feature requires a GSON jar which must be on the classpath, or named `gson.jar` (no version number)
