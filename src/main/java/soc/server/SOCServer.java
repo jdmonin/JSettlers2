@@ -6688,7 +6688,7 @@ public class SOCServer extends Server
         }
 
         final int nRobotsAvailable = robots.size();
-        final String gname = ga.getName();
+        final String gaName = ga.getName();
         final Map<String, SOCGameOption> gopts = ga.getGameOptions();
         final boolean gameHasLimitedFeats = (ga.getClientFeaturesRequired() != null);
         int seatsOpen;
@@ -6739,8 +6739,9 @@ public class SOCServer extends Server
                     do
                     {
                         robotConn = robots.get(robotIndexes[idx]);
-                        if (gameHasLimitedFeats &&
-                            ! ga.canClientJoin(((SOCClientData) (robotConn.getAppData())).feats))
+                        if (((forSeats != null) && gameList.isMember(robotConn, gaName))
+                            || (gameHasLimitedFeats &&
+                                ! ga.canClientJoin(((SOCClientData) (robotConn.getAppData())).feats)))
                         {
                             // try the next bot instead
                             robotConn = null;
@@ -6774,7 +6775,7 @@ public class SOCServer extends Server
 
             // we know robotRequests isn't empty,
             // so add to the request table
-            robotJoinRequests.put(gname, robotsRequested);
+            robotJoinRequests.put(gaName, robotsRequested);
 
             // now, make the requests
             for (int i = 0; i < ga.maxPlayers; ++i)
@@ -6782,7 +6783,7 @@ public class SOCServer extends Server
                 if (robotSeatsConns[i] != null)
                 {
                     // D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
-                    robotSeatsConns[i].put(SOCBotJoinGameRequest.toCmd(gname, i, gopts));
+                    robotSeatsConns[i].put(SOCBotJoinGameRequest.toCmd(gaName, i, gopts));
                 }
             }
 
