@@ -311,7 +311,7 @@ public class SavedGameModel
     /**
      * Resume play of a loaded game: Check any constraints, update gameState.
      * Calls {@link #findSeatsNeedingBots()} to check if the game still needs bots or human players
-     * at any seat before resuming.
+     * at any seat before resuming. Clears {@link SOCGame#savedGameModel} field to null.
      *<P>
      * If model's game state is {@link SOCGame#OVER}, skips constraint and seat/bot checks.
      *
@@ -338,6 +338,7 @@ public class SavedGameModel
 
         game.lastActionTime = System.currentTimeMillis();
         game.setGameState(gameState);
+        game.savedGameModel = null;  // complex data structure no longer needed
 
         return game;
     }
@@ -440,6 +441,8 @@ public class SavedGameModel
                     ("maxPlayers " + ga.maxPlayers + " != playerSeats.length " + playerSeats.length);
             game = ga;
             ga.savedGameModel = this;
+            if (gameState >= SOCGame.OVER)
+                ga.hasDoneGameOverTasks = true;
             ga.setTimeSinceCreated(gameDurationSeconds);
             ga.setCurrentDice(currentDice);
             if (devCardDeck == null)

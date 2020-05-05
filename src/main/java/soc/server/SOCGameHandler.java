@@ -2398,9 +2398,11 @@ public class SOCGameHandler extends GameHandler
      *  If game is OVER, send messages reporting winner, final score,
      *  and each player's victory-point cards.
      *<P>
-     *  If {@code joiningConn != null}, returns at that point.
+     *  If {@code joiningConn != null} or {@link SOCGame#hasDoneGameOverTasks}, returns at that point.
      *  The rest of the method has side effects, like stat increments and DB updates,
      *  which should happen only once per game.
+     *  Server structure more or less ensures sendGameStateOVER(ga, null) is called only once.
+     *  Sets {@code ga.hasDoneGameOverTasks} flag just in case.
      *<P>
      *  Give stats on game length, and send each player their connect time.
      *  If player has finished more than 1 game since connecting, send their win-loss count.
@@ -2520,10 +2522,12 @@ public class SOCGameHandler extends GameHandler
                 joiningConn.put(statsMsg);
         }
 
-        if (joiningConn != null)
+        if ((joiningConn != null) || ga.hasDoneGameOverTasks)
         {
             return;  // <--- Early return, to avoid side effects that should happen only once ---
         }
+
+        ga.hasDoneGameOverTasks = true;
 
         /**
          * send game-length and connect-length messages, possibly win-loss count.
@@ -2596,19 +2600,13 @@ public class SOCGameHandler extends GameHandler
 
         }  // send game timing stats, win-loss stats
 
-        if (null == ga.savedGameModel)
-        {
-            srv.gameOverIncrGamesFinishedCount(ga);
-            srv.storeGameScores(ga);
-        }
+        srv.gameOverIncrGamesFinishedCount(ga);
+        srv.storeGameScores(ga);
 
         if (ga.isBotsOnly)
         {
             srv.destroyGameAndBroadcast(gname, "sendGameStateOVER");
         }
-
-        // Server structure more or less ensures sendGameStateOVER(ga, null) is called only once.
-        // TODO consider refactor to be completely sure, especially for storeGameScores.
     }
 
     /**

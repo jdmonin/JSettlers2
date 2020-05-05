@@ -659,6 +659,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Is this the server's complete copy of the game, not the client's (with some details unknown)?
      * Set during {@link #startGame()}. Treat as read-only.
+     * @see #hasDoneGameOverTasks
      * @since 1.1.17
      */
     public boolean isAtServer;
@@ -702,7 +703,7 @@ public class SOCGame implements Serializable, Cloneable
     public transient List<Object> pendingMessagesOut;
 
     /**
-     * For a game at server which was loaded from disk,
+     * For a game at server which was loaded from disk and hasn't yet been resumed,
      * its {@link soc.server.savegame.SavedGameModel}. Otherwise {@code null}.
      * Declared as Object here to avoid needing server class at client.
      * @since 2.3.00
@@ -729,6 +730,15 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     private String ownerLocale;
+
+    /**
+     * True if this game at server has already done the tasks which happen once when game ends:
+     * Update server's game stats, write results to optional database, etc.
+     *<P>
+     * Server only, this field is not used at client.
+     * @since 2.3.00
+     */
+    public boolean hasDoneGameOverTasks;
 
     /**
      * true if this game is ACTIVE
