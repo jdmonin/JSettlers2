@@ -159,6 +159,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * a list of this player's pieces in play
      * (does not include any {@link #fortress}).
+     * @see #getPieces()
      */
     private Vector<SOCPlayingPiece> pieces;
 
@@ -1275,10 +1276,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Get this player's pieces on the board. Does not include {@link #getFortress()}, if any,
+     * Get this player's pieces on the board. Pieces here are in order of placement,
+     * except when a ship has been moved on the board (removed, then re-added at the end of this list).
+     * Does not include {@link #getFortress()}, if any,
      * because the player doesn't control that piece.
      * @return the list of pieces in play
      * @see #getNumPieces(int)
+     * @see #getRoadsAndShips()
      */
     public Vector<SOCPlayingPiece> getPieces()
     {
@@ -1294,6 +1298,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return the list of roads/ships in play
      * @see #getRoadOrShip(int)
      * @see #getMostRecentShip()
+     * @see #getPieces()
      */
     public Vector<SOCRoutePiece> getRoadsAndShips()
     {

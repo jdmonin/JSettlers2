@@ -126,6 +126,9 @@ public class SavedGameModel
 
     public String gameName;
 
+    /** Free-form comments about this saved game, or {@code null} if none */
+    public String comments;
+
     /** Game options (or null), from {@link SOCGameOption#packOptionsToString(Map, boolean)}. */
     String gameOptions;
 
@@ -526,7 +529,7 @@ public class SavedGameModel
         // TODO: future: support general SOCInventoryItems/SOCSpecialItems for scenarios
 
         /**
-         * Player's pieces, from {@link SOCPlayer#getPieces()}.
+         * Player's pieces in chronological order, from {@link SOCPlayer#getPieces()}.
          * @see #fortressPiece
          */
         ArrayList<SOCPlayingPiece> pieces = new ArrayList<>();
