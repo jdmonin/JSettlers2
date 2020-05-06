@@ -135,9 +135,9 @@ public abstract class GameHandler
      *                 Not all game types may be reset.
      * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
      * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *                      is defunct because of a network problem.
-     *                      If <tt>isTakingOver</tt>, don't send anything to other players.
-     *
+     *          is defunct because of a network problem. Also true when a human player joins a
+     *          game being reloaded and has the same nickname as a player there.
+     *          If <tt>isTakingOver</tt>, sends {@code c} their hand's private info for game in progress.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, java.util.Map)
      * @since 1.1.00
      */

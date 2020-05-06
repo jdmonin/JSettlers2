@@ -6516,9 +6516,31 @@ public class SOCServer extends Server
                  * send the entire state of the game to client,
                  * send client join event to other players of game
                  */
-                SOCGame gameData = gameList.getGameData(gameName);
-                if (gameData != null)
-                    joinGame(gameData, c, false, (loadedGame != null), false);
+                final SOCGame ga = gameList.getGameData(gameName);
+                if (ga != null)
+                {
+                    boolean sendLikeTakingOver = false;
+                    if ((loadedGame == null) && (ga.getGameState() == SOCGame.LOADING)
+                        && ! ((SOCClientData) c.getAppData()).isRobot)
+                    {
+                        // If game was saved with a player with same name as joining human client,
+                        // that client will assume they're sitting down and taking over.
+                        // If so, send their private hand data.
+                        // Bots won't assume and will explicitly send a SITDOWN message.
+
+                        final String cliName = c.getData();
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        {
+                            if ((! ga.isSeatVacant(pn)) && cliName.equals(ga.getPlayer(pn).getName()))
+                            {
+                                sendLikeTakingOver = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    joinGame(ga, c, false, (loadedGame != null), sendLikeTakingOver);
+                }
             }
         } catch (SOCGameOptionVersionException e)
         {
@@ -7607,8 +7629,9 @@ public class SOCServer extends Server
      *                 board resets are up to the GameHandler.
      * @param isLoading Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
      * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *                      is defunct because of a network problem.
-     *                      If <tt>isTakingOver</tt>, don't send anything to other players.
+     *          is defunct because of a network problem. Also true when a human player joins a
+     *          game being reloaded and has the same nickname as a player there.
+     *          If <tt>isTakingOver</tt>, sends {@code c} their hand's private info for game in progress.
      *
      * @see #connectToGame(Connection, String, Map, SOCGame)
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)

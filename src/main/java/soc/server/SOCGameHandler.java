@@ -919,8 +919,9 @@ public class SOCGameHandler extends GameHandler
      *          called from SOCServer instead of from inside the SOCGameHandler.
      * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
      * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *          is defunct because of a network problem.
-     *          If <tt>isTakingOver</tt>, don't send anything to other players.
+     *          is defunct because of a network problem. Also true when a human player joins a
+     *          game being reloaded and has the same nickname as a player there.
+     *          If <tt>isTakingOver</tt>, sends {@code c} their hand's private info for game in progress.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @since 1.1.00
      */
@@ -1454,15 +1455,19 @@ public class SOCGameHandler extends GameHandler
             D.ebugPrintln("*** " + cliName + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
 
-        //messageToGame(gameName, new SOCGameServerText(gameName, SERVERNAME, n+" joined the game"));
+        if (isTakingOver && (gameState != SOCGame.LOADING))
+        {
+            return;
+        }
+
         /**
          * Let everyone else know about the change
          */
+        srv.messageToGame(gameName, new SOCJoinGame(cliName, "", SOCMessage.EMPTYSTR, gameName));
         if (isTakingOver)
         {
             return;
         }
-        srv.messageToGame(gameName, new SOCJoinGame(cliName, "", SOCMessage.EMPTYSTR, gameName));
 
         if ((! isReset) && gameState >= SOCGame.START2A)
         {

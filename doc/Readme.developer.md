@@ -559,7 +559,8 @@ Games with a scenario can't yet be saved, because of their special pieces or gam
   - Debug/admin user joins, bots are asked to join
   - A later version might optionally support requiring certain types of bots
   - Temporarily sets gamestate to new hold/pause state `LOADING`, so current player won't take action until everyone has joined
-- If other human players will be in the game, have them join and sit down now
+- If other human players will be playing, have them join and sit down now
+  - Note: If joining human has same name as any player in loaded game, their client will automatically sit down and can't be an observer
 - Debug command to resume play of loaded game: \*RESUMEGAME\*
   - If game was saved with human players who haven't rejoined, bots will join now for those players
   - If no human players have sat down, game will play as robots-only even if server isn't set to allow bot-only games
