@@ -1000,10 +1000,18 @@ public class SOCGameHandler extends GameHandler
                 String plName = pl.getName();
                 if ((plName != null) && ! gameData.isSeatVacant(i))
                 {
-                    final boolean isRobot = pl.isRobot();
+                    boolean isRobot = pl.isRobot();
+                    if ((gameState == SOCGame.LOADING)
+                        && ! (isRobot || allSeatsBots || isLoading || srv.gameList.isMember(plName, gameName)))
+                    {
+                        // To make sure joining client shows "Take Over" buttons for unclaimed seats
+                        // left by human players when game was saved, show them as bots
+                        isRobot = true;
+                    }
+                    c.put(SOCSitDown.toCmd(gameName, plName, i, isRobot || allSeatsBots));
+
                     if (isRobot)
                         hasRobot = true;
-                    c.put(SOCSitDown.toCmd(gameName, plName, i, isRobot || allSeatsBots));
                 }
             }
 

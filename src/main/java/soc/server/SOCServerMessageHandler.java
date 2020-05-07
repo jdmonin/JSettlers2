@@ -1671,17 +1671,6 @@ public class SOCServerMessageHandler
             // TODO chk retval before break; send error msg to debug user in loaded game?
         }
 
-        // Now that the bots are invited, change any other saved human players' flags to look like bots
-        // so other clients can take over those seats
-        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
-        {
-            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
-            if ((pn == clientPN) || pi.isSeatVacant || pi.isRobot)
-                continue;
-
-            ga.getPlayer(pn).setRobotFlag(true, true);
-        }
-
         // Send Resume reminder prompt after delay, or announce winner if over,
         //     to appear after bots have joined
         //     TODO if any problems, don't send this prompt
@@ -2513,11 +2502,19 @@ public class SOCServerMessageHandler
                 canSit = false;
                 SOCPlayer seatedPlayer = ga.getPlayer(pn);
 
-                if (seatedPlayer.isRobot()
+                /**
+                 * while loading, allow taking over a saved non-bot seat if not claimed by a current game member,
+                 * and taking over current player
+                 */
+                final boolean isLoadingState =
+                    (gameState == SOCGame.LOADING) || (gameState == SOCGame.LOADING_RESUMING);
+                final boolean canTakeOverPlayer =
+                    seatedPlayer.isRobot()
+                    || (isLoadingState && ! gameList.isMember(seatedPlayer.getName(), gaName));
+
+                if (canTakeOverPlayer
                     && (ga.getSeatLock(pn) != SOCGame.SeatLockState.LOCKED)
-                    && ((gameState == SOCGame.LOADING)
-                        || (gameState == SOCGame.LOADING_RESUMING)
-                        || (ga.getCurrentPlayerNumber() != pn)))
+                    && ((ga.getCurrentPlayerNumber() != pn) || isLoadingState))
                 {
                     /**
                      * boot the robot out of the game
@@ -2564,9 +2561,9 @@ public class SOCServerMessageHandler
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught at handleSITDOWN");
+        } finally {
+            ga.releaseMonitor();
         }
-
-        ga.releaseMonitor();
 
         //D.ebugPrintln("canSit 2 = "+canSit);
         if (canSit)

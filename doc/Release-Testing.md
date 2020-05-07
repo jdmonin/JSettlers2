@@ -522,6 +522,7 @@ When preparing to release a new version, testing should include:
         - Second human client should be able to sit, taking over a robot position, and have debug user resume game as usual
         - Save and then load a game containing a human player who's connected to server but not part of the resumed game.  
           When resuming that game, server shouldn't send that client any messages, but instead should get a bot to sit at their seat
+        - Load a game and have a second human player also sit down. Resume game. Have debug player leave; play should continue for human player still in game
         - Can load and start game which doesn't include debug player
           - Edit a saved game file to change player name from "debug"
           - Load that game
