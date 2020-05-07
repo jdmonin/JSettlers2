@@ -8220,7 +8220,7 @@ public class SOCServer extends Server
                     continue;
 
                 final int gs = ga.getGameState();
-                if ((gs >= SOCGame.OVER) || (gs == SOCGame.LOADING))
+                if (gs >= SOCGame.LOADING)  // includes >= SOCGame.OVER
                 {
                     // nothing to do.
                     // bump out that time, so we don't see it again every few seconds
