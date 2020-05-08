@@ -523,6 +523,8 @@ When preparing to release a new version, testing should include:
         - Save and then load a game containing a human player who's connected to server but not part of the resumed game.  
           When resuming that game, server shouldn't send that client any messages, but instead should get a bot to sit at their seat
         - Load a game and have a second human player also sit down. Resume game. Have debug player leave; play should continue for human player still in game
+        - Save a 6-player game where debug isn't current player, has Asked to Special Build.  
+          Load; when joining, debug player's game window should indicate wants to special build
         - Can load and start game which doesn't include debug player
           - Edit a saved game file to change player name from "debug"
           - Load that game

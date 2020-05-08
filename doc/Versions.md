@@ -53,6 +53,7 @@ and backport minor new features until `2.0.00` was ready.
 - For AI/Robot development:
 	- SOCRobotBrain debug stack trace: Print bot name
 - Network/Message traffic:
+	- When a client joins 6-player game, server sends players' ASK_SPECIAL_BUILD flag if set
 	- Client: Omit unneeded player name/number in some message types
 
 

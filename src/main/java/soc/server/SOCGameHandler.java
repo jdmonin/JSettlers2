@@ -1309,6 +1309,10 @@ public class SOCGameHandler extends GameHandler
                         (gameName, i, SOCPlayerElement.SET, ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC[j], counts[j]));
             }
 
+            if (pl.hasAskedSpecialBuild())
+                c.put(new SOCPlayerElement
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.PEType.ASK_SPECIAL_BUILD, 1));
+
             final int numDevCards = pl.getInventory().getTotal();
             final int unknownType =
                 (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
