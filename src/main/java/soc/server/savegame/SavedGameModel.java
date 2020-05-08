@@ -132,7 +132,7 @@ public class SavedGameModel
     /** Game options (or null), from {@link SOCGameOption#packOptionsToString(Map, boolean)}. */
     String gameOptions;
 
-    /** Game duration, from {@link SOCGame#getStartTime()} */
+    /** Game duration, from {@link SOCGame#getDurationSeconds()} */
     int gameDurationSeconds;
 
     /**
@@ -236,8 +236,7 @@ public class SavedGameModel
         final Map<String, SOCGameOption> opts = ga.getGameOptions();
         if (opts != null)
             gameOptions = SOCGameOption.packOptionsToString(opts, false);
-        gameDurationSeconds = (int) (((System.currentTimeMillis() - ga.getStartTime().getTime()) + 500) / 1000L);
-            // same rounding calc as SSMH.processDebugCommand_gameStats
+        gameDurationSeconds = ga.getDurationSeconds();
         gameState = ga.getGameState();
         oldGameState = ga.getOldGameState();
         currentDice = ga.getCurrentDice();
@@ -336,7 +335,7 @@ public class SavedGameModel
             if (null != findSeatsNeedingBots())
                 throw new MissingResourceException("Still need players to fill non-vacant seats", "unused", "unused");
 
-            // TODO maybe check constraints
+            // TODO once they're implemented, check constraints unless ignoreConstraints
         }
 
         game.lastActionTime = System.currentTimeMillis();

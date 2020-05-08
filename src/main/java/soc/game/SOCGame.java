@@ -1156,10 +1156,19 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Time when this game was created, or null if not {@link #active} when created.
+     * Used by {@link #getStartTime()} and {@link #getDurationSeconds()}.
      * @see #lastActionTime
      * @see #expiration
+     * @see #finalDurationSeconds
      */
     Date startTime;
+
+    /**
+     * If game is {@link SOCGame#OVER}, its {@link #getDurationSeconds()} when state became {@code OVER}.
+     * Otherwise 0.
+     * @since 2.3.00
+     */
+    private int finalDurationSeconds;
 
     /**
      * Expiration time for this game in milliseconds
@@ -1582,6 +1591,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return the start time for this game, or null if not active when created
      * @see #getExpiration()
+     * @see #getDurationSeconds()
      */
     public Date getStartTime()
     {
@@ -1589,8 +1599,27 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the time since this game was created, its age in seconds:
+     * If game isn't over, the difference between current time and {@link #getStartTime()}.
+     * Otherwise, its duration at game-over time.
+     * @return  Game duration, rounded to the nearest second, or 0 if {@link #getStartTime()} is {@code null}
+     * @see #setTimeSinceCreated(int)
+     * @since 2.3.00
+     */
+    public int getDurationSeconds()
+    {
+        if ((gameState >= SOCGame.OVER) && (finalDurationSeconds != 0))
+            return finalDurationSeconds;
+
+        return (startTime != null)
+            ? (int) (((System.currentTimeMillis() - startTime.getTime()) + 500) / 1000L)
+            : 0;
+    }
+
+    /**
      * Set how long this game has existed.
-     * Overwrites and replaces the time returned by {@link #getStartTime()}.
+     * Overwrites and replaces the times returned by {@link #getStartTime()}
+     * and {@link #getDurationSeconds()}.
      * @param ageSeconds Game's new age in seconds; can be 0 but not negative
      * @throws IllegalArgumentException if {@code ageSeconds} &lt; 0
      * @since 2.3.00
@@ -1606,6 +1635,8 @@ public class SOCGame implements Serializable, Cloneable
             startTime = new Date(t);
         else
             startTime.setTime(t);
+
+        finalDurationSeconds = (gameState >= SOCGame.OVER) ? ageSeconds : 0;
     }
 
     /**
@@ -2550,12 +2581,16 @@ public class SOCGame implements Serializable, Cloneable
             (gs == ROLL_OR_CARD) && (! isAtServer) && (gameState >= START1A) && (gameState <= START3B);
                 // not if gameState == 0, to prevent updateAtGameFirstTurn() when joining an already-started game
 
+        if ((gs >= SOCGame.OVER) && (finalDurationSeconds == 0))
+            finalDurationSeconds = getDurationSeconds();
+
         if ((gs == ROLL_OR_CARD) && (gameState == SPECIAL_BUILDING))
             oldGameState = PLAY1;  // Needed for isSpecialBuilding() to work at client
         else
             oldGameState = gameState;
 
         gameState = gs;
+
         if ((gameState == OVER) && (playerWithWin == -1))
             checkForWinner();
 
@@ -2994,6 +3029,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (gameState != OVER)
             throw new IllegalStateException("This game is not over yet");
+
         String msg;
         SOCPlayer wn = getPlayerWithWin();
 

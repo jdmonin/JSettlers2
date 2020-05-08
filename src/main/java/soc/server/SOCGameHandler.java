@@ -2546,26 +2546,21 @@ public class SOCGameHandler extends GameHandler
          * send game-length and connect-length messages, possibly win-loss count.
          */
         {
-            Date now = new Date();
-            Date gstart = ga.getStartTime();
-            if (gstart != null)
-            {
-                final int gameRounds = ga.getRoundCount();
-                long gameSeconds = ((now.getTime() - gstart.getTime())+500L) / 1000L;
-                final long gameMinutes = gameSeconds / 60L;
-                gameSeconds = gameSeconds % 60L;
+            final int gameRounds = ga.getRoundCount();
+            int gameSeconds = ga.getDurationSeconds();
+            final int gameMinutes = gameSeconds / 60;
+            gameSeconds = gameSeconds % 60;
 
-                if (gameSeconds == 0)
-                    srv.messageToGameKeyed
-                        (ga, true, "stats.game.was.roundsminutes", gameRounds, gameMinutes);
-                        // "This game was # rounds, and took # minutes."
-                else
-                    srv.messageToGameKeyed
-                        (ga, true, "stats.game.was.roundsminutessec", gameRounds, gameMinutes, gameSeconds);
-                        // "This game was # rounds, and took # minutes # seconds." [or 1 second.]
+            if (gameSeconds == 0)
+                srv.messageToGameKeyed
+                    (ga, true, "stats.game.was.roundsminutes", gameRounds, gameMinutes);
+                    // "This game was # rounds, and took # minutes."
+            else
+                srv.messageToGameKeyed
+                    (ga, true, "stats.game.was.roundsminutessec", gameRounds, gameMinutes, gameSeconds);
+                    // "This game was # rounds, and took # minutes # seconds." [or 1 second.]
 
-                // Ignore possible "1 minutes"; that game is too short to worry about.
-            }
+            // Ignore possible "1 minutes"; that game is too short to worry about.
 
             /**
              * Update each player's win-loss count for this session.

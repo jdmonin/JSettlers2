@@ -1414,14 +1414,10 @@ public class SOCServerMessageHandler
         }
 
         // time
-        Date gstart = gameData.getStartTime();
-        if (gstart != null)
-        {
-            long gameSeconds = ((new Date().getTime() - gstart.getTime())+500L) / 1000L;
-            long gameMinutes = (gameSeconds+29L)/60L;
-            srv.messageToPlayerKeyed(c, gaName, "stats.game.startedago", gameMinutes);  // "This game started 5 minutes ago."
+        int gameSeconds = gameData.getDurationSeconds();
+        int gameMinutes = (gameSeconds + 29) / 60;
+        srv.messageToPlayerKeyed(c, gaName, "stats.game.startedago", gameMinutes);  // "This game started 5 minutes ago."
             // Ignore possible "1 minutes"; that game is too short to worry about.
-        }
 
         if (! gameData.isPractice)   // practice games don't expire
         {

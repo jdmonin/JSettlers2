@@ -8056,9 +8056,9 @@ public class SOCServer extends Server
 
         try
         {
-            final int gameSeconds = (int) (((System.currentTimeMillis() - ga.getStartTime().getTime())+500L) / 1000L);
             SOCDBHelper.saveGameScores
-                (ga, gameSeconds, ! getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false));
+                (ga, ga.getDurationSeconds(),
+                 ! getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false));
         }
         catch (Exception e)
         {

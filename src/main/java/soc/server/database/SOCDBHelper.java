@@ -1954,7 +1954,7 @@ public class SOCDBHelper
      * User win-loss records require schema version &gt;= {@link SOCDBHelper#SCHEMA_VERSION_2000}.
      *
      * @param ga  Game that's just completed
-     * @param gameLengthSeconds  Duration of game
+     * @param gameLengthSeconds  Duration of game, from {@link SOCGame#getDurationSeconds()}
      * @param winLossOnly  If true don't store game details, only update users' win-loss counts.
      *     Caller should negate value of {@link #PROP_JSETTLERS_DB_SAVE_GAMES} to set this parameter.
      *
@@ -2732,6 +2732,7 @@ public class SOCDBHelper
      * Used by {@link #saveGameScores(SOCGame, int, boolean)}.
      *
      * @param startTimeMillis  Game start time, from {@link SOCGame#getStartTime()}{@link java.util.Date#getTime() .getTime()}
+     * @param gameLengthSeconds  Game length, from {@link SOCGame#getDurationSeconds()}
      * @param optsStr  Null or game options, from {@link SOCGame#getGameOptions()}
      *     passed to {@link SOCGameOption#packOptionsToString(Map, boolean)}
      * @param scen  Scenario name key from game option {@code "SC"}, or {@code null} if none
