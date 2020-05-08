@@ -155,7 +155,8 @@ When preparing to release a new version, testing should include:
        - Check for depletion of villages (should turn gray when cloth is depleted)
        - Check that when a village has 1 remaining cloth, but 2 established players,
          the board's general supply gives cloth to the 2nd player
-       - Note your cloth total, then leave and rejoin game: Hover over villages; cloth counts should be accurate
+       - Join as observer: Check general supply count, hover over villages; cloth counts should be accurate
+       - Note your player's cloth total, then leave and rejoin game: Hover over villages; cloth counts should be accurate
        - Move the pirate to rob cloth from another player;
          cloth count and VP total should update accurately  
          (Before you can move the pirate, you must establish a shipping route with any village)

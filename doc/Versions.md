@@ -53,7 +53,9 @@ and backport minor new features until `2.0.00` was ready.
 - For AI/Robot development:
 	- SOCRobotBrain debug stack trace: Print bot name
 - Network/Message traffic:
-	- When a client joins 6-player game, server sends players' ASK_SPECIAL_BUILD flag if set
+	- Game/board data sent by server to client joining a game:
+	  - For 6-player game, send players' ASK_SPECIAL_BUILD flag if set
+	  - For scenario Cloth Villages, send updated General Supply count if game has started
 	- Client: Omit unneeded player name/number in some message types
 
 

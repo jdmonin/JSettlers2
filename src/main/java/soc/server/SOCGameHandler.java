@@ -1053,10 +1053,12 @@ public class SOCGameHandler extends GameHandler
         if (gameState < SOCGame.START1A)
         {
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+                // Board's general supply of cloth:
                 c.put(SOCPlayerElement.toCmd
                     (gameName, -1, SOCPlayerElement.SET,
                      PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
-                // individual villages' cloth counts are sent soon below
+                // Individual villages' cloth counts are sent soon below.
+                // If game has started, will send board's cloth count after per-player info and putpieces.
         }
 
         /**
@@ -1395,6 +1397,17 @@ public class SOCGameHandler extends GameHandler
                  new int[]{ gameData.getNumDevCards(), gameData.getRoundCount(),
                      gameData.getFirstPlayer(), lrPlayerNum, laPlayerNum }
                  ));
+        }
+
+        /**
+         * Any other misc data to send after per-player/pieces, if game has started:
+         */
+        if (gameState >= SOCGame.START1A)
+        {
+            if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+                c.put(SOCPlayerElement.toCmd
+                    (gameName, -1, SOCPlayerElement.SET,
+                     PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
         }
 
         /**
