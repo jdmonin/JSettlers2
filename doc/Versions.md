@@ -29,6 +29,7 @@ and backport minor new features until `2.0.00` was ready.
 - Bots/AI:
 	- When offering a trade to human players, shorten max wait to 30 seconds (was 100)
 - Server:
+	- Game `*STATS*`: When game over, keep its duration constant instead of still increasing
 	- Administration:
 	  - Customized client welcome message, with optional server property `jsettlers.admin.welcome`  
 	    (see `jsserver.properties.sample` comments for details)

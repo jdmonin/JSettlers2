@@ -1477,7 +1477,7 @@ public class SOCGameHandler extends GameHandler
             return;
         }
 
-        if ((! isReset) && gameState >= SOCGame.START2A)
+        if ((! isReset) && (gameState >= SOCGame.START2A) && (gameState < SOCGame.OVER))
         {
             srv.messageToPlayerKeyed
                 (c, gameName,

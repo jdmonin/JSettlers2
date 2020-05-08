@@ -122,6 +122,8 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> When the game is waiting for a player to react to something,
      *      state is > {@link #PLAY1}, &lt; {@link #OVER}; state name starts with
      *      PLACING_ or WAITING_
+     * <LI> While reloading and resuming a saved game, state is {@link #LOADING}, barely &lt; {@link #OVER}.
+     *      Some code may want to check state &lt; {@code LOADING} instead of &lt; {@code OVER}.
      * </UL>
      *<P>
      * The code reacts to (switches based on) game state in several places.
@@ -1012,6 +1014,10 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the current game state
+     *<P>
+     * Instead of directly setting <tt>gameState = {@link #OVER}</tt>,
+     * code should call {@link #setGameStateOVER()}
+     * to also set {@link #finalDurationSeconds}.
      */
     private int gameState;
 
@@ -2599,6 +2605,20 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Set game state to {@link #OVER} and set {@link #finalDurationSeconds} if 0,
+     * but don't call {@link #checkForWinner()} like {@link #setGameState(int)} does.
+     * This should be called instead of setting <tt>{@link #gameState} = OVER</tt>.
+     * @since 2.3.00
+     */
+    private void setGameStateOVER()
+    {
+        gameState = OVER;
+
+        if (finalDurationSeconds == 0)
+            finalDurationSeconds = getDurationSeconds();
+    }
+
+    /**
      * If the game board was reset, get the old game state.
      *
      * @deprecated Use {@link #getOldGameState()} to get the old game state without usage restrictions
@@ -3068,19 +3088,19 @@ public class SOCGame implements Serializable, Cloneable
         currentPlayerNumber--;
 
         if (currentPlayerNumber < 0)
-        {
             currentPlayerNumber = maxPlayers - 1;
-        }
+
         while (isSeatVacant (currentPlayerNumber))
         {
             --currentPlayerNumber;
+
             if (currentPlayerNumber < 0)
-            {
                 currentPlayerNumber = maxPlayers - 1;
-            }
+
             if (currentPlayerNumber == prevCPN)
             {
-                gameState = OVER;  // Looped around, no one is here
+                setGameStateOVER();  // Looped around, no one is here
+
                 return false;
             }
         }
@@ -3104,20 +3124,19 @@ public class SOCGame implements Serializable, Cloneable
         forcingEndTurn = false;
 
         if (currentPlayerNumber == maxPlayers)
-        {
             currentPlayerNumber = 0;
-        }
+
         while (isSeatVacant (currentPlayerNumber))
         {
             ++currentPlayerNumber;
 
             if (currentPlayerNumber == maxPlayers)
-            {
                 currentPlayerNumber = 0;
-            }
+
             if (currentPlayerNumber == prevCPN)
             {
-                gameState = OVER;  // Looped around, no one is here
+                setGameStateOVER();  // Looped around, no one is here
+
                 return false;
             }
         }
@@ -3981,19 +4000,19 @@ public class SOCGame implements Serializable, Cloneable
             } else {
                 int tmpCPN = currentPlayerNumber + 1;
                 if (tmpCPN >= maxPlayers)
-                {
                     tmpCPN = 0;
-                }
+
                 while (isSeatVacant (tmpCPN))
                 {
                     ++tmpCPN;
+
                     if (tmpCPN >= maxPlayers)
-                    {
                         tmpCPN = 0;
-                    }
+
                     if (tmpCPN == currentPlayerNumber)
                     {
-                        gameState = OVER;  // Looped around, no one is here
+                        setGameStateOVER();  // Looped around, no one is here
+
                         return false;
                     }
                 }
@@ -4032,19 +4051,19 @@ public class SOCGame implements Serializable, Cloneable
 
                 // who places next? same algorithm as advanceTurnBackwards.
                 if (tmpCPN < 0)
-                {
                     tmpCPN = maxPlayers - 1;
-                }
+
                 while (isSeatVacant (tmpCPN))
                 {
                     --tmpCPN;
+
                     if (tmpCPN < 0)
-                    {
                         tmpCPN = maxPlayers - 1;
-                    }
+
                     if (tmpCPN == currentPlayerNumber)
                     {
-                        gameState = OVER;  // Looped around, no one is here
+                        setGameStateOVER();  // Looped around, no one is here
+
                         return false;
                     }
                 }
@@ -4091,19 +4110,19 @@ public class SOCGame implements Serializable, Cloneable
                 // who places next? same algorithm as advanceTurn.
                 int tmpCPN = currentPlayerNumber + 1;
                 if (tmpCPN >= maxPlayers)
-                {
                     tmpCPN = 0;
-                }
+
                 while (isSeatVacant (tmpCPN))
                 {
                     ++tmpCPN;
+
                     if (tmpCPN >= maxPlayers)
-                    {
                         tmpCPN = 0;
-                    }
+
                     if (tmpCPN == currentPlayerNumber)
                     {
-                        gameState = OVER;  // Looped around, no one is here
+                        setGameStateOVER();  // Looped around, no one is here
+
                         return false;
                     }
                 }
@@ -4742,7 +4761,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * end the turn for the current player, and check for winner.
+     * At server, end the turn for the current player, and check for winner.
      * If no winner yet, set up for the next player's turn (see below).
      * Check for gamestate >= {@link #OVER} after calling endTurn.
      *<P>
@@ -4766,7 +4785,6 @@ public class SOCGame implements Serializable, Cloneable
      * own turn, only if they haven't yet rolled or played a dev card.
      * To do so, call {@link #askSpecialBuild(int, boolean)} and then {@link #endTurn()}.
      *
-     * @see #checkForWinner()
      * @see #forceEndTurn()
      * @see #isForcingEndTurn()
      */
@@ -8525,8 +8543,9 @@ public class SOCGame implements Serializable, Cloneable
                 }
             }
 
-            gameState = OVER;
+            setGameStateOVER();
             playerWithWin = pn;
+
             return;
         }
 
@@ -8552,7 +8571,7 @@ public class SOCGame implements Serializable, Cloneable
             final SOCSpecialItem plWond = players[pn].getSpecialItem(SOCGameOption.K_SC_WOND, 0);
             if ((plWond != null) && (plWond.getLevel() >= SOCSpecialItem.SC_WOND_WIN_LEVEL))
             {
-                gameState = OVER;
+                setGameStateOVER();
                 playerWithWin = pn;
             }
         }
@@ -8585,7 +8604,7 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
-        gameState = OVER;
+        setGameStateOVER();
 
         // find player with most VP, or most cloth if tied
         int p = -1;

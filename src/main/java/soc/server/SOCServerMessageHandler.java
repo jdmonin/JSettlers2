@@ -1416,8 +1416,20 @@ public class SOCServerMessageHandler
         // time
         int gameSeconds = gameData.getDurationSeconds();
         int gameMinutes = (gameSeconds + 29) / 60;
-        srv.messageToPlayerKeyed(c, gaName, "stats.game.startedago", gameMinutes);  // "This game started 5 minutes ago."
-            // Ignore possible "1 minutes"; that game is too short to worry about.
+        gameSeconds = gameSeconds % 60;
+        if (gameData.getGameState() < SOCGame.OVER)
+            srv.messageToPlayerKeyed
+                (c, gaName, "stats.game.startedago", gameMinutes);
+                // "This game started 5 minutes ago."
+        else if (gameSeconds == 0)
+            srv.messageToPlayerKeyed
+                (c, gaName, "stats.game.was.minutes", gameMinutes);
+                // "This game took # minutes."
+        else
+            srv.messageToPlayerKeyed
+                (c, gaName, "stats.game.was.minutessec", gameMinutes, gameSeconds);
+                // "This game took # minutes # seconds." [or 1 second.]
+        // Ignore possible "1 minutes"; that game is too short to worry about.
 
         if (! gameData.isPractice)   // practice games don't expire
         {
