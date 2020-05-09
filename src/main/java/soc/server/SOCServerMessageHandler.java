@@ -1586,14 +1586,17 @@ public class SOCServerMessageHandler
     {
         if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
         {
-            srv.messageToPlayer(c, connGaName, /*I*/"Usage: *LOADGAME* gamename"/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, connGaName, "admin.loadgame.resp.usage");
+                // "Usage: *LOADGAME* gamename"
             return;
         }
 
         if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(argsStr).matches())
         {
-            srv.messageToPlayer
-                (c, connGaName, /*I*/"gamename can only include letters, numbers, dashes, underscores."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, connGaName, "admin.loadsavegame.resp.gamename.chars");
+                // "gamename can only include letters, numbers, dashes, underscores."
             return;
         }
 
@@ -1610,19 +1613,25 @@ public class SOCServerMessageHandler
             sgm = GameLoaderJSON.loadGame
                 (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
         } catch (SOCGameOptionVersionException e) {
-            errText = /*I*/"Problem loading " + argsStr + ": Too new: gameMinVersion is " + e.gameOptsVersion /*18N*/;
+            errText = c.getLocalized("admin.loadgame.err.too_new.vers", argsStr, e.gameOptsVersion);
+                // "Problem loading {0}: Too new: gameMinVersion is {1}"
         } catch (NoSuchElementException|UnsupportedOperationException e) {
-            errText = /*I*/"Problem loading " + argsStr + ": Too new: " + e.getMessage() /*18N*/;
+            errText = c.getLocalized("admin.loadgame.err.too_new", argsStr, e.getMessage());
+                // "Problem loading {0}: Too new: {1}"
         } catch (IOException|StringIndexOutOfBoundsException e) {
-            errText = /*I*/"Problem loading " + argsStr + ": " + e.getMessage() /*18N*/;
+            errText = c.getLocalized("admin.loadgame.err.problem_loading", argsStr, e.getMessage());
+                // "Problem loading {0}: {1}"
         } catch (IllegalArgumentException e) {
-            errText = /*I*/"Problem loading " + argsStr + ": Can't create game: " + e.getCause() /*18N*/;
+            errText = c.getLocalized("admin.loadgame.err.cant_create", argsStr, e.getCause());
+                // "Problem loading {0}: Can't create game: {1}"
         } catch (Throwable th) {
-            errText = /*I*/"Problem loading " + argsStr + ": " + th /*18N*/;
+            errText = c.getLocalized("admin.loadgame.err.problem_loading", argsStr, th);
+                // "Problem loading {0}: {1}"
             if ("debug".equals(c.getData()))
             {
-                soc.debug.D.ebugPrintStackTrace(th, errText);  // in case of syntax error
-                errText += /*I*/": See server console"/*18N*/;
+                soc.debug.D.ebugPrintStackTrace(th, errText);
+                errText += c.getLocalized("admin.loadgame.err.append__see_console");
+                    // ": See server console"
             }
         }
         if (errText != null)
@@ -1688,12 +1697,15 @@ public class SOCServerMessageHandler
             public void run()
             {
                 if (! gaName.equals(sgmf.gameName))
-                    srv.messageToPlayer
-                        (c, gaName, /*I*/"Game was renamed: Original name " + sgmf.gameName + " is already used."/*18N*/);
+                    srv.messageToPlayerKeyed
+                        (c, gaName, "admin.loadgame.ok.game_renamed", sgmf.gameName);
+                        // "Game was renamed: Original name {0} is already used."
 
                 if (sgmf.gameState < SOCGame.OVER)
                 {
-                    srv.messageToGameUrgent(gaName, /*I*/"To continue playing, type *RESUMEGAME*"/*18N*/ );
+                    srv.messageToGameKeyed
+                        (ga, true, "admin.loadgame.ok.to_continue_resumegame");
+                        // ">>> To continue playing, type *RESUMEGAME*"
                 } else {
                     sgmf.resumePlay(true);
                     final GameHandler hand = gameList.getGameTypeHandler(gaName);
@@ -1729,7 +1741,9 @@ public class SOCServerMessageHandler
         {
             // TODO once constraints are implemented: have an arg to override them
 
-            srv.messageToPlayer(c, gaName, /*I*/"Usage: *RESUMEGAME* with no arguments"/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.resumegame.resp.usage");
+                // "Usage: *RESUMEGAME* with no arguments"
             return;
         }
 
@@ -1737,8 +1751,9 @@ public class SOCServerMessageHandler
         if (((ga.getGameState() != SOCGame.LOADING) && (ga.getGameState() != SOCGame.LOADING_RESUMING))
             || (sgm == null))
         {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"This game is not waiting to be resumed."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.resumegame.resp.not_waiting");
+                // "This game is not waiting to be resumed."
             return;
         }
 
@@ -1768,11 +1783,13 @@ public class SOCServerMessageHandler
                     hand.sendGameState(ga);
 
                 if (e != null)
-                    srv.messageToPlayerKeyed(c, gaName,"start.robots.cannot.join.problem", e.getMessage());
+                    srv.messageToPlayerKeyed
+                        (c, gaName,"start.robots.cannot.join.problem", e.getMessage());
                         // "Sorry, robots cannot join this game: {0}"
                 else
-                    srv.messageToPlayer
-                        (c, gaName, /*I*/"Cannot resume: Not enough bots to fill non-vacant seats."/*18N*/);
+                    srv.messageToPlayerKeyed
+                        (c, gaName, "admin.resumegame.err.not_enough_robots");
+                        // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
             }
 
             return;
@@ -1798,9 +1815,13 @@ public class SOCServerMessageHandler
             if (hand != null)
                 hand.sendGameState(ga);
 
-            srv.messageToGameUrgent(gaName, /*I*/"Resuming game play."/*18N*/);
+            srv.messageToGameKeyed
+                (ga, true, "admin.resumegame.ok.resuming");
+                // ">>> Resuming game play."
         } catch (MissingResourceException e) {
-            srv.messageToGameUrgent(gaName, /*I*/"Cannot resume: Not enough bots to fill non-vacant seats."/*18N*/);
+            srv.messageToGameKeyed
+                (ga, true, "admin.resumegame.err.not_enough_robots");
+                // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
         }
     }
 
@@ -1832,7 +1853,9 @@ public class SOCServerMessageHandler
 
         if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
         {
-            srv.messageToPlayer(c, gaName, /*I*/"Usage: *SAVEGAME* [-f] gamename"/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.resp.usage");
+                // "Usage: *SAVEGAME* [-f] gamename"
             return;
         }
 
@@ -1847,8 +1870,9 @@ public class SOCServerMessageHandler
                 File f = new File(srv.savegameDir, fname);
                 if (f.exists())
                 {
-                    srv.messageToPlayer
-                        (c, gaName, /*I*/"Game file already exists: Add -f flag to force, or use a different name"/*18N*/);
+                    srv.messageToPlayerKeyed
+                        (c, gaName, "admin.savegame.resp.file_exists");
+                        // "Game file already exists: Add -f flag to force, or use a different name"
                     return;
                 }
             } catch (SecurityException e) {}
@@ -1857,35 +1881,41 @@ public class SOCServerMessageHandler
         final int gstate = ga.getGameState();
         if (gstate < SOCGame.ROLL_OR_CARD)
         {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Must finish initial placement before saving."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.resp.must_initial_placement");
+                // "Must finish initial placement before saving."
             return;
         }
         else if ((gstate == SOCGame.LOADING) || (gstate == SOCGame.LOADING_RESUMING))
         {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Must resume loaded game before saving again."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.resp.must_resume");
+                // "Must resume loaded game before saving again."
             return;
         }
 
         if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(argsStr).matches())
         {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"gamename can only include letters, numbers, dashes, underscores."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.loadsavegame.resp.gamename.chars");
+                // "gamename can only include letters, numbers, dashes, underscores."
             return;
         }
 
         try
         {
             GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Saved game to " + fname /*18N*/);
+
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.ok.saved_to", fname);
+                // "Saved game to {0}"
         } catch (UnsupportedOperationException e) {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Cannot save this game, because it has " + e.getMessage() /*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.err.cannot_save_has", e.getMessage());
+                // "Cannot save this game, because it has {0}"
         } catch (IllegalArgumentException|IllegalStateException|IOException e) {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Problem saving " + argsStr + ": " + e /*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.err.problem_saving", e); // "Problem saving game: {0}"
         }
     }
 
@@ -1905,14 +1935,19 @@ public class SOCServerMessageHandler
     {
         final File dir = srv.savegameDir;
 
-        String errMsgKey = null;  // i18n message key (TODO)
-        Object errMsgObj, errMsgO2 = null;
+        String errMsgKey = null;  // i18n message key
+        Object errMsgObj, errMsgO1 = null;
 
         if (srv.savegameInitFailed)
         {
-            errMsgKey = /*I*/cmdName + " is disabled: Initialization failed. See startup messages on server console."/*18N*/;
+            errMsgKey = "admin.loadsavegame.resp.disabled_init";
+                // "{0} is disabled: Initialization failed. Check startup messages on server console."
+            errMsgObj = cmdName;
         } else if (dir == null) {
-            errMsgKey = /*I*/cmdName + " is disabled: Must set " + SOCServer.PROP_JSETTLERS_SAVEGAME_DIR + " property"/*18N*/;
+            errMsgKey = "admin.loadsavegame.resp.disabled_prop";
+                // "{0} is disabled: Must set {1} property"
+            errMsgObj = cmdName;
+            errMsgO1 = SOCServer.PROP_JSETTLERS_SAVEGAME_DIR;
         } else {
             errMsgObj = dir.getPath();
 
@@ -1920,20 +1955,22 @@ public class SOCServerMessageHandler
             {
                 if (! dir.exists())
                 {
-                    errMsgKey = /*I*/"savegame.dir not found: " + errMsgObj/*18N*/;
+                    errMsgKey = "admin.loadsavegame.err.dir_not_found";
+                        // "savegame.dir not found: {0}"
                 } else if (! dir.isDirectory()) {
-                    errMsgKey = /*I*/"savegame.dir file exists but isn't a directory: " + errMsgObj/*18N*/;
+                    errMsgKey = "admin.loadsavegame.err.dir_not_dir";
+                        // "savegame.dir file exists but isn't a directory: {0}"
                 }
             } catch (SecurityException e) {
-                errMsgO2 = e;
-                errMsgKey = /*I*/"Warning: Can't access savegame.dir " + errMsgObj + ": " + e /*18N*/;
+                errMsgKey = "admin.loadsavegame.err.dir_no_access";
+                    // "Warning: Can't access savegame.dir {0}: {1}"
+                errMsgO1 = e;
             }
         }
 
         if (errMsgKey != null)
         {
-            // TODO i18n
-            srv.messageToPlayer(c, connGaName, errMsgKey);
+            srv.messageToPlayerKeyed(c, connGaName, errMsgKey, errMsgObj, errMsgO1);
             return false;
         }
 

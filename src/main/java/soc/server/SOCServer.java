@@ -6588,7 +6588,8 @@ public class SOCServer extends Server
         {
             if (loadedGame != null)
                 messageToPlayer
-                    (c, connGaName, /*I*/"Game name in use, couldn't generate an alternate: Try again."/*I18N*/);
+                    (c, connGaName, "Game name in use, couldn't generate an alternate: Try again.");
+                    // I18N OK: very unlikely, not worth translating
             else
                 D.ebugPrintStackTrace(e, "Exception in createOrJoinGame");
             return false;
