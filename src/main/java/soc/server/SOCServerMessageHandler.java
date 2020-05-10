@@ -1910,8 +1910,14 @@ public class SOCServerMessageHandler
                 (c, gaName, "admin.savegame.ok.saved_to", fname);
                 // "Saved game to {0}"
         } catch (UnsupportedOperationException e) {
+            String hasWhat = e.getMessage();
+            try
+            {
+                // "admin.savegame.cannot_save.scen" -> "a scenario", etc
+                hasWhat = c.getLocalized(hasWhat);
+            } catch (MissingResourceException mre) {}
             srv.messageToPlayerKeyed
-                (c, gaName, "admin.savegame.err.cannot_save_has", e.getMessage());
+                (c, gaName, "admin.savegame.err.cannot_save_has", hasWhat);
                 // "Cannot save this game, because it has {0}"
         } catch (IllegalArgumentException|IllegalStateException|IOException e) {
             srv.messageToPlayerKeyed

@@ -177,19 +177,22 @@ public class SavedGameModel
      *<P>
      * Currently unsupported:
      *<UL>
-     * <LI> Any game scenario: {@link SOCGameOption} {@code "SC"} != null
+     * <LI> Any game scenario: {@link SOCGameOption} {@code "SC"} != null:<BR>
+     *   Returns "admin.savegame.cannot_save.scen"
      *</UL>
      *
      * @param ga  Game to check; not null
      * @throws UnsupportedOperationException  if game has an option or feature not yet supported
-     *     by {@link SavedGameModel}; {@link Throwable#getMessage()} will name the unsupported option/feature.
+     *     by {@link SavedGameModel}; {@link Throwable#getMessage()} will name the unsupported option/feature,
+     *     ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text
+     *     like "a unique resource type": Put a try-catch around your attempt to localize that key.
      * @see #checkCanLoad()
      */
     public static void checkCanSave(final SOCGame ga)
         throws UnsupportedOperationException
     {
         if (null != ga.getGameOptionStringValue("SC"))
-            throw new UnsupportedOperationException("a scenario");
+            throw new UnsupportedOperationException("admin.savegame.cannot_save.scen");
 
         // all current non-scenario game opts are supported
     }
