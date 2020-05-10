@@ -52,6 +52,8 @@ import soc.server.SOCGameListAtServer;
  * {@link SOCBoardAtServer#makeNewBoard_placeHexes}
  * checking layout details like port facings versus land hex coordinates.
  *<P>
+ * In v2.3.00 and newer, {@link #testLayout_lan(SOCGame)} does some basic Land Area consistency checks.
+ *<P>
  * Used for unit testing and extra testing; see {@link #roundCount} javadoc.
  *
  * @since 2.0.00

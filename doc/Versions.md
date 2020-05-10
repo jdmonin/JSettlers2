@@ -22,6 +22,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Bugfix: Forgotten Tribe scenario: While Special Building a ship, if a port was picked up and placed,
 	  turn order afterwards was incorrectly resumed at next clockwise player  
 	  (thanks Michi-3 for reporting github issue #71)
+	- Bugfix: Through The Desert scenario: Could not build roads on some edges of desert strip (also issue #71)
 - Client:
 	- Game window:
 	  - Draw ships with slimmer sails, for better spacing next to other pieces
