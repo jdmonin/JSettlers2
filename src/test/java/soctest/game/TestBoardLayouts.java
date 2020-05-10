@@ -20,8 +20,12 @@
 package soctest.game;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
@@ -44,7 +48,7 @@ import soc.server.SOCGameListAtServer;
 /**
  * Tests for inconsistent board layouts: Classic 4- and 6-player games and
  * all {@link SOCScenario}s, for 2, 3, 4 and 6 players.
- * Layout problems are found at runtime by methods like
+ * Most layout problems can be found at runtime by methods like
  * {@link SOCBoardAtServer#makeNewBoard_placeHexes}
  * checking layout details like port facings versus land hex coordinates.
  *<P>
@@ -143,10 +147,18 @@ public class TestBoardLayouts
                         // If board has Added Layout Part "AL" (SC_WOND), it's parsed and consistency-checked
                         // during makeNewBoard, which calls SOCBoardLarge.initLegalRoadsFromLandNodes()
 
+                    testLayout_lan(ga);
+
                     if (checkSC_CLVI)
                         testLayout_SC_CLVI(ga);
 
                     gl.deleteGame(gaName);
+                }
+                catch (BLException e)
+                {
+                    System.err.println
+                        ("Inconsistency in board layout: " + gaName + ", " + pl + " players: " + e.getMessage());
+                    noFails = false;
                 }
                 catch (Exception e)
                 {
@@ -161,6 +173,64 @@ public class TestBoardLayouts
     }
 
     /**
+     * Partial consistency check for game's {@link SOCBoardLarge#getLandAreasLegalNodes()}, if not null:
+     *<UL>
+     * <LI> lan[0] == null
+     * <LI> No nodes in multiple Land Areas
+     *</UL>
+     * @param ga  Game with board to test
+     * @throws BLException  if lan[0] != null or node(s) are in multiple LAs.
+     *     {@link Throwable#getMessage()} will have details, including land area numbers and node coordinates.
+     * @since 2.3.00
+     */
+    private void testLayout_lan(final SOCGame ga)
+        throws BLException
+    {
+        if (! ga.hasSeaBoard)
+            return;
+        final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
+        final HashSet<Integer>[] lan = board.getLandAreasLegalNodes();
+        if (lan == null)
+            return;
+
+        if (lan[0] != null)
+            throw new BLException("lan[0] != null");
+
+        final HashMap<Integer, Integer> nodeLA = new HashMap<>();
+        final TreeMap<Integer, StringBuilder> laProblems = new TreeMap<>();  // use TreeMap for sorted output
+
+        for (int laNum = 1; laNum < lan.length; ++laNum)
+        {
+            final Integer laInt = Integer.valueOf(laNum);
+            final Integer[] nodes = lan[laNum].toArray(new Integer[0]);
+            Arrays.sort(nodes);  // for stable, easy-to-browse output
+            for (Integer nodeInt : nodes)
+            {
+                Integer alreadyLA = nodeLA.get(nodeInt);
+                if (alreadyLA == null)
+                {
+                    nodeLA.put(nodeInt, laInt);
+                } else {
+                    StringBuilder sb = laProblems.get(laInt);
+                    if (sb != null)
+                    {
+                        sb.append(", 0x");
+                    } else {
+                        sb = new StringBuilder("0x");
+                        laProblems.put(laInt, sb);
+                    }
+                    sb.append(Integer.toHexString(nodeInt).toUpperCase(Locale.US));
+                    sb.append(" also in ");
+                    sb.append(alreadyLA);
+                }
+            }
+        }
+
+        if (! laProblems.isEmpty())
+            throw new BLException("LAs with duplicate nodes: " + laProblems);
+    }
+
+    /**
      * For a layout of scenario {@link SOCScenario#K_SC_CLVI SC_CLVI}:
      *<UL>
      * <LI> Checks that Added Layout Part {@code "CV"} has the same contents as
@@ -172,22 +242,22 @@ public class TestBoardLayouts
      *</UL>
      *
      * @param ga  Game with scenario SC_CLVI
-     * @throws IllegalStateException  if "CV" mismatch or not enough villages
+     * @throws BLException  if "CV" mismatch or not enough villages
      */
-    private void testLayout_SC_CLVI(SOCGame ga)
-        throws IllegalStateException
+    private void testLayout_SC_CLVI(final SOCGame ga)
+        throws BLException
     {
         final int[] cvPart = ((SOCBoardLarge) ga.getBoard()).getAddedLayoutPart("CV");
         if (cvPart == null)
-            throw new IllegalStateException("null CV");
+            throw new BLException("null CV");
         final int[] cvLayout = ((SOCBoardLarge) ga.getBoard()).getVillageAndClothLayout();
         if (cvLayout == null)
-            throw new IllegalStateException("null getVillageAndClothLayout()");
+            throw new BLException("null getVillageAndClothLayout()");
         assertEquals("CV length", cvPart.length, cvLayout.length);
 
         final int nVillages = (cvPart.length / 2) - 1;  // per getVillageAndClothLayout() javadoc
         if (nVillages < (3 + SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN))
-            throw new IllegalStateException
+            throw new BLException
                 ("Only " + nVillages + " villages; should have at least "
                  + (3 + SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN)
                  + " for SOCScenario.SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN");
@@ -210,12 +280,12 @@ public class TestBoardLayouts
         {
             Integer partKey = partI.next(), layoutKey = layoutI.next();
             if (! partKey.equals(layoutKey))
-                throw new IllegalStateException
+                throw new BLException
                     ("village coord mismatch: CV 0x" + Integer.toHexString(partKey)
                      + ", layout 0x" + Integer.toHexString(layoutKey));
             int partValue = partMap.get(partKey), layoutValue = layoutMap.get(layoutKey);
             if (partValue != layoutValue)
-                throw new IllegalStateException
+                throw new BLException
                     ("village[0x" + Integer.toHexString(partKey) + "] diceNum mismatch: CV "
                      + partValue + ", layout " + layoutValue);
         }
@@ -407,6 +477,21 @@ public class TestBoardLayouts
             System.exit(2);
 
         org.junit.runner.JUnitCore.main("soctest.game.TestBoardLayouts");
+    }
+
+    /**
+     * Specific exception for inconsistency details, so
+     * {@link TestBoardLayouts#testSingleLayout(SOCScenario, int)} knows
+     * it can skip printing stack trace.
+     * @since 2.3.00
+     */
+    @SuppressWarnings("serial")
+    private static class BLException extends IllegalStateException
+    {
+        public BLException(final String message)
+        {
+            super(message);
+        }
     }
 
 }
