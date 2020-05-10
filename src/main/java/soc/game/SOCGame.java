@@ -2072,7 +2072,7 @@ public class SOCGame implements Serializable, Cloneable
     public void setName(final String newName)
         throws IllegalStateException, IllegalArgumentException
     {
-        if (gameState != SOCGame.LOADING)
+        if ((gameState != SOCGame.NEW) && (gameState != SOCGame.LOADING))
             throw new IllegalStateException("gameState");
         if (! SOCMessage.isSingleLineAndSafe(newName))
             throw new IllegalArgumentException("newName");

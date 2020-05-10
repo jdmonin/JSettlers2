@@ -182,7 +182,7 @@ When preparing to release a new version, testing should include:
            - Should be able to trade that port's resources at expected ratio (not 4:1)
        - Trading ports during Special Building phase
            - Start a 6-player game
-           - Sit at seat number 5 (middle left); lock seats 0 (top left), 4 (bottom left)
+           - Sit at seat number 5 (middle left); lock seat 0 (top left)
            - Start the game; during initial placement, build a costal settlement and a ship north towards the Tribe's ports
            - Start a second client, sit at seat 3 (bottom right) to help observe and confirm turn order
            - In first client, end your turn; ask for Special Building during bot player 2's turn
