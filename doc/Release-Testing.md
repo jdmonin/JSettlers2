@@ -180,6 +180,15 @@ When preparing to release a new version, testing should include:
            - Build another coastal settlement
            - Should now be able to play that trading port out of inventory
            - Should be able to trade that port's resources at expected ratio (not 4:1)
+       - Trading ports during Special Building phase
+           - Start a 6-player game
+           - Sit at seat number 5 (middle left); lock seats 0 (top left), 4 (bottom left)
+           - Start the game; during initial placement, build a costal settlement and a ship north towards the Tribe's ports
+           - Start a second client, sit at seat 3 (bottom right) to help observe and confirm turn order
+           - In first client, end your turn; ask for Special Building during bot player 2's turn
+           - During Special Building, build ships to one of the Tribe's ports; pick up the port and place it
+           - End Special Building; next player should be number 3, not number 1
+           - During all that, second client should observe same sequence of current players
        - Move the Robber, then make sure Robber can't be moved back to the small islands
      - Pirate Islands and Fortresses
        - Test visibility of Legal Sea Edges (dotted lines to fortress) for all 6 players

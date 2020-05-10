@@ -3385,7 +3385,8 @@ public class SOCGame implements Serializable, Cloneable
                 pl.getInventory().addItem(port);
             } else {
                 placingItem = port;
-                oldGameState = (gameState == SPECIAL_BUILDING) ? SPECIAL_BUILDING : PLAY1;
+                if (oldGameState != SPECIAL_BUILDING)
+                    oldGameState = (gameState == SPECIAL_BUILDING) ? SPECIAL_BUILDING : PLAY1;
                 gameState = PLACING_INV_ITEM;
             }
 
