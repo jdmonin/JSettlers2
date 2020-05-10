@@ -1670,6 +1670,7 @@ public class SOCServerMessageHandler
         // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
         final String gaName = ga.getName();
         final GameHandler gh = gameList.getGameTypeHandler(gaName);
+        boolean foundNoRobots = false;
         for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
         {
             final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
@@ -1682,16 +1683,15 @@ public class SOCServerMessageHandler
 
             if (! ga.isSeatVacant(pn))
                 ga.removePlayer(ga.getPlayer(pn).getName(), true);
-            boolean foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
+            foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
             if (foundNoRobots)
                 break;
-            // TODO chk retval before break; send error msg to debug user in loaded game?
         }
 
-        // Send Resume reminder prompt after delay, or announce winner if over,
+        // If all OK: Send Resume reminder prompt after delay, or announce winner if over,
         //     to appear after bots have joined
-        //     TODO if any problems, don't send this prompt
         final SavedGameModel sgmf = sgm;  // satify compiler
+        final boolean noBots = foundNoRobots;
         srv.miscTaskTimer.schedule(new TimerTask()
         {
             public void run()
@@ -1701,8 +1701,12 @@ public class SOCServerMessageHandler
                         (c, gaName, "admin.loadgame.ok.game_renamed", sgmf.gameName);
                         // "Game was renamed: Original name {0} is already used."
 
-                if (sgmf.gameState < SOCGame.OVER)
+                if (noBots)
                 {
+                    srv.messageToPlayerKeyed
+                        (c, gaName, "admin.resumegame.err.not_enough_robots");
+                        // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
+                } else if (sgmf.gameState < SOCGame.OVER) {
                     srv.messageToGameKeyed
                         (ga, true, "admin.loadgame.ok.to_continue_resumegame");
                         // ">>> To continue playing, type *RESUMEGAME*"
