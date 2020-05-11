@@ -443,7 +443,6 @@ ideas.
 
 - Visual reminder to player when they've made a trade offer
 - Show # VP when choosing where to sit, if game is in progress
-- Keyboard shortcuts for "roll", "done" buttons
 - Occasionally the board does not re-scale at game reset
 - Docs: State diagram for `SOCGame` states, or sequence of important message flows
   (log into server, create/join game, roll dice, etc)

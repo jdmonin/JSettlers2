@@ -855,9 +855,11 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JR
 (Note: Java 7 runs on Win XP and higher; binaries available from https://jdk.java.net/ )
 
 - Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
-- Hotkey shortcuts for Roll and Done
-    - Generic: Ctrl on all platforms (Ctrl-R, Ctrl-D)
-    - OSX or Windows: also Cmd or Alt
+- Hotkey shortcuts
+    - Generic modifier key: Ctrl on all platforms (Ctrl-R, Ctrl-D, etc)
+    - OSX or Windows: also test modifier Cmd or Alt
+    - Roll and Done buttons: R, D + modifier
+    - Accept, Reject, Counter trade offer when just one is visible: A, J, C + modifier
 - Sound, including 2 clients in same game for overlapping piece-place sound
 - Start, join networked games
 - Graphics, including scaling and antialiasing after window resize

@@ -68,6 +68,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -90,7 +91,13 @@ import java.io.PrintWriter;  // For chatPrintStackTrace
 import java.io.StringWriter;
 
 import javax.sound.sampled.LineUnavailableException;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -107,6 +114,9 @@ import javax.swing.event.DocumentListener;
  * When we join a game, the client will update visible game state by calling methods here like
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
  * ready for interaction, the client calls {@link #began(List)}.
+ *<P>
+ * Has keyboard shortcuts for Accept/Reject/Counter trade offers, since v2.3.00.
+ * See {@link TradeHotkeyActionListener} for details if adding others.
  *<P>
  * <B>Chat text history:</B>
  * Remembers chat text sent by client player to the game/server, including local debug commands.
@@ -702,6 +712,36 @@ public class SOCPlayerInterface extends Frame
     volatile Dialog nbdForEvent;
 
     /**
+     * Add one hotkey's bindings to an {@link InputMap}.
+     * Hotkey shortcuts always respond to Ctrl + letter, and also Cmd on MacOSX or Alt on Windows.
+     * On Windows, also calls {@link JButton#setMnemonic(int) btn.setMnemonic(vkChar)}.
+     * @param vkChar  Unmasked key to use, like {@link KeyEvent#VK_R}
+     * @param eventStr  Unique event to pair InputMap to ActionMap, like {@code "hotkey_roll"}
+     * @param btn  Button, to call {@link JButton#setMnemonic(int)} for Alt + {@code vkChar};
+     *     {@code null} if there's no associated button and on Windows this method should
+     *     directly add the mapping with {@link InputEvent#ALT_DOWN_MASK}
+     * @since 2.3.00
+     */
+    /* package */ static void addHotkeysInputMap_one
+        (final InputMap im, final int vkChar, final String eventStr, final JButton btn)
+    {
+        im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.CTRL_DOWN_MASK), eventStr);
+
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        {
+            // also respond to Alt on win32/win64;
+            // setMnemonic works only on the Windows L&F; does nothing on MacOSX for Cmd
+            if (btn != null)
+                btn.setMnemonic(vkChar);
+            else
+                im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.ALT_DOWN_MASK), eventStr);
+        } else if (SOCPlayerClient.IS_PLATFORM_MAC_OSX) {
+            // also respond to Cmd on MacOSX
+            im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.META_DOWN_MASK), eventStr);
+        }
+    }
+
+    /**
      * Create and show a new player interface.
      * If the game options have a {@link SOCScenario} description, it will be shown now in a popup
      * by {@link #showScenarioInfoDialog()}.
@@ -1136,6 +1176,26 @@ public class SOCPlayerInterface extends Frame
             addWindowListener(new PIWindowAdapter(mainDisplay, this));
         }
 
+    }
+
+    /**
+     * Add client player hotkey bindings to PI's InputMap and ActionMap.
+     * Because PI isn't a Swing component, we use JPanel {@link #buildingPanel}.
+     * which may one day get its own hotkeys.
+     * @since 2.3.00
+     */
+    private void addHotkeysInputMap()
+        throws IllegalStateException
+    {
+        final ActionMap am = buildingPanel.getActionMap();
+        am.put("hotkey_accept", new TradeHotkeyActionListener(TradeHotkeyActionListener.ACCEPT));
+        am.put("hotkey_reject", new TradeHotkeyActionListener(TradeHotkeyActionListener.REJECT));
+        am.put("hotkey_counteroffer", new TradeHotkeyActionListener(TradeHotkeyActionListener.COUNTER));
+
+        final InputMap im = buildingPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        addHotkeysInputMap_one(im, KeyEvent.VK_A, "hotkey_accept", null);
+        addHotkeysInputMap_one(im, KeyEvent.VK_J, "hotkey_reject", null);
+        addHotkeysInputMap_one(im, KeyEvent.VK_C, "hotkey_counteroffer", null);
     }
 
     /**
@@ -2448,6 +2508,8 @@ public class SOCPlayerInterface extends Frame
                 repaint(hands[pn].getX(), 0, hands[pn].getWidth(), getHeight());
                     // must repaint entire column's handpanels and wide borders
             }
+
+            addHotkeysInputMap();
         }
 
         if (game.isGameOptionDefined("PL"))
@@ -5096,6 +5158,50 @@ public class SOCPlayerInterface extends Frame
 
     }  // SOCPITextfieldListener
 
+    /**
+     * Hotkey listener for client player to respond to a hand panel's trade offers.
+     * If more than one hand panel has {@link TradePanel#isOfferToPlayer()}, does nothing
+     * to avoid responding to the wrong offer.
+     * Initialized in {@link SOCPlayerInterface#addHotkeysInputMap()}.
+     * @since 2.3.00
+     */
+    private class TradeHotkeyActionListener extends AbstractAction
+    {
+        public static final int ACCEPT = 1, REJECT = 2, COUNTER = 3;
+
+        private final int forButton;
+
+        /**
+         * @param tradeButton The trade button to activate: {@link #ACCEPT}, {@link #REJECT}, or {@link #COUNTER}
+         */
+        public TradeHotkeyActionListener(final int tradeButton)
+        {
+            forButton = tradeButton;
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            SOCHandPanel hpo = null;
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
+            {
+                SOCHandPanel hp = hands[pn];
+                if (! hp.isShowingOfferToClientPlayer())
+                    continue;
+                if (hpo != null)
+                    return;  // multiple offers
+                hpo = hp;
+            }
+            if (hpo == null)
+                return;
+
+            switch (forButton)
+            {
+            case ACCEPT:  hpo.clickOfferAcceptButton();  break;
+            case REJECT:  hpo.clickOfferRejectButton();  break;
+            case COUNTER: hpo.clickOfferCounterButton(); break;
+            }
+        }
+    }
 
     /**
      * When timer fires, show discard message or picking-resource message

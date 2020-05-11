@@ -47,7 +47,6 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -69,7 +68,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -1830,7 +1828,7 @@ import javax.swing.UIManager;
      * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
      * @since 2.0.00
      */
-    private void clickOfferAcceptButton()
+    /* package */ void clickOfferAcceptButton()
     {
         if (! offerPanel.canPlayerGiveTradeResources())
         {
@@ -1859,7 +1857,7 @@ import javax.swing.UIManager;
      * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
      * @since 2.0.00
      */
-    private void clickOfferRejectButton()
+    /* package */ void clickOfferRejectButton()
     {
         offerPanel.setVisible(false);
         counterOfferPanel.setVisible(false);  // might already be hidden
@@ -1875,7 +1873,7 @@ import javax.swing.UIManager;
      * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
      * @since 2.0.00
      */
-    private void clickOfferCounterButton()
+    /* package */ void clickOfferCounterButton()
     {
         counterOfferPanel.setVisible(true);
         offerPanel.setButtonRowVisible(false, true);
@@ -2247,8 +2245,6 @@ import javax.swing.UIManager;
     /**
      * Add hotkey bindings to the panel's InputMap and ActionMap,
      * as part of first time adding player when {@link #playerIsClient}.
-     * Hotkey shortcuts always respond to Ctrl + letter, and also Cmd on MacOSX or Alt on Windows.
-     * On Windows, also calls {@link JButton#setMnemonic(int)}.
      *<P>
      * Does nothing if already called.
      * @since 2.3.00
@@ -2284,32 +2280,10 @@ import javax.swing.UIManager;
         });
 
         final InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-        addHotkeysInputMap_one(im, KeyEvent.VK_R, "hotkey_roll", rollBut);
-        addHotkeysInputMap_one(im, KeyEvent.VK_D, "hotkey_done", doneBut);
+        SOCPlayerInterface.addHotkeysInputMap_one(im, KeyEvent.VK_R, "hotkey_roll", rollBut);
+        SOCPlayerInterface.addHotkeysInputMap_one(im, KeyEvent.VK_D, "hotkey_done", doneBut);
 
         didHotkeyBindings = true;
-    }
-
-    /**
-     * Add one hotkey's bindings for {@link #addHotkeysInputMap()}.
-     * @param vkChar  Unmasked key to use, like {@link KeyEvent#VK_R}
-     * @param eventStr  Unique event to pair InputMap to ActionMap, like {@code "hotkey_roll"}
-     * @param btn  Button, to call {@link JButton#setMnemonic(int)} for Alt + {@code vkChar}
-     * @since 2.3.00
-     */
-    private void addHotkeysInputMap_one
-        (final InputMap im, final int vkChar, final String eventStr, final JButton btn)
-    {
-        im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.CTRL_DOWN_MASK), eventStr);
-
-        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
-            // also respond to Alt on win32/win64;
-            // setMnemonic works only on the Windows L&F; does nothing on MacOSX for Cmd
-            btn.setMnemonic(vkChar);
-        else if (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
-            // also respond to Cmd on MacOSX
-            im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.META_DOWN_MASK), eventStr);
     }
 
     /**
@@ -3054,6 +3028,7 @@ import javax.swing.UIManager;
      *    only show or hide "Accept" button based on the client player's current resources.
      *    Calls {@link TradePanel#updateOfferButtons()}.
      *    If no offer is currently visible, does nothing.
+     * @see #isShowingOfferToClientPlayer()
      */
     public void updateCurrentOffer(final boolean isNewOffer, final boolean resourcesOnly)
     {
@@ -3099,6 +3074,18 @@ import javax.swing.UIManager;
                 clearOffer(false);
             }
         }
+    }
+
+    /**
+     * Is this handpanel currently showing a trade offered to the client player?
+     * @return true if this is a non-client-player hand panel that's currently showing a trade offer
+     *     and {@link TradePanel#isOfferToPlayer()}.
+     * @see #updateCurrentOffer(boolean, boolean)
+     * @since 2.3.00
+     */
+    /* package */ boolean isShowingOfferToClientPlayer()
+    {
+        return inPlay && (! playerIsClient) && offerPanel.isOfferToPlayer();
     }
 
     /**
