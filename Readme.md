@@ -399,6 +399,17 @@ It's a simple process to upgrade to the latest version of JSettlers:
   the client window is the new JSettlers version.
 
 
+## Security and Admin Users
+
+The server has commands anyone can run by typing into a game's chat window, like `*STATS*` or `*WHO*`.
+It also has privileged commands that can be run only by named Admin Users or the `debug` user, like `*GC*` or `*SAVEGAME*`.
+
+The debug user shouldn't be enabled except on a developer's own computer, because of its unfair in-game powers.
+Admin Users let you manage your server without the debug user. They authenticate with passwords
+stored in a SQLite file or a database system. To set up Admin Users, see
+section "Security, Admin Users, Admin Commands" of [doc/Database.md](doc/Database.md).
+
+
 ## Development and Building JSettlers
 
 JSettlers is an open-source project licensed under the GPL. The project
