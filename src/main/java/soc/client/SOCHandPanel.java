@@ -47,6 +47,8 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -57,6 +59,9 @@ import java.util.MissingResourceException;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
@@ -64,6 +69,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -78,6 +84,9 @@ import javax.swing.UIManager;
  * call {@link #updateValue(PlayerClientListener.UpdateType)} after receiving
  * a {@link soc.message.SOCPlayerElement} message or after something
  * else changes the game state.
+ *<P>
+ * Has keyboard shortcuts for Roll and Done, since v2.3.00.
+ * See {@link #addHotkeysInputMap()} for details if adding others.
  *<P>
  * Custom layout: see {@link #doLayout()}.
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
@@ -232,6 +241,12 @@ import javax.swing.UIManager;
      * @since 2.0.00
      */
     private static boolean didSwingTooltipDefaults;
+
+    /**
+     * True if {@link #addHotkeysInputMap()} has already been called once from {@link #addPlayer(String)}.
+     * @since 2.3.00
+     */
+    private boolean didHotkeyBindings;
 
     /**
      * Player name background color when current player (foreground does not change)
@@ -1080,6 +1095,8 @@ import javax.swing.UIManager;
         quitBut.setEnabled(interactive);
         add(quitBut);
 
+        // see also addHotkeysInputMap: ActionMap/InputMap setup for client player
+
         messagePanel = new MessagePanel(((isOSColorHighContrast) ? null : pcolor), displayScale);
         messagePanel.setVisible(false);
         add(messagePanel);
@@ -1169,7 +1186,6 @@ import javax.swing.UIManager;
                 if (shouldClearButtonBGs)
                     co.setBackground(null);  // inherit panel's bg color; required on win32 to avoid gray corners
             }
-
         }
 
         // set the starting state of the panel
@@ -1292,8 +1308,7 @@ import javax.swing.UIManager;
         }
         else if (target == DONE)
         {
-            // sqPanel.setValues(zero, zero);
-            messageSender.endTurn(game);
+            clickDoneButton();
         }
         else if (target == DONE_RESTART)
         {
@@ -1785,16 +1800,26 @@ import javax.swing.UIManager;
     }
 
     /**
-     * Handle a click on the roll button.
-     * Called from actionPerformed() and the auto-roll timer task.
+     * Handle a click on the Roll button. Assumes button is enabled.
+     * Called from actionPerformed(), the auto-roll timer task, and the hotkey InputMap/ActionMap.
      * @since 1.1.00
      */
-    public void clickRollButton()
+    public final void clickRollButton()
     {
         if (rollPromptInUse)
             setRollPrompt(null, false);  // Clear it
         messageSender.rollDice(game);
         rollBut.setEnabled(false);  // Only one roll per turn
+    }
+
+    /**
+     * Handle a click on the Done button. Assumes button is enabled.
+     * Called from actionPerformed() and the hotkey InputMap/ActionMap.
+     * @since 2.3.00
+     */
+    private void clickDoneButton()
+    {
+        messageSender.endTurn(game);
     }
 
     /**
@@ -2141,6 +2166,7 @@ import javax.swing.UIManager;
                     }
                 }
             }
+
             playerIsClient = false;
         } else if (game.getGameState() == SOCGame.NEW)
         {
@@ -2219,6 +2245,74 @@ import javax.swing.UIManager;
     }
 
     /**
+     * Add hotkey bindings to the panel's InputMap and ActionMap,
+     * as part of first time adding player when {@link #playerIsClient}.
+     * Hotkey shortcuts always respond to Ctrl + letter, and also Cmd on MacOSX or Alt on Windows.
+     * On Windows, also calls {@link JButton#setMnemonic(int)}.
+     *<P>
+     * Does nothing if already called.
+     * @since 2.3.00
+     */
+    private void addHotkeysInputMap()
+    {
+        if (didHotkeyBindings)
+            return;
+
+        final ActionMap am = getActionMap();
+        am.put("hotkey_roll", new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                if (! rollBut.isEnabled())
+                    return;
+
+                if (autoRollTimerTask != null)
+                {
+                    autoRollTimerTask.cancel();
+                    autoRollTimerTask = null;
+                }
+                clickRollButton();
+            }
+        });
+        am.put("hotkey_done", new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                if (doneBut.isEnabled())
+                    clickDoneButton();
+            }
+        });
+
+        final InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+        addHotkeysInputMap_one(im, KeyEvent.VK_R, "hotkey_roll", rollBut);
+        addHotkeysInputMap_one(im, KeyEvent.VK_D, "hotkey_done", doneBut);
+
+        didHotkeyBindings = true;
+    }
+
+    /**
+     * Add one hotkey's bindings for {@link #addHotkeysInputMap()}.
+     * @param vkChar  Unmasked key to use, like {@link KeyEvent#VK_R}
+     * @param eventStr  Unique event to pair InputMap to ActionMap, like {@code "hotkey_roll"}
+     * @param btn  Button, to call {@link JButton#setMnemonic(int)} for Alt + {@code vkChar}
+     * @since 2.3.00
+     */
+    private void addHotkeysInputMap_one
+        (final InputMap im, final int vkChar, final String eventStr, final JButton btn)
+    {
+        im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.CTRL_DOWN_MASK), eventStr);
+
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+            // also respond to Alt on win32/win64;
+            // setMnemonic works only on the Windows L&F; does nothing on MacOSX for Cmd
+            btn.setMnemonic(vkChar);
+        else if (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
+            // also respond to Cmd on MacOSX
+            im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.META_DOWN_MASK), eventStr);
+    }
+
+    /**
      * Remove elements to clean up this panel.
      * Calls removePlayer() as part of cleanup.
      * @see #gameDisconnected()
@@ -2250,7 +2344,8 @@ import javax.swing.UIManager;
 
     /**
      * Add a player (human or robot) at this currently-vacant seat position.
-     * Update controls at this handpanel.
+     * Update controls at this handpanel. Also calls {@link #addHotkeysInputMap()}.
+     *<P>
      * Also update ALL OTHER handpanels in our {@link #playerInterface} this way:
      * Remove all of the sit and take over buttons.
      * If game still forming, can lock seats (for fewer players/robots).
@@ -2434,6 +2529,7 @@ import javax.swing.UIManager;
             }
 
             updateButtonsAtAdd();  // Enable,disable the proper buttons
+            addHotkeysInputMap();
         }
         else
         {
@@ -2616,7 +2712,8 @@ import javax.swing.UIManager;
         updateRollDoneBankButtons();
     }
 
-    /** Enable, disable the proper buttons
+    /**
+     * Enable, disable the proper buttons
      * when the client (player) is added to a game.
      * Call only if {@link #playerIsClient}.
      * @since 1.1.00
@@ -4304,7 +4401,7 @@ import javax.swing.UIManager;
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4,
                           topFaceAreaHeight = inset + faceW + space,
                           availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
-                int miy = 0, mih = 0;  // miscInfoArea y and height, if needed
+                int miy = 0, mih = 0;  // miscInfoArea y and height, if visible
 
                 if ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled)
                 {

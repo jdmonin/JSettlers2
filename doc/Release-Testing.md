@@ -855,6 +855,9 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JR
 (Note: Java 7 runs on Win XP and higher; binaries available from https://jdk.java.net/ )
 
 - Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
+- Hotkey shortcuts for Roll and Done
+    - Generic: Ctrl on all platforms (Ctrl-R, Ctrl-D)
+    - OSX or Windows: also Cmd or Alt
 - Sound, including 2 clients in same game for overlapping piece-place sound
 - Start, join networked games
 - Graphics, including scaling and antialiasing after window resize
