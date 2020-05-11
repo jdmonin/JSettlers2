@@ -4304,6 +4304,7 @@ import javax.swing.UIManager;
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4,
                           topFaceAreaHeight = inset + faceW + space,
                           availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
+                int miy = 0, mih = 0;  // miscInfoArea y and height, if needed
 
                 if ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled)
                 {
@@ -4362,8 +4363,8 @@ import javax.swing.UIManager;
                         {
                             miscInfoArea.setVisible(false);
                         } else {
-                            miscInfoArea.setBounds(inset, py, offerW, ph + counterOfferHeight);
-                            miscInfoArea.setVisible(true);
+                            miy = py;
+                            mih = ph + counterOfferHeight;
                         }
                     }
 
@@ -4399,12 +4400,28 @@ import javax.swing.UIManager;
                         {
                             miscInfoArea.setVisible(false);
                         } else {
-                            miscInfoArea.setBounds(inset, py, dim.width - 2 * inset, availHeightNoHide - inset);
-                            miscInfoArea.setVisible(true);
+                            miy = py + space;
+                            mih = availHeightNoHide - inset - space;
                         }
                     }
 
                     offerCounterHidesFace = false;
+                }
+                if (mih != 0)
+                {
+                    if ((svpSq != null) && svpSq.isVisible())
+                    {
+                        final int ybelow = svpSq.getY() + svpSq.getHeight() + space;
+                        if (ybelow > miy)
+                        {
+                            mih -= (miy - ybelow);
+                            miy = ybelow;
+                        }
+                    }
+                    if (mih < lineH)
+                        mih = lineH;
+                    miscInfoArea.setBounds(inset, miy, dim.width - 2 * inset, mih);
+                    miscInfoArea.setVisible(true);
                 }
                 if (offerPanel != null)
                 {

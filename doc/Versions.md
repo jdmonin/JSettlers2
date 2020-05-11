@@ -26,6 +26,7 @@ and backport minor new features until `2.0.00` was ready.
 - Client:
 	- Game window:
 	  - Draw ships with slimmer sails, for better spacing next to other pieces
+	  - Bugfix: At end of game: If player had SVP, their revealed VP card names overlapped square showing SVP amount
 	- Bugfix: If started a practice game, then connected to a server game:
 	  - Practice game trades stopped working
 	  - Might've joined server game as "Player" or "null"
