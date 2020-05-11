@@ -408,14 +408,15 @@ import javax.swing.JComponent;
          -7,-11,-11, 11,     11, 9,  9, 11 };
 
     /**
-     * village polygon. X is -14 to +14; Y is -10 to +10.
+     * marker diamond/"village" polygon. X is -14 to +14; Y is -10 to +10.
      * Used in {@link #drawVillage(Graphics, SOCVillage)}, and as a
      * generic marker in {@link #drawMarker(Graphics, int, int, Color, int)}.
+     *<P>
+     * Before v2.3.00 these fields were called villageX, villageY.
      * @since 2.0.00
      */
-    private static final int[] villageX = {  0,  14,  0, -14,   0 },
-                               villageY = { -10,  0, 10,   0, -10 };
-        // TODO just a first draft; village graphic needs adjustment
+    private static final int[] diamondX = {  0,  14,  0, -14,   0 },
+                               diamondY = { -10,  0, 10,   0, -10 };
 
     /** robber polygon. X is -4 to +4; Y is -8 to +8. */
     private static final int[] robberX =
@@ -1373,10 +1374,13 @@ import javax.swing.JComponent;
     private int[] scaledFortressX, scaledFortressY;
 
     /**
-     * scaled village (scenario _SC_CLVI)
+     * scaled diamond marker (village in scenario _SC_CLVI, etc).
+     * See {@link #diamondX} for details.
+     *<P>
+     * Before v2.3.00 these fields were called scaledVillageX, scaledVillageY.
      * @since 2.0.00
      */
-    private int[] scaledVillageX, scaledVillageY;
+    private int[] scaledDiamondX, scaledDiamondY;
 
     /**
      * scaled warship (scenario _SC_PIRI)
@@ -3052,7 +3056,7 @@ import javax.swing.JComponent;
             scaledCityX     = cityX;         scaledCityY     = cityY;
             scaledShipX     = shipX;         scaledShipY     = shipY;
             scaledFortressX = fortressX;     scaledFortressY = fortressY;
-            scaledVillageX  = villageX;      scaledVillageY  = villageY;
+            scaledDiamondX  = diamondX;      scaledDiamondY  = diamondY;
             scaledWarshipX  = warshipX;      scaledWarshipY  = warshipY;
             scaledRobberX   = robberX;       scaledRobberY   = robberY;
             scaledArrowXL   = arrowXL;       scaledArrowY    = arrowY;
@@ -3113,8 +3117,8 @@ import javax.swing.JComponent;
             scaledShipY = scaleCopyToActual(shipY);
             scaledFortressX = scaleCopyToActual(fortressX);
             scaledFortressY = scaleCopyToActual(fortressY);
-            scaledVillageX  = scaleCopyToActual(villageX);
-            scaledVillageY  = scaleCopyToActual(villageY);
+            scaledDiamondX  = scaleCopyToActual(diamondX);
+            scaledDiamondY  = scaleCopyToActual(diamondY);
             scaledWarshipX = scaleCopyToActual(warshipX);
             scaledWarshipY = scaleCopyToActual(warshipY);
             scaledRobberX   = scaleCopyToActual(robberX);
@@ -4166,7 +4170,7 @@ import javax.swing.JComponent;
    }
 
     /**
-     * Draw a marker (village symbol) centered at a final (x,y) coordinate.
+     * Draw a marker diamond (village/"special" symbol) centered at a final (x,y) coordinate.
      * @param x  Marker center x, must be already scaled and/or rotated
      * @param y  Marker center x, must be already scaled and/or rotated
      * @param color  Color to fill the marker
@@ -4178,9 +4182,9 @@ import javax.swing.JComponent;
         g.translate(x, y);
 
         g.setColor(color);
-        g.fillPolygon(scaledVillageX, scaledVillageY, 4);
+        g.fillPolygon(scaledDiamondX, scaledDiamondY, 4);
         g.setColor(Color.black);
-        g.drawPolygon(scaledVillageX, scaledVillageY, 5);
+        g.drawPolygon(scaledDiamondX, scaledDiamondY, 5);
 
         // dice # for village
         if (val >= 0)
