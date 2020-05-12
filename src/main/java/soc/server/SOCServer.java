@@ -1555,11 +1555,16 @@ public class SOCServer extends Server
         ((SOCMessageDispatcher) inboundMsgDispatcher).setServer(this, srvMsgHandler, gameList);
 
         if (allowDebugUser)
-        {
             System.err.println("Warning: Remote debug commands are allowed.");
 
-            if (props.containsKey(PROP_JSETTLERS_SAVEGAME_DIR))
+        if (props.containsKey(PROP_JSETTLERS_SAVEGAME_DIR))
+        {
+            if (allowDebugUser || props.containsKey(PROP_JSETTLERS_ACCOUNTS_ADMINS))
                 initSocServer_savegame();
+            else
+                throw new IllegalArgumentException
+                    ("Config: " + PROP_JSETTLERS_SAVEGAME_DIR + " requires debug user or "
+                     + PROP_JSETTLERS_ACCOUNTS_ADMINS);
         }
 
         /**

@@ -551,9 +551,19 @@ When preparing to release a new version, testing should include:
           - Sit down as current player, make sure resumes properly
           - Re-test, sitting as non-current player
           - Re-test, resume without sitting: Should resume as robots-only game
+          - Exit robots-only game: Should continue running, not be deleted; should be able to rejoin as observer
     - Saved bot properties
         - Save a game having no bots, mix of smart/fast bots, one with at least 1 Sample3PClient
         - For each of those, examine the players in the save file for correct values for: isRobot, isBuiltInRobot, isRobotWithSmartStrategy, and (for Sample3PClient) `"robot3rdPartyBrainClass": "soc.robot.sample3p.Sample3PClient"`
+    - Server config options/properties
+        - Start server with savegame, but not debug user or Admin Users list:  
+            `-Djsettlers.savegame.dir=/tmp/jsgame`
+          - Startup should fail with a message like: "Config: jsettlers.savegame.dir requires debug user or jsettlers.accounts.admins"
+        - Start server with savegame, database, and Admin Users list, but not debug user:  
+            `-Djsettlers.savegame.dir=/tmp/jsgame -Djsettlers.accounts.admins=adm,name2`
+          - Startup should succeed
+          - Log in as admin user `adm` or `name2`
+          - Should be able to save, load, and resume games
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
