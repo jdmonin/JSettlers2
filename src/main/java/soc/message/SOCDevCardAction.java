@@ -39,6 +39,9 @@ import soc.game.SOCDevCardConstants;  // for javadocs only
  * Not sent from client, which sends {@link SOCBuyDevCardRequest} or {@link SOCPlayDevCardRequest} instead.
  * See those message types' javadocs for server's complete response sequences.
  *<P>
+ * Also sent to client when they sit down to play, to give the private details of their dev card inventory.
+ * See {@link #VERSION_FOR_SITDOWN_CLEARS_INVENTORY} for related details.
+ *<P>
  * At end of game (state {@link soc.game.SOCGame#OVER OVER}), server v2.0.00 and higher reveals players'
  * hidden Victory Point cards by announcing a DevCardAction(pn, {@link #ADD_OLD}, cardtype [, cardtype, ...])
  * for each player that has them. (Older server versions used {@link SOCGameTextMsg} instead.)
@@ -62,6 +65,18 @@ public class SOCDevCardAction extends SOCMessage
      * @since 2.0.00
      */
     public static final int VERSION_FOR_MULTIPLE = 2000;
+
+    /**
+     * Minimum client version where when the client receives its player's {@link SOCSitDown}
+     * message, that implies it should clear its currently-unknown inventory contents; the server
+     * is about to privately send it the detailed contents of that inventory.
+     *<P>
+     * Previous versions were privately sent {@link #PLAY} messages to clear their unknowns one at a time.
+     * If the joining client had been observing the game as player's dev cards were bought,
+     * that could cause display bugs where the inventory wasn't entirely cleared out at Sit Down time.
+     * @since 2.3.00
+     */
+    public static final int VERSION_FOR_SITDOWN_CLEARS_INVENTORY = 2300;
 
     /**
      * Maximum number of cards to send in a reasonable message: 100.

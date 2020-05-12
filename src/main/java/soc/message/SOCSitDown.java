@@ -27,6 +27,10 @@ import java.util.StringTokenizer;
  * This message from client means that a player wants to sit down to play;
  * from server it announces a client has sat down to play.
  *<P>
+ * When client and server are v2.3.00 or newer ({@link SOCDevCardAction#VERSION_FOR_SITDOWN_CLEARS_INVENTORY}),
+ * when client is sitting down to play and receives this message for their own player,
+ * they should clear their inventory contents: See that constant's javadoc for details.
+ *<P>
  * If human clients are joining a game which was reloaded from a saved snapshot
  * (game state {@link soc.game.SOCGame#LOADING}), the game might have unclaimed non-vacant seats
  * which were a human player when game was saved, but no client is currently connected to.

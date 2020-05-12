@@ -1710,14 +1710,15 @@ public class SOCGameHandler extends GameHandler
         final boolean cliVersionRecent = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES);
 
         /**
-         * remove the unknown cards
+         * remove the unknown cards, if client's too old for SITDOWN to imply doing so
          */
-        final SOCDevCardAction cardUnknown = (cliVersionRecent)
-            ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
-            : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
-        for (int i = cardsInv.getTotal(); i > 0; --i)
+        if (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY)
         {
-            srv.messageToPlayer(c, cardUnknown);
+            final SOCDevCardAction cardUnknown = (cliVersionRecent)
+                ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
+                : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
+            for (int i = cardsInv.getTotal(); i > 0; --i)
+                srv.messageToPlayer(c, cardUnknown);
         }
 
         /**

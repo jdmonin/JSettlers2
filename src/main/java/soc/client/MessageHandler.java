@@ -1288,15 +1288,16 @@ import soc.util.Version;
         final SOCGame ga = client.games.get(mes.getGame());
         if (ga == null)
             return;
-        final int mesPN = mes.getPlayerNumber();
+
+        final int pn = mes.getPlayerNumber();
+        final String plName = mes.getNickname();
+        SOCPlayer player = null;
 
         ga.takeMonitor();
-        SOCPlayer player = null;
         try
         {
-            ga.addPlayer(mes.getNickname(), mesPN);
-
-            player = ga.getPlayer(mesPN);
+            ga.addPlayer(plName, pn);
+            player = ga.getPlayer(pn);
             player.setRobotFlag(mes.isRobot(), false);
         }
         catch (Exception e)
@@ -1311,20 +1312,29 @@ import soc.util.Version;
             ga.releaseMonitor();
         }
 
+        final boolean playerIsClient = client.getNickname(ga.isPractice).equals(plName);
+
+        if (playerIsClient
+            && (ga.isPractice || (client.sVersion >= SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY)))
+        {
+            // server is about to send our dev-card inventory contents
+            player.getInventory().clear();
+        }
+
         /**
          * tell the GUI that a player is sitting
          */
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
-        pcl.playerSitdown(mesPN, mes.getNickname());
+        pcl.playerSitdown(pn, plName);
 
         /**
          * if player is client, use face icon from last requested change instead of default
          * (this is so that an old face isn't requested anew); skip if reset.
          */
-        if (client.getNickname(ga.isPractice).equals(mes.getNickname())
+        if (playerIsClient
             && (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A)))
         {
-            ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
+            player.setFaceId(client.lastFaceChange);
             gms.changeFace(ga, client.lastFaceChange);
         }
     }

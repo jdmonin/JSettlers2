@@ -296,6 +296,15 @@ When preparing to release a new version, testing should include:
             - Join 1st game, take over for a robot
             - Should see all info for the player (resources, cards, etc)
             - Play at least 2 rounds; trade, build something, buy and use a soldier card
+        - When testing 2.3 or newer against older than 2.3:
+            - Start a game with robot player at seat number 2
+            - Give dev cards to bot player:  
+              `dev: 3 #2`  
+              `dev: 6 #2`
+            - Have second client join as observer (same version as first client)
+            - Should see correct number of dev cards for bot
+            - Sit down observer to take over bot's seat
+            - Should see correct card types in inventory (Monopoly, University); shouldn't see any unknown cards
         - When testing a 2.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game

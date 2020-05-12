@@ -26,13 +26,16 @@ and backport minor new features until `2.0.00` was ready.
 - Client:
 	- Game window:
 	  - Hotkeys:
-	    - Roll dice with Ctrl-R/Alt-R/Cmd-R, end turn (Done) with Ctrl-D/Alt-D/Cmd-D
+	    - Roll dice with Ctrl-R/Alt-R/Cmd-R
+	    - End turn (Done) with Ctrl-D/Alt-D/Cmd-D
 	    - Accept/ReJect/Counter trade offers when just one is visible, with Ctrl/Alt/Cmd + A/J/C
 	  - Draw ships with slimmer sails, for better spacing next to other pieces
 	  - Bugfix: At end of game: If player had SVP, their revealed VP card names overlapped square showing SVP amount
 	- Bugfix: If started a practice game, then connected to a server game:
 	  - Practice game trades stopped working
 	  - Might've joined server game as "Player" or "null"
+	- Bugfix: Sometimes if client was observing a game and sat to take over a robot player
+	  right after it bought a dev card, inventory would include unknown card(s) alongside the correct ones
 	- If nickname or channel/game name contains disallowed character ',' or '|', explanation text mentions that character
 - Bots/AI:
 	- When offering a trade to human players, shorten max wait to 30 seconds (was 100)
@@ -64,6 +67,9 @@ and backport minor new features until `2.0.00` was ready.
 	- Game/board data sent by server to client joining a game:
 	  - For 6-player game, send players' ASK_SPECIAL_BUILD flag if set
 	  - For scenario Cloth Villages, send updated General Supply count if game has started
+	- Game data sent to client sitting down to play:
+	  - If client is this version or newer, omit messages meant to clear player's inventory contents:  
+	    Client player now clears inventory when SitDown message received
 	- Client: Omit unneeded player name/number in some message types
 
 

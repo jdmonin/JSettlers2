@@ -962,7 +962,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * handle the "game members" message, which indicates the entire game state has now been sent.
-     * If we have a {@link #seatRequests} for this game, sit down now.
+     * If we have a {@link #seatRequests} for this game, request to sit down now: send {@link SOCSitDown}.
      * @param mes  the message
      */
     @Override
@@ -1268,69 +1268,59 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param mes  the message
      */
     @Override
-    protected void handleSITDOWN(SOCSitDown mes)
+    protected SOCGame handleSITDOWN(SOCSitDown mes)
     {
         final String gaName = mes.getGame();
 
         /**
          * tell the game that a player is sitting
          */
-        final SOCGame ga = games.get(gaName);
+        final SOCGame ga = super.handleSITDOWN(mes);
+        if (ga == null)
+            return null;
 
-        if (ga != null)
+        /**
+         * let the robot brain find our player object if we sat down
+         */
+        final int pn = mes.getPlayerNumber();
+        if (nickname.equals(mes.getNickname()))
         {
-            final String plName = mes.getNickname();
-            final int pn = mes.getPlayerNumber();
-
-            ga.addPlayer(plName, pn);
+            SOCRobotBrain brain = robotBrains.get(gaName);
 
             /**
-             * set the robot flag
+             * retrieve the proper face for our strategy
              */
-            ga.getPlayer(pn).setRobotFlag(mes.isRobot(), false);
+            int faceId;
+            switch (brain.getRobotParameters().getStrategyType())
+            {
+            case SOCRobotDM.SMART_STRATEGY:
+                faceId = -1;  // smarter robot face
+                break;
+
+            default:
+                faceId = 0;   // default robot face
+            }
+
+            brain.setOurPlayerData();
+            brain.start();
 
             /**
-             * let the robot brain find our player object if we sat down
+             * change our face to the robot face
              */
-            if (nickname.equals(plName))
-            {
-                SOCRobotBrain brain = robotBrains.get(gaName);
-
-                /**
-                 * retrieve the proper face for our strategy
-                 */
-                int faceId;
-                switch (brain.getRobotParameters().getStrategyType())
-                {
-                case SOCRobotDM.SMART_STRATEGY:
-                    faceId = -1;  // smarter robot face
-                    break;
-
-                default:
-                    faceId = 0;   // default robot face
-                }
-
-                brain.setOurPlayerData();
-                brain.start();
-
-                /**
-                 * change our face to the robot face
-                 */
-                put(SOCChangeFace.toCmd(ga.getName(), pn, faceId));
-            }
-            else
-            {
-                /**
-                 * add tracker for player in previously vacant seat
-                 */
-                SOCRobotBrain brain = robotBrains.get(gaName);
-
-                if (brain != null)
-                {
-                    brain.addPlayerTracker(mes.getPlayerNumber());
-                }
-            }
+            put(SOCChangeFace.toCmd(ga.getName(), pn, faceId));
         }
+        else
+        {
+            /**
+             * add tracker for player in previously vacant seat
+             */
+            SOCRobotBrain brain = robotBrains.get(gaName);
+
+            if (brain != null)
+                brain.addPlayerTracker(pn);
+        }
+
+        return ga;
     }
 
     /**

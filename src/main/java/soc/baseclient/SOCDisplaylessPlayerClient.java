@@ -1145,34 +1145,46 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * handle the "player sitting down" message
      * @param mes  the message
      */
-    protected void handleSITDOWN(SOCSitDown mes)
+    protected SOCGame handleSITDOWN(final SOCSitDown mes)
     {
         /**
          * tell the game that a player is sitting
          */
         SOCGame ga = games.get(mes.getGame());
         if (ga == null)
-            return;
+            return null;
+
+        final int pn = mes.getPlayerNumber();
+        final String plName = mes.getNickname();
+        SOCPlayer player = null;
 
         ga.takeMonitor();
-
         try
         {
-            ga.addPlayer(mes.getNickname(), mes.getPlayerNumber());
-
-            /**
-             * set the robot flag
-             */
-            ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
+            ga.addPlayer(plName, pn);
+            player = ga.getPlayer(pn);
+            player.setRobotFlag(mes.isRobot(), false);
         }
         catch (Exception e)
         {
-            ga.releaseMonitor();
             System.out.println("Exception caught - " + e);
             e.printStackTrace();
+
+            return null;
+        }
+        finally
+        {
+            ga.releaseMonitor();
         }
 
-        ga.releaseMonitor();
+        if (nickname.equals(plName)
+            && (ga.isPractice || (sVersion >= SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY)))
+        {
+            // server is about to send our dev-card inventory contents
+            player.getInventory().clear();
+        }
+
+        return ga;
     }
 
     /**
