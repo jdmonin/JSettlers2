@@ -438,11 +438,12 @@ jsettlers JAR from the command line, not running inside the IDE.
 ## To do: The current TODO list
 
 Work on these possible roadmap items has not yet begun. This list is ranked
-from easier, to more difficult. You can also search the source for TODO for
+from easier to more difficult. You can also search the source for TODO for
 ideas.
 
 - Visual reminder to player when they've made a trade offer
 - Show # VP when choosing where to sit, if game is in progress
+- Refactor: `new Date().getTime()` -> `System.currentTimeMillis()`
 - Occasionally the board does not re-scale at game reset
 - Docs: State diagram for `SOCGame` states, or sequence of important message flows
   (log into server, create/join game, roll dice, etc)

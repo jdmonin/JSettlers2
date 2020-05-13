@@ -121,6 +121,14 @@ When preparing to release a new version, testing should include:
         - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above.
           When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP.
           Card should fully play out (choose player, etc) before server announces game is over.
+- Unprivileged info commands  
+    As a non-admin non-debug user, start playing a game. These should all work:
+    - `*WHO*` lists all players and observers in game
+    - `*STATS*` shows game's duration ("started x minutes ago") and number of rounds, server's count of started and completed games
+    - Finish the game (win or lose)
+    - `*STATS*` now shows game's duration as "took x minutes", server's count of completed games has increased, player's win/loss count has increased
+    - Start and finish another game
+    - `*STATS*` shows server's count of started and completed games have increased, player's win/loss count has increased
 - Game info sent to observer
     - Start and begin playing a game as `debug` player
     - Give another player enough Victory Point dev cards to win: `dev: 5 playername` etc
@@ -579,7 +587,11 @@ When preparing to release a new version, testing should include:
     - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
       Client main panel should not see channel create/join/list controls
     - Start server with prop `jsettlers.startrobots=0`:  
-      Connect client and try to start a game, should see "No robots on this server" in game text area
+      Connect client, create and try to start a game;  
+      should see "No robots on this server" in game text area
+    - Start server with prop `jsettlers.startrobots=1`:  
+      Connect client, create and try to start a game;  
+      should see "Not enough robots to fill all the seats. Lock some seats. Only 1 robot is available"
     - Start server with prop `jsettlers.stats.file.name=/tmp/stats.txt`:  
       After 60 minutes, server should write `*STATS*` output to that file
 
@@ -921,7 +933,7 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JR
 
 ## Instructions and Setup
 
-- [Readme.md](../Readme.md), `Readme.developer.md`, [Database.md](Database.md):
+- [Readme.md](../Readme.md), [Readme.developer.md](Readme.developer.md), [Database.md](Database.md), and this file:  
   Validate all URLs, including JDBC driver downloads
 - Follow server setup instructions in [Readme.md](../Readme.md)
 - Set up a new DB: Covered above in "Platform-specific"
