@@ -2280,16 +2280,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * This player's number of publicly known victory points.
+     * Get this player's number of publicly known victory points:
+     * Buildings, longest/largest bonus, Special VP, etc.
      * Public victory points exclude VP development cards, except at
      * end of game, when they've been announced by server.
      * Special Victory Points (SVPs) are included, if the game scenario awards them.
      * Also includes any VP from {@link #getCloth() cloth}.
      *
-     * @return the number of publicly known victory points
+     * @return the number of publicly known victory points,
+     *     or "final" VP if {@link #forceFinalVP(int)} was called
      * @see #getTotalVP()
      * @see #getSpecialVP()
-     * @see #forceFinalVP(int)
      */
     public int getPublicVP()
     {
@@ -2318,9 +2319,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the actual number of victory points (including VP cards/items)
+     * Get this player's total VP: Buildings, longest/largest bonus, Special VP, VP cards/items.
+     * @return the actual number of victory points ({@link #getPublicVP()} + VP cards/items),
+     *     or "final" VP if {@link #forceFinalVP(int)} was called
      * @see #getPublicVP()
-     * @see #forceFinalVP(int)
      */
     public int getTotalVP()
     {
@@ -2589,7 +2591,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * <b>Note:</b> Placing a city automatically removes the settlement there
      * via {@link SOCGame#putPiece(SOCPlayingPiece)} calling
-     * {@link SOCPlayer#removePiece(SOCPlayingPiece, SOCPlayingPiece)}.
+     * {@link SOCPlayer#removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean)}.
      *<P>
      * Call this before calling {@link SOCBoard#putPiece(SOCPlayingPiece)}.
      *<P>
@@ -3077,6 +3079,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Undo the putting of a piece; backwards-compatibility shim which calls newer form
+     * {@link #undoPutPiece(SOCPlayingPiece, boolean) undoPutPiece(piece, false)}.
+     * See that method's javadoc for details.
+     */
+    public void undoPutPiece(final SOCPlayingPiece piece)
+    {
+        undoPutPiece(piece, false);
+    }
+
+    /**
      * undo the putting of a piece.
      *<P>
      * Among other actions,
@@ -3086,7 +3098,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Call this only after calling {@link SOCBoard#removePiece(SOCPlayingPiece)}.
      *<P>
-     * If the piece is ours, calls {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece) removePiece(piece, null)}.
+     * If the piece is ours, calls
+     * {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean) removePiece(piece, null, isMoveOrReplacement)}.
      *<P>
      * For roads, does not update longest road; if you need to,
      * call {@link #calcLongestRoad2()} after this call.
@@ -3095,9 +3108,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   will zero the player's resource cards.
      *
      * @param piece         the piece placement to be undone.
-     *
+     * @param isMoveOrReplacement  Is the piece really being moved to a new location, or replaced with another?
+     *            If so, don't remove its {@link SOCPlayingPiece#specialVP} from player.
+     * @since 2.3.00
      */
-    public void undoPutPiece(SOCPlayingPiece piece)
+    public void undoPutPiece(final SOCPlayingPiece piece, final boolean isMoveOrReplacement)
     {
         final boolean ours = (piece.getPlayerNumber() == playerNumber);
         final int pieceCoord = piece.getCoordinates();
@@ -3117,7 +3132,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 // update the potential places to build roads/ships
                 //
-                removePiece(piece, null);
+                removePiece(piece, null, isMoveOrReplacement);
             }
             else
             {
@@ -3168,7 +3183,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             if (ours)
             {
-                removePiece(piece, null);
+                removePiece(piece, null, isMoveOrReplacement);
                 ourNumbers.undoUpdateNumbers(piece, board);
 
                 //
@@ -3209,7 +3224,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             if (ours)
             {
-                removePiece(piece, null);
+                removePiece(piece, null, isMoveOrReplacement);
                 potentialCities.add(pieceCoordInt);
 
                 /**
@@ -3344,10 +3359,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Remove a player's piece from the board, and put it back in the player's hand;
+     * backwards-compatibility shim which calls newer form
+     * {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean) removePiece(piece, replacementPiece, false)}.
+     * See that method's javadoc for details.
+     */
+    public void removePiece
+        (final SOCPlayingPiece piece, final SOCPlayingPiece replacementPiece)
+    {
+        removePiece(piece, replacementPiece, false);
+    }
+
+    /**
      * remove a player's piece from the board,
      * and put it back in the player's hand.
      *<P>
-     * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece)}
+     * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece, boolean)}
      * which calls removePiece and does more.
      *<P>
      * Don't call removePiece for a {@link SOCFortress}; see {@link #getFortress()} javadoc.
@@ -3365,9 +3392,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *          If not null, and same player as <tt>piece</tt>, the removed piece's {@link SOCPlayingPiece#specialVP}
      *          and {@link SOCPlayingPiece#specialVPEvent} are copied to <tt>replacementPiece</tt>
      *          instead of being subtracted from the player's {@link #getSpecialVP()} count.
-     * @see #undoPutPiece(SOCPlayingPiece)
+     * @param isMoveOrReplacement  Is the piece really being moved to a new location, or replaced with another?
+     *            If so, don't remove its {@link SOCPlayingPiece#specialVP} from player.
+     *            If {@code replacementPiece != null}, this field is ignored and can be {@code false}.
+     * @since 2.3.00
      */
-    public void removePiece(SOCPlayingPiece piece, SOCPlayingPiece replacementPiece)
+    public void removePiece
+        (final SOCPlayingPiece piece, final SOCPlayingPiece replacementPiece, final boolean isMoveOrReplacement)
     {
         D.ebugPrintln("--- SOCPlayer.removePiece(" + piece + ")");
 
@@ -3391,7 +3422,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     if ((replacementPiece == null)
                         || (replacementPiece.player != piece.player))
                     {
-                        removePieceUpdateSpecialVP(p);
+                        if (! isMoveOrReplacement)
+                            removePieceUpdateSpecialVP(p);
                     } else {
                         replacementPiece.specialVP = p.specialVP;
                         replacementPiece.specialVPEvent = p.specialVPEvent;
@@ -3636,9 +3668,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * As part of {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece) removePiece(SOCPlayingPiece, null)},
+     * As part of
+     * {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean) removePiece(SOCPlayingPiece, null, false)},
      * update player's {@link #specialVP} and related fields.
-     * Not called if the removed piece is being replaced by another one (settlement upgrade to city).
+     * Not called if the removed piece is being moved (a ship) or replaced by another one (settlement upgrade to city).
      * @param p  Our piece being removed, which has {@link SOCPlayingPiece#specialVP} != 0
      * @since 2.0.00
      */

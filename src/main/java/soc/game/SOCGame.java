@@ -3727,9 +3727,7 @@ public class SOCGame implements Serializable, Cloneable
             SOCSettlement se = new SOCSettlement(ppPlayer, coord, board);
 
             for (int i = 0; i < maxPlayers; i++)
-            {
-                players[i].removePiece(se, pp);
-            }
+                players[i].removePiece(se, pp, true);
 
             board.removePiece(se);
         }
@@ -4357,7 +4355,7 @@ public class SOCGame implements Serializable, Cloneable
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}
      * if a player gets the longest trade route.
      *<P>
-     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece, boolean) undoPutPieceCommon(sh, false)}
+     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece, boolean, boolean) undoPutPieceCommon(sh, false, true)}
      * and {@link #putPiece(SOCPlayingPiece)}.
      * Updates longest trade route.
      * Not for use with temporary pieces.
@@ -4385,7 +4383,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void moveShip(SOCShip sh, final int toEdge)
     {
-        undoPutPieceCommon(sh, false);
+        undoPutPieceCommon(sh, false, true);
         putPiece(new SOCShip(sh.getPlayer(), toEdge, board));  // calls checkForWinner, etc
         movedShipThisTurn = true;
     }
@@ -4395,15 +4393,15 @@ public class SOCGame implements Serializable, Cloneable
      * Used in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}
      * by {@link #attackPirateFortress(SOCShip)} and at the client.
      *<P>
-     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece, boolean) undoPutPieceCommon(sh, false)}.
-     * Not for use with temporary pieces.
+     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece, boolean, boolean) undoPutPieceCommon(sh, false, false)}.
+     * Not for use with temporary pieces or ship moves.
      *
      * @param sh  the ship to remove
      * @since 2.0.00
      */
     public void removeShip(SOCShip sh)
     {
-        undoPutPieceCommon(sh, false);
+        undoPutPieceCommon(sh, false, false);
     }
 
     /**
@@ -4417,9 +4415,12 @@ public class SOCGame implements Serializable, Cloneable
      * @param pp  the piece to remove from the board
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *            game's {@link SOCGameEventListener}.
+     * @param isMoveOrReplacement  Is the piece really being moved to a new location, or replaced with another?
+     *            If so, don't remove its {@link SOCPlayingPiece#specialVP} from player.
      * @since 1.1.00
      */
-    protected void undoPutPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
+    protected void undoPutPieceCommon
+        (SOCPlayingPiece pp, final boolean isTempPiece, final boolean isMoveOrReplacement)
     {
         //D.ebugPrintln("@@@ undoPutTempPiece "+pp);
         board.removePiece(pp);
@@ -4430,7 +4431,7 @@ public class SOCGame implements Serializable, Cloneable
         //
         for (int i = 0; i < maxPlayers; i++)
         {
-            players[i].undoPutPiece(pp);   // If state START2B or START3B, will also zero resources
+            players[i].undoPutPiece(pp, isMoveOrReplacement);   // If state START2B or START3B, will also zero resources
         }
 
         //
@@ -4459,7 +4460,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void undoPutTempPiece(SOCPlayingPiece pp)
     {
-        undoPutPieceCommon(pp, true);
+        undoPutPieceCommon(pp, true, false);
 
         //
         // update which player has longest road
@@ -4487,7 +4488,7 @@ public class SOCGame implements Serializable, Cloneable
         if (pp.getCoordinates() != pp.getPlayer().getLastSettlementCoord())
             throw new IllegalArgumentException("Not coordinate of last settlement");
 
-        undoPutPieceCommon(pp, false);  // Will also zero resources via player.undoPutPiece
+        undoPutPieceCommon(pp, false, false);  // Will also zero resources via player.undoPutPiece
 
         if (gameState == START1B)
             gameState = START1A;

@@ -122,6 +122,10 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Used with the {@link SOCGame#hasSeaBoard large sea board} game scenarios.
      * When {@link #specialVP} != 0, the source is {@link #specialVPEvent}.
      *<P>
+     * When setting or incrementing this field, should also increment/add to player's {@code specialVP} field.
+     * Don't just increase player's SVP by the piece's new {@code specialVP}, because piece may have accumulated SVP
+     * from multiple events which are already part of player's SVP amount.
+     *<P>
      * <b>Note:</b> This is set when the piece was placed, so it's always accurate at server.
      * At client it may be 0 if the client joined the game after this piece was placed.
      * @since 2.0.00

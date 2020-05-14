@@ -197,6 +197,22 @@ When preparing to release a new version, testing should include:
            - During Special Building, build ships to one of the Tribe's ports; pick up the port and place it
            - End Special Building; next player should be number 3, not number 1
            - During all that, second client should observe same sequence of current players
+       - Claiming gift Dev Cards and Ports with ship moves
+           - Build ships towards a gift Dev Card (yellow diamond) and gift Trading port
+           - Move a ship from elsewhere to claim the Dev Card: Should work as expected
+           - On next turn, move a ship from elsewhere to claim the port: Should work as expected
+           - Have observer briefly join game: Should see correct dev card count, port in new location
+       - Claiming Special Victory Points (SVPs) and ship moves
+           - Without using Free Placement debug mode:
+           - Build ships to claim 2 SVPs (green diamonds)
+           - Have observer briefly join game: Player and observer should see 2 SVPs, correct total VP amount
+           - On next turn, move furthest SVP ship to an empty edge
+           - Have observer briefly join game: Player and observer should still see 2 SVPs, correct total VP
+           - On next turn, move other SVP ship to claim a different SVP
+           - Have observer briefly join game: Player and observer should see 3 SVPs, correct total VP
+           - Build another ship on an empty edge
+           - On next turn, move that new ship to claim an SVP
+           - Have observer briefly join game: Player and observer should see 4 SVPs, correct total VP
        - Move the Robber, then make sure Robber can't be moved back to the small islands
      - Pirate Islands and Fortresses
        - Test visibility of Legal Sea Edges (dotted lines to fortress) for all 6 players

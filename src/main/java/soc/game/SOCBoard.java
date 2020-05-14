@@ -1963,7 +1963,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * remove a piece from the board.
      *<P>
-     * If you're calling {@link SOCPlayer#undoPutPiece(SOCPlayingPiece)},
+     * If you're calling {@link SOCPlayer#undoPutPiece(SOCPlayingPiece, boolean)},
      * call this method first.
      * @param piece  Piece to be removed from the board
      *     (identified by its piece type, coordinate, and player number)

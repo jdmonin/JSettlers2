@@ -19,10 +19,13 @@ and backport minor new features until `2.0.00` was ready.
 - Currently being developed
 - Gameplay:
 	- New optional house rule: On 6-player board, allow Special Building phase only if game actually has 5 or 6 players
-	- Bugfix: Forgotten Tribe scenario: While Special Building a ship, if a port was picked up and placed,
-	  turn order afterwards was incorrectly resumed at next clockwise player  
-	  (thanks Michi-3 for reporting github issue #71)
-	- Bugfix: Through The Desert scenario: Could not build roads on some edges of desert strip (also issue #71)
+	- Bugfixes at server:
+	  - Forgotten Tribe scenario: If a ship claimed a Special Victory Point and was later moved,
+	    player silently lost that SVP
+	    (thanks Michi-3 for reporting github issue #71)
+	  - Forgotten Tribe scenario: While Special Building a ship, if a port was picked up and placed,
+	    turn order afterwards was incorrectly resumed at next clockwise player (also issue #71)
+	  - Through The Desert scenario: Could not build roads on some edges of desert strip (also #71)
 - Client:
 	- Game window:
 	  - Hotkeys:
