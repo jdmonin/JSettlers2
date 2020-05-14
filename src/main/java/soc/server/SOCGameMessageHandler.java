@@ -2261,6 +2261,7 @@ public class SOCGameMessageHandler
         if (! ga.isDebugFreePlacement())
             return;
         final String gaName = ga.getName();
+        final int gstate = ga.getGameState();
 
         final int coord = mes.getCoordinates();
         final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
@@ -2272,6 +2273,7 @@ public class SOCGameMessageHandler
 
         final boolean initialDeny
             = ga.isInitialPlacement() && ! player.canBuildInitialPieceType(pieceType);
+        boolean denyInSpecial = false;
 
         switch (pieceType)
         {
@@ -2302,8 +2304,13 @@ public class SOCGameMessageHandler
         case SOCPlayingPiece.SHIP:
             if (ga.canPlaceShip(player, coord) && ! initialDeny)
             {
-                ga.putPiece(new SOCShip(player, coord, null));
-                didPut = true;
+                if (player.canPlaceShip_debugFreePlace(coord))
+                {
+                    ga.putPiece(new SOCShip(player, coord, null));
+                    didPut = true;
+                } else {
+                    denyInSpecial = true;
+                }
             }
             break;
 
@@ -2331,10 +2338,13 @@ public class SOCGameMessageHandler
                     (gaName, player.getPlayerNumber(), SOCSimpleRequest.PROMPT_PICK_RESOURCES, numGoldRes));
             }
 
-            if (ga.getGameState() >= SOCGame.OVER)
+            final int newState = ga.getGameState();
+            if (newState >= SOCGame.OVER)
             {
                 // exit debug mode, announce end of game
                 handler.processDebugCommand_freePlace(c, ga, "0");
+                handler.sendGameState(ga, false, false);
+            } else if (newState != gstate) {
                 handler.sendGameState(ga, false, false);
             }
         } else {
@@ -2345,6 +2355,8 @@ public class SOCGameMessageHandler
                     ? "settlement"
                     : "road";
                 srv.messageToPlayer(c, gaName, "Place a " + pieceTypeFirst + " before placing that.");
+            } else if (denyInSpecial) {
+                srv.messageToPlayer(c, gaName, "Can't currently do that during Free Placement.");
             } else {
                 srv.messageToPlayer(c, gaName, "Not a valid location to place that.");
             }

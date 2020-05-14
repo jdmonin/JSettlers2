@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -24,16 +24,25 @@ import java.util.StringTokenizer;
  * This debug message from client to server means that a player
  * is asking to place a piece on the board, without spending
  * resources or checking the current player.  The server will
- * send {@link SOCPutPiece} in reply.
+ * send {@link SOCPutPiece} in reply, or {@link SOCGameServerText}
+ * if it declines the request.
+ *<P>
+ * A few scenario-specific conditions might cause server to decline the request;
+ * see {@link soc.game.SOCPlayer#canPlaceShip_debugFreePlace(int)}.
+ * Other conditions might cause server to send additional messages when replying
+ * to a successful request, like {@link SOCInventoryItemAction} and
+ * {@link SOCGameState}({@link soc.game.SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM})
+ * for port placement in scenario {@link soc.game.SOCGameOption#K_SC_FTRI SC_FTRI}.
  *<P>
  * When sent from server to client, the message is a generic message to
  * acknowledge that the "Free Placement" debug-mode has been turned on or off.
- * {@link #getCoordinates()} will return 1 for on, 0 for off.
+ * {@link #getCoordinates()} is 1 for on, 0 for off.
  *<P>
  * Introduced in 1.1.12; check client version against {@link SOCDebugFreePlace#VERSION_FOR_DEBUGFREEPLACE}
  * before sending this message.
  *
  * @author Jeremy D Monin
+ * @since 1.1.12
  */
 public class SOCDebugFreePlace extends SOCMessage
     implements SOCMessageForGame

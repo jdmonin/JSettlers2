@@ -1345,8 +1345,9 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * If this scenario has dev cards or items waiting to be claimed by any player,
-     * draw the next item from that stack.
+     * If this scenario has a separate stack of dev cards or items waiting to be claimed by any player,
+     * draw the next item from that stack. This is not the regular dev card deck used by
+     * {@link SOCGame#buyDevCard()}, although its items may have come from there during game setup.
      *<P>
      * This is called at server, but not at client; client instead receives messages from the server
      * when the player claims such an item.  It's declared here in SOCBoardLarge instead of

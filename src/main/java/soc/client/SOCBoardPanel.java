@@ -5710,20 +5710,32 @@ import javax.swing.JComponent;
             if (game.isDebugFreePlacement())
             {
                 topText = "DEBUG: Free Placement Mode";
-                switch(player.getPieces().size())
+
+                if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
                 {
-                case 1:
-                case 3:
-                    mode = PLACE_INIT_ROAD;
-                    break;
+                    if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                    {
+                        mode = SC_FTRI_PLACE_PORT;
+                        repaint();
+                    } else {
+                        mode = NONE;
+                    }
+                } else {
+                    switch(player.getPieces().size())
+                    {
+                    case 1:
+                    case 3:
+                        mode = PLACE_INIT_ROAD;
+                        break;
 
-                case 0:
-                case 2:
-                    mode = PLACE_INIT_SETTLEMENT;
-                    break;
+                    case 0:
+                    case 2:
+                        mode = PLACE_INIT_SETTLEMENT;
+                        break;
 
-                default:
-                    mode = NONE;
+                    default:
+                        mode = NONE;
+                    }
                 }
             }
             else if (cpn == playerNumber)

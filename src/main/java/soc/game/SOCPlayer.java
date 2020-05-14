@@ -2549,6 +2549,38 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * During {@link SOCGame#isDebugFreePlacement()}, check whether this ship placement would
+     * run into any scenario-specific conditions not currently handled by Free Placement code
+     * at game, server, or client. Server should reject such a placement request.
+     *<P>
+     * Doesn't re-check the standard conditions in {@link SOCGame#canPlaceShip(SOCPlayer, int)}.
+     * Currently allows any placement, except:
+     *<UL>
+     * <LI> {@link SOCGameOption#K_SC_FTRI SC_FTRI}: If not current player,
+     *      can't Free Place at an edge which would pick up a free port for placement:
+     *      {@link SOCBoardLarge#canRemovePort(int)}
+     *</UL>
+     *
+     * @param shipEdge  Edge to check for placing a ship in Free Placement mode
+     * @return true if this player's ship could be placed there. Defaults to true.
+     * @since 2.3.00
+     */
+    public boolean canPlaceShip_debugFreePlace
+        (final int shipEdge)
+    {
+        // checks similar conditions to putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges(..)
+
+        if ((! game.hasSeaBoard) || (playerNumber == game.getCurrentPlayerNumber()))
+            return true;
+
+        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
+            && ((SOCBoardLarge) game.getBoard()).canRemovePort(shipEdge))
+            return false;
+
+        return true;
+    }
+
+    /**
      * Put a piece into play.
      * {@link #updatePotentials(SOCPlayingPiece) Update potential} piece lists.
      * For roads, update {@link #roadNodes} and {@link #roadNodeGraph}.
@@ -2910,8 +2942,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         final int seType = board.getSpecialEdgeType(edge);
         if (seType != 0)
         {
-            SOCPlayer currentPlayer = game.getPlayer(game.getCurrentPlayerNumber());
-
             switch (seType)
             {
             case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
@@ -2923,14 +2953,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         // Dev cards were set aside at start of game; get one now
                         Integer ctypeObj = board.drawItemFromStack();
                         cardtype = (ctypeObj != null) ? ctypeObj : SOCDevCardConstants.KNIGHT;
-                        currentPlayer.getInventory().addDevCard(1, SOCInventory.NEW, cardtype);
+                        newShip.player.getInventory().addDevCard(1, SOCInventory.NEW, cardtype);
                     } else {
                         cardtype = SOCDevCardConstants.UNKNOWN;
                     }
 
                     if (game.gameEventListener != null)
                         game.gameEventListener.playerEvent
-                            (game, currentPlayer, SOCPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
+                            (game, newShip.player, SOCPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
                              false, new soc.util.IntPair(edge, cardtype));
                 }
                 break;
@@ -2946,7 +2976,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                     if (game.gameEventListener != null)
                         game.gameEventListener.playerEvent
-                            (game, currentPlayer, SOCPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
+                            (game, newShip.player, SOCPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
                              false, edge);
                 }
                 break;
