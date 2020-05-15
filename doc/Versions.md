@@ -35,6 +35,7 @@ and backport minor new features until `2.0.00` was ready.
 	  - Draw ships with slimmer sails, for better spacing next to other pieces
 	  - Bugfix: If player had SVP, square showing SVP amount overlapped trade offer display  
 	    and, at end of game, their revealed VP cards
+	  - Bugfix: Wonders scenario: Player's Wonder shown in hand panel overlapped trade offer display
 	- Bugfix: If started a practice game, then connected to a server game:
 	  - Practice game trades stopped working
 	  - Might've joined server game as "Player" or "null"

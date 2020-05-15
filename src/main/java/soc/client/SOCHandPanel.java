@@ -4382,7 +4382,8 @@ import javax.swing.UIManager;
                 // TODO chk num lines here
                 final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
                 int topFaceAreaHeight = inset + faceW + space;
-                if ((svpSq != null) && svpSq.isVisible())
+                if (((svpSq != null) && svpSq.isVisible())
+                    || ((wonderLab != null) && wonderLab.isVisible()))
                 {
                     final int ybelow = svpSq.getY() + svpSq.getHeight() + space;
                     if (ybelow > topFaceAreaHeight)
