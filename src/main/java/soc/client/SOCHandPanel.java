@@ -3717,15 +3717,11 @@ import javax.swing.UIManager;
             break;
 
         case LongestRoad:
-
             setLRoad(player.hasLongestRoad());
-
             break;
 
         case LargestArmy:
-
             setLArmy(player.hasLargestArmy());
-
             break;
 
         case Clay:
@@ -3790,9 +3786,7 @@ import javax.swing.UIManager;
             break;
 
         case DevCards:
-
             developmentSq.setIntValue(player.getInventory().getTotal());
-
             break;
 
         case Knight:
@@ -4120,7 +4114,7 @@ import javax.swing.UIManager;
             lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
                 (dim.width - (topStuffW + inset + space)) / 2, lineH);
 
-            // SVP goes below Victory Points count; usually invisible
+            // SVP goes below Victory Points count; usually unused or 0, thus invisible
             if (svpSq != null)
             {
                 y += (lineH + 1);
@@ -4384,10 +4378,17 @@ import javax.swing.UIManager;
                         : ColorSquare.HEIGHT;  // small stand-in
                 if (isCounterOfferMode)
                     offerMinHeight += counterOfferHeight + space;
+
                 // TODO chk num lines here
-                final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4,
-                          topFaceAreaHeight = inset + faceW + space,
-                          availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
+                final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
+                int topFaceAreaHeight = inset + faceW + space;
+                if ((svpSq != null) && svpSq.isVisible())
+                {
+                    final int ybelow = svpSq.getY() + svpSq.getHeight() + space;
+                    if (ybelow > topFaceAreaHeight)
+                        topFaceAreaHeight = ybelow;
+                }
+                final int availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
                 int miy = 0, mih = 0;  // miscInfoArea y and height, if visible
 
                 if ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled)
@@ -4425,15 +4426,15 @@ import javax.swing.UIManager;
                     // pname, vpLab and vpSq, to make room for it.
                     if (offerCounterHidingFace)
                     {
+                        py = inset;
                         ph = Math.min(dim.height - (2 * inset), offerPrefSize.height);
                         // messagePanel is hidden, since offerCounterHidingFace.
-                        py = inset;
                         offerPanel.setBounds(inset, py, offerW, ph);
                         counterOfferPanel.setBounds
                             (inset, py + ph + space, offerW, counterOfferHeight);
                     } else {
-                        ph = Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height);
-                        py = inset + faceW + space;
+                        py = topFaceAreaHeight;
+                        ph = Math.min(dim.height - (py + space), offerPrefSize.height);
                         messagePanel.setBounds(inset, py, offerW, ph);
                         offerPanel.setBounds
                             (inset, py, offerW, ph);
@@ -4455,7 +4456,7 @@ import javax.swing.UIManager;
                 } else {
                     // usual size & position
 
-                    int py = inset + faceW + space;
+                    int py = topFaceAreaHeight;
 
                     if (offerPanel != null)
                     {
@@ -4493,15 +4494,6 @@ import javax.swing.UIManager;
                 }
                 if (mih != 0)
                 {
-                    if ((svpSq != null) && svpSq.isVisible())
-                    {
-                        final int ybelow = svpSq.getY() + svpSq.getHeight() + space;
-                        if (ybelow > miy)
-                        {
-                            mih -= (miy - ybelow);
-                            miy = ybelow;
-                        }
-                    }
                     if (mih < lineH)
                         mih = lineH;
                     miscInfoArea.setBounds(inset, miy, dim.width - 2 * inset, mih);

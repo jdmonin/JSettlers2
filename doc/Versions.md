@@ -30,7 +30,8 @@ and backport minor new features until `2.0.00` was ready.
 	    - End turn (Done) with Ctrl-D/Alt-D/Cmd-D
 	    - Accept/ReJect/Counter trade offers when just one is visible, with Ctrl/Alt/Cmd + A/J/C
 	  - Draw ships with slimmer sails, for better spacing next to other pieces
-	  - Bugfix: At end of game: If player had SVP, their revealed VP card names overlapped square showing SVP amount
+	  - Bugfix: If player had SVP, square showing SVP amount overlapped trade offer display  
+	    and, at end of game, their revealed VP cards
 	- Bugfix: If started a practice game, then connected to a server game:
 	  - Practice game trades stopped working
 	  - Might've joined server game as "Player" or "null"
