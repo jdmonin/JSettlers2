@@ -2643,8 +2643,8 @@ public class SOCPlayerInterface extends Frame
         {
             game.checkForWinner();  // Assumes "current player" set to winner already, by SETTURN msg
         }
-        for (int i = 0; i < finalScores.length; ++i)
-            hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
+        for (int pn = 0; pn < finalScores.length; ++pn)
+            hands[pn].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
 
         // reveal each player's VP cards
         for (int pn = 0; pn < finalScores.length; ++pn)

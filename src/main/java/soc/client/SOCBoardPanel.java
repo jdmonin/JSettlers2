@@ -7082,11 +7082,30 @@ import javax.swing.JComponent;
         return ! buildReqTimerTask.wasItSentAlready();
     }
 
-    // TODO javadoc; @since 1.1.00
+    /**
+     * Since player has chosen a piece to build from the right-click popup menu,
+     * set fields to expect a placing GameState reply from server.
+     * In case server doesn't reply, starts a timer to eventually send the
+     * build-piece request regardless, after canceling any previous timer.
+     *<P>
+     * Does not send the initial build-type request; caller should do so afterwards
+     * with {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)}.
+     *<P>
+     * To cancel this new pending build request, call {@link #popupClearBuildRequest()}.
+     *<P>
+     * When client receives the expected GameState from server, other client code will respond
+     * by calling {@link #popupFireBuildingRequest()}.
+     *
+     * @param coord  Piece's edge or node coordinate
+     * @param ptype  Piece type, like {@link SOCPlayingPiece#ROAD}
+     * @see #popupExpectingBuildRequest()
+     * @since 1.1.00
+     */
     public void popupSetBuildRequest(int coord, int ptype)
     {
         if (coord == -1)
             coord = 0;  // road on edge 0x00
+
         Timer piTimer = playerInterface.getEventTimer();
         synchronized (piTimer)
         {
@@ -7123,6 +7142,7 @@ import javax.swing.JComponent;
 
     /**
      * Client has received gamestate placing message; send the building request in reply.
+     * @see #popupSetBuildRequest(int, int)
      * @since 1.1.00
      */
     public void popupFireBuildingRequest()

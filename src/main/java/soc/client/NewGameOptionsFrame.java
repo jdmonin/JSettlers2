@@ -495,7 +495,7 @@ import soc.util.Version;
 
     /**
      * Interface setup: {@link SOCGameOption}s, user's client preferences, per-game local preferences.
-     * One row per option, except for 3-letter options which group with 2-letter ones.
+     * One row per option; groups 3-letter options under their matching 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
      * When showing options to create a new game, option keys starting with '_' are hidden.
@@ -604,7 +604,6 @@ import soc.util.Version;
             {
                 // Group them under this one.
                 // Sort by each opt's key, for stability across localizations.
-                // TODO group on same line, not following lines, if there's only 1.
 
                 optGroup.clear();
 

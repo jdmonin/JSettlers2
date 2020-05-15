@@ -3829,7 +3829,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Listener callback for per-player scenario events on the large sea board.
+     * Listener callback for per-player game/scenario events on the large sea board.
      * For example, there might be an SVP awarded for settlements.
      * Server sends messages to the game to announce it (PLAYERELEMENT,
      * {@link #updatePlayerSVPPendingMessage(SOCGame, SOCPlayer, int, String)}, etc).
