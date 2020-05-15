@@ -988,7 +988,11 @@ updates VERSIONS.txt with the final build number, with a commit message like:
 Then: `git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'`
 
 The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
-http://sourceforge.net/projects/jsettlers2/ through 2012-09-28.
+http://sourceforge.net/projects/jsettlers2/ , converted to git on 2012-09-28
+with cvs2git (cvs2svn 2.4.0).
+
 The old 1.0.x source history (2004-2005) from Robert S Thomas and Chad McHenry
 can be found at https://github.com/jdmonin/JSettlers1
 or http://sourceforge.net/projects/jsettlers/ .
+That JSettlers1 repo also includes jsettlers-1-1-branch which has
+Jeremy Monin's first JSettlers releases 1.1.00 through 1.1.06.

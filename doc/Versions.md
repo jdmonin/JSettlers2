@@ -1,6 +1,7 @@
 # Released Versions of JSettlers
 
-Project home and source history are at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2)
+Project home and source history are at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2).
+Source history for version `1.1.06` and earlier is at [https://github.com/jdmonin/JSettlers1](https://github.com/jdmonin/JSettlers1).
 
 JARs for recent JSettlers versions can be downloaded from
 [https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases) .
