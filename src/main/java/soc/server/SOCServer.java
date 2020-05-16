@@ -361,7 +361,9 @@ public class SOCServer extends Server
      * When server is starting robot-only games ({@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} > 0),
      * start this many at once.
      *<P>
-     * Default is 2. Use 0 to start them all.
+     * Default is 4. Use 0 to start them all.
+     *<BR>
+     * Before v2.3.00, default was 2.
      *
      * @since 2.0.00
      */
@@ -590,7 +592,7 @@ public class SOCServer extends Server
             // -- not used yet at server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
         PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES, "Robot-only games: Game size/board type mix (default 1)",
-        PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL,  "Start this many robot-only games at a time (default 2)",
+        PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL,  "Start this many robot-only games at a time (default 4)",
         PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC, "Wait at startup before starting robot-only games (default 1.6 seconds)",
         PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN,  "After running the robot-only games, shut down the server if no other games are active (if Y)",
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
@@ -6640,7 +6642,7 @@ public class SOCServer extends Server
      * Later as these games end, the server will start new games as long as
      * {@link #numRobotOnlyGamesRemaining} &gt; 0 at the time.
      *<P>
-     * Starts 2 games here unless {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL} is set.
+     * Starts 4 games at server startup unless {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL} is set to another value.
      *<P>
      * If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES} is set, will start an even mix of game sizes and board types.
      * If testing a third-party bot which has a limited {@link SOCFeatureSet}, that bot can still be selected to join
@@ -6663,7 +6665,7 @@ public class SOCServer extends Server
         {
             nParallel = 1;
         } else {
-            nParallel = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL, 2);
+            nParallel = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL, 4);
             if (nParallel == 0)
                 nParallel = numRobotOnlyGamesRemaining;
         }

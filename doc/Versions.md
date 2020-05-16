@@ -76,6 +76,7 @@ and backport minor new features until `2.0.00` was ready.
 	  can specify a mix of game sizes and board types with new startup option:  
 	  `-Djsettlers.bots.botgames.gametypes=3`  
 	  For details, search for that property in src/main/bin/jsserver.properties.sample
+	- Increased `jsettlers.bots.botgames.parallel` default to 4 from 2
 - Network/Message traffic:
 	- Game/board data sent by server to client joining a game:
 	  - For 6-player game, send players' ASK_SPECIAL_BUILD flag if set
@@ -195,8 +196,9 @@ and backport minor new features until `2.0.00` was ready.
 	  Their option keynames all start with '_' and are hidden in the New Game options window.
 	- Player's inventory can hold more than just development cards
 - For AI/Robot development:
-	- The server can run bot-only games with new startup option:  
-	  `-Djsettlers.bots.botgames.total=7`
+	- The server can run bot-only games with new startup options:  
+	  `-Djsettlers.bots.botgames.total=7`  
+	  `-Djsettlers.bots.botgames.parallel=3`
 	- Those bot-only games begin at server startup, or can be delayed with startup option:  
 	  `-Djsettlers.bots.botgames.wait_sec=30`
 	  (this example uses 30 seconds) to give bot clients more time to connect first.

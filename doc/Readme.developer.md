@@ -739,9 +739,12 @@ For bot testing and statistics, you can have the server run some robot-only
 games (no human players) with the `jsettlers.bots.botgames.total` server property.
 To run 7 robot-only games in a row, with each game randomly choosing from 10
 robot players, you could start the server with:
-`-Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7`. The robot-only
-games run at a quick pace, about 2 minutes for a 4-player game. You can use the
-jsettlers client to observe a bot game as it plays.
+`-Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7`.
+To start more of them at once, increase parallel property (default 4):
+`-Djsettlers.bots.botgames.parallel=7`
+
+The robot-only games run at a quick pace, about 2 minutes for a 4-player game.
+You can use the jsettlers client to observe a bot game as it plays.
 
 To speed up or slow down robot-only games, start the server with this tuning
 option to set the length of SOCRobotBrain pauses during bot-only games: For
