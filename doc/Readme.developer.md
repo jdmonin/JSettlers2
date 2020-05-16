@@ -81,7 +81,8 @@ To no longer show those coordinates, type: `=*= hidecoords`
 
 Coding is done in Java 7, but should compile cleanly in newer JDKs.
 (v2.0 and 2.1 used java 6 for backwards compatibility; 1.2 used java 5.)
-The build system is gradle 5.6 or higher (which requires java 8). Use any IDE you want, including vi.
+The build system is gradle 5.6 or higher (which requires java 8);
+the newest tested version is gradle 6.4. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
 
