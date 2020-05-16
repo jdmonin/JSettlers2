@@ -72,6 +72,10 @@ and backport minor new features until `2.0.00` was ready.
 	  - Use new ship's player, not current player, for SVP and dev card gifts
 - For AI/Robot development:
 	- SOCRobotBrain debug stack trace: Print bot name
+	- When server starts robot-only games (jsettlers.bots.botgames.total > 0),
+	  can specify a mix of game sizes and board types with new startup option:  
+	  `-Djsettlers.bots.botgames.gametypes=3`  
+	  For details, search for that property in src/main/bin/jsserver.properties.sample
 - Network/Message traffic:
 	- Game/board data sent by server to client joining a game:
 	  - For 6-player game, send players' ASK_SPECIAL_BUILD flag if set

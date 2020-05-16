@@ -748,6 +748,15 @@ option to set the length of SOCRobotBrain pauses during bot-only games: For
 example `-Djsettlers.bots.fast_pause_percent=10` will pause for only 10% as long
 as in normal games.
 
+To start robot-only games with an equal mix of different sizes and boards,
+set optional property `jsettlers.bots.botgames.gametypes`:
+
+| Value | Game sizes and board types |
+| --- | --- |
+| 1 (default) | Classic 4-player only |
+| 2 | Classic 4- and 6-player |
+| 3 | Classic and sea board (no scenarios), both 4- and 6-player |
+
 For testing purposes, if you want the server to exit after running all its
 robot-only games, start the server with `-Djsettlers.bots.botgames.shutdown=Y` .
 

@@ -72,8 +72,9 @@ When preparing to release a new version, testing should include:
     - If you have a linux or windows server, use that instead of your laptop/desktop;
       on linux, end the command line with ` &` to keep running in background
     - Should stay up for several days including activity (bot games)
-    - Run several bot games (`-Djsettlers.bots.botgames.total=5`);
-      join one as observer to make sure the pause is shorter than normal games
+    - Run several bot games (`-Djsettlers.bots.botgames.total=5 -Djsettlers.bots.botgames.gametypes=3`)
+      - Join one as observer; pause should be shorter than normal games
+      - View Game Info of each; should be a mix of 4- and 6-player, classic and sea board
 - New features in previous 2 versions from [Versions.md](Versions.md)
 - Each available game option
     - For house rule game opt "6-player board: Can Special Build only if 5 or 6 players in game",  
@@ -508,7 +509,7 @@ When preparing to release a new version, testing should include:
     - For standalone/third-party robot clients, which server invites to games:
         - Start a server which expects third-party bots, with these command-line parameters:  
           `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50`
-        - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which does not use the Game Scenarios client feature, with these command-line parameters:  
+        - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which is limited to not use the Game Scenarios client feature, with these command-line parameters:  
           `localhost 8880 samplebot1 x foo`
         - Start another Sample3PClient:  
           `localhost 8880 samplebot2 x foo`
@@ -835,7 +836,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  
-      `java -jar JSettlersServer-2.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+      `java -jar JSettlersServer-2.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.gametypes=3 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
     - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
     - These games should complete in under 10 minutes
     - Once the games complete, that server will exit

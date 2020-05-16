@@ -312,6 +312,8 @@ public class SOCServer extends Server
      * {@link #PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT} and
      * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL}.
      *<P>
+     * To start games of different sizes/board types, set {@link #PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES}.
+     *<P>
      * To wait at server startup time before starting these games, use
      * {@link #PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC}. To shut down the server
      * after they all finish, use {@link #PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN}.
@@ -330,6 +332,29 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL = "jsettlers.bots.botgames.total";
+
+    /**
+     * Integer property {@code jsettlers.bots.botgames.gametypes}: The mix of game sizes and board types
+     * to use when starting bot-only games ({@link #PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} > 0).
+     *<UL>
+     * <LI> 1 (default): Only 4-player games
+     * <LI> 2: Also 6-player games (50/50 mix)
+     * <LI> 3: Also sea board (50/50 mix of sea/classic, still 50/50 mix of 4- and 6-player)
+     *      with no scenarios
+     * <LI> Any other number: Will not run
+     *</UL>
+     * Ignored unless {@code PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL} > 0.
+     * @see #BOTS_BOTGAMES_GAMETYPES_MAX
+     * @since 2.3.00
+     */
+    public static final String PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES = "jsettlers.bots.botgames.gametypes";
+
+    /**
+     * Maximum recognized value for {@link #PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES}: 3.
+     * May increase in a later version.
+     * @since 2.3.00
+     */
+    public static final int BOTS_BOTGAMES_GAMETYPES_MAX = 3;
 
     /**
      * Integer property <tt>jsettlers.bots.botgames.parallel</tt>:
@@ -564,6 +589,7 @@ public class SOCServer extends Server
         // I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US, for console output",
             // -- not used yet at server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
+        PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES, "Robot-only games: Game size/board type mix (default 1)",
         PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL,  "Start this many robot-only games at a time (default 2)",
         PROP_JSETTLERS_BOTS_BOTGAMES_WAIT__SEC, "Wait at startup before starting robot-only games (default 1.6 seconds)",
         PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN,  "After running the robot-only games, shut down the server if no other games are active (if Y)",
@@ -1693,14 +1719,20 @@ public class SOCServer extends Server
         numRobotOnlyGamesRemaining = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
         if (numRobotOnlyGamesRemaining > 0)
         {
-                final int n = SOCGame.MAXPLAYERS_STANDARD;
-                if (n > getConfigIntProperty(PROP_JSETTLERS_STARTROBOTS, 0))
-                {
-                    final String errmsg =
-                        ("*** To start robot-only games, server needs at least " + n + " robots started.");
-                    System.err.println(errmsg);
-                    throw new IllegalArgumentException(errmsg);
-                }
+            final int n = SOCGame.MAXPLAYERS_STANDARD;
+            if (n > getConfigIntProperty(PROP_JSETTLERS_STARTROBOTS, 0))
+            {
+                final String errmsg =
+                    ("*** To start robot-only games, server needs at least " + n + " robots started.");
+                System.err.println(errmsg);
+                throw new IllegalArgumentException(errmsg);
+            }
+
+            int gt = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES, 1);
+            if ((gt < 1) || (gt > BOTS_BOTGAMES_GAMETYPES_MAX))
+                throw new IllegalArgumentException
+                    ("Config: " + PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES
+                     + " must be in range 1 - " + BOTS_BOTGAMES_GAMETYPES_MAX);
         }
 
         if (CLIENT_MAX_CREATE_CHANNELS != 0)
@@ -6610,6 +6642,10 @@ public class SOCServer extends Server
      *<P>
      * Starts 2 games here unless {@link #PROP_JSETTLERS_BOTS_BOTGAMES_PARALLEL} is set.
      *<P>
+     * If {@link #PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES} is set, will start an even mix of game sizes and board types.
+     * If testing a third-party bot which has a limited {@link SOCFeatureSet}, that bot can still be selected to join
+     * games which use classic board with 4 and possibly 6 players. Built-in bots will fill the other started games.
+     *<P>
      * <B>Locks:</b> May or may not have {@link SOCGameList#takeMonitor()} when calling;
      * see {@code hasGameListMonitor} parameter.  If not already held, this method takes and releases that monitor.
      *
@@ -6620,6 +6656,8 @@ public class SOCServer extends Server
      */
     private void startRobotOnlyGames(final boolean wasGameDestroyed, final boolean hasGameListMonitor)
     {
+        final int gameTypes = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_GAMETYPES, 1);
+
         int nParallel;
         if (wasGameDestroyed)
         {
@@ -6630,19 +6668,45 @@ public class SOCServer extends Server
                 nParallel = numRobotOnlyGamesRemaining;
         }
 
+        StringBuilder desc = new StringBuilder();
         for (int i = 0; (i < nParallel) && (numRobotOnlyGamesRemaining > 0); ++i)
         {
-            String gaName = "~botsOnly~" + numRobotOnlyGamesRemaining;
+            final int gameNum = numRobotOnlyGamesRemaining;
+            String gaName = "~botsOnly~" + gameNum;
+            final Map<String, SOCGameOption> opts = SOCGameOption.getAllKnownOptions();
+            if (gameTypes > 1)
+            {
+                desc.setLength(0);
+
+                if (0 != (gameNum & 0x01))
+                {
+                    opts.get("PL").setIntValue(6);
+                    opts.get("PLB").setBoolValue(true);
+                    desc.append(": PL=6");
+                } else {
+                    desc.append(": PL=4");
+                }
+
+                if (gameTypes > 2)
+                {
+                    if (0 != (gameNum & 0x02))
+                    {
+                        opts.get("SBL").setBoolValue(true);
+                        desc.append(", Sea Board");
+                    }
+                }
+            }
 
             SOCGame newGame = createGameAndBroadcast
-                (null, gaName, SOCGameOption.getAllKnownOptions(), null, Version.versionNumber(),
+                (null, gaName, opts, null, Version.versionNumber(),
                  true, hasGameListMonitor);
 
             if (newGame != null)
             {
                 --numRobotOnlyGamesRemaining;
 
-                System.out.println("Started bot-only game: " + gaName);
+                gaName = newGame.getName();  // in case was changed to avoid duplicate
+                System.out.println("Started bot-only game: " + gaName + desc.toString());
                 newGame.setGameState(SOCGame.READY);
                 if (! readyGameAskRobotsJoin(newGame, null, null, 0))
                 {
@@ -6650,7 +6714,7 @@ public class SOCServer extends Server
                     newGame.setGameState(SOCGame.OVER);
                 }
             } else {
-                // TODO game name existed
+                // TODO couldn't create game; maybe try another to keep the loop going?
             }
         }
     }

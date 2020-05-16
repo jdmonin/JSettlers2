@@ -210,10 +210,21 @@
 # will replace the human, and the game will continue as a robots-only game.
 # Otherwise any robots-only game will be ended even if it has observers.
 #
-# To adjust the robot-only game speed and server load, use
+# To run a mix of game sizes and board types, use with
+# jsettlers.bots.botgames.gametypes.
+# To adjust the robot-only game speed and server load, use with
 # jsettlers.bots.fast_pause_percent and jsettlers.bots.botgames.parallel .
 #
 # jsettlers.bots.botgames.total=0
+
+# When server is starting robot-only games (jsettlers.bots.botgames.total > 0),
+# specify the mix of different game sizes and boards:
+# 1 (default): Only 4-player games
+# 2: Also 6-player games (50/50 mix)
+# 3: Also sea board (50/50 mix of sea/classic, 50/50 mix of 4- and 6-player)
+#    with no scenarios
+# Any other number: Will not run
+# jsettlers.bots.botgames.gametypes=1
 
 # When server is starting robot-only games (jsettlers.bots.botgames.total > 0),
 # start this many at once. Use 0 to start them all.
