@@ -432,10 +432,10 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * create a new game, and add to the list; game will expire in {@link #GAME_TIME_EXPIRE_MINUTES} minutes.
-     * If a game already exists (per {@link #isGame(String)}), do nothing.
+     * If a game already exists (per {@link #isGame(String)}), tries to add suffix to {@code gaName} to get an unused name.
      * Uses {@code handler} to call {@link SOCGame#setClientFeaturesRequired(SOCFeatureSet)}.
      *
-     * @param gaName  the name of the game
+     * @param gaName  the requested name of the game
      * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)
      * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed (added in 2.0.00)
      * @param gaOpts  if game has options, its {@link SOCGameOption}s; otherwise null.
@@ -458,7 +458,7 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * Add a game to the list; game will expire in {@link #GAME_TIME_EXPIRE_MINUTES} minutes.
-     * If a game already exists (per {@link #isGame(String)}), try to rename or add suffix to get an unused name.
+     * If a game already exists (per {@link #isGame(String)}), tries to rename or add suffix to get an unused name.
      * Uses {@code handler} to call {@link SOCGame#setClientFeaturesRequired(SOCFeatureSet)}.
      *
      * @param game  the game to be added

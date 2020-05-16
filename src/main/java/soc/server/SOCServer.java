@@ -2715,7 +2715,9 @@ public class SOCServer extends Server
      * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
      *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
      *             will be called.  Can be null, especially if {@code isBotsOnly}.
-     * @param gaName  the name of the game; no game should be in game list yet with this name.
+     * @param gaName  requested name of the game; no game should be in game list yet with this name.
+     *             If another game with this name does exist, tries to rename {@code gaName}
+     *             (see {@link SOCGameListAtServer#createGame(String, String, String, Map, GameHandler)}).
      *             Ignored if {@code loadedGame != null}. Not validated or trimmed, see
      *             {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)} for that.
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
@@ -2733,7 +2735,7 @@ public class SOCServer extends Server
      * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already.
      *                If true, this method won't take or release that monitor.  Otherwise will take it before creating
      *                the game, and release it before calling {@link #broadcast(String)}.
-     * @return  Newly created game, or null if game name exists or an unexpected error occurs during creation
+     * @return  Newly created game, or null if an unexpected error occurs during creation
      * @throws NoSuchElementException if {@code loadedGame != null}, its game name is already in use,
      *           and an unused name couldn't be generated.
      * @since 2.0.00
@@ -2760,12 +2762,10 @@ public class SOCServer extends Server
                 localeStr = (scd != null) ? scd.localeStr : null;
 
             if (loadedGame != null)
-            {
                 newGame = gameList.addGame(loadedGame, handler, owner, localeStr);  // may throw NoSuchElementException
-                gaName = loadedGame.getName();  // in case was renamed
-            } else {
+            else
                 newGame = gameList.createGame(gaName, owner, localeStr, gaOpts, handler);
-            }
+            gaName = newGame.getName();  // in case was renamed
 
             if (isBotsOnly)
                 newGame.isBotsOnly = true;
