@@ -715,11 +715,13 @@ public class SOCPlayerInterface extends Frame
      * Add one hotkey's bindings to an {@link InputMap}.
      * Hotkey shortcuts always respond to Ctrl + letter, and also Cmd on MacOSX or Alt on Windows.
      * On Windows, also calls {@link JButton#setMnemonic(int) btn.setMnemonic(vkChar)}.
+     * @param im  InputMap to add to
      * @param vkChar  Unmasked key to use, like {@link KeyEvent#VK_R}
      * @param eventStr  Unique event to pair InputMap to ActionMap, like {@code "hotkey_roll"}
      * @param btn  Button, to call {@link JButton#setMnemonic(int)} for Alt + {@code vkChar};
      *     {@code null} if there's no associated button and on Windows this method should
      *     directly add the mapping with {@link InputEvent#ALT_DOWN_MASK}
+     * @see #removeHotkeysInputMap_one(InputMap, int)
      * @since 2.3.00
      */
     /* package */ static void addHotkeysInputMap_one
@@ -739,6 +741,30 @@ public class SOCPlayerInterface extends Frame
             // also respond to Cmd on MacOSX
             im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.META_DOWN_MASK), eventStr);
         }
+    }
+
+    /**
+     * Remove one hotkey's bindings from an {@link InputMap}.
+     * Will clear bindings for Ctrl + letter, and also Cmd on MacOSX or Alt on Windows,
+     * by setting their action to {@code "none"}.
+     * @param im  InputMap to remove from
+     * @param vkChar  Unmasked key to use, like {@link KeyEvent#VK_R}
+     * @see #addHotkeysInputMap_one(InputMap, int, String, JButton)
+     * @since 2.3.00
+     */
+    /* package */ static void removeHotkeysInputMap_one
+        (final InputMap im, final int vkChar)
+    {
+        KeyStroke[] ksMods = new KeyStroke[2];
+        ksMods[0] = KeyStroke.getKeyStroke(vkChar, InputEvent.CTRL_DOWN_MASK);
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+            ksMods[1] = KeyStroke.getKeyStroke(vkChar, InputEvent.ALT_DOWN_MASK);
+        else if (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
+            ksMods[1] = KeyStroke.getKeyStroke(vkChar, InputEvent.META_DOWN_MASK);
+
+        for (final KeyStroke ks : ksMods)
+            if (ks != null)
+                im.put(ks, "none");
     }
 
     /**
@@ -1180,7 +1206,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Add client player hotkey bindings to PI's InputMap and ActionMap.
-     * Because PI isn't a Swing component, we use JPanel {@link #buildingPanel}.
+     * Because PI itself isn't a Swing component, we use JPanel {@link #buildingPanel}
      * which may one day get its own hotkeys.
      * @since 2.3.00
      */

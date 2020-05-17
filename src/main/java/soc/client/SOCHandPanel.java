@@ -880,6 +880,8 @@ import javax.swing.UIManager;
         });
         inventoryScroll = new JScrollPane(inventory);
         add(inventoryScroll);
+        init_removeInventoryHotkeyCtrlA();
+            // useless Ctrl-A binding conflicts with hotkey to Accept trade offer; see javadoc
 
         final String pieces_available_to_place = strings.get("hpan.pieces.available");
 
@@ -2243,10 +2245,36 @@ import javax.swing.UIManager;
     }
 
     /**
+     * From constructor, try to remove {@link #inventory} JList's Ctrl-A hotkey binding (Select All):
+     * It conflicts with the hotkey to Accept a trade offer, and is useless because
+     * inventory items are used one at a time, never all at once.
+     *<P>
+     * Once the client player has double-clicked an inventory item to play it, inventory becomes focused
+     * and its Ctrl-A binding is active and interferes with the trade offer hotkey.
+     *<P>
+     * Also removes Cmd-A on MacOSX or Alt-A on Windows.
+     *
+     * @see #addHotkeysInputMap()
+     * @since 2.3.00
+     */
+    private void init_removeInventoryHotkeyCtrlA()
+    {
+        SOCPlayerInterface.removeHotkeysInputMap_one
+            (inventory.getInputMap(JComponent.WHEN_FOCUSED), KeyEvent.VK_A);
+        SOCPlayerInterface.removeHotkeysInputMap_one
+            (inventory.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), KeyEvent.VK_A);
+    }
+
+    /**
      * Add hotkey bindings to the panel's InputMap and ActionMap,
      * as part of first time adding player when {@link #playerIsClient}.
      *<P>
+     * Other hotkeys affecting {@code SOCHandPanel}:
+     * Trade offer Accept/reJect/Counter-offer ({@link KeyEvent#VK_A}, {@code VK_J}, {@code VK_C})
+     * set up by {@link SOCPlayerInterface#addHotkeysInputMap()}.
+     *<P>
      * Does nothing if already called.
+     * @see #init_removeInventoryHotkeyCtrlA()
      * @since 2.3.00
      */
     private void addHotkeysInputMap()
