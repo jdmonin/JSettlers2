@@ -37,6 +37,7 @@ and backport minor new features until `2.0.00` was ready.
 	  - Bugfix: If player had SVP, square showing SVP amount overlapped trade offer display  
 	    and, at end of game, their revealed VP cards
 	  - Bugfix: Wonders scenario: Player's Wonder shown in hand panel overlapped trade offer display
+	  - Chat textarea, server textarea: Add context menu with Select All and Copy, since new hotkeys claim Ctrl-A and Ctrl-C
 	- Bugfix: If started a practice game, then connected to a server game:
 	  - Practice game trades stopped working
 	  - Might've joined server game as "Player" or "null"

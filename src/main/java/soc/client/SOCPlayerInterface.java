@@ -61,7 +61,12 @@ import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.TextArea;
+import java.awt.TextComponent;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -71,6 +76,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
@@ -1087,6 +1093,7 @@ public class SOCPlayerInterface extends Frame
         add(textDisplay);
         if (is6player)
             textDisplay.addMouseListener(this);
+        textComponentAddClipboardContextMenu(textDisplay);
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
         chatDisplay.setFont(sans10Font);
@@ -1099,6 +1106,7 @@ public class SOCPlayerInterface extends Frame
         if (is6player)
             chatDisplay.addMouseListener(this);
         add(chatDisplay);
+        textComponentAddClipboardContextMenu(chatDisplay);
 
         textInput = new JTextField();
         if (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
@@ -1222,6 +1230,71 @@ public class SOCPlayerInterface extends Frame
         addHotkeysInputMap_one(im, KeyEvent.VK_A, "hotkey_accept", null);
         addHotkeysInputMap_one(im, KeyEvent.VK_J, "hotkey_reject", null);
         addHotkeysInputMap_one(im, KeyEvent.VK_C, "hotkey_counteroffer", null);
+    }
+
+    /**
+     * Add context menu to a TextField/TextArea for Select All and Copy to Clipboard.
+     * Assumes {@code tfield} is read-only, not editable, so doesn't include Cut or Paste.
+     *<P>
+     * This menu is useful because the usual keyboard shortcuts (Ctrl-A, Ctrl-C)
+     * were claimed by new Trade Offer keyboard shortcuts in v2.3.00.
+     * Not needed for {@link #textInput} because that editable field can claim focus,
+     * so the standard shortcuts work there.
+     *<P>
+     * The standard {@link TextArea} already has a menu for this on Windows, but not on MacOSX.
+     * {@code TextArea} on Windows ignores this custom popup menu and keeps using that standard one.
+     * Other platforms can use this one, they have no such standard menu.
+     *
+     * @param tfield Textfield to add to, like {@link #chatDisplay} or {@link #textDisplay}
+     * @since 2.3.00
+     */
+    private void textComponentAddClipboardContextMenu(final TextComponent tfield)
+    {
+        final PopupMenu menu = new PopupMenu();
+
+        MenuItem mi = new MenuItem(strings.get("menu.copy"));  // "Copy"
+        mi.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                try
+                {
+                    final StringSelection data = new StringSelection(tfield.getSelectedText());
+                    final Clipboard cb = getToolkit().getSystemClipboard();
+                    if (cb != null)
+                        cb.setContents(data, data);
+                } catch (Exception e) {}  // security, or clipboard unavailable
+            }
+        });
+        menu.add(mi);
+
+        mi = new MenuItem(strings.get("menu.select_all"));  // "Select All"
+        mi.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                tfield.selectAll();
+                tfield.repaint();
+            }
+        });
+        menu.add(mi);
+
+        tfield.add(menu);
+        tfield.addMouseListener(new MouseAdapter()
+        {
+            // different platforms have different popupTriggers for their context menus,
+            // so check several types of mouse event:
+            public void mouseReleased(MouseEvent e) { mouseClicked(e); }
+            public void mousePressed(MouseEvent e)  { mouseClicked(e); }
+            public void mouseClicked(MouseEvent e)
+            {
+                if (! e.isPopupTrigger())
+                    return;
+
+                e.consume();
+                menu.show(tfield, e.getX(), e.getY());
+            }
+        });
     }
 
     /**
