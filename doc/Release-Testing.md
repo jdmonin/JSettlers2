@@ -27,12 +27,13 @@ When preparing to release a new version, testing should include:
     - In the new game's chat, say a few lines ("x", "y", "z" etc)
     - Start another client, join first client's local server and that game
     - Joining client should see "recap" of the game chat ("x", "y", "z")
-    - Start the game (will have 2 human clients & 2 bots)
+    - Start the game (will have 2 human clients & 2 bots), finish initial placement
     - Ensure the 2 clients can talk to each other in the game's chat area
-    - Client leaves game (not on their turn): A bot should join to replace them & play their next turn (not unresponsive)
+    - Client leaves game (not on their turn): A bot should join, replace them, and play their entire next turn (not unresponsive)
     - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
+    - Have a client rejoin and take over for a bot
     - Lock the only remaining bot seat (use lock button's "Marked" state, or "Locked" if client is v1.x)
       and reset game: no bots in new game, it begins immediately
 - Game play: (as debug user or in practice game)
@@ -114,11 +115,12 @@ When preparing to release a new version, testing should include:
           - Build a route that has roads and ships (through a coastal settlement)
           - Move a ship to gain Longest Route
     - Can win by gaining Longest Road/Route
-        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces for VP totals;
+        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces until you have 8 VP;
           be careful to not gain longest route before the test begins
         - With 8 VP, test each item in "Gain Longest Road/Route" list above
     - Can win by gaining Largest Army
-        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces for VP totals
+        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces until you have 8 VP,
+          `dev: 9 debug` to get 2 soldier cards, play them
         - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above.
           When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP.
           Card should fully play out (choose player, etc) before server announces game is over.
@@ -143,12 +145,13 @@ When preparing to release a new version, testing should include:
         - 2 humans 1 bot
         - 2 humans 0 bots
 - Fog Hex reveal gives resources, during initial placement and normal game play:
-     - Start server with vm property: `-Djsettlers.debug.board.fog=Y`
+     - Start server with vm property `-Djsettlers.debug.board.fog=Y`
      - Start and begin playing a game with the Use Sea Board option
-       - Place an initial settlement at a fog hex
+       - Place an initial settlement at a fog hex; should receive resources from each revealed hex
+     - Stop server, start it without `-Djsettlers.debug.board.fog=Y`
      - Start and begin playing a game with the Fog Islands scenario
        - Place initial coastal settlements next to the fog island, with initial ships to reveal hexes from the fog
-       - Keep restarting (reset the board) until you've revealed a gold hex and picked a free resource
+       - Keep restarting game (reset the board) until you've revealed a gold hex and picked a free resource
 - Scenario-specific behaviors:
      - Cloth Trade
        - Start a game on the 6-player board
@@ -235,32 +238,34 @@ When preparing to release a new version, testing should include:
        - If observer joins after Wonder started, sees accurate ship count
 - Client preferences
     - Auto-reject bot trade offers:
-        - Practice game: Test UI's trade behavior with and without preference
+        - 6-player Practice game: Test UI's trade behavior with and without preference
         - Re-launch client, new practice game, check setting is remembered
     - Sound: See section "Platform-specific"
     - Hex Graphics Sets: Test switching between "Classic" and the default "Pastel":
         - All games mentioned here are Practice games, no server needed. "Start a game" here means to
           create a game, sit down, and start the game so a board will be generated.
         - For clean first run: Launch client with jvm property `-Djsettlers.debug.clear_prefs=hexGraphicsSet`
-        - Start a practice game, default options (board graphics should appear as pastel)
-        - Options button: [X] Hex graphics: Use Classic theme; close window instead of hit OK (board should not change)
-        - Options button: [X] Hex graphics: Use Classic theme; hit OK (board should change to Classic)
+        - Start a practice game, default options; board graphics should appear as pastel
+        - Options button: [X] Hex graphics: Use Classic theme  
+          Close window instead of hit OK; board should not change
+        - Options button: [X] Hex graphics: Use Classic theme  
+          Hit OK; board should change to Classic
         - Leave that game running, start another game
             - In New Game options: Fog scenario, 6 players, and un-check Use Classic theme
             - Create Game, start as usual
-            - (Both games' boards should now be pastel)
+            - Both games' boards should now be pastel
         - Options: Change theme to Classic; OK (Both games should change)
         - Leave running, Start another: Un-check Scenario, 6-player board, un-check Sea board (Should also be Classic)
         - Options: Un-check Use Classic; OK (All 3 games should change to pastel)
         - Options: Use Classic; OK (All 3 should change)
         - Close client main window: Quit all games
         - Re-launch client, without any jvm properties
-        - Start game: 4 players, no scenario (should remember preference & be classic)
+        - Start practice game: 4 players, no scenario (should remember preference & be classic)
         - Start another: 6 players (should also be classic)
         - Options: Un-check Use Classic; OK (Both should change)
         - Close client main window: Quit all games
         - Re-launch client
-        - Start a game (should remember preference & be pastel)
+        - Start a practice game (should remember preference & be pastel)
 - Network robustness: Client reconnect when scenario's board layout has "special situations"  
     Tests that the board layout, including potential and legal nodes and edges, is reconstructed when
     client leaves/rejoins the game. (For more info see "Layout placement rules for special situations"
@@ -347,6 +352,7 @@ When preparing to release a new version, testing should include:
     - That client's initial connection to the server should see at console: `SOCStatusMessage:sv=21`  
       (which is `SV_OK_DEBUG_MODE_ON` added in 2.0.00)
     - Start a 1.2.00 client with same vm property `-Djsettlers.debug.traffic=Y`
+      - If needed, can download from https://github.com/jdmonin/JSettlers2/releases/tag/release-1.2.00
     - That client's initial connection should get sv == 0, should see at console: `SOCStatusMessage:status=Debugging is On`
 - Game Option and Scenario info sync/negotiation when server and client are different versions/locales
     - For these tests, use these JVM parameters when launching clients:  
@@ -729,7 +735,8 @@ Start with a recently-created database with latest schema/setup scripts.
         - `*who*` works (not an admin command)
         - `*who* testgame` and `*who* *` shouldn't work
         - `*help*` shouldn't show any admin commands
-        - In a different game where user is observing (ongoing, past initial placement), shouldn't be able to chat
+        - In a different game where user is observing (ongoing, past initial placement),
+          shouldn't be able to use commands or chat
     - SOCPlayerClient: Log in as admin user, join an ongoing game but don't sit down
         - `*who* testgame` and `*who* *` should work
         - `*help*` should show admin commands
@@ -815,7 +822,7 @@ Start with a recently-created database with latest schema/setup scripts.
 ## Other misc testing
 
 - Client/player nickname and game/channel names:
-    - When joining a server or starting a game and a channel, check for enforcement and a helpful error message:
+    - When entering your nickname or starting a game and a channel, check for enforcement and a helpful error message:
         - Name can't be entirely digits (is OK for channel)
         - Name can't contain `,` or `|`
         - Game name can't start with `?`
@@ -900,7 +907,7 @@ The current Extra Tests are:
 ## Platform-specific
 
 On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JRE/JDK:  
-(Note: Java 7 runs on Win XP and higher; binaries available from https://jdk.java.net/ )
+(Note: Java 7 runs on Win XP and higher; can download installer from https://jdk.java.net/ )
 
 - Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
 - Hotkey shortcuts

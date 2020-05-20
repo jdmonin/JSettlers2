@@ -110,10 +110,13 @@ to browse and re-send debug commands.
 
 To help with security and prevent cheats, by default debug commands are disabled
 except for practice games.  If you need to use debug commands on a multi-player
-server, start that server with `-Djsettlers.allow.debug=Y` and connect with username `debug`.
-For security, please use sqlite or another database and make a "debug" account with
-a password (see [Readme.md](../Readme.md) section "Database Setup").  Except for
-practice games, no other username can use debug commands.
+server, start that server with `-Djsettlers.allow.debug=Y` on its command line,
+then connect with username `debug`. Except for practice games, no other username can
+use debug commands.
+
+For security, if you must use the "debug" user outside of your own laptop or workstation,
+please use sqlite or another database and make a "debug" account with a password
+(see [Readme.md](../Readme.md) section "Database Setup").
 
 `D.ebugPrintln` is turned on or off for each java class by the import at the top of the file.
 For example if you wanted to see D.ebugPrintln output for soc.game.SOCPlayer,
