@@ -316,6 +316,10 @@ When preparing to release a new version, testing should include:
           should adapt to the older server version.  
           This is especially visible when testing 1.x against 2.x.
         - Create and start playing a 4-player game with no options (this uses an older message type)
+        - Give a robot player some new dev cards: VP, playable  
+          `dev: 4 botname`  
+          `dev: 9 botname`
+        - Have another client join and take over that bot; should see dev card details correctly
         - Create and start playing a 4-player game with No Trading option
         - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
@@ -830,8 +834,12 @@ Start with a recently-created database with latest schema/setup scripts.
     - Start a game at server with player client
     - Start a second client under your IDE's debugger & join that game
     - Start game, go through initial placement and into normal game play
+    - Buy at least 1 dev card, don't use it
+    - Note your player's "private info": Resource counts, dev card inventory, etc
     - In your IDE, pause the debugged client to simulate network connection loss
-    - Start a new client and connect as that same username; should allow connect after appropriate number of seconds
+    - Start a new client and connect as that same username
+      - Should allow connect after appropriate number of seconds
+      - Player's private info should be correct
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
   should let you add time in 30-minute intervals up to original limit + 30 minutes remaining

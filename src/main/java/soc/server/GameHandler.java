@@ -113,7 +113,7 @@ public abstract class GameHandler
 
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
-     * Unless <tt>isTakingOver</tt>, announce {@link SOCJoinGame} client join event to other players.
+     * Unless {@code isTakingOver}, announce {@link SOCJoinGame} client join event to other players.
      *<P>
      * Assumes {@link SOCServer#connectToGame(Connection, String, java.util.Map, SOCGame)} was already called.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
@@ -125,7 +125,7 @@ public abstract class GameHandler
      * If game has started (state &gt;= {@link SOCGame#START2A START2A}), they're
      * then prompted with a GAMESERVERTEXT to take over a bot in order to play.
      *<P>
-     * If <tt>isTakingOver</tt>, assume the game already started and also include any details
+     * If {@code isTakingOver}, assume the game already started and also include any details
      * about pieces, number of items, cards in hand, etc.
      *<P>
      * @param gameData Game to join
@@ -134,10 +134,10 @@ public abstract class GameHandler
      *                 called from SOCServer instead of from inside the GameHandler.
      *                 Not all game types may be reset.
      * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
-     * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *          is defunct because of a network problem. Also true when a human player joins a
+     * @param isTakingOver  If true, client is re-joining; {@code c} replaces an earlier connection which
+     *          is defunct/frozen because of a network problem. Also true when a human player joins a
      *          game being reloaded and has the same nickname as a player there.
-     *          If <tt>isTakingOver</tt>, sends {@code c} their hand's private info for game in progress.
+     *          If {@code isTakingOver}, sends {@code c} their hand's private info for game in progress.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, java.util.Map)
      * @since 1.1.00
      */
@@ -157,9 +157,13 @@ public abstract class GameHandler
      * @param ga     the game
      * @param c      the connection for the player
      * @param pn     which seat the player is taking
+     * @param isTakingOver  If true, client is re-joining; {@code c} replaces an earlier connection which
+     *          is defunct/frozen because of a network problem. Also true when a human player joins a
+     *          game being reloaded and has the same nickname as a player there.
      * @since 1.1.08
      */
-    public abstract void sitDown_sendPrivateInfo(SOCGame ga, Connection c, final int pn);
+    public abstract void sitDown_sendPrivateInfo
+        (SOCGame ga, Connection c, final int pn, final boolean isTakingOver);
 
     /**
      * Send all game members the current state of the game with a {@link SOCGameState} message.

@@ -85,6 +85,8 @@ and backport minor new features until `2.0.00` was ready.
 	- Game data sent to client sitting down to play:
 	  - If client is this version or newer, omit messages meant to clear player's inventory contents:  
 	    Client player now clears inventory when SitDown message received
+	  - When client is joining and sitting down to take over a frozen connection, omit unneeded messages
+	    which add and then clear unknown cards in that player's inventory
 	- Client: Omit unneeded player name/number in some message types
 
 

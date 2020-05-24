@@ -420,7 +420,8 @@ public class SOCInventory
 
     /**
      * Remove one dev card of a type from the set.
-     * If that type isn't available, remove from {@link SOCDevCardConstants#UNKNOWN} instead.
+     * If that type isn't found in the inventory, remove a {@link SOCDevCardConstants#UNKNOWN} instead;
+     * if inventory has no {@code UNKNOWN} card, does nothing.
      *<P>
      * Before v2.0.00, this method was {@code subtract(amt, age, ctype)}.
      *

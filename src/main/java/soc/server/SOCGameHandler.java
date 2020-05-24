@@ -888,7 +888,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
-     * Unless <tt>isTakingOver</tt>, announce {@link SOCJoinGame} client join event to other players.
+     * Unless {@code isTakingOver}, announce {@link SOCJoinGame} client join event to other players.
      *<P>
      * Does not add the client to the game's or server's list of players,
      * that should be done before calling this method.
@@ -900,8 +900,8 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Among other messages, player names are sent via SITDOWN, and pieces on board
      * sent by PUTPIECE.  See comments here for further details.
-     * If <tt>isTakingOver</tt>, some details are sent by calling
-     * {@link #sitDown_sendPrivateInfo(SOCGame, Connection, int)}.
+     * If {@code isTakingOver}, some details are sent by calling
+     * {@link #sitDown_sendPrivateInfo(SOCGame, Connection, int, boolean)}.
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      * If state is {@link SOCGame#OVER}: Right after sending GAMESTATE, calls
      * {@link #sendGameStateOVER(SOCGame, Connection) sendGameStateOver(gameData, c)}.
@@ -918,10 +918,10 @@ public class SOCGameHandler extends GameHandler
      * @param isReset  Game is a board-reset of an existing game.  This is always false when
      *          called from SOCServer instead of from inside the SOCGameHandler.
      * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
-     * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *          is defunct because of a network problem. Also true when a human player joins a
+     * @param isTakingOver  If true, client is re-joining; {@code c} replaces an earlier connection which
+     *          is defunct/frozen because of a network problem. Also true when a human player joins a
      *          game being reloaded and has the same nickname as a player there.
-     *          If <tt>isTakingOver</tt>, sends {@code c} their hand's private info for game in progress.
+     *          If {@code isTakingOver}, sends {@code c} their hand's private info for game in progress.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @since 1.1.00
      */
@@ -990,7 +990,7 @@ public class SOCGameHandler extends GameHandler
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
             /**
-             * send them the already-seated player information;
+             * send them basic info on the already-seated players;
              * if isReset, don't send, because sitDown will
              * be sent from SOCServer.resetBoardAndNotify.
              */
@@ -1211,7 +1211,8 @@ public class SOCGameHandler extends GameHandler
          */
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
-            SOCPlayer pl = gameData.getPlayer(i);
+            final SOCPlayer pl = gameData.getPlayer(i);
+            final boolean isTakingOverThisSeat = isTakingOver && c.getData().equals(pl.getName());
 
             /**
              * send scenario info before any putpiece, so they know their
@@ -1315,15 +1316,18 @@ public class SOCGameHandler extends GameHandler
                 c.put(new SOCPlayerElement
                     (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.PEType.ASK_SPECIAL_BUILD, 1));
 
-            final int numDevCards = pl.getInventory().getTotal();
-            final int unknownType =
-                (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
-                ? SOCDevCardConstants.UNKNOWN
-                : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final SOCMessage cardUnknownMsg =
-                new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
-            for (int j = 0; j < numDevCards; j++)
-                c.put(cardUnknownMsg);
+            if (! isTakingOverThisSeat)
+            {
+                final int numDevCards = pl.getInventory().getTotal();
+                final int unknownType =
+                    (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
+                    ? SOCDevCardConstants.UNKNOWN
+                    : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
+                final SOCMessage cardUnknownMsg =
+                    new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
+                for (int j = 0; j < numDevCards; j++)
+                    c.put(cardUnknownMsg);
+            }
 
             if (gameSITypes != null)
             {
@@ -1421,7 +1425,7 @@ public class SOCGameHandler extends GameHandler
             {
                 int pn = cliPl.getPlayerNumber();
                 if ((pn != -1) && ! gameData.isSeatVacant(pn))
-                    sitDown_sendPrivateInfo(gameData, c, pn);
+                    sitDown_sendPrivateInfo(gameData, c, pn, true);
             }
         }
 
@@ -1686,7 +1690,8 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler
-    public void sitDown_sendPrivateInfo(final SOCGame ga, final Connection c, final int pn)
+    public void sitDown_sendPrivateInfo
+        (final SOCGame ga, final Connection c, final int pn, final boolean isTakingOver)
     {
         final String gaName = ga.getName();
         final SOCPlayer pl = ga.getPlayer(pn);
@@ -1710,9 +1715,10 @@ public class SOCGameHandler extends GameHandler
         final boolean cliVersionRecent = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES);
 
         /**
-         * remove the unknown cards, if client's too old for SITDOWN to imply doing so
+         * remove the unknown cards, if client's too old for receiving SITDOWN to imply doing so;
+         * skip if isTakingOver, unknowns weren't sent for that player during joinGame
          */
-        if (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY)
+        if ((! isTakingOver) && (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY))
         {
             final SOCDevCardAction cardUnknown = (cliVersionRecent)
                 ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)

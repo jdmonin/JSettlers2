@@ -7691,7 +7691,7 @@ public class SOCServer extends Server
 
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
-     * Unless <tt>isTakingOver</tt>, announces {@link SOCJoinGame} client join event to other players.
+     * Unless {@code isTakingOver}, announces {@link SOCJoinGame} client join event to other players.
      * Gets the game's handler and calls {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)};
      * see that method's javadoc for details.
      *<P>
@@ -7700,10 +7700,10 @@ public class SOCServer extends Server
      * @param isReset  Game is a board-reset of an existing game; should always be false when server is calling,
      *                 board resets are up to the GameHandler.
      * @param isLoading Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
-     * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *          is defunct because of a network problem. Also true when a human player joins a
+     * @param isTakingOver  Client is re-joining; {@code c} replaces an earlier connection which
+     *          is defunct/frozen because of a network problem. Also true when a human player joins a
      *          game being reloaded and has the same nickname as a player there.
-     *          If <tt>isTakingOver</tt>, sends {@code c} their hand's private info for game in progress.
+     *          If {@code isTakingOver}, sends {@code c} their hand's private info for game in progress.
      *
      * @see #connectToGame(Connection, String, Map, SOCGame)
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
@@ -7728,8 +7728,12 @@ public class SOCServer extends Server
      * The server has already validated that the game isn't full and their seat is empty,
      * or has removed a bot to make room at that seat.
      *<P>
+     * Also called while handling LOADGAME admin command, if game has a player with same name as the debug/admin user
+     * who requested loadgame.
+     *<P>
      * Calls {@link SOCGame#addPlayer(String, int)}. Announces with {@link SOCSitDown} to all game members.
-     * Sends sitting player their own data via {@link GameHandler#sitDown_sendPrivateInfo(SOCGame, Connection, int)}.
+     * Sends sitting player their own data via
+     * {@link GameHandler#sitDown_sendPrivateInfo(SOCGame, Connection, int, boolean)}.
      * If game is waiting for robots to join, and sitting player is the last bot, start the game.
      *
      * @param ga     the game
@@ -7745,6 +7749,10 @@ public class SOCServer extends Server
             return;
 
         ga.takeMonitor();
+
+        // if reloading saved game, sitDown for client player acts like client takeover
+        final boolean sendLikeTakingOver = (ga.savedGameModel != null)
+            && (! ga.isSeatVacant(pn)) && c.getData().equals(ga.getPlayer(pn).getName());
 
         try
         {
@@ -7811,7 +7819,7 @@ public class SOCServer extends Server
              */
             GameHandler hand = gameList.getGameTypeHandler(gaName);
             if (hand != null)
-                hand.sitDown_sendPrivateInfo(ga, c, pn);
+                hand.sitDown_sendPrivateInfo(ga, c, pn, sendLikeTakingOver);
 
             /**
              * if the request list is now empty and the game hasn't started/resumed yet,
@@ -7830,8 +7838,10 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception caught at sitDown");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**

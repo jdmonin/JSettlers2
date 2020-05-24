@@ -67,13 +67,18 @@ public class SOCDevCardAction extends SOCMessage
     public static final int VERSION_FOR_MULTIPLE = 2000;
 
     /**
-     * Minimum client version where when the client receives its player's {@link SOCSitDown}
-     * message, that implies it should clear its currently-unknown inventory contents; the server
-     * is about to privately send it the detailed contents of that inventory.
+     * Minimum client version (2.3.00) where client receiving its player's {@link SOCSitDown} message
+     * should clear player's currently-unknown inventory contents/dev card count; the server is about to
+     * privately send it the detailed contents of that inventory.
      *<P>
      * Previous versions were privately sent {@link #PLAY} messages to clear their unknowns one at a time.
      * If the joining client had been observing the game as player's dev cards were bought,
      * that could cause display bugs where the inventory wasn't entirely cleared out at Sit Down time.
+     *<P>
+     * Similarly, when any version of client joins/sits down to take over a frozen connection, this server version
+     * and newer omit unneeded messages which {@code ADD} and then clear ("{@code PLAY}") unknown cards in
+     * that player's inventory.
+     *
      * @since 2.3.00
      */
     public static final int VERSION_FOR_SITDOWN_CLEARS_INVENTORY = 2300;
