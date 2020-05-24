@@ -1418,7 +1418,7 @@ public class SOCGameHandler extends GameHandler
          * If we're rejoining and taking over a seat after a network problem,
          * send our resource and hand information.
          */
-        if (isTakingOver)
+        if (isTakingOver && ! isLoading)
         {
             SOCPlayer cliPl = gameData.getPlayer(cliName);
             if (cliPl != null)

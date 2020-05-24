@@ -6559,11 +6559,13 @@ public class SOCServer extends Server
                 if (ga != null)
                 {
                     boolean sendLikeTakingOver = false;
-                    if ((loadedGame == null) && (ga.getGameState() == SOCGame.LOADING)
+                    if ((ga.getGameState() == SOCGame.LOADING)
                         && ! ((SOCClientData) c.getAppData()).isRobot)
                     {
                         // If game was saved with a player with same name as joining human client,
                         // that client will assume they're sitting down and taking over.
+                        // (This applies to the debug/admin user's player while the game is created and announced,
+                        //  and to human players joining after creation but before game is resumed.)
                         // If so, send their private hand data.
                         // Bots won't assume and will explicitly send a SITDOWN message.
 
