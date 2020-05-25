@@ -880,7 +880,7 @@ Start with a recently-created database with latest schema/setup scripts.
             git clone https://github.com/jdmonin/JSettlers2.git
             cd JSettlers2
             X_IGNORES="-x .git -x build -x target -x tmp"
-			diff -ur $X_IGNORES . "$MYTOPDIR" | grep ^Only  # check for missing/extra files
+            diff -ur $X_IGNORES . "$MYTOPDIR" | grep ^Only  # check for missing/extra files
             diff -ur $X_IGNORES . "$MYTOPDIR"  # check for uncommitted or unpushed changes
             cd .. && rm -rf JSettlers2
             cd .. && rmdir jt
@@ -895,7 +895,7 @@ Open a terminal or command prompt, go to the project's top-level directory
 (containing `build.gradle`), and run:  
 `gradle extraTest`
 
-These tests will run for several minutes, and end without errors:  
+These tests will run for several minutes, and should end without errors:  
 `BUILD SUCCESSFUL`
 
 The current Extra Tests are:

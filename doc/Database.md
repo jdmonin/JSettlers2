@@ -84,8 +84,8 @@ appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 
 - MariaDB: https://downloads.mariadb.org/ -> Connector/J
-- MySQL:   http://www.mysql.com/products/connector/
-- PostgreSQL:  http://jdbc.postgresql.org/download.html
+- MySQL:   https://www.mysql.com/products/connector/
+- PostgreSQL:  https://jdbc.postgresql.org/download.html
 - SQLite:  https://bitbucket.org/xerial/sqlite-jdbc/downloads/
 
 In some cases, adding to the classpath won't work because of JVM restrictions
