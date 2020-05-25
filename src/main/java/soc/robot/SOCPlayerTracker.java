@@ -2847,6 +2847,7 @@ public class SOCPlayerTracker
             int fastestETA;
 
             final int vp_winner = game.vp_winner;
+            vpLoop:
             while (points < vp_winner)
             {
                 D.ebugPrintln("WWW points = " + points);
@@ -3638,6 +3639,9 @@ public class SOCPlayerTracker
                                && ! posSetsCopy.isEmpty()  )
                              && (fastestETA == oneOfEach))
                     {
+                        if (chosenCity[0] == null)
+                            break vpLoop;  // <--- rarely occurs; avoid possible endless loop ---
+
                         Integer chosenSet0Int = Integer.valueOf(chosenSet[0].getCoordinates());
                         posSetsCopy.remove(chosenSet0Int);
 
@@ -3763,20 +3767,25 @@ public class SOCPlayerTracker
                             }
                         }
 
-                        if (chosenCity[1] == null)
-                        {
-                            System.out.println("OOPS!!!");
-                        }
-                        else
+                        // Note: occasionally chosenCity[1] == null despite citySpotsLeft > 1
+                        // If so, plan won't be perfectly accurate, but it'd build 1 city which is progress.
+
+                        if (chosenCity[1] != null)
                         {
                             posCitiesCopy.remove(Integer.valueOf(chosenCity[1].getCoordinates()));
+                            tempPlayerNumbers.updateNumbers(chosenCity[1].getCoordinates(), board);
+
+                            settlementPiecesLeft += 2;
+                            cityPiecesLeft -= 2;
+                            citySpotsLeft -= 2;
+                        } else {
+                            --points;  // counteract += 2 which assumed can build 2
+
+                            settlementPiecesLeft++;
+                            cityPiecesLeft--;
+                            citySpotsLeft--;
                         }
 
-                        settlementPiecesLeft += 2;
-                        cityPiecesLeft -= 2;
-                        citySpotsLeft -= 2;
-
-                        tempPlayerNumbers.updateNumbers(chosenCity[1].getCoordinates(), board);
                         ourBSE.recalculateEstimates(tempPlayerNumbers);
                         ourBuildingSpeed = ourBSE.getEstimatesFromNothingFast(tempPortFlags);
                         settlementETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.SETTLEMENT];
@@ -3785,7 +3794,8 @@ public class SOCPlayerTracker
                         cardETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CARD];
                         D.ebugPrintln("WWW  * build 2 cities");
                         D.ebugPrintln("WWW    city 1: " + board.nodeCoordToString(chosenCity[0].getCoordinates()));
-                        D.ebugPrintln("WWW    city 2: " + board.nodeCoordToString(chosenCity[1].getCoordinates()));
+                        if (chosenCity[1] != null)
+                            D.ebugPrintln("WWW    city 2: " + board.nodeCoordToString(chosenCity[1].getCoordinates()));
 
                         if (brain.getDRecorder().isOn())
                         {

@@ -48,6 +48,7 @@ and backport minor new features until `2.0.00` was ready.
 	- If nickname or channel/game name contains disallowed character ',' or '|', explanation text mentions that character
 - Bots/AI:
 	- When offering a trade to human players, shorten max wait to 30 seconds (was 100)
+	- Fix occasional SOCCity NPE in SOCPlayerTracker.recalcWinGameETA
 - Server:
 	- Game `*STATS*`: When game over, keep its duration constant instead of still increasing
 	- Administration:
