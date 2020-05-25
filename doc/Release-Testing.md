@@ -924,7 +924,15 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JR
     - Roll and Done buttons: R, D + modifier
     - Accept, Reject, Counter trade offer when just one is visible: A, J, C + modifier
     - Click in chat text input field
-    - Try Ctrl-A, Ctrl-C, Ctrl-V (or Cmd on MacOSX); should be Select All, Copy, Paste as usual
+      - Try Ctrl-A, Ctrl-C, Ctrl-V (or Cmd on MacOSX); should be Select All, Copy, Paste as usual
+      - With another client, join the game and make a trade offer
+      - In first client, enter text into chat but don't select it
+      - Ctrl-A (or Cmd) should Select All
+      - Ctrl-A again should Accept the sole visible trade offer, since chat input's text is all selected
+      - Clear out the chat text input, or hit Enter to send it
+      - With that other client, make a trade offer
+      - Ctrl-A should Accept the sole visible trade offer, since chat input contains no text
+      - Exit out of other client
     - Send a few lines of chat text
     - Right-click in chat text output area, server text area (or Ctrl-click on MacOSX);
       should be able to Select All, Copy to clipboard

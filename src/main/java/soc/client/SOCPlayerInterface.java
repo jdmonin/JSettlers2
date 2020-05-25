@@ -1215,14 +1215,18 @@ public class SOCPlayerInterface extends Frame
     /**
      * Add client player hotkey bindings to PI's InputMap and ActionMap.
      * Because PI itself isn't a Swing component, we use JPanel {@link #buildingPanel}
-     * which may one day get its own hotkeys.
+     * which may one day get its own hotkeys. Also overrides {@link #textInput}'s Ctrl-A
+     * to keep its functionality or accept the trade offer if all text is already selected.
      * @since 2.3.00
      */
     private void addHotkeysInputMap()
         throws IllegalStateException
     {
+        final TradeHotkeyActionListener acceptTrade
+            = new TradeHotkeyActionListener(TradeHotkeyActionListener.ACCEPT);
+
         final ActionMap am = buildingPanel.getActionMap();
-        am.put("hotkey_accept", new TradeHotkeyActionListener(TradeHotkeyActionListener.ACCEPT));
+        am.put("hotkey_accept", acceptTrade);
         am.put("hotkey_reject", new TradeHotkeyActionListener(TradeHotkeyActionListener.REJECT));
         am.put("hotkey_counteroffer", new TradeHotkeyActionListener(TradeHotkeyActionListener.COUNTER));
 
@@ -1230,6 +1234,24 @@ public class SOCPlayerInterface extends Frame
         addHotkeysInputMap_one(im, KeyEvent.VK_A, "hotkey_accept", null);
         addHotkeysInputMap_one(im, KeyEvent.VK_J, "hotkey_reject", null);
         addHotkeysInputMap_one(im, KeyEvent.VK_C, "hotkey_counteroffer", null);
+
+        textInput.getActionMap().put("hotkey_selectAllOrTradeAccept", new AbstractAction()
+        {
+            /** If empty of text, or if all text's already selected, accept trade offer instead of re-selecting all. */
+            public void actionPerformed(final ActionEvent e)
+            {
+                String txt = textInput.getText();
+                final int L = (txt != null) ? txt.length() : 0;
+
+                if ((L == 0) || ((textInput.getSelectionStart() == 0) && (textInput.getSelectionEnd() == L)))
+                    acceptTrade.actionPerformed(e);
+                else
+                    textInput.selectAll();
+            }
+        });
+        addHotkeysInputMap_one
+            (textInput.getInputMap(JComponent.WHEN_FOCUSED),
+             KeyEvent.VK_A, "hotkey_selectAllOrTradeAccept", null);
     }
 
     /**

@@ -32,7 +32,9 @@ and backport minor new features until `2.0.00` was ready.
 	  - Hotkeys:
 	    - Roll dice with Ctrl-R/Alt-R/Cmd-R
 	    - End turn (Done) with Ctrl-D/Alt-D/Cmd-D
-	    - Accept/ReJect/Counter trade offers when just one is visible, with Ctrl/Alt/Cmd + A/J/C
+	    - Accept/ReJect/Counter trade offers when just one is visible, with Ctrl or Alt or Cmd + A/J/C
+	      - Since chat input field already has a hotkey for Ctrl/Alt/Cmd-A when focused:  
+	        When cursor is in chat, hit Ctrl/Alt/Cmd-A once to select all text, again to Accept the trade offer
 	  - Draw ships with slimmer sails, for better spacing next to other pieces
 	  - Bugfix: If player had SVP, square showing SVP amount overlapped trade offer display  
 	    and, at end of game, their revealed VP cards
