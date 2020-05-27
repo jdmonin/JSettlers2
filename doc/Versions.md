@@ -16,6 +16,10 @@ and backport minor new features until `2.0.00` was ready.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
+## `2.4.00` (build JX2020xxxx)
+- Currently being developed
+
+
 ## `2.3.00` (build JM20200525)
 - Gameplay:
 	- New optional house rule: On 6-player board, allow Special Building phase only if game actually has 5 or 6 players
