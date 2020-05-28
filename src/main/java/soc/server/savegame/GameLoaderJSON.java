@@ -48,6 +48,9 @@ import soc.message.SOCPlayerElement.PEType;
  * its actual gameState will be in game's {@code oldGameState} field.
  * Once the debug user has connected necessary bots or otherwise satisfied possible constraints,
  * must call {@link SavedGameModel#resumePlay(boolean)} to check constraints and resume game play.
+ *<P>
+ * Some fields use custom deserializers, either registered in a private method here
+ * or declared through {@code @JsonAdapter} field annotations in {@link SavedGameModel}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see GameSaverJSON
@@ -118,8 +121,10 @@ public class GameLoaderJSON
     }
 
     /**
-     * Initialize {@link #gsonb} once when needed, including registering a deserializer.
+     * Initialize {@link #gsonb} once when needed, including registering some deserializers.
      * Assumes gson jar is on classpath, and caller has checked {@link soc.server.SOCServer#savegameInitFailed}.
+     * Some other custom deserializers are instead declared through {@code @JsonAdapter} field annotations
+     * in {@link SavedGameModel}.
      */
     private static void initGson()
     {

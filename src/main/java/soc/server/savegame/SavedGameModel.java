@@ -19,12 +19,19 @@
  **/
 package soc.server.savegame;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
+
+import com.google.gson.TypeAdapter;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.game.*;
@@ -55,6 +62,10 @@ import soc.util.Version;
  *<P>
  * Like the optional database, this data model has a {@link #modelVersion} which may be older than the
  * current JSettlers version. See {@link #MODEL_VERSION} for lifecycle details.
+ *<P>
+ * Some fields use custom serializers and/or deserializers: See {@link PlayerInfo}'s
+ * {@code @JsonAdapter} field annotations and {@code TypeAdapter},
+ * and those registered in {@link GameLoaderJSON#initGson()}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.3.00
@@ -62,7 +73,7 @@ import soc.util.Version;
 public class SavedGameModel
 {
     /**
-     * Current model schema version: 2300 for v2.3.00.
+     * Current model schema version: 2400 for v2.4.00.
      *<P>
      * Like the JSettlers database schema, this version may be older than the current JSettlers version.
      * The model version should change only when its fields require changes which would prevent
@@ -94,8 +105,15 @@ public class SavedGameModel
      *<P>
      * When {@code MODEL_VERSION} is changed, that will be documented here and in {@code /doc/Versions.md}.
      * The earliest version number is 2300.
+     *
+     *<H4>Changed in 2.4.00:</H4>
+     *<UL>
+     * <LI> Players' dev cards ({@link PlayerInfo#oldDevCards}, {@code newDevCards})
+     *      are written as user-friendly type name strings like {@code "ROADS"}, not ints.
+     *      Can still read them as ints if needed. See field javadoc for details.
+     *</UL>
      */
-    public static int MODEL_VERSION = 2300;
+    public static int MODEL_VERSION = 2400;
 
     /** Server's game list, for checking name and creating game */
     public static SOCGameListAtServer glas;
@@ -525,7 +543,14 @@ public class SavedGameModel
          * (playable or kept until end of game).
          * Each item is a card type like {@link SOCDevCardConstants#ROADS},
          * from {@link SOCInventoryItem#itype} field.
+         *<P>
+         * In model schema 2.3.00, these were written as arrays of ints for dev card type constants.
+         * In 2.4.00 and higher, the dev card types in each array are written as strings ({@code "ROADS"},
+         * {@code "UNIV"}, etc) from {@link SOCDevCard#getCardTypeName(int)}. For compatibility, unknown types
+         * are written as integer strings ({@code "42"}), and the adapter can read both integers and strings.
+         * See {@link DevCardEnumAdapter} code for details.
          */
+        @JsonAdapter(DevCardEnumAdapter.class)
         ArrayList<Integer> oldDevCards = new ArrayList<>(),
                            newDevCards = new ArrayList<>();
         // TODO: future: support general SOCInventoryItems/SOCSpecialItems for scenarios
@@ -671,6 +696,81 @@ public class SavedGameModel
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT
                     (ga, pl, pn, SOCPlayerElement.SET, et, elements.get(et), null);
         }
+
+        /**
+         * Serialize dev card type ints as unique strings like the fields declared in {@link SOCDevCardConstants}.
+         * Read those strings, or ints for back compat or unrecognized values, and deserialize to the dev card type ints.
+         * {@link SOCDevCardConstants#ROADS} is serialized as {@code "ROADS"}, etc.
+         * These types always start with an uppercase letter {@code 'A'}-{@code 'Z'}.
+         * Unrecognized types serialize to a string with a nonnegative number like {@code "42"}.
+         * See {@link SOCDevCard#getCardTypeName(int)} and {@link SOCDevCard#getCardType(String)}
+         * for handling and name format details, including unrecognized card types.
+         * @since 2.4.00
+         */
+        private static class DevCardEnumAdapter extends TypeAdapter<ArrayList<Integer>>
+        {
+            public void write(final JsonWriter jw, final ArrayList<Integer> devcardTypes) throws IOException
+            {
+                if (devcardTypes == null)
+                {
+                    // shouldn't occur, based on how devcard array is built in PlayerInfo
+                    jw.nullValue();
+                    return;
+                }
+
+                jw.beginArray();
+                for(final Integer ctype : devcardTypes)
+                    jw.value(SOCDevCard.getCardTypeName(ctype));
+                jw.endArray();
+            }
+
+            public ArrayList<Integer> read(final JsonReader jr) throws IOException
+            {
+                JsonToken jtype = jr.peek();
+                if (jtype == JsonToken.NULL)
+                    return null;  // unlikely
+
+                if (jtype != JsonToken.BEGIN_ARRAY)
+                    throw new IOException("devcards expected [, not " + jtype);
+
+                ArrayList<Integer> ret = new ArrayList<>();
+
+                jr.beginArray();
+                while(jr.hasNext())
+                {
+                    jtype = jr.peek();
+                    switch (jtype)
+                    {
+                    case NUMBER:
+                        ret.add(jr.nextInt());
+                        break;
+
+                    case NULL:
+                        jr.nextNull();
+                        ret.add(0);  // unlikely
+                        break;
+
+                    case STRING:
+                        String v = jr.nextString();
+                        try
+                        {
+                            ret.add(SOCDevCard.getCardType(v));
+                        } catch (IllegalArgumentException e) {
+                            throw new IOException("bad cardtype format: " + v, e);
+                        }
+                        break;
+
+                    default:
+                        throw new IOException("devcards expected int or string or ], not " + jtype);
+                            // note from test-run: reader doesn't add line number info to exception (in gson 2.8.6)
+                    }
+                }
+                jr.endArray();
+
+                return ret;
+            }
+        }
+
     }
 
     /**

@@ -33,7 +33,8 @@ import soc.server.SOCServer;
 /**
  * Save a game and its board's current state to a JSON file.
  * Game state must be {@link SOCGame#ROLL_OR_CARD} or higher.
- * Uses {@link SavedGameModel}.
+ * Uses {@link SavedGameModel}, including some custom field serializers
+ * declared through its {@code @JsonAdapter} field annotations.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see GameLoaderJSON

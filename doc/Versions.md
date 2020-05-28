@@ -21,6 +21,11 @@ and backport minor new features until `2.0.00` was ready.
 - Client:
 	- Game window:
 	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
+- For developers:
+	- Save/load games:
+	  - SavedGameModel: Players' dev cards are written to file as user-friendly type name strings like `"ROADS"`, not ints.
+	    Can still read them from ints if needed.
+	  - MODEL_VERSION increased to 2400
 
 
 ## `2.3.00` (build JM20200525)
