@@ -18,6 +18,9 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.4.00` (build JX2020xxxx)
 - Currently being developed
+- Client:
+	- Game window:
+	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
 
 
 ## `2.3.00` (build JM20200525)

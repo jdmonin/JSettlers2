@@ -254,10 +254,14 @@ import soc.game.SOCGame;
      * Dispose of this window. Overrides to clear stillAvailable flag
      * and call faceButton.clearFacePopupPreviousChooser.
      */
+    @Override
     public void dispose()
     {
-        stillAvailable = false;
-        fb.clearFacePopupPreviousChooser();
+        if (stillAvailable)
+        {
+            stillAvailable = false;
+            fb.clearFacePopupPreviousChooser();
+        }
         super.dispose();
     }
 

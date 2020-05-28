@@ -2205,12 +2205,15 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * leave this game
+     * Leave this game and close this window.
      */
     public void leaveGame()
     {
         mainDisplay.leaveGame(game);
+        if (clientHand != null)
+            clientHand.removePlayer();  // cleanup, possibly close open non-modal dialogs, etc
         client.getGameMessageSender().leaveGame(game);
+
         dispose();
     }
 

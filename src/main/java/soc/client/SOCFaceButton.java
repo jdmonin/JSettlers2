@@ -395,8 +395,8 @@ import java.net.URL;
     }
 
     /**
-     * The previous face-chooser window (from the face-popup menu) has been disposed.
-     * If menu item is chosen again, don't show the previous one, create a new face-chooser window.
+     * The previous face-chooser window (from the face-popup menu) has been disposed, or will be disposed here.
+     * Next time menu item is chosen, won't show the previous one, will create a new face-chooser window.
      *
      * @see #addFacePopupMenu()
      * @since 1.1.00
@@ -771,13 +771,17 @@ import java.net.URL;
         }
 
         /**
-         * The previous face-chooser window has been disposed.
+         * The previous face-chooser window has been disposed, or will be disposed here.
          * If menu item is chosen, don't show it, create a new one.
          */
         public void clearPreviousChooser()
         {
-            if (fsf != null)
+            final FaceChooserFrame prevFSF = fsf;
+            if (prevFSF != null)
+            {
+                prevFSF.dispose();
                 fsf = null;
+            }
         }
 
     }  /* static nested class FaceButtonPopupMenu */

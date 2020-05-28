@@ -2168,7 +2168,9 @@ import javax.swing.UIManager;
             }
 
             playerIsClient = false;
-        } else if (game.getGameState() == SOCGame.NEW)
+            faceImg.clearFacePopupPreviousChooser();
+        }
+        else if (game.getGameState() == SOCGame.NEW)
         {
             // Un-hide "Sit Here" or "Lock" button
             boolean clientAlreadySitting = (playerInterface.getClientHand() != null);
