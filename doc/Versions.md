@@ -25,6 +25,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Save/load games:
 	  - SavedGameModel: Players' dev cards are written to file as user-friendly type name strings like `"ROADS"`, not ints.
 	    Can still read them from ints if needed.
+	  - Omit writing pieces' specialVP field when it's 0
 	  - MODEL_VERSION increased to 2400
 
 

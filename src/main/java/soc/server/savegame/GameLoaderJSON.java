@@ -33,7 +33,6 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
@@ -49,7 +48,7 @@ import soc.message.SOCPlayerElement.PEType;
  * Once the debug user has connected necessary bots or otherwise satisfied possible constraints,
  * must call {@link SavedGameModel#resumePlay(boolean)} to check constraints and resume game play.
  *<P>
- * Some fields use custom deserializers, either registered in a private method here
+ * Some fields use custom deserializers, either registered in a private method here or in {@link SavedGameModel},
  * or declared through {@code @JsonAdapter} field annotations in {@link SavedGameModel}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -133,7 +132,7 @@ public class GameLoaderJSON
             return;
 
         gb = new GsonBuilder();
-        gb.registerTypeAdapter(SOCPlayingPiece.class, new PPieceDeserializer());
+        SavedGameModel.initGsonRegisterAdapters(gb);
         gb.registerTypeAdapter
             (new TypeToken<HashMap<GEType, Integer>>(){}.getType(),
              new EnumKeyedMapDeserializer<GEType>(GEType.class));
@@ -142,60 +141,6 @@ public class GameLoaderJSON
              new EnumKeyedMapDeserializer<PEType>(PEType.class));
 
         gsonb = gb;
-    }
-
-    /**
-     * Deserialize an abstract {@link SOCPlayingPiece} as {@link SOCRoad}, {@link SOCSettlement}, etc
-     * based on {@code pieceType} field. Unknown pieceTypes throw {@link JsonParseException}.
-     */
-    private static class PPieceDeserializer implements JsonDeserializer<SOCPlayingPiece>
-    {
-        public SOCPlayingPiece deserialize
-            (final JsonElement elem, final Type t, final JsonDeserializationContext ctx)
-            throws JsonParseException
-        {
-            final JsonObject elemo = elem.getAsJsonObject();
-            final int ptype = elemo.get("pieceType").getAsInt(),
-                      coord = elemo.get("coord").getAsInt();
-
-            final SOCPlayingPiece pp;
-
-            switch (ptype)
-            {
-            case SOCPlayingPiece.ROAD:
-                pp = new SOCRoad(dummyPlayer, coord, null);
-                break;
-
-            case SOCPlayingPiece.SETTLEMENT:
-                pp = new SOCSettlement(dummyPlayer, coord, null);
-                break;
-
-            case SOCPlayingPiece.CITY:
-                pp = new SOCCity(dummyPlayer, coord, null);
-                break;
-
-            case SOCPlayingPiece.SHIP:
-                pp = new SOCShip(dummyPlayer, coord, null);
-                if (elemo.has("isClosed") && elemo.get("isClosed").getAsBoolean())
-                    ((SOCShip) pp).setClosed();
-                break;
-
-            // doesn't need to handle SOCPlayingPiece.FORTRESS,
-            // because that's not part of player's SOCPlayingPiece list
-
-            default:
-                throw new JsonParseException("unknown pieceType: " + ptype);
-            }
-
-            if (elemo.has("specialVP"))
-            {
-                int n = elemo.get("specialVP").getAsInt();
-                if (n != 0)
-                    pp.specialVP = n;
-            }
-
-            return pp;
-        }
     }
 
     /**

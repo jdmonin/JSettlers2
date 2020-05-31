@@ -27,8 +27,15 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
@@ -64,8 +71,9 @@ import soc.util.Version;
  * current JSettlers version. See {@link #MODEL_VERSION} for lifecycle details.
  *<P>
  * Some fields use custom serializers and/or deserializers: See {@link PlayerInfo}'s
- * {@code @JsonAdapter} field annotations and {@code TypeAdapter},
- * and those registered in {@link GameLoaderJSON#initGson()}.
+ * {@code @JsonAdapter} field annotations and their {@code TypeAdapter}s,
+ * those registered in {@link GameLoaderJSON#initGson()},
+ * and {@link CallbackClassTypeAdapterFactory}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.3.00
@@ -213,6 +221,19 @@ public class SavedGameModel
             throw new UnsupportedOperationException("admin.savegame.cannot_save.scen");
 
         // all current non-scenario game opts are supported
+    }
+
+    /**
+     * Register some custom type adapters as part of initializing {@code gb}.
+     * Assumes gson jar is on classpath, and caller has checked {@link soc.server.SOCServer#savegameInitFailed}.
+     * For use by {@link GameLoaderJSON} and {@link GameSaverJSON}, which call this before registering
+     * their own deserializers/serializers.
+     * @param gb  GsonBuilder to register adapters with
+     * @since 2.4.00
+     */
+    /* package */ static void initGsonRegisterAdapters(final GsonBuilder gb)
+    {
+        PlayerInfo.initGsonRegisterAdapters(gb);
     }
 
     /**
@@ -538,6 +559,17 @@ public class SavedGameModel
         int[] resRollStats;
 
         /**
+         * Register some custom type adapters as part of
+         * {@link SavedGameModel#initGsonRegisterAdapters(GsonBuilder)}.
+         * See that method for details.
+         * @since 2.4.00
+         */
+        private static void initGsonRegisterAdapters(final GsonBuilder gb)
+        {
+            gb.registerTypeAdapterFactory(new PPieceAdapter());
+        }
+
+        /**
          * Standard dev card types in player's hand,
          * received in current turn (new) or previous turns
          * (playable or kept until end of game).
@@ -548,9 +580,9 @@ public class SavedGameModel
          * In 2.4.00 and higher, the dev card types in each array are written as strings ({@code "ROADS"},
          * {@code "UNIV"}, etc) from {@link SOCDevCard#getCardTypeName(int)}. For compatibility, unknown types
          * are written as integer strings ({@code "42"}), and the adapter can read both integers and strings.
-         * See {@link DevCardEnumAdapter} code for details.
+         * See {@link DevCardEnumListAdapter} code for details.
          */
-        @JsonAdapter(DevCardEnumAdapter.class)
+        @JsonAdapter(DevCardEnumListAdapter.class)
         ArrayList<Integer> oldDevCards = new ArrayList<>(),
                            newDevCards = new ArrayList<>();
         // TODO: future: support general SOCInventoryItems/SOCSpecialItems for scenarios
@@ -698,7 +730,7 @@ public class SavedGameModel
         }
 
         /**
-         * Serialize dev card type ints as unique strings like the fields declared in {@link SOCDevCardConstants}.
+         * Serialize list of dev card type ints as unique strings like the fields declared in {@link SOCDevCardConstants}.
          * Read those strings, or ints for back compat or unrecognized values, and deserialize to the dev card type ints.
          * {@link SOCDevCardConstants#ROADS} is serialized as {@code "ROADS"}, etc.
          * These types always start with an uppercase letter {@code 'A'}-{@code 'Z'}.
@@ -707,7 +739,7 @@ public class SavedGameModel
          * for handling and name format details, including unrecognized card types.
          * @since 2.4.00
          */
-        private static class DevCardEnumAdapter extends TypeAdapter<ArrayList<Integer>>
+        private static class DevCardEnumListAdapter extends TypeAdapter<ArrayList<Integer>>
         {
             public void write(final JsonWriter jw, final ArrayList<Integer> devcardTypes) throws IOException
             {
@@ -771,6 +803,98 @@ public class SavedGameModel
             }
         }
 
+        /**
+         * Serialize {@link SOCPlayingPiece}s with {@code pieceType} field as string not int.
+         * Deserialize from that form to non-abstract subclasses {@link SOCRoad}, {@link SOCSettlement}, etc
+         * based on {@code pieceType} field. Unknown pieceTypes throw {@link JsonParseException}.
+         *<P>
+         * Before v2.4.00 this was {@code GameLoaderJSON.PPieceDeserializer}.
+         */
+        private static class PPieceAdapter extends CallbackClassTypeAdapterFactory<SOCPlayingPiece>
+        {
+            private PPieceAdapter()
+            {
+                super(SOCPlayingPiece.class);
+            }
+
+            @Override
+            protected void beforeWrite(final SOCPlayingPiece source, final JsonElement serializedTree)
+                throws IOException
+            {
+                // TODO ppiece int -> string
+
+                final JsonObject obj = serializedTree.getAsJsonObject();
+                JsonElement svpField = obj.get("specialVP");
+                if ((svpField != null) && (svpField.getAsInt() == 0))
+                    obj.remove("specialVP");
+            }
+
+            @Override
+            protected SOCPlayingPiece afterRead(final JsonElement deserializedTree)
+                throws IOException
+            {
+                final JsonObject obj = deserializedTree.getAsJsonObject();
+                // TODO add pieceType string -> int
+
+                final int ptype, coord;
+                try
+                {
+                    ptype = obj.get("pieceType").getAsInt();
+                } catch (RuntimeException e) {
+                    throw new IOException("can't parse pieceType", e);
+                }
+                try
+                {
+                    coord = obj.get("coord").getAsInt();
+                } catch (RuntimeException e) {
+                    throw new IOException("can't parse coord", e);
+                }
+
+                final SOCPlayingPiece pp;
+
+                switch (ptype)
+                {
+                case SOCPlayingPiece.ROAD:
+                    pp = new SOCRoad(GameLoaderJSON.dummyPlayer, coord, null);
+                    break;
+
+                case SOCPlayingPiece.SETTLEMENT:
+                    pp = new SOCSettlement(GameLoaderJSON.dummyPlayer, coord, null);
+                    break;
+
+                case SOCPlayingPiece.CITY:
+                    pp = new SOCCity(GameLoaderJSON.dummyPlayer, coord, null);
+                    break;
+
+                case SOCPlayingPiece.SHIP:
+                    pp = new SOCShip(GameLoaderJSON.dummyPlayer, coord, null);
+                    if (obj.has("isClosed") && obj.get("isClosed").getAsBoolean())
+                        ((SOCShip) pp).setClosed();
+                    break;
+
+                // doesn't need to handle SOCPlayingPiece.FORTRESS,
+                // because that's not part of player's SOCPlayingPiece list
+
+                default:
+                    throw new IOException("unknown pieceType: " + ptype);
+                }
+
+                if (obj.has("specialVP"))
+                {
+                    try
+                    {
+                        int n = obj.get("specialVP").getAsInt();
+                        if (n != 0)
+                            pp.specialVP = n;
+                    } catch (RuntimeException e) {
+                        throw new IOException("can't parse specialVP", e);
+                    }
+                }
+
+                return pp;
+            }
+
+        }
     }
 
     /**
@@ -866,6 +990,88 @@ public class SavedGameModel
     public static class Constraint
     {
         // TBD
+    }
+
+    /**
+     * Type adapter for GSON to serialize/deserialize a class as usual,
+     * with callbacks to change the serialized form before writing or
+     * after reading before parsing: {@code beforeWrite(..)}, {@code afterRead(..)}.
+     *<P>
+     * Based on {@code CustomizedTypeAdapterFactory} in Jesse Wilson's 2012-06-30 answer
+     * https://stackoverflow.com/questions/11271375/gson-custom-seralizer-for-one-variable-of-many-in-an-object-using-typeadapter/11272452#11272452
+     *<BR>
+     * J Monin added ability to override instantiation in {@code afterRead}; clarified comments, variable names, throws.
+     *
+     * @param <C> Class being serialized/deserialized
+     * @since 2.4.00
+     */
+    public abstract static class CallbackClassTypeAdapterFactory<C>
+        implements TypeAdapterFactory
+    {
+        private final Class<C> forClass;
+
+        public CallbackClassTypeAdapterFactory(final Class<C> forClass)
+        {
+            this.forClass = forClass;
+        }
+
+        /** Use our adapter only if 'C' and 'T' are same type */
+        @SuppressWarnings("unchecked")
+        public final <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type)
+        {
+            return (type.getRawType() == forClass)
+                ? (TypeAdapter<T>) customizeMyClassAdapter(gson, (TypeToken<C>) type)
+                : null;
+        }
+
+        private TypeAdapter<C> customizeMyClassAdapter(Gson gson, TypeToken<C> type)
+        {
+            final TypeAdapter<C> delegate = gson.getDelegateAdapter(this, type);
+            final TypeAdapter<JsonElement> elementAdapter = gson.getAdapter(JsonElement.class);
+
+            return new TypeAdapter<C>()
+            {
+                public void write(final JsonWriter out, final C value)
+                    throws IOException
+                {
+                    JsonElement tree = delegate.toJsonTree(value);
+                    beforeWrite(value, tree);
+                    elementAdapter.write(out, tree);
+                }
+
+                public C read(final JsonReader in)
+                    throws IOException
+                {
+                    JsonElement tree = elementAdapter.read(in);
+                    C maybeObj = afterRead(tree);
+                    return (maybeObj != null) ? maybeObj : delegate.fromJsonTree(tree);
+                }
+            };
+        }
+
+        /**
+         * Override this stub to alter {@code serializedTree} before it is written to
+         * the outgoing JSON stream by {@link TypeAdapter#write(JsonWriter, Object)}.
+         * @param source  Object being serialized, if needed for conditional changes
+         * @param serializedTree  Serialized form of {@code source}
+         * @throws IOException if object should not be written (data inconsistency, etc)
+         */
+        protected void beforeWrite(C source, JsonElement serializedTree) throws IOException {}
+
+        /**
+         * Override this stub to alter {@code deserializedTree} before it is parsed into
+         * an object of our class, or to instantiate it yourself.
+         * @return An object if you're instantiating it yourself here,
+         *     or {@code null} if caller should delegate to
+         *     standard GSON instantiation process on {@code deserializedTree}
+         *     by calling {@link TypeAdapter#fromJsonTree(JsonElement)}.
+         * @throws IOException if object should not be instantiated
+         *     (data inconsistency, wrong field type within {@code deserializedTree}, etc)
+         */
+        protected C afterRead(JsonElement deserializedTree) throws IOException
+        {
+            return null;
+        }
     }
 
 }

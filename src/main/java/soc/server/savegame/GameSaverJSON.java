@@ -72,10 +72,12 @@ public class GameSaverJSON
 
         final SavedGameModel sgm = new SavedGameModel(ga, srv);
 
-        Gson gson;
+        final Gson gson;
         try
         {
-            gson = new GsonBuilder().setPrettyPrinting().create();
+            final GsonBuilder gb = new GsonBuilder();
+            SavedGameModel.initGsonRegisterAdapters(gb);
+            gson = gb.setPrettyPrinting().create();
         }
         catch (Throwable th)
         {
