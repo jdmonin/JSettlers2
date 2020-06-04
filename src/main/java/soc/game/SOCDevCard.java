@@ -171,14 +171,7 @@ public class SOCDevCard
     public static String getCardTypeName(final int devCardType)
         throws IllegalArgumentException
     {
-        if (devCardType < 0)
-            throw new IllegalArgumentException("devCardType: " + devCardType);
-
-        final String[] names = GETCARDTYPENAME_KEYS[2];
-        if (devCardType < names.length)
-            return names[devCardType];
-        else
-            return Integer.toString(devCardType);
+        return SOCPlayingPiece.getTypeName(devCardType, GETCARDTYPENAME_KEYS[2]);
     }
 
     /**
@@ -198,24 +191,7 @@ public class SOCDevCard
     public static int getCardType(final String ctypeName)
         throws IllegalArgumentException, NumberFormatException
     {
-        if ((ctypeName == null) || ctypeName.isEmpty())
-            throw new IllegalArgumentException("ctypeName empty");
-
-        final char c0 = ctypeName.charAt(0);
-        if ((c0 >= '0') && (c0 <= '9'))
-        {
-            return Integer.parseInt(ctypeName);
-        }
-        else if ((c0 >= 'A') && (c0 <= 'Z'))
-        {
-            final String[] names = GETCARDTYPENAME_KEYS[2];
-            for (int i = 1; i < names.length; ++i)
-                if (names[i].equals(ctypeName))
-                    return i;
-            return 0;
-        } else {
-            throw new IllegalArgumentException("ctypeName format");
-        }
+        return SOCPlayingPiece.getType(ctypeName, GETCARDTYPENAME_KEYS[2], 0);
     }
 
     /**

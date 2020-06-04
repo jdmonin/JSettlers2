@@ -821,9 +821,11 @@ public class SavedGameModel
             protected void beforeWrite(final SOCPlayingPiece source, final JsonElement serializedTree)
                 throws IOException
             {
-                // TODO ppiece int -> string
-
                 final JsonObject obj = serializedTree.getAsJsonObject();
+
+                obj.addProperty("pieceType", SOCPlayingPiece.getTypeName(source.getType()));
+                    // this "add" replaces default serialization's int pieceType
+
                 JsonElement svpField = obj.get("specialVP");
                 if ((svpField != null) && (svpField.getAsInt() == 0))
                     obj.remove("specialVP");
@@ -834,12 +836,15 @@ public class SavedGameModel
                 throws IOException
             {
                 final JsonObject obj = deserializedTree.getAsJsonObject();
-                // TODO add pieceType string -> int
 
                 final int ptype, coord;
                 try
                 {
-                    ptype = obj.get("pieceType").getAsInt();
+                    final String ptStr = obj.get("pieceType").getAsString();
+                    ptype = SOCPlayingPiece.getType(ptStr);
+                        // handles int (3 or "3") or string from getPieceTypeName ("CITY")
+                    if (ptype == -1)
+                        throw new IOException("unknown pieceType: " + ptStr);
                 } catch (RuntimeException e) {
                     throw new IOException("can't parse pieceType", e);
                 }

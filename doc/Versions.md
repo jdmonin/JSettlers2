@@ -23,7 +23,8 @@ and backport minor new features until `2.0.00` was ready.
 	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
 - For developers:
 	- Save/load games:
-	  - SavedGameModel: Players' dev cards are written to file as user-friendly type name strings like `"ROADS"`, not ints.
+	  - SavedGameModel: Players' piece types and dev cards are written to file as
+	    user-friendly type name strings like `"SETTLEMENT"` or `"UNIV"`, not ints.
 	    Can still read them from ints if needed.
 	  - Omit writing pieces' specialVP field when it's 0
 	  - MODEL_VERSION increased to 2400

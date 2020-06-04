@@ -20,8 +20,6 @@
 
 package soctest.game;
 
-import java.util.regex.Pattern;
-
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 
@@ -67,24 +65,14 @@ public class TestDevCard
             { "UNKNOWN", "ROADS", "DISC", "MONO", "CAP", "MARKET", "UNIV",
               "TEMPLE" /* not ambiguous abbreviation TEMP */, "CHAPEL", "KNIGHT"
             };
-        final Pattern patName = Pattern.compile("^[A-Z][A-Z0-9_]+$");
-
-        // test regex for possible future names
-        assertTrue(patName.matcher("A1").matches());
-        assertTrue(patName.matcher("A315").matches());
-        assertTrue(patName.matcher("A3_1_5").matches());
-        assertTrue(patName.matcher("ANAME_UNDERSCORED").matches());
-        assertFalse(patName.matcher("lowercase").matches());
-        assertFalse(patName.matcher("MixedCase").matches());
-        assertFalse(patName.matcher(" whitespace").matches());
-        assertFalse(patName.matcher("1LEADINGDIGIT").matches());
 
         assertEquals(SOCDevCardConstants.MAXPLUSONE, knownNames.length);
         for (int i = 0; i < knownNames.length; ++i)
         {
             final String name = SOCDevCard.getCardTypeName(i);
             assertEquals(knownNames[i], name);
-            assertTrue("expected regex match for \"" + name + "\"", patName.matcher(name).matches());
+            assertTrue("expected regex match for \"" + name + "\"",
+                TestPlayingPiece.TYPENAME_PATTERN.matcher(name).matches());
 
             assertEquals(i, SOCDevCard.getCardType(knownNames[i]));
         }
@@ -97,7 +85,7 @@ public class TestDevCard
     @Test(expected=IllegalArgumentException.class)
     public void testDevCardTypeName_negative()
     {
-        assertEquals("-42", SOCDevCard.getCardTypeName(-42));  // < 0: should throw exception
+        assertEquals("-WONTREACH", SOCDevCard.getCardTypeName(-42));  // < 0: should throw exception
     }
 
     /**
