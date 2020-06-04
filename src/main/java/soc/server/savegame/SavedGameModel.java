@@ -119,6 +119,9 @@ public class SavedGameModel
      * <LI> Players' dev cards ({@link PlayerInfo#oldDevCards}, {@code newDevCards})
      *      are written as user-friendly type name strings like {@code "ROADS"}, not ints.
      *      Can still read them as ints if needed. See field javadoc for details.
+     * <LI> Playing piece types ({@link SOCPlayingPiece#getType()} within {@link PlayerInfo#pieces})
+     *      are written as user-friendly type name strings like {@code "SETTLEMENT"}, not ints.
+     *      Can still read them as ints if needed. Pieces also omit writing specialVP field unless != 0.
      *</UL>
      */
     public static int MODEL_VERSION = 2400;
