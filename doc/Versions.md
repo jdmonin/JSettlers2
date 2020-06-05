@@ -28,6 +28,8 @@ and backport minor new features until `2.0.00` was ready.
 	    Can still read them from ints if needed.
 	  - Omit writing pieces' specialVP field when it's 0
 	  - MODEL_VERSION increased to 2400
+	  - Unit tests using saved-game artifacts
+	- For unit tests, SOCGameListAtServer.addMember now succeeds even if game was added using client-side addGame method
 
 
 ## `2.3.00` (build JM20200525)

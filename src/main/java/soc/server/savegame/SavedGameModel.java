@@ -524,7 +524,7 @@ public class SavedGameModel
     {
         public String name;
         public boolean isSeatVacant;
-        int totalVP;
+        public int totalVP;
 
         /**
          * Robot status flag, from {@link SOCPlayer#isRobot()}

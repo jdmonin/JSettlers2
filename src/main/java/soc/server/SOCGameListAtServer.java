@@ -282,13 +282,27 @@ public class SOCGameListAtServer extends SOCGameList
     {
         Vector<Connection> members = getMembers(gaName);
 
-        if ((members != null) && (!members.contains(conn)))
+        if (members == null)
+        {
+            if (! isGame(gaName))
+                return;
+
+            // won't be null, except during some unit tests
+            // which use client-side SOCGameList.addGame for simplicity
+            members = new Vector<>();
+            gameMembers.put(gaName, members);
+        }
+
+        if (! members.contains(conn))
         {
             final boolean firstMember = members.isEmpty();
             members.addElement(conn);
 
             // Check version range
             SOCGame ga = getGameData(gaName);
+            if (ga == null)
+                return;  // happens only in some unit tests
+
             final int cliVers = conn.getVersion();
             if (firstMember)
             {
@@ -464,7 +478,8 @@ public class SOCGameListAtServer extends SOCGameList
      * @param game  the game to be added
      * @param handler  game type handler for this game; not null
      * @param gaOwner the game owner/creator's player name, or null
-     * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed
+     * @param gaLocaleStr  the game owner/creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed;
+     *     ignored if {@code gaOwner} is null
      * @return new game object, or null if it already existed and couldn't find an unused name
      * @throws IllegalArgumentException  if {@code handler} is null
      * @throws NoSuchElementException if {@code loadedGame != null}, its game name is already in use,
