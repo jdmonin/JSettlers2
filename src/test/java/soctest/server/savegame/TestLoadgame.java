@@ -32,6 +32,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoutePiece;
+import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.server.SOCGameListAtServer;
 import soc.server.genericServer.StringConnection;
@@ -43,7 +44,8 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * A few tests for {@link GameLoaderJSON} and {@link SavedGameModel}.
+ * A few tests for {@link GameLoaderJSON} and {@link SavedGameModel},
+ * using JSON test artifacts under {@code /src/test/resources/resources/savegame}.
  *
  * @since 2.4.00
  */
@@ -59,13 +61,15 @@ public class TestLoadgame
     /**
      * Attempt to load a savegame test artifact by calling {@link GameLoaderJSON#loadGame(File)}.
      * Doesn't postprocess or call {@link SavedGameModel#resumePlay(boolean)}.
-     * If not found, will fail an {@code assertNotNull}.
+     * If not found, will fail an {@code assertNotNull}. Doesn't try to catch
+     * {@link SavedGameModel.UnsupportedSGMOperationException} or SGM's other declared runtime exceptions.
      * @param testResFilename  Base name of test artifact, like {@code "classic-botturn.game.json"},
      *     to be loaded from {@code /src/test/resources/resources/savegame/}
      * @throws IOException if file can't be loaded
+     * @throws SavedGameModel.UnsupportedSGMOperationException if unsupported feature; see {@code GameLoaderJson.loadGame}
      */
     private static SavedGameModel load(final String testRsrcFilename)
-        throws IOException
+        throws IOException, SavedGameModel.UnsupportedSGMOperationException
     {
         final String rsrcPath = "/resources/savegame/" + testRsrcFilename;
         final URL u = TestLoadgame.class.getResource(rsrcPath);
@@ -306,6 +310,9 @@ public class TestLoadgame
         }
         for (int pn = 0; pn < 4; ++pn)
         {
+            if (! ga.isSeatVacant(pn))
+                assertEquals(1, pl.getStartingLandAreasEncoded());
+
             if (null == SHIPS_CLOSED[pn])
                 continue;
 
@@ -323,6 +330,93 @@ public class TestLoadgame
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
+    }
+
+    /** Test loading and resuming a simple scenario, including SVP for {@code _SC_SEAC}. */
+    @Test
+    public void testLoadScenSimple4ISL()
+        throws IOException
+    {
+        final SavedGameModel sgm = load("testscen-simple-4isl.game.json");
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("game name", "testscen-simple-4isl", sgm.gameName);
+        assertEquals(3, ga.getCurrentPlayerNumber());
+        assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
+        assertEquals("oldgamestate", SOCGame.PLAY1, sgm.oldGameState);
+        assertEquals(4, sgm.playerSeats.length);
+        assertEquals(4, ga.maxPlayers);
+        assertTrue(ga.hasSeaBoard);
+        assertEquals("SC_4ISL", ga.getGameOptionStringValue("SC"));
+
+        assertEquals(SOCBoard.BOARD_ENCODING_LARGE, ga.getBoard().getBoardEncodingFormat());
+        final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
+        assertEquals("robberHex", 777, board.getRobberHex());
+        assertEquals("pirateHex", 1805, board.getPirateHex());
+
+        final String[] NAMES = {null, "robot 5", "droid 1", "debug"};
+        final int[] TOTAL_VP = {0, 2, 2, 5};
+        final int[][] RESOURCES = {null, {0, 0, 0, 3, 1}, {1, 0, 1, 1, 0}, {0, 0, 1, 0, 0}};
+        final int[][] PIECE_COUNTS = {{15, 5, 4, 15, 0}, {13, 3, 4, 15, 0}, {13, 3, 4, 15, 0}, {15, 2, 4, 11, 0}};
+        checkPlayerData(sgm, NAMES, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+
+        final SOCPlayer plDebug = ga.getPlayer(3);
+        assertEquals(3, plDebug.getStartingLandAreasEncoded());
+        assertEquals(2, plDebug.getSpecialVP());
+        assertEquals(1, plDebug.getScenarioSVPLandAreas());
+
+        final int[] SHIPS_OPEN = {0x609};
+        final int[] SHIPS_CLOSED = {0x406, 0x405, 0x404};
+        for (final int edge : SHIPS_OPEN)
+        {
+            final SOCRoutePiece rp = plDebug.getRoadOrShip(edge);
+            final String assertDesc = "debug pl ship at edge " + edge;
+            assertNotNull(assertDesc, rp);
+            assertFalse(assertDesc, rp.isRoadNotShip());
+            assertFalse("shouldn't be closed: " + assertDesc, ((SOCShip) rp).isClosed());
+        }
+        for (final int edge : SHIPS_CLOSED)
+        {
+            final SOCRoutePiece rp = plDebug.getRoadOrShip(edge);
+            final String assertDesc = "debug pl ship at edge " + edge;
+            assertNotNull(assertDesc, rp);
+            assertFalse(assertDesc, rp.isRoadNotShip());
+            assertTrue("should be closed: " + assertDesc, ((SOCShip) rp).isClosed());
+        }
+
+        fillSeatsForResume(sgm);
+        sgm.resumePlay(true);
+        assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
+
+        // Another ship & coastal settlement in a landarea we've already built to
+        ga.putPiece(new SOCShip(plDebug, 0x505, board));
+        ga.putPiece(new SOCSettlement(plDebug, 0x605, board));
+        assertEquals(2, plDebug.getSpecialVP());
+        assertEquals(1, plDebug.getScenarioSVPLandAreas());
+
+        // Now build to a new LA
+        ga.putPiece(new SOCShip(plDebug, 0x604, board));
+        ga.putPiece(new SOCShip(plDebug, 0x704, board));
+        ga.putPiece(new SOCSettlement(plDebug, 0x804, board));
+        assertEquals(4, plDebug.getSpecialVP());
+        assertEquals(3, plDebug.getScenarioSVPLandAreas());
+    }
+
+    /** Test loading a not-yet-supported scenario: {@code bad-scen-unsupported.game.json} */
+    @Test(expected=SavedGameModel.UnsupportedSGMOperationException.class)
+    public void testLoadUnsupportedScenFOG()
+        throws IOException
+    {
+        try
+        {
+            final SavedGameModel sgm = load("bad-scen-unsupported.game.json");
+            // should throw exception before here
+            assertEquals("game name", "hopefully-unreached-code", sgm.gameName);
+        } catch (SavedGameModel.UnsupportedSGMOperationException e) {
+            assertEquals("SC_FOG", e.param1);
+            assertEquals("_SC_FOG", e.param2);
+            throw e;
+        }
     }
 
 }

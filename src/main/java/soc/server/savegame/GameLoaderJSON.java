@@ -82,8 +82,9 @@ public class GameLoaderJSON
      * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
      *     is newer than the server's {@link soc.util.Version#versionNumber()};
      *     see {@link SavedGameModel#checkCanLoad()} for details
-     * @throws UnsupportedOperationException if loaded game model has an option or feature not yet supported
-     *     by {@link SavedGameModel#createLoadedGame()}; see {@link SavedGameModel#checkCanLoad()} for details
+     * @throws SavedGameModel.UnsupportedSGMOperationException if loaded game model has an option or feature
+     *     not yet supported by {@link SavedGameModel#createLoadedGame()}; see {@link SavedGameModel#checkCanLoad()}
+     *     for details
      * @throws StringIndexOutOfBoundsException  if a {@link JsonSyntaxException} occurs while loading, this wraps it
      *     so the caller doesn't need to know GSON-specific exception types
      * @throws IOException  if a problem occurs while loading, including a {@link JsonIOException}
@@ -93,7 +94,8 @@ public class GameLoaderJSON
      */
     public static SavedGameModel loadGame(final File loadFrom)
         throws IllegalStateException, NoSuchElementException, SOCGameOptionVersionException,
-            UnsupportedOperationException, StringIndexOutOfBoundsException, IOException, IllegalArgumentException
+            SavedGameModel.UnsupportedSGMOperationException, StringIndexOutOfBoundsException,
+            IOException, IllegalArgumentException
     {
         if (SavedGameModel.glas == null)
             throw new IllegalStateException("SavedGameModel.glas is null");

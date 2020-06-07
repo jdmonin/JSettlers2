@@ -2467,7 +2467,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * At client, set the player's {@link #getPlayerEvents()} based on a server message.
-     * @param las  Land areas to set in player's bitmask; all others will be cleared.
+     * @param las  Land areas bitmask value to set for player, from {@link #getScenarioSVPLandAreas()}:
+     *     completely replaces previously set bits
      * @since 2.0.00
      */
     public void setScenarioSVPLandAreas(final int las)
@@ -2479,7 +2480,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board}, get
      * this player's starting settlement land areas, encoded to send over the network
      * from server to client. 0 otherwise.
-     * @return  Encoded starting land area numbers 1 and 2
+     * @return  Encoded starting land area numbers 1 and 2:
+     *     <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>
      * @see soc.message.SOCPlayerElement.PEType#STARTING_LANDAREAS
      * @since 2.0.00
      */

@@ -121,7 +121,14 @@ public class SavedGameModel
      *      Can still read them as ints if needed. See field javadoc for details.
      * <LI> Playing piece types ({@link SOCPlayingPiece#getType()} within {@link PlayerInfo#pieces})
      *      are written as user-friendly type name strings like {@code "SETTLEMENT"}, not ints.
-     *      Can still read them as ints if needed. Pieces also omit writing specialVP field unless != 0.
+     *      Can still read them as ints if needed. Pieces also omit writing specialVP field unless != 0,
+     *      {@link SOCShip} omits isClosed field unless true.
+     * <LI> Simple scenario support: Can save and load scenarios which have only a board layout and
+     *      optionally game option {@link SOCGameOption#K_SC_SANY _SC_SANY} or {@link SOCGameOption#K_SC_SEAC _SC_SEAC},
+     *      no other scenario game opts (option names starting with "_SC_").
+     *      Sets PlayerElements {@link PEType#SCENARIO_SVP SCENARIO_SVP},
+     *      {@link PEType#SCENARIO_SVP_LANDAREAS_BITMASK SCENARIO_SVP_LANDAREAS_BITMASK}.
+     * <LI> Adds {@link PlayerInfo#earlyElements} list to set before piece placement
      *</UL>
      */
     public static int MODEL_VERSION = 2400;
@@ -206,24 +213,62 @@ public class SavedGameModel
      *<P>
      * Currently unsupported:
      *<UL>
-     * <LI> Any game scenario: {@link SOCGameOption} {@code "SC"} != null:<BR>
-     *   Returns "admin.savegame.cannot_save.scen"
+     * <LI> Most scenario game options:<BR>
+     *  If {@link SOCGameOption} {@code "SC"} != null, checks all game options:
+     *  <UL>
+     *   <LI> {@code "_SC_SANY"} is OK
+     *   <LI> {@code "_SC_SEAC"} is OK
+     *   <LI> Any other scenario game option (keyname starts with {@code "_SC_"}) is unsupported
+     *  </UL>
+     *   Throws {@link UnsupportedSGMOperationException} with message "admin.savegame.cannot_save.scen".
+     *   {@link UnsupportedSGMOperationException#param1} is scenario name,
+     *   {@code param2} is unsupported gameopt keyname.
      *</UL>
      *
      * @param ga  Game to check; not null
-     * @throws UnsupportedOperationException  if game has an option or feature not yet supported
+     * @throws UnsupportedSGMOperationException  if game has an option or feature not yet supported
      *     by {@link SavedGameModel}; {@link Throwable#getMessage()} will name the unsupported option/feature,
      *     ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text
      *     like "a unique resource type": Put a try-catch around your attempt to localize that key.
+     *     Optional localization params are {@link UnsupportedSGMOperationException#param1} and {@code param2}.
      * @see #checkCanLoad()
      */
     public static void checkCanSave(final SOCGame ga)
-        throws UnsupportedOperationException
+        throws UnsupportedSGMOperationException
     {
-        if (null != ga.getGameOptionStringValue("SC"))
-            throw new UnsupportedOperationException("admin.savegame.cannot_save.scen");
-
         // all current non-scenario game opts are supported
+
+        final String sc = ga.getGameOptionStringValue("SC");
+        if (null == sc)
+            return;
+
+        final String unsuppOpt = checkUnsupportedScenOpts(ga.getGameOptions());
+        if (unsuppOpt != null)
+            throw new UnsupportedSGMOperationException("admin.savegame.cannot_save.scen", sc, unsuppOpt);
+                // "scenario {0} with game option {1}"
+    }
+
+    /**
+     * Check if a set of game options contains any scenario game options
+     * which aren't yet supported by the savegame system.
+     * Currently only {@code _SC_SANY} and {@code _SC_SEAC} are supported.
+     * Other scenario options use data fields or piece types which aren't in {@code SavedGameModel} yet.
+     * @param opts Set of game options to check, or null.
+     *     Ignores any option whose key name doesn't start with {@code "_SC_"}.
+     * @return {@code null} if no problems, or the name of the first-seen unsupported option
+     * @since 2.4.00
+     */
+    private static String checkUnsupportedScenOpts(final Map<String, SOCGameOption> opts)
+    {
+        if (opts == null)
+            return null;
+
+        for (final String okey : opts.keySet())
+            if (okey.startsWith("_SC_")
+                && ! (okey.equals(SOCGameOption.K_SC_SEAC) || okey.equals(SOCGameOption.K_SC_SANY)))
+                return okey;
+
+        return null;
     }
 
     /**
@@ -256,14 +301,14 @@ public class SavedGameModel
      * @param ga  Game data to save; not null
      * @param srv  Server, for game/player info lookups; not null.
      *     Not retained in object fields, used only during construction.
-     * @throws UnsupportedOperationException  if game has an option or feature not yet supported
+     * @throws UnsupportedSGMOperationException  if game has an option or feature not yet supported
      *     by {@link SavedGameModel}; see {@link #checkCanSave(SOCGame)} for details.
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      * @throws IllegalArgumentException if {@link SOCGameHandler#getBoardLayoutMessage(SOCGame)}
      *     returns an unexpected layout message type
      */
     public SavedGameModel(final SOCGame ga, final SOCServer srv)
-        throws UnsupportedOperationException, IllegalStateException, IllegalArgumentException
+        throws UnsupportedSGMOperationException, IllegalStateException, IllegalArgumentException
     {
         this();
 
@@ -409,14 +454,15 @@ public class SavedGameModel
      *     is newer than the server's {@link Version#versionNumber()}.
      *     Exception's {@link Throwable#getMessage()} will be generic,
      *     but its {@link SOCGameOptionVersionException#gameOptsVersion} will be {@code gameMinVersion}
-     * @throws UnsupportedOperationException if game has an option or feature not yet supported
+     * @throws UnsupportedSGMOperationException if game has an option or feature not yet supported
      *     by {@link #createLoadedGame()}. {@link Throwable#getMessage()} will name the unsupported option/feature
      *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String)}.
      *     In that case, {@link Throwable#getMessage()} will contain that method's IllegalArgumentException message
      *     and {@link Throwable#getCause()} will not be null.
+     *     Optional localization params are {@link UnsupportedSGMOperationException#param1} and {@code param2}.
      */
     public void checkCanLoad()
-        throws NoSuchElementException, SOCGameOptionVersionException, UnsupportedOperationException
+        throws NoSuchElementException, SOCGameOptionVersionException, UnsupportedSGMOperationException
     {
         if (modelVersion > MODEL_VERSION)
             throw new NoSuchElementException
@@ -433,14 +479,26 @@ public class SavedGameModel
         {
             opts = SOCGameOption.parseOptionsToMap(gameOptions);
         } catch (IllegalArgumentException e) {
-            throw new UnsupportedOperationException("Problem opt in gameOptions: " + e.getMessage(), e);
+            throw new UnsupportedSGMOperationException
+                ("Problem opt in gameOptions: " + e.getMessage(), e);
         }
         if (opts == null)
+        {
+            if ((gameOptions != null) && ! gameOptions.isEmpty())
+                throw new UnsupportedSGMOperationException
+                    ("Can't parse gameOptions");
             return;
+        }
 
         final SOCGameOption oSC = opts.get("SC");
         if ((oSC != null) && (null != oSC.getStringValue()))
-            throw new UnsupportedOperationException("a scenario");
+        {
+            final String unsuppOpt = checkUnsupportedScenOpts(opts);
+            if (unsuppOpt != null)
+                throw new UnsupportedSGMOperationException
+                    ("admin.savegame.cannot_save.scen", oSC.getStringValue(), unsuppOpt);
+                        // "scenario {0} with game option {1}"
+        }
 
         // all current non-scenario game opts are supported
     }
@@ -460,7 +518,7 @@ public class SavedGameModel
      * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
      *     is newer than the server's {@link Version#versionNumber()};
      *     see {@link #checkCanLoad()} for details
-     * @throws UnsupportedOperationException if loaded game model has an option or feature not yet supported
+     * @throws UnsupportedSGMOperationException if loaded game model has an option or feature not yet supported
      *     by {@code createLoadedGame()}; see {@link #checkCanLoad()} for details
      * @throws IllegalArgumentException if there's a problem while creating the loaded game.
      *     {@link Throwable#getCause()} will have the exception thrown by the SOCGame/SOCPlayer method responsible.
@@ -469,7 +527,7 @@ public class SavedGameModel
      */
     /*package*/ void createLoadedGame()
         throws IllegalStateException, NoSuchElementException,
-            SOCGameOptionVersionException, UnsupportedOperationException, IllegalArgumentException
+            SOCGameOptionVersionException, UnsupportedSGMOperationException, IllegalArgumentException
     {
         if (game != null)
             throw new IllegalStateException("already called createLoadedGame");
@@ -553,24 +611,34 @@ public class SavedGameModel
         /** Resources in hand */
         KnownResourceSet resources;
 
-        /** Available piece counts, SVP, cloth count, hasPlayedDevCard and other flags, etc. */
+        /**
+         * PlayerElements which should be set before placing any pieces, or {@code null}.
+         * Player's other {@link #elements} are set after piece placement.
+         *<P>
+         * Includes these elements for scenario support:
+         * {@link PEType#PLAYEREVENTS_BITMASK PLAYEREVENTS_BITMASK},
+         * {@link PEType#SCENARIO_SVP_LANDAREAS_BITMASK SCENARIO_SVP_LANDAREAS_BITMASK},
+         * {@link PEType#STARTING_LANDAREAS STARTING_LANDAREAS}
+         * @since 2.4.00
+         */
+        HashMap<PEType, Integer> earlyElements;
+
+        /**
+         * Available piece counts, SVP, cloth count, hasPlayedDevCard and other flags, etc.
+         * Less common elements are omitted if 0.
+         * These elements are set after piece placement; see also {@link #earlyElements}.
+         *<P>
+         * Elements for scenario support: {@link PEType#SCENARIO_SVP SCENARIO_SVP} here,
+         * others in {@link #earlyElements}.
+         *<P>
+         * See {@link SavedGameModel#MODEL_VERSION} javadoc for history of what version adds which elements.
+         */
         HashMap<PEType, Integer> elements = new HashMap<>();
 
         // TODO: future: add field for pl.getCurrentOffer()
 
         /** Resource roll stats, from {@link SOCPlayer#getResourceRollStats()} */
         int[] resRollStats;
-
-        /**
-         * Register some custom type adapters as part of
-         * {@link SavedGameModel#initGsonRegisterAdapters(GsonBuilder)}.
-         * See that method for details.
-         * @since 2.4.00
-         */
-        private static void initGsonRegisterAdapters(final GsonBuilder gb)
-        {
-            gb.registerTypeAdapterFactory(new PPieceAdapter());
-        }
 
         /**
          * Standard dev card types in player's hand,
@@ -603,6 +671,17 @@ public class SavedGameModel
          * TODO: SGM in a future JSettlers version should support "special pieces" in a more general way.
         SOCFortress fortressPiece;
          */
+
+        /**
+         * Register some custom type adapters as part of
+         * {@link SavedGameModel#initGsonRegisterAdapters(GsonBuilder)}.
+         * See that method for details.
+         * @since 2.4.00
+         */
+        private static void initGsonRegisterAdapters(final GsonBuilder gb)
+        {
+            gb.registerTypeAdapterFactory(new PPieceAdapter());
+        }
 
         PlayerInfo(final SOCPlayer pl, final boolean isVacant, final SOCServer srv)
         {
@@ -655,18 +734,29 @@ public class SavedGameModel
             }
             if (ga.hasSeaBoard)
             {
+                final HashMap<PEType, Integer> early = new HashMap<>();
+
                 elements.put(PEType.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP));
                 int n;
                 n = pl.getNumWarships();
                 if (n != 0)
                     elements.put(PEType.SCENARIO_WARSHIP_COUNT, n);
+                n = pl.getSpecialVP();
+                if (n != 0)
+                    elements.put(PEType.SCENARIO_SVP, n);
+
                 n = pl.getStartingLandAreasEncoded();
                 if (n != 0)
-                    elements.put(PEType.STARTING_LANDAREAS, n);
+                    early.put(PEType.STARTING_LANDAREAS, n);
                 n = pl.getPlayerEvents();
                 if (n != 0)
-                    elements.put(PEType.PLAYEREVENTS_BITMASK, n);
-                // TODO: future: SCENARIO_SVP
+                    early.put(PEType.PLAYEREVENTS_BITMASK, n);
+                n = pl.getScenarioSVPLandAreas();
+                if (n != 0)
+                    early.put(PEType.SCENARIO_SVP_LANDAREAS_BITMASK, n);
+
+                if (! early.isEmpty())
+                    earlyElements = early;
             }
 
             resRollStats = pl.getResourceRollStats();
@@ -710,6 +800,13 @@ public class SavedGameModel
                     inv.addDevCard(1, SOCInventory.NEW, ctype);
             }
 
+            // Set some elements for scenario info before any putpiece,
+            // so they know their starting land areas and scenario events
+            if (earlyElements != null)
+                for (final PEType et : earlyElements.keySet())
+                    SOCDisplaylessPlayerClient.handlePLAYERELEMENT
+                        (ga, pl, pn, SOCPlayerElement.SET, et, earlyElements.get(et), null);
+
             final SOCBoard b = ga.getBoard();
             for (SOCPlayingPiece pp : pieces)
             {
@@ -725,8 +822,10 @@ public class SavedGameModel
             }
              */
 
-            // Set player elements only after putPieces,
+            // Set player elements and specialVP only after putPieces,
             // so remaining-piece counts aren't reduced twice
+            // and SVP aren't added twice
+
             for (final PEType et : elements.keySet())
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT
                     (ga, pl, pn, SOCPlayerElement.SET, et, elements.get(et), null);
@@ -1085,6 +1184,41 @@ public class SavedGameModel
         protected C afterRead(JsonElement deserializedTree) throws IOException
         {
             return null;
+        }
+    }
+
+    /**
+     * Details of why {@link SavedGameModel#checkCanSave(SOCGame)} or {@link SavedGameModel#checkCanLoad()}
+     * or constructor can't save a game or load a model.
+     * {@link Throwable#getMessage()} will name the unsupported option/feature,
+     * ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text
+     * like "a unique resource type": Put a try-catch around your attempt to localize that key.
+     * Optional localization params are {@link #param1} and {@link #param2}.
+     * @since 2.4.00
+     */
+    public static class UnsupportedSGMOperationException extends UnsupportedOperationException
+    {
+        private static final long serialVersionUID = 2400L;
+
+        /** Optional localization parameter to use with {@link #getMessage()}, or null */
+        public final String param1, param2;
+
+        public UnsupportedSGMOperationException(String msg) { this(msg, null, null); }
+
+        public UnsupportedSGMOperationException(String msg, String param1) { this(msg, param1, null); }
+
+        public UnsupportedSGMOperationException(String msg, Throwable cause)
+        {
+            super(msg, cause);
+            this.param1 = null;
+            this.param2 = null;
+        }
+
+        public UnsupportedSGMOperationException(String msg, String param1, String param2)
+        {
+            super(msg);
+            this.param1 = param1;
+            this.param2 = param2;
         }
     }
 

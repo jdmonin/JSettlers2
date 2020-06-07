@@ -1,0 +1,454 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2400,
+  "gameMinVersion": 2000,
+  "gameName": "testscen-simple-4isl",
+  "comment": "simple scenario 4 Islands; debug player has 2 SVP from settlement in a new Land Area",
+  "gameOptions": "BC\u003dt4,N7\u003dt7,_SC_SEAC\u003dt,SC\u003dSC_4ISL,RD\u003df,VP\u003dt12,PL\u003d4,SBL\u003dt",
+  "gameDurationSeconds": 119,
+  "gameState": 20,
+  "oldGameState": 20,
+  "currentDice": 6,
+  "elements": {
+    "LONGEST_ROAD_PLAYER": -1,
+    "LARGEST_ARMY_PLAYER": -1,
+    "CURRENT_PLAYER": 3,
+    "FIRST_PLAYER": 2,
+    "ROUND_COUNT": 1
+  },
+  "devCardDeck": [
+    9,
+    4,
+    8,
+    7,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    1,
+    2,
+    1,
+    3,
+    6,
+    9,
+    9,
+    3,
+    9,
+    9,
+    2,
+    9,
+    5,
+    9,
+    9
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "shipsPlacedThisTurn": [
+    1029,
+    1028
+  ],
+  "boardInfo": {
+    "layout2": {
+      "game": "testscen-simple-4isl",
+      "boardEncodingFormat": 3,
+      "layoutParts": {
+        "RH": 777,
+        "PH": 1805,
+        "LH": [
+          1282,  1,   9,
+          2306,  2,   6,
+          771,   5,  11,
+          2819,  4,   3,
+          260,   3,   9,
+          1284,  1,   3,
+          2308,  4,   4,
+          3332,  5,   9,
+          2821,  4,   5,
+          3334,  1,  10,
+          2823,  3,   4,
+          775,   3,   6,
+          1799,  5,   2,
+          264,   3,  12,
+          1288,  5,  10,
+          777,   5,  10,
+          266,   4,   8,
+          1290,  2,   8,
+          2314,  2,   5,
+          3338,  1,  11,
+          779,   2,   5,
+          2827,  3,   4,
+          2316,  4,  11
+        ],
+        "PL": [
+          0,   2,    1,    0,    4,    3,    0,    0,    5,
+          770, 1538, 2561, 2565, 3331, 1542, 1035, 2059, 2572,
+          2,   6,    1,    4,    2,    3,    6,    3,    6
+        ],
+        "VS": [
+          3,
+          0
+        ]
+      },
+      "messageType": 1084
+    },
+    "playerPotentials": [
+      {
+        "game": "testscen-simple-4isl",
+        "playerNumber": 0,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 4,
+        "startingLandArea": 0,
+        "landAreasLegalNodes": [
+          null,
+          [
+            1537,
+            1025,
+            1026,
+            514,
+            1538,
+            515,
+            3,
+            1027,
+            1539,
+            4,
+            516,
+            1028,
+            1540,
+            5,
+            517,
+            1029,
+            1541
+          ],
+          [
+            2561,
+            2049,
+            2050,
+            2562,
+            3074,
+            2051,
+            2563,
+            3075,
+            3587,
+            2052,
+            2564,
+            3076,
+            3588,
+            2053,
+            2565,
+            3077,
+            3589,
+            2566,
+            3078,
+            3590,
+            2567,
+            3079,
+            3591,
+            2568,
+            3080
+          ],
+          [
+            1030,
+            518,
+            2054,
+            1542,
+            519,
+            7,
+            1031,
+            1543,
+            2055,
+            8,
+            520,
+            1032,
+            1544,
+            2056,
+            9,
+            521,
+            1033,
+            1545,
+            10,
+            522,
+            1034,
+            1546,
+            11,
+            523,
+            1035,
+            1547,
+            524,
+            1036
+          ],
+          [
+            2569,
+            2057,
+            3593,
+            3081,
+            2058,
+            2570,
+            3082,
+            3594,
+            2059,
+            2571,
+            3083,
+            3595,
+            2060,
+            2572,
+            3084,
+            2061,
+            2573
+          ]
+        ],
+        "messageType": 1057
+      },
+      {
+        "game": "testscen-simple-4isl",
+        "playerNumber": 1,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testscen-simple-4isl",
+        "playerNumber": 2,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testscen-simple-4isl",
+        "playerNumber": 3,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeats": [
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "SETTLEMENTS": 5,
+        "SHIPS": 15,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 15
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "robot 5",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 3,
+        "wood": 1
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 2
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "SHIPS": 15,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 13
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 2564
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2563
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 3075
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 3074
+        }
+      ]
+    },
+    {
+      "name": "droid 1",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 0,
+      "resources": {
+        "clay": 1,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 1,
+        "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 515
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "SHIPS": 15,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 13
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1034
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1034
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 3078
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2822
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 5,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 0,
+        "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 3,
+        "SCENARIO_SVP_LANDAREAS_BITMASK": 1
+      },
+      "elements": {
+        "SETTLEMENTS": 2,
+        "SHIPS": 11,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 15,
+        "SCENARIO_SVP": 2
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1545
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 1545
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1031
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 1030,
+          "isClosed": true
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 1029,
+          "isClosed": true
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 1028,
+          "isClosed": true
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1028,
+          "specialVP": 2
+        }
+      ]
+    }
+  ]
+}

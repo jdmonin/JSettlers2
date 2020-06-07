@@ -258,8 +258,9 @@ public class SOCPlayerElement extends SOCMessage
         SCENARIO_SVP_LANDAREAS_BITMASK(104),
 
         /**
-         * Player's starting land area numbers.
+         * Player's starting land area numbers, from {@link SOCPlayer#getStartingLandAreasEncoded()}.
          * Sent only at reconnect, because these are also tracked during play at the client.
+         * At client, should be set before placing any pieces to avoid SVP scoring problems.
          * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
          * @since 2.0.00
          */

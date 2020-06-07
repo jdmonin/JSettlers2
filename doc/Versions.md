@@ -26,6 +26,12 @@ and backport minor new features until `2.0.00` was ready.
 	  - SavedGameModel: Players' piece types and dev cards are written to file as
 	    user-friendly type name strings like `"SETTLEMENT"` or `"UNIV"`, not ints.
 	    Can still read them from ints if needed.
+	  - Simple scenario support: Can save and load scenarios which have only a board layout and
+	    optionally game option `_SC_SANY` or `_SC_SEAC`, no other scenario game opts
+	    (option names starting with "_SC_"). Sets PlayerElements SCENARIO_SVP,
+	    SCENARIO_SVP_LANDAREAS_BITMASK
+	  - If can't parse gameOptions, don't load game
+	  - Adds PlayerInfo.earlyElements list to set before piece placement
 	  - Omit writing pieces' specialVP field when it's 0, ships' isClosed when false
 	  - MODEL_VERSION increased to 2400
 	  - Unit tests using saved-game artifacts

@@ -1615,9 +1615,17 @@ public class SOCServerMessageHandler
         } catch (SOCGameOptionVersionException e) {
             errText = c.getLocalized("admin.loadgame.err.too_new.vers", argsStr, e.gameOptsVersion);
                 // "Problem loading {0}: Too new: gameMinVersion is {1}"
-        } catch (NoSuchElementException|UnsupportedOperationException e) {
+        } catch (NoSuchElementException e) {
             errText = c.getLocalized("admin.loadgame.err.too_new", argsStr, e.getMessage());
                 // "Problem loading {0}: Too new: {1}"
+        } catch (SavedGameModel.UnsupportedSGMOperationException e) {
+            String hasWhat = e.getMessage();
+            try
+            {
+                // "admin.savegame.cannot_save.scen" -> "a scenario", etc
+                hasWhat = c.getLocalized(hasWhat, e.param1, e.param2);
+            } catch (MissingResourceException mre) {}
+            errText = c.getLocalized("admin.loadgame.err.too_new", argsStr, hasWhat);
         } catch (IOException|StringIndexOutOfBoundsException e) {
             errText = c.getLocalized("admin.loadgame.err.problem_loading", argsStr, e.getMessage());
                 // "Problem loading {0}: {1}"
@@ -1913,12 +1921,12 @@ public class SOCServerMessageHandler
             srv.messageToPlayerKeyed
                 (c, gaName, "admin.savegame.ok.saved_to", fname);
                 // "Saved game to {0}"
-        } catch (UnsupportedOperationException e) {
+        } catch (SavedGameModel.UnsupportedSGMOperationException e) {
             String hasWhat = e.getMessage();
             try
             {
                 // "admin.savegame.cannot_save.scen" -> "a scenario", etc
-                hasWhat = c.getLocalized(hasWhat);
+                hasWhat = c.getLocalized(hasWhat, e.param1, e.param2);
             } catch (MissingResourceException mre) {}
             srv.messageToPlayerKeyed
                 (c, gaName, "admin.savegame.err.cannot_save_has", hasWhat);

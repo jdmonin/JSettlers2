@@ -285,6 +285,9 @@
         "wheat": 3,
         "wood": 0
       },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
       "elements": {
         "ROADS": 8,
         "NUMKNIGHTS": 1,
@@ -390,6 +393,9 @@
         "wheat": 0,
         "wood": 0
       },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
       "elements": {
         "ROADS": 11,
         "NUMKNIGHTS": 0,
@@ -449,6 +455,9 @@
         "sheep": 0,
         "wheat": 1,
         "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
       },
       "elements": {
         "ROADS": 9,

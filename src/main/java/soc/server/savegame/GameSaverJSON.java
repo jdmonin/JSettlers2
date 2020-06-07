@@ -58,14 +58,15 @@ public class GameSaverJSON
      * @param saveFilename  Filename to save as; recommended suffix is {@link #FILENAME_EXTENSION}
      * @param srv  Server, for game/player info lookups; not null
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
-     * @throws UnsupportedOperationException  if game has an option or feature not yet supported
+     * @throws SavedGameModel.UnsupportedSGMOperationException  if game has an option or feature not yet supported
      *     by {@link SavedGameModel}; see {@link SavedGameModel#checkCanSave(SOCGame)} for details.
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      * @throws IOException  if a problem occurs while saving
      */
     public static void saveGame
         (final SOCGame ga, final File saveDir, final String saveFilename, final SOCServer srv)
-        throws IllegalArgumentException, UnsupportedOperationException, IllegalStateException, IOException
+        throws IllegalArgumentException, SavedGameModel.UnsupportedSGMOperationException,
+            IllegalStateException, IOException
     {
         if (! saveDir.isDirectory())
             throw new IllegalArgumentException("Not found as directory: " + saveDir.getPath());
