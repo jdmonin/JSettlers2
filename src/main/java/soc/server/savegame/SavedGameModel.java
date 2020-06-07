@@ -174,7 +174,7 @@ public class SavedGameModel
      * Old gameState, from {@link SOCGame#getOldGameState()}
      * @see #gameState
      */
-    int oldGameState;
+    public int oldGameState;
 
     /** Current dice roll results, from {@link SOCGame#getCurrentDice()} */
     int currentDice;

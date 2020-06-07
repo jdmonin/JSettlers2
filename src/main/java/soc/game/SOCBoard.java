@@ -1503,9 +1503,11 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * The number of ports is {@link #getPortsCount()}.
      *<P>
      * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
-     * within the port layout array.  The port types are stored at the beginning, from index
-     * 0 to {@link #getPortsCount()}-1.  If you call {@link #setPortsLayout(int[])}, be sure
-     * to give it the entire array returned from here.
+     * within the port layout array:  If you call {@link #setPortsLayout(int[])},
+     * be sure to give it the entire array returned from here.
+     * Total length is 3 * {@link #getPortsCount()}. The port types are stored at the beginning
+     * from index 0 to {@code getPortsCount()}-1, followed by all the ports' edge coordinates,
+     * then all ports' facing directions.
      *
      * @return the ports layout, or null if not used in this board encoding format
      * @see #getPortTypeFromNodeCoord(int)

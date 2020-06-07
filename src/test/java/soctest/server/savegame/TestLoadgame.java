@@ -26,10 +26,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
+import soc.game.SOCRoutePiece;
+import soc.game.SOCShip;
 import soc.server.SOCGameListAtServer;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.GameLoaderJSON;
@@ -83,7 +86,7 @@ public class TestLoadgame
      * @param names Player names
      * @param totalVP Players' total VP
      * @param resources Players' resources (clay, ore, sheep, wheat, wood)
-     * @param pieceCounts Players' piece counts (roads, settlements, and cities remaining; knights/soldiers played)
+     * @param pieceCounts Players' piece counts (roads, settlements, cities, and ships remaining; knights/soldiers played)
      */
     private static void checkPlayerData
         (final SavedGameModel sgm, final String[] names, final int[] totalVP,
@@ -106,10 +109,10 @@ public class TestLoadgame
                 : new SOCResourceSet();
             assertTrue(rs.equals(pl.getResources()));
 
-            for (int ptype = SOCPlayingPiece.ROAD; ptype <= SOCPlayingPiece.CITY; ++ptype)
+            for (int ptype = SOCPlayingPiece.ROAD; ptype <= SOCPlayingPiece.SHIP; ++ptype)
                 assertEquals(pieceCounts[pn][ptype], pl.getNumPieces(ptype));
-                // ROADS, SETTLEMENTS, CITIES == 0, 1, 2: tested in TestPlayingPiece
-            assertEquals(pieceCounts[pn][3], pl.getNumKnights());
+                // ROAD, SETTLEMENT, CITY, SHIP == 0, 1, 2, 3: tested in TestPlayingPiece
+            assertEquals(pieceCounts[pn][4], pl.getNumKnights());
 
             // TODO piece locations, etc
 
@@ -170,6 +173,7 @@ public class TestLoadgame
         assertEquals("game name", "classic", sgm.gameName);
         assertEquals("game name", sgm.gameName, ga.getName());
         assertEquals(1, ga.getCurrentPlayerNumber());
+        assertEquals(9, ga.getCurrentDice());
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals("gamestate", SOCGame.LOADING, ga.getGameState());
 
@@ -183,7 +187,7 @@ public class TestLoadgame
         final String[] NAMES = {null, "robot 4", "robot 2", "debug"};
         final int[] TOTAL_VP = {0, 3, 2, 2};
         final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
-        final int[][] PIECE_COUNTS = {{15, 5, 4, 0}, {13, 4, 3, 0}, {13, 3, 4, 0}, {12, 3, 4, 0}};
+        final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
         checkPlayerData(sgm, NAMES, TOTAL_VP, RESOURCES, PIECE_COUNTS);
     }
 
@@ -233,7 +237,7 @@ public class TestLoadgame
         assertNull(ga.savedGameModel);
     }
 
-    /** Test loading a 6-player game and its Special Building Phase, including {@code resumePlay(..)}. */
+    /** Test loading and resuming a 6-player game, during Special Building Phase. */
     @Test
     public void testLoad6PlayerSBP()
         throws IOException
@@ -254,12 +258,71 @@ public class TestLoadgame
         final String[] NAMES = {null, "p", "droid 1", "robot 2", "robot 4", "debug"};
         final int[] TOTAL_VP = {0, 2, 2, 2, 2, 2};
         final int[][] RESOURCES = {null, {2, 0, 1, 1, 1}, null, {0, 1, 3, 0, 2}, {0, 0, 2, 0, 0}, {4, 0, 0, 0, 3}};
-        final int[][] PIECE_COUNTS = {{15, 5, 4, 0}, {13, 3, 4, 0}, {12, 3, 4, 0}, {13, 3, 4, 1}, {12, 3, 4, 0}, {13, 3, 4, 0}};
+        final int[][] PIECE_COUNTS =
+            {{15, 5, 4, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}, {13, 3, 4, 0, 1}, {12, 3, 4, 0, 0}, {13, 3, 4, 0, 0}};
         checkPlayerData(sgm, NAMES, TOTAL_VP, RESOURCES, PIECE_COUNTS);
 
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.SPECIAL_BUILDING, ga.getGameState());
+    }
+
+    /** Test loading and resuming a Sea Board game, including open/closed ship routes ({@link SOCShip#isClosed()}). */
+    @Test
+    public void testLoadSeaBoard()
+        throws IOException
+    {
+        final SavedGameModel sgm = load("testsea-closed.game.json");
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("game name", "testgame-sea-closedships", sgm.gameName);
+        assertEquals(0, ga.getCurrentPlayerNumber());
+        assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
+        assertEquals("oldgamestate", SOCGame.PLAY1, sgm.oldGameState);
+        assertEquals(4, sgm.playerSeats.length);
+        assertEquals(4, ga.maxPlayers);
+        assertTrue(ga.hasSeaBoard);
+
+        assertEquals(SOCBoard.BOARD_ENCODING_LARGE, ga.getBoard().getBoardEncodingFormat());
+        assertEquals("robberHex", 2312, ga.getBoard().getRobberHex());
+        assertEquals("pirateHex", 2316, ((SOCBoardLarge) ga.getBoard()).getPirateHex());
+
+        final String[] NAMES = {"debug", "robot 4", "robot 2", null};
+        final int[] TOTAL_VP = {6, 2, 5, 0};
+        final int[][] RESOURCES = {{0, 1, 0, 3, 0}, null, {1, 0, 0, 1, 0}, null};
+        final int[][] PIECE_COUNTS = {{8, 1, 4, 10, 1}, {11, 3, 4, 15, 0}, {9, 2, 3, 13, 0}, {15, 5, 4, 15, 0}};
+        checkPlayerData(sgm, NAMES, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+
+        final int[] SHIPS_OPEN_P0 = {2305, 2561, 3074};
+        final int[][] SHIPS_CLOSED = {{2562, 2818}, null, {1035, 1036}, null};
+        SOCPlayer pl = ga.getPlayer(0);
+        for (final int edge : SHIPS_OPEN_P0)
+        {
+            final SOCRoutePiece rp = pl.getRoadOrShip(edge);
+            final String assertDesc = "pn 0 ship at edge " + edge;
+            assertNotNull(assertDesc, rp);
+            assertFalse(assertDesc, rp.isRoadNotShip());
+            assertFalse("shouldn't be closed: " + assertDesc, ((SOCShip) rp).isClosed());
+        }
+        for (int pn = 0; pn < 4; ++pn)
+        {
+            if (null == SHIPS_CLOSED[pn])
+                continue;
+
+            pl = ga.getPlayer(pn);
+            for (final int edge : SHIPS_CLOSED[pn])
+            {
+                final SOCRoutePiece rp = pl.getRoadOrShip(edge);
+                final String assertDesc = "pn " + pn + " ship at edge " + edge;
+                assertNotNull(assertDesc, rp);
+                assertFalse(assertDesc, rp.isRoadNotShip());
+                assertTrue("should be closed: " + assertDesc, ((SOCShip) rp).isClosed());
+            }
+        }
+
+        fillSeatsForResume(sgm);
+        sgm.resumePlay(true);
+        assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
     }
 
 }
