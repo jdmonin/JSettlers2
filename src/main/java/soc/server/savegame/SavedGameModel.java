@@ -811,6 +811,9 @@ public class SavedGameModel
          * Deserialize from that form to non-abstract subclasses {@link SOCRoad}, {@link SOCSettlement}, etc
          * based on {@code pieceType} field. Unknown pieceTypes throw {@link JsonParseException}.
          *<P>
+         * Piece Types note: Despite delegation, the adapter doesn't automatically write fields from child classes
+         * like {@link SOCShip#isClosed()}. When adding new piece types here, handle such fields accordingly.
+         *<P>
          * Before v2.4.00 this was {@code GameLoaderJSON.PPieceDeserializer}.
          */
         private static class PPieceAdapter extends CallbackClassTypeAdapterFactory<SOCPlayingPiece>
@@ -832,6 +835,9 @@ public class SavedGameModel
                 JsonElement svpField = obj.get("specialVP");
                 if ((svpField != null) && (svpField.getAsInt() == 0))
                     obj.remove("specialVP");
+
+                if ((source instanceof SOCShip) && ((SOCShip) source).isClosed())
+                    obj.addProperty("isClosed", true);
             }
 
             @Override

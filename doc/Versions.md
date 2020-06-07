@@ -26,7 +26,7 @@ and backport minor new features until `2.0.00` was ready.
 	  - SavedGameModel: Players' piece types and dev cards are written to file as
 	    user-friendly type name strings like `"SETTLEMENT"` or `"UNIV"`, not ints.
 	    Can still read them from ints if needed.
-	  - Omit writing pieces' specialVP field when it's 0
+	  - Omit writing pieces' specialVP field when it's 0, ships' isClosed when false
 	  - MODEL_VERSION increased to 2400
 	  - Unit tests using saved-game artifacts
 	- For unit tests, SOCGameListAtServer.addMember now succeeds even if game was added using client-side addGame method
