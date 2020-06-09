@@ -284,7 +284,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     private final Color miscLabelFGColor;
 
     /**
-     * The player interfaces for the {@link SOCPlayerClient#games} we're playing.
+     * The player interfaces for all the {@link SOCPlayerClient#games} we're playing.
      * Accessed from GUI thread and network MessageHandler thread.
      */
     private final Map<String, SOCPlayerInterface> playerInterfaces = new Hashtable<String, SOCPlayerInterface>();
@@ -2010,8 +2010,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Look for active games that we're playing
      *
      * @param fromPracticeServer  Enumerate games from {@link ClientNetwork#practiceServer},
-     *     instead of {@link #playerInterfaces}?
-     * @return Any found game of ours which is active (state not OVER), or null if none.
+     *     instead of all games in {@link #playerInterfaces}?
+     * @return Any found game of ours which is active (state &lt; {@link SOCGame#OVER}), or null if none.
+     * @see #hasAnyActiveGame(boolean)
      * @see ClientNetwork#anyHostedActiveGames()
      * @since 1.1.00
      */
@@ -2056,6 +2057,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
 
         return pi;  // Active game, or null
+    }
+
+    @Override
+    public boolean hasAnyActiveGame(final boolean fromPracticeServer)
+    {
+        return (null != findAnyActiveGame(fromPracticeServer));
     }
 
     /**
@@ -2110,7 +2117,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             validate();
             if (canPractice)
             {
-                if (null == findAnyActiveGame(true))
+                if (! hasAnyActiveGame(true))
                     pgm.requestFocus();  // No practice games: put this msg as topmost window
                 else
                     pgm.requestFocusInWindow();  // Practice game is active; don't interrupt to show this

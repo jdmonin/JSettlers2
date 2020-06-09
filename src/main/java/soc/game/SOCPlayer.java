@@ -114,6 +114,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public static final int SHIP_COUNT = 15;
 
     /**
+     * First/default/lowest-numbered human face icon number (1) for {@link #setFaceId(int)}.
+     * @since 2.4.00
+     */
+    public static final int FIRST_HUMAN_FACE_ID = 1;
+
+    /**
      * If a robot player's turn must be ended this many times,
      * consider it "stubborn" and give it less time to act on its own
      * in future turns. Default is 2.
@@ -601,7 +607,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean builtInRobotFlag;
 
     /**
-     * which face image this player is using
+     * Which face image this player is using.
+     * See {@link #getFaceId()} for details.
      */
     private int faceId;
 
@@ -815,7 +822,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         hasSpecialBuiltThisTurn = false;
         robotFlag = false;
         builtInRobotFlag = false;
-        faceId = 1;
+        faceId = FIRST_HUMAN_FACE_ID;
         SOCBoard board = ga.getBoard();
         ourNumbers = new SOCPlayerNumbers(board);
 
@@ -1192,7 +1199,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * set the face image id
      *
-     * @param id  the image id. 1 is the first human face image; 0 is the robot.
+     * @param id  the image id. {@link #FIRST_HUMAN_FACE_ID} and higher are human face images; 0 and -1 are the robot.
      */
     public void setFaceId(int id)
     {
@@ -1201,7 +1208,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * get the face image id.
-     * @return  the face image id.  1 is the first human face image; 0 is the robot.
+     * @return the face image id. {@link #FIRST_HUMAN_FACE_ID} and higher are human face images; 0 and -1 are the robot.
      */
     public int getFaceId()
     {

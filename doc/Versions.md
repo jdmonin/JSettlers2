@@ -19,6 +19,7 @@ and backport minor new features until `2.0.00` was ready.
 ## `2.4.00` (build JX2020xxxx)
 - Currently being developed
 - Client:
+	- Add client preference: Remember face icon when changed
 	- Game window:
 	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
 - For developers:
@@ -28,7 +29,7 @@ and backport minor new features until `2.0.00` was ready.
 	    Can still read them from ints if needed.
 	  - Simple scenario support: Can save and load scenarios which have only a board layout and
 	    optionally game option `_SC_SANY` or `_SC_SEAC`, no other scenario game opts
-	    (option names starting with "_SC_"). Sets PlayerElements SCENARIO_SVP,
+	    (option names starting with "\_SC\_"). Sets PlayerElements SCENARIO_SVP,
 	    SCENARIO_SVP_LANDAREAS_BITMASK
 	  - If can't parse gameOptions, don't load game
 	  - Adds PlayerInfo.earlyElements list to set before piece placement

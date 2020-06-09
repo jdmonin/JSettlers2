@@ -5129,7 +5129,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * Clean up after the window is closed.
-         * Close the GameStatisticsFrame if showing, etc.
+         * Close the GameStatisticsFrame if showing, maybe persist some client prefs, etc.
          * @since 2.0.00
          */
         @Override
@@ -5138,6 +5138,10 @@ public class SOCPlayerInterface extends Frame
             // Close stats frame if showing
             if (pi.buildingPanel != null)
                 pi.buildingPanel.gameWindowClosed();
+
+            // Remember last-chosen face icon
+            if (UserPreferences.getPref(SOCPlayerClient.PREF_FACE_ICON, 0) > 0)
+                UserPreferences.putPref(SOCPlayerClient.PREF_FACE_ICON, pi.client.lastFaceChange);
         }
 
     }  // MyWindowAdapter

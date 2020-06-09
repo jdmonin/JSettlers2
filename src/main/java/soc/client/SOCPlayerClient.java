@@ -196,6 +196,21 @@ public class SOCPlayerClient
     public static final String PREF_UI_SCALE_FORCE = "uiScaleForce";
 
     /**
+     * Integer persistent {@link Preferences} key for remembering preferred face icon ID.
+     * Default value is 1 (default face ID from previous versions).
+     * See {@link SOCPlayer#setFaceId(int)} for face ID value range.
+     *<UL>
+     * <LI> Positive: Remember this face ID, use it by default when starting client.
+     *      Previous versions always defaulted to {@link SOCPlayer#FIRST_HUMAN_FACE_ID} (1).
+     * <LI> Negative or 0: Don't use this remembered value as default face ID.
+     *</UL>
+     *
+     * @see UserPreferences#getPref(String, int)
+     * @since 2.4.00
+     */
+    public static final String PREF_FACE_ICON = "faceIcon";
+
+    /**
      * i18n text strings in our {@link #cliLocale}.
      * @since 2.0.00
      */
@@ -369,13 +384,15 @@ public class SOCPlayerClient
     boolean debugTraffic;
 
     /**
-     * face ID chosen most recently (for use in new games)
+     * Face icon ID chosen most recently (for use in new games) for {@link SOCPlayer#setFaceId(int)};
+     * always >= {@link SOCPlayer#FIRST_HUMAN_FACE_ID}. Persisted to client pref {@link #PREF_FACE_ICON}
+     * by {@link SOCPlayerInterface} window listener's {@code windowClosed(..)}.
      * @since 1.1.00
      */
     protected int lastFaceChange;
 
     /**
-     * The games we're currently playing.
+     * All the games we're currently playing. Includes networked or hosted games and those on practice server.
      * Accessed from GUI thread and network {@link MessageHandler} thread.
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
@@ -446,7 +463,11 @@ public class SOCPlayerClient
     public SOCPlayerClient()
     {
         gotPassword = false;
-        lastFaceChange = 1;  // Default human face
+
+        int id = UserPreferences.getPref(PREF_FACE_ICON, SOCPlayer.FIRST_HUMAN_FACE_ID);
+        if (id <= 0)
+            id = SOCPlayer.FIRST_HUMAN_FACE_ID;  // use default if not remembering
+        lastFaceChange = id;
 
         if (null != System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_TRAFFIC))
             debugTraffic = true;  // set flag if debug prop has any value at all

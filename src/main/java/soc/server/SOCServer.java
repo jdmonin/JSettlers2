@@ -3199,7 +3199,8 @@ public class SOCServer extends Server
             final int pn = req.getSitDownMessage().getPlayerNumber();
             final boolean isRobot = req.getSitDownMessage().isRobot();
             if (! isRobot)
-                game.getPlayer(pn).setFaceId(1);  // Don't keep the robot face icon
+                // don't keep the robot face icon
+                game.getPlayer(pn).setFaceId(SOCPlayer.FIRST_HUMAN_FACE_ID);
 
             sitDown(game, req.getArriving(), pn, isRobot, false);
         }

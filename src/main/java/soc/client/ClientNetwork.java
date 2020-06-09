@@ -532,6 +532,7 @@ import soc.util.Version;
      * Look for active games that we're hosting (state >= START1A, not yet OVER).
      *
      * @return If any hosted games of ours are active
+     * @see MainDisplay#hasAnyActiveGame(boolean)
      * @see SwingMainDisplay#findAnyActiveGame(boolean)
      * @since 1.1.00
      */

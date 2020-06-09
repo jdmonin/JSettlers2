@@ -35,7 +35,7 @@ import soc.util.SOCFeatureSet;
  * A facade for the SOCPlayerClient to use to invoke actions in the main GUI
  * (as opposed to in-game {@link PlayerClientListener}):
  * Connect, list games and chat channels, etc.
- * Classic implementation is {@link SwingMainDisplay}.
+ * Underlying implementation is {@link SwingMainDisplay}.
  * @since 2.0.00
  */
 public interface MainDisplay
@@ -107,6 +107,18 @@ public interface MainDisplay
      * @see #askStartGameWithOptions(String, boolean, Map, Map)
      */
     boolean readValidNicknameAndPassword();
+
+    /**
+     * Are there any active games that we're playing?
+     *
+     * @param fromPracticeServer  If true, only look through practice server's games,
+     *     instead of all games with {@link PlayerInterface}s
+     * @return True if there are games found which are active (state &lt; {@link SOCGame#OVER})
+     * @see SwingMainDisplay#findAnyActiveGame(boolean)
+     * @see ClientNetwork#anyHostedActiveGames()
+     * @since 2.4.00
+     */
+    boolean hasAnyActiveGame(final boolean fromPracticeServer);
 
     /**
      * Ask server to start a game with options.

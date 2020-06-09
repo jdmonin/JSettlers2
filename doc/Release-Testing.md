@@ -241,6 +241,48 @@ When preparing to release a new version, testing should include:
         - 6-player Practice game: Test UI's trade behavior with and without preference
         - Re-launch client, new practice game, check setting is remembered
     - Sound: See section "Platform-specific"
+    - Remember face icon:
+        - For clean first run: Launch client with jvm property `-Djsettlers.debug.clear_prefs=faceIcon`, exit immediately
+        - Launch new client as usual, without `-Djsettlers.debug.clear_prefs=faceIcon`
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be set
+          - Start game, change player's icon from default, exit during initial placement
+          - Start another game, sit down; player's icon should be the one just chosen
+          - Exit game and client
+        - Launch new client as usual
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be set
+          - Sit down at game; player's face icon should be non-default from previous run
+          - Exit game and client
+        - Launch new client
+          - Connect to server, click New Game
+          - In New Game dialog, clear "Remember face icon" checkbox
+          - Sit down at game; player's face icon should be back to default
+          - Exit game and client
+        - Launch new client
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be cleared; set it
+          - Sit down at game; player's face icon should be previously saved non-default
+          - Exit game
+          - Click New Game
+          - In New Game dialog, clear "Remember face icon" checkbox
+          - Sit down; icon should be default
+          - Exit game and client
+        - Launch new client
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be cleared
+          - Sit down at game; player's face icon should be default
+          - Start game
+          - Change player's icon to a different non-default, leave game running
+          - Click New Game
+          - In New Game dialog, set "Remember face icon" checkbox
+          - Sit down at game; player's face icon should be the one from still-running game
+          - Exit games and client
+        - Launch new client
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be set
+          - Sit down at game; player's face icon should be the different non-default one from previous run
+          - Exit game and client
     - Hex Graphics Sets: Test switching between "Classic" and the default "Pastel":
         - All games mentioned here are Practice games, no server needed. "Start a game" here means to
           create a game, sit down, and start the game so a board will be generated.

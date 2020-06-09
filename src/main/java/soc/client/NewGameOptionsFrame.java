@@ -73,6 +73,7 @@ import javax.swing.text.Document;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
@@ -1069,6 +1070,14 @@ import soc.util.Version;
                  true, true, bval, ival, null);
         }
 
+        bval = (0 < UserPreferences.getPref(SOCPlayerClient.PREF_FACE_ICON, SOCPlayer.FIRST_HUMAN_FACE_ID));
+        localPrefs.put(SOCPlayerClient.PREF_FACE_ICON, Boolean.valueOf(bval));
+        initInterface_Pref1
+            (bp, gbl, gbc, SOCPlayerClient.PREF_FACE_ICON,
+             strings.get("game.options.ui.remember_face_icon"),  // "Remember face icon"
+             true, false,
+             bval, 0, null);
+
         int ival = UserPreferences.getPref(SOCPlayerClient.PREF_UI_SCALE_FORCE, 0);
         localPrefs.put(SOCPlayerClient.PREF_UI_SCALE_FORCE, Integer.valueOf(ival));
         bval = (ival > 0);
@@ -1569,6 +1578,39 @@ import soc.util.Version;
         {
             UserPreferences.putPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, setIdx);
             mainDisplay.getClient().reloadBoardGraphics();  // refresh all current PIs
+        }
+
+        k = SOCPlayerClient.PREF_FACE_ICON;
+        boolean wantsSet = ((Boolean) localPrefs.get(k)).booleanValue();
+        setIdx = UserPreferences.getPref(SOCPlayerClient.PREF_FACE_ICON, 0);
+        if (wantsSet != (0 < setIdx))
+        {
+            final SOCPlayerClient cli = mainDisplay.getClient();
+            final boolean newAndNoActives = forNewGame && ! mainDisplay.hasAnyActiveGame(false);
+
+            if (newAndNoActives && wantsSet && (cli.lastFaceChange == SOCPlayer.FIRST_HUMAN_FACE_ID) && (setIdx != 0))
+            {
+                // No active PI showing, wants to remember face icons.
+                // Use saved pref's non-default face now, if available
+
+                if (setIdx < 0)
+                    setIdx = -setIdx;
+
+                cli.lastFaceChange = setIdx;
+            }
+
+            if (newAndNoActives && ! wantsSet)
+            {
+                // No active PI showing, so reset PI's icon to default
+                // but don't lose previously-saved value in prefs
+
+                cli.lastFaceChange = SOCPlayer.FIRST_HUMAN_FACE_ID;
+                UserPreferences.putPref(SOCPlayerClient.PREF_FACE_ICON, -setIdx);
+            } else {
+                UserPreferences.putPref(SOCPlayerClient.PREF_FACE_ICON,
+                    (wantsSet) ? cli.lastFaceChange : -(cli.lastFaceChange));
+            }
+
         }
     }
 
