@@ -132,6 +132,14 @@ public class SOCClientData
      */
     private int currentCreatedGames, currentCreatedChannels;
 
+    /**
+     * Human client's most recently requested face icon ID for {@link soc.game.SOCPlayer#setFaceId(int)},
+     * or 0 if none requested yet. Useful when taking over a robot player's seat. Not updated if {@link #isRobot}.
+     * Assumes that only messages from the client will update this field, so synchronization isn't required.
+     * @since 2.4.00
+     */
+    public int faceId;
+
     /** Synchronization for win-loss count and other counter fields */
     private Object countFieldSync;
 

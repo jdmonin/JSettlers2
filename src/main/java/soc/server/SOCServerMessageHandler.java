@@ -909,6 +909,10 @@ public class SOCServerMessageHandler
 
         player.setFaceId(id);
         srv.messageToGame(gaName, new SOCChangeFace(gaName, player.getPlayerNumber(), id));
+
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        if ((scd != null) && ! scd.isRobot)
+            scd.faceId = id;
     }
 
     /**

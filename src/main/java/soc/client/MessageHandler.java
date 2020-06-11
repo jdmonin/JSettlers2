@@ -1331,8 +1331,7 @@ import soc.util.Version;
          * if player is client, use face icon from last requested change instead of default
          * (this is so that an old face isn't requested anew); skip if reset.
          */
-        if (playerIsClient
-            && (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A)))
+        if (playerIsClient && ! ga.isBoardReset())
         {
             player.setFaceId(client.lastFaceChange);
             gms.changeFace(ga, client.lastFaceChange);

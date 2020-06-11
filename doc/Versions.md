@@ -22,6 +22,8 @@ and backport minor new features until `2.0.00` was ready.
 	- Add client preference: Remember face icon when changed
 	- Game window:
 	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
+- Network/Message traffic:
+	- When client is sitting down at new game or to take over a bot's seat, send their preferred face icon
 - For developers:
 	- Save/load games:
 	  - SavedGameModel: Players' piece types and dev cards are written to file as

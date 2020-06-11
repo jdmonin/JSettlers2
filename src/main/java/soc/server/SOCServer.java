@@ -3197,12 +3197,21 @@ public class SOCServer extends Server
                 return;  // game was destroyed; maybe was robots-only?
 
             final int pn = req.getSitDownMessage().getPlayerNumber();
+            final Connection arriving = req.getArriving();
             final boolean isRobot = req.getSitDownMessage().isRobot();
             if (! isRobot)
+            {
                 // don't keep the robot face icon
-                game.getPlayer(pn).setFaceId(SOCPlayer.FIRST_HUMAN_FACE_ID);
 
-            sitDown(game, req.getArriving(), pn, isRobot, false);
+                int faceId = SOCPlayer.FIRST_HUMAN_FACE_ID;
+                final SOCClientData scd = (SOCClientData) arriving.getAppData();
+                if ((scd != null) && (scd.faceId > 0))
+                    faceId = scd.faceId;
+
+                game.getPlayer(pn).setFaceId(faceId);
+            }
+
+            sitDown(game, arriving, pn, isRobot, false);
         }
     }
 
