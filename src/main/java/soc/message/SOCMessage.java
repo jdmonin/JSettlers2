@@ -500,8 +500,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Converts the contents of this message into
      * a String that can be transferred by a client
      * or server.
-     * Your class' required method
-     * static SOCMessageSubclass parseDataStr(String)
+     * Your message class's required method
+     * {@code static SOCMessageSubclass parseDataStr(String)}
      * must be able to turn this String
      * back into an instance of the message class.
      *<P>
@@ -510,11 +510,15 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * For multi-messages (@link SOCMessageMulti}, multiple {@link #sep} tokens
      * are allowed.  Multi-messages are parsed with:
      * static SOCMessageSubclass parseDataStr(String[])
+     *<P>
+     * Overall conversion from {@code toCmd()} format is handled by {@link #toMsg(String)},
+     * which checks message type ID to call the appropriate class's {@code parseDataStr}.
      */
     public abstract String toCmd();
 
     /**
      * Simple human-readable representation, used for debug purposes.
+     * @see #toCmd()
      * @since 1.1.00
      */
     @Override
@@ -574,8 +578,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
     }
 
     /**
-     * Convert a string into a SOCMessage.
-     * The string is in the form of "id SEP messagename {SEP2 messagedata}*".
+     * Convert a string from {@link #toCmd()} into a SOCMessage.
+     * The string is in the form of "id SEP messagename { SEP2 messagedata }*".
      * If the message type id is unknown, that is printed to System.err.
      * Otherwise calls message type's static {@code parseDataStr} method.
      *
