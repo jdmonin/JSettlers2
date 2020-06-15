@@ -412,7 +412,7 @@ When preparing to release a new version, testing should include:
         - In `SOCGameOption.initAllOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
           Update its version parameters to current versionnum and current + 1. Example:  
           `("DEBUGBOOL", 2000, 2001, false, ...)`
-        - In `version.info`, add 1 to versionnum and version. Example: 2000 -> 2001, 2.0.00 -> 2.0.01
+        - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2000 -> 2001, 2.0.00 -> 2.0.01
         - Build and launch client (at that "new" version), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
           Scenario dropdown should include those 2 "new" scenarios
@@ -427,7 +427,7 @@ When preparing to release a new version, testing should include:
         - Quit client and server
     - Then, test server newer than client:
         - Temporarily "localize" the test option and scenarios by adding to
-          `/src/main/resources/resources/strings/server/toClient_es.properties`:  
+          `src/main/resources/resources/strings/server/toClient_es.properties`:  
           `gameopt.DEBUGBOOL = test debugbool localized-es`  
           `gamescen.SC_TSTNC.n = test-localizedname-es`  
         - Build server JAR and start a server from it (has the "new" version number)
@@ -467,7 +467,7 @@ When preparing to release a new version, testing should include:
         - Cancel out of New Game dialog
         - Quit clients and server
 - i18n/Localization
-    - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `/src/main/resources/resources/strings/server/toClient_es.properties`:  
+    - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `src/main/resources/resources/strings/server/toClient_es.properties`:  
 
           # gamescen.SC_FOG.n = ...
           # gamescen.SC_FOG.d = ...
@@ -579,6 +579,24 @@ When preparing to release a new version, testing should include:
         - Start that game (with the two human players)
         - After initial placement, have one player leave
         - Server should tell game it can't find a robot
+    - SOCGameOption negotiation when connecting client has limited features:
+        - Start a standard server using its jar (not the IDE)
+        - Start a client, limited by using vm property `-Djsettlers.debug.client.features=;6pl;` and connect
+	  - Click New Game; dialog shouldn't show scenarios or sea board game options,
+	    should show options related to 6-player board; max players dropdown should have range 2 - 6
+          - Client's console (traffic debug trace) should show GameOptionInfo messages for the unsupported game options
+          - Start a 6-player game, bots should join and play as usual
+          - During initial placement, exit the client
+        - Start a client, limited by using vm property `-Djsettlers.debug.client.features=` and connect
+	  - Click New Game; dialog shouldn't show scenarios or sea board game options
+	    or 6-player board options; max players dropdown should have range 2 - 4
+          - Client's console (traffic debug trace) should show GameOptionInfo messages for the unsupported game options
+          - Start a 4-player game, bots should join and play as usual
+          - During initial placement, exit the client
+        - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2400 -> 2401, 2.4.00 -> 2.4.01
+        - Repeat those 2 client tests with client at that "new" version; should behave the same as above
+        - Repeat those 2 client tests with previous release's client jar; should behave the same as above
+        - Exit server and reset `version.info` to the actual versions (2401 -> 2400, etc)
 - Saving and loading games at server
     - Basics
         - Start server with debug user enabled, but not savegame feature: `-Djsettlers.allow.debug=Y`

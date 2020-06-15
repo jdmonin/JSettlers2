@@ -5899,6 +5899,11 @@ public class SOCServer extends Server
      * Game options are sent after client version is known, so the list of
      * sent options is based on client version.
      *<P>
+     * If client has limited features ({@link SOCClientData#hasLimitedFeats}) and is same version as server or newer,
+     * checks now for unsupported SGOs and sends as {@link SOCGameOption#OTYPE_UNKNOWN},
+     * and sends info for any game options whose value range is limited by client features,
+     * because client isn't likely to send a general SOCGameOptionGetInfos message later.
+     *<P>
      *<B>I18N:</B> If client doesn't send a locale string, the default locale {@code en_US} is used.
      * Robot clients will get the default locale and localeStr here; those will be cleared to {@code null} by
      * {@link #authOrRejectClientRobot(Connection, String, String, String)} when the bot sends {@link SOCImARobot}.
@@ -5929,23 +5934,21 @@ public class SOCServer extends Server
         final boolean wasKnown = c.isVersionKnown();
 
         final SOCFeatureSet cfeatSet;
-        if ((cfeats == null) && (cvers < SOCFeatureSet.VERSION_FOR_CLIENTFEATURES))
+        if (cfeats != null)
+            cfeatSet = new SOCFeatureSet(cfeats);
+        else if (cvers < SOCFeatureSet.VERSION_FOR_CLIENTFEATURES)
             cfeatSet = new SOCFeatureSet(true, false);  // default features for 1.x.xx client
         else
-            cfeatSet = (cfeats != null) ? new SOCFeatureSet(cfeats) : null;
+            cfeatSet = new SOCFeatureSet(false, false);  // empty set
 
         // Check for limited features
         boolean hasLimitedFeats = false;
-        int scenVers = (cfeatSet != null) ? cfeatSet.getValue(SOCFeatureSet.CLIENT_SCENARIO_VERSION, 0) : 0;
+        int scenVers = cfeatSet.getValue(SOCFeatureSet.CLIENT_SCENARIO_VERSION, 0);
         if (scenVers > cvers)
             scenVers = cvers;
 
-        if (cfeatSet == null)
-        {
-            hasLimitedFeats = true;
-        }
-        else if (! (cfeatSet.isActive(SOCFeatureSet.CLIENT_6_PLAYERS)
-                    && cfeatSet.isActive(SOCFeatureSet.CLIENT_SEA_BOARD)))
+        if (! (cfeatSet.isActive(SOCFeatureSet.CLIENT_6_PLAYERS)
+               && cfeatSet.isActive(SOCFeatureSet.CLIENT_SEA_BOARD)))
         {
             hasLimitedFeats = true;
         }
@@ -6041,6 +6044,31 @@ public class SOCServer extends Server
             }, 300);
 
             return false;  // <--- Early return: Rejected client ---
+        }
+
+        // If client is limited and not older, check now for unsupported/limited SGOs
+        if (hasLimitedFeats && (cvers >= Version.versionNumber()))
+        {
+            boolean hadAny = false;
+            final Map<String, SOCGameOption> unsupportedOpts = SOCGameOption.optionsNotSupported(scd.feats);
+            if (unsupportedOpts != null)
+            {
+                for (String okey : unsupportedOpts.keySet())
+                    c.put(new SOCGameOptionInfo(new SOCGameOption(okey), cvers, "-"));
+                hadAny = true;
+            }
+
+            final Map<String, SOCGameOption> trimmedOpts = SOCGameOption.optionsTrimmedForSupport(scd.feats);
+            if (trimmedOpts != null)
+            {
+                for (SOCGameOption opt : trimmedOpts.values())
+                    c.put(new SOCGameOptionInfo(opt, cvers, null));
+                hadAny = true;
+            }
+
+            if (hadAny && (cvers == Version.versionNumber()))
+                // if same version, tell client there's no need to ask later about other gameopt changes
+                c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS);
         }
 
         // Send game list?

@@ -30,6 +30,7 @@ import java.util.StringTokenizer;
 
 import soc.message.SOCMessage;
 import soc.server.savegame.SavedGameModel;  // for javadocs only
+import soc.util.SOCFeatureSet;
 
 /**
  * Game-specific options, configurable at game creation.
@@ -100,12 +101,16 @@ import soc.server.savegame.SavedGameModel;  // for javadocs only
  *
  * Game options were introduced in 1.1.07; check server, client versions against
  * {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+ *<P>
  * Each option has version information, because options can be added or changed
  * with new versions of JSettlers.  Since games run on the server, the server is
  * authoritative about game options:  If the client is newer, it must defer to the
- * server's older set of known options.  At client connect, the client compares its
- * JSettlers version number to the server's, and asks for any changes to options if
- * their versions differ.
+ * server's older set of known options.
+ *<P>
+ * At client connect, the client compares its JSettlers version number to the server's,
+ * and asks for any changes to options if their versions differ.
+ * Also if connecting client has limited features, server sends all
+ * unsupported game options as unknowns by checking each option's {@link #getClientFeature()}.
  *
  *<H3>I18N</H3>
  *
@@ -373,6 +378,7 @@ public class SOCGameOption
      *<UL>
      *<LI> PL  Maximum # players (2-6)
      *<LI> PLB Use 6-player board*
+     *<LI> PLP 6-player board: Can Special Build only if 5 or 6 players in game*
      *<LI> SBL Use sea board layout (has a large, varying max size)
      *<LI> RD  Robber can't return to the desert
      *<LI> N7  Roll no 7s during first # rounds
@@ -385,8 +391,8 @@ public class SOCGameOption
      *           Used only at client, for board size received in JoinGame message from server
      *           to pass through SOCGame constructor into SOCBoard factory
      *</UL>
-     *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
-     *    existing option.  So in NewGameOptionsFrame, it appears on the line following
+     *  * Grouping: PLB, PLP are 3 characters, not 2, and the first 2 characters match an
+     *    existing option. So in NewGameOptionsFrame, they appear on the lines following
      *    the PL option in client version 1.1.13 and above.
      *
      * <h3>Current Game Scenario options:</h3>
@@ -417,6 +423,9 @@ public class SOCGameOption
      *   start with "_SC_" and it should have a constant name field here
      *   (like {@link #K_SC_3IP}) with a short descriptive javadoc.
      *   Link in javadoc to the SOCScenario field and add it to the list above.
+     *   Because name starts with "_SC_", constructor will automatically call
+     *   {@link #setClientFeature(String) setClientFeature}({@link SOCFeatureSet#CLIENT_SEA_BOARD}).
+     *   If you need a different client feature instead, or none, call that setter afterwards.
      *<LI> Decide which {@link #optType option type} your option will be
      *   (boolean, enumerated, int+bool, etc.), and its default value.
      *   Typically the default will let the game behave as it did before
@@ -537,14 +546,22 @@ public class SOCGameOption
         final SOCGameOption pl = new SOCGameOption
                 ("PL", -1, 1108, 4, 2, 6, 0, "Maximum # players");
         opt.put("PL", pl);
+
         final SOCGameOption plb = new SOCGameOption
                 ("PLB", 1108, 1113, false, FLAG_DROP_IF_UNUSED, "Use 6-player board");
+        plb.setClientFeature(SOCFeatureSet.CLIENT_6_PLAYERS);
         opt.put("PLB", plb);
+
         final SOCGameOption plp = new SOCGameOption
                 ("PLP", 1108, 2300, false, FLAG_DROP_IF_UNUSED, "6-player board: Can Special Build only if 5 or 6 players in game");
+        plp.setClientFeature(SOCFeatureSet.CLIENT_6_PLAYERS);
         opt.put("PLP", plp);
-        opt.put("SBL", new SOCGameOption
-                ("SBL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Use sea board"));  // see also SOCBoardLarge
+
+        SOCGameOption op = new SOCGameOption
+                ("SBL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Use sea board");  // see also SOCBoardLarge
+        op.setClientFeature(SOCFeatureSet.CLIENT_SEA_BOARD);
+        opt.put("SBL", op);
+
         opt.put("_BHW", new SOCGameOption
                 ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED | FLAG_INTERNAL_GAME_PROPERTY,
                  "Large board's height and width (0xRRCC) if not default (local to client only)"));
@@ -563,11 +580,15 @@ public class SOCGameOption
                 ("VP", -1, 2000, false, 10, 10, 20, FLAG_DROP_IF_UNUSED, "Victory points to win: #"));
                 // If min or max changes, test client to make sure New Game dialog still shows it as a dropdown
                 // (not a text box) for user convenience
+
         final SOCGameOption sc = new SOCGameOption
                 ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
+        sc.setClientFeature(SOCFeatureSet.CLIENT_SCENARIO_VERSION);
         opt.put("SC", sc);
 
         // Game scenario options (rules and events)
+        //      Constructor calls setClientFeature(SOCFeatureSet.CLIENT_SCENARIO_VERSION) for these
+        //      because keyname.startsWith("_SC_")
 
         //      I18N note: NewGameOptionsFrame.showScenarioInfoDialog() assumes these
         //      all start with the text "Scenarios:". When localizing, be sure to
@@ -861,6 +882,13 @@ public class SOCGameOption
      */
     public final String[] enumVals;
 
+    /**
+     * Any client feature required to use this game option, or null; see {@link #getClientFeature()} for details.
+     * Set at server only.
+     * @since 2.4.00
+     */
+    private String clientFeat;
+
     private boolean boolValue;
     private int     intValue;
     private String  strValue;  // no default value: is "", stored as null
@@ -1103,6 +1131,11 @@ public class SOCGameOption
 
     /**
      * Create a new game option - common constructor.
+     *<P>
+     * If {@code key} starts with {@code "_SC_"}, constructor will automatically call
+     * {@link #setClientFeature(String) setClientFeature}({@link SOCFeatureSet#CLIENT_SEA_BOARD}).
+     * If you need a different client feature instead, or none, call that setter afterwards.
+     *
      * @param otype   Option type; use caution, as this is unvalidated against
      *                {@link #OTYPE_MIN} or {@link #OTYPE_MAX}.
      * @param key     Alphanumeric short unique key for this option;
@@ -1133,7 +1166,7 @@ public class SOCGameOption
      *        or if minVers or lastModVers is under 1000 but not -1;
      *        {@link Throwable#getMessage()} will have details
      */
-    protected SOCGameOption(int otype, String key, int minVers, int lastModVers,
+    protected SOCGameOption(int otype, final String key, int minVers, int lastModVers,
         boolean defaultBoolValue, int defaultIntValue,
         final int minValue, final int maxValue,
         final String[] enumVals, final int flags, final String desc)
@@ -1179,6 +1212,9 @@ public class SOCGameOption
         strValue = null;
         if ((intValue < minIntValue) || (intValue > maxIntValue))
             throw new IllegalArgumentException("defaultIntValue");
+
+        if (key.startsWith("_SC_"))
+            clientFeat = SOCFeatureSet.CLIENT_SCENARIO_VERSION;
     }
 
     /**
@@ -1308,6 +1344,36 @@ public class SOCGameOption
             }
         }
         strValue = v;
+    }
+
+    /**
+     * If this game option requires one, its client feature from {@link SOCFeatureSet}.
+     * Not set or used at client, or sent over network as part of game option info sync.
+     *
+     * @return the client feature required to use this game option,
+     *     like {@link SOCFeatureSet#CLIENT_SEA_BOARD}, or null if none
+     * @see #setClientFeature(String)
+     * @see #optionsNotSupported(SOCFeatureSet)
+     * @see #optionsTrimmedForSupport(SOCFeatureSet)
+     * @since 2.4.00
+     */
+    public String getClientFeature()
+    {
+        return clientFeat;
+    }
+
+    /**
+     * Set the client feature required by this game option, if any, at server.
+     * A game option can require at most 1 feature in the current implementation,
+     * not a {@link SOCFeatureSet} with multiple members.
+     *
+     * @param clientFeat Feature to require, like {@link SOCFeatureSet#CLIENT_SEA_BOARD}, or {@code null} for none
+     * @see #getClientFeature()
+     * @since 2.4.00
+     */
+    public void setClientFeature(final String clientFeat)
+    {
+        this.clientFeat = clientFeat;
     }
 
     /**
@@ -1466,6 +1532,7 @@ public class SOCGameOption
      * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
      *          if this option has no restriction.
      * @since 1.1.08
+     * @see #optionsTrimmedForSupport(SOCFeatureSet)
      */
     public static final int getMaxIntValueForVersion(final String optKey, final int vers)
     {
@@ -2058,6 +2125,7 @@ public class SOCGameOption
      * @param trimEnums  For enum-type options where minVersion changes based on current value,
      *              should we remove too-new values from the returned option info?
      *              This lets us send only the permitted values to an older client.
+     *              Also trims int-type options' max value where needed (example: {@code "PL"}).
      * @param opts  Set of {@link SOCGameOption}s to check versions and current values;
      *              if null, use the "known option" set
      * @return List of the newer (added or changed) {@link SOCGameOption}s, or null
@@ -2066,6 +2134,7 @@ public class SOCGameOption
      *     <B>Note:</B> May include options with {@link #minVersion} &gt; {@code vers};
      *     the client may want to know about those.
      * @see #optionsForVersion(int, Map)
+     * @see #optionsTrimmedForSupport(SOCFeatureSet)
      */
     public static List<SOCGameOption> optionsNewerThanVersion
         (final int vers, final boolean checkValues, final boolean trimEnums, final Map<String, SOCGameOption> opts)
@@ -2085,6 +2154,8 @@ public class SOCGameOption
      * @param vers  Version to compare options against
      * @param opts  Set of {@link SOCGameOption}s to check versions, or {@code null} to use the "known option" set
      * @return  List of all {@link SOCGameOption}s valid at version {@code vers}, or {@code null} if none.
+     * @see #optionsNewerThanVersion(int, boolean, boolean, Map)
+     * @see #optionsTrimmedForSupport(SOCFeatureSet)
      * @since 2.0.00
      */
     public static List<SOCGameOption> optionsForVersion
@@ -2108,6 +2179,7 @@ public class SOCGameOption
      * @param trimEnums  For enum-type options where minVersion changes based on current value,
      *              should we remove too-new values from the returned option info?
      *              This lets us send only the permitted values to an older client.
+     *              Also trims int-type options' max value where needed (example: {@code "PL"}).
      * @param opts  Set of {@link SOCGameOption}s to check versions and current values;
      *              if null, use the "known option" set
      * @return List of the requested {@link SOCGameOption}s, or null if none match the conditions, at {@code vers};
@@ -2171,6 +2243,67 @@ public class SOCGameOption
         }
 
         return uopt;
+    }
+
+    /**
+     * Do any known options require client features
+     * not supported by a limited client's {@link SOCFeatureSet}?
+     * Checks each option having a {@link #getClientFeature()}.
+     *
+     * @param cliFeats  Client's limited subset of optional features,
+     *     from {@link soc.server.SOCClientData#feats}, or {@code null} or empty set if no features
+     * @return Map of known options not supported by {@code cliFeats},
+     *     or {@code null} if all known options are supported.
+     *     Each map key is its option value's {@link SOCVersionedItem#key key}.
+     * @see #optionsTrimmedForSupport(SOCFeatureSet)
+     * @since 2.4.00
+     */
+    public static Map<String, SOCGameOption> optionsNotSupported(final SOCFeatureSet cliFeats)
+    {
+        Map<String, SOCGameOption> ret = null;
+
+        for (SOCGameOption opt : allOptions.values())
+        {
+            if (opt.clientFeat == null)
+                continue;
+            if ((cliFeats != null) && cliFeats.isActive(opt.clientFeat))
+                continue;
+
+            if (ret == null)
+                ret = new HashMap<>();
+            ret.put(opt.key, opt);
+        }
+
+        return ret;
+    }
+
+    /**
+     * Do any known options require changes for a limited client's {@link SOCFeatureSet}?
+     * For example, clients without {@link SOCFeatureSet#CLIENT_6_PLAYERS} limit "max players" to 4.
+     *<P>
+     * Assumes client is new enough that its version wouldn't also cause trimming of option values
+     * by {@link #optionsNewerThanVersion(int, boolean, boolean, Map)} or {@link #optionsForVersion(int, Map)}.
+     *
+     * @param cliFeats  Client's limited subset of optional features,
+     *     from {@link soc.server.SOCClientData#feats}, or {@code null} or empty set if no features
+     * @return Map of trimmed known options, or {@code null} if no trimming was needed
+     *     Each map key is its option value's {@link SOCVersionedItem#key key}.
+     * @see #optionsNotSupported(SOCFeatureSet)
+     * @see #getMaxIntValueForVersion(String, int)
+     * @since 2.4.00
+     */
+    public static Map<String, SOCGameOption> optionsTrimmedForSupport(final SOCFeatureSet cliFeats)
+    {
+        if ((cliFeats != null) && cliFeats.isActive(SOCFeatureSet.CLIENT_6_PLAYERS))
+            return null;
+
+        SOCGameOption pl = getOption("PL", false);
+        if (pl == null)
+            return null;  // shouldn't happen, PL is a known option
+
+        Map<String, SOCGameOption> ret = new HashMap<>();
+        ret.put("PL", new SOCGameOption(pl, SOCGame.MAXPLAYERS_STANDARD));
+        return ret;
     }
 
     /**

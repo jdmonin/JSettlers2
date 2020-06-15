@@ -481,7 +481,9 @@ ideas.
 - Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
 - Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(SOCResourceSet),
   subtract(SOCResourceSet) with playing piece `COST` constants
-- Refactor: `SOCGameOption` static methods to check and change values within a set
+- Refactor `SOCGameOption`:
+  - Static methods to check and change values within a set
+  - Create SOCGameOptionAtServer for methods used only there, like static optionsNotSupported and optionsTrimmedForSupport
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
@@ -507,7 +509,7 @@ ideas.
     - Show remaining supply in Statistics popup and `*STATS*` debug command
     - Game window is probably too cluttered already to always show remaining supply;
       any way to cleanly do so would be a bonus
-    - Add house rule `SOCGameOption` for unlimited resources
+    - Add a house rule to `SOCGameOption` for unlimited resources
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
 - Bots on sea boards: Help bots decide when it makes sense to move a ship (versus build another)

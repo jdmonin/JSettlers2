@@ -627,6 +627,10 @@ public class SOCServerMessageHandler
      * this client's version, is sent as {@link SOCGameOption#OTYPE_UNKNOWN}.
      * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
      * options with long names won't be sent.
+     *<P>
+     * If {@link SOCClientData#hasLimitedFeats c.hasLimitedFeats} and any known options require client features
+     * not supported by client {@code c}, they'll be sent to the client as {@link SOCGameOption#OTYPE_UNKNOWN}
+     * even if not asked for. Also sends info for any game options whose value range is limited by client features.
      *
      * @param c  the connection
      * @param mes  the message
@@ -639,8 +643,10 @@ public class SOCServerMessageHandler
 
         final int cliVers = c.getVersion();
         final SOCClientData scd = (SOCClientData) c.getAppData();
+        final boolean hasLimitedFeats = scd.hasLimitedFeats;
+
         boolean alreadyTrimmedEnums = false;
-        final List<String> okeys = mes.optionKeys;
+        List<String> okeys = mes.optionKeys;
         List<SOCGameOption> opts = null;  // opts to send as SOCGameOptionInfo
         final Map<String, SOCGameOption> optsToLocal;  // opts to send in a SOCLocalizedStrings instead
 
@@ -656,7 +662,7 @@ public class SOCServerMessageHandler
         {
             // Gather all game opts we have that we could possibly localize;
             // this list will be narrowed down soon
-            optsToLocal = new HashMap<String, SOCGameOption>();
+            optsToLocal = new HashMap<>();
             for (final SOCGameOption opt : SOCGameOption.optionsForVersion(cliVers, null))
                 optsToLocal.put(opt.key, opt);
         } else {
@@ -687,6 +693,53 @@ public class SOCServerMessageHandler
             }
         }
 
+        // If any known opts which require client features limited/not supported by this client,
+        // add them to opts or okeys so unknowns will be sent as OTYPE_UNKNOWN
+
+        final Map<String, SOCGameOption> unsupportedOpts =
+            (hasLimitedFeats) ? SOCGameOption.optionsNotSupported(scd.feats) : null;
+        if (unsupportedOpts != null)
+        {
+            if (opts != null)
+                opts.addAll(unsupportedOpts.values());
+            else if (okeys != null)
+                okeys.addAll(unsupportedOpts.keySet());
+            else
+                okeys = new ArrayList<>(unsupportedOpts.keySet());
+        }
+
+        final Map<String, SOCGameOption> trimmedOpts =
+            (hasLimitedFeats) ? SOCGameOption.optionsTrimmedForSupport(scd.feats) : null;
+        if (trimmedOpts != null)
+        {
+            if (opts != null)
+            {
+                for (SOCGameOption tr : trimmedOpts.values())
+                {
+                    // replace if key already in opts, otherwise add
+                    final String okey = tr.key;
+                    boolean match = false;
+                    for (int i = 0; i < opts.size(); ++i)
+                    {
+                        if (opts.get(i).key.equals(okey))
+                        {
+                            opts.set(i, tr);
+                            match = true;
+                            break;
+                        }
+                    }
+                    if (! match)
+                        opts.add(tr);
+                }
+            } else if (okeys != null) {
+                for (String okey : trimmedOpts.keySet())
+                    if (! okeys.contains(okey))
+                        okeys.add(okey);
+            } else {
+                okeys = new ArrayList<>(trimmedOpts.keySet());
+            }
+        }
+
         // Iterate through requested okeys or calculated opts list.
         // Send requested options' info, and remove them from optsToLocal to
         // avoid sending separate message with those opts' localization info:
@@ -702,21 +755,9 @@ public class SOCServerMessageHandler
                 if (opts != null)
                 {
                     opt = opts.get(i);
-                    if (opt.minVersion > cliVers)
-                    {
-                        opt = new SOCGameOption(opt.key);  // OTYPE_UNKNOWN
-                    }
-                    else if (wantsLocalDescs)
-                    {
-                        try {
-                            localDesc = c.getLocalized("gameopt." + opt.key);
-                        } catch (MissingResourceException e) {}
-                    }
-                } else {
-                    final String okey = okeys.get(i);
-                    opt = SOCGameOption.getOption(okey, false);
-
-                    if ((opt == null) || (opt.minVersion > cliVers))  // Don't use dynamic opt.getMinVersion(Map) here
+                    final String okey = opt.key;
+                    if ((opt.minVersion > cliVers)
+                        || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
                     {
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
                     }
@@ -725,6 +766,25 @@ public class SOCServerMessageHandler
                         try {
                             localDesc = c.getLocalized("gameopt." + okey);
                         } catch (MissingResourceException e) {}
+                    }
+                } else {
+                    final String okey = okeys.get(i);
+                    opt = SOCGameOption.getOption(okey, false);
+
+                    if ((opt == null) || (opt.minVersion > cliVers)  // Don't use dynamic opt.getMinVersion(Map) here
+                        || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
+                    {
+                        opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                    }
+                    else 
+                    {
+                        if ((trimmedOpts != null) && trimmedOpts.containsKey(okey))
+                            opt = trimmedOpts.get(okey);
+
+                        if (wantsLocalDescs)
+                            try {
+                                localDesc = c.getLocalized("gameopt." + okey);
+                            } catch (MissingResourceException e) {}
                     }
                 }
 
@@ -754,7 +814,7 @@ public class SOCServerMessageHandler
         // send any opts which are localized but otherwise unchanged between server's/client's version
         if (optsToLocal != null)  // empty is OK
         {
-            List<String> strs = new ArrayList<String>(2 * optsToLocal.size());
+            List<String> strs = new ArrayList<>(2 * optsToLocal.size());
             for (final SOCGameOption opt : optsToLocal.values())
             {
                 try {

@@ -2334,7 +2334,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link soc.server.SOCClientData#hasLimitedFeats} flag is true, otherwise they could join any game.
      * Calls {@link #checkClientFeatures(SOCFeatureSet, boolean) checkClientFeatures(cliFeats, true)}.
      * @param cliFeats  Client's limited subset of optional features,
-     *     from {@link soc.server.SOCClientData#feats}, or {@code null} if none
+     *     from {@link soc.server.SOCClientData#feats}, or {@code null} or empty set if no features
      * @return  True if client can join, false otherwise.
      *     Always true if {@link #getClientFeaturesRequired()} is {@code null}.
      * @since 2.0.00
@@ -2350,7 +2350,7 @@ public class SOCGame implements Serializable, Cloneable
      * otherwise they could join any game. If this game requires any client features, calls
      * {@link SOCFeatureSet#findMissingAgainst(SOCFeatureSet, boolean) cliFeats.findMissingAgainst(gameFeats, stopAtFirstFound)}.
      * @param cliFeats  Client's limited subset of optional features,
-     *     from {@link soc.server.SOCClientData#feats}, or {@code null} if none
+     *     from {@link soc.server.SOCClientData#feats}, or {@code null} or empty set if no features
      * @param stopAtFirstFound  True if caller needs to know only if any features are missing,
      *     but doesn't need the full list. If game's features and {@code cliFeats} are both not null,
      *     will stop checking after finding any missing feature.

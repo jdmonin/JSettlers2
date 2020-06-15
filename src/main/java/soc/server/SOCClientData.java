@@ -61,13 +61,14 @@ public class SOCClientData
     private int wins, losses;
 
     /**
-     * Client's reported optional features, or {@code null}.
-     * Sent as an optional part of the SOCVersion message from clients 2.0.00 or newer;
+     * Client's reported optional features, or {@code null} if not reported. May be an empty set.
+     * Sent as an optional part of the SOCVersion message from clients v2.0 or newer;
      * third-party clients or simple bots may have no features.
-     * For older 1.x.xx clients, this field has the default features from
+     * For v1.x clients, this field is given the default features from
      * {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) new SOCFeatureSet(true, false)}.
      * @see #hasLimitedFeats
      * @see #scenVersion
+     * @see soc.game.SOCGameOption#optionsNotSupported(SOCFeatureSet)
      * @since 2.0.00
      */
     public SOCFeatureSet feats;

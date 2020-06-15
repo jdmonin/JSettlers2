@@ -189,7 +189,7 @@ public class SOCFeatureSet
 
     /**
      * Create a new SOCFeatureSet from an encoded list; useful at client.
-     * @param encodedList  List from {@link #getEncodedList()}, or null or "" for none
+     * @param encodedList  List from {@link #getEncodedList()}, or null or "" for none (not ";;")
      * @throws IllegalArgumentException if {@code encodedList} is not empty but
      *     doesn't start and end with {@link #SEP_CHAR}
      */

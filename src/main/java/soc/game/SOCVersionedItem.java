@@ -23,6 +23,7 @@ package soc.game;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import soc.message.SOCMessage;
 
@@ -227,14 +228,21 @@ public abstract class SOCVersionedItem implements Cloneable
     /**
      * Search this group of items and find any unknown ones (with ! {@link #isKnown}).
      * @param items  map of SOCVersionedItems
+     * @param alreadyKnown  Set of already-known item {@link #key}s to ignore during this check, or null.
+     *     This is intended for checking a list of items after server has previously sent info on known/unknown items:
+     *     Those items already marked as unknown should be ignored here.
      * @return List of unknown items' {@link #key}s, or null if all are known
      */
-    public static <I extends SOCVersionedItem> List<String> findUnknowns(Map<String, I> items)
+    public static <I extends SOCVersionedItem> List<String> findUnknowns
+        (final Map<String, I> items, final Set<String> alreadyKnown)
     {
         ArrayList<String> unknowns = null;
 
         for (Map.Entry<String, I> e : items.entrySet())
         {
+            if ((alreadyKnown != null) && alreadyKnown.contains(e.getKey()))
+                continue;
+
             SOCVersionedItem it = e.getValue();
             if (! it.isKnown)
             {

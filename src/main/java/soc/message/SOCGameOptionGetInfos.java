@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2010,2013,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2010,2013,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -30,7 +30,8 @@ import soc.util.DataUtils;
 
 
 /**
- * This message from client sends a list of game options to the server.
+ * This message from client asks the server about a list of game options,
+ * or is a general request about all changes to game options.
  * The server will respond with {@link SOCGameOptionInfo GAMEOPTIONINFO} message(s),
  * one per option keyname listed in this message.
  *<P>
