@@ -34,6 +34,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCTradeOffer;
 import soc.server.SOCGameListAtServer;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.GameLoaderJSON;
@@ -330,6 +331,39 @@ public class TestLoadgame
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
+    }
+
+    /** Test loading a game where current player, another player are making trade offers. */
+    @Test
+    public void testLoadTradeOffers()
+        throws IOException
+    {
+        final SavedGameModel sgm = load("tradeoffers.game.json");
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("game name", "tradeoffers", sgm.gameName);
+        assertEquals(0, ga.getCurrentPlayerNumber());
+        assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
+        assertEquals("oldgamestate", SOCGame.PLAY1, sgm.oldGameState);
+        assertEquals(4, sgm.playerSeats.length);
+
+        SOCTradeOffer tr = ga.getPlayer(0).getCurrentOffer();
+        assertNotNull("player(0) trade offer", tr);
+        assertEquals(0, tr.getFrom());
+        assertArrayEquals(new boolean[]{false, true, true, true}, tr.getTo());
+        assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), tr.getGiveSet());
+        assertEquals(new SOCResourceSet(1, 0, 0, 0, 0, 0), tr.getGetSet());
+
+        assertNull("player(1) trade offer", ga.getPlayer(1).getCurrentOffer());
+
+        tr = ga.getPlayer(2).getCurrentOffer();
+        assertNotNull("player(2) trade offer", tr);
+        assertEquals(2, tr.getFrom());
+        assertArrayEquals(new boolean[]{true, false, false, false}, tr.getTo());
+        assertEquals(new SOCResourceSet(0, 0, 0, 1, 0, 0), tr.getGiveSet());
+        assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), tr.getGetSet());
+
+        assertNull("player(3) trade offer", ga.getPlayer(3).getCurrentOffer());
     }
 
     /** Test loading and resuming a simple scenario, including SVP for {@code _SC_SEAC}. */

@@ -1,0 +1,442 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2400,
+  "gameMinVersion": -1,
+  "gameName": "tradeoffers",
+  "comments": "Current player (pn 0) and another (pn 2) are making trade offers",
+  "gameOptions": "BC\u003dt4,RD\u003df,N7\u003df7,PL\u003d4",
+  "gameDurationSeconds": 224,
+  "gameState": 20,
+  "oldGameState": 20,
+  "currentDice": 7,
+  "elements": {
+    "FIRST_PLAYER": 0,
+    "ROUND_COUNT": 3,
+    "LARGEST_ARMY_PLAYER": -1,
+    "CURRENT_PLAYER": 0,
+    "LONGEST_ROAD_PLAYER": -1
+  },
+  "devCardDeck": [
+    1,
+    9,
+    5,
+    7,
+    1,
+    9,
+    3,
+    9,
+    9,
+    9,
+    9,
+    9,
+    3,
+    9,
+    9,
+    9,
+    9,
+    8,
+    9,
+    6,
+    9,
+    2,
+    9,
+    4
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "boardInfo": {
+    "layout1": {
+      "game": "tradeoffers",
+      "hexLayout": [
+        49,
+        6,
+        67,
+        6,
+        6,
+        2,
+        2,
+        0,
+        10,
+        37,
+        5,
+        3,
+        3,
+        4,
+        6,
+        6,
+        1,
+        5,
+        1,
+        4,
+        2,
+        11,
+        8,
+        5,
+        1,
+        4,
+        3,
+        6,
+        6,
+        4,
+        3,
+        5,
+        100,
+        18,
+        6,
+        12,
+        6
+      ],
+      "numberLayout": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        3,
+        0,
+        -1,
+        -1,
+        -1,
+        5,
+        7,
+        6,
+        4,
+        -1,
+        -1,
+        2,
+        1,
+        8,
+        2,
+        1,
+        -1,
+        -1,
+        8,
+        4,
+        3,
+        5,
+        -1,
+        -1,
+        9,
+        6,
+        7,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "robberHex": 155,
+      "messageType": 1014
+    },
+    "playerPotentials": [
+      {
+        "game": "tradeoffers",
+        "playerNumber": 0,
+        "psNodes": [
+          99
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "tradeoffers",
+        "playerNumber": 1,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "tradeoffers",
+        "playerNumber": 2,
+        "psNodes": [
+          201
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "tradeoffers",
+        "playerNumber": 3,
+        "psNodes": [
+          182
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeats": [
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 2,
+      "resources": {
+        "clay": 0,
+        "ore": 2,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 3
+      },
+      "currentTradeOffer": {
+        "give": {
+          "clay": 0,
+          "ore": 0,
+          "sheep": 0,
+          "wheat": 0,
+          "wood": 1
+        },
+        "receive": {
+          "clay": 1,
+          "ore": 0,
+          "sheep": 0,
+          "wheat": 0,
+          "wood": 0
+        },
+        "offeredTo": [
+          false,
+          true,
+          true,
+          true
+        ]
+      },
+      "elements": {
+        "CITIES": 4,
+        "SETTLEMENTS": 3,
+        "ROADS": 12,
+        "NUMKNIGHTS": 0
+      },
+      "resRollStats": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        3,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 71
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 70
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 67
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 66
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 82
+        }
+      ]
+    },
+    {
+      "name": "robot 3",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 1,
+        "wood": 0
+      },
+      "elements": {
+        "CITIES": 4,
+        "SETTLEMENTS": 3,
+        "ROADS": 13,
+        "NUMKNIGHTS": 0
+      },
+      "resRollStats": [
+        0,
+        0,
+        1,
+        0,
+        1,
+        2,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [
+        "DISC"
+      ],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 52
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 52
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 188
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 172
+        }
+      ]
+    },
+    {
+      "name": "p2",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 5,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 4,
+        "wood": 0
+      },
+      "currentTradeOffer": {
+        "give": {
+          "clay": 0,
+          "ore": 0,
+          "sheep": 0,
+          "wheat": 1,
+          "wood": 0
+        },
+        "receive": {
+          "clay": 0,
+          "ore": 0,
+          "sheep": 0,
+          "wheat": 0,
+          "wood": 1
+        },
+        "offeredTo": [
+          true,
+          false,
+          false,
+          false
+        ]
+      },
+      "elements": {
+        "CITIES": 4,
+        "SETTLEMENTS": 3,
+        "ROADS": 12,
+        "NUMKNIGHTS": 0
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        3,
+        2,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 169
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 168
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 154
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 138
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 184
+        }
+      ]
+    },
+    {
+      "name": "robot 5",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 1,
+        "wood": 2
+      },
+      "elements": {
+        "CITIES": 4,
+        "SETTLEMENTS": 3,
+        "ROADS": 12,
+        "NUMKNIGHTS": 0
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        2,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 150
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 150
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 101
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 84
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 166
+        }
+      ]
+    }
+  ]
+}

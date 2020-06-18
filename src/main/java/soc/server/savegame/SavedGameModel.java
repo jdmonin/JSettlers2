@@ -129,6 +129,7 @@ public class SavedGameModel
      *      Sets PlayerElements {@link PEType#SCENARIO_SVP SCENARIO_SVP},
      *      {@link PEType#SCENARIO_SVP_LANDAREAS_BITMASK SCENARIO_SVP_LANDAREAS_BITMASK}.
      * <LI> Adds {@link PlayerInfo#earlyElements} list to set before piece placement
+     * <LI> {@link PlayerInfo} adds {@link PlayerInfo#currentTradeOffer}
      *</UL>
      */
     public static int MODEL_VERSION = 2400;
@@ -606,6 +607,7 @@ public class SavedGameModel
         /** Bot's declared brain class; {@code null} when {@link #isBuiltInRobot} or non-robot player */
         public String robot3rdPartyBrainClass;
 
+        /** Face icon ID, from {@link SOCPlayer#getFaceId()} */
         int faceID;
 
         /** Resources in hand */
@@ -624,6 +626,13 @@ public class SavedGameModel
         HashMap<PEType, Integer> earlyElements;
 
         /**
+         * Current trade offer from this player to others, or {@code null} if none.
+         * @see SOCPlayer#getCurrentOffer()
+         * @since 2.4.00
+         */
+        TradeOffer currentTradeOffer;
+
+        /**
          * Available piece counts, SVP, cloth count, hasPlayedDevCard and other flags, etc.
          * Less common elements are omitted if 0.
          * These elements are set after piece placement; see also {@link #earlyElements}.
@@ -634,8 +643,6 @@ public class SavedGameModel
          * See {@link SavedGameModel#MODEL_VERSION} javadoc for history of what version adds which elements.
          */
         HashMap<PEType, Integer> elements = new HashMap<>();
-
-        // TODO: future: add field for pl.getCurrentOffer()
 
         /** Resource roll stats, from {@link SOCPlayer#getResourceRollStats()} */
         int[] resRollStats;
@@ -731,6 +738,10 @@ public class SavedGameModel
                     if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
                         elements.put(PEType.HAS_SPECIAL_BUILT, (pl.hasSpecialBuilt()) ? 1 : 0);
                 }
+
+                SOCTradeOffer curr = pl.getCurrentOffer();
+                if (curr != null)
+                    currentTradeOffer = new TradeOffer(curr);
             }
             if (ga.hasSeaBoard)
             {
@@ -821,6 +832,8 @@ public class SavedGameModel
                 ga.putPiece(fortressPiece);
             }
              */
+
+            pl.setCurrentOffer((currentTradeOffer != null) ? currentTradeOffer.toOffer(pl) : null);
 
             // Set player elements and specialVP only after putPieces,
             // so remaining-piece counts aren't reduced twice
@@ -1030,7 +1043,52 @@ public class SavedGameModel
         /** Load resource-type counts from this KnownResourceSet into {@code rs}. */
         public void loadInto(SOCResourceSet rs)
         {
-            rs.setAmounts(new SOCResourceSet(clay, ore, sheep, wheat, wood, 0));
+            rs.setAmounts(toResourceSet());
+        }
+
+        /**
+         * Create and return a new {@link SOCResourceSet} from this KnownResourceSet.
+         * @since 2.4.00
+         */
+        public SOCResourceSet toResourceSet()
+        {
+            return new SOCResourceSet(clay, ore, sheep, wheat, wood, 0);
+        }
+    }
+
+    /**
+     * A player's current trade offer info, from relevant fields of {@link SOCTradeOffer}.
+     * @since 2.4.00
+     */
+    static class TradeOffer
+    {
+        /** Resources the offering player would give or receive if the trade offer was accepted. */
+        public KnownResourceSet give, receive;
+
+        /**
+         * Player numbers this offer is made to: An array with {@link SOCGame#maxPlayers} elements,
+         * where {@code offeredTo[pn]} is true for each player number to whom the offer was made.
+         */
+        public boolean[] offeredTo;
+
+        public TradeOffer(final SOCTradeOffer offer)
+            throws NullPointerException
+        {
+            give = new KnownResourceSet(offer.getGiveSet());
+            receive = new KnownResourceSet(offer.getGetSet());
+            offeredTo = offer.getTo();
+        }
+
+        /**
+         * Create and return a new {@link SOCTradeOffer} from this TradeOffer.
+         * @param fromPlayer Player from whom the offer will be;
+         *     used for gameName and {@link SOCPlayer#getPlayerNumber()}
+         */
+        public SOCTradeOffer toOffer(final SOCPlayer fromPlayer)
+        {
+            return new SOCTradeOffer
+                (fromPlayer.getGame().getName(), fromPlayer.getPlayerNumber(),
+                 offeredTo, give.toResourceSet(), receive.toResourceSet());
         }
     }
 

@@ -37,6 +37,7 @@ and backport minor new features until `2.0.00` was ready.
 	    SCENARIO_SVP_LANDAREAS_BITMASK
 	  - If can't parse gameOptions, don't load game
 	  - Adds PlayerInfo.earlyElements list to set before piece placement
+	  - PlayerInfo adds currentTradeOffer
 	  - Omit writing pieces' specialVP field when it's 0, ships' isClosed when false
 	  - MODEL_VERSION increased to 2400
 	  - Unit tests using saved-game artifacts
