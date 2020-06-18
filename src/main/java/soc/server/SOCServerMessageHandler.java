@@ -2696,6 +2696,25 @@ public class SOCServerMessageHandler
         if (canSit)
         {
             srv.sitDown(ga, c, pn, mes.isRobot(), false);
+
+            // loadgame: If seat was temporarily unlocked while fetching bot to sit here, re-lock it.
+            // Don't do so in state LOADING_RESUMING, because that change might have been done by a human player.
+
+            if ((gameState == SOCGame.LOADING) && (ga.savedGameModel != null)
+                && (((SavedGameModel) ga.savedGameModel).playerSeatLocks != null))
+            {
+                final SOCClientData scd = (SOCClientData) c.getAppData();
+                if ((scd != null) && scd.isRobot)
+                {
+                    SOCGame.SeatLockState gaLock = ga.getSeatLock(pn),
+                        modelLock = ((SavedGameModel) ga.savedGameModel).playerSeatLocks[pn];
+                    if ((gaLock != modelLock) && (modelLock != null))
+                    {
+                        ga.setSeatLock(pn, modelLock);
+                        srv.messageToGame(gaName, new SOCSetSeatLock(gaName, pn, modelLock));
+                    }
+                }
+            }
         }
         else
         {

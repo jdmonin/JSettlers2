@@ -269,6 +269,12 @@
       }
     ]
   },
+  "playerSeatLocks": [
+    "UNLOCKED",
+    "CLEAR_ON_RESET",
+    "UNLOCKED",
+    "UNLOCKED"
+  ],
   "playerSeats": [
     {
       "name": "debug",

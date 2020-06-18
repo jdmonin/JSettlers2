@@ -3,7 +3,7 @@
   "savedByVersion": 2400,
   "gameMinVersion": 1108,
   "gameName": "test6p-sbp",
-  "comments": "6-player during Special Building Phase; human users p, debug; debug user isn't current player and has asked to Special Build",
+  "comments": "6-player during Special Building Phase; human users p, debug; debug user isn't current player and has asked to Special Build. playerSeatLocks is deliberately omitted from this file.",
   "gameOptions": "N7\u003df7,PLB\u003dt,RD\u003df,PL\u003d6,BC\u003dt4",
   "gameDurationSeconds": 364,
   "gameState": 100,

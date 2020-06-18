@@ -129,7 +129,8 @@ public class SavedGameModel
      *      Sets PlayerElements {@link PEType#SCENARIO_SVP SCENARIO_SVP},
      *      {@link PEType#SCENARIO_SVP_LANDAREAS_BITMASK SCENARIO_SVP_LANDAREAS_BITMASK}.
      * <LI> Adds {@link PlayerInfo#earlyElements} list to set before piece placement
-     * <LI> {@link PlayerInfo} adds {@link PlayerInfo#currentTradeOffer}
+     * <LI> SavedGameModel adds {@link #playerSeatLocks},
+     *      {@link PlayerInfo} adds {@link PlayerInfo#currentTradeOffer currentTradeOffer}
      *</UL>
      */
     public static int MODEL_VERSION = 2400;
@@ -203,7 +204,22 @@ public class SavedGameModel
     /** Board layout and contents */
     BoardInfo boardInfo;
 
-    /** Player info and empty seats. Size is {@link SOCGame#maxPlayers}. */
+    /**
+     * Player seat locks. Size is same as {@link #playerSeats}.
+     * While loading:
+     *<UL>
+     * <LI> If {@code null} or omitted, all seats are unlocked by default
+     * <LI> If any element of this array is {@code null}, that seat remains unlocked.
+     *      (GSON's built-in deserializer returns {@code null} for unknown enum constants.)
+     *</UL>
+     * @since 2.4.00
+     */
+    public SOCGame.SeatLockState[] playerSeatLocks;
+
+    /**
+     * Player info and empty seats. Size is {@link SOCGame#maxPlayers}.
+     * @see #playerSeatLocks
+     */
     public PlayerInfo[] playerSeats;
 
     /* End of DATA FIELDS */
@@ -357,6 +373,7 @@ public class SavedGameModel
 
         boardInfo = new BoardInfo(ga);
 
+        playerSeatLocks = ga.getSeatLocks();
         playerSeats = new PlayerInfo[ga.maxPlayers];
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
             playerSeats[pn] = new PlayerInfo(ga.getPlayer(pn), ga.isSeatVacant(pn), srv);
@@ -569,6 +586,14 @@ public class SavedGameModel
                     ga.addPlayer(pinfo.name, pn);
                 pinfo.loadInto(pl);
             }
+            if (playerSeatLocks != null)
+                // now that player data is loaded, lock seats if needed
+                for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                {
+                    SOCGame.SeatLockState lock = playerSeatLocks[pn];
+                    if (lock != null)
+                        ga.setSeatLock(pn, lock);
+                }
         } catch (Exception e) {
             throw new IllegalArgumentException("Problem initializing game: " + e, e);
         }

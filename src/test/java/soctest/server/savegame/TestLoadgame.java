@@ -28,6 +28,7 @@ import java.net.URL;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
+import soc.game.SOCGame.SeatLockState;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
@@ -89,25 +90,33 @@ public class TestLoadgame
     /**
      * Check savegame/game data against expected contents.
      * @param names Player names
+     * @param locks  SeatLockStates to check, or {@code null} to skip;
+     *     individual elements can also be {@code null} to skip checking them
      * @param totalVP Players' total VP
      * @param resources Players' resources (clay, ore, sheep, wheat, wood)
      * @param pieceCounts Players' piece counts (roads, settlements, cities, and ships remaining; knights/soldiers played)
      */
     private static void checkPlayerData
-        (final SavedGameModel sgm, final String[] names, final int[] totalVP,
+        (final SavedGameModel sgm, final String[] names, final SeatLockState[] locks, final int[] totalVP,
          final int[][] resources, final int[][] pieceCounts)
     {
         final SOCGame ga = sgm.getGame();
         assertEquals("maxPlayers", names.length, ga.maxPlayers);
 
-        for (int pn = 0; pn < 4; ++pn)
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
             final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
             final SOCPlayer pl = ga.getPlayer(pn);
-            assertEquals(names[pn], pi.name);
-            assertEquals(names[pn], pl.getName());
-            assertEquals(totalVP[pn], pi.totalVP);
-            assertEquals(totalVP[pn], pl.getTotalVP());
+            assertEquals("names[" + pn + "]", names[pn], pi.name);
+            assertEquals("names[" + pn + "]", names[pn], pl.getName());
+            if ((locks != null) && (locks[pn] != null))
+            {
+                if (sgm.playerSeatLocks != null)  // might be null in sgm when testing SOCGame default lock values
+                    assertEquals("locks[" + pn + "]", locks[pn], sgm.playerSeatLocks[pn]);
+                assertEquals("locks[" + pn + "]", locks[pn], ga.getSeatLock(pn));
+            }
+            assertEquals("totalVP[" + pn + "]", totalVP[pn], pi.totalVP);
+            assertEquals("totalVP[" + pn + "]", totalVP[pn], pl.getTotalVP());
 
             final SOCResourceSet rs = (resources[pn] != null)
                 ? new SOCResourceSet(resources[pn])
@@ -190,10 +199,12 @@ public class TestLoadgame
         assertEquals("robberHex", 155, ga.getBoard().getRobberHex());
 
         final String[] NAMES = {null, "robot 4", "robot 2", "debug"};
+        final SeatLockState[] LOCKS =
+            {SeatLockState.UNLOCKED, SeatLockState.CLEAR_ON_RESET, SeatLockState.LOCKED, SeatLockState.UNLOCKED};
         final int[] TOTAL_VP = {0, 3, 2, 2};
         final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
         final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
-        checkPlayerData(sgm, NAMES, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS);
     }
 
     /**
@@ -256,16 +267,20 @@ public class TestLoadgame
         assertEquals("should be 6 players", 6, sgm.playerSeats.length);
         assertEquals("should be 6 players", 6, ga.maxPlayers);
         assertFalse(ga.hasSeaBoard);
+        assertNull(sgm.playerSeatLocks);  // locks deliberately omitted in file, to test loading with defaults
 
         assertEquals(SOCBoard.BOARD_ENCODING_6PLAYER, ga.getBoard().getBoardEncodingFormat());
         assertEquals("robberHex", 21, ga.getBoard().getRobberHex());
 
         final String[] NAMES = {null, "p", "droid 1", "robot 2", "robot 4", "debug"};
+        final SeatLockState[] LOCKS =
+            {SeatLockState.UNLOCKED, SeatLockState.UNLOCKED, SeatLockState.UNLOCKED,
+             SeatLockState.UNLOCKED, SeatLockState.UNLOCKED, SeatLockState.UNLOCKED};
         final int[] TOTAL_VP = {0, 2, 2, 2, 2, 2};
         final int[][] RESOURCES = {null, {2, 0, 1, 1, 1}, null, {0, 1, 3, 0, 2}, {0, 0, 2, 0, 0}, {4, 0, 0, 0, 3}};
         final int[][] PIECE_COUNTS =
             {{15, 5, 4, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}, {13, 3, 4, 0, 1}, {12, 3, 4, 0, 0}, {13, 3, 4, 0, 0}};
-        checkPlayerData(sgm, NAMES, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS);
 
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
@@ -293,10 +308,12 @@ public class TestLoadgame
         assertEquals("pirateHex", 2316, ((SOCBoardLarge) ga.getBoard()).getPirateHex());
 
         final String[] NAMES = {"debug", "robot 4", "robot 2", null};
+        final SeatLockState[] LOCKS =
+            {SeatLockState.UNLOCKED, SeatLockState.CLEAR_ON_RESET, SeatLockState.UNLOCKED, SeatLockState.UNLOCKED};
         final int[] TOTAL_VP = {6, 2, 5, 0};
         final int[][] RESOURCES = {{0, 1, 0, 3, 0}, null, {1, 0, 0, 1, 0}, null};
         final int[][] PIECE_COUNTS = {{8, 1, 4, 10, 1}, {11, 3, 4, 15, 0}, {9, 2, 3, 13, 0}, {15, 5, 4, 15, 0}};
-        checkPlayerData(sgm, NAMES, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS);
 
         final int[] SHIPS_OPEN_P0 = {2305, 2561, 3074};
         final int[][] SHIPS_CLOSED = {{2562, 2818}, null, {1035, 1036}, null};
@@ -331,6 +348,35 @@ public class TestLoadgame
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
+    }
+
+    /**
+     * Test parsing and loading game where various field contents are invalid.
+     * @since 2.4.00
+     */
+    public void testLoadBadFieldContents()
+        throws IOException
+    {
+        final SavedGameModel sgm = load("bad-field-contents.game.json");
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("game name", "bad-field-contents", sgm.gameName);
+        assertEquals(1, ga.getCurrentPlayerNumber());
+        assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
+        assertEquals(4, sgm.playerSeats.length);
+
+        // in file, playerSeatLocks[0] is "INVALID_SEATLOCK_STATE"
+        assertNotNull(sgm.playerSeatLocks);
+        SeatLockState[] LOCKS =
+            new SeatLockState[]{ null, SeatLockState.CLEAR_ON_RESET, SeatLockState.LOCKED, SeatLockState.UNLOCKED };
+        for (int pn = 0; pn < 4; ++pn)
+        {
+            SeatLockState modelLock = sgm.playerSeatLocks[pn];
+            assertEquals("locks[" + pn + "]", LOCKS[pn], modelLock);
+            if (modelLock == null)
+                modelLock = SeatLockState.UNLOCKED;
+            assertEquals("locks[" + pn + "]", modelLock, ga.getSeatLock(pn));
+        }
     }
 
     /** Test loading a game where current player, another player are making trade offers. */
@@ -392,7 +438,7 @@ public class TestLoadgame
         final int[] TOTAL_VP = {0, 2, 2, 5};
         final int[][] RESOURCES = {null, {0, 0, 0, 3, 1}, {1, 0, 1, 1, 0}, {0, 0, 1, 0, 0}};
         final int[][] PIECE_COUNTS = {{15, 5, 4, 15, 0}, {13, 3, 4, 15, 0}, {13, 3, 4, 15, 0}, {15, 2, 4, 11, 0}};
-        checkPlayerData(sgm, NAMES, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+        checkPlayerData(sgm, NAMES, null, TOTAL_VP, RESOURCES, PIECE_COUNTS);
 
         final SOCPlayer plDebug = ga.getPlayer(3);
         assertEquals(3, plDebug.getStartingLandAreasEncoded());

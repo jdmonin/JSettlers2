@@ -1940,12 +1940,15 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalStateException if the game is still forming
      *     but {@code sl} is {@link SeatLockState#CLEAR_ON_RESET},
      *     or if {@link #getResetVoteActive()}
+     * @throws IllegalArgumentException if {@code sl} is null
      * @see #setSeatLocks(SeatLockState[])
      * @since 2.0.00
      */
     public void setSeatLock(final int pn, final SeatLockState sl)
-        throws IllegalStateException
+        throws IllegalStateException, IllegalArgumentException
     {
+        if (sl == null)
+            throw new IllegalArgumentException("sl");
         if (isAtServer
             && (getResetVoteActive()
                 || ((sl == SeatLockState.CLEAR_ON_RESET) && (gameState == NEW))))
@@ -9236,7 +9239,14 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Seat lock states for lock/unlock.
      * Note different meanings while game is forming
-     * (gameState {@link SOCGame#NEW NEW}) versus already active.
+     * (gameState {@link SOCGame#NEW NEW}) versus already active:
+     * See enum value javadocs for details.
+     *<UL>
+     * <LI> {@link #UNLOCKED}
+     * <LI> {@link #LOCKED}
+     * <LI> {@link #CLEAR_ON_RESET}
+     *</UL>
+     * @see SOCGame#getSeatLock(int)
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
      */
@@ -9256,6 +9266,7 @@ public class SOCGame implements Serializable, Cloneable
         LOCKED,
 
         /** If this active game is reset, a robot will not take this seat, it will be left vacant.
+         *  During game play, behaves like {@link #UNLOCKED}.
          *  Useful for resetting a game to play again with fewer robots, if a robot is currently sitting here.
          *  Not a valid seat lock state if game is still forming.
          *<P>
