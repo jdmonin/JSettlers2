@@ -987,8 +987,23 @@ public class SOCGameHandler extends GameHandler
             allSeatsBots = false;
         }
 
+        if (cliVers >= SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
+            srv.messageToPlayer(c, new SOCSetSeatLock(gameName, gameData.getSeatLocks()));
+
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
+            /**
+             * send the seat lock information, if client needs per-seat messages.
+             */
+            if (cliVers < SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
+            {
+                final SOCGame.SeatLockState sl = gameData.getSeatLock(i);
+                // old client doesn't have CLEAR_ON_RESET
+                srv.messageToPlayer(c, new SOCSetSeatLock
+                    (gameName, i,
+                     (sl != SOCGame.SeatLockState.CLEAR_ON_RESET) ? sl : SOCGame.SeatLockState.LOCKED));
+            }
+
             /**
              * send them basic info on the already-seated players;
              * if isReset, don't send, because sitDown will
@@ -1014,22 +1029,7 @@ public class SOCGameHandler extends GameHandler
                         hasRobot = true;
                 }
             }
-
-            /**
-             * send the seat lock information, if client needs per-seat messages
-             */
-            if (cliVers < SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
-            {
-                final SOCGame.SeatLockState sl = gameData.getSeatLock(i);
-                // old client doesn't have CLEAR_ON_RESET
-                srv.messageToPlayer(c, new SOCSetSeatLock
-                    (gameName, i,
-                     (sl != SOCGame.SeatLockState.CLEAR_ON_RESET) ? sl : SOCGame.SeatLockState.LOCKED));
-            }
         }
-
-        if (cliVers >= SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
-            srv.messageToPlayer(c, new SOCSetSeatLock(gameName, gameData.getSeatLocks()));
 
         /**
          * Send board layout info.

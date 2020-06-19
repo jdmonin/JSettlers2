@@ -25,6 +25,7 @@ and backport minor new features until `2.0.00` was ready.
 - Server:
 	- If connecting client has limited features, send all unsupported game options as unknowns
 - Network/Message traffic:
+	- When client joins a game, server sends seat locks before player info SitDown messages, not after them
 	- When client is sitting down at new game or to take over a bot's seat, send their preferred face icon
 - For developers:
 	- Save/load games:

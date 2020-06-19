@@ -26,6 +26,8 @@ import java.util.StringTokenizer;
 /**
  * This message from client means that a player wants to sit down to play;
  * from server it announces a client has sat down to play.
+ * When client is joining a game, server sends a {@code SOCSitDown} for each already-seated player
+ * to give their names and robot flags.
  *<P>
  * When client and server are v2.3.00 or newer ({@link SOCDevCardAction#VERSION_FOR_SITDOWN_CLEARS_INVENTORY}),
  * when client is sitting down to play and receives this message for their own player,

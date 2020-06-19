@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,10 @@ import soc.game.SOCGame.SeatLockState;
  * In version 2.0.00 and newer ({@link #VERSION_FOR_ALL_SEATS}),
  * this message can send to client the lock states of all seats at once
  * (4 or 6: game's max player count).
+ *<P>
+ * Server version 2.4.00 and newer sends seat locks to a joining client
+ * before the {@link SOCSitDown} messages; older versions sent locks after those.
+ * This helps while loading a savegame: The client who requested load might be a seated player.
  *<P>
  * For player consistency, seat locks can't be
  * changed while {@link soc.game.SOCGame#getResetVoteActive()}

@@ -2609,6 +2609,12 @@ public class SOCServerMessageHandler
          *
          * If a human leaves after game is started, seat will appear vacant when the
          * requested bot sits to replace them, so let the bot sit at that vacant seat.
+         *
+         * Special case: While loading or resuming a savegame, server can ask bots to join
+         * and sit at places which (in the savegame data) have seated players already,
+         * which may be marked as human or possibly as a bot with same name as
+         * the random joining bot by coincidence. Since server asked those bots to join,
+         * don't restrict the joining bot client at this point.
          */
         final int pn = mes.getPlayerNumber();
         final int gameState = ga.getGameState();
@@ -2627,26 +2633,39 @@ public class SOCServerMessageHandler
                     canSit = false;
             } else {
                 canSit = false;
-                SOCPlayer seatedPlayer = ga.getPlayer(pn);
+                final SOCPlayer seatedPlayer = ga.getPlayer(pn);
+                final String seatedName = seatedPlayer.getName();
 
                 /**
-                 * while loading, allow taking over a saved non-bot seat if not claimed by a current game member,
-                 * and taking over current player
+                 * if loading a savegame: allow taking over current player,
+                 * and taking over a saved non-bot seat if not claimed by a current game member
                  */
                 final boolean isLoadingState =
                     (gameState == SOCGame.LOADING) || (gameState == SOCGame.LOADING_RESUMING);
+                boolean isloadingBot =
+                    isLoadingState && ((SOCClientData) c.getAppData()).isRobot;
                 final boolean canTakeOverPlayer =
-                    seatedPlayer.isRobot()
-                    || (isLoadingState && ! gameList.isMember(seatedPlayer.getName(), gaName));
+                    seatedPlayer.isRobot() || isloadingBot;
 
-                if (canTakeOverPlayer
-                    && (ga.getSeatLock(pn) != SOCGame.SeatLockState.LOCKED)
-                    && ((ga.getCurrentPlayerNumber() != pn) || isLoadingState))
+                if (isloadingBot && c.getData().equals(seatedName))
+                {
+                    canSit = true;
+
+                    // The other clients think this client's already seated
+                    // because when they joined the game, there was already a seated player
+                    // with this name from the loaded savegame data.
+                    // So, don't announce "seated" bot is leaving or tell it to leave.
+                    // Ideally, no sit-down announcement would be made to the game at this point,
+                    // and we'd send player's private info only to the arriving bot, but this is
+                    // a corner case, not worth complicating the code that much.
+                }
+                else if (canTakeOverPlayer
+                    && (((ga.getSeatLock(pn) != SOCGame.SeatLockState.LOCKED) && (ga.getCurrentPlayerNumber() != pn))
+                        || isLoadingState))
                 {
                     /**
                      * boot the robot out of the game
                      */
-                    final String seatedName = seatedPlayer.getName();
                     final Connection robotCon = srv.getConnection(seatedName);
 
                     if ((robotCon != null) && gameList.isMember(robotCon, gaName))

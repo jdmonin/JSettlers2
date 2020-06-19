@@ -1287,6 +1287,16 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         {
             SOCRobotBrain brain = robotBrains.get(gaName);
 
+            if (brain.ourPlayerData != null)
+            {
+                if ((pn == brain.ourPlayerNumber) && nickname.equals(ga.getPlayer(pn).getName()))
+                    return ga;  // already sitting in this game at this position, OK (can happen during loadgame)
+
+                throw new IllegalStateException
+                    ("bot " + nickname + " game " + gaName
+                     + ": got sitdown(pn=" + pn + "), but already sitting at pn=" + brain.ourPlayerNumber);
+            }
+
             /**
              * retrieve the proper face for our strategy
              */
