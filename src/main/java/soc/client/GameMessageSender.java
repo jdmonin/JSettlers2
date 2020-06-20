@@ -505,6 +505,7 @@ import soc.message.SOCStartGame;
      * @param ga  the game
      * @param pn  the seat number
      * @param sl  new seat lock state; remember that servers older than v2.0.00 won't recognize {@code CLEAR_ON_RESET}
+     *     and should be sent {@code UNLOCKED}
      * @since 2.0.00
      */
     public void setSeatLock(SOCGame ga, int pn, SOCGame.SeatLockState sl)

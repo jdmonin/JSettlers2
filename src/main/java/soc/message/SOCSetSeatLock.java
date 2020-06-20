@@ -90,7 +90,7 @@ public class SOCSetSeatLock extends SOCMessage
      * @param ga  the name of the game
      * @param pn  the number of the changing player
      * @param st  the state of the lock; remember that versions before v2.0.00 won't recognize
-     *    {@link SeatLockState#CLEAR_ON_RESET}.
+     *    {@link SeatLockState#CLEAR_ON_RESET} and should be sent {@link SeatLockState#UNLOCKED UNLOCKED}
      * @see #SOCSetSeatLock(String, SeatLockState[])
      */
     public SOCSetSeatLock(String ga, int pn, SeatLockState st)

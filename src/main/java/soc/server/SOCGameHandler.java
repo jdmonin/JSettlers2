@@ -1003,7 +1003,7 @@ public class SOCGameHandler extends GameHandler
                 // old client doesn't have CLEAR_ON_RESET
                 srv.messageToPlayer(c, new SOCSetSeatLock
                     (gameName, i,
-                     (sl != SOCGame.SeatLockState.CLEAR_ON_RESET) ? sl : SOCGame.SeatLockState.LOCKED));
+                     (sl != SOCGame.SeatLockState.CLEAR_ON_RESET) ? sl : SOCGame.SeatLockState.UNLOCKED));
             }
 
             /**

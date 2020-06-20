@@ -1005,7 +1005,7 @@ public class SOCServerMessageHandler
                 srv.messageToGameForVersions
                     (ga, 2000, Integer.MAX_VALUE, mes, true);
                 srv.messageToGameForVersions
-                    (ga, -1, 1999, new SOCSetSeatLock(gaName, pn, SOCGame.SeatLockState.LOCKED), true);
+                    (ga, -1, 1999, new SOCSetSeatLock(gaName, pn, SOCGame.SeatLockState.UNLOCKED), true);
             }
         }
         catch (IllegalStateException e) {

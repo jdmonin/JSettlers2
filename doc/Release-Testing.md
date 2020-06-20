@@ -385,6 +385,12 @@ When preparing to release a new version, testing should include:
         - When testing a 2.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
+        - When testing a 1.x client and 2.x server: In any game, test robot seat-lock button
+            - Using a 2.x client, begin playing a new game
+            - Mark one bot seat as "locked" and another as "marked"
+            - Join with 1.x client
+                - Should see marked seat as unlocked, locked as locked
+                - Should be able to take over bot by sitting at "marked" seat
 - Server robustness: Bot disconnect/reconnect during game start
     - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
     - Connect and start a 6-player game
