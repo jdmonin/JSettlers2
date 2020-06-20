@@ -112,7 +112,9 @@ public class SavedGameModel
      * If you need to make a saved-game file for use by multiple JSettlers versions, save it from the oldest version.
      *<P>
      * When {@code MODEL_VERSION} is changed, that will be documented here and in {@code /doc/Versions.md}.
-     * The earliest version number is 2300.
+     * The earliest version number is 2300. If field formats change in the new schema, will add code to
+     * backwards-compatibility tests like {@code TestLoadgame.testLoadModelVersion2300} to ensure the old format
+     * can still be reliably parsed.
      *
      *<H4>Changed in 2.4.00:</H4>
      *<UL>

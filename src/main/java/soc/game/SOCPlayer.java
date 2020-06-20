@@ -1319,6 +1319,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param  edge  Edge coordinate of the road or ship
      * @return  The player's road or ship in play at this edge, or null
+     * @see SOCBoard#roadOrShipAtEdge(int)
      * @see #getMostRecentShip()
      * @since 2.0.00
      */
@@ -1354,6 +1355,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return the list of settlements in play
+     * @see #getSettlementOrCityAtNode(int)
      */
     public Vector<SOCSettlement> getSettlements()
     {
@@ -1361,7 +1363,29 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get this player's settlement or city at a node.
+     *
+     * @param  node  Node coordinate to check for a settlement or city
+     * @return  The player's settlement or city in play at this node, or null
+     * @see SOCBoard#settlementAtNode(int)
+     * @since 2.4.00
+     */
+    public SOCPlayingPiece getSettlementOrCityAtNode(final int node)
+    {
+        for (SOCSettlement sett : settlements)
+            if (sett.getCoordinates() == node)
+                return sett;
+
+        for (SOCCity city : cities)
+            if (city.getCoordinates() == node)
+                return city;
+
+        return null;
+    }
+
+    /**
      * @return the list of cities in play
+     * @see #getSettlementOrCityAtNode(int)
      */
     public Vector<SOCCity> getCities()
     {

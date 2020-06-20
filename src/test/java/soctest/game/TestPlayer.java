@@ -20,11 +20,15 @@
 
 package soctest.game;
 
+import soc.game.SOCBoard;
+import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
+import soc.game.SOCSettlement;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -37,6 +41,47 @@ import static org.junit.Assert.*;
  */
 public class TestPlayer
 {
+
+    /**
+     * Test {@link SOCPlayer#getSettlementOrCityAtNode(int)}.
+     * @since 2.4.00
+     */
+    @Test
+    public void testGetSettlementOrCityAtNode()
+    {
+        final int node = 0x1122;
+
+        SOCGame ga = new SOCGame("test");
+        ga.addPlayer("tplayer", 2);
+        SOCPlayer pl = ga.getPlayer(2);
+        SOCBoard board = ga.getBoard();
+
+        assertNull(pl.getSettlementOrCityAtNode(0x2233));  // unoccupied node
+        assertNull(board.settlementAtNode(0x2233));
+
+        ga.putPiece(new SOCSettlement(pl, node, null));
+
+        SOCPlayingPiece piece = pl.getSettlementOrCityAtNode(node);
+        assertNotNull(piece);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, piece.getType());
+        piece = board.settlementAtNode(node);
+        assertNotNull(piece);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, piece.getType());
+        assertEquals(2, piece.getPlayerNumber());
+
+        ga.putPiece(new SOCCity(pl, node, board));  // replaces settlement
+
+        assertNull(pl.getSettlementOrCityAtNode(0x2233));  // cities list no longer empty; still unoccupied
+        assertNull(board.settlementAtNode(0x2233));
+
+        piece = pl.getSettlementOrCityAtNode(node);
+        assertNotNull(piece);
+        assertEquals(SOCPlayingPiece.CITY, piece.getType());
+        piece = board.settlementAtNode(node);
+        assertNotNull(piece);
+        assertEquals(SOCPlayingPiece.CITY, piece.getType());
+        assertEquals(2, piece.getPlayerNumber());
+    }
 
     @Test
     public void testDiscardRoundDown()

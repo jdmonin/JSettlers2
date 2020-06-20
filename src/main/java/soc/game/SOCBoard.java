@@ -3128,6 +3128,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *
      * @param nodeCoord Location coordinate (as returned by SOCBoardPanel.findNode)
      * @return  Settlement or city at <tt>nodeCoord</tt>, or null
+     * @see SOCPlayer#getSettlementOrCityAtNode(int)
      * @since 1.1.00
      */
     public SOCPlayingPiece settlementAtNode(final int nodeCoord)
@@ -3160,6 +3161,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @return road or ship, or null.  Use {@link SOCPlayingPiece#getType()}
      *   or {@link SOCRoutePiece#isRoadNotShip()} to determine the returned piece type.
      *   At most one road or ship can be placed at any one edge.
+     * @see SOCPlayer#getRoadOrShip(int)
      * @since 1.1.00
      */
     public SOCRoutePiece roadOrShipAtEdge(int edgeCoord)

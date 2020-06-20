@@ -24,11 +24,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGame.SeatLockState;
+import soc.game.SOCInventory;
+import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
@@ -40,6 +44,7 @@ import soc.server.SOCGameListAtServer;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.GameLoaderJSON;
 import soc.server.savegame.SavedGameModel;
+import soc.server.savegame.SavedGameModel.PlayerInfo;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -95,28 +100,32 @@ public class TestLoadgame
      * @param totalVP Players' total VP
      * @param resources Players' resources (clay, ore, sheep, wheat, wood)
      * @param pieceCounts Players' piece counts (roads, settlements, cities, and ships remaining; knights/soldiers played)
+     * @param pieceLocations Some or all players' piece locations, or {@code null} to skip checking them:
+     *     For each player, either {@code null} or an int[][] array of piece types' expected locations
+     *     (roads, settlements, cities, ships)
      */
     private static void checkPlayerData
         (final SavedGameModel sgm, final String[] names, final SeatLockState[] locks, final int[] totalVP,
-         final int[][] resources, final int[][] pieceCounts)
+         final int[][] resources, final int[][] pieceCounts, final int[][][] pieceLocations)
     {
         final SOCGame ga = sgm.getGame();
+        final SOCBoard board = ga.getBoard();
         assertEquals("maxPlayers", names.length, ga.maxPlayers);
 
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
             final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
             final SOCPlayer pl = ga.getPlayer(pn);
-            assertEquals("names[" + pn + "]", names[pn], pi.name);
-            assertEquals("names[" + pn + "]", names[pn], pl.getName());
+            assertEquals("names SGM[" + pn + "]", names[pn], pi.name);
+            assertEquals("names ga[" + pn + "]", names[pn], pl.getName());
             if ((locks != null) && (locks[pn] != null))
             {
                 if (sgm.playerSeatLocks != null)  // might be null in sgm when testing SOCGame default lock values
-                    assertEquals("locks[" + pn + "]", locks[pn], sgm.playerSeatLocks[pn]);
-                assertEquals("locks[" + pn + "]", locks[pn], ga.getSeatLock(pn));
+                    assertEquals("locks SGM[" + pn + "]", locks[pn], sgm.playerSeatLocks[pn]);
+                assertEquals("locks ga[" + pn + "]", locks[pn], ga.getSeatLock(pn));
             }
-            assertEquals("totalVP[" + pn + "]", totalVP[pn], pi.totalVP);
-            assertEquals("totalVP[" + pn + "]", totalVP[pn], pl.getTotalVP());
+            assertEquals("totalVP SGM[" + pn + "]", totalVP[pn], pi.totalVP);
+            assertEquals("totalVP ga[" + pn + "]", totalVP[pn], pl.getTotalVP());
 
             final SOCResourceSet rs = (resources[pn] != null)
                 ? new SOCResourceSet(resources[pn])
@@ -124,22 +133,90 @@ public class TestLoadgame
             assertTrue(rs.equals(pl.getResources()));
 
             for (int ptype = SOCPlayingPiece.ROAD; ptype <= SOCPlayingPiece.SHIP; ++ptype)
-                assertEquals(pieceCounts[pn][ptype], pl.getNumPieces(ptype));
+                assertEquals("pieceCounts[" + pn + "][" + ptype + "]", pieceCounts[pn][ptype], pl.getNumPieces(ptype));
                 // ROAD, SETTLEMENT, CITY, SHIP == 0, 1, 2, 3: tested in TestPlayingPiece
-            assertEquals(pieceCounts[pn][4], pl.getNumKnights());
+            assertEquals("pieceCounts[" + pn + "][4]", pieceCounts[pn][4], pl.getNumKnights());
 
-            // TODO piece locations, etc
+            if ((pieceLocations != null) && (pieceLocations[pn] != null))
+            {
+                final int[][] pieceLocs = pieceLocations[pn];
+
+                // consistency-check expected data
+                assertEquals(4, pieceLocs.length);
+                assertEquals(SOCPlayer.ROAD_COUNT - pieceCounts[pn][0], pieceLocs[0].length);
+                assertEquals(SOCPlayer.SETTLEMENT_COUNT - pieceCounts[pn][1], pieceLocs[1].length);
+                assertEquals(SOCPlayer.CITY_COUNT - pieceCounts[pn][2], pieceLocs[2].length);
+                if (ga.hasSeaBoard)
+                    assertEquals(SOCPlayer.SHIP_COUNT - pieceCounts[pn][3], pieceLocs[3].length);
+                else
+                    assertEquals(0, pieceLocs[3].length);
+
+                // check vs actual piece counts and locations
+                assertEquals("pn[" + pn + "].getRoadsAndShips() count",
+                    pieceLocs[0].length + pieceLocs[3].length, pl.getRoadsAndShips().size());
+                for (final int edge : pieceLocs[0])
+                {
+                    SOCRoutePiece piece = pl.getRoadOrShip(edge);
+                    assertNotNull("pn[" + pn + "] road at 0x" + Integer.toHexString(edge), piece);
+                    assertTrue("pn[" + pn + "] should be road at 0x" + Integer.toHexString(edge),
+                        piece.isRoadNotShip());
+                    piece = board.roadOrShipAtEdge(edge);
+                    assertNotNull(piece);
+                    assertEquals(SOCPlayingPiece.ROAD, piece.getType());
+                    assertTrue(piece.isRoadNotShip());
+                    assertEquals(pn, piece.getPlayerNumber());
+                }
+                assertEquals("pn[" + pn + "].getSettlements() count",
+                    pieceLocs[1].length, pl.getSettlements().size());
+                for (final int node : pieceLocs[1])
+                {
+                    SOCPlayingPiece piece = pl.getSettlementOrCityAtNode(node);
+                    assertNotNull("pn[" + pn + "] settlement at 0x" + Integer.toHexString(node), piece);
+                    assertEquals("pn[" + pn + "] should be settlement at 0x" + Integer.toHexString(node),
+                        SOCPlayingPiece.SETTLEMENT, piece.getType());
+                    piece = board.settlementAtNode(node);
+                    assertNotNull(piece);
+                    assertEquals(SOCPlayingPiece.SETTLEMENT, piece.getType());
+                    assertEquals(pn, piece.getPlayerNumber());
+                }
+                assertEquals("pn[" + pn + "].getCities() count",
+                    pieceLocs[2].length, pl.getCities().size());
+                for (final int node : pieceLocs[2])
+                {
+                    SOCPlayingPiece piece = pl.getSettlementOrCityAtNode(node);
+                    assertNotNull("pn[" + pn + "] city at 0x" + Integer.toHexString(node), piece);
+                    assertEquals("pn[" + pn + "] should be city at 0x" + Integer.toHexString(node),
+                        SOCPlayingPiece.CITY, piece.getType());
+                    piece = board.settlementAtNode(node);
+                    assertNotNull(piece);
+                    assertEquals(SOCPlayingPiece.CITY, piece.getType());
+                    assertEquals(pn, piece.getPlayerNumber());
+                }
+                for (final int edge : pieceLocs[3])
+                {
+                    SOCRoutePiece piece = pl.getRoadOrShip(edge);
+                    assertNotNull("pn[" + pn + "] ship at 0x" + Integer.toHexString(edge), piece);
+                    assertFalse("pn[" + pn + "] should be ship not road at 0x" + Integer.toHexString(edge),
+                        piece.isRoadNotShip());
+                    piece = board.roadOrShipAtEdge(edge);
+                    assertNotNull(piece);
+                    assertEquals(SOCPlayingPiece.SHIP, piece.getType());
+                    assertFalse(piece.isRoadNotShip());
+                    assertEquals(pn, piece.getPlayerNumber());
+                }
+            }
 
             final boolean isVacant = (names[pn] == null);
-            assertEquals(isVacant, pi.isSeatVacant);
-            assertEquals(isVacant, ga.isSeatVacant(pn));
+            assertEquals("isVacant SGM[" + pn + "]", isVacant, pi.isSeatVacant);
+            assertEquals("isVacant ga[" + pn + "]", isVacant, ga.isSeatVacant(pn));
             if (isVacant)
                 continue;
 
-            final boolean isBot = (names[pn].startsWith("robot") || names[pn].startsWith("droid"));
+            final boolean isBot = names[pn].startsWith("robot") || names[pn].startsWith("droid")
+                || names[pn].startsWith("samplebot");
                 // not a completely rigorous test, but works for our savegame artifacts
-            assertEquals(isBot, pi.isRobot);
-            assertEquals(isBot, pl.isRobot());
+            assertEquals("isBot SGM[" + pn + "]", isBot, pi.isRobot);
+            assertEquals("isBot ga[" + pn + "]", isBot, pl.isRobot());
         }
 
     }
@@ -204,7 +281,7 @@ public class TestLoadgame
         final int[] TOTAL_VP = {0, 3, 2, 2};
         final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
         final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
-        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
     }
 
     /**
@@ -253,6 +330,71 @@ public class TestLoadgame
         assertNull(ga.savedGameModel);
     }
 
+    /**
+     * Test loading a game saved with {@link SavedGameModel#MODEL_VERSION} 2300:
+     * Checks for backwards-compatible parsing of any features changed since then:
+     *<UL>
+     * <LI> Players' dev cards ({@link PlayerInfo#oldDevCards}, {@code newDevCards})
+     *      were ints in 2300, changed to strings in 2400.
+     * <LI> Playing piece types ({@link SOCPlayingPiece#getType()} within {@link PlayerInfo#pieces})
+     *      were ints in 2300, changed to strings in 2400.
+     *</UL>
+     */
+    @Test
+    public void testLoadModelVersion2300()
+        throws IOException
+    {
+        final SavedGameModel sgm = load("modelversion-2300.game.json");
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("game name", "testmodel-2300-3h", sgm.gameName);
+        assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
+        assertEquals(6, sgm.playerSeats.length);
+        assertEquals(6, ga.maxPlayers);
+
+        final String[] NAMES = {null, "p2", "samplebot2", "p3", "robot 2", "debug"};
+        final SeatLockState[] LOCKS =
+            {SeatLockState.UNLOCKED, SeatLockState.UNLOCKED, SeatLockState.UNLOCKED,
+             SeatLockState.UNLOCKED, SeatLockState.UNLOCKED, SeatLockState.UNLOCKED};
+        final int[] TOTAL_VP = {0, 2, 2, 3, 2, 3};
+        final int[][] RESOURCES = {null, {0, 0, 1, 1, 3}, {1, 2, 0, 3, 1}, {1, 1, 0, 0, 3}, {2, 3, 0, 1, 0}, {0, 0, 0, 3, 3}};
+        final int[][] PIECE_COUNTS =
+            {{15, 5, 4, 0, 0}, {11, 3, 4, 0, 0}, {13, 3, 4, 0, 0}, {12, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
+        // check piece locations for player 3 only, since they're the player with a city
+        final int[][][] PIECE_LOCATIONS_ONLY_PL3 =
+            {
+                null, null, null,
+                {{0x45, 0x14, 0x24}, {0x14}, {0x56}, {}},
+                null, null
+            };
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, PIECE_LOCATIONS_ONLY_PL3);
+
+        // Check dev cards:
+
+        // Bot pn 2: new discovery/year of plenty(2); old knight(9)
+        SOCInventory cardsInv = ga.getPlayer(2).getInventory();
+        List<SOCInventoryItem> cards = cardsInv.getByState(SOCInventory.NEW);
+        assertEquals(1, cards.size());
+        assertEquals(SOCDevCardConstants.DISC, cards.get(0).itype);
+        cards = cardsInv.getByState(SOCInventory.PLAYABLE);
+        assertEquals(1, cards.size());
+        assertEquals(SOCDevCardConstants.KNIGHT, cards.get(0).itype);
+        cards = cardsInv.getByState(SOCInventory.KEPT);
+        assertEquals(0, cards.size());
+
+        // Human pn 5: new roadbuilding(1); old discovery/year of plenty(2), university(6)
+        cardsInv = ga.getPlayer(5).getInventory();
+        cards = cardsInv.getByState(SOCInventory.NEW);
+        assertEquals(1, cards.size());
+        assertEquals(SOCDevCardConstants.ROADS, cards.get(0).itype);
+        cards = cardsInv.getByState(SOCInventory.PLAYABLE);
+        assertEquals(1, cards.size());
+        assertEquals(SOCDevCardConstants.DISC, cards.get(0).itype);
+        cards = cardsInv.getByState(SOCInventory.KEPT);
+        assertEquals(1, cards.size());
+        assertEquals(SOCDevCardConstants.UNIV, cards.get(0).itype);
+    }
+
     /** Test loading and resuming a 6-player game, during Special Building Phase. */
     @Test
     public void testLoad6PlayerSBP()
@@ -280,7 +422,7 @@ public class TestLoadgame
         final int[][] RESOURCES = {null, {2, 0, 1, 1, 1}, null, {0, 1, 3, 0, 2}, {0, 0, 2, 0, 0}, {4, 0, 0, 0, 3}};
         final int[][] PIECE_COUNTS =
             {{15, 5, 4, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}, {13, 3, 4, 0, 1}, {12, 3, 4, 0, 0}, {13, 3, 4, 0, 0}};
-        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
 
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
@@ -313,7 +455,7 @@ public class TestLoadgame
         final int[] TOTAL_VP = {6, 2, 5, 0};
         final int[][] RESOURCES = {{0, 1, 0, 3, 0}, null, {1, 0, 0, 1, 0}, null};
         final int[][] PIECE_COUNTS = {{8, 1, 4, 10, 1}, {11, 3, 4, 15, 0}, {9, 2, 3, 13, 0}, {15, 5, 4, 15, 0}};
-        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
 
         final int[] SHIPS_OPEN_P0 = {2305, 2561, 3074};
         final int[][] SHIPS_CLOSED = {{2562, 2818}, null, {1035, 1036}, null};
@@ -438,7 +580,7 @@ public class TestLoadgame
         final int[] TOTAL_VP = {0, 2, 2, 5};
         final int[][] RESOURCES = {null, {0, 0, 0, 3, 1}, {1, 0, 1, 1, 0}, {0, 0, 1, 0, 0}};
         final int[][] PIECE_COUNTS = {{15, 5, 4, 15, 0}, {13, 3, 4, 15, 0}, {13, 3, 4, 15, 0}, {15, 2, 4, 11, 0}};
-        checkPlayerData(sgm, NAMES, null, TOTAL_VP, RESOURCES, PIECE_COUNTS);
+        checkPlayerData(sgm, NAMES, null, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
 
         final SOCPlayer plDebug = ga.getPlayer(3);
         assertEquals(3, plDebug.getStartingLandAreasEncoded());
