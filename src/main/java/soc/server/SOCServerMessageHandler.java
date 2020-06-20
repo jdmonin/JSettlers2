@@ -1739,25 +1739,30 @@ public class SOCServerMessageHandler
             break;
         }
 
-        // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
         final String gaName = ga.getName();
-        final GameHandler gh = gameList.getGameTypeHandler(gaName);
+
         boolean foundNoRobots = false;
-        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+        if (sgm.gameState < SOCGame.OVER)
         {
-            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
-            if (pi.isSeatVacant || ! pi.isRobot)
-                continue;
+            // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
 
-            // TODO once we have bot details/constraints (fast or smart, 3rd-party bot class),
-            //   request those when calling findRobotAskJoinGame
-            //   instead of marking their seat as vacant
+            final GameHandler gh = gameList.getGameTypeHandler(gaName);
+            for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+            {
+                final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+                if (pi.isSeatVacant || ! pi.isRobot)
+                    continue;
 
-            if (! ga.isSeatVacant(pn))
-                ga.removePlayer(ga.getPlayer(pn).getName(), true);
-            foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
-            if (foundNoRobots)
-                break;
+                // TODO once we have bot details/constraints (fast or smart, 3rd-party bot class),
+                //   request those when calling findRobotAskJoinGame
+                //   instead of marking their seat as vacant
+
+                if (! ga.isSeatVacant(pn))
+                    ga.removePlayer(ga.getPlayer(pn).getName(), true);
+                foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
+                if (foundNoRobots)
+                    break;
+            }
         }
 
         // If all OK: Send Resume reminder prompt after delay, or announce winner if over,
