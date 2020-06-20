@@ -1196,63 +1196,27 @@ public class SOCGameMessageHandler
         try
         {
             SOCTradeOffer offer = mes.getOffer();
+            SOCPlayer player = ga.getPlayer(c.getData());
+            if (player == null)
+                return;
 
             /**
              * remake the offer with data that we know is accurate,
-             * namely the 'from' datum
+             * such as 'from' field.
+             * set and announce the offer, including text message similar to bank/port trade.
              */
-            SOCPlayer player = ga.getPlayer(c.getData());
+            final SOCTradeOffer remadeOffer = new SOCTradeOffer
+                (gaName, player.getPlayerNumber(), offer.getTo(), offer.getGiveSet(), offer.getGetSet());
+            player.setCurrentOffer(remadeOffer);
 
-            /**
-             * announce the offer, including text message similar to bank/port trade.
-             */
-            if (player != null)
-            {
-                SOCTradeOffer remadeOffer;
-                {
-                    SOCResourceSet offGive = offer.getGiveSet(),
-                                   offGet  = offer.getGetSet();
-                    remadeOffer = new SOCTradeOffer(gaName, player.getPlayerNumber(), offer.getTo(), offGive, offGet);
-                    player.setCurrentOffer(remadeOffer);
-
-                    // v2.0.00 and newer clients will announce this with localized text;
-                    // older clients need it sent from the server
-                    if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
-                    {
-                        // I18N OK: Pre-2.0.00 clients always use english
-                        final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
-                            (ga, "{0} offered to give {1,rsrcs} for {2,rsrcs}.", player.getName(), offGive, offGet);
-                        srv.messageToGameForVersions
-                            (ga, 0, SOCStringManager.VERSION_FOR_I18N - 1,
-                             new SOCGameTextMsg(gaName, SOCServer.SERVERNAME, txt), true);
-                    }
-                }
-
-                SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, remadeOffer);
-                srv.messageToGame(gaName, makeOfferMessage);
-
-                srv.recordGameEvent(gaName, makeOfferMessage);
-
-                /**
-                 * clear client UIs of any previous trade messages/responses, because a new offer has been made
-                 */
-                srv.gameList.takeMonitorForGame(gaName);
-                if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
-                {
-                    srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));
-                } else {
-                    for (int i = 0; i < ga.maxPlayers; i++)
-                        srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
-                }
-                srv.gameList.releaseMonitorForGame(gaName);
-            }
+            handler.sendTradeOffer(player, null);
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
+        } finally {
+            ga.releaseMonitor();
         }
-
-        ga.releaseMonitor();
     }
 
     /**

@@ -49,6 +49,7 @@ import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChangeFace;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
+import soc.message.SOCClearTradeMsg;
 import soc.message.SOCDebugFreePlace;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDevCardCount;
@@ -72,6 +73,7 @@ import soc.message.SOCLargestArmy;
 import soc.message.SOCLastSettlement;
 import soc.message.SOCLeaveGame;
 import soc.message.SOCLongestRoad;
+import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
@@ -1382,6 +1384,10 @@ public class SOCGameHandler extends GameHandler
 
                 c.put(SOCDiceResult.toCmd(gameName, gameData.getCurrentDice()));
             }
+
+            // more per-player data to send after dice result
+
+            sendTradeOffer(pl, c);
         }
 
         ///
@@ -2716,6 +2722,67 @@ public class SOCGameHandler extends GameHandler
         srv.messageToPlayerKeyedSpecial(peCon, ga, "robber.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
         srv.messageToPlayerKeyedSpecial(viCon, ga, "robber.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
         srv.messageToGameKeyedSpecialExcept(ga, true, sendNotTo, "robber.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+    }
+
+    /**
+     * {@inheritDoc}
+     *<P>
+     * Before v2.4.00, this method's code was part of {@code SOCGameMessageHandler.handleMAKEOFFER(..)}.
+     */
+    public void sendTradeOffer(final SOCPlayer player, final Connection toJoiningClient)
+    {
+        final SOCTradeOffer offer = player.getCurrentOffer();
+        if (offer == null)
+            return;
+
+        final SOCGame ga = player.getGame();
+        final String gaName = ga.getName();
+        final int lowestVersion = (toJoiningClient != null)
+            ? toJoiningClient.getVersion()
+            : ga.clientVersionLowest;
+
+        // v2.0.00 and newer clients will announce this with localized text;
+        // older clients need it sent from the server
+        if (lowestVersion < SOCStringManager.VERSION_FOR_I18N)
+        {
+            // I18N OK: Pre-2.0.00 clients always use english
+            final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                (ga, "{0} offered to give {1,rsrcs} for {2,rsrcs}.", player.getName(), offer.getGiveSet(), offer.getGetSet());
+
+            if (toJoiningClient == null)
+                srv.messageToGameForVersions
+                    (ga, 0, SOCStringManager.VERSION_FOR_I18N - 1,
+                     new SOCGameTextMsg(gaName, SOCServer.SERVERNAME, txt), true);
+            else
+                srv.messageToPlayer(toJoiningClient, gaName, txt);
+        }
+
+        SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, offer);
+
+        if (toJoiningClient == null)
+        {
+            srv.messageToGame(gaName, makeOfferMessage);
+            srv.recordGameEvent(gaName, makeOfferMessage);
+        } else {
+            srv.messageToPlayer(toJoiningClient, makeOfferMessage);
+        }
+
+        if (toJoiningClient == null)
+        {
+            /**
+             * clear client UIs of any previous trade messages/responses, because a new offer has been made
+             */
+            if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
+            {
+                srv.messageToGame(gaName, new SOCClearTradeMsg(gaName, -1));
+            } else {
+                srv.gameList.takeMonitorForGame(gaName);
+                for (int i = 0; i < ga.maxPlayers; i++)
+                    srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
+                srv.gameList.releaseMonitorForGame(gaName);
+            }
+        }
+        // else client is joining now, so there aren't any previous to be cleared
     }
 
     /**

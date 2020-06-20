@@ -20,6 +20,7 @@
 package soc.server;
 
 import soc.game.SOCGame;
+import soc.game.SOCPlayer;
 import soc.message.SOCGameState;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCRollDicePrompt;
@@ -27,7 +28,7 @@ import soc.server.genericServer.Connection;
 import soc.util.SOCGameList;
 
 /**
- * Server class to handle game-specific actions and messages for a type of game.
+ * Server class to handle game-specific actions for a type of game and send resulting messages to clients.
  * Each game type's inbound messages are processed through its {@link GameMessageHandler}.
  *<P>
  * Currently, these concepts are common to all hosted game types:
@@ -195,6 +196,20 @@ public abstract class GameHandler
      * @param ga  the game
      */
     public abstract void startGame(SOCGame ga);
+
+    /**
+     * Announces this player's new trade offer to their game,
+     * or send that info to one client that's joining the game now.
+     * If player isn't currently offering, does nothing.
+     *<P>
+     * If announcing to entire game (not {@code toJoiningClient}),
+     * treats this as a new offer and calls {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)}.
+     *
+     * @param pl  Send this player's {@link SOCPlayer#getCurrentOffer()}, if any
+     * @param toJoiningClient  Null or a single client to send offer info to
+     * @since 2.4.00
+     */
+    public abstract void sendTradeOffer(SOCPlayer pl, Connection toJoiningClient);
 
     /**
      * The server's timer thread thinks this game is inactive because of a robot bug.

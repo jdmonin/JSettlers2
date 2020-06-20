@@ -372,6 +372,7 @@ When preparing to release a new version, testing should include:
             - Join 1st game, take over for a robot
             - Should see all info for the player (resources, cards, etc)
             - Play at least 2 rounds; trade, build something, buy and use a soldier card
+            - Have an observing client join game right after a player offers a trade; should see current trade offer
         - When testing 2.3 or newer against older than 2.3:
             - Start a game with robot player at seat number 2
             - Give dev cards to bot player:  
@@ -393,7 +394,7 @@ When preparing to release a new version, testing should include:
       `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)`  
       If not, start another game and try again
 - StatusMessage "status value" fallback at older versions
-    - Start a 2.0.00 or newer server with `-Djsettlers.allow.debug=Y`
+    - Start a 2.0.00 or newer server with command-line arg `-Djsettlers.allow.debug=Y`
     - Start a 2.0.00 client with vm property `-Djsettlers.debug.traffic=Y`
     - That client's initial connection to the server should see at console: `SOCStatusMessage:sv=21`  
       (which is `SV_OK_DEBUG_MODE_ON` added in 2.0.00)
@@ -599,7 +600,7 @@ When preparing to release a new version, testing should include:
         - Exit server and reset `version.info` to the actual versions (2401 -> 2400, etc)
 - Saving and loading games at server
     - Basics
-        - Start server with debug user enabled, but not savegame feature: `-Djsettlers.allow.debug=Y`
+        - Start server with debug user enabled, but not savegame feature: command-line arg `-Djsettlers.allow.debug=Y`
           - Log in as debug user, start a game
           - Try command `*SAVEGAME* tmp`
           - Should fail with a message like: "SAVEGAME is disabled: Must set jsettlers.savegame.dir property"
