@@ -21,6 +21,7 @@ and backport minor new features until `2.0.00` was ready.
 - Client:
 	- Add client preference: Remember face icon when changed
 	- Game window:
+	  - Game stats: If player leaves at end of game, keep showing their statistics
 	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
 - Server:
 	- If connecting client has limited features, send all unsupported game options as unknowns
