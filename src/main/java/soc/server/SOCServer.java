@@ -5629,7 +5629,7 @@ public class SOCServer extends Server
      *     <tt>nameConnection(c, (0 != (result &amp; {@link #AUTH_OR_REJECT__TAKING_OVER})))</tt> themselves to finish
      *     authenticating a connection. They will also need to get the originally-cased nickname by
      *     calling {@link SOCDBHelper#getUser(String)}.
-     * @param allowTakeover  True if the new connection can "take over" an older connection in response to the
+     * @param allowTakeover  True if the new connection can reconnect/"take over" an older connection in response to the
      *     message it sent.  If true, the caller must be prepared to send all game info/channel info that the
      *     old connection had joined, so the new connection has full info to participate in them.
      * @param authCallback  Callback to make if authentication succeeds, or if {@code c} was already authenticated.
@@ -7731,7 +7731,7 @@ public class SOCServer extends Server
 
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
-     * Unless {@code isTakingOver}, announces {@link SOCJoinGame} client join event to other players.
+     * Unless {@code isRejoinOrLoadgame}, announces {@link SOCJoinGame} client join event to other players.
      * Gets the game's handler and calls {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)};
      * see that method's javadoc for details.
      *<P>
@@ -7740,16 +7740,18 @@ public class SOCServer extends Server
      * @param isReset  Game is a board-reset of an existing game; should always be false when server is calling,
      *                 board resets are up to the GameHandler.
      * @param isLoading Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
-     * @param isTakingOver  Client is re-joining; {@code c} replaces an earlier connection which
+     * @param isRejoinOrLoadgame  Client is re-joining; {@code c} replaces and takes over an earlier connection which
      *          is defunct/frozen because of a network problem. Also true when a human player joins a
      *          game being reloaded and has the same nickname as a player there.
-     *          If {@code isTakingOver}, sends {@code c} their hand's private info for game in progress.
+     *          If {@code isRejoinOrLoadgame}, sends {@code c} their hand's private info for game in progress.
      *
      * @see #connectToGame(Connection, String, Map, SOCGame)
      * @see #createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @since 1.1.00
      */
-    private void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isLoading, boolean isTakingOver)
+    private void joinGame
+        (final SOCGame gameData, final Connection c,
+         final boolean isReset, final boolean isLoading, final boolean isRejoinOrLoadgame)
     {
         final String gameName = gameData.getName();
         GameHandler hand = gameList.getGameTypeHandler(gameName);
@@ -7760,7 +7762,7 @@ public class SOCServer extends Server
             return;
         }
 
-        hand.joinGame(gameData, c, isReset, isLoading, isTakingOver);
+        hand.joinGame(gameData, c, isReset, isLoading, isRejoinOrLoadgame);
     }
 
     /**
@@ -7774,6 +7776,7 @@ public class SOCServer extends Server
      * Calls {@link SOCGame#addPlayer(String, int)}. Announces with {@link SOCSitDown} to all game members.
      * Sends sitting player their own data via
      * {@link GameHandler#sitDown_sendPrivateInfo(SOCGame, Connection, int, boolean)}.
+     *<P>
      * If game is waiting for robots to join, and sitting player is the last bot, start the game.
      *
      * @param ga     the game
@@ -7790,8 +7793,8 @@ public class SOCServer extends Server
 
         ga.takeMonitor();
 
-        // if reloading saved game, sitDown for client player acts like client takeover
-        final boolean sendLikeTakingOver = (ga.savedGameModel != null)
+        // if reloading saved game, sitDown for client player acts like client rejoin/takeover
+        final boolean sendLikeRejoin = (ga.savedGameModel != null)
             && (! ga.isSeatVacant(pn)) && c.getData().equals(ga.getPlayer(pn).getName());
 
         try
@@ -7859,7 +7862,7 @@ public class SOCServer extends Server
              */
             GameHandler hand = gameList.getGameTypeHandler(gaName);
             if (hand != null)
-                hand.sitDown_sendPrivateInfo(ga, c, pn, sendLikeTakingOver);
+                hand.sitDown_sendPrivateInfo(ga, c, pn, sendLikeRejoin);
 
             /**
              * if the request list is now empty and the game hasn't started/resumed yet,

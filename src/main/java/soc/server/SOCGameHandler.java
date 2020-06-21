@@ -890,7 +890,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
-     * Unless {@code isTakingOver}, announce {@link SOCJoinGame} client join event to other players.
+     * Unless {@code isRejoinOrLoadgame}, announce {@link SOCJoinGame} client join event to other players.
      *<P>
      * Does not add the client to the game's or server's list of players,
      * that should be done before calling this method.
@@ -902,7 +902,7 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Among other messages, player names are sent via SITDOWN, and pieces on board
      * sent by PUTPIECE.  See comments here for further details.
-     * If {@code isTakingOver}, some details are sent by calling
+     * If {@code isRejoinOrLoadgame}, some details are sent by calling
      * {@link #sitDown_sendPrivateInfo(SOCGame, Connection, int, boolean)}.
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      * If state is {@link SOCGame#OVER}: Right after sending GAMESTATE, calls
@@ -920,17 +920,17 @@ public class SOCGameHandler extends GameHandler
      * @param isReset  Game is a board-reset of an existing game.  This is always false when
      *          called from SOCServer instead of from inside the SOCGameHandler.
      * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
-     * @param isTakingOver  If true, client is re-joining; {@code c} replaces an earlier connection which
+     * @param isRejoinOrLoadgame  If true, client is re-joining; {@code c} replaces an earlier connection which
      *          is defunct/frozen because of a network problem. Also true when a human player joins a
      *          game being reloaded and has the same nickname as a player there.
-     *          If {@code isTakingOver}, sends {@code c} their hand's private info for game in progress.
+     *          If {@code isRejoinOrLoadgame}, sends {@code c} their hand's private info for game in progress.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @since 1.1.00
      */
     @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
     public void joinGame
         (final SOCGame gameData, final Connection c,
-         final boolean isReset, final boolean isLoading, final boolean isTakingOver)
+         final boolean isReset, final boolean isLoading, final boolean isRejoinOrLoadgame)
     {
         boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         final String gameName = gameData.getName(), cliName = c.getData();
@@ -1214,7 +1214,7 @@ public class SOCGameHandler extends GameHandler
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
             final SOCPlayer pl = gameData.getPlayer(i);
-            final boolean isTakingOverThisSeat = isTakingOver && c.getData().equals(pl.getName());
+            final boolean isTakingOverThisSeat = isRejoinOrLoadgame && c.getData().equals(pl.getName());
 
             /**
              * send scenario info before any putpiece, so they know their
@@ -1424,7 +1424,7 @@ public class SOCGameHandler extends GameHandler
          * If we're rejoining and taking over a seat after a network problem,
          * send our resource and hand information.
          */
-        if (isTakingOver && ! isLoading)
+        if (isRejoinOrLoadgame && ! isLoading)
         {
             SOCPlayer cliPl = gameData.getPlayer(cliName);
             if (cliPl != null)
@@ -1490,7 +1490,7 @@ public class SOCGameHandler extends GameHandler
             D.ebugPrintln("*** " + cliName + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
 
-        if (isTakingOver && (gameState != SOCGame.LOADING))
+        if (isRejoinOrLoadgame && (gameState != SOCGame.LOADING))
         {
             return;
         }
@@ -1499,7 +1499,7 @@ public class SOCGameHandler extends GameHandler
          * Let everyone else know about the change
          */
         srv.messageToGame(gameName, new SOCJoinGame(cliName, "", SOCMessage.EMPTYSTR, gameName));
-        if (isTakingOver)
+        if (isRejoinOrLoadgame)
         {
             return;
         }
@@ -1697,7 +1697,7 @@ public class SOCGameHandler extends GameHandler
 
     // javadoc inherited from GameHandler
     public void sitDown_sendPrivateInfo
-        (final SOCGame ga, final Connection c, final int pn, final boolean isTakingOver)
+        (final SOCGame ga, final Connection c, final int pn, final boolean isRejoinOrLoadgame)
     {
         final String gaName = ga.getName();
         final SOCPlayer pl = ga.getPlayer(pn);
@@ -1722,9 +1722,9 @@ public class SOCGameHandler extends GameHandler
 
         /**
          * remove the unknown cards, if client's too old for receiving SITDOWN to imply doing so;
-         * skip if isTakingOver, unknowns weren't sent for that player during joinGame
+         * skip if isRejoinOrLoadgame, unknowns weren't sent for that player during joinGame
          */
-        if ((! isTakingOver) && (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY))
+        if ((! isRejoinOrLoadgame) && (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY))
         {
             final SOCDevCardAction cardUnknown = (cliVersionRecent)
                 ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)

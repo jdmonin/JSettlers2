@@ -92,7 +92,11 @@ public class SOCDevCardAction extends SOCMessage
     /** dev card action DRAW (Buy): Add as new to player's hand */
     public static final int DRAW = 0;
 
-    /** dev card action PLAY: remove as old from player's hand */
+    /**
+     * dev card action PLAY: remove as old from player's hand.
+     * Sent when actually playing a card, also when clearing player's hand/inventory
+     * when client is sitting down to take over a bot player.
+     */
     public static final int PLAY = 1;
 
     /**
