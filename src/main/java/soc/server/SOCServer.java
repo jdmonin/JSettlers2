@@ -5113,6 +5113,9 @@ public class SOCServer extends Server
      * When taking over, the new connection's client version must be able
      * to join all games that the old connection is playing, as returned
      * by {@link SOCGameListAtServer#playerGamesMinVersion(Connection) gameList.playerGamesMinVersion}.
+     *<P>
+     * When loading a savegame, these same nickname prefixes are checked when examining player data
+     * to set the {@link soc.server.savegame.SavedGameModel#warnHasHumanPlayerWithBotName} flag.
      *
      * @param n  the name; check for max length before calling this method
      * @param newc  A new incoming connection, asking for this name

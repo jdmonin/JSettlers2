@@ -1778,6 +1778,11 @@ public class SOCServerMessageHandler
                         (c, gaName, "admin.loadgame.ok.game_renamed", sgmf.gameName);
                         // "Game was renamed: Original name {0} is already used."
 
+                if (sgmf.warnHasHumanPlayerWithBotName)
+                    srv.messageToGameKeyed
+                        (ga, true, "admin.resumegame.warn.human_with_bot_name");
+                        // ">>> Warning: At least 1 player is named like a robot, but isRobot flag is false. Can cause problems when resuming game."
+
                 if (noBots)
                 {
                     srv.messageToPlayerKeyed

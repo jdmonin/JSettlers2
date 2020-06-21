@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
@@ -142,6 +143,22 @@ public class SavedGameModel
     public static SOCGameListAtServer glas;
 
     private transient SOCGame game = null;
+
+    /**
+     * To warn user while loading, this flag is set if the savegame
+     * has at least one human player who's named like a robot.
+     * (The savegame must be manually edited for this to happen;
+     * the server won't let human players with such names authenticate.)
+     * That can cause problems while resuming the game
+     * because of assumptions about timing of when robots (or players with robot names)
+     * are invited and join the loaded game.
+     *<P>
+     * Checks the same name prefixes as
+     * {@link soc.server.SOCServer#checkNickname(String, Connection, boolean, boolean)}.
+     *
+     * @since 2.4.00
+     */
+    public transient boolean warnHasHumanPlayerWithBotName;
 
     /* DATA FIELDS to be saved into file */
 
@@ -541,6 +558,8 @@ public class SavedGameModel
      * Doesn't add to game list {@link #glas} or check whether game name is already taken, because
      * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
      * is better able to do so and can rename the loaded game if needed to avoid name collisions.
+     *<P>
+     * Examines player data. Might set {@link #warnHasHumanPlayerWithBotName} flag.
      *
      * @throws IllegalStateException if this method's already been called
      *     or if required static game list field {@link SavedGameModel#glas} is null
@@ -594,11 +613,20 @@ public class SavedGameModel
             boardInfo.loadInto(ga);
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
+
                 final SOCPlayer pl = ga.getPlayer(pn);
                 final PlayerInfo pinfo = playerSeats[pn];
+                final String pname = pinfo.name;
                 if (! pinfo.isSeatVacant)
-                    ga.addPlayer(pinfo.name, pn);
+                    ga.addPlayer(pname, pn);
                 pinfo.loadInto(pl);
+
+                if ((pname != null) && ! pinfo.isRobot)
+                {
+                    final String nLower = pname.toLowerCase(Locale.US);
+                    if (nLower.startsWith("droid ") || nLower.startsWith("robot ") || nLower.startsWith("extrabot "))
+                        warnHasHumanPlayerWithBotName = true;
+                }
             }
             if (playerSeatLocks != null)
                 // now that player data is loaded, lock seats if needed
