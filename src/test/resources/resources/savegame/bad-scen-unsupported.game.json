@@ -16,11 +16,11 @@
     "LONGEST_ROAD_PLAYER": -1
   },
   "devCardDeck": [
-    8,
-    2,
-    1,
-    9,
-    9
+    "CHAPEL",
+    "DISC",
+    "ROADS",
+    "KNIGHT",
+    "KNIGHT"
   ],
   "placingRobberForKnightCard": false,
   "robberyWithPirateNotRobber": false,

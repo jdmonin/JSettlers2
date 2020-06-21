@@ -1492,7 +1492,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> movedShipThisTurn
      *</UL>
      * For some other fields to save, see
-     * {@link #setFieldsForLoad(int[], int, List, boolean, boolean, boolean, boolean)}.
+     * {@link #setFieldsForLoad(List, int, List, boolean, boolean, boolean, boolean)}.
      *
      * @return an array with the current values of those fields, in the order listed here
      * @since 2.3.00
@@ -1511,7 +1511,7 @@ public class SOCGame implements Serializable, Cloneable
      * previously returned from {@link #getFlagFieldsForSave()}, along with
      * values saved from some other getters where mentioned in parameter javadocs.
      *
-     * @param cards  Deck from {@link #getDevCardDeck()}.
+     * @param cards  Deck, same format as {@link #getDevCardDeck()} but as {@link List} instead of {@code int[]}.
      *     Contents will be copied. Can be empty, but not null.
      * @param oldGameState  State from {@link #getOldGameState()}
      * @param shipsPlacedThisTurn  Ships from {@link #getShipsPlacedThisTurn()}. May be null or empty.
@@ -1523,7 +1523,7 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.3.00
      */
     public void setFieldsForLoad
-        (final int[] cards, final int oldGameState, final List<Integer> shipsPlacedThisTurn,
+        (final List<Integer> cards, final int oldGameState, final List<Integer> shipsPlacedThisTurn,
          final boolean placingRobberForKnightCard, final boolean robberyWithPirateNotRobber,
          final boolean askedSpecialBuildPhase, final boolean movedShipThisTurn)
         throws IllegalArgumentException
@@ -1531,11 +1531,12 @@ public class SOCGame implements Serializable, Cloneable
         if (cards == null)
             throw new IllegalArgumentException("cards");
 
-        final int L = cards.length;
+        final int L = cards.size();
         if ((devCardDeck == null) || (L > devCardDeck.length))
             devCardDeck = new int[L];
         numDevCards = L;
-        System.arraycopy(cards, 0, devCardDeck, 0, L);
+        for (int i = 0; i < L; ++i)
+            devCardDeck[i] = cards.get(i);
 
         this.oldGameState = oldGameState;
 

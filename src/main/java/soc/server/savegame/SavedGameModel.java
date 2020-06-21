@@ -121,6 +121,7 @@ public class SavedGameModel
      * <LI> Players' dev cards ({@link PlayerInfo#oldDevCards}, {@code newDevCards})
      *      are written as user-friendly type name strings like {@code "ROADS"}, not ints.
      *      Can still read them as ints if needed. See field javadoc for details.
+     * <LI> Game's {@link #devCardDeck} uses those same name strings ({@code "ROADS"} etc)
      * <LI> Playing piece types ({@link SOCPlayingPiece#getType()} within {@link PlayerInfo#pieces})
      *      are written as user-friendly type name strings like {@code "SETTLEMENT"}, not ints.
      *      Can still read them as ints if needed. Pieces also omit writing specialVP field unless != 0,
@@ -193,8 +194,17 @@ public class SavedGameModel
     /** First player number, current player, round count, etc. */
     HashMap<GEType, Integer> elements = new HashMap<>();
 
-    /** Remaining unplayed dev cards, from {@link SOCGame#getDevCardDeck()} */
-    int[] devCardDeck;
+    /**
+     * Remaining unplayed dev cards, from {@link SOCGame#getDevCardDeck()}.
+     *<P>
+     * In model schema 2.3.00, these were written as array of ints for dev card type constants.
+     * In 2.4.00 and higher, dev card types in each array are written as strings ({@code "ROADS"},
+     * {@code "UNIV"}, etc) from {@link SOCDevCard#getCardTypeName(int)}. For compatibility, unknown types
+     * are written as integer strings ({@code "42"}), and the adapter can read both integers and strings.
+     * See {@link DevCardEnumListAdapter} code for details.
+     */
+    @JsonAdapter(DevCardEnumListAdapter.class)
+    ArrayList<Integer> devCardDeck;
 
     /** Flag fields, from {@link SOCGame#getFlagFieldsForSave()} */
     boolean placingRobberForKnightCard, robberyWithPirateNotRobber,
@@ -350,7 +360,9 @@ public class SavedGameModel
         oldGameState = ga.getOldGameState();
         currentDice = ga.getCurrentDice();
         gameMinVersion = ga.getClientVersionMinRequired();
-        devCardDeck = ga.getDevCardDeck();
+        devCardDeck = new ArrayList<>();
+        for (final int card : ga.getDevCardDeck())
+            devCardDeck.add(Integer.valueOf(card));
 
         final boolean[] flags = ga.getFlagFieldsForSave();
         placingRobberForKnightCard = flags[0];
@@ -571,7 +583,7 @@ public class SavedGameModel
             ga.setTimeSinceCreated(gameDurationSeconds);
             ga.setCurrentDice(currentDice);
             if (devCardDeck == null)
-                devCardDeck = new int[0];
+                devCardDeck = new ArrayList<>();
             ga.setFieldsForLoad
                 (devCardDeck, oldGameState, shipsPlacedThisTurn,
                  placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn);
@@ -685,7 +697,7 @@ public class SavedGameModel
          * In 2.4.00 and higher, the dev card types in each array are written as strings ({@code "ROADS"},
          * {@code "UNIV"}, etc) from {@link SOCDevCard#getCardTypeName(int)}. For compatibility, unknown types
          * are written as integer strings ({@code "42"}), and the adapter can read both integers and strings.
-         * See {@link DevCardEnumListAdapter} code for details.
+         * See {@link SavedGameModel.DevCardEnumListAdapter} code for details.
          */
         @JsonAdapter(DevCardEnumListAdapter.class)
         ArrayList<Integer> oldDevCards = new ArrayList<>(),
@@ -872,80 +884,6 @@ public class SavedGameModel
         }
 
         /**
-         * Serialize list of dev card type ints as unique strings like the fields declared in {@link SOCDevCardConstants}.
-         * Read those strings, or ints for back compat or unrecognized values, and deserialize to the dev card type ints.
-         * {@link SOCDevCardConstants#ROADS} is serialized as {@code "ROADS"}, etc.
-         * These types always start with an uppercase letter {@code 'A'}-{@code 'Z'}.
-         * Unrecognized types serialize to a string with a nonnegative number like {@code "42"}.
-         * See {@link SOCDevCard#getCardTypeName(int)} and {@link SOCDevCard#getCardType(String)}
-         * for handling and name format details, including unrecognized card types.
-         * @since 2.4.00
-         */
-        private static class DevCardEnumListAdapter extends TypeAdapter<ArrayList<Integer>>
-        {
-            public void write(final JsonWriter jw, final ArrayList<Integer> devcardTypes) throws IOException
-            {
-                if (devcardTypes == null)
-                {
-                    // shouldn't occur, based on how devcard array is built in PlayerInfo
-                    jw.nullValue();
-                    return;
-                }
-
-                jw.beginArray();
-                for(final Integer ctype : devcardTypes)
-                    jw.value(SOCDevCard.getCardTypeName(ctype));
-                jw.endArray();
-            }
-
-            public ArrayList<Integer> read(final JsonReader jr) throws IOException
-            {
-                JsonToken jtype = jr.peek();
-                if (jtype == JsonToken.NULL)
-                    return null;  // unlikely
-
-                if (jtype != JsonToken.BEGIN_ARRAY)
-                    throw new IOException("devcards expected [, not " + jtype);
-
-                ArrayList<Integer> ret = new ArrayList<>();
-
-                jr.beginArray();
-                while(jr.hasNext())
-                {
-                    jtype = jr.peek();
-                    switch (jtype)
-                    {
-                    case NUMBER:
-                        ret.add(jr.nextInt());
-                        break;
-
-                    case NULL:
-                        jr.nextNull();
-                        ret.add(0);  // unlikely
-                        break;
-
-                    case STRING:
-                        String v = jr.nextString();
-                        try
-                        {
-                            ret.add(SOCDevCard.getCardType(v));
-                        } catch (IllegalArgumentException e) {
-                            throw new IOException("bad cardtype format: " + v, e);
-                        }
-                        break;
-
-                    default:
-                        throw new IOException("devcards expected int or string or ], not " + jtype);
-                            // note from test-run: reader doesn't add line number info to exception (in gson 2.8.6)
-                    }
-                }
-                jr.endArray();
-
-                return ret;
-            }
-        }
-
-        /**
          * Serialize {@link SOCPlayingPiece}s with {@code pieceType} field as string not int.
          * Deserialize from that form to non-abstract subclasses {@link SOCRoad}, {@link SOCSettlement}, etc
          * based on {@code pieceType} field. Unknown pieceTypes throw {@link JsonParseException}.
@@ -1047,6 +985,80 @@ public class SavedGameModel
                 return pp;
             }
 
+        }
+    }
+
+    /**
+     * Serialize list of dev card type ints as unique strings like the fields declared in {@link SOCDevCardConstants}.
+     * Read those strings, or ints for back compat or unrecognized values, and deserialize to the dev card type ints.
+     * {@link SOCDevCardConstants#ROADS} is serialized as {@code "ROADS"}, etc.
+     * These types always start with an uppercase letter {@code 'A'}-{@code 'Z'}.
+     * Unrecognized types serialize to a string with a nonnegative number like {@code "42"}.
+     * See {@link SOCDevCard#getCardTypeName(int)} and {@link SOCDevCard#getCardType(String)}
+     * for handling and name format details, including unrecognized card types.
+     * @since 2.4.00
+     */
+    private static class DevCardEnumListAdapter extends TypeAdapter<ArrayList<Integer>>
+    {
+        public void write(final JsonWriter jw, final ArrayList<Integer> devcardTypes) throws IOException
+        {
+            if (devcardTypes == null)
+            {
+                // shouldn't occur, based on how devcard array is built in PlayerInfo
+                jw.nullValue();
+                return;
+            }
+
+            jw.beginArray();
+            for(final Integer ctype : devcardTypes)
+                jw.value(SOCDevCard.getCardTypeName(ctype));
+            jw.endArray();
+        }
+
+        public ArrayList<Integer> read(final JsonReader jr) throws IOException
+        {
+            JsonToken jtype = jr.peek();
+            if (jtype == JsonToken.NULL)
+                return null;  // unlikely
+
+            if (jtype != JsonToken.BEGIN_ARRAY)
+                throw new IOException("devcards expected [, not " + jtype);
+
+            ArrayList<Integer> ret = new ArrayList<>();
+
+            jr.beginArray();
+            while(jr.hasNext())
+            {
+                jtype = jr.peek();
+                switch (jtype)
+                {
+                case NUMBER:
+                    ret.add(jr.nextInt());
+                    break;
+
+                case NULL:
+                    jr.nextNull();
+                    ret.add(0);  // unlikely
+                    break;
+
+                case STRING:
+                    String v = jr.nextString();
+                    try
+                    {
+                        ret.add(SOCDevCard.getCardType(v));
+                    } catch (IllegalArgumentException e) {
+                        throw new IOException("bad cardtype format: " + v, e);
+                    }
+                    break;
+
+                default:
+                    throw new IOException("devcards expected int or string or ], not " + jtype);
+                        // note from test-run: reader doesn't add line number info to exception (in gson 2.8.6)
+                }
+            }
+            jr.endArray();
+
+            return ret;
         }
     }
 

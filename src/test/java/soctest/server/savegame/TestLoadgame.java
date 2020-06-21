@@ -282,6 +282,10 @@ public class TestLoadgame
         final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
         final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
         checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+
+        assertArrayEquals("devCardDeck",
+            new int[]{ 8, 9, 6, 3, 9, 9, 9, 9, 9, 9, 9, 3, 4, 1, 9, 2, 7, 5, 9, 9, 9, 2, 1, 9, 9 },
+            ga.getDevCardDeck());
     }
 
     /**
@@ -336,6 +340,7 @@ public class TestLoadgame
      *<UL>
      * <LI> Players' dev cards ({@link PlayerInfo#oldDevCards}, {@code newDevCards})
      *      were ints in 2300, changed to strings in 2400.
+     * <LI> Dev card deck also uses those strings in 2400.
      * <LI> Playing piece types ({@link SOCPlayingPiece#getType()} within {@link PlayerInfo#pieces})
      *      were ints in 2300, changed to strings in 2400.
      *</UL>
@@ -369,7 +374,11 @@ public class TestLoadgame
             };
         checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, PIECE_LOCATIONS_ONLY_PL3);
 
-        // Check dev cards:
+        // Check game and players' dev cards:
+
+        assertArrayEquals("devCardDeck",
+            new int[]{ 9, 3, 9, 4, 1, 9, 9, 5, 9, 9, 2, 9, 9, 2, 8, 1, 2, 9, 9, 9, 7, 3, 9, 3, 1, 9, 9, 9, 9, 6, 9, 9, 9, 9 },
+            ga.getDevCardDeck());
 
         // Bot pn 2: new discovery/year of plenty(2); old knight(9)
         SOCInventory cardsInv = ga.getPlayer(2).getInventory();
@@ -423,6 +432,10 @@ public class TestLoadgame
         final int[][] PIECE_COUNTS =
             {{15, 5, 4, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}, {13, 3, 4, 0, 1}, {12, 3, 4, 0, 0}, {13, 3, 4, 0, 0}};
         checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+
+        assertArrayEquals("devCardDeck",
+            new int[]{ 3, 9, 8, 9, 1, 9, 9, 9, 9, 3, 9, 9, 9, 5, 4, 2, 6, 9, 9, 9, 1, 2, 2, 1, 9, 7, 3, 9, 9, 9, 9, 9 },
+            ga.getDevCardDeck());
 
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
