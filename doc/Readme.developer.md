@@ -550,7 +550,9 @@ and load it later, using debug commands.
 
 This feature is experimental and still being developed, so the notes here are very basic.
 
-Games with a scenario can't yet be saved, because of their special pieces or game/player data fields.
+Most games with a scenario can't yet be saved, because of their special pieces
+or game/player data fields. Basic scenarios like "Four Islands" which don't have
+special rules or pieces can be saved and loaded.
 
 **Usage/UI**
 
@@ -675,9 +677,7 @@ agents, so there's some instrumentation for the bots but it's not entirely
 documented.  For a technical overview of how the bots plan their actions, start
 at the SOCRobotBrain class javadoc.
 
-You can also build pieces for the bots using "Free Placement" debug mode (see
-above) to help set up debugging or testing situations, including the game's
-initial placement.
+### Testing/Debugging
 
 When testing with the robots, you may need to send them resources or commands
 on their turn. The easiest way to do that is to type the debug command but don't
@@ -686,6 +686,14 @@ few seconds to send the command. On the other hand if you want the bots to move
 quickly, use the No Trading house rule and play on the 6-player board, where the
 bots have shorter delays since there might be more players (but you can also use
 this board with 2-4 players).
+
+You can also build pieces for the bots using "Free Placement" debug mode (see
+above) to help set up debugging or testing situations, including the game's
+initial placement.
+
+Games with bots can be set up, pieces built or dev cards given, then saved and
+reloaded by the debug user with the optional "savegame" feature: See section
+"Saving and loading games at server".
 
 There are a few bot debugging commands, such as print-vars and stats. To send
 them, type `botname:command` into the chat textbox while playing or observing a
@@ -708,6 +716,8 @@ then click the location you're asking the bot about:
 | `\clt-road ` _botname_ | _botname_`:consider-target road ` _coord_ |
 | `\clt-set ` _botname_  |  _botname_`:consider-target settlement ` _coord_ |
 | `\clt-city ` _botname_ | _botname_`:consider-target city ` _coord_ |
+
+### Development
 
 If you're looking to make minor changes, it's probably best to fork or extend
 the `soc.robot` package and go from the classes and javadocs there.
@@ -740,6 +750,8 @@ be set at the server command line with
 `java -jar JSettlersServer.jar -o _EXT_BOT=abcde`  
 and then read in the bot's brain class. For an example see
 `Sample3PBrain.setOurPlayerData()`.
+
+### Running robot-only games
 
 For bot testing and statistics, you can have the server run some robot-only
 games (no human players) with the `jsettlers.bots.botgames.total` server property.
