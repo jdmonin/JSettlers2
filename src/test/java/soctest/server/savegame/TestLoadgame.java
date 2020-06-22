@@ -546,7 +546,6 @@ public class TestLoadgame
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "bad-field-contents", sgm.gameName);
-        assertEquals(1, ga.getCurrentPlayerNumber());
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals(4, sgm.playerSeats.length);
 
@@ -562,6 +561,20 @@ public class TestLoadgame
                 modelLock = SeatLockState.UNLOCKED;
             assertEquals("locks[" + pn + "]", modelLock, ga.getSeatLock(pn));
         }
+
+        // game has some invalid/unknown elements; rest of elements should load OK
+        assertEquals(1, ga.getFirstPlayer());
+        assertEquals(1, ga.getCurrentPlayerNumber());
+        assertEquals(2, ga.getRoundCount());
+        assertEquals(-1, ga.getPlayerWithLargestArmy());
+        assertEquals(-1, ga.getPlayerWithLongestRoad());
+
+        // player 1 has some invalid/unknown elements; rest of elements should load OK
+        final String[] NAMES = {null, "debug", "robot 4", "robot 2"};
+        final int[] TOTAL_VP = {0, 3, 2, 5};
+        final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
+        final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 3, 4, 0, 0}, {14, 4, 3, 0, 0}, {12, 4, 3, 0, 0}};
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
 
         // player 1 oldDevCards has some unknown type strings and numbers;
         // should still parse the rest of them properly
