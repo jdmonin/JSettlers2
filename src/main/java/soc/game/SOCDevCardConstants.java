@@ -131,6 +131,7 @@ public interface SOCDevCardConstants
      * A value greater than the highest defined card type (currently {@link #KNIGHT}).
      * This value may increase in later versions.
      * @see #MIN
+     * @see #MIN_KNOWN
      */
     public static final int MAXPLUSONE = 10;
 

@@ -289,10 +289,12 @@ public class TestLoadgame
                 {{0x69, 0x63, 0x52}, {0x69, 0x74}, {}, {}},
             };
         checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, PIECE_LOCATIONS);
+        assertFalse(sgm.warnHasHumanPlayerWithBotName);
 
         assertArrayEquals("devCardDeck",
             new int[]{ 8, 9, 6, 3, 9, 9, 9, 9, 9, 9, 9, 3, 4, 1, 9, 2, 7, 5, 9, 9, 9, 2, 1, 9, 9 },
             ga.getDevCardDeck());
+        assertFalse(sgm.warnDevCardDeckHasUnknownType);
 
         checkExpectedPlayerDevCards(ga);
     }
@@ -560,6 +562,30 @@ public class TestLoadgame
                 modelLock = SeatLockState.UNLOCKED;
             assertEquals("locks[" + pn + "]", modelLock, ga.getSeatLock(pn));
         }
+
+        // player 1 oldDevCards has some unknown type strings and numbers;
+        // should still parse the rest of them properly
+        List<SOCInventoryItem> cards = ga.getPlayer(1).getInventory().getByState(SOCInventory.PLAYABLE);
+        int[] expected = {SOCDevCardConstants.DISC, SOCDevCardConstants.UNKNOWN, 42000, 42001, SOCDevCardConstants.ROADS};
+        assertEquals(expected.length, cards.size());
+        for (int i = 0; i < expected.length; ++i)
+            assertEquals("pn[1].oldDevCards[" + i + "]", expected[i], cards.get(i).itype);
+
+        // devCardDeck has an unknown type string;
+        // should still parse the rest of them properly
+        int n = sgm.devCardDeck.size();
+        assertEquals("devCardDeck[n-2]", SOCDevCardConstants.ROADS, sgm.devCardDeck.get(n-2).intValue());
+        assertEquals("devCardDeck[n-1]", SOCDevCardConstants.UNKNOWN, sgm.devCardDeck.get(n-1).intValue());
+        assertEquals("devCardDeck[n]", SOCDevCardConstants.KNIGHT, sgm.devCardDeck.get(n).intValue());
+        assertTrue(sgm.warnDevCardDeckHasUnknownType);
+
+        // can buy dev cards, including that unknown one
+        fillSeatsForResume(sgm);
+        sgm.resumePlay(true);
+        assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
+        assertEquals(SOCDevCardConstants.KNIGHT,  ga.buyDevCard());
+        assertEquals(SOCDevCardConstants.UNKNOWN, ga.buyDevCard());
+        assertEquals(SOCDevCardConstants.ROADS,   ga.buyDevCard());
     }
 
     /** Test loading a game where current player, another player are making trade offers. */

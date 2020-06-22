@@ -160,6 +160,17 @@ public class SavedGameModel
      */
     public transient boolean warnHasHumanPlayerWithBotName;
 
+    /**
+     * To warn user while loading, this flag is set if {@link #devCardDeck}
+     * contains any card type which is &lt;= {@link SOCDevCardConstants#UNKNOWN}
+     * or &gt;= {@link SOCDevCardConstants#MAXPLUSONE}. If a dev card name string
+     * isn't recognized, it's put into the deck or players' dev cards as {@code UNKNOWN}.
+     * This flag is useful because unlike player inventories, the dev card deck is hidden.
+     *
+     * @since 2.4.00
+     */
+    public transient boolean warnDevCardDeckHasUnknownType;
+
     /* DATA FIELDS to be saved into file */
 
     /**
@@ -213,6 +224,7 @@ public class SavedGameModel
 
     /**
      * Remaining unplayed dev cards, from {@link SOCGame#getDevCardDeck()}.
+     * If any unknown card types are found while loading, sets {@link #warnDevCardDeckHasUnknownType}.
      *<P>
      * In model schema 2.3.00, these were written as array of ints for dev card type constants.
      * In 2.4.00 and higher, dev card types in each array are written as strings ({@code "ROADS"},
@@ -221,7 +233,7 @@ public class SavedGameModel
      * See {@link DevCardEnumListAdapter} code for details.
      */
     @JsonAdapter(DevCardEnumListAdapter.class)
-    ArrayList<Integer> devCardDeck;
+    public ArrayList<Integer> devCardDeck;
 
     /** Flag fields, from {@link SOCGame#getFlagFieldsForSave()} */
     boolean placingRobberForKnightCard, robberyWithPirateNotRobber,
@@ -559,7 +571,8 @@ public class SavedGameModel
      * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
      * is better able to do so and can rename the loaded game if needed to avoid name collisions.
      *<P>
-     * Examines player data. Might set {@link #warnHasHumanPlayerWithBotName} flag.
+     * Examines game and player data. Might set {@link #warnHasHumanPlayerWithBotName},
+     * {@link #warnDevCardDeckHasUnknownType} flags.
      *
      * @throws IllegalStateException if this method's already been called
      *     or if required static game list field {@link SavedGameModel#glas} is null
@@ -603,6 +616,13 @@ public class SavedGameModel
             ga.setCurrentDice(currentDice);
             if (devCardDeck == null)
                 devCardDeck = new ArrayList<>();
+            else
+                for (int ctype : devCardDeck)
+                    if ((ctype <= SOCDevCardConstants.UNKNOWN) || (ctype >= SOCDevCardConstants.MAXPLUSONE))
+                    {
+                        warnDevCardDeckHasUnknownType = true;
+                        break;
+                    }
             ga.setFieldsForLoad
                 (devCardDeck, oldGameState, shipsPlacedThisTurn,
                  placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn);

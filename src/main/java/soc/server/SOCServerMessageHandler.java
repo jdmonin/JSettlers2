@@ -1778,6 +1778,10 @@ public class SOCServerMessageHandler
                         (c, gaName, "admin.loadgame.ok.game_renamed", sgmf.gameName);
                         // "Game was renamed: Original name {0} is already used."
 
+                if (sgmf.warnDevCardDeckHasUnknownType)
+                    srv.messageToGameKeyed
+                        (ga, true, "admin.resumegame.warn.dev_card_deck_contains_unknown_card_type");
+                        // ">>> Warning: Dev card deck contains an unknown card type"
                 if (sgmf.warnHasHumanPlayerWithBotName)
                     srv.messageToGameKeyed
                         (ga, true, "admin.resumegame.warn.human_with_bot_name");

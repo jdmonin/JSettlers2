@@ -3,7 +3,7 @@
   "savedByVersion": 2400,
   "gameMinVersion": -1,
   "gameName": "bad-field-contents",
-  "comments": "Same game as classic-botturn, but edited with bad data in some fields: playerSeatLocks",
+  "comments": "Same game as classic-botturn, but edited with bad data in some fields: playerSeatLocks, devCardDeck, player 1 oldDevCards",
   "gameOptions": "N7\u003dt7,RD\u003df,PL\u003d4,BC\u003dt4",
   "gameDurationSeconds": 49,
   "gameState": 20,
@@ -19,7 +19,7 @@
     "CHAPEL",
     "DISC",
     "ROADS",
-    "KNIGHT",
+    "NOT_A_DEFINED_CARD_NAME",
     "KNIGHT"
   ],
   "placingRobberForKnightCard": false,
@@ -203,7 +203,13 @@
         "SETTLEMENTS": 4,
         "NUMKNIGHTS": 0
       },
-      "oldDevCards": [],
+      "oldDevCards": [
+        "DISC",
+        "NOT_A_DEFINED_NAME",
+        42000,
+        "42001",
+        "ROADS"
+      ],
       "newDevCards": [],
       "pieces": [
         {
