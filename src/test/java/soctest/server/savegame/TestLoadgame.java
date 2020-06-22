@@ -278,14 +278,23 @@ public class TestLoadgame
         final String[] NAMES = {null, "robot 4", "robot 2", "debug"};
         final SeatLockState[] LOCKS =
             {SeatLockState.UNLOCKED, SeatLockState.CLEAR_ON_RESET, SeatLockState.LOCKED, SeatLockState.UNLOCKED};
-        final int[] TOTAL_VP = {0, 3, 2, 2};
+        final int[] TOTAL_VP = {0, 3, 2, 3};
         final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
         final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
-        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+        final int[][][] PIECE_LOCATIONS =
+            {
+                null,
+                {{0xBA, 0xB8}, {0xC9}, {0xBA}, {}},
+                {{0x44, 0x66}, {0x45, 0x76}, {}, {}},
+                {{0x69, 0x63, 0x52}, {0x69, 0x74}, {}, {}},
+            };
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, PIECE_LOCATIONS);
 
         assertArrayEquals("devCardDeck",
             new int[]{ 8, 9, 6, 3, 9, 9, 9, 9, 9, 9, 9, 3, 4, 1, 9, 2, 7, 5, 9, 9, 9, 2, 1, 9, 9 },
             ga.getDevCardDeck());
+
+        checkExpectedPlayerDevCards(ga);
     }
 
     /**
@@ -380,6 +389,16 @@ public class TestLoadgame
             new int[]{ 9, 3, 9, 4, 1, 9, 9, 5, 9, 9, 2, 9, 9, 2, 8, 1, 2, 9, 9, 9, 7, 3, 9, 3, 1, 9, 9, 9, 9, 6, 9, 9, 9, 9 },
             ga.getDevCardDeck());
 
+        checkExpectedPlayerDevCards(ga);
+    }
+
+    /**
+     * For artifacts {@code classic-botturn.game.json} and {@code modelversion-2300.game.json},
+     * check loaded/parsed game for the expected player dev cards
+     * ({@link PlayerInfo#oldDevCards}, {@link PlayerInfo#newDevCards newDevCards}).
+     */
+    private void checkExpectedPlayerDevCards(final SOCGame ga)
+    {
         // Bot pn 2: new discovery/year of plenty(2); old knight(9)
         SOCInventory cardsInv = ga.getPlayer(2).getInventory();
         List<SOCInventoryItem> cards = cardsInv.getByState(SOCInventory.NEW);
@@ -391,8 +410,8 @@ public class TestLoadgame
         cards = cardsInv.getByState(SOCInventory.KEPT);
         assertEquals(0, cards.size());
 
-        // Human pn 5: new roadbuilding(1); old discovery/year of plenty(2), university(6)
-        cardsInv = ga.getPlayer(5).getInventory();
+        // Human pn MAX - 1: new roadbuilding(1); old discovery/year of plenty(2), university(6)
+        cardsInv = ga.getPlayer(ga.maxPlayers - 1).getInventory();
         cards = cardsInv.getByState(SOCInventory.NEW);
         assertEquals(1, cards.size());
         assertEquals(SOCDevCardConstants.ROADS, cards.get(0).itype);
@@ -468,10 +487,20 @@ public class TestLoadgame
         final int[] TOTAL_VP = {6, 2, 5, 0};
         final int[][] RESOURCES = {{0, 1, 0, 3, 0}, null, {1, 0, 0, 1, 0}, null};
         final int[][] PIECE_COUNTS = {{8, 1, 4, 10, 1}, {11, 3, 4, 15, 0}, {9, 2, 3, 13, 0}, {15, 5, 4, 15, 0}};
-        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+        final int[][][] PIECE_LOCATIONS =
+            {
+                {
+                    {0x507, 0x606, 0x602, 0x702, 0x802, 0x903, 0xA03}, {0x407, 0x602, 0xA03, 0xC02},
+                    {}, {0xA02, 0xB02, 0x901, 0xA01, 0xC02}
+                },
+                {{0x608, 0x708, 0x907, 0x806}, {0x608, 0xA07}, {}, {}},
+                {{0x109, 0x008, 0x409, 0x40A, 0x40D, 0x30E}, {0x209, 0x409, 0x40B}, {0x40D}, {0x40B, 0x40C}},
+                null
+            };
+        checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, PIECE_LOCATIONS);
 
-        final int[] SHIPS_OPEN_P0 = {2305, 2561, 3074};
-        final int[][] SHIPS_CLOSED = {{2562, 2818}, null, {1035, 1036}, null};
+        final int[] SHIPS_OPEN_P0 = {2305, 2561, 3074};  // 0x901, 0xA01, 0xC02
+        final int[][] SHIPS_CLOSED = {{2562, 2818}, null, {1035, 1036}, null};  // 0xA02, 0xB02; 0x40B, 0x40C
         SOCPlayer pl = ga.getPlayer(0);
         for (final int edge : SHIPS_OPEN_P0)
         {
@@ -507,7 +536,6 @@ public class TestLoadgame
 
     /**
      * Test parsing and loading game where various field contents are invalid.
-     * @since 2.4.00
      */
     public void testLoadBadFieldContents()
         throws IOException

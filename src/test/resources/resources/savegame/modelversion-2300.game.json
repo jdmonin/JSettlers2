@@ -3,7 +3,7 @@
   "savedByVersion": 2300,
   "gameMinVersion": 1108,
   "gameName": "testmodel-2300-3h",
-  "comments": "game saved from model version 2300; 6-player board with 3 humans",
+  "comments": "game saved from model version 2300; 6-player board with 3 humans. Player inventories have same dev cards as classic-botturn.",
   "gameOptions": "N7\u003df7,PLB\u003dt,RD\u003df,PL\u003d6,BC\u003dt4",
   "gameDurationSeconds": 289,
   "gameState": 20,
