@@ -40,7 +40,7 @@ and backport minor new features until `2.0.00` was ready.
 	  - Simple scenario support: Can save and load scenarios which have only a board layout and
 	    optionally game option `_SC_SANY` or `_SC_SEAC`, no other scenario game opts
 	    (option names starting with "\_SC\_"). Sets PlayerElements SCENARIO_SVP,
-	    SCENARIO_SVP_LANDAREAS_BITMASK
+	    SCENARIO_SVP_LANDAREAS_BITMASK. Adds PlayerInfo.specialVPInfo.
 	  - Load: If game is already over, don't change robot player names by asking bots to join and sit
 	  - If can't parse gameOptions, don't load game
 	  - Adds PlayerInfo.earlyElements list to set before piece placement

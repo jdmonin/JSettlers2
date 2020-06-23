@@ -666,6 +666,14 @@ public class TestLoadgame
         assertEquals(3, plDebug.getStartingLandAreasEncoded());
         assertEquals(2, plDebug.getSpecialVP());
         assertEquals(1, plDebug.getScenarioSVPLandAreas());
+        final List<SOCPlayer.SpecialVPInfo> svpInfo = plDebug.getSpecialVPInfo();
+        assertNotNull(svpInfo);
+        assertEquals(1, svpInfo.size());
+        {
+            final SOCPlayer.SpecialVPInfo info = svpInfo.get(0);
+            assertEquals(2, info.svp);
+            assertEquals("event.svp.sc_seac.island", info.desc);
+        }
 
         final int[] SHIPS_OPEN = {0x609};
         final int[] SHIPS_CLOSED = {0x406, 0x405, 0x404};

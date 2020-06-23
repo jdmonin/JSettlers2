@@ -2387,18 +2387,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Add details on Special Victory Points (SVP) just awarded.
      * This is called at the server (because it has the text strings) when
      * {@link SOCGame#gameEventListener} != null, and sent out to clients.
-     * Clients call it from the network message handler.
+     * Clients then call it from the network message handler.
      * @param svp  Number of SVP
      * @param desc  Description of player's action that led to the SVP.
      *     At the server this is an I18N string key, at the client it's
      *     localized text sent from the server.
      * @see #getSpecialVPInfo()
+     * @see #setSpecialVPInfo(ArrayList)
      * @since 2.0.00
      */
     public void addSpecialVPInfo(final int svp, final String desc)
     {
         if (svpInfo == null)
-            svpInfo = new ArrayList<SpecialVPInfo>();
+            svpInfo = new ArrayList<>();
 
         svpInfo.add(new SpecialVPInfo(svp, desc));
     }
@@ -2407,11 +2408,28 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get the details, if known, behind this player's {@link #getSpecialVP()} total.
      * In chronological order during game play.
      * @return Info on the Special Victory Points (SVP) awarded, or null; please treat as read-only
+     * @see #addSpecialVPInfo(int, String)
      * @since 2.0.00
      */
     public ArrayList<SpecialVPInfo> getSpecialVPInfo()
     {
         return svpInfo;
+    }
+
+    /**
+     * Set or clear player's SVP details. Replaces any previous info.
+     * See {@link #getSpecialVPInfo()} for more about {@link SpecialVPInfo}.
+     * Useful for reloading a saved game snapshot.
+     * @param info  New info for this player, or {@code null} to clear.
+     *     An empty list will be stored as {@code null}.
+     * @since 2.4.00
+     */
+    public void setSpecialVPInfo(ArrayList<SpecialVPInfo> info)
+    {
+        if ((info != null) && info.isEmpty())
+            info = null;
+
+        svpInfo = info;
     }
 
     /**

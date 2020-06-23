@@ -132,6 +132,7 @@ public class SavedGameModel
      *      no other scenario game opts (option names starting with "_SC_").
      *      Sets PlayerElements {@link PEType#SCENARIO_SVP SCENARIO_SVP},
      *      {@link PEType#SCENARIO_SVP_LANDAREAS_BITMASK SCENARIO_SVP_LANDAREAS_BITMASK}.
+     *      Adds {@link PlayerInfo#specialVPInfo}.
      * <LI> Adds {@link PlayerInfo#earlyElements} list to set before piece placement
      * <LI> SavedGameModel adds {@link #playerSeatLocks},
      *      {@link PlayerInfo} adds {@link PlayerInfo#currentTradeOffer currentTradeOffer}
@@ -767,6 +768,15 @@ public class SavedGameModel
          */
 
         /**
+         * The details behind this player's {@link #getSpecialVP()} total,
+         * from {@link SOCPlayer#getSpecialVPInfo()}, or {@code null} if none.
+         * Because game is saved at server, each {@link SOCPlayer.SpecialVPInfo#desc desc}
+         * field will be an unlocalized i18n string key.
+         * @since 2.4.00
+         */
+        ArrayList<SOCPlayer.SpecialVPInfo> specialVPInfo;
+
+        /**
          * Register some custom type adapters as part of
          * {@link SavedGameModel#initGsonRegisterAdapters(GsonBuilder)}.
          * See that method for details.
@@ -871,6 +881,8 @@ public class SavedGameModel
 
             pieces.addAll(pl.getPieces());
             // fortressPiece = pl.getFortress();
+
+            specialVPInfo = pl.getSpecialVPInfo();
         }
 
         /**
@@ -924,11 +936,13 @@ public class SavedGameModel
 
             // Set player elements and specialVP only after putPieces,
             // so remaining-piece counts aren't reduced twice
-            // and SVP aren't added twice
+            // and SVP aren't added twice; overwrite any specialVPInfo
+            // added as a side effect of putPieces
 
             for (final PEType et : elements.keySet())
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT
                     (ga, pl, pn, SOCPlayerElement.SET, et, elements.get(et), null);
+            pl.setSpecialVPInfo(specialVPInfo);
         }
 
         /**

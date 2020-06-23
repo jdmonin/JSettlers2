@@ -448,6 +448,12 @@
           "coord": 1028,
           "specialVP": 2
         }
+      ],
+      "specialVPInfo": [
+        {
+          "svp": 2,
+          "desc": "event.svp.sc_seac.island"
+        }
       ]
     }
   ]
