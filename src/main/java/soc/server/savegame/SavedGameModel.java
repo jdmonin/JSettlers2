@@ -22,6 +22,7 @@ package soc.server.savegame;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -918,6 +919,7 @@ public class SavedGameModel
                         (ga, pl, pn, SOCPlayerElement.SET, et, earlyElements.get(et), null);
 
             final SOCBoard b = ga.getBoard();
+            final HashSet<Integer> psList = new HashSet<>(pl.getPotentialSettlements());
             for (SOCPlayingPiece pp : pieces)
             {
                 // TODO future: scenario SC_CLVI: handle SOCVillage
@@ -931,6 +933,7 @@ public class SavedGameModel
                 ga.putPiece(fortressPiece);
             }
              */
+            pl.setPotentialAndLegalSettlements(psList, false, null);  // fix incorrect adds from putPieces
 
             pl.setCurrentOffer((currentTradeOffer != null) ? currentTradeOffer.toOffer(pl) : null);
 
