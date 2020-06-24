@@ -179,7 +179,7 @@ public class SavedGameModel
      * Model schema version when saved, in same format as {@link #MODEL_VERSION}.
      * See that constant field's javadoc for lifecycle details.
      */
-    int modelVersion;
+    public int modelVersion;
 
     /**
      * Version of JSettlers which saved this game file, from {@link Version#versionNumber()}.
@@ -187,13 +187,13 @@ public class SavedGameModel
      * @see #modelVersion
      * @see #gameMinVersion
      */
-    int savedByVersion;
+    public int savedByVersion;
 
     /**
      * Game minimum version, from {@link SOCGame#getClientVersionMinRequired()}.
      * Server won't load a game if its {@code gameMinVersion} is newer than server version.
      */
-    int gameMinVersion;
+    public int gameMinVersion;
 
     public String gameName;
 

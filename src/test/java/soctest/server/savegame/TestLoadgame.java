@@ -54,6 +54,7 @@ import static org.junit.Assert.*;
  * A few tests for {@link GameLoaderJSON} and {@link SavedGameModel},
  * using JSON test artifacts under {@code /src/test/resources/resources/savegame}.
  *
+ * @see TestSavegame
  * @since 2.4.00
  */
 public class TestLoadgame
@@ -104,7 +105,7 @@ public class TestLoadgame
      *     For each player, either {@code null} or an int[][] array of piece types' expected locations
      *     (roads, settlements, cities, ships)
      */
-    private static void checkPlayerData
+    static void checkPlayerData
         (final SavedGameModel sgm, final String[] names, final SeatLockState[] locks, final int[] totalVP,
          final int[][] resources, final int[][] pieceCounts, final int[][][] pieceLocations)
     {
