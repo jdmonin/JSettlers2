@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@ package soc.server;
 
 import soc.game.SOCGame;
 import soc.message.SOCMessageForGame;
+import soc.message.SOCMessageFromUnauthClient;
 import soc.server.genericServer.Connection;
 
 /**
@@ -48,6 +49,8 @@ public interface GameMessageHandler
      *            Never null; from {@link SOCMessageForGame#getGame()}.
      * @param mes  Message from client {@code c}. Never null.
      * @param c    Client sending {@code msg}. Never null.
+     *     {@link Connection#getData()} won't be {@code null}
+     *     unless {@code mes} implements {@link SOCMessageFromUnauthClient}.
      * @return  true if processed, false if ignored or unknown message type
      */
     public abstract boolean dispatch(SOCGame ga, SOCMessageForGame mes, Connection c)

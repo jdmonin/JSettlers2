@@ -72,6 +72,8 @@ import java.util.StringTokenizer;
  *      instead call <tt>yourMessageType.parseDataStr(multiData)</tt>:
  *      for details see {@link SOCMessageMulti} class javadoc.
  * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
+ * <LI> If the message can be sent to server from clients which haven't yet authenticated,
+ *      must implement marker {@link SOCMessageFromUnauthClient}.
  * <LI> Extend the SOCMessage class or a template class, including the required parseDataStr method.
  *      ({@link SOCRevealFogHex} and {@link SOCSetTurn} are good example subclasses.)
  *      Template parent-classes can help; the example subclasses extend them.

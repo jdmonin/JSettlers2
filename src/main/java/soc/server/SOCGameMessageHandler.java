@@ -111,6 +111,8 @@ public class SOCGameMessageHandler
      *     Never null; from {@link SOCMessageForGame#getGame()}.
      * @param message  Message from client {@code connection}. Never null.
      * @param connection  Connection to the Client sending {@code message}. Never null.
+     *     {@link Connection#getData()} won't be {@code null}
+     *     unless {@code message} implements {@link SOCMessageFromUnauthClient}.
      * @return true if processed, false if ignored or unknown message type
      */
     public boolean dispatch

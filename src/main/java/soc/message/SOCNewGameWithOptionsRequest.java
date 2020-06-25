@@ -49,6 +49,7 @@ import soc.game.SOCGameOption;
  * @since 1.1.07
  */
 public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
+    implements SOCMessageFromUnauthClient
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 

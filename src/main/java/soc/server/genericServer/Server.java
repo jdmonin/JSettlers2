@@ -39,6 +39,7 @@ import java.util.Vector;
 
 import soc.debug.D; // JM
 import soc.message.SOCMessage;
+import soc.message.SOCMessageFromUnauthClient;
 import soc.server.SOCServer;
 
 
@@ -739,6 +740,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
      * @param c Connection to remove; will call its disconnect() method and remove it from the server state.
+     *     {@link Connection#getData()} may be null.
      * @param doCleanup  If true, will also call {@link #removeConnectionCleanup(Connection)}.
      */
     public void removeConnection(final Connection c, final boolean doCleanup)
@@ -1380,6 +1382,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          *
          * @param mes Message from the client. Will never be {@code null}.
          *    Has been parsed by {@link SOCMessage#toMsg(String)}.
+         *    Should not dispatch unless <tt>{@link Connection#getData() con.getData()} != null</tt>
+         *    or {@code mes} implements {@link SOCMessageFromUnauthClient}.
          * @param con Connection (client) sending this message. Will never be {@code null}.
          * @throws IllegalStateException if not ready to dispatch because some
          *    initialization method needs to be called first;

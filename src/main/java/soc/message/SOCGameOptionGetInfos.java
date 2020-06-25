@@ -68,6 +68,7 @@ import soc.util.DataUtils;
  * @since 1.1.07
  */
 public class SOCGameOptionGetInfos extends SOCMessage
+    implements SOCMessageFromUnauthClient
 {
     private static final long serialVersionUID = 2000L;
 

@@ -38,6 +38,7 @@ import java.util.StringTokenizer;
  * @see SOCJoinGame
  */
 public class SOCJoinChannel extends SOCMessage
+    implements SOCMessageFromUnauthClient
 {
     private static final long serialVersionUID = 2000L;  // renamed in v2.0.00; previous structural change v1.0.0 or earlier
 

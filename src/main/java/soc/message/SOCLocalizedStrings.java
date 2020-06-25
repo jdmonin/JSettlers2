@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -76,6 +76,7 @@ import java.util.List;
  * @since 2.0.00
  */
 public class SOCLocalizedStrings extends SOCMessageTemplateMs
+    implements SOCMessageFromUnauthClient
 {
     /**
      * Game Option localized names, for {@link soc.game.SOCGameOption}: {@code "O"}.

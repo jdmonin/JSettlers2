@@ -46,6 +46,7 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public class SOCVersion extends SOCMessage
+    implements SOCMessageFromUnauthClient
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 

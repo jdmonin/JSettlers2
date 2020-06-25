@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2013-2015,2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2013-2015,2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +27,7 @@ package soc.message;
  * Most implementing types' constructors will always require a game; some abstract
  * subclasses such as {@link SOCMessageTemplateMi} may allow null, leaving the choice
  * to each of their own subclasses.  Non-abstract message types must always return a
- * game name from {@link #getGame()}, never null.
+ * game name or {@link SOCMessage#GAME_NONE} from {@link #getGame()}, never null.
  *<P>
  * Template classes such as {@link SOCMessageTemplateMi} are convenient for quickly developing
  * a new message type, but they all implement {@code SOCMessageForGame}.  If the template classes

@@ -269,14 +269,18 @@ public class InboundMessageQueue
      */
     private static class MessageData
     {
-        /** Parsed message contents, via {@link SOCMessage#toMsg(String)} */
+        /**
+         * Parsed message contents, via {@link SOCMessage#toMsg(String)}.
+         * @see #run
+         */
         public final SOCMessage message;
 
         /** Client which sent this message */
         public final Connection clientSender;
 
         /**
-         * Or, some code to run on our Treater thread
+         * Or, some code to run on our Treater thread.
+         * If not null, Treater ignores {@link #message} field which would be null anyway.
          * @since 1.2.00
          */
         public final Runnable run;

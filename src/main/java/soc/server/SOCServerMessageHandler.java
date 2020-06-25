@@ -122,9 +122,11 @@ public class SOCServerMessageHandler
      *       to do.
      * @param mes  Message from {@code c}. Never {@code null}.
      * @param c    Connection (client) sending this message. Never null.
+     *     {@link Connection#getData()} won't be {@code null}
+     *     unless {@code mes} implements {@link SOCMessageFromUnauthClient}.
      * @throws NullPointerException  if {@code mes} is {@code null}
      * @throws Exception  Caller must catch any exceptions thrown because of
-     *    conditions or bugs in any server methods called from here.
+     *     conditions or bugs in any server methods called from here.
      */
     final void dispatch(final SOCMessage mes, final Connection c)
         throws NullPointerException, Exception
@@ -2583,7 +2585,7 @@ public class SOCServerMessageHandler
         if (ga == null)
         {
             // Out of date client info, or may be observing a deleted game.
-            // Already authenticated (c != null), so replying is OK by security.
+            // Already authenticated (dispatcher enforces c.getData != null); replying won't reveal too much
             srv.messageToPlayerKeyed(c, gaName, "reply.game.not.found");  // "Game not found."
 
             return;  // <--- Early return: No active game found ---
