@@ -33,10 +33,12 @@ import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.*;
 
 import soc.game.SOCGame;
+import soc.game.SOCGame.SeatLockState;
 import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
-import soc.game.SOCGame.SeatLockState;
+import soc.game.SOCTradeOffer;
 import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
 import soc.server.savegame.GameLoaderJSON;
@@ -156,6 +158,69 @@ public class TestSavegame
         final int[] PIECES_ALL = {15, 5, 4, 0, 0};
         final int[][] PIECE_COUNTS = {PIECES_ALL, PIECES_ALL, PIECES_ALL, PIECES_ALL};
         TestLoadgame.checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+    }
+
+    /** Save and reload when players have trade offers  */
+    @Test
+    public void testTradeOffersSaveLoad()
+        throws IOException
+    {
+        final String GAME_NAME = "trades";
+        final SOCGame gaSave = new SOCGame(GAME_NAME, null);
+        gaSave.addPlayer("p0", 0);
+        gaSave.addPlayer("third", 3);
+
+        gaSave.startGame();  // create board layout
+        assertEquals(SOCGame.START1A, gaSave.getGameState());
+
+        // no pieces placed, but can't save during initial placement
+        gaSave.setGameState(SOCGame.ROLL_OR_CARD);
+        final SOCPlayer pl0 = gaSave.getPlayer(0),
+            pl3 = gaSave.getPlayer(3);
+        pl0.getResources().add(new SOCResourceSet(1, 3, 0, 2, 0, 0));
+        pl3.getResources().add(new SOCResourceSet(0, 0, 2, 2, 1, 0));
+
+        final SOCResourceSet PL0_GIVES = new SOCResourceSet(0, 2, 0, 1, 0, 0),  // multiple rsrc types & amounts
+            PL0_GETS = new SOCResourceSet(0, 0, 1, 0, 1, 0),   // multiple types, single amount
+            PL3_GIVES = new SOCResourceSet(0, 0, 2, 0, 0, 0),  // single rsrc type, multiple amount
+            PL3_GETS = new SOCResourceSet(1, 0, 0, 0, 0, 0);   // single rsrc type & amount
+        pl0.setCurrentOffer(new SOCTradeOffer
+            (GAME_NAME, 0, new boolean[]{false, false, false, true}, PL0_GIVES, PL0_GETS));
+        pl3.setCurrentOffer(new SOCTradeOffer
+            (GAME_NAME, 0, new boolean[]{true, false, false, false}, PL3_GIVES, PL3_GETS));
+
+        File saveFile = testTmpFolder.newFile("trades.game.json");
+        GameSaverJSON.saveGame(gaSave, testTmpFolder.getRoot(), saveFile.getName(), srv);
+
+        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile);
+        assertNotNull(sgm);
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals(GAME_NAME, ga.getName());
+        assertEquals(4, ga.maxPlayers);
+
+        final String[] NAMES = {"p0", null, null, "third"};
+        final int[] TOTAL_VP = {0, 0, 0, 0};
+        final int[][] RESOURCES = {{1, 3, 0, 2, 0}, null, null, {0, 0, 2, 2, 1}};
+        final int[] PIECES_ALL = {15, 5, 4, 0, 0};
+        final int[][] PIECE_COUNTS = {PIECES_ALL, PIECES_ALL, PIECES_ALL, PIECES_ALL};
+        TestLoadgame.checkPlayerData(sgm, NAMES, null, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+
+        SOCTradeOffer offer = ga.getPlayer(0).getCurrentOffer();
+        assertNotNull(offer);
+        assertEquals(GAME_NAME, offer.getGame());
+        assertEquals(0, offer.getFrom());
+        assertArrayEquals(new boolean[]{false,  false, false, true}, offer.getTo());
+        assertEquals(PL0_GIVES, offer.getGiveSet());
+        assertEquals(PL0_GETS, offer.getGetSet());
+
+        offer = ga.getPlayer(3).getCurrentOffer();
+        assertNotNull(offer);
+        assertEquals(GAME_NAME, offer.getGame());
+        assertEquals(3, offer.getFrom());
+        assertArrayEquals(new boolean[]{true, false,  false, false}, offer.getTo());
+        assertEquals(PL3_GIVES, offer.getGiveSet());
+        assertEquals(PL3_GETS, offer.getGetSet());
     }
 
 }

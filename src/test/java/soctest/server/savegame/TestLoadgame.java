@@ -28,6 +28,7 @@ import java.util.List;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGame.SeatLockState;
@@ -579,6 +580,9 @@ public class TestLoadgame
 
         // player 1 oldDevCards has some unknown type strings and numbers;
         // should still parse the rest of them properly
+        assertEquals(0, SOCDevCard.getCardType("NOT_A_DEFINED_NAME"));
+        assertEquals("42000", SOCDevCard.getCardTypeName(42000));  // if any of these become known, fix is to
+        assertEquals("42001", SOCDevCard.getCardTypeName(42001));  // edit the artifact to use still-unknown numbers/names
         List<SOCInventoryItem> cards = ga.getPlayer(1).getInventory().getByState(SOCInventory.PLAYABLE);
         int[] expected = {SOCDevCardConstants.DISC, SOCDevCardConstants.UNKNOWN, 42000, 42001, SOCDevCardConstants.ROADS};
         assertEquals(expected.length, cards.size());
@@ -588,6 +592,7 @@ public class TestLoadgame
         // devCardDeck has an unknown type string;
         // should still parse the rest of them properly
         int n = sgm.devCardDeck.size();
+        assertEquals(0, SOCDevCard.getCardType("NOT_A_DEFINED_CARD_NAME"));
         assertEquals("devCardDeck[n-2]", SOCDevCardConstants.ROADS, sgm.devCardDeck.get(n-2).intValue());
         assertEquals("devCardDeck[n-1]", SOCDevCardConstants.UNKNOWN, sgm.devCardDeck.get(n-1).intValue());
         assertEquals("devCardDeck[n]", SOCDevCardConstants.KNIGHT, sgm.devCardDeck.get(n).intValue());
