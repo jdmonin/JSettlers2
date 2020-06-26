@@ -4,7 +4,7 @@
   "gameMinVersion": -1,
   "gameName": "bad-scen-unsupported",
   "comments": "Same game as classic-botturn, but edited to add unsupported scenario game opts",
-  "gameOptions": "N7\u003dt7,RD\u003df,PL\u003d4,BC\u003dt4,SC\u003dSC_FOG,_SC_FOG\u003dt",
+  "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df,SC\u003dSC_FOG,_SC_FOG\u003dt",
   "gameDurationSeconds": 49,
   "gameState": 20,
   "currentDice": 9,

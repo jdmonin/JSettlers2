@@ -135,8 +135,9 @@ public class SavedGameModel
      *      {@link PEType#SCENARIO_SVP_LANDAREAS_BITMASK SCENARIO_SVP_LANDAREAS_BITMASK}.
      *      Adds {@link PlayerInfo#specialVPInfo}.
      * <LI> Adds {@link PlayerInfo#earlyElements} list to set before piece placement
-     * <LI> SavedGameModel adds {@link #playerSeatLocks},
-     *      {@link PlayerInfo} adds {@link PlayerInfo#currentTradeOffer currentTradeOffer}
+     * <LI> {@link PlayerInfo} adds {@link PlayerInfo#currentTradeOffer currentTradeOffer}
+     * <LI> Adds {@link #playerSeatLocks}
+     * <LI> {@link #gameOptions} now sorted
      *</UL>
      */
     public static int MODEL_VERSION = 2400;
@@ -200,11 +201,15 @@ public class SavedGameModel
     /** Free-form comments about this saved game, or {@code null} if none */
     public String comments;
 
-    /** Game options (or null), from {@link SOCGameOption#packOptionsToString(Map, boolean)}. */
-    String gameOptions;
+    /**
+     * Game options (or null), from
+     * {@link SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, true)}.
+     * List is sorted in model version 2400 and newer; see {@code SOCGameOption.packOptionsToString} javadoc for details.
+     */
+    public String gameOptions;
 
     /** Game duration, from {@link SOCGame#getDurationSeconds()} */
-    int gameDurationSeconds;
+    public int gameDurationSeconds;
 
     /**
      * Current gameState, from {@link SOCGame#getGameState()}
@@ -219,10 +224,10 @@ public class SavedGameModel
     public int oldGameState;
 
     /** Current dice roll results, from {@link SOCGame#getCurrentDice()} */
-    int currentDice;
+    public int currentDice;
 
     /** First player number, current player, round count, etc. */
-    HashMap<GEType, Integer> elements = new HashMap<>();
+    public HashMap<GEType, Integer> elements = new HashMap<>();
 
     /**
      * Remaining unplayed dev cards, from {@link SOCGame#getDevCardDeck()}.
@@ -238,14 +243,14 @@ public class SavedGameModel
     public ArrayList<Integer> devCardDeck;
 
     /** Flag fields, from {@link SOCGame#getFlagFieldsForSave()} */
-    boolean placingRobberForKnightCard, robberyWithPirateNotRobber,
+    public boolean placingRobberForKnightCard, robberyWithPirateNotRobber,
         askedSpecialBuildPhase, movedShipThisTurn;
 
     /** Ships placed this turn if {@link SOCGame#hasSeaBoard}, from {@link SOCGame#getShipsPlacedThisTurn()}, or null */
-    List<Integer> shipsPlacedThisTurn;
+    public List<Integer> shipsPlacedThisTurn;
 
     /** Board layout and contents */
-    BoardInfo boardInfo;
+    public BoardInfo boardInfo;
 
     /**
      * Player seat locks. Size is same as {@link #playerSeats}.
@@ -385,7 +390,7 @@ public class SavedGameModel
         gameName = ga.getName();
         final Map<String, SOCGameOption> opts = ga.getGameOptions();
         if (opts != null)
-            gameOptions = SOCGameOption.packOptionsToString(opts, false);
+            gameOptions = SOCGameOption.packOptionsToString(opts, false, true);
         gameDurationSeconds = ga.getDurationSeconds();
         gameState = ga.getGameState();
         oldGameState = ga.getOldGameState();
@@ -697,10 +702,10 @@ public class SavedGameModel
         public String robot3rdPartyBrainClass;
 
         /** Face icon ID, from {@link SOCPlayer#getFaceId()} */
-        int faceID;
+        public int faceID;
 
         /** Resources in hand */
-        KnownResourceSet resources;
+        public KnownResourceSet resources;
 
         /**
          * PlayerElements which should be set before placing any pieces, or {@code null}.
@@ -712,14 +717,14 @@ public class SavedGameModel
          * {@link PEType#STARTING_LANDAREAS STARTING_LANDAREAS}
          * @since 2.4.00
          */
-        HashMap<PEType, Integer> earlyElements;
+        public HashMap<PEType, Integer> earlyElements;
 
         /**
          * Current trade offer from this player to others, or {@code null} if none.
          * @see SOCPlayer#getCurrentOffer()
          * @since 2.4.00
          */
-        TradeOffer currentTradeOffer;
+        public TradeOffer currentTradeOffer;
 
         /**
          * Available piece counts, SVP, cloth count, hasPlayedDevCard and other flags, etc.
@@ -731,10 +736,10 @@ public class SavedGameModel
          *<P>
          * See {@link SavedGameModel#MODEL_VERSION} javadoc for history of what version adds which elements.
          */
-        HashMap<PEType, Integer> elements = new HashMap<>();
+        public HashMap<PEType, Integer> elements = new HashMap<>();
 
         /** Resource roll stats, from {@link SOCPlayer#getResourceRollStats()} */
-        int[] resRollStats;
+        public int[] resRollStats;
 
         /**
          * Standard dev card types in player's hand,
@@ -750,7 +755,7 @@ public class SavedGameModel
          * See {@link SavedGameModel.DevCardEnumListAdapter} code for details.
          */
         @JsonAdapter(DevCardEnumListAdapter.class)
-        ArrayList<Integer> oldDevCards = new ArrayList<>(),
+        public ArrayList<Integer> oldDevCards = new ArrayList<>(),
                            newDevCards = new ArrayList<>();
         // TODO: future: support general SOCInventoryItems/SOCSpecialItems for scenarios
 
@@ -758,7 +763,7 @@ public class SavedGameModel
          * Player's pieces in chronological order, from {@link SOCPlayer#getPieces()}.
          * @see #fortressPiece
          */
-        ArrayList<SOCPlayingPiece> pieces = new ArrayList<>();
+       public ArrayList<SOCPlayingPiece> pieces = new ArrayList<>();
 
         /*
          * Player's fortress, if any, from {@link SOCPlayer#getFortress()}; usually null.
@@ -775,7 +780,7 @@ public class SavedGameModel
          * field will be an unlocalized i18n string key.
          * @since 2.4.00
          */
-        ArrayList<SOCPlayer.SpecialVPInfo> specialVPInfo;
+        public ArrayList<SOCPlayer.SpecialVPInfo> specialVPInfo;
 
         /**
          * Register some custom type adapters as part of
@@ -1214,17 +1219,17 @@ public class SavedGameModel
     static class BoardInfo
     {
         /** Board layout elements, or null if using {@link #layout2} */
-        SOCBoardLayout layout1;
+        public SOCBoardLayout layout1;
 
         /** Board layout elements and encodingFormat, or null if using {@link #layout1} */
-        SOCBoardLayout2 layout2;
+        public SOCBoardLayout2 layout2;
 
         /**
          * Players' potential settlements and related values.
          * Will have either 1 per player, or 1 for all players (playerNumber == -1).
          * From {@link SOCGameHandler#gatherBoardPotentials(SOCGame, int)}.
          */
-        SOCPotentialSettlements[] playerPotentials;
+        public SOCPotentialSettlements[] playerPotentials;
 
         /**
          * @throws IllegalArgumentException if {@link SOCGameHandler#getBoardLayoutMessage(SOCGame)}

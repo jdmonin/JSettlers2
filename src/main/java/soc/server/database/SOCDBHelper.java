@@ -2004,7 +2004,7 @@ public class SOCDBHelper
                 final String gaName = ga.getName();
                 final long startTimeMillis = ga.getStartTime().getTime();
                 final Map<String, SOCGameOption> opts = ga.getGameOptions();
-                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false);
+                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false, false);
 
                 if (schemaVersion >= SCHEMA_VERSION_2000)
                 {
@@ -2734,7 +2734,7 @@ public class SOCDBHelper
      * @param startTimeMillis  Game start time, from {@link SOCGame#getStartTime()}{@link java.util.Date#getTime() .getTime()}
      * @param gameLengthSeconds  Game length, from {@link SOCGame#getDurationSeconds()}
      * @param optsStr  Null or game options, from {@link SOCGame#getGameOptions()}
-     *     passed to {@link SOCGameOption#packOptionsToString(Map, boolean)}
+     *     passed to {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}
      * @param scen  Scenario name key from game option {@code "SC"}, or {@code null} if none
      * @return  Newly inserted row's primary key ID
      * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails

@@ -418,7 +418,7 @@ public class SOCScenario
 
     /**
      * Scenario's {@link SOCGameOption}s, as a formatted string
-     * from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     * from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      * Never {@code null} or empty; {@code "-"} if scenario has no game options.
      */
     public final String scOpts;
@@ -463,7 +463,7 @@ public class SOCScenario
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
-     *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     *             from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      *             Never "" or {@code null}.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if opts is {@code null} or the empty string "",
@@ -500,7 +500,7 @@ public class SOCScenario
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
-     *             from {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     *             from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      *             Never "" or {@code null}.
      * @throws IllegalArgumentException  if key is not alphanumeric or length is > 8,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},

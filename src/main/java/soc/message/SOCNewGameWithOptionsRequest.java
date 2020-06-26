@@ -53,7 +53,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
-    /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Map, boolean)} format. */
+    /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)} format. */
     private String optsStr;
 
     /** may be null */
@@ -68,7 +68,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      *     or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     *             {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      */
     public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, String optstr)
     {
@@ -106,7 +106,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      *     or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  the game name
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     *             {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      * @return    the command string
      */
     public static String toCmd(String nn, String pw, String hn, String ga, String optstr)
@@ -130,7 +130,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      */
     public static String toCmd(String nn, String pw, String hn, String ga, Map<String, SOCGameOption> opts)
     {
-        return toCmd(nn, pw, hn, ga, SOCGameOption.packOptionsToString(opts, false));
+        return toCmd(nn, pw, hn, ga, SOCGameOption.packOptionsToString(opts, false, false));
     }
 
     /**

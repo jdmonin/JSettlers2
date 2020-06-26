@@ -2090,7 +2090,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(String)
-     * @see SOCGameOption#packOptionsToString(Map, boolean)
+     * @see SOCGameOption#packOptionsToString(Map, boolean, boolean)
      */
     public Map<String, SOCGameOption> getGameOptions()
     {

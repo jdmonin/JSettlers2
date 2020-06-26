@@ -4,7 +4,7 @@
   "gameMinVersion": 2000,
   "gameName": "testgame-sea-closedships",
   "comments": "Test some open and closed ship routes, and a long duration that server should auto-extend once",
-  "gameOptions": "N7\u003df7,PL\u003d4,RD\u003df,BC\u003dt4,SBL\u003dt",
+  "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d4,RD\u003df,SBL\u003dt",
   "gameDurationSeconds": 6531,
   "gameState": 20,
   "oldGameState": 20,

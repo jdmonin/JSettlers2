@@ -4,7 +4,7 @@
   "gameMinVersion": -1,
   "gameName": "classic",
   "comments": "At end of typical 3-player Classic game; bot won",
-  "gameOptions": "N7\u003dt7,RD\u003df,PL\u003d4,BC\u003dt4",
+  "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df",
   "gameDurationSeconds": 471,
   "gameState": 1000,
   "currentDice": 11,

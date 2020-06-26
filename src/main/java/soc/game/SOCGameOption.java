@@ -21,6 +21,9 @@
 package soc.game;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -1717,25 +1720,28 @@ public class SOCGameOption
      *            Suitable only for sending defaults.
      * @param hideLongNameOpts omit options with long key names or underscores?
      *            Set true if client's version &lt; {@link #VERSION_FOR_LONGER_OPTNAMES}.
-     * @return string of name-value pairs, same format as {@link #packOptionsToString(Map, boolean)};
+     * @return string of name-value pairs, same format as
+     *         {@link #packOptionsToString(Map, boolean, boolean) packOptionsToString(Map, hideEmptyStringOpts, false)};
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string.
      * @see #parseOptionsToMap(String)
      */
     public static String packKnownOptionsToString(final boolean hideEmptyStringOpts, final boolean hideLongNameOpts)
     {
-        return packOptionsToString(allOptions, hideEmptyStringOpts, (hideLongNameOpts) ? -3 : -2);
+        return packOptionsToString(allOptions, hideEmptyStringOpts, false, (hideLongNameOpts) ? -3 : -2);
     }
 
     /**
      * Utility - build a string of option name-value pairs.
      * This can be unpacked with {@link #parseOptionsToMap(String)}.
      *<P>
-     * For sending options to a client, use {@link #packOptionsToString(Map, boolean, int)} instead.
+     * For sending options to a client, use {@link #packOptionsToString(Map, boolean, boolean, int)} instead.
      *
      * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
+     * @param sortByKey  If true, sort the options by {@link SOCVersionedItem#key}
+     *            (using {@link String#compareTo(String)}) to make the returned string stable and canonical
      * @return string of name-value pairs, or "-" for an empty or null {@code omap};
      *     any gameoptions of {@link #OTYPE_UNKNOWN} will not be part of the string.
      *     <P>
@@ -1757,34 +1763,36 @@ public class SOCGameOption
      * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
-        (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts)
+        (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final boolean sortByKey)
         throws ClassCastException
     {
-        return packOptionsToString(omap, hideEmptyStringOpts, -2);
+        return packOptionsToString(omap, hideEmptyStringOpts, sortByKey, -2);
     }
 
     /**
      * Utility - build a string of option name-value pairs,
      * adjusting for old clients if necessary.
      * This can be unpacked with {@link #parseOptionsToMap(String)}.
-     * See {@link #packOptionsToString(Map, boolean)} javadoc for details.
+     * See {@link #packOptionsToString(Map, boolean, boolean)} javadoc for details.
      *
      * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
+     * @param sortByKey  If true, sort the options by {@link SOCVersionedItem#key}
+     *            (using {@link String#compareTo(String)}) to make the returned string stable and canonical
      * @param cliVers  Client version; assumed >= {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
      *            Use -3 to omit options with long names, and do no other adjustment;
      *               for use with clients older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
      * @return string of name-value pairs, or "-" for an empty or null omap;
-     *         see {@link #packOptionsToString(Map, boolean)} javadoc for details.
+     *         see {@link #packOptionsToString(Map, boolean, boolean)} javadoc for details.
      * @throws ClassCastException if {@code omap} contains anything other
      *         than {@code SOCGameOption}s
      * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
-        (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final int cliVers)
+        (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final boolean sortByKey, final int cliVers)
         throws ClassCastException
     {
         if ((omap == null) || omap.size() == 0)
@@ -1798,7 +1806,20 @@ public class SOCGameOption
         // Pack all non-unknown options:
         StringBuilder sb = new StringBuilder();
         boolean hadAny = false;
-        for (SOCGameOption op : omap.values())
+        Collection<SOCGameOption> opts = omap.values();
+        if (sortByKey)
+        {
+            ArrayList<SOCGameOption> olist = new ArrayList<>(opts);
+            Collections.sort(olist, new Comparator<SOCGameOption>()
+            {
+                public int compare(SOCGameOption a, SOCGameOption b)
+                {
+                    return a.key.compareTo(b.key);
+                }
+            });
+            opts = olist;
+        }
+        for (SOCGameOption op : opts)
         {
             if (op.optType == OTYPE_UNKNOWN)
                 continue;  // <-- Skip this one --
@@ -1843,9 +1864,9 @@ public class SOCGameOption
 
     /**
      * Pack current value of this option into a string.
-     * This is used in {@link #packOptionsToString(Map, boolean)} and
+     * This is used in {@link #packOptionsToString(Map, boolean, boolean)} and
      * read in {@link #parseOptionNameValue(String, boolean)} and {@link #parseOptionsToMap(String)}.
-     * See {@link #packOptionsToString(Map, boolean)} for the string's format.
+     * See {@link #packOptionsToString(Map, boolean, boolean)} for the string's format.
      *
      * @param sb Pack into (append to) this buffer
      * @eee #getPackedValue()
@@ -1889,7 +1910,7 @@ public class SOCGameOption
      * Before v2.0.00, this was {@code parseOptionsToHash}.
      *
      * @param ostr string of name-value pairs, as created by
-     *             {@link #packOptionsToString(Map, boolean)}.
+     *             {@link #packOptionsToString(Map, boolean, boolean)}.
      *             A leading comma is OK (possible artifact of StringTokenizer
      *             coming from over the network).
      *             If ostr=="-", returned map will be null.
@@ -1927,10 +1948,10 @@ public class SOCGameOption
      * Utility - parse a single name-value pair produced by packOptionsToString.
      * Expected format of nvpair: "optname=optvalue".
      * Expected format of optvalue depends on its type.
-     * See {@link #packOptionsToString(Map, boolean)} for the format.
+     * See {@link #packOptionsToString(Map, boolean, boolean)} for the format.
      *
      * @param nvpair Name-value pair string, as created by
-     *               {@link #packOptionsToString(Map, boolean)}.
+     *               {@link #packOptionsToString(Map, boolean, boolean)}.
      *               <BR>
      *               'T', 't', 'Y', 'y' are always allowed for bool true values, regardless of {@code forceNameUpcase}.
      *               'F', 'f', 'N', 'n' are the valid bool false values.
@@ -1959,12 +1980,12 @@ public class SOCGameOption
 
     /**
      * Utility - parse an option name-value pair produced by {@link #packValue(StringBuilder)} or
-     * {@link #packOptionsToString(Map, boolean)}. Expected format of {@code optval} depends on its type.
+     * {@link #packOptionsToString(Map, boolean, boolean)}. Expected format of {@code optval} depends on its type.
      * See {@code packOptionsToString(..)} for the format.
      *
      * @param optkey  Game option's alphanumeric keyname, known or unknown.
      *               Optkey must be a valid key by the rules listed at {@link #SOCGameOption(String)}.
-     * @param optval  Game option's value, as created by {@link #packOptionsToString(Map, boolean)}.
+     * @param optval  Game option's value, as created by {@link #packOptionsToString(Map, boolean, boolean)}.
      *               <BR>
      *               'T', 't', 'Y', 'y' are always allowed for bool true values, regardless of {@code forceNameUpcase}.
      *               'F', 'f', 'N', 'n' are the valid bool false values.
