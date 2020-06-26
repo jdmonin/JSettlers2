@@ -28,7 +28,7 @@
   "movedShipThisTurn": false,
   "boardInfo": {
     "layout1": {
-      "game": "classic",
+      "game": "bad-scen-unsupported",
       "hexLayout": [
         50,
         6,
@@ -112,7 +112,7 @@
     },
     "playerPotentials": [
       {
-        "game": "classic",
+        "game": "bad-scen-unsupported",
         "playerNumber": 0,
         "psNodes": [],
         "psNodesFromAll": false,
@@ -121,7 +121,7 @@
         "messageType": 1057
       },
       {
-        "game": "classic",
+        "game": "bad-scen-unsupported",
         "playerNumber": 1,
         "psNodes": [],
         "psNodesFromAll": false,
@@ -130,7 +130,7 @@
         "messageType": 1057
       },
       {
-        "game": "classic",
+        "game": "bad-scen-unsupported",
         "playerNumber": 2,
         "psNodes": [],
         "psNodesFromAll": false,
@@ -139,7 +139,7 @@
         "messageType": 1057
       },
       {
-        "game": "classic",
+        "game": "bad-scen-unsupported",
         "playerNumber": 3,
         "psNodes": [
           82
