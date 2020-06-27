@@ -277,6 +277,8 @@ Game scores and stats can optionally be saved for reports or community-building.
 
   Game stats and scores are kept in the `games2` and `games2_players` tables.
   (Or if DB hasn't been upgraded to schema v2000, `games`.)
+  Server v2.4.00 and newer will sort game option names alphabetically as a canonical form;
+  game results saved by earlier versions have unsorted game options.
 
 ### Creating JSettlers Player Accounts in the DB (optional)
 

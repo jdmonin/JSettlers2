@@ -32,6 +32,8 @@ and backport minor new features until `2.0.00` was ready.
 	- When client is sitting down at new game or to take over a bot's seat, send their preferred face icon
 	- Bugfix: When client is v1.x, send seat lock state CLEAR_ON_RESET as UNLOCKED not LOCKED
 	  so they can take over a "marked" bot seat
+- Database:
+	- If saving all completed game results in database, each game's options are sorted alphabetically
 - For developers:
 	- Save/load games:
 	  - SavedGameModel: Players' piece types and dev cards are written to file as

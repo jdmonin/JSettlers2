@@ -2004,7 +2004,7 @@ public class SOCDBHelper
                 final String gaName = ga.getName();
                 final long startTimeMillis = ga.getStartTime().getTime();
                 final Map<String, SOCGameOption> opts = ga.getGameOptions();
-                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false, false);
+                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false, true);
 
                 if (schemaVersion >= SCHEMA_VERSION_2000)
                 {
