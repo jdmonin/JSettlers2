@@ -1220,12 +1220,21 @@ import soc.util.Version;
     {
         final String gaName = mes.getGame();
 
-        if (! client.getMainDisplay().deleteFromGameList(gaName, isPractice, false))
-            client.getMainDisplay().deleteFromGameList(gaName, isPractice, true);
+        // run on AWT event thread, not network thread, to avoid occasional ArrayIndexOutOfBoundsException
+        // console stack trace (javax.swing.DefaultListModel.getElementAt) after deleteFromGameList
 
-        PlayerClientListener pcl = client.getClientListener(gaName);
-        if (pcl != null)
-            pcl.gameDisconnected(true, null);
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                if (! client.getMainDisplay().deleteFromGameList(gaName, isPractice, false))
+                    client.getMainDisplay().deleteFromGameList(gaName, isPractice, true);
+
+                PlayerClientListener pcl = client.getClientListener(gaName);
+                if (pcl != null)
+                    pcl.gameDisconnected(true, null);
+            }
+        });
     }
 
     /**
