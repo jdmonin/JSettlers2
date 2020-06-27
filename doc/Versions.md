@@ -22,6 +22,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Add client preference: Remember face icon when changed
 	- Game window:
 	  - Game stats: If player leaves at end of game, keep showing their statistics
+	  - If connection to server is lost during game, don't hide Current Player arrow
 	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
 - Server:
 	- If connecting client has limited features, send all unsupported game options as unknowns
@@ -52,6 +53,8 @@ and backport minor new features until `2.0.00` was ready.
 	  - Omit writing pieces' specialVP field when it's 0, ships' isClosed when false
 	  - MODEL_VERSION increased to 2400
 	  - Unit tests using saved-game artifacts
+	- Game window: If observing a robot-only game and it's deleted when over,
+	  keep showing winner with Current Player arrow
 	- For unit tests, SOCGameListAtServer.addMember now succeeds even if game was added using client-side addGame method
 
 

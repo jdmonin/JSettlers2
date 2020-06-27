@@ -547,7 +547,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Flag to set true if game has been deleted while we're observing it,
-     * or was stopped by a server or network error. Is set in {@link #over(boolean, String)}.
+     * or was stopped by a server or network error. Is set in {@link #gameDisconnected(boolean, String)}.
      * @since 1.2.01
      */
     protected boolean gameHasErrorOrDeletion;
@@ -2519,11 +2519,14 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Game was deleted or a server/network error occurred; stop playing.
+     *<P>
+     * Before v2.4.00 this method was called {@code over(..)}.
+     *
      * @param wasDeleted  True if game was deleted, isn't from an error;
      *     this can happen while observing a game
      * @param errorMessage  Error message if any, or {@code null}
      */
-    public void over(final boolean wasDeleted, final String errorMessage)
+    public void gameDisconnected(final boolean wasDeleted, final String errorMessage)
     {
         gameHasErrorOrDeletion = true;
 
@@ -2532,6 +2535,7 @@ public class SOCPlayerInterface extends Frame
         textInput.setEditable(false);
         if (errorMessage != null)
             textInput.setText(errorMessage);
+
         if (wasDeleted)
         {
             textDisplay.append("*** " + strings.get("interface.error.game.has_been_deleted") + " ***\n");
@@ -2543,7 +2547,6 @@ public class SOCPlayerInterface extends Frame
                 // "Game stopped."
         }
 
-        game.setCurrentPlayerNumber(-1);
         boardPanel.repaint();
         for (int i = 0; i < game.maxPlayers; i++)
             hands[i].gameDisconnected();
@@ -4489,7 +4492,7 @@ public class SOCPlayerInterface extends Frame
 
         public void gameDisconnected(final boolean wasDeleted, final String errorMessage)
         {
-            pi.over(wasDeleted, errorMessage);
+            pi.gameDisconnected(wasDeleted, errorMessage);
         }
 
         public void messageBroadcast(String msg)

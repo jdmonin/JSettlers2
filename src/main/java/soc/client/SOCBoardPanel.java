@@ -4203,7 +4203,7 @@ import javax.swing.JComponent;
      * draw the arrow that shows whose turn it is.
      *
      * @param g Graphics
-     * @param pnum Current player number.
+     * @param pnum Current player number, from {@link SOCGame#getCurrentPlayerNumber()}.
      *             Player positions are clockwise from top-left:
      *           <BR>
      *             For the classic 4-player board:<BR>
@@ -4213,12 +4213,17 @@ import javax.swing.JComponent;
      *             For the classic 6-player board:<BR>
      *             0 for top-left, 1 for top-right, 2 for middle-right,
      *             3 for bottom-right, 4 for bottom-left, 5 for middle-left.
+     *           <P>
+     *             If &lt; 0, no arrow is drawn.
      * @param diceResult Roll result to show, if rolled, from {@link SOCGame#getCurrentDice()}.
      *                   To show, {@code diceResult} must be at least 2
      *                   and gameState not {@link SOCGame#ROLL_OR_CARD}.
      */
     private final void drawArrow(Graphics g, int pnum, int diceResult)
     {
+        if (pnum < 0)
+            return;
+
         int arrowX, arrowY, diceX, diceY;  // diceY always arrowY + 5
         boolean arrowLeft;
 
@@ -4617,7 +4622,14 @@ import javax.swing.JComponent;
          */
         if (gameState != SOCGame.NEW)
         {
-            drawArrow(g, game.getCurrentPlayerNumber(), game.getCurrentDice());
+            int cpn = game.getCurrentPlayerNumber();
+            if ((cpn < 0) && (gameState >= SOCGame.OVER))
+            {
+                SOCPlayer wp = game.getPlayerWithWin();
+                if (wp != null)
+                    cpn = wp.getPlayerNumber();
+            }
+            drawArrow(g, cpn, game.getCurrentDice());
         }
 
         if (player != null)

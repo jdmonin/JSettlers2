@@ -2431,7 +2431,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Set the number of the current player, and check for winner.
      * If you want to update other game status, call {@link #updateAtTurn()} afterwards.
-     * Called only at client - server instead calls {@link #endTurn()}
+     * Called only at client: Server instead calls {@link #endTurn()}
      * or {@link #advanceTurn()}.
      * Check for gamestate {@link #OVER} after calling setCurrentPlayerNumber.
      * This is needed because a player can win only during their own turn;
@@ -2439,7 +2439,8 @@ public class SOCGame implements Serializable, Cloneable
      * player's turn, they don't win immediately.  When it later becomes their turn,
      * and setCurrentPlayerNumber is called, gamestate may become {@link #OVER}.
      *
-     * @param pn  the player number, or -1 permitted in state {@link #OVER}
+     * @param pn  the player number; -1 is permitted at client in state {@link #OVER}
+     *     or if game deleted or connection to server lost
      * @see #endTurn()
      * @see #checkForWinner()
      */

@@ -915,6 +915,10 @@ Start with a recently-created database with latest schema/setup scripts.
     - Connect to a server, change client's nickname from "Player", start or join a game there
     - In practice game, should still be able to accept/reject trade offers from bots
     - Should be able to create and start playing a new practice game
+    - In non-practice game, note the current player
+    - Stop the server
+    - Non-practice game should announce disconnect but still show current player
+    - Practice games should continue
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  
