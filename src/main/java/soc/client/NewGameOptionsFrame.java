@@ -546,19 +546,20 @@ import soc.util.Version;
 
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Look for options that should be on the same
-        // line as other options (based on key length)
-        // instead of at the start of a line.
-        // TODO: for now these are on subsequent lines
-        //   instead of sharing the same line.
-        HashMap<String,String> sameLineOpts = new HashMap<String,String>();  // key=on-same-line opt, value=opt to start line
-        for (final String kf3 : opts.keySet())
+        // Look for options that should be grouped together and indented
+        // under another option (based on key length and common prefix)
+        // instead of aligned to the start of a line.
+        HashMap<String,String> sameGroupOpts = new HashMap<>();  // key=in-same-group opt, value=opt which heads that group
+        for (final SOCGameOption opt : opts.values())
         {
-            if (kf3.length() <= 2)
+            final String okey = opt.key;
+            if ((okey.length() <= 2) || (opt.optType == SOCGameOption.OTYPE_UNKNOWN))
                 continue;
-            final String kf2 = kf3.substring(0, 2);
-            if (opts.containsKey(kf2))
-                sameLineOpts.put(kf3, kf2);
+
+            final String kf2 = okey.substring(0, 2);
+            SOCGameOption op2 = opts.get(kf2);
+            if ((op2 != null) && (op2.optType != SOCGameOption.OTYPE_UNKNOWN))
+                sameGroupOpts.put(okey, kf2);
         }
 
         // Sort and lay out options; remove unknowns and internal-onlys from opts.
@@ -567,13 +568,14 @@ import soc.util.Version;
         // The array lets us remove from opts without disrupting an iterator.
         SOCGameOption[] optArr = new TreeSet<SOCGameOption>(opts.values()).toArray(new SOCGameOption[0]);
 
-        // Some game options from sameLineOpts, sorted by key.
+        // Some game options from sameGroupOpts, sorted by key.
         // Declared up here for occasional reuse within the loop.
         TreeMap<String, SOCGameOption> optGroup = new TreeMap<>();
 
         for (int i = 0; i < optArr.length; ++i)
         {
-            SOCGameOption op = optArr[i];
+            final SOCGameOption op = optArr[i];
+
             if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             {
                 opts.remove(op.key);
@@ -596,25 +598,29 @@ import soc.util.Version;
                     continue;  // <-- Don't show options which are scenario names (use SC dropdown to pick at most one)
             }
 
-            if (sameLineOpts.containsKey(op.key))
-                continue;  // <-- Shares a line, Go to next entry --
-            final boolean sharesLine = sameLineOpts.containsValue(op.key);
+            if (sameGroupOpts.containsKey(op.key))
+                continue;  // <-- Part of a group: We'll init this opt soon with rest of that group --
+
+            final boolean sharesGroup = sameGroupOpts.containsValue(op.key);
 
             initInterface_OptLine(op, bp, gbl, gbc);
-            if (sharesLine)
+            if (sharesGroup)
             {
                 // Group them under this one.
                 // Sort by each opt's key, for stability across localizations.
 
                 optGroup.clear();
 
-                for (final String kf3 : sameLineOpts.keySet())
+                for (final String kf3 : sameGroupOpts.keySet())
                 {
-                    final String kf2 = sameLineOpts.get(kf3);
+                    final String kf2 = sameGroupOpts.get(kf3);
                     if ((kf2 == null) || ! kf2.equals(op.key))
                         continue;  // <-- Goes with a a different option --
 
-                    optGroup.put(kf3, opts.get(kf3));
+                    SOCGameOption groupHeadOpt = opts.get(kf3);
+                    if (groupHeadOpt == null)
+                        continue;  // apparently was removed after initializing sameGroupOpts (internal-use opt?)
+                    optGroup.put(kf3, groupHeadOpt);
                 }
 
                 for (final SOCGameOption op3 : optGroup.values())
