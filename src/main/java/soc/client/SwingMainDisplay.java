@@ -2190,6 +2190,15 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         pass.setText(pw);
     }
 
+    public void repaintGameAndChannelLists()
+    {
+        if (chlist.isVisible())
+            chlist.repaint();
+
+        if (gmlist.isVisible())
+            gmlist.repaint();
+    }
+
     public void channelJoined(String channelName)
     {
         nick.setEditable(false);

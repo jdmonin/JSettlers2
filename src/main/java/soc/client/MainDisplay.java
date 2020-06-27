@@ -212,6 +212,12 @@ public interface MainDisplay
     void setPassword(final String pw);
 
     /**
+     * Repaint displayed game list and channel list after a bulk change to their contents.
+     * @since 2.4.00
+     */
+    void repaintGameAndChannelLists();
+
+    /**
      * Server has sent authorization for client to create and/or join a channel.
      * Client should create a UI to interact with that channel.
      */
@@ -231,6 +237,7 @@ public interface MainDisplay
      * The server sends the list when the client successfully connects.
      * @param channelNames  List of server's chat channels, from server message
      * @param isPractice  True if this is the practice server, not a TCP server
+     * @see #repaintGameAndChannelLists()
      */
     void channelList(Collection<String> channelNames, boolean isPractice);
 
@@ -356,6 +363,7 @@ public interface MainDisplay
      *            True except for practice games, which should not be added.
      * @see SOCPlayerClient#addToGameList(String, String, boolean)
      * @see #deleteFromGameList(String, boolean, boolean)
+     * @see #repaintGameAndChannelLists()
      */
     void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList);
 

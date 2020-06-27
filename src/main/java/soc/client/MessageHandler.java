@@ -1011,7 +1011,15 @@ import soc.util.Version;
      */
     protected void handleNEWCHANNEL(SOCNewChannel mes)
     {
-        client.getMainDisplay().channelCreated(mes.getChannel());
+        final String chName = mes.getChannel();
+
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                client.getMainDisplay().channelCreated(chName);
+            }
+        });
     }
 
     /**
@@ -1022,9 +1030,17 @@ import soc.util.Version;
      * @param mes  the message
      * @param isPractice is the server actually {@link ClientNetwork#practiceServer} (practice game)?
      */
-    protected void handleCHANNELS(SOCChannels mes, final boolean isPractice)
+    protected void handleCHANNELS(final SOCChannels mes, final boolean isPractice)
     {
-        client.getMainDisplay().channelList(mes.getChannels(), isPractice);
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                MainDisplay mdisp = client.getMainDisplay();
+                mdisp.channelList(mes.getChannels(), isPractice);
+                mdisp.repaintGameAndChannelLists();
+            }
+        });
     }
 
     /**
@@ -1041,12 +1057,18 @@ import soc.util.Version;
      * @param txt  the message text
      * @since 2.1.00
      */
-    protected void handleBCASTTEXTMSG(String txt)
+    protected void handleBCASTTEXTMSG(final String txt)
     {
-        client.getMainDisplay().chatMessageBroadcast(txt);
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                client.getMainDisplay().chatMessageBroadcast(txt);
 
-        for (PlayerClientListener pcl : client.getClientListeners().values())
-            pcl.messageBroadcast(txt);
+                for (PlayerClientListener pcl : client.getClientListeners().values())
+                    pcl.messageBroadcast(txt);
+            }
+        });
     }
 
     /**
@@ -1074,14 +1096,22 @@ import soc.util.Version;
      */
     protected void handleDELETECHANNEL(SOCDeleteChannel mes)
     {
-        client.getMainDisplay().channelDeleted(mes.getChannel());
+        final String chName = mes.getChannel();
+
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                client.getMainDisplay().channelDeleted(chName);
+            }
+        });
     }
 
     /**
      * handle the "list of games" message
      * @param mes  the message
      */
-    protected void handleGAMES(SOCGames mes, final boolean isPractice)
+    protected void handleGAMES(final SOCGames mes, final boolean isPractice)
     {
         // Any game's name in this msg may start with the "unjoinable" prefix
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
@@ -1100,15 +1130,20 @@ import soc.util.Version;
             // We may still ask for GAMEOPTIONGETDEFAULTS if asking to create a game,
             // but that will happen when user clicks that button, not yet.
             client.tcpServGameOpts.noMoreOptions(false);
-
-            // Reset enum for addToGameList call; client.serverGames.addGames has consumed it.
-            gameNames = mes.getGames();
         }
 
-        for (String gn : gameNames)
+        // update displayed list on AWT event thread, not network message thread,
+        // to ensure right timing for repaint to avoid appearing empty.
+        EventQueue.invokeLater(new Runnable()
         {
-            client.addToGameList(gn, null, false);
-        }
+            public void run()
+            {
+                for (String gn : mes.getGames())
+                    client.addToGameList(gn, null, false);
+
+                client.getMainDisplay().repaintGameAndChannelLists();
+            }
+        });
     }
 
     /**
@@ -1209,7 +1244,15 @@ import soc.util.Version;
      */
     protected void handleNEWGAME(SOCNewGame mes, final boolean isPractice)
     {
-        client.addToGameList(mes.getGame(), null, ! isPractice);
+        final String gaName = mes.getGame();
+
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                client.addToGameList(gaName, null, ! isPractice);
+            }
+        });
     }
 
     /**
@@ -1227,8 +1270,9 @@ import soc.util.Version;
         {
             public void run()
             {
-                if (! client.getMainDisplay().deleteFromGameList(gaName, isPractice, false))
-                    client.getMainDisplay().deleteFromGameList(gaName, isPractice, true);
+                final MainDisplay mdisp = client.getMainDisplay();
+                if (! mdisp.deleteFromGameList(gaName, isPractice, false))
+                    mdisp.deleteFromGameList(gaName, isPractice, true);
 
                 PlayerClientListener pcl = client.getClientListener(gaName);
                 if (pcl != null)
@@ -2458,17 +2502,24 @@ import soc.util.Version;
      * process the "new game with options" message
      * @since 1.1.07
      */
-    private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, final boolean isPractice)
+    private void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes, final boolean isPractice)
     {
-        String gname = mes.getGame();
-        String opts = mes.getOptionsString();
-        boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
-        if (gname.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+        EventQueue.invokeLater(new Runnable()
         {
-            gname = gname.substring(1);
-            canJoin = false;
-        }
-        client.getMainDisplay().addToGameList(! canJoin, gname, opts, ! isPractice);
+            public void run()
+            {
+                String gname = mes.getGame();
+                final String opts = mes.getOptionsString();
+                boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
+                if (gname.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+                {
+                    gname = gname.substring(1);
+                    canJoin = false;
+                }
+
+                client.getMainDisplay().addToGameList(! canJoin, gname, opts, ! isPractice);
+            }
+        });
     }
 
     /**
@@ -2481,7 +2532,7 @@ import soc.util.Version;
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
         // This is recognized and removed in mes.getGameList.
 
-        SOCGameList msgGames = mes.getGameList();
+        final SOCGameList msgGames = mes.getGameList();
         if (msgGames == null)
             return;
 
@@ -2499,9 +2550,22 @@ import soc.util.Version;
             client.tcpServGameOpts.noMoreOptions(false);
         }
 
-        for (String gaName : msgGames.getGameNames())
-            client.getMainDisplay().addToGameList
-                (msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
+        // update displayed list on AWT event thread, not network message thread,
+        // to ensure right timing for repaint to avoid appearing empty.
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                final MainDisplay mdisp = client.getMainDisplay();
+
+                for (String gaName : msgGames.getGameNames())
+                    mdisp.addToGameList
+                        (msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
+
+                mdisp.repaintGameAndChannelLists();
+            }
+        });
+
     }
 
     /**
