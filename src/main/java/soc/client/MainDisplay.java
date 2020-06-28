@@ -212,7 +212,7 @@ public interface MainDisplay
     void setPassword(final String pw);
 
     /**
-     * Repaint displayed game list and channel list after a bulk change to their contents.
+     * Repaint displayed game list and channel list after a change to their contents.
      * @since 2.4.00
      */
     void repaintGameAndChannelLists();

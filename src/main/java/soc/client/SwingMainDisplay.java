@@ -2525,6 +2525,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         } else {
             lm.addElement(item);
         }
+        gmlist.repaint();
     }
 
     public boolean deleteFromGameList(String gameName, final boolean isPractice, final boolean withUnjoinablePrefix)

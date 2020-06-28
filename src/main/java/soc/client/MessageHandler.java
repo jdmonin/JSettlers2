@@ -1011,15 +1011,7 @@ import soc.util.Version;
      */
     protected void handleNEWCHANNEL(SOCNewChannel mes)
     {
-        final String chName = mes.getChannel();
-
-        EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                client.getMainDisplay().channelCreated(chName);
-            }
-        });
+        client.getMainDisplay().channelCreated(mes.getChannel());
     }
 
     /**
@@ -1244,15 +1236,11 @@ import soc.util.Version;
      */
     protected void handleNEWGAME(SOCNewGame mes, final boolean isPractice)
     {
-        final String gaName = mes.getGame();
+        // Run in network message thread, not AWT event thread,
+        // in case client is about to be auth'd to join this game:
+        // messages must take effect in the order sent
 
-        EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                client.addToGameList(gaName, null, ! isPractice);
-            }
-        });
+        client.addToGameList(mes.getGame(), null, ! isPractice);
     }
 
     /**
@@ -2504,22 +2492,21 @@ import soc.util.Version;
      */
     private void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes, final boolean isPractice)
     {
-        EventQueue.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                String gname = mes.getGame();
-                final String opts = mes.getOptionsString();
-                boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
-                if (gname.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
-                {
-                    gname = gname.substring(1);
-                    canJoin = false;
-                }
+        // Note: Must run in network message thread, not AWT event thread,
+        // in case client is about to be auth'd to join this game:
+        // messages must take effect in the order sent
 
-                client.getMainDisplay().addToGameList(! canJoin, gname, opts, ! isPractice);
-            }
-        });
+        String gname = mes.getGame();
+        final String opts = mes.getOptionsString();
+
+        boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
+        if (gname.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+        {
+            gname = gname.substring(1);
+            canJoin = false;
+        }
+
+        client.getMainDisplay().addToGameList(! canJoin, gname, opts, ! isPractice);
     }
 
     /**
