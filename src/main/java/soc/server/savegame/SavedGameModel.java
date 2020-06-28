@@ -142,7 +142,7 @@ public class SavedGameModel
      */
     public static int MODEL_VERSION = 2400;
 
-    /** Server's game list, for checking name and creating game */
+    /** Server's game list, for checking game/player names and creating games */
     public static SOCGameListAtServer glas;
 
     private transient SOCGame game = null;
@@ -446,6 +446,8 @@ public class SavedGameModel
      * human players to sit at those seats.
      * @return null if no more bots/players needed, or an array where
      *     {@code array[pn]} is true if seat with that player number still needs a player
+     *     ({@link #glas}.{@link SOCGameListAtServer#isMember(String, String) isMember(plName, gaName)} is false
+     *     for that non-vacant seat)
      */
     public boolean[] findSeatsNeedingBots()
     {
@@ -486,7 +488,7 @@ public class SavedGameModel
     {
         final int gstate = game.getGameState();
         if ((gstate != SOCGame.LOADING) && (gstate != SOCGame.LOADING_RESUMING))
-            throw new UnsupportedOperationException("gameState");
+            throw new UnsupportedOperationException("gameState: " + gstate);
 
         if (gameState != SOCGame.OVER)
         {

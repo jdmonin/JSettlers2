@@ -223,5 +223,52 @@ public class TestSavegame
         assertEquals(PL3_GETS, offer.getGetSet());
     }
 
+    /**
+     * Test whether game data is consistent when savegame is loaded, saved, and reloaded.
+     * @throws IOException
+     * @see {@link #testRoundtripReload_BadFieldContents()}
+     */
+    @Test
+    public void testRoundtripReload_ClassicBotturn()
+        throws IOException
+    {
+        SavedGameModel sgm1 = TestLoadgame.load("classic-botturn.game.json");
+        TestLoadgame.checkReloaded_ClassicBotturn(sgm1);  // detailed check of game and player data
+
+        // must resume before can save
+        TestLoadgame.fillSeatsForResume(sgm1);
+        sgm1.resumePlay(true);
+
+        File saveFile = testTmpFolder.newFile("classic-copy.game.json");
+        GameSaverJSON.saveGame(sgm1.getGame(), testTmpFolder.getRoot(), saveFile.getName(), srv);
+
+        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile);
+        TestLoadgame.checkReloaded_ClassicBotturn(sgm2);  // looks for same details again
+    }
+
+    /**
+     * Test whether game data is consistent when savegame is loaded, saved, and reloaded,
+     * preserving unknown-field contents where possible.
+     * @throws IOException
+     * @see #testRoundtripReload_ClassicBotturn()
+     */
+    @Test
+    public void testRoundtripReload_BadFieldContents()
+        throws IOException
+    {
+        SavedGameModel sgm1 = TestLoadgame.load("bad-field-contents.game.json");
+        TestLoadgame.checkReloaded_BadFieldContents(sgm1, false);  // detailed check of game and player data
+
+        TestLoadgame.fillSeatsForResume(sgm1);
+        sgm1.resumePlay(true);
+
+        File saveFile = testTmpFolder.newFile("bad-fields-copy.game.json");
+        GameSaverJSON.saveGame(sgm1.getGame(), testTmpFolder.getRoot(), saveFile.getName(), srv);
+
+        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile);
+        sgm2.playerSeatLocks[0] = null;  // this unknown field isn't preserved during roundtrip; that's OK
+        TestLoadgame.checkReloaded_BadFieldContents(sgm2, false);  // looks for same details again
+    }
+
 }
 

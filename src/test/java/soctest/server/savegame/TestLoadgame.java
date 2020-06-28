@@ -79,7 +79,7 @@ public class TestLoadgame
      * @throws IOException if file can't be loaded
      * @throws SavedGameModel.UnsupportedSGMOperationException if unsupported feature; see {@code GameLoaderJson.loadGame}
      */
-    private static SavedGameModel load(final String testRsrcFilename)
+    static SavedGameModel load(final String testRsrcFilename)
         throws IOException, SavedGameModel.UnsupportedSGMOperationException
     {
         final String rsrcPath = "/resources/savegame/" + testRsrcFilename;
@@ -229,10 +229,15 @@ public class TestLoadgame
      * Do the required {@link SOCGameListAtServer} setup for this loaded game
      * so {@link SavedGameModel#resumePlay(boolean)} won't complain.
      * Doesn't actually call {@code resumePlay(..)}.
+     *<P>
+     * Don't call this method if the loaded game doesn't need this setup:
+     * See {@link SavedGameModel#findSeatsNeedingBots()}.
      */
-    private static void fillSeatsForResume(final SavedGameModel sgm)
+    static void fillSeatsForResume(final SavedGameModel sgm)
     {
-        assertNotNull(sgm.findSeatsNeedingBots());
+        assertNotNull
+            ("Should fillSeatsForResume not be called? Couldn't find non-vacant seats still needing player",
+             sgm.findSeatsNeedingBots());
 
         final SOCGame ga = sgm.getGame();
         final String gaName = ga.getName();
@@ -261,7 +266,18 @@ public class TestLoadgame
     public void testBasicLoading()
         throws IOException
     {
-        final SavedGameModel sgm = load("classic-botturn.game.json");
+        checkReloaded_ClassicBotturn(load("classic-botturn.game.json"));
+    }
+
+    /**
+     * Check a loaded game model to see if it has same known data as savegame artifact {@code "classic-botturn.game.json"}.
+     * @param sgm  Loaded game with contents of {@code "classic-botturn"}; not null
+     * @see #checkReloaded_BadFieldContents(SavedGameModel, boolean)
+     */
+    static void checkReloaded_ClassicBotturn(final SavedGameModel sgm)
+    {
+        assertNotNull(sgm);
+
         final SOCGame ga = sgm.getGame();
 
         assertNotNull(ga.savedGameModel);
@@ -305,6 +321,7 @@ public class TestLoadgame
         assertEquals("robberHex", 155, ga.getBoard().getRobberHex());
 
         final String[] NAMES = {null, "robot 4", "robot 2", "debug"};
+        // other tests and release-testing require these lock values for these seats; don't change them
         final SeatLockState[] LOCKS =
             {SeatLockState.UNLOCKED, SeatLockState.CLEAR_ON_RESET, SeatLockState.LOCKED, SeatLockState.UNLOCKED};
         final int[] TOTAL_VP = {0, 3, 2, 3};
@@ -428,7 +445,7 @@ public class TestLoadgame
      * check loaded/parsed game for the expected player dev cards
      * ({@link PlayerInfo#oldDevCards}, {@link PlayerInfo#newDevCards newDevCards}).
      */
-    private void checkExpectedPlayerDevCards(final SOCGame ga)
+    private static void checkExpectedPlayerDevCards(final SOCGame ga)
     {
         // Bot pn 2: new discovery/year of plenty(2); old knight(9)
         SOCInventory cardsInv = ga.getPlayer(2).getInventory();
@@ -568,10 +585,25 @@ public class TestLoadgame
     /**
      * Test parsing and loading game where various field contents are invalid.
      */
+    @Test
     public void testLoadBadFieldContents()
         throws IOException
     {
         final SavedGameModel sgm = load("bad-field-contents.game.json");
+        checkReloaded_BadFieldContents(sgm, true);
+    }
+
+    /**
+     * Check a loaded game model to see if it has same known data as savegame artifact {@code "bad-field-contents.game.json"}.
+     * Calls {@link SavedGameModel#resumePlay(boolean)} if {@code doGameActions}.
+     * @param sgm  Loaded game with contents of {@code "bad-field-contents"}; not null
+     * @param doGameActions  If true, call {@code resumePlay}, then do and check some in-game actions
+     * @see #checkReloaded_ClassicBotturn(SavedGameModel)
+     */
+    static void checkReloaded_BadFieldContents(final SavedGameModel sgm, final boolean doGameActions)
+    {
+        assertNotNull(sgm);
+
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "bad-field-contents", sgm.gameName);
@@ -595,14 +627,14 @@ public class TestLoadgame
         assertEquals(1, ga.getFirstPlayer());
         assertEquals(1, ga.getCurrentPlayerNumber());
         assertEquals(2, ga.getRoundCount());
-        assertEquals(-1, ga.getPlayerWithLargestArmy());
-        assertEquals(-1, ga.getPlayerWithLongestRoad());
+        assertEquals(null, ga.getPlayerWithLargestArmy());
+        assertEquals(null, ga.getPlayerWithLongestRoad());
 
         // player 1 has some invalid/unknown elements; rest of elements should load OK
-        final String[] NAMES = {null, "debug", "robot 4", "robot 2"};
-        final int[] TOTAL_VP = {0, 3, 2, 5};
+        final String[] NAMES = {null, "robot 4", "robot 2", "debug"};
+        final int[] TOTAL_VP = {0, 3, 2, 2};
         final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
-        final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 3, 4, 0, 0}, {14, 4, 3, 0, 0}, {12, 4, 3, 0, 0}};
+        final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
         checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
 
         // player 1 oldDevCards has some unknown type strings and numbers;
@@ -618,12 +650,15 @@ public class TestLoadgame
 
         // devCardDeck has an unknown type string;
         // should still parse the rest of them properly
-        int n = sgm.devCardDeck.size();
+        int n = sgm.devCardDeck.size() - 1;
         assertEquals(0, SOCDevCard.getCardType("NOT_A_DEFINED_CARD_NAME"));
         assertEquals("devCardDeck[n-2]", SOCDevCardConstants.ROADS, sgm.devCardDeck.get(n-2).intValue());
         assertEquals("devCardDeck[n-1]", SOCDevCardConstants.UNKNOWN, sgm.devCardDeck.get(n-1).intValue());
         assertEquals("devCardDeck[n]", SOCDevCardConstants.KNIGHT, sgm.devCardDeck.get(n).intValue());
         assertTrue(sgm.warnDevCardDeckHasUnknownType);
+
+        if (! doGameActions)
+            return;
 
         // can buy dev cards, including that unknown one
         fillSeatsForResume(sgm);
