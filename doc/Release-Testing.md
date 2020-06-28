@@ -356,13 +356,15 @@ When preparing to release a new version, testing should include:
           should adapt to the older client version.  
           With a newer client connected to an older server, available new-game options
           should adapt to the older server version.  
-          This is especially visible when testing 1.x against 2.x.
+            - This is especially visible when testing 1.x against 2.x.
+            - Also test this with new client against server 1.1.07 (first version with options)
         - Create and start playing a 4-player game with no options (this uses an older message type)
         - Give a robot player some new dev cards: VP, playable  
           `dev: 4 botname`  
           `dev: 9 botname`
         - Have another client join and take over that bot; should see dev card details correctly
         - Create and start playing a 4-player game with No Trading option
+            - Click Options button: Game options should be those chosen in this game's New Game dialog
         - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
         - On a 2.x server, have 2.x client create game with a scenario (1.x can't join);
@@ -657,6 +659,10 @@ When preparing to release a new version, testing should include:
     - Saved bot properties
         - Save a game having no bots, mix of smart/fast bots, one with at least 1 Sample3PClient
         - For each of those, examine the players in the save file for correct values for: isRobot, isBuiltInRobot, isRobotWithSmartStrategy, and (for Sample3PClient) `"robot3rdPartyBrainClass": "soc.robot.sample3p.Sample3PClient"`
+    - Loading sample savegames from unit tests
+        - Copy \*.game.json (except bad-\*) from `src/test/resources/resources/savegame/` to your test server's savegame dir
+        - Each one should load without error, and resume without error (except "classic-over")
+        - "classic-botturn" should have bots playing in the upper-right and lower-right seats, even though those seats are marked/locked
     - Server config options/properties
         - Start server with savegame, but not debug user or Admin Users list:  
             `-Djsettlers.savegame.dir=/tmp/jsgame`
