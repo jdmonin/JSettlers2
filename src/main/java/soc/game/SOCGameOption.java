@@ -2460,9 +2460,11 @@ public class SOCGameOption
             //    here. Set or change options if it makes sense; if a user has deliberately
             //    set a boolean option, think carefully before un-setting it and surprising them.
 
-            // Set PLB if PL>4
+            // Set PLB if PL>4 or PLP
             opt = newOpts.get("PL");
-            if ((opt != null) && (opt.getIntValue() > 4))
+            SOCGameOption optPLP = newOpts.get("PLP");
+            if (((opt != null) && (opt.getIntValue() > 4))
+                || ((optPLP != null) && optPLP.getBoolValue()))
                 setBoolOption(newOpts, "PLB");
 
         }  // if(doServerPreadjust)
