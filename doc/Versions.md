@@ -18,6 +18,8 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.4.00` (build JX2020xxxx)
 - Currently being developed
+- Gameplay:
+	- Pirate can be placed next to any coastline, even those near edge of board
 - Client:
 	- Add client preference: Remember face icon when changed
 	- Game window:

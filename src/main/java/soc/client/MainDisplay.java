@@ -292,7 +292,7 @@ public interface MainDisplay
      * Server has sent authorization for client to join a game.
      * Client should create a UI to watch or interact with that game.
      * @param game  New game's data received from server
-     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     * @param layoutVS  Optional board layout "visual shift and trim" (Added Layout Part "VS")
      *     to use when sizing and drawing the new game's board, or {@code null}
      * @param localPrefs  Local prefs relevant to the new game
      * @return  A new {@link PlayerClientListener} for interacting with that game or its UI

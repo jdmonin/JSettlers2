@@ -553,8 +553,9 @@ public class SOCPlayerInterface extends Frame
     protected boolean gameHasErrorOrDeletion;
 
     /**
-     * Optional board layout "visual shift" (Added Layout Part "VS") to use
+     * Optional board layout "visual shift and trim" (Added Layout Part "VS") to use
      * when sizing and laying out the game's {@link SOCBoardPanel}, or {@code null}.
+     * @see SOCBoardPanel#getExtraSizeFromBoard(boolean)
      * @since 2.0.00
      */
     private final int[] layoutVS;
@@ -781,7 +782,7 @@ public class SOCPlayerInterface extends Frame
      * @param title  title for this interface - game name
      * @param md     the client main display that spawned us
      * @param ga     the game associated with this interface; must not be {@code null}
-     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     * @param layoutVS  Optional board layout "visual shift and trim" (Added Layout Part "VS")
      *     to use when sizing and laying out the new game's {@link SOCBoardPanel}, or {@code null}
      * @param localPrefs  optional map of per-game local preferences to use in this {@code SOCPlayerInterface},
      *     or {@code null}. Preference name keys are {@link #PREF_SOUND_MUTE}, etc.
@@ -890,6 +891,7 @@ public class SOCPlayerInterface extends Frame
         textInputHistory.add("");
 
         final Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard(false);
+            // add to minimum size, to make enough room for board height, width, layoutVS
             // use unscaled board-internal pixels, to simplify assumptions at this early part of init/layout setup
 
         int piHeight = HEIGHT_MIN_4PL;

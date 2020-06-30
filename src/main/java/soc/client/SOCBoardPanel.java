@@ -954,7 +954,7 @@ import javax.swing.JComponent;
      * actual size on-screen, not internal-pixels size
      * ({@link #panelMinBW}, {@link #panelMinBH}).
      * Includes any positive {@link #panelMarginX}/{@link #panelMarginY}
-     * from {@link #panelShiftBX}, {@link #panelShiftBY}.
+     * from {@link #panelShiftBX}, {@link #panelShiftBY}, and {@link SOCPlayerInterface#layoutVS}.
      *<P>
      * See {@link #scaledBoardW} for board width within {@code scaledPanelW}, containing board hexes from game data
      * but not including margins. See {@link #unscaledBoardW} for unscaled (internal pixel) board width.
@@ -1782,7 +1782,7 @@ import javax.swing.JComponent;
      * After construction, call {@link #getMinimumSize()} to read it.
      *
      * @param pi  the player interface that spawned us
-     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     * @param layoutVS  Optional board layout "visual shift and trim" (Added Layout Part "VS")
      *     to use when setting minimum size of this {@code SOCBoardPanel}, or {@code null}
      */
     public SOCBoardPanel(final SOCPlayerInterface pi, final int[] layoutVS)
@@ -1836,21 +1836,32 @@ import javax.swing.JComponent;
 
                 if (layoutVS != null)
                 {
-                    final int sBX, sBY;
-                    sBY = (layoutVS[0] * halfdeltaY) / 2;
-                    sBX = (layoutVS[1] * halfdeltaX) / 2;
+                    final int shiftBX, shiftBY;
+                    shiftBY = (layoutVS[0] * halfdeltaY) / 2;
+                    shiftBX = (layoutVS[1] * halfdeltaX) / 2;
 
-                    if (sBX != 0)
+                    if (shiftBX != 0)
                     {
-                        panelMarginX = panelShiftBX = sBX;
-                        if (sBX > 0)
-                            scaledPanelW += sBX;
+                        panelMarginX = panelShiftBX = shiftBX;
+                        if (shiftBX > 0)
+                            scaledPanelW += shiftBX;
                     }
-                    if (sBY != 0)
+                    if (shiftBY != 0)
                     {
-                        panelMarginY = panelShiftBY = sBY;
-                        if (sBY > 0)
-                            scaledPanelH += sBY;
+                        panelMarginY = panelShiftBY = shiftBY;
+                        if (shiftBY > 0)
+                            scaledPanelH += shiftBY;
+                    }
+
+                    if (layoutVS.length >= 4)
+                    {
+                        final int trimBX, trimBY;
+                        trimBY = (layoutVS[2] * halfdeltaY) / 2;
+                        trimBX = (layoutVS[3] * halfdeltaX) / 2;
+                        if (trimBX > 0)
+                            scaledPanelW -= trimBX;
+                        if (trimBY > 0)
+                            scaledPanelH -= trimBY;
                     }
                 }
             } else {
