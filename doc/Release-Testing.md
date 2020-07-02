@@ -113,7 +113,11 @@ When preparing to release a new version, testing should include:
           - Build roads/ships to take Longest Route from another player
           - Build settlement to split another player's Longest Route, giving a 3rd player the new Longest Route.
             (Skip this situation if testing for "move a ship".)
-            If this ends the game, 3rd player should win only when their turn begins
+            If this ends the game, 3rd player should win only when their turn begins.  
+            To save time, you can test with server Savegame feature enabled:  
+            Copy src/test/resources/resources/savegame/reletest-longest-3p.game.json and reletest-longest-3p-sea.game.json
+            to your server's configured savegame directory, then run `*LOADGAME* reletest-longest-3p`
+            or `*LOADGAME* reletest-longest-3p-sea`
         - Piece types to test each situation with:
           - Build roads only
           - Build a route that has roads and ships (through a coastal settlement)

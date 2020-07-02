@@ -202,6 +202,12 @@ public class SavedGameModel
     public String comments;
 
     /**
+     * Free-form author info for this saved game, or {@code null} if not present.
+     * @since 2.4.00
+     */
+    public String author;
+
+    /**
      * Game options (or null), from
      * {@link SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, true)}.
      * List is sorted in model version 2400 and newer; see {@code SOCGameOption.packOptionsToString} javadoc for details.

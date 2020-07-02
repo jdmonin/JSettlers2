@@ -1,0 +1,631 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2400,
+  "gameMinVersion": 1108,
+  "gameName": "longestroute-3p",
+  "comments": "when pn 5 debug splits pn 3 robot 4's road, pn 2 droid 1 will gain longest road to win",
+  "author": "Jeremy D Monin  2020",
+  "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d4,PLB\u003dt,RD\u003df",
+  "gameDurationSeconds": 389,
+  "gameState": 20,
+  "oldGameState": 20,
+  "currentDice": 3,
+  "elements": {
+    "FIRST_PLAYER": 5,
+    "LARGEST_ARMY_PLAYER": -1,
+    "CURRENT_PLAYER": 5,
+    "LONGEST_ROAD_PLAYER": 3,
+    "ROUND_COUNT": 2
+  },
+  "devCardDeck": [
+    "ROADS",
+    "DISC",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "ROADS",
+    "CHAPEL",
+    "MONO",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "ROADS",
+    "TEMPLE",
+    "KNIGHT",
+    "KNIGHT",
+    "MONO",
+    "KNIGHT",
+    "DISC",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "UNIV",
+    "KNIGHT",
+    "KNIGHT",
+    "MONO",
+    "DISC",
+    "KNIGHT",
+    "KNIGHT",
+    "MARKET",
+    "KNIGHT",
+    "CAP"
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "boardInfo": {
+    "layout2": {
+      "game": "longestroute-3p",
+      "boardEncodingFormat": 2,
+      "layoutParts": {
+        "HL": [
+          5,
+          3,
+          2,
+          6,
+          4,
+          5,
+          5,
+          1,
+          6,
+          3,
+          3,
+          0,
+          4,
+          3,
+          6,
+          4,
+          5,
+          1,
+          1,
+          4,
+          5,
+          6,
+          1,
+          5,
+          1,
+          3,
+          0,
+          6,
+          2,
+          4,
+          2,
+          3,
+          6,
+          4,
+          2,
+          2,
+          6
+        ],
+        "RH": 89,
+        "PL": [
+          2,
+          3,
+          0,
+          0,
+          5,
+          1,
+          4,
+          0,
+          0,
+          3,
+          0
+        ],
+        "NL": [
+          8,
+          3,
+          6,
+          -1,
+          4,
+          9,
+          5,
+          10,
+          -1,
+          8,
+          12,
+          -1,
+          9,
+          11,
+          -1,
+          2,
+          10,
+          3,
+          6,
+          4,
+          11,
+          -1,
+          5,
+          11,
+          2,
+          5,
+          -1,
+          -1,
+          4,
+          12,
+          10,
+          8,
+          -1,
+          6,
+          3,
+          9,
+          -1
+        ]
+      },
+      "messageType": 1084
+    },
+    "playerPotentials": [
+      {
+        "game": "longestroute-3p",
+        "playerNumber": 0,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "longestroute-3p",
+        "playerNumber": 1,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "longestroute-3p",
+        "playerNumber": 2,
+        "psNodes": [
+          105,
+          120,
+          220
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "longestroute-3p",
+        "playerNumber": 3,
+        "psNodes": [
+          88,
+          103,
+          105,
+          118,
+          120
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "longestroute-3p",
+        "playerNumber": 4,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "longestroute-3p",
+        "playerNumber": 5,
+        "psNodes": [
+          84,
+          86,
+          103
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeatLocks": [
+    "LOCKED",
+    "UNLOCKED",
+    "UNLOCKED",
+    "UNLOCKED",
+    "UNLOCKED",
+    "UNLOCKED"
+  ],
+  "playerSeats": [
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "SETTLEMENTS": 5,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 15
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "robot 5",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 4,
+        "wheat": 0,
+        "wood": 1
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 13
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 182
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 165
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 52
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 36
+        }
+      ]
+    },
+    {
+      "name": "droid 1",
+      "isSeatVacant": false,
+      "totalVP": 8,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 0,
+      "resources": {
+        "clay": 1,
+        "ore": 0,
+        "sheep": 2,
+        "wheat": 1,
+        "wood": 1
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "NUMKNIGHTS": 0,
+        "CITIES": 1,
+        "ROADS": 2
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "ROAD",
+          "coord": 90
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 136
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 120
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 137
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 138
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 122
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 106
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 105
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 152
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 169
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 152
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 154
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 107
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 186
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 139
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 156
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 186
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 203
+        }
+      ]
+    },
+    {
+      "name": "robot 4",
+      "isSeatVacant": false,
+      "totalVP": 5,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "SETTLEMENTS": 2,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 3
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 75
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 74
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 184
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 184
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 73
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 72
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 88
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 104
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 103
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 102
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 118
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 134
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 150
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 167
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 150
+        }
+      ]
+    },
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "SETTLEMENTS": 5,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 15
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 2,
+      "resources": {
+        "clay": 1,
+        "ore": 1,
+        "sheep": 4,
+        "wheat": 1,
+        "wood": 4
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 8
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        1,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 116
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 99
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 56
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 39
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 100
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 84
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 68
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 69
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 86
+        }
+      ]
+    }
+  ]
+}

@@ -55,9 +55,9 @@ public class TestBoardLarge
      * 
      * @param hexA  Hex to test from
      * @param hexB  Expected adjacent hex from {@code hexA} in {@code facing} direction, or 0 if expected off board
-     * @param facing  Facing direction from hexA to hexB
+     * @param facing  Facing direction from {@code hexA} to {@code hexB}
      * @param expectFail The exception a failing test is expected to throw, or {@code null} if test should succeed.
-     *     Checked only in "forward" direction hexA to hexB, not reverse.
+     *     Checked only in "forward" direction {@code hexA} to {@code hexB}, not reverse.
      * @since 2.4.00
      */
     private static void doTestPair_getAdjacentHexToHex
@@ -113,7 +113,7 @@ public class TestBoardLarge
         doTestPair_getAdjacentHexToHex(b, 0x0305, 0, 0, IllegalArgumentException.class);
         doTestPair_getAdjacentHexToHex(b, 0x0305, 0, 7, IllegalArgumentException.class);
 
-        // hexA out of bounds
+        // hexA out of bounds (boardHeight, boardWidth)
         doTestPair_getAdjacentHexToHex(b, 0x9305, 0, SOCBoard.FACING_E, IndexOutOfBoundsException.class);
         doTestPair_getAdjacentHexToHex(b, 0x0395, 0, SOCBoard.FACING_E, IndexOutOfBoundsException.class);
 

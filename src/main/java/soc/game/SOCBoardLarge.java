@@ -2587,7 +2587,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return hex coordinate of hex in that direction,
      *     or 0 if that hex would be off the edge of the board
      * @throws IndexOutOfBoundsException if {@code hexCoord} fails {@link #isHexInBounds(int, int)}
-     * @throws IllegalArgumentException if {@code facing} is &lt; 0 or &gt;= 6
+     * @throws IllegalArgumentException if {@code facing} is &lt; 1 or &gt; 6
      * @see #getAdjacentHexesToHex(int, boolean)
      * @since 2.4.00
      */
