@@ -689,11 +689,20 @@ public class SOCGameOption
                     }
                 } else {
                     // PLB became unchecked
+
                     if (numPl > 4)
                     {
                         pl.setIntValue(4);
                         pl.userChanged = false;  // so re-check will set to 6
                         refreshPl = true;
+                    }
+
+                    // numPl <= 4, so PLP doesn't apply
+                    SOCGameOption plp = currentOpts.get("PLP");
+                    if ((plp != null) && plp.getBoolValue() && ! plp.userChanged)
+                    {
+                        plp.setBoolValue(false);
+                        plp.refreshDisplay();
                     }
                 }
 
