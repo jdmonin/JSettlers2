@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,11 +41,15 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * to the game along with the new {@link SOCGameState}. Otherwise server responds with an explanatory
  * {@link SOCGameServerText} and, if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link SOCGameState} and then a {@link SOCCancelBuildRequest}.
+ *<BR>
+ * If PutPiece leads to Longest Route player changing, server sends that
+ * after {@code SOCPlayerElement}s before {@code SOCGameState}:
+ * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER}).
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@link #getPlayerNumber()} is -1 in this message.
  *<P>
- * See also {@link SOCMovePiece}. The messages similar but opposite to this one
+ * See also {@link SOCMovePiece} and {@link SOCDebugFreePlace}. Messages similar but opposite to this one
  * are {@link SOCCancelBuildRequest} and the very-limited {@link SOCRemovePiece}.
  *<P>
  * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces

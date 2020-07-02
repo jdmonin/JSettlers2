@@ -34,6 +34,9 @@ import java.util.StringTokenizer;
  * {@link SOCGameState}({@link soc.game.SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM})
  * for port placement in scenario {@link soc.game.SOCGameOption#K_SC_FTRI SC_FTRI}.
  *<P>
+ * If placement leads to Longest Route player changing, server sends that after its SOCPutPiece message:
+ * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER}).
+ *<P>
  * When sent from server to client, the message is a generic message to
  * acknowledge that the "Free Placement" debug-mode has been turned on or off.
  * {@link #getCoordinates()} is 1 for on, 0 for off.

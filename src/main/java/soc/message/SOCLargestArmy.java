@@ -24,9 +24,10 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message says which player has largest army.
- * Sent from server during joinGame.
- * During normal gameplay, "largest army" indicator at client is updated
+ * This message from server says which player has Largest Army.
+ * Sent during joinGame and when changes occur during normal gameplay.
+ *<P>
+ * In versions older than v2.4.00, Largest Army at client was updated during gameplay
  * by examining game state, not by messages from server: See
  * {@link SOCPlayerElement.PEType#NUMKNIGHTS}.
  *<P>

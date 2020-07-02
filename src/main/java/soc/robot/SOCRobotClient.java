@@ -951,6 +951,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         SOCGame ga = new SOCGame(gaName, gameOpts);
         ga.isPractice = isPractice;
+        ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
         games.put(gaName, ga);
 
         CappedQueue<SOCMessage> brainQ = new CappedQueue<SOCMessage>();

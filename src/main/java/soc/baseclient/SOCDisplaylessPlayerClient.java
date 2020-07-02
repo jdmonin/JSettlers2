@@ -1029,6 +1029,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final SOCGame ga = new SOCGame(mes.getGame(), opts);
         ga.isPractice = isPractice;
+        ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
         games.put(mes.getGame(), ga);
     }
 

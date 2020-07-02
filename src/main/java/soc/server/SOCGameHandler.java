@@ -2977,6 +2977,44 @@ public class SOCGameHandler extends GameHandler
             (gn, pn, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, 0));
     }
 
+    /**
+     * Check whether game's Longest Road/Longest Route player has changed, announce to game if so: Sends
+     * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER})
+     * or (if older clients) {@link SOCLongestRoad}.
+     * @param ga  Game to check
+     * @param prevLongestRoadPlayer  Previous {@link SOCGame#getPlayerWithLongestRoad()}, might be null,
+     *     from before the game action which might have changed it
+     * @param hasGameMonitor  If true, caller already has
+     *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     *     and this method should use {@link SOCServer#messageToGameWithMon(String, SOCMessage)}.
+     *     Otherwise will take and release that monitor here by using
+     *     {@link SOCServer#messageToGame(String, SOCMessage)} instead.
+     * @since 2.4.00
+     */
+    final void reportLongestRoadIfChanged
+        (final SOCGame ga, final SOCPlayer prevLongestRoadPlayer, final boolean hasGameMonitor)
+    {
+        final int prevPN = (prevLongestRoadPlayer != null) ? prevLongestRoadPlayer.getPlayerNumber() : -1;
+
+        SOCPlayer pl = ga.getPlayerWithLongestRoad();
+        int newPN = (pl != null) ? pl.getPlayerNumber() : -1;
+        if (newPN == prevPN)
+            return;
+
+        final String gaName = ga.getName();
+        final SOCMessage msg;
+        if (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+            msg = new SOCGameElements
+                (gaName, GEType.LONGEST_ROAD_PLAYER, newPN);
+        else
+            msg = new SOCLongestRoad(gaName, newPN);
+
+        if (hasGameMonitor)
+            srv.messageToGameWithMon(gaName, msg);
+        else
+            srv.messageToGame(gaName, msg);
+    }
+
     // javadoc inherited from GameHandler
     /**
      * {@inheritDoc}

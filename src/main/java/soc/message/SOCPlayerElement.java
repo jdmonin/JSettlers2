@@ -134,11 +134,12 @@ public class SOCPlayerElement extends SOCMessage
         /**
          * Number of knights in player's army; sent after a Soldier card is played.
          *<P>
+         * If server is older than v2.4.00 ({@link SOCGame#VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}):
          * During normal gameplay, "largest army" indicator at client is updated
          * by examining game state, not by {@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER} message from server:
          *<BR>
-         * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
-         * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
+         * client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
+         * then (for &lt; v2.4.00) game's largest army by calling {@link SOCGame#updateLargestArmy()},
          * then update any related displays.
          */
         NUMKNIGHTS(15),

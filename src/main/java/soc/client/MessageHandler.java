@@ -1182,6 +1182,8 @@ import soc.util.Version;
         if (ga != null)
         {
             ga.isPractice = isPractice;
+            ga.serverVersion = (isPractice) ? Version.versionNumber() : client.sVersion;
+
             PlayerClientListener clientListener =
                 client.getMainDisplay().gameJoined(ga, mes.getLayoutVS(), client.getGameReqLocalPrefs().get(gaName));
             client.getClientListeners().put(gaName, clientListener);

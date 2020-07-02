@@ -646,6 +646,7 @@ public class SavedGameModel
                     SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, elem, elements.get(elem));
 
             boardInfo.loadInto(ga);
+
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
 
@@ -663,6 +664,7 @@ public class SavedGameModel
                         warnHasHumanPlayerWithBotName = true;
                 }
             }
+
             if (playerSeatLocks != null)
                 // now that player data is loaded, lock seats if needed
                 for (int pn = 0; pn < ga.maxPlayers; ++pn)
@@ -671,6 +673,12 @@ public class SavedGameModel
                     if (lock != null)
                         ga.setSeatLock(pn, lock);
                 }
+
+            // Now that all players are loaded and all pieces placed, set up players' longest route info
+            // so Longest Route determinations in resumed game are correct
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                ga.getPlayer(pn).calcLongestRoad2();
+
         } catch (Exception e) {
             throw new IllegalArgumentException("Problem initializing game: " + e, e);
         }

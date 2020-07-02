@@ -20,6 +20,7 @@ and backport minor new features until `2.0.00` was ready.
 - Currently being developed
 - Gameplay:
 	- Pirate can be placed next to any coastline, even those near edge of board
+	- For consistency, calculate Longest Route and Largest Army only at server, not also at client
 - Client:
 	- Add client preference: Remember face icon when changed
 	- Game window:
@@ -33,6 +34,8 @@ and backport minor new features until `2.0.00` was ready.
 	  - Server sends players' current trade offers
 	  - Server sends seat locks before player info SitDown messages, not after them
 	- When client is sitting down at new game or to take over a bot's seat, send their preferred face icon
+	- During game play:
+	  - When longest route or largest army player changes, announce from server instead of having client calculate it
 	- Bugfix: When client is v1.x, send seat lock state CLEAR_ON_RESET as UNLOCKED not LOCKED
 	  so they can take over a "marked" bot seat
 - Database:
@@ -50,6 +53,7 @@ and backport minor new features until `2.0.00` was ready.
 	    - If game is already over, don't change robot player names by asking bots to join and sit
 	    - Fix incorrect SOCPlayer.potentialSettlements additions
 	    - If can't parse gameOptions, don't load game
+	    - Bugfix: Players' Longest Route length was incorrect after load
 	  - Adds PlayerInfo.earlyElements list to set before piece placement
 	  - SavedGameModel: gameOptions now sorted, adds playerSeatLocks, PlayerInfo adds currentTradeOffer
 	  - Omit writing pieces' specialVP field when it's 0, ships' isClosed when false

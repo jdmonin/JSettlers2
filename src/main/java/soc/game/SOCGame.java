@@ -628,6 +628,14 @@ public class SOCGame implements Serializable, Cloneable
     public static final int VERSION_FOR_CANCEL_FREE_ROAD2 = 1117;
 
     /**
+     * Minimum version (2.4.00) where {@link #getPlayerWithLongestRoad()} and {@link #getPlayerWithLargestArmy()}
+     * are calculated only at the server, instead of also at the client.
+     * Client should calculate them if {@link #serverVersion} &lt; this version.
+     * @since 2.4.00
+     */
+    public static final int VERSION_FOR_LONGEST_LARGEST_FROM_SERVER = 2400;
+
+    /**
      * an empty set of resources.
      * @see SOCSettlement#COST
      */
@@ -660,11 +668,28 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Is this the server's complete copy of the game, not the client's (with some details unknown)?
-     * Set during {@link #startGame()}. Treat as read-only.
+     * Is set during {@link #startGame()}. Treat as read-only.
+     * @see #serverVersion
      * @see #hasDoneGameOverTasks
      * @since 1.1.17
      */
     public boolean isAtServer;
+
+    /**
+     * For use at client, version of the server hosting this game;
+     * same format as {@link soc.util.Version#versionNumber()}.
+     * If {@link #isPractice}, holds same version as client.
+     *<P>
+     * Unused if {@link #isAtServer}.
+     *<P>
+     * Needed because some versions have a different balance of which game-data tasks are done at the server,
+     * and which are at the client or at both. See {@link #VERSION_FOR_LONGEST_LARGEST_FROM_SERVER} for an example.
+     *<P>
+     * Is set when client receives {@code SOCJoinGameAuth} message which tells client to create the {@link SOCGame}.
+     * Treat as read-only.
+     * @since 2.4.00
+     */
+    public transient int serverVersion;
 
     /**
      * For games at server, a convenient queue to hold any outbound SOCMessages during game actions.
@@ -780,6 +805,7 @@ public class SOCGame implements Serializable, Cloneable
      * Before 1.1.13 this field was called {@code isLocal}, but that was misleading;
      * the full client can launch a locally hosted tcp LAN server.
      *
+     * @see #serverVersion
      * @since 1.1.00
      */
     public boolean isPractice;
@@ -8353,26 +8379,23 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * update which player has the largest army
      * larger than 2
+     *<P>
+     * For consistency, recalculates this field only if {@link #isAtServer}; does nothing at client.
      */
     public void updateLargestArmy()
     {
-        int size;
+        if (! (isAtServer || (serverVersion < VERSION_FOR_LONGEST_LARGEST_FROM_SERVER)))
+            return;  // <--- for consistency, client shouldn't calc this independently of server ---
 
-        if (playerWithLargestArmy == -1)
-        {
-            size = 2;
-        }
-        else
-        {
-            size = players[playerWithLargestArmy].getNumKnights();
-        }
+        int size =
+            (playerWithLargestArmy == -1)
+            ? 2
+            : players[playerWithLargestArmy].getNumKnights();
 
         for (int i = 0; i < maxPlayers; i++)
         {
             if (players[i].getNumKnights() > size)
-            {
                 playerWithLargestArmy = i;
-            }
         }
     }
 
@@ -8399,12 +8422,15 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * update which player has longest road longer
      * than 4.
-     *
+     *<P>
      * this version recalculates the longest road only for
      * the player who is affected by the most recently
      * placed piece, by calling their {@link SOCPlayer#calcLongestRoad2()}.
      * Assumes all other players' longest road has been updated already.
      * All players' {@link SOCPlayer#getLongestRoadLength()} is called here.
+     *<P>
+     * For consistency, recalculates {@link #getPlayerWithLongestRoad()} only if {@link #isAtServer};
+     * client only calls each player's {@code calcLongestRoad2}.
      *<P>
      * if there is a tie, the last player to have LR keeps it.
      * if two or more players are tied for LR and none of them
@@ -8425,6 +8451,10 @@ public class SOCGame implements Serializable, Cloneable
         int tmpPlayerWithLR = -1;
 
         players[pn].calcLongestRoad2();
+
+        if (! (isAtServer || (serverVersion < VERSION_FOR_LONGEST_LARGEST_FROM_SERVER)))
+            return;  // <--- for consistency, client shouldn't calc this independently of server ---
+
         longestLength = 0;
 
         for (int i = 0; i < maxPlayers; i++)
@@ -8453,12 +8483,8 @@ public class SOCGame implements Serializable, Cloneable
             int playersWithLR = 0;
 
             for (int i = 0; i < maxPlayers; i++)
-            {
                 if (players[i].getLongestRoadLength() == longestLength)
-                {
                     playersWithLR++;
-                }
-            }
 
             if (playersWithLR == 1)
             {
@@ -8739,6 +8765,7 @@ public class SOCGame implements Serializable, Cloneable
 
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
         cp.isAtServer = isAtServer;
+        cp.serverVersion = serverVersion;
         cp.isPractice = isPractice;
         cp.gameEventListener = gameEventListener;
         cp.ownerName = ownerName;

@@ -1878,6 +1878,7 @@ public class SOCGameMessageHandler
                 final int pieceType = mes.getPieceType();
                 final int pn = player.getPlayerNumber();
                 final boolean isBuyAndPut = (gameState == SOCGame.PLAY1) || (gameState == SOCGame.SPECIAL_BUILDING);
+                final SOCPlayer longestRoutePlayer = ga.getPlayerWithLongestRoad();
 
                 if (isBuyAndPut)
                 {
@@ -1921,12 +1922,16 @@ public class SOCGameMessageHandler
                                }
                                }
                              */
+
+                            // TODO refactor common netcode here with other piece types
+
                             srv.gameList.takeMonitorForGame(gaName);
                             try
                             {
                                 srv.messageToGameKeyed(ga, false, "action.built.road", plName);  // "Joe built a road."
                                 srv.messageToGameWithMon
                                     (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
+                                handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
                                 if (! ga.pendingMessagesOut.isEmpty())
                                     handler.sendGamePendingMessages(ga, false);
                             } finally {
@@ -1974,12 +1979,15 @@ public class SOCGameMessageHandler
                             final SOCSettlement se = new SOCSettlement(player, coord, null);
                             ga.putPiece(se);   // Changes game state and (if initial placement) player
 
+                            // TODO refactor common netcode here with other piece types
+
                             srv.gameList.takeMonitorForGame(gaName);
                             try
                             {
                                 srv.messageToGameKeyed(ga, false, "action.built.stlmt", plName);  // "Joe built a settlement."
                                 srv.messageToGameWithMon
                                     (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
+                                handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
                                 if (! ga.pendingMessagesOut.isEmpty())
                                     handler.sendGamePendingMessages(ga, false);
                             } finally {
@@ -2096,6 +2104,7 @@ public class SOCGameMessageHandler
                                 srv.messageToGameKeyed(ga, false, "action.built.ship", plName);  // "Joe built a ship."
                                 srv.messageToGameWithMon
                                     (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
+                                handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
                                 if (! ga.pendingMessagesOut.isEmpty())
                                     handler.sendGamePendingMessages(ga, false);
                             } finally {
@@ -2183,12 +2192,14 @@ public class SOCGameMessageHandler
                 denyRequest = true;
             } else {
                 final int gstate = ga.getGameState();
+                final SOCPlayer longestRoutePlayer = ga.getPlayerWithLongestRoad();
 
                 ga.moveShip(moveShip, toEdge);
 
                 srv.messageToGame(gaName, new SOCMovePiece
                     (gaName, pn, SOCPlayingPiece.SHIP, fromEdge, toEdge));
                 // client will also print "* Joe moved a ship.", no need to send a SOCGameServerText.
+                handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, false);
 
                 if (! ga.pendingMessagesOut.isEmpty())
                     handler.sendGamePendingMessages(ga, true);
@@ -2228,6 +2239,7 @@ public class SOCGameMessageHandler
             return;
         final String gaName = ga.getName();
         final int gstate = ga.getGameState();
+        final SOCPlayer longestRoutePlayer = ga.getPlayerWithLongestRoad();
 
         final int coord = mes.getCoordinates();
         final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
@@ -2288,6 +2300,7 @@ public class SOCGameMessageHandler
         {
             srv.messageToGame(gaName, new SOCPutPiece
                               (gaName, mes.getPlayerNumber(), pieceType, coord));
+            handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, false);
 
             if (! (ga.pendingMessagesOut.isEmpty() && player.pendingMessagesOut.isEmpty()))
                 handler.sendGamePendingMessages(ga, true);
@@ -2521,13 +2534,18 @@ public class SOCGameMessageHandler
                 switch (ctype)
                 {
                 case SOCDevCardConstants.KNIGHT:
-
+                    {
                     final boolean isWarshipConvert = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
 
                     if (ga.canPlayKnight(pn))
                     {
                         final PEType peType = (isWarshipConvert)
                             ? PEType.SCENARIO_WARSHIP_COUNT : PEType.NUMKNIGHTS;
+                        final int pnWithLargestArmy;
+                        {
+                            SOCPlayer pl = ga.getPlayerWithLargestArmy();
+                            pnWithLargestArmy = (pl != null) ? pl.getPlayerNumber() : -1;
+                        }
 
                         ga.playKnight();
 
@@ -2535,6 +2553,7 @@ public class SOCGameMessageHandler
                             ? "action.card.soldier.warship"  // "converted a ship to a warship."
                             : "action.card.soldier";         // "played a Soldier card."
                         srv.gameList.takeMonitorForGame(gaName);
+
                         srv.messageToGameKeyed(ga, false, cardplayed, player.getName());
                         if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                         {
@@ -2557,16 +2576,32 @@ public class SOCGameMessageHandler
                             srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         srv.messageToGameWithMon
                             (gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, peType, 1));
+
                         srv.gameList.releaseMonitorForGame(gaName);
+
                         if (! isWarshipConvert)
                         {
+                            SOCPlayer pl = ga.getPlayerWithLargestArmy();
+                            int newPNwithLargestArmy = (pl != null) ? pl.getPlayerNumber() : -1;
+                            if (newPNwithLargestArmy != pnWithLargestArmy)
+                            {
+                                SOCMessage msg;
+                                if (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+                                    msg = new SOCGameElements
+                                        (gaName, GEType.LARGEST_ARMY_PLAYER, newPNwithLargestArmy);
+                                else
+                                    msg = new SOCLargestArmy(gaName, newPNwithLargestArmy);
+
+                                srv.messageToGame(gaName, msg);
+                            }
+
                             handler.sendGameState(ga);
                         }
                     } else {
                         denyPlayCardNow = true;
                         // "You can't play a " + ((isWarshipConvert) ? "Warship" : "Soldier") + " card now."
                     }
-
+                    }
                     break;
 
                 case SOCDevCardConstants.ROADS:
