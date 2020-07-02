@@ -37,6 +37,21 @@ import static org.junit.Assert.*;
 public class TestBoard
 {
     /**
+     * Test the "facing" constants' values: {@link SOCBoard#FACING_NE} etc.
+     * @since 2.4.00
+     */
+    @Test
+    public void testFacingConstants()
+    {
+        assertEquals(1, SOCBoard.FACING_NE);
+        assertEquals(2, SOCBoard.FACING_E);
+        assertEquals(3, SOCBoard.FACING_SE);
+        assertEquals(4, SOCBoard.FACING_SW);
+        assertEquals(5, SOCBoard.FACING_W);
+        assertEquals(6, SOCBoard.FACING_NW);
+    }
+
+    /**
      * For a pair of edge coordinates, test
      * {@link SOCBoard#getNodeBetweenAdjacentEdges(int, int)} with parameters in both orders,
      * and {@link SOCBoard#getAdjacentNodesToEdge_arr(int)}, to see if they return {@code nodeBetween}.

@@ -22,7 +22,9 @@ package soctest.game;
 
 import java.util.Arrays;
 
+import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.util.IntPair;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -35,6 +37,136 @@ import static org.junit.Assert.*;
  */
 public class TestBoardLarge
 {
+
+    /**
+     * Test a few common constants and default {@link SOCBoardLarge#getBoardSize(java.util.Map) getBoardSize(null)}.
+     * @since 2.4.00
+     */
+    @Test
+    public void testConstants()
+    {
+        assertEquals(16, SOCBoardLarge.BOARDHEIGHT_LARGE);
+        assertEquals(18, SOCBoardLarge.BOARDWIDTH_LARGE);
+        assertEquals(new IntPair(16, 18), SOCBoardLarge.getBoardSize(null));
+    }
+
+    /**
+     * For a pair of hex coordinates, test {@link SOCBoardLarge#getAdjacentHexToHex(int, int)} in both directions.
+     * 
+     * @param hexA  Hex to test from
+     * @param hexB  Expected adjacent hex from {@code hexA} in {@code facing} direction, or 0 if expected off board
+     * @param facing  Facing direction from hexA to hexB
+     * @param expectFail The exception a failing test is expected to throw, or {@code null} if test should succeed.
+     *     Checked only in "forward" direction hexA to hexB, not reverse.
+     * @since 2.4.00
+     */
+    private static void doTestPair_getAdjacentHexToHex
+        (final SOCBoardLarge board, final int hexA, final int hexB, final int facing,
+         final Class<? extends Throwable> expectFail)
+    {
+        String desc = "getAdjacentHexToHex(0x" + Integer.toHexString(hexA) + ", " + facing + ')';
+
+        try
+        {
+            final int adjacFromA = board.getAdjacentHexToHex(hexA, facing);
+            if (expectFail != null)
+                fail(desc + " should have thrown exception");
+            assertEquals(desc + " incorrect", hexB, adjacFromA);
+        } catch (Throwable th) {
+            if ((expectFail == null) || ! expectFail.isInstance(th))
+                throw th;
+        }
+
+        if (hexB != 0)
+        {
+            int faceBack = facing + 3;
+            if (faceBack > 6)
+                faceBack -= 6;
+
+            final int adjacFromB = board.getAdjacentHexToHex(hexB, faceBack);
+            desc = "getAdjacentHexToHex(0x" + Integer.toHexString(hexB) + ", " + faceBack + ')';
+            assertEquals(desc + " incorrect", hexA, adjacFromB);
+        }
+    }
+
+    /**
+     * Test {@link SOCBoardLarge#getAdjacentHexToHex(int, int)}.
+     * @since 2.4.00
+     */
+    @Test
+    public void test_getAdjacentHexToHex()
+    {
+        final SOCBoardLarge b = new SOCBoardLarge(null, 4, SOCBoardLarge.getBoardSize(null));
+        assertEquals(0x10, b.getBoardHeight());  // also BOARDHEIGHT_LARGE
+        assertEquals(0x12, b.getBoardWidth());   // also BOARDWIDTH_LARGE
+
+        // this hex is valid in all 6 facing directions
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0x0106, SOCBoard.FACING_NE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0x0307, SOCBoard.FACING_E,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0x0506, SOCBoard.FACING_SE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0x0504, SOCBoard.FACING_SW, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0x0303, SOCBoard.FACING_W,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0x0104, SOCBoard.FACING_NW, null);
+
+        // bad facing ranges
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0, -1, IllegalArgumentException.class);
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0, 0, IllegalArgumentException.class);
+        doTestPair_getAdjacentHexToHex(b, 0x0305, 0, 7, IllegalArgumentException.class);
+
+        // hexA out of bounds
+        doTestPair_getAdjacentHexToHex(b, 0x9305, 0, SOCBoard.FACING_E, IndexOutOfBoundsException.class);
+        doTestPair_getAdjacentHexToHex(b, 0x0395, 0, SOCBoard.FACING_E, IndexOutOfBoundsException.class);
+
+        // hexA not in a hex row
+        doTestPair_getAdjacentHexToHex(b, 0x0404, 0, SOCBoard.FACING_E, IndexOutOfBoundsException.class);
+
+        // at top border of board
+        doTestPair_getAdjacentHexToHex(b, 0x0108, 0, SOCBoard.FACING_NE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0108, 0x010A, SOCBoard.FACING_E,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0108, 0x0309, SOCBoard.FACING_SE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0108, 0x0307, SOCBoard.FACING_SW, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0108, 0x0106, SOCBoard.FACING_W,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0108, 0, SOCBoard.FACING_NW, null);
+
+        // at left border
+        doTestPair_getAdjacentHexToHex(b, 0x0502, 0x0301, SOCBoard.FACING_NW, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0502, 0, SOCBoard.FACING_W,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0502, 0x0701, SOCBoard.FACING_SW, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0502, 0x0504, SOCBoard.FACING_E,  null);
+
+        doTestPair_getAdjacentHexToHex(b, 0x0701, 0, SOCBoard.FACING_NW, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0701, 0, SOCBoard.FACING_W,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0701, 0, SOCBoard.FACING_SW, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0701, 0x0703, SOCBoard.FACING_E,  null);
+
+        // at bottom-left corner
+        doTestPair_getAdjacentHexToHex(b, 0x0F01, 0x0D02, SOCBoard.FACING_NE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F01, 0x0F03, SOCBoard.FACING_E,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F01, 0, SOCBoard.FACING_SE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F01, 0, SOCBoard.FACING_SW, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F01, 0, SOCBoard.FACING_W,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F01, 0, SOCBoard.FACING_NW, null);
+
+        // at right border
+        doTestPair_getAdjacentHexToHex(b, 0x0510, 0x0311, SOCBoard.FACING_NE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0510, 0, SOCBoard.FACING_E,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0510, 0x0711, SOCBoard.FACING_SE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0510, 0x050E, SOCBoard.FACING_W,  null);
+
+        doTestPair_getAdjacentHexToHex(b, 0x0711, 0, SOCBoard.FACING_NE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0711, 0, SOCBoard.FACING_E,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0711, 0, SOCBoard.FACING_SE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0711, 0x070F, SOCBoard.FACING_W,  null);
+
+        // at bottom-right corner
+        doTestPair_getAdjacentHexToHex(b, 0x0F11, 0, SOCBoard.FACING_NE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F11, 0, SOCBoard.FACING_E,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F11, 0, SOCBoard.FACING_SE, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F11, 0, SOCBoard.FACING_SW, null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F11, 0x0F0F, SOCBoard.FACING_W,  null);
+        doTestPair_getAdjacentHexToHex(b, 0x0F11, 0x0D10, SOCBoard.FACING_NW, null);
+    }
+
     /**
      * For a pair of edge coordinates, test
      * {@link SOCBoardLarge#getNodeBetweenAdjacentEdges(int, int)} with parameters in both orders,
@@ -88,6 +220,10 @@ public class TestBoardLarge
             (nodes[0] == nodeBetween) || (nodes[1] == nodeBetween));
     }
 
+    /**
+     * Test {@link SOCBoardLarge#getNodeBetweenAdjacentEdges(int, int)}
+     * and {@link SOCBoardLarge#getAdjacentNodesToEdge_arr(int)}.
+     */
     @Test
     public void test_getNodeBetweenAdjacentEdges()
     {

@@ -102,6 +102,9 @@ import soc.util.IntTriple;
  * Some scenarios may add other "layout parts" related to their scenario board layout.
  * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path followed by the pirate fleet.
  * See the list of Added Layout Parts documented at {@link SOCBoardLarge#getAddedLayoutPart(String)}.
+ *<P>
+ * If the new board's scenario game options always disallow moving the pirate ship, add the scenario
+ * to {@code soctest.game.TestBoardLayouts.testLayout_movePirateCoastal}'s skip list.
  *
  * <H4>Layout placement rules for special situations:</H4>
  *<UL>

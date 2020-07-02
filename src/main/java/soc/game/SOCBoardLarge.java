@@ -84,6 +84,7 @@ import soc.util.IntPair;
  *<TR><td>Get the:</td> <td> Hex </td><td> Edge </td><td> Node </td></TR>
  *<TR><td> Hex </td>
  *    <td><!-- Hex adjac to hex -->
+ *      {@link #getAdjacentHexToHex(int, int)} <br>
  *      {@link #getAdjacentHexesToHex(int, boolean)} <br>
  *      {@link #isHexAdjacentToHex(int, int)}
  *    </td>
@@ -363,8 +364,8 @@ public class SOCBoardLarge extends SOCBoard
     public static final int[] SPECIAL_EDGE_TYPES = { SPECIAL_EDGE_DEV_CARD, SPECIAL_EDGE_SVP };
 
     /**
-     * For {@link #getAdjacentHexesToHex(int, boolean)}, the offsets to add to the hex
-     * row and column to get all adjacent hex coords, starting at
+     * For {@link #getAdjacentHexToHex(int, int)} and {@link #getAdjacentHexesToHex(int, boolean)},
+     * the offsets to add to the hex row and column to get all adjacent hex coords, starting at
      * index 0 at the northeastern edge of the hex and going clockwise.
      *<P>
      * Coordinate offsets - adjacent hexes to hex:<PRE>
@@ -2532,6 +2533,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param includeWater  Should water hexes be returned (not only land ones)?
      * @return the hex coordinates that touch this hex,
      *         or null if none are adjacent (will <b>not</b> return a 0-length list)
+     * @see #getAdjacentHexToHex(int, int)
      * @see #isHexAdjacentToHex(int, int)
      * @see #isHexInBounds(int, int)
      * @see #isHexCoastline(int)
@@ -2572,6 +2574,41 @@ public class SOCBoardLarge extends SOCBoard
         {
             addTo.add(Integer.valueOf((r << 8) | c));
         }
+    }
+
+    /**
+     * Get the valid hex coordinate adjacent to this hex, if any, in a certain direction.
+     *
+     * @param hexCoord  Hex coordinate; checked for validity by calling
+     *     {@link #isHexInBounds(int, int)} on its decoded row and column
+     * @param facing  Direction towards new hex from {@code hexCoord}, in range 1 to 6:
+     *     Moving clockwise, {@link SOCBoard#FACING_NE FACING_NE} is 1,
+     *     {@link SOCBoard#FACING_E FACING_E} is 2, etc; {@link SOCBoard#FACING_NW FACING_NW} is 6.
+     * @return hex coordinate of hex in that direction,
+     *     or 0 if that hex would be off the edge of the board
+     * @throws IndexOutOfBoundsException if {@code hexCoord} fails {@link #isHexInBounds(int, int)}
+     * @throws IllegalArgumentException if {@code facing} is &lt; 0 or &gt;= 6
+     * @see #getAdjacentHexesToHex(int, boolean)
+     * @since 2.4.00
+     */
+    public int getAdjacentHexToHex(final int hexCoord, int facing)
+        throws IllegalArgumentException, IndexOutOfBoundsException
+    {
+        if ((facing < 1) || (facing > 6))
+            throw new IllegalArgumentException("facing: " + facing);
+
+        final int r = hexCoord >> 8,
+                  c = hexCoord & 0xFF;
+        if (! isHexInBounds(r, c))
+            throw new IndexOutOfBoundsException("hexCoord not in bounds: 0x" + Integer.toHexString(hexCoord));
+
+        --facing;  // array index is 0..5, not 1..6
+        final int adjacR = r + A_HEX2HEX[facing][0],
+                  adjacC = c + A_HEX2HEX[facing][1];
+        if (! isHexInBounds(adjacR, adjacC))
+            return 0;
+
+        return ( (adjacR << 8) | adjacC );
     }
 
     /**

@@ -39,6 +39,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCPlayerEvent;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;  // for javadoc
 import soc.server.SOCBoardAtServer;
@@ -52,7 +53,8 @@ import soc.server.SOCGameListAtServer;
  * {@link SOCBoardAtServer#makeNewBoard_placeHexes}
  * checking layout details like port facings versus land hex coordinates.
  *<P>
- * In v2.3.00 and newer, {@link #testLayout_lan(SOCGame)} does some basic Land Area consistency checks.
+ * In v2.3.00 and newer, {@link #testLayout_lan(SOCGame)} does some basic Land Area consistency checks. <BR>
+ * In v2.4.00 and newer, {@link #testLayout_movePirateCoastal(SOCGame, SOCScenario)} checks pirate ship placement. <BR>
  *<P>
  * Used for unit testing and extra testing; see {@link #roundCount} javadoc.
  *
@@ -149,12 +151,17 @@ public class TestBoardLayouts
                         // If board has Added Layout Part "AL" (SC_WOND), it's parsed and consistency-checked
                         // during makeNewBoard, which calls SOCBoardLarge.initLegalRoadsFromLandNodes()
 
+                    if (ga.hasSeaBoard)
+                        assertTrue("ga.hasSeaBoard should be SOCBoardLarge", ga.getBoard() instanceof SOCBoardLarge);
+
                     testLayout_lan(ga);
 
                     if (checkSC_CLVI)
                         testLayout_SC_CLVI(ga);
 
-                    gl.deleteGame(gaName);
+                    if (i == roundCount)
+                        // structural test that doesn't need repeating every round
+                        testLayout_movePirateCoastal(ga, sc);
                 }
                 catch (BLException e)
                 {
@@ -167,6 +174,10 @@ public class TestBoardLayouts
                     System.err.println("Error at board setup: " + gaName + ", " + pl + " players:");
                     e.printStackTrace();
                     noFails = false;
+                }
+                finally
+                {
+                    gl.deleteGame(gaName);
                 }
             }
         }
@@ -296,6 +307,93 @@ public class TestBoardLayouts
     }
 
     /**
+     * If this game {@link SOCGame#hasSeaBoard}, check that pirate ship can be placed at any coastal water hex.
+     * Checks each land hex for adjacent water (and not land right next to the board's border),
+     * checks {@link SOCGame#canMovePirate(int, int)} for each such adjacent water hex.
+     *<P>
+     * Does nothing if {@code ! SOCGame.hasSeaBoard} or if {@code sc} is a scenario where players don't move/place
+     * the pirate ship (SC_PIRI, SC_WOND).
+     * @param ga  Game to check layout
+     * @param sc  Game's scenario, or {@ocde null} if has none
+     * @throws BLException  if pirate can't be moved to one or more coastal water hexes.
+     *     {@link Throwable#getMessage()} will have details, including water hex coordinate(s).
+     * @since 2.4.00
+     */
+    private void testLayout_movePirateCoastal(final SOCGame ga, final SOCScenario sc)
+        throws BLException
+    {
+        if (! ga.hasSeaBoard)
+            return;
+
+        final int cpn = ga.getCurrentPlayerNumber();
+
+        if (sc != null)
+        {
+            final String scKey = sc.key;
+            if (SOCScenario.K_SC_PIRI.equals(scKey) || SOCScenario.K_SC_WOND.equals(scKey))
+                return;  // <--- skip this scenario ---
+
+            if (SOCScenario.K_SC_CLVI.equals(scKey))
+                // ga.canMoveRobber requires this player flag
+                ga.getPlayer(cpn).setPlayerEvents(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE.flagValue);
+        }
+
+        final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
+        final int H = board.getBoardHeight(), W = board.getBoardWidth();
+
+        // Ensure known starting conditions:
+        board.setPirateHex(0, false);
+        ga.setGameState(SOCGame.PLACING_PIRATE);
+
+        final ArrayList<String> noMove = new ArrayList<>();
+
+        // Part 1: Build set of all coastal water hexes
+        // If a land hex is at edge of board without adjacent water, flag as a problem
+
+        final HashSet<Integer> coastalWaterHexes = new HashSet<>();
+        for (int r = 1; r < H; r += 2)
+        {
+            nextCol:
+            for (int c = ((r % 4) == 1) ? 2 : 1; c < W; c += 2)
+            {
+                final int hexCoord = (r << 8) + c;
+
+                if (board.getHexTypeFromCoord(hexCoord) == SOCBoard.WATER_HEX)
+                    continue;
+
+                // hexCoord is a land hex
+
+                for (int facing = 1; facing <= 6; ++facing)
+                {
+                    final int adjacHex = board.getAdjacentHexToHex(hexCoord, facing);
+                    if (adjacHex == 0)
+                    {
+                        noMove.add("0x" + Integer.toHexString(hexCoord));
+                        continue nextCol;
+                    }
+
+                    if (board.getHexTypeFromCoord(adjacHex) == SOCBoard.WATER_HEX)
+                        coastalWaterHexes.add(Integer.valueOf(adjacHex));
+                }
+            }
+        }
+
+        if (! noMove.isEmpty())
+            throw new BLException
+                ("land hex at board border, should only be water there: " + noMove.toString());
+
+        //  Part 2: Check canMovePirate for each water hex in that set
+
+        for (final int hexCoord : coastalWaterHexes)
+            if (! ga.canMovePirate(cpn, hexCoord))
+                noMove.add("0x" + Integer.toHexString(hexCoord));
+
+        if (! noMove.isEmpty())
+            throw new BLException
+                ("canMovePirate should be true for coastal water hexes: " + noMove.toString());
+    }
+
+    /**
      * Test board layouts for classic games and all {@link SOCScenario}s for 2, 3, 4 and 6 players.
      * Tests each one for {@link #roundCount} rounds, with and without game option {@code "BC=t3"},
      * by calling {@link #testSingleLayout(SOCScenario, int)}.
@@ -332,7 +430,7 @@ public class TestBoardLayouts
             System.out.println
                 ("Board layouts: Scenario:player combinations which fail layout: " + badLayouts);
 
-        assertTrue("Classic and scenario board layouts", badLayouts.isEmpty());
+        assertTrue("Classic and scenario board layouts; see test's System.out and System.err", badLayouts.isEmpty());
     }
 
     /** Callback for {@link SOCBoardAtServer.NewBoardProgressListener} during {@link #testLayouts()} */

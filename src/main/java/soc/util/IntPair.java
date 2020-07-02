@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2012,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,11 +54,23 @@ public class IntPair
      * @param ip  Another IntPair
      *
      * @return True if pairs' contents are (I,J) and (I,J), or (I,J) and (J,I)
+     * @see #equals(Object)
      */
     public boolean equals(IntPair ip)
     {
         return ((ip.a == a) && (ip.b == b))
             || ((ip.a == b) && (ip.b == a));
+    }
+
+    /**
+     * General object comparison. If {@code obj} is an {@link IntPair}, calls {@link #equals(IntPair)}.
+     * @param obj  Object to compare, or {@code null}
+     * @since 2.4.00
+     */
+    @Override
+    public boolean equals(Object obj)
+    {
+        return (obj instanceof IntPair) && equals((IntPair) obj);
     }
 
     /**
