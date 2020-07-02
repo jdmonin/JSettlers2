@@ -887,13 +887,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Called for each player, just before calling the current player's {@link #updateAtOurTurn()}.
      *<UL>
-     *<LI> Clear {@link #getRolledResources()}
+     * <LI> Clear {@link #getRolledResources()}
+     * <LI> Clear {@link #getCurrentOffer()} in v2.4.00 and newer.
+     *      In earlier versions this was cleared only at client, when server sent
+     *      a {@code SOCClearOffer} message while ending previous player's turn.
      *</UL>
      * @since 1.1.14
      */
     void updateAtTurn()
     {
         rolledResources.clear();
+        setCurrentOffer(null);
     }
 
     /**

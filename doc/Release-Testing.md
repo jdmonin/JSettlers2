@@ -95,10 +95,14 @@ When preparing to release a new version, testing should include:
         - Move robber to an unoccupied hex
         - Move to steal from 1 player
         - Move to a hex with 2 players' settlements, choose a player to steal from
-        - Sea board: Move pirate next to another player's ship to steal
-        - Sea board: Move next to 2 players' ships, choose a player to steal from
-        - Cloth Trade scenario: Move pirate, steal cloth instead of resources
-        - Cloth Trade scenario: Move pirate to a hex with 2 players' ships, choose 1, steal cloth or resources
+        - Sea board:
+          - Move pirate next to another player's ship to steal
+          - Move next to 2 players' ships, choose a player to steal from
+        - Cloth Trade scenario:
+          - Move pirate, steal cloth instead of resources
+          - Move pirate to a hex with 2 players' ships, choose 1, steal cloth or resources
+          - Move pirate to a hex with 2 players' ships, choose 1 who has only resources not cloth;
+            shouldn't be asked whether to steal cloth or resources
         - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
     - Gain Longest Road/Route
         - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
@@ -375,6 +379,7 @@ When preparing to release a new version, testing should include:
             - Should see all info for the player (resources, cards, etc)
             - Play at least 2 rounds; trade, build something, buy and use a soldier card
             - Have an observing client join game right after a player offers a trade; should see current trade offer
+            - A few turns later, have an observing client join game; shouldn't see trade offer from a previous turn
         - When testing 2.3 or newer against older than 2.3:
             - Start a game with robot player at seat number 2
             - Give dev cards to bot player:  
