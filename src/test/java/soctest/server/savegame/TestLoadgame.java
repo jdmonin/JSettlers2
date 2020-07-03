@@ -70,7 +70,8 @@ public class TestLoadgame
     }
 
     /**
-     * Attempt to load a savegame test artifact by calling {@link GameLoaderJSON#loadGame(File)}.
+     * Attempt to load a savegame test artifact by calling
+     * {@link GameLoaderJSON#loadGame(File, soc.server.genericServer.Server)}.
      * Doesn't postprocess or call {@link SavedGameModel#resumePlay(boolean)}.
      * If not found, will fail an {@code assertNotNull}. Doesn't try to catch
      * {@link SavedGameModel.UnsupportedSGMOperationException} or SGM's other declared runtime exceptions.
@@ -93,7 +94,7 @@ public class TestLoadgame
             throw new RuntimeException("unlikely internal error", e);
         }
 
-        return GameLoaderJSON.loadGame(f);
+        return GameLoaderJSON.loadGame(f, null);
     }
 
     /**

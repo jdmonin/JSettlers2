@@ -374,7 +374,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Given a connection's name key, return the connected client; optionally case-insensitive.
      * @param connKey Client name key, from {@link Connection#getData()}; if that's null, returns null
-     * @param isCaseSensitive  Use case-insensitive lookup for {@code connKey}?
+     * @param isCaseSensitive  Use case-sensitive lookup for {@code connKey}?
+     *     If case-insensitive, calls {@link String#toLowerCase(Locale) connKey.toLowercase}({@link Locale#US}).
      * @return The connection with this name, or null if none
      * @see #getConnection(String)
      * @since 1.2.00
@@ -392,6 +393,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         else
             return null;
     }
+
     /**
      * @return the list of named connections: {@link Connection}s where {@link Connection#getData()}
      *         is not null

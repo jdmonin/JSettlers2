@@ -28,6 +28,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -57,6 +60,7 @@ import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
 import soc.server.genericServer.Connection;  // for javadocs only
+import soc.server.genericServer.Server;
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
@@ -109,7 +113,7 @@ public class SavedGameModel
      *      constant values which aren't in that version's copy of those enums,
      *      {@link GameLoaderJSON} ignores them
      *</UL>
-     * {@link #createLoadedGame()} will reject a loaded game if its {@link #modelVersion}
+     * {@link #createLoadedGame(Server)} will reject a loaded game if its {@link #modelVersion}
      * is newer than {@code MODEL_VERSION}, or if the game has features/options that it can't save.
      * If you need to make a saved-game file for use by multiple JSettlers versions, save it from the oldest version.
      *<P>
@@ -138,13 +142,23 @@ public class SavedGameModel
      * <LI> {@link PlayerInfo} adds {@link PlayerInfo#currentTradeOffer currentTradeOffer}
      * <LI> Adds {@link #playerSeatLocks}
      * <LI> {@link #gameOptions} now sorted
+     * <LI> While loading, robot player names are checked against server's connected bots to avoid naming conflicts
+     *      and renamed using {@link #rand} if needed
      *</UL>
      */
-    public static int MODEL_VERSION = 2400;
+    public static final int MODEL_VERSION = 2400;
 
     /** Server's game list, for checking game/player names and creating games */
     public static SOCGameListAtServer glas;
 
+    /**
+     * Random generator, for tasks like bot name randomization if needed.
+     * If reproducibility is needed, you should initialize this with a known seed before using this class.
+     * @since 2.4.00
+     */
+    public static Random rand = new Random();
+
+    /** Game being saved into or loaded from this model */
     private transient SOCGame game = null;
 
     /**
@@ -357,7 +371,7 @@ public class SavedGameModel
 
     /**
      * Create an empty SavedGameModel to load a game file into.
-     * Once data is loaded and {@link #createLoadedGame()} is called,
+     * Once data is loaded and {@link #createLoadedGame(Server)} is called,
      * state will temporarily be {@link SOCGame#LOADING}
      * and {@link SOCGame#savedGameModel} will be this SGM.
      * Call {@link #resumePlay(boolean)} to continue play.
@@ -513,7 +527,7 @@ public class SavedGameModel
 
     /**
      * Can the game data loaded into this {@link SavedGameModel} become a {@link SOCGame}
-     * in {@link #createLoadedGame()}, or does it have options or features which haven't yet been implemented here?
+     * in {@link #createLoadedGame(Server)}, or does it have options or features which haven't yet been implemented here?
      *<P>
      * See {@link #checkCanSave(SOCGame)} for list of unsupported features checked here.
      *<P>
@@ -531,7 +545,7 @@ public class SavedGameModel
      *     Exception's {@link Throwable#getMessage()} will be generic,
      *     but its {@link SOCGameOptionVersionException#gameOptsVersion} will be {@code gameMinVersion}
      * @throws UnsupportedSGMOperationException if game has an option or feature not yet supported
-     *     by {@link #createLoadedGame()}. {@link Throwable#getMessage()} will name the unsupported option/feature
+     *     by {@link #createLoadedGame(Server)}. {@link Throwable#getMessage()} will name the unsupported option/feature
      *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String)}.
      *     In that case, {@link Throwable#getMessage()} will contain that method's IllegalArgumentException message
      *     and {@link Throwable#getCause()} will not be null.
@@ -589,6 +603,9 @@ public class SavedGameModel
      * Examines game and player data. Might set {@link #warnHasHumanPlayerWithBotName},
      * {@link #warnDevCardDeckHasUnknownType} flags.
      *
+     * @param srv  Server reference to check for bot name collisions, or {@code null}.
+     *     Any bot players in the loaded game data with same names as those logged into the server
+     *     will be renamed to avoid problems during random bot assignment while joining the game.
      * @throws IllegalStateException if this method's already been called
      *     or if required static game list field {@link SavedGameModel#glas} is null
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
@@ -604,7 +621,7 @@ public class SavedGameModel
      *     Catch subclass {@code SOCGameOptionVersionException} before this one.
      *     Also thrown if {@link #playerSeats}.length != created game's {@link SOCGame#maxPlayers}.
      */
-    /*package*/ void createLoadedGame()
+    /*package*/ void createLoadedGame(final Server srv)
         throws IllegalStateException, NoSuchElementException,
             SOCGameOptionVersionException, UnsupportedSGMOperationException, IllegalArgumentException
     {
@@ -649,12 +666,19 @@ public class SavedGameModel
 
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
-
                 final SOCPlayer pl = ga.getPlayer(pn);
                 final PlayerInfo pinfo = playerSeats[pn];
-                final String pname = pinfo.name;
+                String pname = pinfo.name;
                 if (! pinfo.isSeatVacant)
+                {
+                    if (pinfo.isRobot)
+                    {
+                        pname = checkBotRename(pname, ga, srv);
+                        pinfo.name = pname;
+                    }
+
                     ga.addPlayer(pname, pn);
+                }
                 pinfo.loadInto(pl);
 
                 if ((pname != null) && ! pinfo.isRobot)
@@ -682,6 +706,73 @@ public class SavedGameModel
         } catch (Exception e) {
             throw new IllegalArgumentException("Problem initializing game: " + e, e);
         }
+    }
+
+    /**
+     * Regex to search a robot name for digit(s) at the end,
+     * for {@link #checkBotRename(String, SOCGame, Server)}.
+     * @since 2.4.00
+     */
+    private static Pattern REGEX_NAME_ENDS_WITH_DIGITS
+        = Pattern.compile("^(.+?)(\\d+)$");
+
+    /**
+     * If this robot player name conflicts with a bot connected to the server,
+     * generate a new name to avoid confusion while loading and resuming.
+     *<UL>
+     * <LI> Doesn't assume {@code botName} follows any pattern,
+     *      but tries first to match the common pattern of "somename \d+"
+     * <LI> Assumes that as part of loading the game, this player will be renamed again,
+     *      so the name generated here doesn't have to be completely compliant with standard bot names
+     *</UL>
+     * @param botName  Bot name from SGM data.
+     *     If {@code null} or "" (savegame is missing important data), will generating a random name here
+     * @param ga  Game to check if renamed for name conflicts with the players already renamed and seated.
+     *     Name checks are case-sensitive, but chance of a conflict is low.
+     *     Ignored if {@code srv} is {@code null}. Otherwise, must not be {@code null}.
+     * @param srv  Server to check connected bots/clients, or {@code null} to do nothing.
+     *     Name checks are case-insensitive.
+     * @return {@code botName}, renamed if a name conflict in {@code srv} was detected
+     * @since 2.4.00
+     */
+    private static String checkBotRename(final String botName, final SOCGame ga, final Server srv)
+    {
+        if ((botName != null) && (! botName.isEmpty())
+            && ((srv == null) || (null == srv.getConnection(botName, false))))
+            return botName;  // no server or no naming conflict
+
+        if (botName != null)
+        {
+            Matcher m = REGEX_NAME_ENDS_WITH_DIGITS.matcher(botName);
+            if (m.matches())
+            {
+                final String stem = m.group(1);
+
+                // first try to negate the number, so name's traceable back to save file
+                String newName = stem + '-' + m.group(2);
+                if ((null == srv.getConnection(newName, false)) && (null == ga.getPlayer(newName)))
+                    return newName;
+
+                // try random negative suffixes
+                for (int attempt = 0; attempt < 50; ++attempt)
+                {
+                    newName = stem + '-' + (10000 + rand.nextInt(989999));
+                    if ((null == srv.getConnection(newName, false)) && (null == ga.getPlayer(newName)))
+                        return newName;
+                }
+            }
+        }
+
+        // just try random generic bot names
+        for (int attempt = 0; attempt < 250; ++attempt)
+        {
+            String newName = "botNameConflict-" + (10000 + rand.nextInt(99989999));
+            if ((null == srv.getConnection(newName, false)) && (null == ga.getPlayer(newName)))
+                return newName;
+        }
+
+        // not likely to need this fallback
+        return "botNameConflict-" + botName;
     }
 
     /**
@@ -909,17 +1000,21 @@ public class SavedGameModel
 
         /**
          * Load PlayerInfo fields into this SOCPlayer.
-         * If seat isn't vacant, call {@link SOCGame#addPlayer(String, int)} before calling this.
+         * If seat isn't vacant, call {@link SOCGame#addPlayer(String, int)} before calling this:
+         * Will let {@code addPlayer(..)} set player name, instead of doing so here from {@link #name},
+         * in case player has been renamed to avoid conflicts.
+         * @param pl  Player object to load from PlayerInfo; not null
          */
         void loadInto(final SOCPlayer pl)
         {
-            pl.setName(name);
+            final SOCGame ga = pl.getGame();
+            final int pn = pl.getPlayerNumber();
+
+            if (ga.isSeatVacant(pn))
+                pl.setName(name);
             pl.setRobotFlag(isRobot, isBuiltInRobot);
             pl.setFaceId(faceID);
             resources.loadInto(pl.getResources());
-
-            final SOCGame ga = pl.getGame();
-            final int pn = pl.getPlayerNumber();
 
             if ((resRollStats != null) && (resRollStats.length > 0))
                 pl.setResourceRollStats(resRollStats);

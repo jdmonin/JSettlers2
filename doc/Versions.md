@@ -50,10 +50,12 @@ and backport minor new features until `2.0.00` was ready.
 	    (option names starting with "\_SC\_"). Sets PlayerElements SCENARIO_SVP,
 	    SCENARIO_SVP_LANDAREAS_BITMASK. Adds PlayerInfo.specialVPInfo.
 	  - Load:
+	    - Rename any bot players with same names as those logged into the server
+	      to avoid problems during random bot assignment while joining the game
 	    - If game is already over, don't change robot player names by asking bots to join and sit
 	    - Fix incorrect SOCPlayer.potentialSettlements additions
 	    - If can't parse gameOptions, don't load game
-	    - Bugfix: Players' Longest Route length was incorrect after load
+	    - Bugfix: Players' Longest Route lengths were incorrect after load
 	  - Adds PlayerInfo.earlyElements list to set before piece placement
 	  - SavedGameModel: gameOptions now sorted, adds playerSeatLocks, PlayerInfo adds currentTradeOffer
 	  - Omit writing pieces' specialVP field when it's 0, ships' isClosed when false

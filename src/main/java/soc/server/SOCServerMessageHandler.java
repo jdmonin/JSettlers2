@@ -1677,7 +1677,7 @@ public class SOCServerMessageHandler
         try
         {
             sgm = GameLoaderJSON.loadGame
-                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
+                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION), srv);
         } catch (SOCGameOptionVersionException e) {
             errText = c.getLocalized("admin.loadgame.err.too_new.vers", argsStr, e.gameOptsVersion);
                 // "Problem loading {0}: Too new: gameMinVersion is {1}"
