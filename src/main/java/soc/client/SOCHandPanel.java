@@ -1218,7 +1218,7 @@ import javax.swing.UIManager;
         createColorSqRetSq = new ColorSquare(rc, 0, sqSize, sqSize);
         add(createColorSqRetSq);
         createColorSqRetSq.setToolTipText
-            (strings.get("hpan.trade.rightclick", rtxt.toLowerCase()));  // "Right-click to trade clay"
+            (strings.get("hpan.trade.rightclick", rtxt.toLowerCase()));  // "Right-click to trade clay with the bank"
     }
 
     /**

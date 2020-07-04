@@ -26,6 +26,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Game window:
 	  - Game stats: If player leaves at end of game, keep showing their statistics
 	  - If connection to server is lost during game, don't hide Current Player arrow
+	  - Clarify in tooltip that "right-click to trade" is for bank trades
 	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
 - Server:
 	- If connecting client has limited features, send all unsupported game options as unknowns
