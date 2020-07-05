@@ -353,8 +353,11 @@ When preparing to release a new version, testing should include:
            during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
     - Versions to test against: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
-      latest **1.x.xx** (before Scenarios/sea boards); **2.0.00** (many message format changes, i18n)
+      **1.2.01** (newest 1.x, before Scenarios/sea boards); **2.0.00** (many message format changes, i18n)
     - New client, old server
+        - If server is >= 1.1.09 but older than 1.1.19, add property at end of command line: `-Djsettlers.startrobots=5`
+        - If server >= 1.1.14, also add at end of command line: `-Djsettlers.allow.debug=Y`
+        - If server older than 1.1.15, also add at end of command line: `8880 99 dbu pw`
     - New server, old client
     - Test these specific things for each version:
         - Server config:
@@ -366,13 +369,12 @@ When preparing to release a new version, testing should include:
           should adapt to the older server version.  
             - This is especially visible when testing 1.x against 2.x.
             - Also test this with new client against server 1.1.07 (first version with options)
-        - Create and start playing a 4-player game with no options (this uses an older message type)
-        - Give a robot player some new dev cards: VP, playable  
-          `dev: 4 botname`  
-          `dev: 9 botname`
-        - Have another client join and take over that bot; should see dev card details correctly
         - Create and start playing a 4-player game with No Trading option
             - Click Options button: Game options should be those chosen in this game's New Game dialog
+            - Give a robot player some new dev cards: VP, playable  
+              `dev: 4 botname`  
+              `dev: 9 botname`
+            - Have another client join (same version as first client) and take over that bot; should see dev card details correctly
         - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
         - On a 2.x server, have 2.x client create game with a scenario (1.x can't join);
@@ -382,8 +384,9 @@ When preparing to release a new version, testing should include:
             - Join 1st game, take over for a robot
             - Should see all info for the player (resources, cards, etc)
             - Play at least 2 rounds; trade, build something, buy and use a soldier card
-            - Have an observing client join game right after a player offers a trade; should see current trade offer
-            - A few turns later, have an observing client join game; shouldn't see trade offer from a previous turn
+            - When server >= 2.4:
+                - Have an observing client join game right after a player offers a trade; should see current trade offer
+                - A few turns later, have an observing client join game; shouldn't see trade offer from a previous turn
         - When testing 2.3 or newer against older than 2.3:
             - Start a game with robot player at seat number 2
             - Give dev cards to bot player:  
@@ -1039,8 +1042,8 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JR
       - Resize game window sightly, to save preference for next run
     - Quick re-test with "Force UI scale" user pref unset, set to 1, set to 2;
       make sure this pref's checkbox can be cleared
-- Persistent user prefs (sound, auto-reject bot offer, window size, hex graphics set)  
-  Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
+- Persistent user prefs (sound, auto-reject bot offer, window size, hex graphics set, face icon)  
+  Then, re-run to check default size, with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
 - Accessibility/High-Contrast mode
     - Test debug jvm property `-Djsettlers.uiContrastMode=light`
     - On Windows, test high-contrast dark and light themes, and high-contrast accessibility mode
