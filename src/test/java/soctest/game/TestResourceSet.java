@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,6 +44,30 @@ public class TestResourceSet
     {
         SOCResourceSet rs = onePerType();
         assertEquals(5, rs.getTotal());
+    }
+
+    /**
+     * Tests for {@link SOCResourceSet#isEmpty()}.
+     * @since 2.4.10
+     */
+    @Test
+    public void isEmpty()
+    {
+        assertFalse(onePerType().isEmpty());
+
+        SOCResourceSet rs = new SOCResourceSet();
+        assertTrue(rs.isEmpty());
+
+        rs.add(1, SOCResourceConstants.SHEEP);
+        assertFalse(rs.isEmpty());
+
+        rs.subtract(1, SOCResourceConstants.SHEEP);
+        assertTrue(rs.isEmpty());
+
+        // remove a resource, even though set is already empty
+        rs.subtract(1, SOCResourceConstants.SHEEP);
+        assertEquals(-1, rs.getAmount(SOCResourceConstants.UNKNOWN));
+        assertFalse(rs.isEmpty());  // since total UNKNOWN is -1
     }
 
     @Test

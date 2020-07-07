@@ -21,6 +21,7 @@
  **/
 package soc.util;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import soc.game.SOCGame;
@@ -38,8 +39,11 @@ import soc.game.SOCGameOption;
  *
  * @author Robert S. Thomas
  */
-public class SOCRobotParameters
+public class SOCRobotParameters implements Serializable
 {
+    /** no structural changes since v1.0 (1000) or earlier */
+    private static final long serialVersionUID = 1000L;
+
     protected int maxGameLength;
     protected int maxETA;
     protected float etaBonusFactor;

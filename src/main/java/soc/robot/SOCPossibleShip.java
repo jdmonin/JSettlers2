@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011,2013-2014,2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2013-2014,2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -35,6 +35,9 @@ import java.util.List;
  */
 public class SOCPossibleShip extends SOCPossibleRoad
 {
+    /** No structural changes since v2.0.00 (2000) */
+    private static final long serialVersionUID = 2000L;
+
     /** True if this is a coastal edge that could possibly be a road or a ship */
     public final boolean isCoastalRoadAndShip;
 

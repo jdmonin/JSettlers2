@@ -114,10 +114,27 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * set the number of resources to zero
+     * @see #isEmpty()
      */
     public void clear()
     {
         Arrays.fill(resources, 0);
+    }
+
+    /**
+     * Is this set empty, containing zero resources?
+     * @return true if set is completely empty, including its amount of unknown resources
+     * @see #getTotal()
+     * @see #clear()
+     * @since 2.4.10
+     */
+    public boolean isEmpty()
+    {
+        for (int i = 0; i < resources.length; ++i)
+            if (resources[i] != 0)
+                return false;
+
+        return true;
     }
 
     /**
@@ -128,6 +145,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @since 2.0.00
      * @see #getAmount(int)
      * @see #contains(ResourceSet)
+     * @see #isEmpty()
      */
     public boolean contains(final int resourceType)
     {
@@ -144,6 +162,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @see #contains(int)
      * @see #getTotal()
      * @see #getAmounts(boolean)
+     * @see #isEmpty()
      */
     public int getAmount(int resourceType)
     {
@@ -158,6 +177,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *    starting with {@link SOCResourceConstants#CLAY} at index 0, up to {@link SOCResourceConstants#WOOD WOOD} at 4.
      *    If {@code withUnknown}, index 5 is the amount of {@link SOCResourceConstants#UNKNOWN}.
      * @see #getAmount(int)
+     * @see #isEmpty()
      * @since 2.0.00
      */
     public int[] getAmounts(final boolean withUnknown)
@@ -178,6 +198,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @see #getAmount(int)
      * @see #getAmounts(boolean)
      * @see #getResourceTypeCount()
+     * @see #isEmpty()
      */
     public int getTotal()
     {
@@ -199,6 +220,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * An empty set returns 0, a set containing only wheat returns 1,
      * that same set after adding wood and sheep returns 3, etc.
      * @return  The number of resource types in this set with nonzero resource counts.
+     * @see #isEmpty()
      * @since 2.0.00
      */
     public int getResourceTypeCount()
@@ -220,6 +242,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD},
      * excluding {@link SOCResourceConstants#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * @return the total number of known-type resources
+     * @see #isEmpty()
      * @since 1.1.14
      */
     public int getKnownTotal()

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012,2014-2015,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012,2014-2015,2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +34,9 @@ import soc.game.SOCPlayerNumbers;
  */
 public class SOCPossibleCity extends SOCPossiblePiece
 {
+    /** Last structural change v2.0.00 (2000) */
+    private static final long serialVersionUID = 2000L;
+
     /**
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
      * to {@link SOCBuildingSpeedEstimate#MAXPLUSONE}.

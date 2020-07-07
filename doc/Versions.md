@@ -18,6 +18,9 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.4.10` (build JM20200xxx)
 - Currently being developed
+- For developers:
+	- More accessible robot-related methods and data classes
+	- Made some data classes Serializable
 
 
 ## `2.4.00` (build JM20200704)

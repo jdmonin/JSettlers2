@@ -20,6 +20,8 @@
  **/
 package soc.util;
 
+import java.io.Serializable;
+
 /**
  * A semi-ordered pair of 2 ints.
  * ({@link #equals(IntPair)} ignores order of A, B.)
@@ -28,8 +30,11 @@ package soc.util;
  *
  * @see IntTriple
  */
-public class IntPair
+public class IntPair implements Serializable
 {
+    /** no structural changes since v1.0 (1000) or earlier */
+    private static final long serialVersionUID = 1000L;
+
     /** The first int of the ordered pair */
     public int a;
 

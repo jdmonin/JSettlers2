@@ -20,12 +20,18 @@
  **/
 package soc.util;
 
+import java.io.Serializable;
+
 /**
  * An ordered triple of 3 ints.
  * @see IntPair
+ * @since 2.0.00
  */
-public class IntTriple
+public class IntTriple implements Serializable
 {
+    /** no structural changes since v2.0 (2000) */
+    private static final long serialVersionUID = 2000L;
+
     /** The first int of the ordered triple */
     public int a;
 
