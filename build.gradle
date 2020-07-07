@@ -12,7 +12,7 @@ buildscript {
     }
 }
 
-version = '2.4.00'  // same as in src/main/resources/resources/version.info
+version = '2.4.10'  // same as in src/main/resources/resources/version.info
 ext.i18neditor_version = '1.2.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
 ext.git_revision = '?'  // placed in jar manifests as Build-Revision attrib; will be filled in by findGitRevision task
 

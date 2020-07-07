@@ -16,6 +16,10 @@ and backport minor new features until `2.0.00` was ready.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
+## `2.4.10` (build JM20200xxx)
+- Currently being developed
+
+
 ## `2.4.00` (build JM20200704)
 - Gameplay:
 	- Pirate can be placed next to any coastline, even those near edge of board
