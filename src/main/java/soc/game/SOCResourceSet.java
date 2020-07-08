@@ -582,11 +582,11 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     }
 
     /**
-     * @return a hashcode for this data
+     * @return a hashcode for this data, from resource amounts
      */
     public int hashCode()
     {
-        return this.toString().hashCode();
+        return Arrays.hashCode(resources);
     }
 
     /**
