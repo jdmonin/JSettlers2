@@ -688,22 +688,17 @@ public class SOCGameListAtServer extends SOCGameList
     @Override
     public synchronized void deleteGame(String gaName)
     {
-        SOCGame game = gameData.get(gaName);
+        SOCGame game = gameData.remove(gaName);
         if (game != null)
-        {
             game.destroyGame();
-            gameData.remove(gaName);
-        }
 
         // delete from super to destroy GameInfo and set its gameDestroyed flag
         // (Removes game from list before dealing with members, in case of locks)
         super.deleteGame(gaName);
 
-        Vector<Connection> members = gameMembers.get(gaName);
+        Vector<Connection> members = gameMembers.remove(gaName);
         if (members != null)
-        {
             members.removeAllElements();
-        }
 
         SOCChatRecentBuffer buf = gameChatBuffer.remove(gaName);
         if (buf != null)

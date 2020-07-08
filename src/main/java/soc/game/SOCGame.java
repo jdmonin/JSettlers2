@@ -1019,7 +1019,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the current dice result. -1 at start of game, 0 during player's turn before roll (state {@link #ROLL_OR_CARD}).
+     * @see #getCurrentDice()
      * @see #currentRoll
+     * @see #hasRolledSeven
      */
     private int currentDice;
 
@@ -1031,6 +1033,14 @@ public class SOCGame implements Serializable, Cloneable
      * @see #currentDice
      */
     private RollResult currentRoll;
+
+    /**
+     * Has a 7 been rolled yet in this game?
+     * See {@link #hasRolledSeven()} for details.
+     * @see #currentDice
+     * @since 2.4.10
+     */
+    private boolean hasRolledSeven;
 
     /**
      * The most recent {@link #moveRobber(int, int)} or {@link #movePirate(int, int)} result.
@@ -2561,6 +2571,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return the current dice result
      * @see #rollDice()
      * @see SOCPlayer#getRolledResources()
+     * @see #hasRolledSeven()
      */
     public int getCurrentDice()
     {
@@ -2575,6 +2586,25 @@ public class SOCGame implements Serializable, Cloneable
     public void setCurrentDice(final int dr)
     {
         currentDice = dr;
+
+        if (dr == 7)
+            hasRolledSeven = true;
+    }
+
+    /**
+     * Has a 7 been rolled yet in this game?
+     *<P>
+     * Not sent over the network: Accurate at server, or client joining at start of game,
+     * but not for a client who joined after game play started.
+     *
+     * @return true if {@link #rollDice()} at server, or {@link #setCurrentDice(int)} at client,
+     *     has encountered a 7
+     * @see #getCurrentDice()
+     * @since 2.4.10
+     */
+    public boolean hasRolledSeven()
+    {
+        return hasRolledSeven;
     }
 
     /**
@@ -5691,6 +5721,8 @@ public class SOCGame implements Serializable, Cloneable
 
                     if (currentDice == 7)
                     {
+                        hasRolledSeven = true;
+
                         // Need to set this state only on 7, to pick _before_ discards.  On any other
                         // dice roll, the free pick here will be combined with the usual roll-result gold picks.
                         oldGameState = ROLL_OR_CARD;
@@ -5784,6 +5816,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     private final void rollDice_update7gameState()
     {
+        hasRolledSeven = true;
+
         /**
          * if there are players with too many cards, wait for
          * them to discard
@@ -9262,7 +9296,7 @@ public class SOCGame implements Serializable, Cloneable
      * roll dice for the first time. Updated in {@link #updateAtTurn()}.
      *<P>
      * Not sent over the network: Accurate at server, or client joining at start of game,
-     * but not for a client who joining after game play started.
+     * but not for a client who joined after game play started.
      *
      * @return the turn number
      * @see #getRoundCount()

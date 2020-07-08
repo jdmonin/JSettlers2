@@ -42,4 +42,24 @@ public class TestGame
         assertTrue((SOCGame.ROLL_OR_CARD - 1) == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE);
     }
 
+    /**
+     * Client-side tests for {@link SOCGame#hasRolledSeven()}.
+     * @since 2.4.10
+     */
+    @Test
+    public void testRolled7_client()
+    {
+        SOCGame ga = new SOCGame("test");
+        assertFalse(ga.hasRolledSeven());
+
+        ga.setCurrentDice(5);
+        assertFalse(ga.hasRolledSeven());
+
+        ga.setCurrentDice(7);
+        assertTrue(ga.hasRolledSeven());
+
+        ga.setCurrentDice(5);
+        assertTrue(ga.hasRolledSeven());
+    }
+
 }

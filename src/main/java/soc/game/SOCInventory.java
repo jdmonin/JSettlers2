@@ -101,11 +101,13 @@ public class SOCInventory
      *
      * @param set  the inventory set to copy
      * @throws CloneNotSupportedException  Should not occur; {@link SOCInventoryItem}s should be Cloneable
+     * @see #add(SOCInventory)
      */
     public SOCInventory(SOCInventory set)
         throws CloneNotSupportedException
     {
         this();
+
         for (SOCInventoryItem c : set.news)
             news.add(c.clone());
         for (SOCInventoryItem c : set.playables)
@@ -303,6 +305,7 @@ public class SOCInventory
      * @param item  The special item or dev card being added
      * @since 2.0.00
      * @see #addDevCard(int, int, int)
+     * @see #add(SOCInventory)
      * @see #removeItem(int, int)
      * @see #keepPlayedItem(int)
      */
@@ -330,6 +333,7 @@ public class SOCInventory
      * @param ctype the type of development card, at least
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @see #addItem(SOCInventoryItem)
+     * @see #add(SOCInventory)
      * @see #removeDevCard(int, int)
      */
     public void addDevCard(int amt, final int age, final int ctype)
@@ -350,6 +354,31 @@ public class SOCInventory
             clist.add(new SOCDevCard(ctype, isNew));
             --amt;
         }
+    }
+
+    /**
+     * Add contents of another inventory to this one.
+     * Does a deep copy: All contained {@link SOCDevCard}/{@link SOCInventoryItem} objects are cloned.
+     *
+     * @param inv  Inventory set to add from, or {@code null} to do nothing
+     * @throws CloneNotSupportedException  Should not occur; {@link SOCInventoryItem}s should be Cloneable
+     * @see #addDevCard(int, int, int)
+     * @see #addItem(SOCInventoryItem)
+     * @see #SOCInventory(SOCInventory)
+     * @since 2.4.10
+     */
+    public void add(final SOCInventory inv)
+        throws CloneNotSupportedException
+    {
+        if (inv == null)
+            return;
+
+        for (SOCInventoryItem c : inv.news)
+            news.add(c.clone());
+        for (SOCInventoryItem c : inv.playables)
+            playables.add(c.clone());
+        for (SOCInventoryItem c : inv.kept)
+            kept.add(c.clone());
     }
 
     /**
