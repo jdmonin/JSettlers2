@@ -95,6 +95,7 @@ public class SOCDevCardAction extends SOCMessage
     /**
      * dev card action PLAY: remove as old from player's hand.
      * Sent when actually playing a card, also when clearing player's hand/inventory
+     * ("play" {@link SOCDevCardConstants#UNKNOWN})
      * when client is sitting down to take over a bot player.
      */
     public static final int PLAY = 1;

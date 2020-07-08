@@ -204,22 +204,41 @@ public class SOCTradeOffer implements Serializable, Cloneable
         return str.toString();
     }
 
+    /**
+     * Compare this trade offer to another object or trade offer.
+     * @return true if {@code o} is a {@link SOCTradeOffer}
+     *     with the same To, From, Give and Get field contents.
+     *     Ignores {@link #getGame()} field.
+     * @since 2.4.10
+     */
     @Override
-    public boolean equals(Object o) {
-        if (o instanceof SOCTradeOffer) {
-                SOCTradeOffer offer = (SOCTradeOffer) o;
-                for (int i=0; i<to.length; i++) {
-                        if (to[i]!=offer.to[i]) {
-                                return false;
-                        }
-                }
-                return (from == offer.from
-                                && give.equals(offer.give)
-                                && get.equals(offer.get));
+    public boolean equals(Object o)
+    {
+        if (o instanceof SOCTradeOffer)
+        {
+            SOCTradeOffer offer = (SOCTradeOffer) o;
+            for (int i = 0; i < to.length; i++)
+                if (to[i] != offer.to[i])
+                    return false;
+
+            return (from == offer.from
+                && give.equals(offer.give)
+                && get.equals(offer.get));
+        } else {
+            return false;
         }
-        else {
-                return false;
-        }
+    }
+
+    /**
+     * @return a hashCode for this trade offer based on field contents,
+     *     ignoring {@link #getGame()} because {@link #equals(Object)} does
+     * @since 2.4.10
+     */
+    @Override
+    public int hashCode()
+    {
+        return give.hashCode() ^ get.hashCode()
+            ^ from ^ Arrays.hashCode(to) ^ Arrays.hashCode(waitingReply);
     }
 
 }

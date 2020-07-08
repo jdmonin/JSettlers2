@@ -435,6 +435,13 @@ and some constants, javadocs, throws declarations added by Jeremy D Monin.
 org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 "Lesser GPL" (LGPL) license, and is from the JBoss Ant-Gettext utilities.
 
+Miscellaneous code is attributed to the Strategic Conversation (STAC) Project -
+https://www.irit.fr/STAC/ - from their fork published at https://github.com/sorinMD/StacSettlers
+and reintegrated into JSettlers by Jeremy D Monin for v2.4.10.
+[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/master/README.md)
+says "Copyright (C) 2017  STAC" and that repo's most recent substantial change was in 2018.
+In the JSettlers repository, commits from that code use "STAC Project" as the author.
+
 The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.

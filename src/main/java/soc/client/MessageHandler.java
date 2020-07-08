@@ -2217,6 +2217,7 @@ import soc.util.Version;
 
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            player.updateDevCardsPlayed(ctype);
             break;
 
         case SOCDevCardAction.ADD_OLD:

@@ -289,17 +289,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int numKnights;
 
     /**
-     * how many road building cards this player played
+     * How many Road Building cards ({@link SOCDevCardConstants#ROADS}) this player has played.
+     * @see #updateDevCardsPlayed(int)
+     * @since 2.4.10
      */
     public int numRBCards = 0;
 
     /**
-     * how many discovery cards this player played
+     * How many Discovery/Year of Plenty cards ({@link SOCDevCardConstants#DISC}) this player has played.
+     * @see #updateDevCardsPlayed(int)
+     * @since 2.4.10
      */
     public int numDISCCards = 0;
 
     /**
-     * how many monopoly cards this player played
+     * How many Monopoly cards ({@link SOCDevCardConstants#MONO}) this player has played.
+     * @see #updateDevCardsPlayed(int)
+     * @since 2.4.10
      */
     public int numMONOCards = 0;
 
@@ -728,6 +734,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         buildingVP = player.buildingVP;
         specialVP = player.specialVP;
         finalTotalVP = 0;
+        numRBCards = player.numRBCards;
+        numDISCCards = player.numDISCCards;
+        numMONOCards = player.numMONOCards;
         playedDevCard = player.playedDevCard;
         needToDiscard = player.needToDiscard;
         needToPickGoldHexResources = player.needToPickGoldHexResources;
@@ -1008,6 +1017,34 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public void setPlayedDevCard(boolean value)
     {
         playedDevCard = value;
+    }
+
+    /**
+     * Update stats for player's Discovery/Year of Plenty, Monopoly, or Road Building dev cards
+     * when such a card is played: Increment {@link #numDISCCards}, {@link #numMONOCards},
+     * or {@link #numRBCards}.
+     * @param ctype  Any development card type such as {@link SOCDevCardConstants#ROADS},
+     *     {@link SOCDevCardConstants#UNIV}, or {@link SOCDevCardConstants#UNKNOWN}.
+     *     Ignores all types except {@link SOCDevCardConstants#DISC DISC},
+     *     {@link SOCDevCardConstants#MONO MONO}, {@link SOCDevCardConstants#ROADS ROADS}.
+     * @since 2.4.10
+     */
+    public void updateDevCardsPlayed(final int ctype)
+    {
+        switch (ctype)
+        {
+        case SOCDevCardConstants.DISC:
+            ++numDISCCards;
+            break;
+
+        case SOCDevCardConstants.MONO:
+            ++numMONOCards;
+            break;
+
+        case SOCDevCardConstants.ROADS:
+            ++numRBCards;
+            break;
+        }
     }
 
     /**
@@ -1341,15 +1378,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return  The player's road or ship in play at this edge, or null
      * @see SOCBoard#roadOrShipAtEdge(int)
      * @see #getMostRecentShip()
+     * @see #hasRoadOrShipAtEdge(int)
      * @since 2.0.00
      */
     public SOCRoutePiece getRoadOrShip(final int edge)
     {
         for (SOCRoutePiece roadOrShip : roadsAndShips)
-        {
             if (roadOrShip.getCoordinates() == edge)
                 return roadOrShip;
-        }
 
         return null;
     }
@@ -1388,6 +1424,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param  node  Node coordinate to check for a settlement or city
      * @return  The player's settlement or city in play at this node, or null
      * @see SOCBoard#settlementAtNode(int)
+     * @see #hasSettlementOrCityAtNode(int)
      * @since 2.4.00
      */
     public SOCPlayingPiece getSettlementOrCityAtNode(final int node)
@@ -5071,53 +5108,60 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Checks if this player has a settlement or a city at specified coordinate
-     * @param coord the int value of the node coord as used by the board object
-     * @return
+     * @param node  the board node coordinate to check
+     * @return true if we have a settlement or city at {@code node}
+     * @see #hasSettlementAtNode(int)
+     * @see #hasCityAtNode(int)
+     * @see #getSettlementOrCityAtNode(int)
+     * @since 2.4.10
      */
-    public boolean isOurSetOrCityAtCoord(int coord){
-        if(!(isOurCityAtCoord(coord) || isOurSetAtCoord(coord)))
-                return false;
-
-        return true;
+    public boolean hasSettlementOrCityAtNode(final int node)
+    {
+        return (null != getSettlementOrCityAtNode(node));
     }
 
     /**
      * Checks if this player has a settlement or a city at specified coordinate
-     * @param coord the int value of the node coord as used by the board object
-     * @return
+     * @param node  the board node coordinate to check
+     * @return true if we have a settlement at {@code node}
+     * @see #hasSettlementOrCityAtNode(int)
+     * @since 2.4.10
      */
-    public boolean isOurSetAtCoord(int coord){
-        for(Object p : settlements){
-                if(((SOCPlayingPiece) p).getCoordinates() == coord)
-                        return true;
-        }
+    public boolean hasSettlementAtNode(final int node)
+    {
+        for (SOCSettlement p : settlements)
+            if (p.getCoordinates() == node)
+                return true;
+
         return false;
     }
 
     /**
      * Checks if this player has a settlement or a city at specified coordinate
-     * @param coord the int value of the node coord as used by the board object
-     * @return
+     * @param node  the board node coordinate to check
+     * @return true if we have a city at {@code node}
+     * @see #hasSettlementOrCityAtNode(int)
+     * @since 2.4.10
      */
-    public boolean isOurCityAtCoord(int coord){
-        for(Object p : cities){
-                if(((SOCPlayingPiece) p).getCoordinates() == coord)
-                        return true;
-        }
+    public boolean hasCityAtNode(final int node)
+    {
+        for (SOCCity p : cities)
+            if (p.getCoordinates() == node)
+                return true;
+
         return false;
     }
 
     /**
-     * Checks if this player has a road at specified coordinate
-     * @param coord the int value of the edge coord as used by the board object
-     * @return
+     * Checks if this player has a road or ship at specified edge coordinate.
+     * @param edge  the board edge coordinate to check
+     * @return true if we have a road or ship at {@code edge}
+     * @see #getRoadOrShip(int)
+     * @since 2.4.10
      */
-    public boolean isOurRoadAtCoord(int coord){
-        for(Object p : roadsAndShips){
-                if(((SOCPlayingPiece) p).getCoordinates() == coord)
-                        return true;
-        }
-        return false;
+    public boolean hasRoadOrShipAtEdge(final int edge)
+    {
+        return (null != getRoadOrShip(edge));
     }
 
     /**

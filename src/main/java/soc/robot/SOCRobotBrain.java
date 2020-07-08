@@ -3411,9 +3411,9 @@ public class SOCRobotBrain extends Thread
         if (mes.getCardTypes() != null)
             return;  // <--- ignore: bots don't care about game-end VP card reveals ---
 
-        SOCInventory cardsInv = game.getPlayer(mes.getPlayerNumber()).getInventory();
         final int cardType = mes.getCardType();
         SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
+        SOCInventory cardsInv = pl.getInventory();
 
         switch (mes.getAction())
         {
@@ -3423,20 +3423,7 @@ public class SOCRobotBrain extends Thread
 
         case SOCDevCardAction.PLAY:
             cardsInv.removeDevCard(SOCInventory.OLD, cardType);
-            //handle the discovery,roadbuilding and monopoly card plays
-            switch (cardType) {
-                        case SOCDevCardConstants.DISC:
-                                pl.numDISCCards++;
-                                break;
-
-                        case SOCDevCardConstants.MONO:
-                                pl.numMONOCards++;
-                                break;
-
-                        case SOCDevCardConstants.ROADS:
-                                pl.numRBCards++;
-                                break;
-                        }
+            pl.updateDevCardsPlayed(cardType);
             break;
 
         case SOCDevCardAction.ADD_OLD:

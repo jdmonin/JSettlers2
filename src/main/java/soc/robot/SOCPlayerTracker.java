@@ -249,7 +249,12 @@ public class SOCPlayerTracker
         }
     }
 
-    public void recalculateAllEtas()
+    /**
+     * Recalculate all ETAs: Calls {@link #recalcLargestArmyETA()},
+     * {@link #recalcLongestRoadETA()}, {@link #recalcWinGameETA()}.
+     * @since 2.4.10
+     */
+    public void recalculateAllETAs()
     {
         recalcLargestArmyETA();
         recalcLongestRoadETA();
@@ -2409,6 +2414,7 @@ public class SOCPlayerTracker
      * Calculate the longest road ETA.
      * Always 500 or more if {@link SOCGameOption#K_SC_0RVP} is set.
      * Updates fields for {@link #getLongestRoadETA()} and {@link #getRoadsToGo()}.
+     * @see #recalculateAllETAs()
      */
     public void recalcLongestRoadETA()
     {
@@ -2494,6 +2500,7 @@ public class SOCPlayerTracker
 
     /**
      * calculate the largest army ETA
+     * @see #recalculateAllETAs()
      */
     public void recalcLargestArmyETA()
     {
@@ -2758,6 +2765,8 @@ public class SOCPlayerTracker
      *<P>
      * If the loop reaches {@link SOCGame#vp_winner} - 1, it calculates ETAs for 1 city or settlement (+ roads)
      * instead of 2, and Largest Army and Longest Road, to make its choice.
+     *
+     * @see #recalculateAllETAs()
      */
     public void recalcWinGameETA()
     {

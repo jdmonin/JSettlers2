@@ -1287,10 +1287,7 @@ public class SOCGame implements Serializable, Cloneable
     private SOCInventoryItem placingItem;
 
     /**
-     * The number of normal turns (not rounds, not initial placements), including this turn.
-     *  This is 0 during initial piece placement, and 1 when the first player is about to
-     *  roll dice for the first time.
-     *  updated in {@link #updateAtTurn()}.
+     * The number of normal turns; see {@link #getTurnCount()} for details.
      * @since 1.1.07
      */
     private int turnCount;
@@ -2524,6 +2521,7 @@ public class SOCGame implements Serializable, Cloneable
      *  roll dice for the first time.  It becomes 2 when that first player's turn begins again.
      *  @since 1.1.07
      *  @see #setRoundCount(int)
+     *  @see #getTurnCount()
      */
     public int getRoundCount()
     {
@@ -9259,10 +9257,19 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * 
+     * The number of normal turns (not rounds, not initial placements), including this turn.
+     * This is 0 during initial piece placement, and 1 when the first player is about to
+     * roll dice for the first time. Updated in {@link #updateAtTurn()}.
+     *<P>
+     * Not sent over the network: Accurate at server, or client joining at start of game,
+     * but not for a client who joining after game play started.
+     *
      * @return the turn number
+     * @see #getRoundCount()
+     * @since 2.4.10
      */
-    public int getTurnCount(){
+    public int getTurnCount()
+    {
         return turnCount;
     }
 

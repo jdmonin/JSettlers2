@@ -56,13 +56,21 @@ public class TestPlayer
         SOCPlayer pl = ga.getPlayer(2);
         SOCBoard board = ga.getBoard();
 
-        assertNull(pl.getSettlementOrCityAtNode(0x2233));  // unoccupied node
-        assertNull(board.settlementAtNode(0x2233));
+        final int unoccupiedNode = 0x2233;
+
+        assertNull(pl.getSettlementOrCityAtNode(unoccupiedNode));
+        assertFalse(pl.hasSettlementOrCityAtNode(unoccupiedNode));
+        assertFalse(pl.hasSettlementAtNode(unoccupiedNode));
+        assertFalse(pl.hasCityAtNode(unoccupiedNode));
+        assertNull(board.settlementAtNode(unoccupiedNode));
 
         ga.putPiece(new SOCSettlement(pl, node, null));
 
         SOCPlayingPiece piece = pl.getSettlementOrCityAtNode(node);
         assertNotNull(piece);
+        assertTrue(pl.hasSettlementOrCityAtNode(node));
+        assertTrue(pl.hasSettlementAtNode(node));
+        assertFalse(pl.hasCityAtNode(node));
         assertEquals(SOCPlayingPiece.SETTLEMENT, piece.getType());
         piece = board.settlementAtNode(node);
         assertNotNull(piece);
@@ -71,11 +79,17 @@ public class TestPlayer
 
         ga.putPiece(new SOCCity(pl, node, board));  // replaces settlement
 
-        assertNull(pl.getSettlementOrCityAtNode(0x2233));  // cities list no longer empty; still unoccupied
-        assertNull(board.settlementAtNode(0x2233));
+        assertNull(pl.getSettlementOrCityAtNode(unoccupiedNode));  // cities list no longer empty; still unoccupied
+        assertFalse(pl.hasSettlementOrCityAtNode(unoccupiedNode));
+        assertFalse(pl.hasSettlementAtNode(unoccupiedNode));
+        assertFalse(pl.hasCityAtNode(unoccupiedNode));
+        assertNull(board.settlementAtNode(unoccupiedNode));
 
         piece = pl.getSettlementOrCityAtNode(node);
         assertNotNull(piece);
+        assertTrue(pl.hasSettlementOrCityAtNode(node));
+        assertTrue(pl.hasCityAtNode(node));
+        assertFalse(pl.hasSettlementAtNode(node));
         assertEquals(SOCPlayingPiece.CITY, piece.getType());
         piece = board.settlementAtNode(node);
         assertNotNull(piece);
@@ -110,6 +124,41 @@ public class TestPlayer
         i.addDevCard(1, SOCInventory.NEW, SOCDevCardConstants.UNIV);
         assertEquals("VP cards should be hidden from public VP", 0, pl.getPublicVP());
         assertEquals("VP cards should count towards total VP", 1, pl.getTotalVP());
+    }
+
+    /**
+     * Test {@link SOCPlayer#updateDevCardsPlayed(int)} and related stats fields
+     * ({@link SOCPlayer#numDISCCards} etc).
+     * @since 2.4.10
+     */
+    @Test
+    public void testDevCardStats()
+    {
+        SOCPlayer pl = new SOCPlayer(2, new SOCGame("test"));
+        assertEquals(0, pl.numDISCCards);
+        assertEquals(0, pl.numMONOCards);
+        assertEquals(0, pl.numRBCards);
+
+        pl.updateDevCardsPlayed(SOCDevCardConstants.UNKNOWN);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.UNIV);
+        pl.updateDevCardsPlayed(-42);  // out of range but should ignore it, not throw any exception
+        pl.updateDevCardsPlayed(42);
+        assertEquals(0, pl.numDISCCards);
+        assertEquals(0, pl.numMONOCards);
+        assertEquals(0, pl.numRBCards);
+
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
+        assertEquals(2, pl.numDISCCards);
+        assertEquals(1, pl.numMONOCards);
+        assertEquals(1, pl.numRBCards);
+
+        SOCPlayer pclone = new SOCPlayer(pl, null);
+        assertEquals(2, pclone.numDISCCards);
+        assertEquals(1, pclone.numMONOCards);
+        assertEquals(1, pclone.numRBCards);
     }
 
 }
