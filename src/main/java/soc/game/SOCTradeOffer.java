@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2009,2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -201,6 +202,24 @@ public class SOCTradeOffer implements Serializable, Cloneable
         str.append("|give=" + give + "|get=" + get);
 
         return str.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof SOCTradeOffer) {
+                SOCTradeOffer offer = (SOCTradeOffer) o;
+                for (int i=0; i<to.length; i++) {
+                        if (to[i]!=offer.to[i]) {
+                                return false;
+                        }
+                }
+                return (from == offer.from
+                                && give.equals(offer.give)
+                                && get.equals(offer.get));
+        }
+        else {
+                return false;
+        }
     }
 
 }

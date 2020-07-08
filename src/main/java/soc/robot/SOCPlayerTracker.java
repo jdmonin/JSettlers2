@@ -4,6 +4,7 @@
  * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -246,6 +247,13 @@ public class SOCPlayerTracker
             SOCPossibleCity posCityCopy = new SOCPossibleCity(posCity);
             possibleCities.put(Integer.valueOf(posCityCopy.getCoordinates()), posCityCopy);
         }
+    }
+
+    public void recalculateAllEtas()
+    {
+        recalcLargestArmyETA();
+        recalcLongestRoadETA();
+        recalcWinGameETA();
     }
 
     /**
@@ -1892,7 +1900,7 @@ public class SOCPlayerTracker
 
                 if (nr.isEmpty())
                 {
-                    System.out.println("ERROR in removeDependents - empty nr list for " + newPos);
+                    System.err.println("ERROR in removeDependents - empty nr list for " + newPos);
                 }
                 else
                 {
@@ -1926,7 +1934,7 @@ public class SOCPlayerTracker
 
                 if (nr.isEmpty())
                 {
-                    System.out.println("ERROR in removeDependents - empty nr list for " + newPos);
+                    System.err.println("ERROR in removeDependents - empty nr list for " + newPos);
                 }
                 else
                 {
@@ -3838,7 +3846,7 @@ public class SOCPlayerTracker
         catch (Exception e)
         {
             winGameETA = oldWGETA;
-            System.out.println("Exception in recalcWinGameETA - " + e);
+            System.err.println("Exception in recalcWinGameETA - " + e);
             e.printStackTrace();
         }
 
@@ -4143,7 +4151,7 @@ public class SOCPlayerTracker
             }
             catch (NullPointerException e)
             {
-                System.out.println("Null Pointer Exception calculating winGameETA");
+                System.err.println("Null Pointer Exception calculating winGameETA");
                 e.printStackTrace();
             }
         }

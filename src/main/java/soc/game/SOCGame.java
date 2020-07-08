@@ -5,6 +5,7 @@
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1491,7 +1492,7 @@ public class SOCGame implements Serializable, Cloneable
             }
             catch (InterruptedException e)
             {
-                System.out.println("EXCEPTION IN takeMonitor() -- " + e);
+                System.err.println("EXCEPTION IN takeMonitor() -- " + e);
             }
         }
 
@@ -8253,6 +8254,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer player = players[currentPlayerNumber];
         player.setPlayedDevCard(true);
         player.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.ROADS);
+        player.numRBCards++;
 
         final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
             + player.getNumPieces(SOCPlayingPiece.SHIP);
@@ -8273,6 +8275,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.DISC);
+        players[currentPlayerNumber].numDISCCards++;
         oldGameState = gameState;
         gameState = WAITING_FOR_DISCOVERY;
     }
@@ -8286,6 +8289,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.MONO);
+        players[currentPlayerNumber].numMONOCards++;
         oldGameState = gameState;
         gameState = WAITING_FOR_MONOPOLY;
     }
@@ -9252,6 +9256,14 @@ public class SOCGame implements Serializable, Cloneable
 
         debugFreePlacement = debugOn;
         debugFreePlacementStartPlaced = false;
+    }
+
+    /**
+     * 
+     * @return the turn number
+     */
+    public int getTurnCount(){
+        return turnCount;
     }
 
     /**

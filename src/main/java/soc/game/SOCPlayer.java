@@ -3,6 +3,7 @@
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -286,6 +287,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * how many knights this player has in play
      */
     private int numKnights;
+
+    /**
+     * how many road building cards this player played
+     */
+    public int numRBCards = 0;
+
+    /**
+     * how many discovery cards this player played
+     */
+    public int numDISCCards = 0;
+
+    /**
+     * how many monopoly cards this player played
+     */
+    public int numMONOCards = 0;
 
     /**
      * the number of victory points for settlements and cities
@@ -5051,6 +5067,57 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
         sb.append("}");
         return sb;
+    }
+
+    /**
+     * Checks if this player has a settlement or a city at specified coordinate
+     * @param coord the int value of the node coord as used by the board object
+     * @return
+     */
+    public boolean isOurSetOrCityAtCoord(int coord){
+        if(!(isOurCityAtCoord(coord) || isOurSetAtCoord(coord)))
+                return false;
+
+        return true;
+    }
+
+    /**
+     * Checks if this player has a settlement or a city at specified coordinate
+     * @param coord the int value of the node coord as used by the board object
+     * @return
+     */
+    public boolean isOurSetAtCoord(int coord){
+        for(Object p : settlements){
+                if(((SOCPlayingPiece) p).getCoordinates() == coord)
+                        return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if this player has a settlement or a city at specified coordinate
+     * @param coord the int value of the node coord as used by the board object
+     * @return
+     */
+    public boolean isOurCityAtCoord(int coord){
+        for(Object p : cities){
+                if(((SOCPlayingPiece) p).getCoordinates() == coord)
+                        return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if this player has a road at specified coordinate
+     * @param coord the int value of the edge coord as used by the board object
+     * @return
+     */
+    public boolean isOurRoadAtCoord(int coord){
+        for(Object p : roadsAndShips){
+                if(((SOCPlayingPiece) p).getCoordinates() == coord)
+                        return true;
+        }
+        return false;
     }
 
     /**

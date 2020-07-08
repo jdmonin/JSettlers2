@@ -4,6 +4,7 @@
  * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -3412,6 +3413,7 @@ public class SOCRobotBrain extends Thread
 
         SOCInventory cardsInv = game.getPlayer(mes.getPlayerNumber()).getInventory();
         final int cardType = mes.getCardType();
+        SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
 
         switch (mes.getAction())
         {
@@ -3421,6 +3423,20 @@ public class SOCRobotBrain extends Thread
 
         case SOCDevCardAction.PLAY:
             cardsInv.removeDevCard(SOCInventory.OLD, cardType);
+            //handle the discovery,roadbuilding and monopoly card plays
+            switch (cardType) {
+                        case SOCDevCardConstants.DISC:
+                                pl.numDISCCards++;
+                                break;
+
+                        case SOCDevCardConstants.MONO:
+                                pl.numMONOCards++;
+                                break;
+
+                        case SOCDevCardConstants.ROADS:
+                                pl.numRBCards++;
+                                break;
+                        }
             break;
 
         case SOCDevCardAction.ADD_OLD:
