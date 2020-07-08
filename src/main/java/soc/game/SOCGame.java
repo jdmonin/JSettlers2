@@ -8278,6 +8278,8 @@ public class SOCGame implements Serializable, Cloneable
      * Assumes {@link #canPlayRoadBuilding(int)} has already been called, and move is valid.
      * The card can be played before or after rolling the dice.
      * Doesn't set <tt>oldGameState</tt>, because after placing the road, we might need that field.
+     *<P>
+     * Called only at server; client is instead sent messages with effects of playing the card.
      */
     public void playRoadBuilding()
     {
@@ -8299,7 +8301,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * the current player plays a Discovery card
+     * the current player plays a Discovery card.
+     *<P>
+     * Called only at server; client is instead sent messages with effects of playing the card.
      */
     public void playDiscovery()
     {
@@ -8313,7 +8317,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * the current player plays a monopoly card
+     * the current player plays a Monopoly card.
+     *<P>
+     * Called only at server; client is instead sent messages with effects of playing the card.
      */
     public void playMonopoly()
     {
