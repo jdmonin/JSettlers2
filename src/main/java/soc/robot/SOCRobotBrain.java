@@ -921,6 +921,13 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * clears the stack describing the current building plan.
+     */
+    public void resetBuildingPlan(){
+        buildingPlan.clear();
+    }
+
+    /**
      * @return the decision maker
      */
     public SOCRobotDM getDecisionMaker()
@@ -2135,8 +2142,8 @@ public class SOCRobotBrain extends Thread
                         String eMsg = (turnExceptionCount == 1)
                             ? "*** Robot " + ourPlayerName + " caught an exception - " + e
                             : "*** Robot " + ourPlayerName + " caught an exception (" + turnExceptionCount + " this turn) - " + e;
-                        D.ebugPrintln(eMsg);
-                        System.out.println(eMsg);
+                        D.ebugPrintlnINFO(eMsg);
+                        System.err.println(eMsg);
                         e.printStackTrace();
                     }
                 }
@@ -2144,7 +2151,7 @@ public class SOCRobotBrain extends Thread
         }
         else
         {
-            System.out.println("AGG! NO PINGER!");
+            System.err.println("AGG! NO PINGER!");
         }
 
         //D.ebugPrintln("STOPPING AND DEALLOCATING");
@@ -5382,7 +5389,7 @@ public class SOCRobotBrain extends Thread
      * For each player in game:
      * client.sendText, and debug-print to console, game.getPlayer(i).getResources()
      */
-    private void printResources()
+    protected void printResources()
     {
         if (D.ebugOn)
         {
