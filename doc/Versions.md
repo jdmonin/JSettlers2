@@ -24,6 +24,9 @@ and backport minor new features until `2.0.00` was ready.
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
 	- More accessible robot-related methods and data classes
 	- Made some data classes Serializable
+	- Save/load games:
+	    - SavedGameModel:
+	        - PlayerInfo: Includes number of Discovery, Monopoly, Road Building cards played
 
 
 ## `2.4.00` (build JM20200704)

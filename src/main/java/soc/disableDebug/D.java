@@ -69,10 +69,15 @@ public class D
     /**
      * Changes the debug level to one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
      * The default is WARNING.
+     * @throws IllegalArgumentException if level not in range {@code INFO} - {@code FATAL}
      * @since 2.4.10
      */
     public static void setLevel(int l)
+        throws IllegalArgumentException
     {
+        if ((l < INFO) || (l > FATAL))
+            throw new IllegalArgumentException("level");
+
         level = l;
     }
 

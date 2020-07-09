@@ -57,21 +57,26 @@ public class D
 
     /**
      * The debug level one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
-     * Default set to WARNING.
+     * Default set to INFO.
      * @since 2.4.10
      */
-    static private int level = WARNING;
+    static private int level = INFO;
 
     static public final boolean ebugOn = true;
     static private boolean enabled = true;
 
     /**
      * Set the debug level to one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
-     * The default is WARNING.
+     * The default is INFO.
+     * @throws IllegalArgumentException if level not in range {@code INFO} - {@code FATAL}
      * @since 2.4.10
      */
     public static void setLevel(int l)
+        throws IllegalArgumentException
     {
+        if ((l < INFO) || (l > FATAL))
+            throw new IllegalArgumentException("level");
+
         level = l;
     }
 

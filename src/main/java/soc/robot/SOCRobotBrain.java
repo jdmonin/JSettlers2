@@ -914,6 +914,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * @return the building plan, a stack of {@link SOCPossiblePiece}
+     * @see #resetBuildingPlan()
      */
     public Stack<SOCPossiblePiece> getBuildingPlan()
     {
@@ -922,8 +923,12 @@ public class SOCRobotBrain extends Thread
 
     /**
      * clears the stack describing the current building plan.
+     * @see #getBuildingPlan()
+     * @see #resetFieldsAtEndTurn()
+     * @since 2.4.10
      */
-    public void resetBuildingPlan(){
+    public void resetBuildingPlan()
+    {
         buildingPlan.clear();
     }
 

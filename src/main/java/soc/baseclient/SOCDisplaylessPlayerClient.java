@@ -1587,6 +1587,18 @@ public class SOCDisplaylessPlayerClient implements Runnable
             pl.setNeedToDiscard(val != 0);
             break;
 
+        case NUM_PLAYED_DEV_CARD_DISC:
+            pl.numDISCCards = val;
+            break;
+
+        case NUM_PLAYED_DEV_CARD_MONO:
+            pl.numMONOCards = val;
+            break;
+
+        case NUM_PLAYED_DEV_CARD_ROADS:
+            pl.numRBCards = val;
+            break;
+
         case NUM_PICK_GOLD_HEX_RESOURCES:
             pl.setNeedToPickGoldHexResources(val);
             break;

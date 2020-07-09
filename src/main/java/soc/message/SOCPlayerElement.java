@@ -215,6 +215,30 @@ public class SOCPlayerElement extends SOCMessage
          */
         HAS_SPECIAL_BUILT(21),
 
+        /**
+         * Dev card stats: Value of {@link SOCPlayer#numDISCCards}.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
+         * @since 2.4.10
+         */
+        NUM_PLAYED_DEV_CARD_DISC(22),
+
+        /**
+         * Dev card stats: Value of {@link SOCPlayer#numMONOCards}.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
+         * @since 2.4.10
+         */
+        NUM_PLAYED_DEV_CARD_MONO(23),
+
+        /**
+         * Dev card stats: Value of {@link SOCPlayer#numRBCards}.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
+         * @since 2.4.10
+         */
+        NUM_PLAYED_DEV_CARD_ROADS(24),
+
         //
         // Elements related to scenarios and sea boards:
         //
