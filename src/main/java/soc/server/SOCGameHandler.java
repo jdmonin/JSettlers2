@@ -1726,9 +1726,9 @@ public class SOCGameHandler extends GameHandler
          */
         if ((! isRejoinOrLoadgame) && (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY))
         {
-            final SOCDevCardAction cardUnknown = (cliVersionRecent)
-                ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
-                : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
+            final SOCDevCardAction cardUnknown = new SOCDevCardAction
+                (gaName, pn, SOCDevCardAction.PLAY,
+                 (cliVersionRecent) ? SOCDevCardConstants.UNKNOWN : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
             for (int i = cardsInv.getTotal(); i > 0; --i)
                 srv.messageToPlayer(c, cardUnknown);
         }

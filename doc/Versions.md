@@ -26,7 +26,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Made some data classes Serializable
 	- Save/load games:
 	    - SavedGameModel:
-	        - PlayerInfo: Includes number of Discovery, Monopoly, Road Building cards played
+	        - PlayerInfo: Include number of Discovery, Monopoly, Road Building cards played
 
 
 ## `2.4.00` (build JM20200704)

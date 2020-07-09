@@ -2892,6 +2892,16 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Clear contents of the chat input text ("please wait" during setup, etc).
+     * @since 2.4.10
+     */
+    public void clearChatTextInput()
+    {
+        textInput.setText("");
+        textInputIsInitial = false;
+    }
+
+    /**
      * Set or clear the chat text input's initial prompt.
      * If {@code setToInitial} true, sets its status, foreground color, and the prompt text
      * unless player already sent chat text ({@link #textInputHasSent}).
@@ -5163,10 +5173,15 @@ public class SOCPlayerInterface extends Frame
     private static class SOCPITextfieldListener
         extends KeyAdapter implements DocumentListener, FocusListener
     {
-        private SOCPlayerInterface pi;
+        /** our playerinterface; not null */
+        private final SOCPlayerInterface pi;
 
         public SOCPITextfieldListener(SOCPlayerInterface spi)
+            throws IllegalArgumentException
         {
+            if (spi == null)
+                throw new IllegalArgumentException("spi");
+
             pi = spi;
         }
 
