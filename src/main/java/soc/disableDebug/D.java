@@ -25,7 +25,7 @@ package soc.disableDebug;
  * Debug output; the disabled class is always off.
  * {@link soc.debug.D} and soc.disableDebug.D have the same interface, to easily switch
  * debug on and off per class.
- *
+ *<P>
  * Extended with 4 levels of importance: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL};
  * Depending on the level, call one of the debug methods to print out.
  */
@@ -33,18 +33,25 @@ public class D
 {
     /**
      * Print out everything
+     * @since 2.4.10
      */
     public static final int INFO = 0;
+
     /**
      * Print out warnings or above
+     * @since 2.4.10
      */
     public static final int WARNING = 1;
+
     /**
      * Print out errors or fatals
+     * @since 2.4.10
      */
     public static final int ERROR = 2;
+
     /**
      * Print out fatals only. NOTE: despite the name, fatals are exceptions that may or may not cause the application to crash
+     * @since 2.4.10
      */
     public static final int FATAL = 3;
 
@@ -52,21 +59,30 @@ public class D
     // static private boolean enabled = false;
 
     /**
-     * The debug level one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
+     * The debug level, one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
      * Default set to WARNING.
      * Doesn't affect anything as debug is off
+     * @since 2.4.10
      */
     static private int level = WARNING;
 
     /**
      * Changes the debug level to one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
      * The default is WARNING.
+     * @since 2.4.10
      */
-    public static void setLevel(int l){
+    public static void setLevel(int l)
+    {
         level = l;
     }
 
-    public static int ebug_level(){
+    /**
+     * Get the current debug level (one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL})
+     * @return the current debug level
+     * @since 2.4.10
+     */
+    public static int ebug_level()
+    {
         return level;
     }
 
@@ -113,11 +129,13 @@ public class D
      * Does nothing as debug is off
      *
      * @param text DOCUMENT ME!
+     * @since 2.4.10
      */
     public static final void ebugPrintlnINFO(String prefix, String text) {}
 
     /**
      * Does nothing as debug is off
+     * @since 2.4.10
      */
     public static final void ebugPrintlnINFO() {}
 
@@ -135,6 +153,7 @@ public class D
      * @param ex Exception or other Throwable
      * @param prefixMsg Message for {@link #ebugPrintlnINFO(String)} above the exception,
      *                  or null
+     * @since 2.4.10
      */
     public static final void ebugFATAL(Throwable ex, String prefixMsg) {}
 
@@ -149,6 +168,7 @@ public class D
      * DOCUMENT ME!
      *
      * @param text DOCUMENT ME!
+     * @since 2.4.10
      */
     public static final void ebugPrintINFO(String text) {}
 
@@ -162,24 +182,28 @@ public class D
     /**
      * Does nothing as debug is off
      * @param text Text to debug-print
+     * @since 2.4.10
      */
     public static final void ebugWARNING(String text) { }
 
     /**
      * Does nothing as debug is off
      * @param text Text to debug-print
+     * @since 2.4.10
      */
     public static final void ebugWARNING(String prefix, String text) { }
 
     /**
      * Does nothing as debug is off
      * @param text Text to debug-print
+     * @since 2.4.10
      */
     public static final void ebugERROR(String text) { }
 
     /**
      * Does nothing as debug is off
      * @param text Text to debug-print
+     * @since 2.4.10
      */
     public static final void ebugERROR(String prefix, String text) { }
 

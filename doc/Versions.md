@@ -19,7 +19,9 @@ and backport minor new features until `2.0.00` was ready.
 ## `2.4.10` (build JM20200xxx)
 - Currently being developed
 - For developers:
-	- Upstreamed and reintegrated various player and game statistic fields/methods and misc code from STAC Project fork https://github.com/sorinMD/StacSettlers
+	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
+	    - Various player and game statistic fields/methods and misc code
+	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
 	- More accessible robot-related methods and data classes
 	- Made some data classes Serializable
 
