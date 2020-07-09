@@ -240,7 +240,7 @@ public class StringConnection
         if (! accepted)
             return;  // <--- Early return: Already disconnected, or never connected ---
 
-        D.ebugPrintln("DISCONNECTING " + data);
+        D.ebugPrintlnINFO("DISCONNECTING " + data);
         accepted = false;
         synchronized (out)
         {
@@ -266,7 +266,7 @@ public class StringConnection
         // Don't check accepted; it'll be false if we're called from
         // disconnect(), and it's OK to do this part twice.
 
-        D.ebugPrintln("DISCONNECTING(SOFT) " + data);
+        D.ebugPrintlnINFO("DISCONNECTING(SOFT) " + data);
         synchronized (in)
         {
             in.clear();
@@ -485,7 +485,7 @@ public class StringConnection
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in StringConnection.run - " + e);
+            D.ebugPrintlnINFO("Exception in StringConnection.run - " + e);
 
             if (D.ebugOn)
             {

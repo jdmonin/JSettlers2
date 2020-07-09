@@ -1233,7 +1233,7 @@ public class SOCRobotBrain extends Thread
                         if (mesType != SOCMessage.TIMINGPING)
                             turnEventsCurrent.addElement(mes);
                         if (D.ebugOn)
-                            D.ebugPrintln("mes - " + mes);
+                            D.ebugPrintlnINFO("mes - " + mes);
                     }
                     else
                     {
@@ -3198,7 +3198,7 @@ public class SOCRobotBrain extends Thread
         {
             if (giveSet.contains(rsrcType))
             {
-                D.ebugPrintln("%%% player " + offer.getFrom() + " wants to sell " + rsrcType);
+                D.ebugPrintlnINFO("%%% player " + offer.getFrom() + " wants to sell " + rsrcType);
                 negotiator.markAsWantsAnotherOffer(offer.getFrom(), rsrcType);
             }
         }
@@ -3215,7 +3215,7 @@ public class SOCRobotBrain extends Thread
         {
             if (getSet.contains(rsrcType))
             {
-                D.ebugPrintln("%%% player " + offer.getFrom() + " wants to buy " + rsrcType
+                D.ebugPrintlnINFO("%%% player " + offer.getFrom() + " wants to buy " + rsrcType
                     + " and therefore does not want to sell it");
                 negotiator.markAsNotSelling(offer.getFrom(), rsrcType);
             }
@@ -3226,7 +3226,7 @@ public class SOCRobotBrain extends Thread
             offerRejections[offer.getFrom()] = true;
 
             boolean everyoneRejected = true;
-            D.ebugPrintln("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
+            D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
 
             if (ourPlayerData.getCurrentOffer() != null)
             {
@@ -3234,14 +3234,14 @@ public class SOCRobotBrain extends Thread
 
                 for (int i = 0; i < game.maxPlayers; i++)
                 {
-                    D.ebugPrintln("offerRejections[" + i + "]=" + offerRejections[i]);
+                    D.ebugPrintlnINFO("offerRejections[" + i + "]=" + offerRejections[i]);
 
                     if (offeredTo[i] && ! offerRejections[i])
                         everyoneRejected = false;
                 }
             }
 
-            D.ebugPrintln("everyoneRejected=" + everyoneRejected);
+            D.ebugPrintlnINFO("everyoneRejected=" + everyoneRejected);
 
             if (everyoneRejected)
             {
@@ -3256,7 +3256,7 @@ public class SOCRobotBrain extends Thread
         ///
         int ourResponseToOffer = considerOffer(offer);
 
-        D.ebugPrintln("%%% ourResponseToOffer = " + ourResponseToOffer);
+        D.ebugPrintlnINFO("%%% ourResponseToOffer = " + ourResponseToOffer);
 
         if (ourResponseToOffer < 0)
             return;  // <--- Early return: SOCRobotNegotiator.IGNORE_OFFER ---
@@ -3312,7 +3312,7 @@ public class SOCRobotBrain extends Thread
 
         if ((ourPlayerData.getCurrentOffer() != null) && (waitingForTradeResponse))
         {
-            D.ebugPrintln("%%%%%%%%% REJECT OFFER %%%%%%%%%%%%%");
+            D.ebugPrintlnINFO("%%%%%%%%% REJECT OFFER %%%%%%%%%%%%%");
 
             ///
             /// record which player said no
@@ -3331,13 +3331,13 @@ public class SOCRobotBrain extends Thread
 
             boolean everyoneRejected = true,
                 allHumansRejected = (tradeResponseTimeoutSec > TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY);
-            D.ebugPrintln("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
+            D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
 
             boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
 
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
-                D.ebugPrintln("offerRejections[" + pn + "]=" + offerRejections[pn]);
+                D.ebugPrintlnINFO("offerRejections[" + pn + "]=" + offerRejections[pn]);
 
                 if (offeredTo[pn] && ! offerRejections[pn])
                 {
@@ -3347,7 +3347,7 @@ public class SOCRobotBrain extends Thread
                 }
             }
 
-            D.ebugPrintln("everyoneRejected=" + everyoneRejected);
+            D.ebugPrintlnINFO("everyoneRejected=" + everyoneRejected);
 
             if (everyoneRejected)
             {
@@ -3366,7 +3366,7 @@ public class SOCRobotBrain extends Thread
             ///
             /// we also want to watch rejections of other players' offers
             ///
-            D.ebugPrintln("%%%% ALT REJECT OFFER %%%%");
+            D.ebugPrintlnINFO("%%%% ALT REJECT OFFER %%%%");
 
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
@@ -3594,7 +3594,7 @@ public class SOCRobotBrain extends Thread
     protected void buildRequestPlannedPiece()
     {
         final SOCPossiblePiece targetPiece = buildingPlan.pop();
-        D.ebugPrintln("$ POPPED " + targetPiece);
+        D.ebugPrintlnINFO("$ POPPED " + targetPiece);
         lastMove = targetPiece;
         currentDRecorder = (currentDRecorder + 1) % 2;
         negotiator.setTargetPiece(ourPlayerNumber, targetPiece);
@@ -3614,7 +3614,7 @@ public class SOCRobotBrain extends Thread
             whatWeWantToBuild = new SOCRoad(ourPlayerData, targetPiece.getCoordinates(), null);
             if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
             {
-                D.ebugPrintln("!!! BUILD REQUEST FOR A ROAD AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                D.ebugPrintlnINFO("!!! BUILD REQUEST FOR A ROAD AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 client.buildRequest(game, SOCPlayingPiece.ROAD);
             } else {
                 // We already tried to build this.
@@ -3631,7 +3631,7 @@ public class SOCRobotBrain extends Thread
             whatWeWantToBuild = new SOCSettlement(ourPlayerData, targetPiece.getCoordinates(), null);
             if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
             {
-                D.ebugPrintln("!!! BUILD REQUEST FOR A SETTLEMENT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                D.ebugPrintlnINFO("!!! BUILD REQUEST FOR A SETTLEMENT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 client.buildRequest(game, SOCPlayingPiece.SETTLEMENT);
             } else {
                 // We already tried to build this.
@@ -3648,7 +3648,7 @@ public class SOCRobotBrain extends Thread
             whatWeWantToBuild = new SOCCity(ourPlayerData, targetPiece.getCoordinates(), null);
             if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
             {
-                D.ebugPrintln("!!! BUILD REQUEST FOR A CITY " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                D.ebugPrintlnINFO("!!! BUILD REQUEST FOR A CITY " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 client.buildRequest(game, SOCPlayingPiece.CITY);
             } else {
                 // We already tried to build this.
@@ -3668,7 +3668,7 @@ public class SOCRobotBrain extends Thread
                 /*
                 System.err.println("L2733: " + ourPlayerData.getName() + ": !!! BUILD REQUEST FOR A SHIP AT "
                     + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
-                D.ebugPrintln("!!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                D.ebugPrintlnINFO("!!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                  */
                 client.buildRequest(game, SOCPlayingPiece.SHIP);
             } else {
@@ -4660,7 +4660,7 @@ public class SOCRobotBrain extends Thread
     protected void moveRobber()
     {
         final int bestHex = robberStrategy.getBestRobberHex();
-        D.ebugPrintln("!!! MOVING ROBBER !!!");
+        D.ebugPrintlnINFO("!!! MOVING ROBBER !!!");
         client.moveRobber(game, ourPlayerData, bestHex);
         pause(2000);
     }
@@ -5397,7 +5397,7 @@ public class SOCRobotBrain extends Thread
                 resourceMessage += (rsrcs.getAmount(SOCResourceConstants.WOOD) + " ");
                 resourceMessage += (rsrcs.getAmount(SOCResourceConstants.UNKNOWN) + " ");
                 client.sendText(game, resourceMessage);
-                D.ebugPrintln(resourceMessage);
+                D.ebugPrintlnINFO(resourceMessage);
             }
         }
     }

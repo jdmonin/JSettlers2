@@ -2331,7 +2331,7 @@ public class SOCPlayerInterface extends Frame
         }
         catch (RuntimeException re)
         {
-            D.ebugPrintln("resetBoardAskVote: Cannot: " + re);
+            D.ebugPrintlnINFO("resetBoardAskVote: Cannot: " + re);
             return;
         }
         boardResetRequester = hands[pnRequester];

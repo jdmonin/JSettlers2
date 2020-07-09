@@ -1387,7 +1387,7 @@ public class SOCGameMessageHandler
                     srv.messageToPlayer(c, gaName, "You can't make that trade.");
                     SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
-                        D.ebugPrintln("ILLEGAL BANK TRADE: " + c.getData()
+                        D.ebugPrintlnINFO("ILLEGAL BANK TRADE: " + c.getData()
                           + ": give " + give + ", get " + get);
                 }
             } else {
@@ -1949,13 +1949,13 @@ public class SOCGameMessageHandler
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
                         } else {
-                            D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(coord)
+                            D.ebugPrintlnINFO("ILLEGAL ROAD: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
                             if (player.isRobot() && D.ebugOn)
                             {
-                                D.ebugPrintln(" - pl.isPotentialRoad: " + player.isPotentialRoad(coord));
+                                D.ebugPrintlnINFO(" - pl.isPotentialRoad: " + player.isPotentialRoad(coord));
                                 SOCPlayingPiece pp = ga.getBoard().roadOrShipAtEdge(coord);
-                                D.ebugPrintln(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
+                                D.ebugPrintlnINFO(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
                             srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.road");
@@ -2006,14 +2006,14 @@ public class SOCGameMessageHandler
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
                         } else {
-                            D.ebugPrintln("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(coord)
+                            D.ebugPrintlnINFO("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
                             if (player.isRobot() && D.ebugOn)
                             {
-                                D.ebugPrintln(" - pl.isPotentialSettlement: "
+                                D.ebugPrintlnINFO(" - pl.isPotentialSettlement: "
                                     + player.isPotentialSettlement(coord));
                                 SOCPlayingPiece pp = ga.getBoard().settlementAtNode(coord);
-                                D.ebugPrintln(" - settlementAtNode: " + ((pp != null) ? pp : "none"));
+                                D.ebugPrintlnINFO(" - settlementAtNode: " + ((pp != null) ? pp : "none"));
                             }
 
                             srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.stlmt");
@@ -2066,13 +2066,13 @@ public class SOCGameMessageHandler
                             else
                                 handler.sendGameState(ga);
                         } else {
-                            D.ebugPrintln("ILLEGAL CITY: 0x" + Integer.toHexString(coord)
+                            D.ebugPrintlnINFO("ILLEGAL CITY: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
                             if (player.isRobot() && D.ebugOn)
                             {
-                                D.ebugPrintln(" - pl.isPotentialCity: " + player.isPotentialCity(coord));
+                                D.ebugPrintlnINFO(" - pl.isPotentialCity: " + player.isPotentialCity(coord));
                                 SOCPlayingPiece pp = ga.getBoard().settlementAtNode(coord);
-                                D.ebugPrintln(" - city/settlementAtNode: " + ((pp != null) ? pp : "none"));
+                                D.ebugPrintlnINFO(" - city/settlementAtNode: " + ((pp != null) ? pp : "none"));
                             }
 
                             srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.city");
@@ -2122,13 +2122,13 @@ public class SOCGameMessageHandler
                                 handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
                         } else {
-                            D.ebugPrintln("ILLEGAL SHIP: 0x" + Integer.toHexString(coord)
+                            D.ebugPrintlnINFO("ILLEGAL SHIP: 0x" + Integer.toHexString(coord)
                                 + ": player " + pn);
                             if (player.isRobot() && D.ebugOn)
                             {
-                                D.ebugPrintln(" - pl.isPotentialShip: " + player.isPotentialShip(coord));
+                                D.ebugPrintlnINFO(" - pl.isPotentialShip: " + player.isPotentialShip(coord));
                                 SOCPlayingPiece pp = ga.getBoard().roadOrShipAtEdge(coord);
-                                D.ebugPrintln(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
+                                D.ebugPrintlnINFO(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
                             srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.ship");
@@ -2222,7 +2222,7 @@ public class SOCGameMessageHandler
 
         if (denyRequest)
         {
-            D.ebugPrintln("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
+            D.ebugPrintlnINFO("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
                 + ": player " + c.getData());
             srv.messageToPlayerKeyed(c, gaName, "reply.movepiece.cannot.now.ship");  // "You can't move that ship now."
             srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, SOCPlayingPiece.SHIP));
@@ -2692,7 +2692,7 @@ public class SOCGameMessageHandler
 
                 default:
                     denyTextKey = "reply.playdevcard.type.unknown";  // "That card type is unknown."
-                    D.ebugPrintln("* srv handlePLAYDEVCARDREQUEST: asked to play unhandled type " + mes.getDevCard());
+                    D.ebugPrintlnINFO("* srv handlePLAYDEVCARDREQUEST: asked to play unhandled type " + mes.getDevCard());
                     // debug prints dev card type from client, not ctype,
                     // in case ctype was changed here from message value.
 

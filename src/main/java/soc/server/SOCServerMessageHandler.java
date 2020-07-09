@@ -2212,7 +2212,7 @@ public class SOCServerMessageHandler
             return;
 
         if (D.ebugIsEnabled())
-            D.ebugPrintln("handleJOINCHANNEL: " + mes);
+            D.ebugPrintlnINFO("handleJOINCHANNEL: " + mes);
 
         int cliVers = c.getVersion();
 
@@ -2355,7 +2355,7 @@ public class SOCServerMessageHandler
             srv.broadcast(SOCNewChannel.toCmd(ch));
             c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
-                D.ebugPrintln("*** " + msgUser + " joined new channel " + ch + " at "
+                D.ebugPrintlnINFO("*** " + msgUser + " joined new channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             channelList.takeMonitorForChannel(ch);
 
@@ -2408,7 +2408,7 @@ public class SOCServerMessageHandler
     private void handleLEAVECHANNEL(Connection c, SOCLeaveChannel mes)
     {
         if (D.ebugIsEnabled())
-            D.ebugPrintln("handleLEAVECHANNEL: " + mes);
+            D.ebugPrintlnINFO("handleLEAVECHANNEL: " + mes);
 
         if (c == null)
             return;

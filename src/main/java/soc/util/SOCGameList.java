@@ -498,7 +498,7 @@ public class SOCGameList
      */
     public synchronized void deleteGame(final String gaName)
     {
-        D.ebugPrintln("SOCGameList : deleteGame(" + gaName + ")");
+        D.ebugPrintlnINFO("SOCGameList : deleteGame(" + gaName + ")");
 
         GameInfo info = gameInfo.get(gaName);
         if (info == null)

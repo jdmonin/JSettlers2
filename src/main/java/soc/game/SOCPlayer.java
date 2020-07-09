@@ -2148,7 +2148,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         for (SOCLRPathData pd : lrList)
         {
             if (D.ebugOn)
-                D.ebugPrintln("restoring pd for player " + playerNumber + " :" + pd);
+                D.ebugPrintlnINFO("restoring pd for player " + playerNumber + " :" + pd);
             lrPaths.add(pd);
         }
     }
@@ -3508,7 +3508,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public void removePiece
         (final SOCPlayingPiece piece, final SOCPlayingPiece replacementPiece, final boolean isMoveOrReplacement)
     {
-        D.ebugPrintln("--- SOCPlayer.removePiece(" + piece + ")");
+        D.ebugPrintlnINFO("--- SOCPlayer.removePiece(" + piece + ")");
 
         final int pieceCoord = piece.getCoordinates();
         final Integer pieceCoordInt = Integer.valueOf(pieceCoord);

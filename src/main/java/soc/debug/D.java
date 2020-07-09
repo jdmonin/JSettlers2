@@ -116,6 +116,7 @@ public class D
      * DOCUMENT ME!
      *
      * @param text DOCUMENT ME!
+     * @deprecated Use {@link #ebugPrintlnINFO(String)} added in v2.4.10
      */
     public static final void ebugPrintln(String text)
     {
@@ -127,6 +128,7 @@ public class D
 
     /**
      * DOCUMENT ME!
+     * @deprecated Use {@link #ebugPrintlnINFO()} added in v2.4.10
      */
     public static final void ebugPrintln()
     {
@@ -140,6 +142,7 @@ public class D
      * DOCUMENT ME!
      *
      * @param text DOCUMENT ME!
+     * @deprecated Use {@link #ebugPrintINFO(String)} added in v2.4.10
      */
     public static final void ebugPrint(String text)
     {

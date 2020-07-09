@@ -2381,7 +2381,7 @@ public class SOCServer extends Server
         {
             params = SOCDBHelper.retrieveRobotParams(botName);
             if ((params != null) && D.ebugIsEnabled())
-                D.ebugPrintln("*** Robot Parameters for " + botName + " = " + params);
+                D.ebugPrintlnINFO("*** Robot Parameters for " + botName + " = " + params);
         } catch (SQLException sqle) {
             System.err.println("Error retrieving robot parameters from db: Using defaults.");
         }
@@ -2448,7 +2448,7 @@ public class SOCServer extends Server
             {
                 c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
                 if (D.ebugOn)
-                    D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch + " at "
+                    D.ebugPrintlnINFO("*** " + c.getData() + " joined the channel " + ch + " at "
                         + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
                 channelList.addMember(c, ch);
             }
@@ -2482,7 +2482,7 @@ public class SOCServer extends Server
             return false;
 
         final String mName = c.getData();
-        D.ebugPrintln("leaveChannel: " + mName + " " + ch + " " + channelListLock);
+        D.ebugPrintlnINFO("leaveChannel: " + mName + " " + ch + " " + channelListLock);
 
         if (channelList.isMember(c, ch))
         {
@@ -2491,7 +2491,7 @@ public class SOCServer extends Server
             SOCLeaveChannel leaveMessage = new SOCLeaveChannel(mName, "-", ch);
             messageToChannelWithMon(ch, leaveMessage);
             if (D.ebugOn)
-                D.ebugPrintln("*** " + mName + " left the channel " + ch + " at "
+                D.ebugPrintlnINFO("*** " + mName + " left the channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
         }
 
@@ -3716,7 +3716,7 @@ public class SOCServer extends Server
          */
         for (String ga : toDestroy)
         {
-            D.ebugPrintln("** Broadcasting SOCDeleteGame " + ga);
+            D.ebugPrintlnINFO("** Broadcasting SOCDeleteGame " + ga);
             broadcast(SOCDeleteGame.toCmd(ga));
         }
     }
@@ -4130,7 +4130,7 @@ public class SOCServer extends Server
                 }
 
                 if (rsrcMissing)
-                    D.ebugPrintln("Missing string key in messageToGameKeyedType: " + msgKey);
+                    D.ebugPrintlnINFO("Missing string key in messageToGameKeyedType: " + msgKey);
             }
         }
         catch (Throwable e)
@@ -7153,12 +7153,12 @@ public class SOCServer extends Server
         }
         catch (IllegalArgumentException e)
         {
-            D.ebugPrintln("*Error in player voting: game " + gaName + ": " + e);
+            D.ebugPrintlnINFO("*Error in player voting: game " + gaName + ": " + e);
             return;
         }
         catch (IllegalStateException e)
         {
-            D.ebugPrintln("*Voting not active: game " + gaName);
+            D.ebugPrintlnINFO("*Voting not active: game " + gaName);
             return;
         }
 
@@ -7761,7 +7761,7 @@ public class SOCServer extends Server
         if (hand == null)
         {
             // not likely, but could happen if there's a bug
-            D.ebugPrintln("L6708 SOCServer.joinGame: null handler for " + gameName);
+            System.err.println("L6708 SOCServer.joinGame: null handler for " + gameName);
             return;
         }
 
@@ -8292,7 +8292,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in checkForExpiredGames - " + e);
+            D.ebugPrintlnINFO("Exception in checkForExpiredGames - " + e);
         }
 
         gameList.releaseMonitor();
@@ -8376,7 +8376,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in checkForExpiredTurns - " + e);
+            D.ebugPrintlnINFO("Exception in checkForExpiredTurns - " + e);
         }
     }
 

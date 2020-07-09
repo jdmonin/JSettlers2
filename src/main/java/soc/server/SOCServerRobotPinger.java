@@ -100,7 +100,7 @@ import soc.server.genericServer.Connection;
                     for (Connection robotConnection : robotConnections)
                     {
                         if (D.ebugIsEnabled())
-                            D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
+                            D.ebugPrintlnINFO("(*)(*)(*)(*) PINGING " + robotConnection.getData());
                         robotConnection.put(pingCmdStr);
                     }
                 } catch (ConcurrentModificationException e) {

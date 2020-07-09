@@ -118,7 +118,7 @@ import java.util.Vector;
     {
         if (getData() != null)
         {
-            D.ebugPrintln("conn.connect() requires null getData()");
+            D.ebugPrintlnINFO("conn.connect() requires null getData()");
             return false;
         }
 
@@ -138,7 +138,7 @@ import java.util.Vector;
         }
         catch (Exception e)
         {
-            D.ebugPrintln("IOException in Connection.connect (" + hst + ") - " + e);
+            D.ebugPrintlnINFO("IOException in Connection.connect (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -207,7 +207,7 @@ import java.util.Vector;
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in NetConnection.run (" + hst + ") - " + e);
+            D.ebugPrintlnINFO("Exception in NetConnection.run (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -298,7 +298,7 @@ import java.util.Vector;
         }
         catch (IOException e)
         {
-            D.ebugPrintln("IOException in NetConnection.putAux (" + hst + ") - " + e);
+            D.ebugPrintlnINFO("IOException in NetConnection.putAux (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -311,7 +311,7 @@ import java.util.Vector;
         }
         catch (Exception ex)
         {
-            D.ebugPrintln("generic exception in NetConnection.putAux");
+            D.ebugPrintlnINFO("generic exception in NetConnection.putAux");
 
             if (D.ebugOn)
             {
@@ -330,7 +330,7 @@ import java.util.Vector;
         if (! connected)
             return;  // <--- Early return: Already disconnected ---
 
-        D.ebugPrintln("DISCONNECTING " + data);
+        D.ebugPrintlnINFO("DISCONNECTING " + data);
         connected = false;
         inputConnected = false;
 
@@ -349,7 +349,7 @@ import java.util.Vector;
         }
         catch (IOException e)
         {
-            D.ebugPrintln("IOException in Connection.disconnect (" + hst + ") - " + e);
+            D.ebugPrintlnINFO("IOException in Connection.disconnect (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -375,7 +375,7 @@ import java.util.Vector;
         if (! inputConnected)
             return;
 
-        D.ebugPrintln("DISCONNECTING(SOFT) " + data);
+        D.ebugPrintlnINFO("DISCONNECTING(SOFT) " + data);
         inputConnected = false;
 
         if (out != null)
@@ -417,7 +417,7 @@ import java.util.Vector;
         //public boolean putting = true;
         public Putter()
         {
-            D.ebugPrintln("NEW PUTTER CREATED FOR " + data);
+            D.ebugPrintlnINFO("NEW PUTTER CREATED FOR " + data);
 
             /* thread name for debug */
             String cn = host();
@@ -434,7 +434,7 @@ import java.util.Vector;
                 String c = null;
 
                 if (D.ebugIsEnabled())
-                    D.ebugPrintln("** " + data + " is at the top of the putter loop");
+                    D.ebugPrintlnINFO("** " + data + " is at the top of the putter loop");
 
                 synchronized (outQueue)
                 {
@@ -463,13 +463,13 @@ import java.util.Vector;
                         }
                         catch (Exception ex)
                         {
-                            D.ebugPrintln("Exception while waiting for outQueue in " + data + ". - " + ex);
+                            D.ebugPrintlnINFO("Exception while waiting for outQueue in " + data + ". - " + ex);
                         }
                     }
                 }
             }
 
-            D.ebugPrintln("putter not putting connected==false : " + data);
+            D.ebugPrintlnINFO("putter not putting connected==false : " + data);
         }
     }
 }

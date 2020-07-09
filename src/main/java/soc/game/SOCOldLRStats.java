@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,24 +44,24 @@ import soc.disableDebug.D;
      */
     public SOCOldLRStats(SOCGame ga)
     {
-        D.ebugPrintln("&&&& SOCOldLRStats constructor");
+        D.ebugPrintlnINFO("&&&& SOCOldLRStats constructor");
         lrLengths = new int[ga.maxPlayers];
 
         for (int i = 0; i < ga.maxPlayers; i++)
         {
             lrLengths[i] = ga.getPlayer(i).getLongestRoadLength();
-            D.ebugPrintln("&&& lrLengths[" + i + "] = " + lrLengths[i]);
+            D.ebugPrintlnINFO("&&& lrLengths[" + i + "] = " + lrLengths[i]);
         }
 
         playerWithLR = ga.getPlayerWithLongestRoad();
 
         if (playerWithLR == null)
         {
-            D.ebugPrintln("&&& playerWithLR = -1");
+            D.ebugPrintlnINFO("&&& playerWithLR = -1");
         }
         else
         {
-            D.ebugPrintln("&&& playerWithLR = " + playerWithLR.getPlayerNumber());
+            D.ebugPrintlnINFO("&&& playerWithLR = " + playerWithLR.getPlayerNumber());
         }
     }
 
@@ -73,23 +73,23 @@ import soc.disableDebug.D;
      */
     public void restoreOldStats(SOCGame ga)
     {
-        D.ebugPrintln("&&&& restoreOldStats");
+        D.ebugPrintlnINFO("&&&& restoreOldStats");
 
         for (int i = 0; i < ga.maxPlayers; i++)
         {
             ga.getPlayer(i).setLongestRoadLength(lrLengths[i]);
-            D.ebugPrintln("&&& lrLengths[" + i + "] = " + lrLengths[i]);
+            D.ebugPrintlnINFO("&&& lrLengths[" + i + "] = " + lrLengths[i]);
         }
 
         ga.setPlayerWithLongestRoad(playerWithLR);
 
         if (playerWithLR == null)
         {
-            D.ebugPrintln("&&& playerWithLR = -1");
+            D.ebugPrintlnINFO("&&& playerWithLR = -1");
         }
         else
         {
-            D.ebugPrintln("&&& playerWithLR = " + playerWithLR.getPlayerNumber());
+            D.ebugPrintlnINFO("&&& playerWithLR = " + playerWithLR.getPlayerNumber());
         }
     }
 }
