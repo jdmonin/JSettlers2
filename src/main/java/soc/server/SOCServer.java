@@ -136,7 +136,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *<LI> To get the rest of a client's data, use {@link #getClientData(String)}
  *     or <tt>({@link SOCClientData}) {@link Connection#getAppData()}</tt>.
  *<LI> To send a message to all players in a game, use {@link #messageToGame(String, SOCMessage)}
- *     and related methods. Send text with {@link #messageToGameKeyed(SOCGame, boolean, String)}.
+ *     and related methods. Send text with {@link #messageToGameKeyed(SOCGame, boolean, boolean, String)}.
  *<LI> For i18n, nearly all text sent from the server starts as a unique key
  *     appearing in {@code soc/server/strings/*.properties} and is localized
  *     to the client's locale through {@link Connection#getLocalized(String)}.
@@ -619,7 +619,8 @@ public class SOCServer extends Server
     };
 
     /**
-     * Name used when sending messages from the server.
+     * Name used when sending message text from the server: {@link SOCGameTextMsg#SERVERNAME}.
+     * Sends {@link SOCGameServerText} to v2.0 and newer clients, {@link SOCGameTextMsg} to older ones.
      */
     public static final String SERVERNAME = SOCGameTextMsg.SERVERNAME;  // "Server"
 
@@ -765,6 +766,38 @@ public class SOCServer extends Server
      * @since 1.1.00
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE";
+
+    /**
+     * For {@link #messageToPlayer(Connection, String, int, SOCMessage)} and similar methods,
+     * "event playerNumber" parameter value to indicate message isn't an event and shouldn't be recorded.
+     * @see #PN_OBSERVER
+     * @see #PN_REPLY_TO_UNDETERMINED
+     * @since 2.4.10
+     */
+    public static final int PN_NON_EVENT = -256;
+
+    /**
+     * For {@link #messageToPlayer(Connection, String, int, SOCMessage)} and similar methods,
+     * "event playerNumber" parameter value to indicate this is the server's reply to an observing client
+     * who's joined the game but isn't sitting as a player.
+     *<P>
+     * Also used when inviting a bot client to join a game, although they aren't a game member yet.
+     * @see #PN_NON_EVENT
+     * @see #PN_REPLY_TO_UNDETERMINED
+     * @since 2.4.10
+     */
+    public static final int PN_OBSERVER = -257;
+
+    /**
+     * For {@link #messageToPlayer(Connection, String, int, SOCMessage)} and similar methods,
+     * "event playerNumber" parameter value to indicate this is the server's reply to a client player, and
+     * their player number is undetermined, probably because current player's name isn't the client nickname
+     * so server knows client can't take an action right now.
+     * @see #PN_NON_EVENT
+     * @see #PN_OBSERVER
+     * @since 2.4.10
+     */
+    public static final int PN_REPLY_TO_UNDETERMINED = -258;
 
     /** {@link AuthSuccessRunnable#success(Connection, int)}
      *  result flag bit: Authentication succeeded.
@@ -3390,7 +3423,7 @@ public class SOCServer extends Server
             while (conEnum.hasMoreElements())
             {
                 Connection con = conEnum.nextElement();
-                con.put(SOCRobotDismiss.toCmd(gm));
+                messageToPlayer(con, null, PN_NON_EVENT, new SOCRobotDismiss(gm));
             }
         }
 
@@ -3791,21 +3824,44 @@ public class SOCServer extends Server
         }
     }
 
+    // TODO soon mark deprecated for +eventPN form
     /**
-     * Send a message to a player, and record it if that debugging type is enabled.
+     * Send a message to a player.
      *
      * @param c   the player connection
      * @param mes the message to send
+     * @see #messageToPlayer(Connection, String, int, SOCMessage)
      */
     public void messageToPlayer(Connection c, SOCMessage mes)
     {
+        messageToPlayer(c, null, PN_NON_EVENT, mes);
+    }
+
+    /**
+     * Send a message to a player. Optionally call
+     * {@link #recordGameEventTo(String, int, SOCMessage) recordGameEventTo(eventGameName, eventPN, mes)}.
+     *
+     * @param c   the player connection; does nothing if {@code null}
+     * @param eventGameName {@code c}'s game if this should be recorded, otherwise {@code null}
+     * @param eventPN  {@code c}'s player number if this is a game event which should be recorded;
+     *     can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}.
+     *     Otherwise {@link #PN_NON_EVENT}. Ignored if {@code eventGameName} is null.
+     * @param mes the message to send; does nothing if {@code null}
+     * @since 2.4.10
+     */
+    public void messageToPlayer(Connection c, final String eventGameName, final int eventPN, SOCMessage mes)
+    {
         if ((c == null) || (mes == null))
             return;
+
+        if (eventGameName != null)
+            recordGameEventTo(eventGameName, eventPN, mes);
 
         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", c.getData()));
         c.put(mes);
     }
 
+    // TODO soon mark deprecated for eventPN form
     /**
      * Send a {@link SOCGameServerText} or {@link SOCGameTextMsg} game text message to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, txt));
@@ -3815,19 +3871,48 @@ public class SOCServer extends Server
      * @param ga  game name
      * @param txt the message text to send
      * @since 1.1.08
-     * @see #messageToPlayerKeyed(Connection, String, String)
+     * @see #messageToPlayer(Connection, String, int, String)
+     * @see #messageToPlayerKeyed(Connection, String, int, String)
      */
     public void messageToPlayer(Connection c, final String ga, final String txt)
+    {
+        messageToPlayer(c, ga, PN_NON_EVENT, txt);
+    }
+
+    /**
+     * Send a {@link SOCGameServerText} or {@link SOCGameTextMsg} game text message to a player.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, txt));
+     * Optionally calls {@link #recordGameEventTo(String, int, SOCMessage)}.
+     *
+     * @param c   the player connection; if their version is 2.0.00 or newer,
+     *     they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
+     *     Does nothing if {@code null}.
+     * @param gameName  game name
+     * @param eventPN  {@code c}'s player number if this is a game event which should be recorded;
+     *     can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}. Otherwise {@link #PN_NON_EVENT}.
+     * @param txt the message text to send
+     * @see #messageToPlayerKeyed(Connection, String, int, String)
+     * @since 2.4.10
+     */
+    public void messageToPlayer(Connection c, final String gameName, final int eventPN, final String txt)
     {
         if (c == null)
             return;
 
         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(ga, txt));
-        else
-            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, txt));
+        {
+            SOCGameServerText msg = new SOCGameServerText(gameName, txt);
+            c.put(msg);
+            if (eventPN != PN_NON_EVENT)
+                recordGameEventTo(gameName, eventPN, msg);
+        } else {
+            c.put(new SOCGameTextMsg(gameName, SERVERNAME, txt));
+            if (eventPN != PN_NON_EVENT)
+                recordGameEventTo(gameName, eventPN, new SOCGameServerText(gameName, txt));
+        }
     }
 
+    // TODO deprecate for +eventPN form
     /**
      * Send a localized {@link SOCGameServerText} game text message to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
@@ -3839,20 +3924,40 @@ public class SOCServer extends Server
      * @param gaName  game name
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @since 2.0.00
-     * @see #messageToPlayerKeyed(Connection, String, String, Object...)
+     * @see #messageToPlayerKeyed(Connection, String, int, String)
+     * @see #messageToPlayerKeyed(Connection, String, int, String, Object...)
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
      */
     public final void messageToPlayerKeyed(Connection c, final String gaName, final String key)
     {
-        if (c == null)
-            return;
-
-        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(gaName, c.getLocalized(key)));
-        else
-            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key)));
+        if (c != null)
+            messageToPlayer(c, gaName, PN_NON_EVENT, c.getLocalized(key));
     }
 
+    /**
+     * Send a localized {@link SOCGameServerText} game text message to a player.
+     * Equivalent to: messageToPlayer(conn, gaName, eventPN, new {@link SOCGameServerText}(ga,
+     * {@link Connection#getLocalized(String) c.getLocalized(key)}));
+     * Optionally calls {@link #recordGameEventTo(String, int, SOCMessage)}.
+     *
+     * @param c   the player connection; if their version is 2.0.00 or newer,
+     *     they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
+     *     Null {@code c} is ignored and not an error.
+     * @param gameName  game name
+     * @param eventPN  {@code c}'s player number if this is a game event which should be recorded;
+     *     can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}. Otherwise {@link #PN_NON_EVENT}.
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
+     * @see #messageToPlayerKeyed(Connection, String, String, Object...)
+     * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
+     * @since 2.4.10
+     */
+    public final void messageToPlayerKeyed(Connection c, final String gameName, final int eventPN, final String key)
+    {
+        if (c != null)
+            messageToPlayer(c, gameName, eventPN, c.getLocalized(key));
+    }
+
+    // TODO soon deprecate for +eventPN form
     /**
      * Send a localized {@link SOCGameServerText} game text message with arguments to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
@@ -3868,20 +3973,43 @@ public class SOCServer extends Server
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @param args  Any parameters within {@code txt}'s placeholders
      * @since 2.0.00
-     * @see #messageToPlayerKeyed(Connection, String, String)
-     * @see #messageToPlayerKeyedSpecial(Connection, SOCGame, String, Object...)
+     * @see #messageToPlayerKeyed(Connection, String, int, String)
+     * @see #messageToPlayerKeyedSpecial(Connection, SOCGame, int, String, Object...)
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
      */
     public final void messageToPlayerKeyed
         (Connection c, final String gaName, final String key, final Object ... args)
     {
-        if (c == null)
-            return;
+        if (c != null)
+            messageToPlayer(c, gaName, PN_NON_EVENT, c.getLocalized(key, args));
+    }
 
-        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(gaName, c.getLocalized(key, args)));
-        else
-            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, c.getLocalized(key, args)));
+    /**
+     * Send a localized {@link SOCGameServerText} game text message with arguments to a player.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
+     * {@link Connection#getLocalized(String, Object...) c.getLocalized(key, args)}));
+     * Optionally calls {@link #recordGameEventTo(String, int, SOCMessage)}.
+     *<P>
+     * The localized message text must be formatted as in {@link MessageFormat}:
+     * Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}.
+     *
+     * @param c   the player connection; if their version is 2.0.00 or newer,
+     *     they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
+     *     Null {@code c} is ignored and not an error.
+     * @param gaName  game name
+     * @param eventPN  {@code c}'s player number if this is a game event which should be recorded;
+     *     can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}. Otherwise {@link #PN_NON_EVENT}.
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
+     * @param args  Any parameters within {@code txt}'s placeholders
+     * @see #messageToPlayerKeyedSpecial(Connection, SOCGame, int, String, Object...)
+     * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
+     * @since 2.4.10
+     */
+    public final void messageToPlayerKeyed
+        (Connection c, final String gaName, final int eventPN, final String key, final Object ... args)
+    {
+        if (c != null)
+            messageToPlayer(c, gaName, eventPN, c.getLocalized(key, args));
     }
 
     /**
@@ -3889,6 +4017,7 @@ public class SOCServer extends Server
      * with special formatting like <tt>{0,rsrcs}</tt>.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
      * {@link Connection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(ga, key, args)}));
+     * Optionally calls {@link #recordGameEventTo(String, int, SOCMessage)}.
      *<P>
      * The localized message text must be formatted as in {@link MessageFormat}:
      * Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}.
@@ -3899,22 +4028,19 @@ public class SOCServer extends Server
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
      *            Null {@code c} is ignored and not an error.
      * @param ga  the game
+     * @param eventPN  {@code c}'s player number if this is a game event which should be recorded;
+     *     otherwise {@link #PN_NON_EVENT}
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @param args  Any parameters within {@code txt}'s placeholders
      * @since 2.0.00
      * @see #messageToPlayerKeyed(Connection, String, String, Object...)
-     * @see #messageToPlayerKeyed(Connection, String, String)
+     * @see #messageToPlayerKeyed(Connection, String, int, String)
      */
     public final void messageToPlayerKeyedSpecial
-        (Connection c, final SOCGame ga, final String key, final Object ... args)
+        (Connection c, final SOCGame ga, final int eventPN, final String key, final Object ... args)
     {
-        if (c == null)
-            return;
-
-        if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
-            c.put(SOCGameServerText.toCmd(ga.getName(), c.getLocalizedSpecial(ga, key, args)));
-        else
-            c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, c.getLocalizedSpecial(ga, key, args)));
+        if (c != null)
+            messageToPlayer(c, ga.getName(), eventPN, c.getLocalizedSpecial(ga, key, args));
     }
 
     /**
@@ -3924,13 +4050,16 @@ public class SOCServer extends Server
      * If client's version is 2.0.00 or newer they will be sent
      * {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
      *<P>
+     * All pending messages are treated as recordable "events": When the queue is sent,
+     * server will call {@link #recordGameEventTo(String, int, SOCMessage)}.
+     *<P>
      * <b>Note:</b> Only a few of the server message-handling methods check the queue;
      * see {@link SOCGame#pendingMessagesOut}.
      *
      * @param pl  the player; {@code null} is ignored and not an error.
      * @param gaName  game name
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
-     * @see #messageToPlayerKeyed(Connection, String, String)
+     * @see #messageToPlayerKeyed(Connection, String, int, String)
      * @since 2.0.00
      */
     public final void messageToPlayerPendingKeyed
@@ -3948,30 +4077,58 @@ public class SOCServer extends Server
             pl.pendingMessagesOut.add(new SOCGameTextMsg(gaName, SERVERNAME, c.getLocalized(key)));
     }
 
+    // TODO mark deprecated for +isEvent form
     /**
      * Send a message to the given game.
-     * Also record the message in that game's {@link SOCChatRecentBuffer}.
      *<P>
      * <b>Locks:</b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
      *
-     * @param ga  the name of the game
+     * @param gameName  the name of the game
      * @param mes the message to send. If mes is a SOCGameTextMsg whose
      *            text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
-     * @see #messageToGame(String, String)
-     * @see #messageToGameWithMon(String, SOCMessage)
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
+     * @see #messageToGame(String, boolean, SOCMessage)
+     * @see #messageToGame(String, boolean, String)
+     * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      */
-    public void messageToGame(String ga, SOCMessage mes)
+    public void messageToGame(String gameName, SOCMessage mes)
     {
+        messageToGame(gameName, false, mes);
+    }
+
+    /**
+     * Send a message to the given game.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
+     *<P>
+     * <b>Locks:</b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
+     *
+     * @param gameName  the name of the game
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage) recordGameEvent(gameName, mes)};
+     *     see that method for its message version requirements
+     * @param mes the message to send. If mes is a SOCGameTextMsg whose
+     *     text begins with ">>>", the client should consider this
+     *     an urgent message, and draw the user's attention in some way.
+     *     (See {@link #messageToGameUrgent(String, boolean, String)})
+     * @see #messageToGame(String, SOCMessage)
+     * @see #messageToGame(String, boolean, String)
+     * @see #messageToGameWithMon(String, boolean, SOCMessage)
+     * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
+     * @since 2.4.10
+     */
+    public void messageToGame(final String gameName, final boolean isEvent, final SOCMessage mes)
+    {
+        if (isEvent)
+            recordGameEvent(gameName, mes);
+
         final String mesCmd = mes.toCmd();
 
-        gameList.takeMonitorForGame(ga);
+        gameList.takeMonitorForGame(gameName);
 
         try
         {
-            Vector<Connection> v = gameList.getMembers(ga);
+            Vector<Connection> v = gameList.getMembers(gameName);
 
             if (v != null)
             {
@@ -3995,9 +4152,10 @@ public class SOCServer extends Server
             D.ebugPrintStackTrace(e, "Exception in messageToGame");
         }
 
-        gameList.releaseMonitorForGame(ga);
+        gameList.releaseMonitorForGame(gameName);
     }
 
+    // TODO mark deprecated for +isEvent version
     /**
      * Send a server text message to the given game.
      * Equivalent to: messageToGame(ga, new SOCGameServerText(ga, txt));
@@ -4014,17 +4172,54 @@ public class SOCServer extends Server
      * @param txt the message text to send. If
      *            text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
-     * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
+     * @see #messageToGame(String, boolean, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGame(String, SOCMessage)
-     * @see #messageToGameWithMon(String, SOCMessage)
-     * @see #messageToGameExcept(String, Connection, String, boolean)
+     * @see #messageToGameWithMon(String, boolean, SOCMessage)
+     * @see #messageToGameExcept(String, Connection, int, String, boolean)
      * @since 1.1.08
      */
     public void messageToGame(final String ga, final String txt)
     {
-        final String gameServTxtMsg = SOCGameServerText.toCmd(ga, txt);
+        messageToGame(ga, false, txt);
+    }
+
+    /**
+     * Send a server text message to the given game.
+     * Equivalent to: messageToGame(ga, new SOCGameServerText(ga, txt));
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
+     *<P>
+     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
+     * will be GAMESERVERTEXT, not the desired SOMEMESSAGE.
+     *<P>
+     * Client versions older than v2.0.00 will be sent
+     * {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
+     *<P>
+     * <b>Locks:</b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
+     *
+     * @param ga  the name of the game
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
+     * @param txt the message text to send. If
+     *            text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGame(String, SOCMessage)
+     * @see #messageToGameWithMon(String, boolean, SOCMessage)
+     * @see #messageToGameExcept(String, Connection, int, String, boolean)
+     * @since 2.4.10
+     */
+    public void messageToGame(final String ga, final boolean isEvent, final String txt)
+    {
+        final SOCGameServerText msg = new SOCGameServerText(ga, txt);
+        final String gameServTxtMsg = msg.toCmd();
+
+        if (isEvent)
+            recordGameEvent(ga, msg);
 
         gameList.takeMonitorForGame(ga);
 
@@ -4053,14 +4248,17 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in messageToGame");
         }
-
-        gameList.releaseMonitorForGame(ga);
+        finally
+        {
+            gameList.releaseMonitorForGame(ga);
+        }
     }
 
     /**
      * Send a game a message containing data fields and also a text field to be localized.
      * Same as {@link #messageToGame(String, SOCMessage)} but calls each member connection's
      * {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
      *<P>
      * <B>Locks:</B> If {@code takeMon} is true, takes and releases
      * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}.
@@ -4068,16 +4266,18 @@ public class SOCServer extends Server
      * before calling this method.
      *
      * @param ga  The game
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
      * @param msg  The data message to be sent after localizing text.
      *     This message object's fields are not changed here, the localization results are not kept with {@code msg}.
      * @param takeMon Should this method take and release game's monitor via
      *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}?
      *     True unless caller already holds that monitor.
-     * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
      * @since 2.0.00
      */
-    public void messageToGameKeyedType(SOCGame ga, SOCKeyedMessage msg, final boolean takeMon)
+    public void messageToGameKeyedType(SOCGame ga, final boolean isEvent, SOCKeyedMessage msg, final boolean takeMon)
     {
         // Very similar code to impl_messageToGameKeyedSpecial:
         // if you change code here, consider changing it there too
@@ -4085,6 +4285,7 @@ public class SOCServer extends Server
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
         boolean rsrcMissing = false;
+        SOCMessage msgForRecord = null;  // needed only if isEvent && recordGameEventsIsActive()
 
         if (takeMon)
             gameList.takeMonitorForGame(gaName);
@@ -4098,7 +4299,11 @@ public class SOCServer extends Server
                 Enumeration<Connection> menum = v.elements();
 
                 final String msgKey = msg.getKey();
-                String gameLocalMsg = null, localText = null, gameTxtLocale = null;  // as rendered during prev. iter.
+
+                // for reuse as rendered for previous client during loop:
+                String localText = null, gameTxtLocale = null;
+                SOCMessage gameLocalMsg = null;
+
                 while (menum.hasMoreElements())
                 {
                     Connection c = menum.nextElement();
@@ -4121,8 +4326,12 @@ public class SOCServer extends Server
                                 rsrcMissing = true;
                             }
 
-                        gameLocalMsg = msg.toCmd(localText);
+                        gameLocalMsg = msg.localize(localText);
                         gameTxtLocale = cliLocale;
+
+                        if (isEvent && (msgForRecord == null) && recordGameEventsIsActive()
+                            && ("en_US".equals(cliLocale)))
+                            msgForRecord = gameLocalMsg;
                     }
 
                     if (gameLocalMsg != null)
@@ -4131,20 +4340,41 @@ public class SOCServer extends Server
 
                 if (rsrcMissing)
                     D.ebugPrintlnINFO("Missing string key in messageToGameKeyedType: " + msgKey);
+
+                if (isEvent && recordGameEventsIsActive())
+                {
+                    if (msgForRecord == null)
+                    {
+                        if (msgKey != null)
+                            try
+                            {
+                                localText = SOCStringManager.getFallbackServerManagerForClient().get(msgKey);
+                            } catch (MissingResourceException e) {
+                                localText = msgKey;  // fallback so data fields will still be sent
+                            }
+
+                        msgForRecord = msg.localize(localText);
+                    }
+
+                    recordGameEvent(gaName, msgForRecord);
+                }
             }
         }
         catch (Throwable e)
         {
             D.ebugPrintStackTrace(e, "Exception in messageToGameKeyedType");
         }
-
-        if (takeMon)
-            gameList.releaseMonitorForGame(gaName);
+        finally
+        {
+            if (takeMon)
+                gameList.releaseMonitorForGame(gaName);
+        }
     }
 
+    // TODO soon mark deprecated for +isEvent form
     /**
      * Send a localized {@link SOCGameServerText} game text message to a game.
-     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
      * {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
      *<P>
      * Game members with null locale (such as robots) will not be sent the message.
@@ -4161,24 +4391,62 @@ public class SOCServer extends Server
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
      *            If its localized text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     * @see #messageToGameKeyed(SOCGame, boolean, String, Object...)
-     * @see #messageToGameKeyedSpecial(SOCGame, boolean, String, Object...)
-     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, Connection, String, Object...)
-     * @see #messageToGameKeyedType(SOCGame, SOCKeyedMessage, boolean)
-     * @see #messageToGame(String, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
+     * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key)
         throws MissingResourceException
     {
-        messageToGameKeyed(ga, takeMon, key, (Object[]) null);
+        messageToGameKeyed(ga, false, takeMon, key, (Object[]) null);
     }
 
     /**
+     * Send a localized {@link SOCGameServerText} game text message to a game.
+     * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
+     * {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
+     *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
+     * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
+     *<P>
+     * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * before calling this method.
+     *
+     * @param ga  the game object
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
+     * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @param isEvent
+     * @since 2.4.10
+     */
+    public void messageToGameKeyed(SOCGame ga, final boolean isEvent, final boolean takeMon, final String key)
+        throws MissingResourceException
+    {
+        messageToGameKeyed(ga, isEvent, takeMon, key, (Object[]) null);
+    }
+
+    // TODO soon mark deprecated for +isEvent form
+    /**
      * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game.
-     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
      * {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
      *<P>
      * Game members with null locale (such as robots) will not be sent the message.
@@ -4195,29 +4463,70 @@ public class SOCServer extends Server
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
      *            If its localized text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
      * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
      *             by calling {@link MessageFormat#format(String, Object...)}.
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
-     * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGameKeyedSpecial(SOCGame, boolean, String, Object...)
-     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, Connection, String, Object...)
-     * @see #messageToGameKeyedType(SOCGame, SOCKeyedMessage, boolean)
-     * @see #messageToGame(String, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
+     * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key, final Object ... params)
         throws MissingResourceException
     {
         impl_messageToGameKeyedSpecial
-            (ga, takeMon, gameList.getMembers(ga.getName()), null, false, key, params);
+            (ga, false, null, takeMon, gameList.getMembers(ga.getName()), null, false, key, params);
+    }
+
+    /**
+     * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game.
+     * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
+     * {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
+     *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
+     * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
+     *<P>
+     * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * before calling this method.
+     *
+     * @param ga  the game object
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *             by calling {@link MessageFormat#format(String, Object...)}.
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
+     * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @since 2.4.10
+     */
+    public void messageToGameKeyed
+        (SOCGame ga, final boolean isEvent, final boolean takeMon, final String key, final Object ... params)
+        throws MissingResourceException
+    {
+        impl_messageToGameKeyedSpecial
+            (ga, isEvent, null, takeMon, gameList.getMembers(ga.getName()), null, false, key, params);
     }
 
     /**
      * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game,
-     * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding one connection.
-     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * optionally with special formatting like <tt>{0,rsrcs}</tt>.
+     * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
      * {@link Connection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the localized text to send.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
      *<P>
      * For the SoC-specific parameters such as <tt>{0,rsrcs}</tt>, see the javadoc for
      * {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
@@ -4230,13 +4539,15 @@ public class SOCServer extends Server
      * before calling this method.
      *
      * @param ga  the game object
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                True unless caller already holds that monitor.
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
      *            If its localized text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
      * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
      *             by calling {@link MessageFormat#format(String, Object...)}.
      *             <P>
@@ -4244,28 +4555,33 @@ public class SOCServer extends Server
      *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
-     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, Connection, String, Object...)
-     * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGame(String, String)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @since 2.0.00
      */
     public final void messageToGameKeyedSpecial
-        (SOCGame ga, final boolean takeMon, final String key, final Object ... params)
+        (SOCGame ga, final boolean isEvent, final boolean takeMon, final String key, final Object ... params)
         throws MissingResourceException, IllegalArgumentException
     {
-        impl_messageToGameKeyedSpecial(ga, takeMon, gameList.getMembers(ga.getName()), null, true, key, params);
+        impl_messageToGameKeyedSpecial
+            (ga, isEvent, null, takeMon, gameList.getMembers(ga.getName()), null, true, key, params);
     }
 
     /**
      * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game,
      * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding one connection.
-     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
      * {@link Connection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the
      * localized text to send.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
      *<P>
      * Game members with null locale (such as robots) will not be sent the message.
      *
      * @param ga  the game object
+     * @param eventExclPN  If this is an event that should be recorded, {@code ex}'s player number;
+     *     otherwise {@link #PN_NON_EVENT}
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                True unless caller already holds that monitor.
@@ -4273,7 +4589,7 @@ public class SOCServer extends Server
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
      *            If its localized text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
      * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
      *             by calling {@link MessageFormat#format(String, Object...)}.
      *             <P>
@@ -4281,36 +4597,40 @@ public class SOCServer extends Server
      *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
-     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, List, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int[], boolean, List, String, Object...)
      * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGame(String, String)
      * @since 2.0.00
      */
     public final void messageToGameKeyedSpecialExcept
-        (SOCGame ga, final boolean takeMon, Connection ex, final String key, final Object ... params)
+        (SOCGame ga, final int eventExclPN, final boolean takeMon,
+         Connection ex, final String key, final Object ... params)
         throws MissingResourceException, IllegalArgumentException
     {
-        impl_messageToGameKeyedSpecial(ga, takeMon, gameList.getMembers(ga.getName()), ex, true, key, params);
+        int[] excl = (eventExclPN != PN_NON_EVENT) ? new int[]{eventExclPN} : null;
+        impl_messageToGameKeyedSpecial
+            (ga, (excl != null), excl, takeMon, gameList.getMembers(ga.getName()), ex, true, key, params);
     }
 
     /**
      * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game,
      * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding some connections.
-     * Same as {@link #messageToGame(String, String)} but calls each member connection's
+     * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
      * {@link Connection#getLocalizedSpecial(SOCGame, String, Object...) c.getLocalizedSpecial(...)} for the
      * localized text to send.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
      *<P>
      * Game members with null locale (such as robots) will not be sent the message.
      *
      * @param ga  the game object
+     * @param eventExclPNs  If this is an event that should be recorded, {@code ex}'s player numbers; otherwise {@code null}
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                True unless caller already holds that monitor.
-     * @param ex  the excluded connections, or {@code null}
+     * @param ex  the excluded connections, or {@code null}; see {@code eventExclPNs}
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
      *            If its localized text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
      * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
      *             by calling {@link MessageFormat#format(String, Object...)}.
      *             <P>
@@ -4318,13 +4638,13 @@ public class SOCServer extends Server
      *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
-     * @see #messageToGameKeyedSpecialExcept(SOCGame, boolean, Connection, String, Object...)
-     * @see #messageToGameKeyed(SOCGame, boolean, String)
-     * @see #messageToGame(String, String)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @since 2.0.00
      */
     public final void messageToGameKeyedSpecialExcept
-        (SOCGame ga, final boolean takeMon, List<Connection> ex, final String key, final Object ... params)
+        (SOCGame ga, final int[] eventExclPNs, final boolean takeMon,
+         List<Connection> ex, final String key, final Object ... params)
         throws MissingResourceException, IllegalArgumentException
     {
         List<Connection> sendTo = gameList.getMembers(ga.getName());
@@ -4337,23 +4657,28 @@ public class SOCServer extends Server
                 sendTo.remove(excl);
         }
 
-        impl_messageToGameKeyedSpecial(ga, takeMon, sendTo, null, true, key, params);
+        impl_messageToGameKeyedSpecial
+            (ga, (eventExclPNs != null), eventExclPNs, takeMon, sendTo, null, true, key, params);
     }
 
     /**
-     * Implement {@link #messageToGameKeyed(SOCGame, boolean, String, Object...)},
+     * Implement {@link #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)},
      * {@code messageToGameKeyedSpecial}, and {@code messageToGameKeyedSpecialExcept}.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
      *
      * @param ga  the game object
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
+     * @param eventExclPNs  {@code ex}'s player numbers if any, if {@code isEvent}; otherwise {@code null}
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                True unless caller already holds that monitor.
      * @param members  Game members to send to, from {@link SOCGameListAtServer#getMembers(String)}.
      *            Any member in this list with null locale (such as robots) will be skipped and not sent the message.
-     *            If we're excluding several members of the game, make a new list from getMembers, remove them from
-     *            that list, then pass it to this method.
+     *            If we're excluding several members of the game: Caller should make a new list from getMembers,
+     *            remove them from that list, then pass list to this method.
      *            Returns immediately if {@code null}.
-     * @param ex  the excluded connection, or {@code null}
+     * @param ex  the excluded connection, or {@code null}; see {@code eventExclPNs}
      * @param fmtSpecial  Should this method call {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}
      *            instead of the usual {@link SOCStringManager#get(String, Object...)} ?
      *            True if called from {@code messageToGameKeyedSpecial*}, false from other
@@ -4361,7 +4686,7 @@ public class SOCServer extends Server
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
      *            If its localized text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
+     *            (See {@link #messageToGameUrgent(String, boolean, String)})
      * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
      *             by calling {@link MessageFormat#format(String, Object...)}.
      *             <P>
@@ -4372,7 +4697,8 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     private final void impl_messageToGameKeyedSpecial
-        (SOCGame ga, final boolean takeMon, final List<Connection> members, final Connection ex,
+        (SOCGame ga, final boolean isEvent, final int[] eventExclPNs,
+         final boolean takeMon, final List<Connection> members, final Connection ex,
          final boolean fmtSpecial, final String key, final Object ... params)
         throws MissingResourceException, IllegalArgumentException
     {
@@ -4385,6 +4711,7 @@ public class SOCServer extends Server
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
+        SOCMessage msgForRecord = null;  // needed only if isEvent && recordGameEventsIsActive()
 
         if (takeMon)
             gameList.takeMonitorForGame(gaName);
@@ -4393,7 +4720,10 @@ public class SOCServer extends Server
         {
                 Iterator<Connection> miter = members.iterator();
 
-                String gameTextMsg = null, gameTxtLocale = null;  // as rendered for previous client during loop
+                // for reuse as rendered for previous client during loop:
+                String gameText = null, gameTxtLocale = null;
+                SOCMessage gameTextMsg = null;
+
                 while (miter.hasNext())
                 {
                     Connection c = miter.next();
@@ -4407,26 +4737,48 @@ public class SOCServer extends Server
                     if ((gameTextMsg == null)
                         || (hasMultiLocales && ! cliLocale.equals(gameTxtLocale)))
                     {
-                        if (fmtSpecial)
-                            gameTextMsg = SOCGameServerText.toCmd
-                                (gaName, c.getLocalizedSpecial(ga, key, params));
-                        else
-                            gameTextMsg = SOCGameServerText.toCmd
-                                (gaName, (params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
+                        gameText = (fmtSpecial)
+                            ? c.getLocalizedSpecial(ga, key, params)
+                            : ((params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
+                        gameTextMsg = new SOCGameServerText(gaName, gameText);
                         gameTxtLocale = cliLocale;
+
+                        if (isEvent && (msgForRecord == null) && recordGameEventsIsActive()
+                            && ("en_US".equals(cliLocale)))
+                            msgForRecord = gameTextMsg;
                     }
 
                     if ((c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
                         c.put(gameTextMsg);
                     else
                         // old client (this is uncommon) needs a different message type
-                        if (fmtSpecial)
-                            c.put(SOCGameTextMsg.toCmd
-                                (gaName, SERVERNAME, c.getLocalizedSpecial(ga, key, params)));
-                        else
-                            c.put(SOCGameTextMsg.toCmd
-                                (gaName, SERVERNAME,
-                                 (params != null) ? c.getLocalized(key, params) : c.getLocalized(key)));
+                        c.put(new SOCGameTextMsg
+                            (gaName, SERVERNAME, gameText));
+                }
+
+                if (isEvent && recordGameEventsIsActive())
+                {
+                    if (msgForRecord == null)
+                    {
+                        String txt = key;
+                        try
+                        {
+                            SOCStringManager mgr = SOCStringManager.getFallbackServerManagerForClient();
+                            txt = (fmtSpecial)
+                                ? mgr.getSpecial(ga, key, params)
+                                : ((params != null) ? mgr.get(key, params) : mgr.get(key));
+                        }
+                        catch (MissingResourceException | IllegalArgumentException e) {}
+
+                        msgForRecord = new SOCGameServerText(gaName, txt);
+                    }
+
+                    if (eventExclPNs == null)
+                        recordGameEvent(gaName, msgForRecord);
+                    else if (eventExclPNs.length == 1)
+                        recordGameEventNotTo(gaName, eventExclPNs[0], msgForRecord);
+                    else
+                        recordGameEventNotTo(gaName, eventExclPNs, msgForRecord);
                 }
         }
         catch (Throwable e)
@@ -4434,11 +4786,14 @@ public class SOCServer extends Server
             D.ebugPrintStackTrace
                 (e, (fmtSpecial) ? "Exception in messageToGameKeyedSpecial" : "Exception in messageToGameKeyed");
         }
-
-        if (takeMon)
-            gameList.releaseMonitorForGame(gaName);
+        finally
+        {
+            if (takeMon)
+                gameList.releaseMonitorForGame(gaName);
+        }
     }
 
+    // TODO soon mark deprecated for +isEvent form
     /**
      * Send a message to the given game.
      *<P>
@@ -4446,15 +4801,40 @@ public class SOCServer extends Server
      * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
      * before calling this method.
      *
-     * @param ga  the name of the game
+     * @param gameName  the name of the game
      * @param mes the message to send
-     * @see #messageToGame(String, SOCMessage)
-     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGame(String, boolean, SOCMessage)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      */
-    public void messageToGameWithMon(String ga, SOCMessage mes)
+    public void messageToGameWithMon(final String gameName, final SOCMessage mes)
     {
-        Vector<Connection> v = gameList.getMembers(ga);
+        messageToGameWithMon(gameName, false, mes);
+    }
+
+    /**
+     * Send a message to the given game.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
+     *<P>
+     *<b>Locks:</b> MUST HAVE THE
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
+     * before calling this method.
+     *
+     * @param gameName  the name of the game
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage) recordGameEvent(gameName, mes)};
+     *     see that method for its message version requirements
+     * @param mes the message to send
+     * @see #messageToGame(String, boolean, SOCMessage)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
+     * @since 2.4.10
+     */
+    public void messageToGameWithMon(final String gameName, final boolean isEvent, final SOCMessage mes)
+    {
+        if (isEvent)
+            recordGameEvent(gameName, mes);
+
+        Vector<Connection> v = gameList.getMembers(gameName);
         if (v == null)
             return;
 
@@ -4477,44 +4857,55 @@ public class SOCServer extends Server
     /**
      * Send a server text message to all the connections in a game, excluding one.
      * Equivalent to: messageToGameExcept(gn, new SOCGameTextMsg(gn, {@link #SERVERNAME}, txt), takeMon);
+     * Optionally calls {@link #recordGameEventNotTo(String, int, SOCMessage)}.
      *<P>
      * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
      * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
      *
      * @param gn  the name of the game
      * @param ex  the excluded connection, or null
+     * @param eventExclPN  {@code ex}'s player number if this is a game event which should be recorded;
+     *     otherwise {@link #PN_NON_EVENT}
      * @param txt the message text to send. <P>
-     *            If you need to format the message (with placeholders for i18n),
-     *            call {@link MessageFormat MessageFormat}.format(fmt, args) on it first. <P>
-     *            If text begins with ">>>", the client should consider this
-     *            an urgent message, and draw the user's attention in some way.
-     *            (See {@link #messageToGameUrgent(String, String)})
+     *     If you need to format the message (with placeholders for i18n),
+     *     call {@link MessageFormat MessageFormat}.format(fmt, args) on it first. <P>
+     *     If text begins with ">>>", the client should consider this
+     *     an urgent message, and draw the user's attention in some way.
+     *     (See {@link #messageToGameUrgent(String, boolean, String)})
      * @param takeMon Should this method take and release
-     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
-     *                True unless caller already holds that monitor.
-     * @see #messageToGame(String, String)
-     * @see #messageToGameExcept(String, Connection, SOCMessage, boolean)
+     *     game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *     True unless caller already holds that monitor.
+     * @see #messageToGame(String, boolean, String)
+     * @see #messageToGameExcept(String, Connection, int, SOCMessage, boolean)
+     * @see #messageToGameExcept(String, List, int[], SOCMessage, boolean)
      * @since 2.0.00
      */
-    public void messageToGameExcept(final String gn, final Connection ex, final String txt, final boolean takeMon)
+    public void messageToGameExcept
+        (final String gn, final Connection ex, final int eventExclPN, final String txt, final boolean takeMon)
     {
         // TODO I18N: Find calls to this method; consider connection's locale and version
-        messageToGameExcept(gn, ex, new SOCGameTextMsg(gn, SERVERNAME, txt), takeMon);
+        messageToGameExcept(gn, ex, eventExclPN, new SOCGameTextMsg(gn, SERVERNAME, txt), takeMon);
     }
 
     /**
      * Send a message to all the connections in a game, excluding some.
+     * Optionally calls {@link #recordGameEventNotTo(String, int[], SOCMessage)}.
      *
      * @param gn  the name of the game
-     * @param ex  the list of excluded connections; not {@code null}
+     * @param ex  the list of excluded connections; see {@code eventExclPNs}; not {@code null}
+     * @param eventExclPNs  {@code ex}'s player numbers if this is a game event which should be recorded;
+     *     otherwise {@code null}
      * @param mes the message
      * @param takeMon Should this method take and release
-     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
-     * @see #messageToGameExcept(String, Connection, SOCMessage, boolean)
+     *     game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @see #messageToGameExcept(String, Connection, int, SOCMessage, boolean)
      */
     public void messageToGameExcept
-        (final String gn, final List<Connection> ex, final SOCMessage mes, final boolean takeMon)
+        (final String gn, final List<Connection> ex, final int[] eventExclPNs, final SOCMessage mes, final boolean takeMon)
     {
+        if (eventExclPNs != null)
+            recordGameEventNotTo(gn, eventExclPNs, mes);
+
         if (takeMon)
             gameList.takeMonitorForGame(gn);
 
@@ -4551,19 +4942,25 @@ public class SOCServer extends Server
 
     /**
      * Send a message to all the connections in a game, excluding one.
+     * Optionally calls {@link #recordGameEventNotTo(String, int, SOCMessage)}.
      *
      * @param gn  the name of the game
      * @param ex  the excluded connection, or null
+     * @param eventExclPN  {@code ex}'s player number if this is a game event which should be recorded;
+     *     otherwise {@link #PN_NON_EVENT}
      * @param mes the message
      * @param takeMon Should this method take and release
-     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
-     * @see #messageToGameExcept(String, Connection, String, boolean)
-     * @see #messageToGameExcept(String, List, SOCMessage, boolean)
+     *     game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @see #messageToGameExcept(String, Connection, int, String, boolean)
+     * @see #messageToGameExcept(String, List, int[], SOCMessage, boolean)
      * @see #messageToGameForVersionsExcept(SOCGame, int, int, Connection, SOCMessage, boolean)
      * @since 1.1.00
      */
-    public void messageToGameExcept(String gn, Connection ex, SOCMessage mes, boolean takeMon)
+    public void messageToGameExcept(String gn, Connection ex, final int eventExclPN, SOCMessage mes, boolean takeMon)
     {
+        if (eventExclPN != PN_NON_EVENT)
+            recordGameEventNotTo(gn, eventExclPN, mes);
+
         if (takeMon)
             gameList.takeMonitorForGame(gn);
 
@@ -4633,7 +5030,7 @@ public class SOCServer extends Server
      *                If the game's clients are all older than <tt>vmin</tt> or
      *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
      * @since 1.1.19
-     * @see #messageToGameExcept(String, Connection, SOCMessage, boolean)
+     * @see #messageToGameExcept(String, Connection, int, SOCMessage, boolean)
      */
     public final void messageToGameForVersionsExcept
         (final SOCGame ga, final int vmin, final int vmax, final Connection ex,
@@ -4686,19 +5083,23 @@ public class SOCServer extends Server
      * An "urgent" message is a SOCGameTextMsg whose text
      * begins with ">>>"; the client should draw the user's
      * attention in some way.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
      *<P>
-     * <b>Locks:</b> Like {@link #messageToGame(String, String)}, will take and release the game's monitor.
+     * <b>Locks:</b> Like {@link #messageToGame(String, boolean, String)}, will take and release the game's monitor.
      *
      * @param ga  the name of the game
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
      * @param mes the message to send. If mes does not begin with ">>>",
      *            will prepend ">>> " before sending mes.
      * @since 1.1.00
      */
-    public void messageToGameUrgent(String ga, String mes)
+    public void messageToGameUrgent(final String gaName, final boolean isEvent, String mes)
     {
         if (! mes.startsWith(">>>"))
             mes = ">>> " + mes;
-        messageToGame(ga, mes);
+
+        messageToGame(gaName, isEvent, mes);
     }
 
     /**
@@ -5411,7 +5812,8 @@ public class SOCServer extends Server
 
         if (dcmdU.startsWith("*KILLGAME*"))
         {
-            messageToGameUrgent(gaName, ">>> ********** " + debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
+            messageToGameUrgent
+                (gaName, true, ">>> ********** " + debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
             destroyGameAndBroadcast(gaName, "KILLGAME");
         }
         else if (dcmd.startsWith("*STOP*"))  // dcmd to force case-sensitivity
@@ -6453,7 +6855,7 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                        (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers, txt));
             else
-                messageToPlayer(c, connGaName, txt);
+                messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
 
             return false;  // <---- Early return ----
         }
@@ -6500,7 +6902,7 @@ public class SOCServer extends Server
                     c.put(SOCStatusMessage.toCmd
                            (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers, rejectText));
                 else
-                    messageToPlayer(c, connGaName, rejectText);
+                    messageToPlayer(c, connGaName, PN_NON_EVENT, rejectText);
 
                 return false;  // <---- Early return ----
             }
@@ -6523,7 +6925,7 @@ public class SOCServer extends Server
                     c.put(SOCStatusMessage.toCmd
                            (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers, txt));
                 else
-                    messageToPlayer(c, connGaName, txt);
+                    messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
 
                 return false;  // <---- Early return ----
             }
@@ -6541,7 +6943,7 @@ public class SOCServer extends Server
                     c.put(SOCStatusMessage.toCmd
                            (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers, txt));
                 else
-                    messageToPlayer(c, connGaName, txt);
+                    messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
 
                 return false;  // <---- Early return ----
             }
@@ -6670,7 +7072,7 @@ public class SOCServer extends Server
         {
             if (loadedGame != null)
                 messageToPlayer
-                    (c, connGaName, "Game name in use, couldn't generate an alternate: Try again.");
+                    (c, connGaName, PN_NON_EVENT, "Game name in use, couldn't generate an alternate: Try again.");
                     // I18N OK: very unlikely, not worth translating
             else
                 D.ebugPrintStackTrace(e, "Exception in createOrJoinGame");
@@ -6874,7 +7276,7 @@ public class SOCServer extends Server
              */
             if (idx < nRobotsAvailable)
             {
-                messageToGameKeyed(ga, true, "member.bot.join.fetching");  // "Fetching a robot player..."
+                messageToGameKeyed(ga, true, true, "member.bot.join.fetching");  // "Fetching a robot player..."
 
                 Connection robotConn;
                 if (robotSeats != null)
@@ -6932,7 +7334,8 @@ public class SOCServer extends Server
                 if (robotSeatsConns[i] != null)
                 {
                     // D.ebugPrintln("@@@ JOIN GAME REQUEST for " + robotSeatsConns[i].getData());
-                    robotSeatsConns[i].put(SOCBotJoinGameRequest.toCmd(gaName, i, gopts));
+                    messageToPlayer
+                        (robotSeatsConns[i], gaName, PN_OBSERVER, new SOCBotJoinGameRequest(gaName, i, gopts));
                 }
             }
 
@@ -7818,7 +8221,8 @@ public class SOCServer extends Server
                 {
                     // Maybe already seated? (network lag)
                     if (! robot)
-                        messageToPlayerKeyed(c, gaName, "member.sit.not.here");  // "You cannot sit down here."
+                        messageToPlayerKeyed
+                            (c, gaName, PN_REPLY_TO_UNDETERMINED, "member.sit.not.here");  // "You cannot sit down here."
                     ga.releaseMonitor();
                     return;  // <---- Early return: cannot sit down ----
                 }
@@ -7828,11 +8232,9 @@ public class SOCServer extends Server
              * if the player can sit, then tell the other clients in the game
              */
             SOCSitDown sitMessage = new SOCSitDown(gaName, c.getData(), pn, robot);
-            messageToGame(gaName, sitMessage);
+            messageToGame(gaName, true, sitMessage);
 
             // D.ebugPrintln("*** sent SOCSitDown message to game ***");
-
-            recordGameEvent(gaName, sitMessage);
 
             Hashtable<Connection, Object> requestedBots;
             if (! isReset)
@@ -8072,7 +8474,7 @@ public class SOCServer extends Server
                 final GameHandler hand = gameList.getGameTypeHandler(reGame.getName());
                 if (hand != null)
                     hand.sendGameState(reGame);
-                messageToGameKeyed(reGame, true, "member.bot.join.cantfind");  // "*** Can't find a robot! ***"
+                messageToGameKeyed(reGame, true, true, "member.bot.join.cantfind");  // "*** Can't find a robot! ***"
             }
         }
     }
@@ -8195,14 +8597,38 @@ public class SOCServer extends Server
     }
 
     /**
-     * Record events that happen during the game. This stub can be overridden.
-     *<P>
-     * Before v2.0.00 {@link event} was a String from {@link SOCMessage#toCmd()}.
-     *
-     * @param gameName   the name of the game
-     * @param event      the event data
+     * Are game events being recorded by {@link #recordGameEvent(String, SOCMessage)} and similar methods?
+     * If not, server shouldn't waste extra effort for ensuring consistent game event log contents,
+     * like localizing text into {@link Locale#US}.
+     * This stub returns false.
+     * @return true if {@link #recordGameEvent(String, SOCMessage)} and similar methods aren't empty stubs
+     * @since 2.4.10
      */
-    protected void recordGameEvent(String gameName, SOCMessage event)
+    public boolean recordGameEventsIsActive()
+    {
+        return false;
+    }
+
+    /**
+     * Record events that happen during the game and are announced to that game.
+     * These recorded "events" aren't related to {@link SOCGameEvent}.
+     *<P>
+     * This method is seldom called directly. Most places call methods like
+     * {@link #messageToGame(String, boolean, SOCMessage)} with parameters to ask for recording.
+     *<P>
+     * This stub can be overridden.
+     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     *<P>
+     * If {@code event}'s format or fields vary depending on client version, use the latest version here.
+     *<P>
+     * Before v2.0.00, {@link event} parameter was a String from {@link SOCMessage#toCmd()}.
+     *
+     * @param gameName   the game name
+     * @param event      the event data
+     * @see #recordGameEventTo(String, int, SOCMessage)
+     * @see #recordGameEventNotTo(String, int, SOCMessage)
+     */
+    public void recordGameEvent(final String gameName, SOCMessage event)
     {
         /*
            FileWriter fw = (FileWriter)gameDataFiles.get(gameName);
@@ -8216,6 +8642,68 @@ public class SOCServer extends Server
            }
            }
          */
+    }
+
+    /**
+     * Record non-broadcast events that happen during the game and are sent to one player or observer in that game.
+     * These recorded "events" aren't related to {@link SOCGameEvent} or {@link SOCPlayerEvent}.
+     *<P>
+     * This method is seldom called directly. Most places call methods like
+     * {@link #messageToPlayer(Connection, String, int, SOCMessage)} with parameters to ask for recording.
+     *<P>
+     * This stub can be overridden.
+     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     *<P>
+     * If {@code event}'s format or fields vary depending on client version, use the latest version here.
+     *
+     * @param gameName   the game name
+     * @param event      the event data
+     * @param pn Player number who is audience of this non-broadcast event; if &lt; 0, event is for all game members.
+     *     Can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}.
+     * @see #recordGameEvent(String, SOCMessage)
+     * @see #recordGameEventNotTo(String, int, SOCMessage)
+     * @since 2.4.10
+     */
+    public void recordGameEventTo(final String gameName, final int pn, SOCMessage event)
+    {
+    }
+
+    /**
+     * Record non-broadcast events that happen during the game and are sent to all but one player in that game.
+     * This stub can be overridden.
+     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     *<P>
+     * If {@code event}'s format or fields vary depending on client version, use the latest version here.
+     *
+     * @param gameName   the game name
+     * @param excludedPN Player number excluded from audience of this event; if &lt; 0, event is for all game members.
+     * @param event      the event data
+     * @see #recordGameEventNotTo(String, int[], SOCMessage)
+     * @see #recordGameEvent(String, SOCMessage)
+     * @see #recordGameEventTo(String, int, SOCMessage)
+     * @since 2.4.10
+     */
+    public void recordGameEventNotTo(final String gameName, final int excludedPN, SOCMessage event)
+    {
+    }
+
+    /**
+     * Record non-broadcast events that happen during the game and are sent to most but not all players in that game.
+     * This stub can be overridden.
+     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     *<P>
+     * If {@code event}'s format or fields vary depending on client version, use the latest version here.
+     *
+     * @param gameName   the game name
+     * @param excludedPN Player numbers excluded from audience of this event; if {@code null} or empty, event is for all.
+     * @param event      the event data
+     * @see #recordGameEventNotTo(String, int, SOCMessage)
+     * @see #recordGameEvent(String, SOCMessage)
+     * @see #recordGameEventTo(String, int, SOCMessage)
+     * @since 2.4.10
+     */
+    public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
+    {
     }
 
     /**
