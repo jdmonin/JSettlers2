@@ -461,6 +461,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * list of games with options on the server
+             */
+            case SOCMessage.GAMESWITHOPTIONS:
+                handleGAMESWITHOPTIONS((SOCGamesWithOptions) mes);
+                break;
+
+            /**
              * join game authorization
              */
             case SOCMessage.JOINGAMEAUTH:
@@ -486,6 +493,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.NEWGAME:
                 handleNEWGAME((SOCNewGame) mes);
+                break;
+
+            /**
+             * new game with options has been created
+             */
+            case SOCMessage.NEWGAMEWITHOPTIONS:
+                handleNEWGAMEWITHOPTIONS((SOCNewGameWithOptions) mes);
                 break;
 
             /**
@@ -1006,6 +1020,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleGAMES(SOCGames mes) {}
 
     /**
+     * handle the "list of games with options" message
+     * @since 2.4.10
+     */
+    protected void handleGAMESWITHOPTIONS(final SOCGamesWithOptions mes) {}
+
+    /**
      * handle the "join game authorization" message
      * @param mes  the message
      * @param isPractice Is the server local for practice, or remote?
@@ -1064,6 +1084,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      */
     protected void handleNEWGAME(SOCNewGame mes) {}
+
+    /**
+     * handle the "new game with options" message
+     * @since 2.4.10
+     */
+    protected void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes) {}
 
     /**
      * handle the "delete game" message
@@ -2657,6 +2683,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * disconnect from the net, and from any local practice server
+     * Called by {@link #destroy()}.
      */
     protected void disconnect()
     {
@@ -2713,7 +2740,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * put a piece on the board
+     * Send request to put a piece on the board.
      *
      * @param ga  the game where the action is taking place
      * @param pp  the piece being placed; {@link SOCPlayingPiece#getCoordinates() pp.getCoordinates()}

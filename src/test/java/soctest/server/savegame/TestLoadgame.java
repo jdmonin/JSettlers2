@@ -81,7 +81,7 @@ public class TestLoadgame
      * @throws IOException if file can't be loaded
      * @throws SavedGameModel.UnsupportedSGMOperationException if unsupported feature; see {@code GameLoaderJson.loadGame}
      */
-    static SavedGameModel load(final String testRsrcFilename)
+    public static SavedGameModel load(final String testRsrcFilename)
         throws IOException, SavedGameModel.UnsupportedSGMOperationException
     {
         final String rsrcPath = "/resources/savegame/" + testRsrcFilename;

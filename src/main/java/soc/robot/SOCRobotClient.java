@@ -342,6 +342,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * Initialize the robot player; connect to server and send first messages
      * including our version, features from {@link #buildClientFeats()}, and {@link #rbclass}.
+     * If fails to connect, sets {@link #ex} and prints it to {@link System#err}.
      */
     public void init()
     {

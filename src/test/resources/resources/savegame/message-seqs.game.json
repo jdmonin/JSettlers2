@@ -1,0 +1,594 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2410,
+  "gameMinVersion": 2000,
+  "gameName": "message-seqs",
+  "comments": "board set up for message sequence testing with TestRecorder server unit test",
+  "author": "Jeremy D Monin  2020",
+  "gameOptions": "BC\u003dt4,N7\u003dt99,PL\u003d4,RD\u003df,SBL\u003dt",
+  "gameDurationSeconds": 250,
+  "gameState": 20,
+  "oldGameState": 20,
+  "currentDice": 8,
+  "elements": {
+    "LARGEST_ARMY_PLAYER": -1,
+    "FIRST_PLAYER": 1,
+    "CURRENT_PLAYER": 3,
+    "ROUND_COUNT": 2,
+    "LONGEST_ROAD_PLAYER": -1
+  },
+  "devCardDeck": [
+    "CAP",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "DISC",
+    "ROADS",
+    "MONO",
+    "CHAPEL",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "ROADS",
+    "DISC",
+    "KNIGHT",
+    "KNIGHT",
+    "MONO",
+    "KNIGHT",
+    "TEMPLE",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "UNIV",
+    "KNIGHT",
+    "MARKET"
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "shipsPlacedThisTurn": [],
+  "boardInfo": {
+    "layout2": {
+      "game": "message-seqs",
+      "boardEncodingFormat": 3,
+      "layoutParts": {
+        "RH": 2314,
+        "LH": [
+          1795,
+          5,
+          4,
+          3843,
+          1,
+          5,
+          2308,
+          5,
+          11,
+          1284,
+          1,
+          8,
+          773,
+          2,
+          5,
+          2821,
+          1,
+          12,
+          1797,
+          3,
+          3,
+          3845,
+          7,
+          5,
+          1286,
+          3,
+          10,
+          2310,
+          2,
+          6,
+          4358,
+          2,
+          8,
+          775,
+          4,
+          2,
+          2823,
+          4,
+          9,
+          1799,
+          3,
+          11,
+          1288,
+          5,
+          9,
+          2312,
+          4,
+          5,
+          4360,
+          4,
+          4,
+          777,
+          1,
+          6,
+          2825,
+          2,
+          10,
+          1801,
+          5,
+          4,
+          1290,
+          4,
+          3,
+          2314,
+          6,
+          0,
+          1803,
+          3,
+          8,
+          3853,
+          7,
+          5,
+          1294,
+          2,
+          6,
+          3342,
+          4,
+          10,
+          783,
+          5,
+          3,
+          1807,
+          1,
+          9,
+          3855,
+          3,
+          9,
+          1296,
+          2,
+          11,
+          3344,
+          6,
+          0,
+          1809,
+          5,
+          4,
+          3346,
+          3,
+          10
+        ],
+        "PL": [
+          0,
+          3,
+          0,
+          1,
+          0,
+          2,
+          4,
+          0,
+          5,
+          4,
+          5,
+          3,
+          0,
+          516,
+          519,
+          1034,
+          1804,
+          2570,
+          3079,
+          3076,
+          2307,
+          1283,
+          2063,
+          3088,
+          4109,
+          4103,
+          3,
+          4,
+          4,
+          5,
+          6,
+          6,
+          1,
+          2,
+          2,
+          6,
+          4,
+          6,
+          3
+        ],
+        "VS": [
+          -2,
+          1,
+          3,
+          0
+        ]
+      },
+      "messageType": 1084
+    },
+    "playerPotentials": [
+      {
+        "game": "message-seqs",
+        "playerNumber": 0,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 4,
+        "startingLandArea": 0,
+        "landAreasLegalNodes": [
+          null,
+          [
+            2050,
+            1538,
+            2563,
+            2051,
+            1539,
+            1027,
+            1028,
+            516,
+            3076,
+            2564,
+            2052,
+            1540,
+            517,
+            1029,
+            2565,
+            3077,
+            2053,
+            1541,
+            518,
+            1030,
+            3078,
+            2566,
+            1542,
+            2054,
+            519,
+            1031,
+            2567,
+            3079,
+            1543,
+            2055,
+            520,
+            1032,
+            3080,
+            2568,
+            1544,
+            2056,
+            521,
+            1033,
+            1545,
+            2569,
+            2057,
+            3081,
+            522,
+            1034,
+            1546,
+            2058,
+            2570,
+            3082,
+            1035,
+            1547,
+            2059,
+            2571,
+            1548,
+            2060
+          ],
+          [
+            1549,
+            1037,
+            1038,
+            526,
+            1550,
+            2062,
+            527,
+            1039,
+            1551,
+            2063,
+            528,
+            1040,
+            1552,
+            2064,
+            1041,
+            1553,
+            2065,
+            1554,
+            2066
+          ],
+          [
+            4108,
+            3596,
+            3597,
+            3085,
+            4109,
+            3086,
+            3598,
+            4110,
+            3087,
+            3599,
+            4111,
+            3088,
+            3600,
+            4112,
+            3089,
+            3601,
+            3090,
+            3602,
+            3091,
+            3603
+          ],
+          [
+            4098,
+            3586,
+            3587,
+            4099,
+            3588,
+            4100,
+            3589,
+            4101,
+            4613,
+            3590,
+            4102,
+            4614,
+            4103,
+            4615,
+            4104,
+            4616,
+            4105,
+            4617
+          ]
+        ],
+        "messageType": 1057
+      },
+      {
+        "game": "message-seqs",
+        "playerNumber": 1,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "message-seqs",
+        "playerNumber": 2,
+        "psNodes": [
+          1027
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "message-seqs",
+        "playerNumber": 3,
+        "psNodes": [
+          3589
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeatLocks": [
+    "LOCKED",
+    "UNLOCKED",
+    "UNLOCKED",
+    "UNLOCKED"
+  ],
+  "playerSeats": [
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "NUMKNIGHTS": 0,
+        "ROADS": 15,
+        "SETTLEMENTS": 5,
+        "CITIES": 4,
+        "SHIPS": 15
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "robot 4",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 1,
+        "ore": 2,
+        "sheep": 1,
+        "wheat": 3,
+        "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "NUMKNIGHTS": 0,
+        "ROADS": 13,
+        "SETTLEMENTS": 3,
+        "CITIES": 4,
+        "SHIPS": 15
+      },
+      "resRollStats": [
+        0,
+        1,
+        1,
+        1,
+        2,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1029
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1028
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 3080
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2824
+        }
+      ]
+    },
+    {
+      "name": "droid 1",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 0,
+      "resources": {
+        "clay": 1,
+        "ore": 1,
+        "sheep": 2,
+        "wheat": 0,
+        "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "NUMKNIGHTS": 0,
+        "ROADS": 12,
+        "SETTLEMENTS": 3,
+        "CITIES": 4,
+        "SHIPS": 15
+      },
+      "resRollStats": [
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 2055
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2311
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1540
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1539
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1283
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 2,
+      "resources": {
+        "clay": 3,
+        "ore": 3,
+        "sheep": 2,
+        "wheat": 3,
+        "wood": 4
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "NUMKNIGHTS": 0,
+        "ROADS": 14,
+        "SETTLEMENTS": 3,
+        "CITIES": 4,
+        "SHIPS": 13
+      },
+      "resRollStats": [
+        0,
+        1,
+        0,
+        0,
+        2,
+        2,
+        0
+      ],
+      "oldDevCards": [
+        "ROADS",
+        "DISC",
+        "MONO",
+        "KNIGHT"
+      ],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 3078
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 3077
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1033
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1033
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 3333
+        }
+      ]
+    }
+  ]
+}

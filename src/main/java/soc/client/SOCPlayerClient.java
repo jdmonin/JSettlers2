@@ -74,6 +74,7 @@ import soc.util.Version;
  *        {@link ClientNetwork#localTCPServer}
  *  <LI>  A "practice game" server, not bound to any TCP port, for practicing
  *        locally against robots: {@link ClientNetwork#practiceServer}
+ *        launched by {@link #startPracticeGame()}
  *</UL>
  * A running client can be connected to at most one TCP server at a time, plus the practice server.
  * Its single shared list of games shows those on the server and any practice games.

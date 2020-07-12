@@ -1646,6 +1646,7 @@ public class SOCServerMessageHandler
 
     /**
      * Process the {@code *LOADGAME*} debug/admin command: Load the named game and have this client join it.
+     * Calls {@link SOCServer#createAndJoinReloadedGame(SavedGameModel, Connection, String)}.
      * @param c  Client sending the command
      * @param connGaName  Client's current game in which the command was sent, for sending response messages
      * @param argsStr  Args for command (trimmed), or ""
@@ -1717,111 +1718,15 @@ public class SOCServerMessageHandler
             return;
         }
 
-        final SOCGame ga = sgm.getGame();
-
-        // Validate name and opts, add to gameList, announce "new" game, have client join;
-        // sends error text if validation fails. Might rename loaded game if its name is already taken
-        // by an existing game.
-        // If debug/admin user isn't a player, will send each sitDown with isRobot=true
-        // to let them sit down at any player's seat.
-        if (! srv.createOrJoinGame
-               (c, c.getVersion(), connGaName, ga.getGameOptions(), ga, SOCServer.AUTH_OR_REJECT__OK))
-        {
-            return;
-        }
-
-        // Must tell debug/admin player to sit down at this point if they're a player,
-        // since PI will show as seated if nickname matches player name
-        int clientPN = -1;
-        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
-        {
-            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
-            if (pi.isSeatVacant || ! pi.name.equals(c.getData()))
-                continue;
-
-            clientPN = pn;
-            srv.sitDown(ga, c, clientPN, false, false);
-            break;
-        }
-
-        final String gaName = ga.getName();
-
-        boolean foundNoRobots = false;
-        if (sgm.gameState < SOCGame.OVER)
-        {
-            // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
-
-            final GameHandler gh = gameList.getGameTypeHandler(gaName);
-            for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
-            {
-                final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
-                if (pi.isSeatVacant || ! pi.isRobot)
-                    continue;
-
-                // TODO once we have bot details/constraints (fast or smart, 3rd-party bot class),
-                //   request those when calling findRobotAskJoinGame
-                //   instead of marking their seat as vacant
-
-                if (! ga.isSeatVacant(pn))
-                    ga.removePlayer(ga.getPlayer(pn).getName(), true);
-                foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
-                if (foundNoRobots)
-                    break;
-            }
-        }
-
-        // If all OK: Send Resume reminder prompt after delay, or announce winner if over,
-        //     to appear after bots have joined
-        final SavedGameModel sgmf = sgm;  // satify compiler
-        final boolean noBots = foundNoRobots;
-        srv.miscTaskTimer.schedule(new TimerTask()
-        {
-            public void run()
-            {
-                if (! gaName.equals(sgmf.gameName))
-                    srv.messageToPlayerKeyed
-                        (c, gaName, "admin.loadgame.ok.game_renamed", sgmf.gameName);
-                        // "Game was renamed: Original name {0} is already used."
-
-                if (sgmf.warnDevCardDeckHasUnknownType)
-                    srv.messageToGameKeyed
-                        (ga, true, "admin.resumegame.warn.dev_card_deck_contains_unknown_card_type");
-                        // ">>> Warning: Dev card deck contains an unknown card type"
-                if (sgmf.warnHasHumanPlayerWithBotName)
-                    srv.messageToGameKeyed
-                        (ga, true, "admin.resumegame.warn.human_with_bot_name");
-                        // ">>> Warning: At least 1 player is named like a robot, but isRobot flag is false. Can cause problems when resuming game."
-
-                if (noBots)
-                {
-                    srv.messageToPlayerKeyed
-                        (c, gaName, "admin.resumegame.err.not_enough_robots");
-                        // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
-                } else if (sgmf.gameState < SOCGame.OVER) {
-                    srv.messageToGameKeyed
-                        (ga, true, "admin.loadgame.ok.to_continue_resumegame");
-                        // ">>> To continue playing, type *RESUMEGAME*"
-                } else {
-                    sgmf.resumePlay(true);
-                    final GameHandler hand = gameList.getGameTypeHandler(gaName);
-                    if (hand != null)
-                        hand.sendGameState(ga);
-                }
-            }
-        }, 350 /* ms */ );
-
-        // In case game duration/expire time was extended before save and would now expire very soon,
-        // postpone expiration long enough to run at least 1 expiration check before warning
-        final long now = System.currentTimeMillis();
-        final long thresholdMin = SOCServer.GAME_TIME_EXPIRE_CHECK_MINUTES + SOCServer.GAME_TIME_EXPIRE_WARN_MINUTES;
-        if (thresholdMin >= (int) ((ga.getExpiration() - now) / (60 * 1000L)))
-            ga.setExpiration(now + (60 * 1000 * (1 + thresholdMin)));
+        srv.createAndJoinReloadedGame(sgm, c, connGaName);
     }
 
     /**
      * Process the {@code *RESUMEGAME*} debug/admin command: Resume the current game,
      * which was recently loaded with {@code *LOADGAME*}.
      * Must be in state {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}.
+     * Calls {@link SOCServer#resumeReloadedGame(Connection, SOCGame)}.
+     *
      * @param c  Client sending the command, game owner if being called by server after last bot has sat down,
      *     or null if owner not available
      * @param ga  Game in which the command was sent
@@ -1852,72 +1757,7 @@ public class SOCServerMessageHandler
             return;
         }
 
-        final boolean[] botsNeeded = sgm.findSeatsNeedingBots();
-        if (botsNeeded != null)
-        {
-            ga.setGameState(SOCGame.LOADING_RESUMING);
-            final GameHandler hand = gameList.getGameTypeHandler(gaName);
-            if (hand != null)
-                hand.sendGameState(ga);
-
-            boolean invitedBots = false;
-            IllegalStateException e = null;
-            try
-            {
-                invitedBots = srv.readyGameAskRobotsJoin(ga, botsNeeded, null, 0);
-                    // will also send game a text message like "Fetching a robot..."
-            } catch (IllegalStateException ex) {
-                e = ex;
-            }
-
-            if (! invitedBots)
-            {
-                // recover, so human players can try and fill those seats
-                ga.setGameState(SOCGame.LOADING);
-                if (hand != null)
-                    hand.sendGameState(ga);
-
-                if (e != null)
-                    srv.messageToPlayerKeyed
-                        (c, gaName,"start.robots.cannot.join.problem", e.getMessage());
-                        // "Sorry, robots cannot join this game: {0}"
-                else
-                    srv.messageToPlayerKeyed
-                        (c, gaName, "admin.resumegame.err.not_enough_robots");
-                        // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
-            }
-
-            return;
-        }
-
-        // if no human players, set game's isBotsOnly flag so it won't be destroyed
-        boolean isBotsOnly = true;
-        for (int pn = 0; pn < ga.maxPlayers; ++pn)
-        {
-            if (! (ga.isSeatVacant(pn) || ga.getPlayer(pn).isRobot()))
-            {
-                isBotsOnly = false;
-                break;
-            }
-        }
-        if (isBotsOnly)
-            ga.isBotsOnly = true;
-
-        try
-        {
-            sgm.resumePlay(false);
-            final GameHandler hand = gameList.getGameTypeHandler(gaName);
-            if (hand != null)
-                hand.sendGameState(ga);
-
-            srv.messageToGameKeyed
-                (ga, true, "admin.resumegame.ok.resuming");
-                // ">>> Resuming game play."
-        } catch (MissingResourceException e) {
-            srv.messageToGameKeyed
-                (ga, true, "admin.resumegame.err.not_enough_robots");
-                // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
-        }
+        srv.resumeReloadedGame(c, ga);
     }
 
     /**

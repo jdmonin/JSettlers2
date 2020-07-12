@@ -28,6 +28,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Save/load games:
 	    - SavedGameModel:
 	        - PlayerInfo: Include number of Discovery, Monopoly, Road Building cards played
+	- Server consistently uses Properties if passed into constructors
 
 
 ## `2.4.00` (build JM20200704)

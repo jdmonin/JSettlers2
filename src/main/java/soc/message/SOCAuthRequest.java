@@ -124,7 +124,7 @@ public class SOCAuthRequest extends SOCMessage
      * @param pw  optional password, or ""; this is the last field of the message
      *     so that it can contain delimiter chars
      * @param sch  auth scheme number, such as {@link #SCHEME_CLIENT_PLAINTEXT}
-     * @param hn  server host name, or null; "" is stored as null in the {@link #host} field
+     * @param hn  server host name, or null; not "", which would be stored as null in the {@link #host} field
      * @throws IllegalArgumentException if {@code ro}, {@code nn}, or {@code hn} contains a delimiter character
      *     or is null or otherwise doesn't pass {@link SOCMessage#isSingleLineAndSafe(String)}
      */
