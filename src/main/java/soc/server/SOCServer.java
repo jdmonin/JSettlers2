@@ -3524,6 +3524,16 @@ public class SOCServer extends Server
     }
 
     /**
+     * This server's game list. Treat as read-only.
+     * Useful for membership checks like {@link SOCGameListAtServer#isMember(String, String)}.
+     * @since 2.4.10
+     */
+    public SOCGameListAtServer getGameList()
+    {
+        return gameList;
+    }
+
+    /**
      * Used when SOCPlayerClient is also hosting games.
      * @return The names (Strings) of games on this server
      * @since 1.1.00
@@ -3570,21 +3580,6 @@ public class SOCServer extends Server
     public Map<String,SOCGameOption> getGameOptions(String gm)
     {
         return gameList.getGameOptions(gm);
-    }
-
-    /**
-     * Is this connection a member of a game?
-     * This is more specific than checking if game has a member with same name as connection,
-     * especially while reloading and joining a saved game.
-     *
-     * @param  conn    Connection to check game for; null is safe
-     * @param  gaName  Game name; not null
-     * @return true if game exists and {@code conn} is a member
-     * @since 2.4.10
-     */
-    public boolean isGameMember(final Connection conn, final String gaName)
-    {
-        return gameList.isMember(conn, gaName);
     }
 
     /**

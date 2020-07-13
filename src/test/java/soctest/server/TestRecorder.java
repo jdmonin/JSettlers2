@@ -32,6 +32,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCChoosePlayer;
+import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
 import soc.server.genericServer.Connection;
 import soc.server.savegame.SavedGameModel;
@@ -73,6 +74,47 @@ public class TestRecorder
     }
 
     /**
+     * Resume a game after loading it. Prints player connection details to {@link System#out},
+     * calls {@link SOCServer#resumeReloadedGame(Connection, SOCGame)}.
+     * @param ga  Loaded game to resume
+     * @param server  Server to resume in
+     * @param cliConn  Client connection; should already be a member of this game at server
+     */
+    public static void resumeLoadedGame(final SOCGame ga, final SOCServer server, final Connection cliConn)
+    {
+        if (server == null)
+            throw new IllegalArgumentException("server");
+        if (cliConn == null)
+            throw new IllegalArgumentException("cliConn");
+
+        final String gaName = ga.getName();
+        final SOCGameListAtServer glas = server.getGameList();
+
+        // output all at once, in case of parallel tests
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n--- Resuming loaded game: " + gaName + "\n");
+        for (int pn = 0; pn < 4; ++pn)
+        {
+            if (ga.isSeatVacant(pn))
+                continue;
+            SOCPlayer pl = ga.getPlayer(pn);
+            String plName = pl.getName();
+            if ((plName == null) || plName.isEmpty())
+            {
+                sb.append("pn[" + pn + "] ** empty\n");
+                continue;
+            }
+            Connection plConn = server.getConnection(plName);
+            sb.append("pn[" + pn + "] name=" + pl.getName() + ", isRobot=" + pl.isRobot()
+                + ", hasConn=" + (null != plConn) + ", isMember=" + glas.isMember(plConn, gaName) + "\n");
+        }
+        System.out.flush();
+        System.out.println(sb);
+        System.out.flush();
+        assertTrue("resume loaded game", server.resumeReloadedGame(cliConn, ga));
+    }
+
+    /**
      * Test the basics, to rule out problems with that if other tests fail:
      *<UL>
      * <LI> {@link RecordingTesterServer} is up
@@ -104,16 +146,10 @@ public class TestRecorder
         catch(InterruptedException e) {}
 
         assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
-        assertEquals(1 + nConn, srv.getNamedConnectionCount());
         Connection tcliAtServer = srv.getConnection(CLIENT_NAME);
         assertNotNull(tcliAtServer);
 
         tcli.destroy();
-
-        try { Thread.sleep(120); }
-        catch(InterruptedException e) {}
-        assertTrue
-            ("some bots are connected; actual nConn=" + nConn, nConn >= RecordingTesterServer.NUM_STARTROBOTS);
     }
 
     @Test
@@ -133,7 +169,7 @@ public class TestRecorder
 
         assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
 
-        SavedGameModel sgm = soctest.server.savegame.TestLoadgame.load("classic-botturn.game.json");
+        SavedGameModel sgm = soctest.server.savegame.TestLoadgame.load("classic-botturn.game.json", srv);
         assertNotNull(sgm);
         assertEquals("classic", sgm.gameName);
         assertEquals("debug", sgm.playerSeats[3].name);
@@ -148,7 +184,7 @@ public class TestRecorder
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
 
-        assertTrue("debug cli member of reloaded game?", srv.isGameMember(tcliConn, loadedName));
+        assertTrue("debug cli member of reloaded game?", srv.getGameList().isMember(tcliConn, loadedName));
 
         final SOCGame ga = srv.getGame(loadedName);
         assertNotNull("game object at server", ga);
@@ -187,7 +223,7 @@ public class TestRecorder
 
         assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
 
-        SavedGameModel sgm = soctest.server.savegame.TestLoadgame.load("message-seqs.game.json");
+        SavedGameModel sgm = soctest.server.savegame.TestLoadgame.load("message-seqs.game.json", srv);
         assertNotNull(sgm);
         assertEquals("message-seqs", sgm.gameName);
         assertEquals("debug", sgm.playerSeats[3].name);
@@ -202,7 +238,7 @@ public class TestRecorder
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
 
-        assertTrue("debug cli member of reloaded game?", srv.isGameMember(tcliConn, loadedName));
+        assertTrue("debug cli member of reloaded game?", srv.getGameList().isMember(tcliConn, loadedName));
 
         final SOCGame ga = srv.getGame(loadedName);
         assertNotNull("game object at server", ga);
@@ -214,10 +250,7 @@ public class TestRecorder
         final SOCPlayer cliPl = ga.getPlayer(PN);
         assertEquals(CLIENT_NAME, cliPl.getName());
 
-        System.out.flush();
-        System.out.println("--- Resuming loaded game: " + loadedName);
-        System.out.flush();
-        assertTrue("resume loaded game", srv.resumeReloadedGame(tcliConn, ga));
+        resumeLoadedGame(ga, srv, tcliConn);
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
 

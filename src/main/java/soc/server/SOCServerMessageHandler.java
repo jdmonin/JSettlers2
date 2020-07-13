@@ -1673,9 +1673,6 @@ public class SOCServerMessageHandler
         if (! processDebugCommand_loadSaveGame_checkDir("LOADGAME", c, connGaName))
             return;
 
-        if (SavedGameModel.glas == null)
-            SavedGameModel.glas = srv.gameList;
-
         SavedGameModel sgm = null;
         String errText = null;
         try

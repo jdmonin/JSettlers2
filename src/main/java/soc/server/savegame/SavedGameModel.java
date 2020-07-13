@@ -113,7 +113,7 @@ public class SavedGameModel
      *      constant values which aren't in that version's copy of those enums,
      *      {@link GameLoaderJSON} ignores them
      *</UL>
-     * {@link #createLoadedGame(Server)} will reject a loaded game if its {@link #modelVersion}
+     * {@link #createLoadedGame(SOCServer)} will reject a loaded game if its {@link #modelVersion}
      * is newer than {@code MODEL_VERSION}, or if the game has features/options that it can't save.
      * If you need to make a saved-game file for use by multiple JSettlers versions, save it from the oldest version.
      *<P>
@@ -158,8 +158,12 @@ public class SavedGameModel
      */
     public static final int MODEL_VERSION = 2400;
 
-    /** Server's game list, for checking game/player names and creating games */
-    public static SOCGameListAtServer glas;
+    /**
+     * Server's game list, for checking game/player names and creating games.
+     * Kept as instance field to prevent problems with parallel unit test runs, which may use different
+     * server and game list instances.
+     */
+    public transient SOCGameListAtServer glas;
 
     /**
      * Random generator, for tasks like bot name randomization if needed.
@@ -381,7 +385,7 @@ public class SavedGameModel
 
     /**
      * Create an empty SavedGameModel to load a game file into.
-     * Once data is loaded and {@link #createLoadedGame(Server)} is called,
+     * Once data is loaded and {@link #createLoadedGame(SOCServer)} is called,
      * state will temporarily be {@link SOCGame#LOADING}
      * and {@link SOCGame#savedGameModel} will be this SGM.
      * Call {@link #resumePlay(boolean)} to continue play.
@@ -396,6 +400,7 @@ public class SavedGameModel
      * @param ga  Game data to save; not null
      * @param srv  Server, for game/player info lookups; not null.
      *     Not retained in object fields, used only during construction.
+     *     Sets {@link #glas} from {@link SOCServer#getGameList() srv.getGameList()}.
      * @throws UnsupportedSGMOperationException  if game has an option or feature not yet supported
      *     by {@link SavedGameModel}; see {@link #checkCanSave(SOCGame)} for details.
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
@@ -406,6 +411,7 @@ public class SavedGameModel
         throws UnsupportedSGMOperationException, IllegalStateException, IllegalArgumentException
     {
         this();
+        glas = srv.getGameList();
 
         checkCanSave(ga);
 
@@ -537,7 +543,7 @@ public class SavedGameModel
 
     /**
      * Can the game data loaded into this {@link SavedGameModel} become a {@link SOCGame}
-     * in {@link #createLoadedGame(Server)}, or does it have options or features which haven't yet been implemented here?
+     * in {@link #createLoadedGame(SOCServer)}, or does it have options or features which haven't yet been implemented here?
      *<P>
      * See {@link #checkCanSave(SOCGame)} for list of unsupported features checked here.
      *<P>
@@ -555,7 +561,7 @@ public class SavedGameModel
      *     Exception's {@link Throwable#getMessage()} will be generic,
      *     but its {@link SOCGameOptionVersionException#gameOptsVersion} will be {@code gameMinVersion}
      * @throws UnsupportedSGMOperationException if game has an option or feature not yet supported
-     *     by {@link #createLoadedGame(Server)}. {@link Throwable#getMessage()} will name the unsupported option/feature
+     *     by {@link #createLoadedGame(SOCServer)}. {@link Throwable#getMessage()} will name the unsupported option/feature
      *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String)}.
      *     In that case, {@link Throwable#getMessage()} will contain that method's IllegalArgumentException message
      *     and {@link Throwable#getCause()} will not be null.
@@ -613,11 +619,11 @@ public class SavedGameModel
      * Examines game and player data. Might set {@link #warnHasHumanPlayerWithBotName},
      * {@link #warnDevCardDeckHasUnknownType} flags.
      *
-     * @param srv  Server reference to check for bot name collisions, or {@code null}.
+     * @param srv  Server reference to check for bot name collisions; not {@code null}.
+     *     Calls {@link SOCServer#getGameList() srv.getGameList()} and sets {@link #glas}.
      *     Any bot players in the loaded game data with same names as those logged into the server
      *     will be renamed to avoid problems during random bot assignment while joining the game.
      * @throws IllegalStateException if this method's already been called
-     *     or if required static game list field {@link SavedGameModel#glas} is null
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
      *     is newer than the current {@link SavedGameModel#MODEL_VERSION};
      *     see {@link #checkCanLoad()} for details
@@ -631,14 +637,14 @@ public class SavedGameModel
      *     Catch subclass {@code SOCGameOptionVersionException} before this one.
      *     Also thrown if {@link #playerSeats}.length != created game's {@link SOCGame#maxPlayers}.
      */
-    /*package*/ void createLoadedGame(final Server srv)
+    /*package*/ void createLoadedGame(final SOCServer srv)
         throws IllegalStateException, NoSuchElementException,
             SOCGameOptionVersionException, UnsupportedSGMOperationException, IllegalArgumentException
     {
         if (game != null)
             throw new IllegalStateException("already called createLoadedGame");
-        if (glas == null)
-            throw new IllegalStateException("SavedGameModel.glas is null");
+
+        glas = srv.getGameList();
 
         checkCanLoad();
 

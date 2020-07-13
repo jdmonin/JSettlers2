@@ -28,7 +28,6 @@ import java.util.Vector;
 import soc.message.SOCMessage;
 import soc.message.SOCServerPing;
 import soc.server.SOCServer;
-import soc.server.savegame.SavedGameModel;
 
 /**
  * Non-testing class: Server which records game events into {@link #records}.
@@ -76,9 +75,6 @@ public class RecordingTesterServer
         throws IllegalStateException
     {
         super(STRINGPORT_NAME, PROPS);
-
-        if (SavedGameModel.glas == null)
-            SavedGameModel.glas = gameList;
     }
 
     @Override

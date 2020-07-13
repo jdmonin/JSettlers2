@@ -228,7 +228,9 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
-     * is this connection a member of the game?
+     * Is this connection a member of this game?
+     * More specific than {@link #isMember(String, String)},
+     * especially while reloading and joining a saved game.
      * @param  gaName   the name of the game; not null
      * @param  conn     connection to check game for; null is safe
      * @return true if game exists and {@code conn} is a member
