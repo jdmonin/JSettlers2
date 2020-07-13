@@ -139,6 +139,18 @@ public class DisplaylessTesterClient
 
     // message handlers
 
+    /** To avoid confusion during gameplay, set both "server" version fields */
+    @Override
+    protected void handleVERSION(boolean isLocal, SOCVersion mes)
+    {
+        super.handleVERSION(isLocal, mes);
+
+        if (isLocal)
+            sVersion = sLocalVersion;
+        else
+            sLocalVersion = sVersion;
+    }
+
     // TODO refactor common with SOCPlayerClient vs this and its displayless parent,
     // which currently don't share a parent client class with SOCPlayerClient
 

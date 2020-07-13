@@ -930,7 +930,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      * @since 1.1.00
      */
-    private void handleVERSION(boolean isLocal, SOCVersion mes)
+    protected void handleVERSION(boolean isLocal, SOCVersion mes)
     {
         D.ebugPrintlnINFO("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();

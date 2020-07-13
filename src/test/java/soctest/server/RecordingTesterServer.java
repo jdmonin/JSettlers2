@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.Vector;
 
 import soc.message.SOCMessage;
+import soc.message.SOCServerPing;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
 
@@ -88,6 +89,10 @@ public class RecordingTesterServer
 
     private void recordEvent(final String gameName, QueueEntry entry)
     {
+        if (entry.event instanceof SOCServerPing)
+            // ignore unrelated administrative message which has unpredictable timing
+            return;
+
         Vector<QueueEntry> queue = records.get(gameName);
         if (queue == null)
         {
@@ -123,17 +128,23 @@ public class RecordingTesterServer
         recordEvent(gameName, new QueueEntry(event, excludedPN));
     }
 
-    public static class QueueEntry
+    /**
+     * A recorded entry: Event SOCMessage, audience (all players, 1 player, or specifically excluded player(s)).
+     *<P>
+     * If this class changes, update comprehensive unit test {@link soctest.server.TestRecorder#testQueueEntry()}.
+     */
+    public static final class QueueEntry
     {
         /** Event message data */
         public final SOCMessage event;
 
-        /** Which player number this event was sent to, or -1 for all */
+        /** Which player number this event was sent to, or -1 for all; is also -1 if {@link #excludedPN} != null */
         public final int toPN;
 
-        /** Player numbers excluded from this event's audience, or null */
+        /** Player numbers specifically excluded from this event's audience, or null */
         public final int[] excludedPN;
 
+        /** QueueEntry sent to one player, or all players if {@code toPN} is -1 */
         public QueueEntry(SOCMessage event, int toPN)
         {
             this.event = event;
@@ -141,6 +152,7 @@ public class RecordingTesterServer
             this.excludedPN = null;
         }
 
+        /** QueueEntry sent to all players except specific ones, or to all if {@code excludedPN} null */
         public QueueEntry(SOCMessage event, int[] excludedPN)
         {
             this.event = event;
@@ -148,6 +160,12 @@ public class RecordingTesterServer
             this.excludedPN = excludedPN;
         }
 
+        /**
+         * Basic delimited contents, suitable for comparisons in unit tests.
+         * Calls {@link SOCMessage#toString()}, not {@link SOCMessage#toCmd()},
+         * for class/field name label strings and to help test stable SOCMessage.toString results
+         * for any third-party recorder implementers that use that format.
+         */
         public String toString()
         {
             StringBuilder sb = new StringBuilder();
@@ -164,7 +182,7 @@ public class RecordingTesterServer
             else
                 sb.append("all:");
 
-            sb.append(event);
+            sb.append(event);  // or "null"
 
             return sb.toString();
         }
