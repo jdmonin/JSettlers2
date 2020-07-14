@@ -2762,6 +2762,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Ask the server to move this piece to a different coordinate.
+     * @param ga  the game where the action is taking place
+     * @param pn  The piece's player number
+     * @param ptype    The piece type, such as {@link SOCPlayingPiece#SHIP}; must be >= 0
+     * @param fromCoord  Move the piece from here; must be >= 0
+     * @param toCoord    Move the piece to here; must be >= 0
+     * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code fromCoord} &lt; 0, or {@code toCoord} &lt; 0
+     * @since 2.4.10
+     */
+    public void movePieceRequest
+        (final SOCGame ga, final int pn, final int ptype, final int fromCoord, final int toCoord)
+        throws IllegalArgumentException
+    {
+        put(new SOCMovePiece(ga.getName(), pn, ptype, fromCoord, toCoord).toCmd());
+    }
+
+    /**
      * the player wants to move the robber or the pirate ship.
      *
      * @param ga  the game

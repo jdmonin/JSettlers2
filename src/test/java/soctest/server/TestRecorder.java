@@ -21,7 +21,13 @@
 package soctest.server;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
@@ -38,14 +44,16 @@ import soc.server.genericServer.Connection;
 import soc.server.savegame.SavedGameModel;
 import soc.util.Version;
 import soctest.server.RecordingTesterServer.QueueEntry;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import soctest.server.savegame.TestLoadgame;
 
 /**
  * A few tests for {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)} and similar methods.
+ * Covers a few core game actions and message sequences. For more complete coverage of those,
+ * you should periodically run {@code extraTest} {@code soctest.server.TestMessagesRecords}.
+ *<P>
+ * Also has convenience methods like {@link #connectLoadJoinResumeGame(RecordingTesterServer, String)}
+ * and {@link #compareRecordsToExpected(List, String[][])} which other test classes can use.
+ *
  * @since 2.4.10
  */
 public class TestRecorder
@@ -152,14 +160,36 @@ public class TestRecorder
         tcli.destroy();
     }
 
+    /**
+     * Test the basics, to rule out problems with that if other tests fail:
+     * Load a game, server should invite test client to join it because of player name.
+     */
     @Test
     public void testBasics_Loadgame()
         throws IOException
     {
+        assertNotNull(srv);
+        testBasics_Loadgame(srv);
+    }
+
+    /**
+     * Test the basics, to rule out problems with that if other tests fail:
+     * Load a game, server should invite test client to join it because of player name.
+     * Parameterized for use from other test/extraTest classes.
+     *
+     * @param server  Server to use
+     * @throws IOException if problem occurs during {@link TestLoadgame#load(String, SOCServer)}
+     */
+    public static void testBasics_Loadgame(SOCServer server)
+        throws IOException
+    {
+        if (server == null)
+            throw new IllegalArgumentException("server");
+
         // unique client nickname, in case tests run in parallel
         final String CLIENT_NAME = "testLoadgame";
 
-        assertNotNull(srv);
+        assertNotNull(server);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
             (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME);
@@ -169,24 +199,24 @@ public class TestRecorder
 
         assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
 
-        SavedGameModel sgm = soctest.server.savegame.TestLoadgame.load("classic-botturn.game.json", srv);
+        SavedGameModel sgm = TestLoadgame.load("classic-botturn.game.json", server);
         assertNotNull(sgm);
         assertEquals("classic", sgm.gameName);
         assertEquals("debug", sgm.playerSeats[3].name);
         sgm.playerSeats[3].name = CLIENT_NAME;
 
-        Connection tcliConn = srv.getConnection(CLIENT_NAME);
+        Connection tcliConn = server.getConnection(CLIENT_NAME);
         assertNotNull(tcliConn);
-        String loadedName = srv.createAndJoinReloadedGame(sgm, tcliConn, null);
+        String loadedName = server.createAndJoinReloadedGame(sgm, tcliConn, null);
         assertNotNull("reloaded game name", loadedName);
 
         // wait to join in client's thread
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
 
-        assertTrue("debug cli member of reloaded game?", srv.getGameList().isMember(tcliConn, loadedName));
+        assertTrue("debug cli member of reloaded game?", server.getGameList().isMember(tcliConn, loadedName));
 
-        final SOCGame ga = srv.getGame(loadedName);
+        final SOCGame ga = server.getGame(loadedName);
         assertNotNull("game object at server", ga);
         final int PN = 3;
         assertEquals(1, ga.getCurrentPlayerNumber());
@@ -195,6 +225,73 @@ public class TestRecorder
 
         // leave game
         tcli.destroy();
+    }
+
+    /**
+     * Common code to use when beginning a test:
+     *<UL>
+     * <LI> Assert {@code server} not null
+     * <LI> Connect to test server with a new client
+     * <LI> Load game artifact {@code "message-seqs.game.json"}
+     * <LI> Confirm and retrieve {@link SOCGame} and client {@link SOCPlayer} info
+     * <LI> Resume the game; will be client player's turn
+     *</UL>
+     * @param clientName  Unique client name to use for this client and game
+     * @return  all the useful objects mentioned above
+     * @throws IllegalArgumentException if {@code clientName} is null
+     * @throws IOException if game artifact file can't be loaded
+     */
+    public static StartedTestGameObjects connectLoadJoinResumeGame
+        (final RecordingTesterServer server, final String clientName)
+        throws IllegalArgumentException, IOException
+    {
+        if (clientName == null)
+            throw new IllegalArgumentException("clientName");
+
+        assertNotNull(server);
+
+        DisplaylessTesterClient tcli = new DisplaylessTesterClient
+            (RecordingTesterServer.STRINGPORT_NAME, clientName);
+        tcli.init();
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
+
+        SavedGameModel sgm = soctest.server.savegame.TestLoadgame.load("message-seqs.game.json", server);
+        assertNotNull(sgm);
+        assertEquals("message-seqs", sgm.gameName);
+        assertEquals("debug", sgm.playerSeats[3].name);
+        sgm.playerSeats[3].name = clientName;
+
+        Connection tcliConn = server.getConnection(clientName);
+        assertNotNull(tcliConn);
+        String loadedName = server.createAndJoinReloadedGame(sgm, tcliConn, null);
+        assertNotNull("message-seqs game name", loadedName);
+
+        // wait to join in client's thread
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertTrue("debug cli member of reloaded game?", server.getGameList().isMember(tcliConn, loadedName));
+
+        final SOCGame ga = server.getGame(loadedName);
+        assertNotNull("game object at server", ga);
+        assertTrue("game uses sea board", ga.getBoard() instanceof SOCBoardLarge);
+
+        final int PN = 3;
+        assertEquals(PN, ga.getCurrentPlayerNumber());
+        final SOCPlayer cliPl = ga.getPlayer(PN);
+        assertEquals(clientName, cliPl.getName());
+
+        resumeLoadedGame(ga, server, tcliConn);
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        final Vector<QueueEntry> records = server.records.get(loadedName);
+        assertNotNull("record queue for game", records);
+
+        return new StartedTestGameObjects(tcli, sgm, ga, (SOCBoardLarge) ga.getBoard(), cliPl, records);
     }
 
     /**
@@ -213,61 +310,28 @@ public class TestRecorder
         // unique client nickname, in case tests run in parallel
         final String CLIENT_NAME = "testBasicSequences";
 
-        assertNotNull(srv);
-
-        DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME);
-        tcli.init();
-        try { Thread.sleep(120); }
-        catch(InterruptedException e) {}
-
-        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
-
-        SavedGameModel sgm = soctest.server.savegame.TestLoadgame.load("message-seqs.game.json", srv);
-        assertNotNull(sgm);
-        assertEquals("message-seqs", sgm.gameName);
-        assertEquals("debug", sgm.playerSeats[3].name);
-        sgm.playerSeats[3].name = CLIENT_NAME;
-
-        Connection tcliConn = srv.getConnection(CLIENT_NAME);
-        assertNotNull(tcliConn);
-        String loadedName = srv.createAndJoinReloadedGame(sgm, tcliConn, null);
-        assertNotNull("message-seqs game name", loadedName);
-
-        // wait to join in client's thread
-        try { Thread.sleep(120); }
-        catch(InterruptedException e) {}
-
-        assertTrue("debug cli member of reloaded game?", srv.getGameList().isMember(tcliConn, loadedName));
-
-        final SOCGame ga = srv.getGame(loadedName);
-        assertNotNull("game object at server", ga);
-        assertTrue("game uses sea board", ga.getBoard() instanceof SOCBoardLarge);
-        final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
-
-        final int PN = 3;
-        assertEquals(PN, ga.getCurrentPlayerNumber());
-        final SOCPlayer cliPl = ga.getPlayer(PN);
-        assertEquals(CLIENT_NAME, cliPl.getName());
-
-        resumeLoadedGame(ga, srv, tcliConn);
-        try { Thread.sleep(120); }
-        catch(InterruptedException e) {}
-
-        final Vector<QueueEntry> records = srv.records.get(loadedName);
-        assertNotNull("record queue for game", records);
+        final StartedTestGameObjects objs = connectLoadJoinResumeGame(srv, CLIENT_NAME);
+        final DisplaylessTesterClient tcli = objs.tcli;
+        // final SavedGameModel sgm = objs.sgm;
+        final SOCGame ga = objs.gameAtServer;
+        final SOCBoardLarge board = objs.board;
+        final SOCPlayer cliPl = objs.clientPlayer;
+        final Vector<QueueEntry> records = objs.records;
 
         /* sequence recording: build road */
 
         records.clear();
         final int ROAD_COORD = 0x40a;
-        assertEquals(14, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
+        assertNull(board.roadOrShipAtEdge(ROAD_COORD));
+        assertEquals(12, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
+        assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
         tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_COORD, board));
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertNotNull("road built", board.roadOrShipAtEdge(ROAD_COORD));
-        assertEquals(13, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
+        assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
+        assertArrayEquals(new int[]{2, 3, 3, 4, 3}, cliPl.getResources().getAmounts(false));
 
         // for now, quick rough comparison of record contents
         StringBuilder comparesBuild = compareRecordsToExpected
@@ -294,7 +358,7 @@ public class TestRecorder
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1"},
                 {"all:SOCGameElements:", "|e2=24"},
-                {"pn=3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},
+                {"pn=3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
                 {"pn=!3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=0"},
                 {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=24|v2=0"},
                 {"all:SOCGameState:", "|state=20"}
@@ -303,7 +367,7 @@ public class TestRecorder
         /* sequence recording: choose and move robber, steal from 1 player */
 
         records.clear();
-        assertEquals("old robberHex", 2314, board.getRobberHex());
+        assertEquals("old robberHex", 2314, board.getRobberHex());  // 0x90a
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
         try { Thread.sleep(60); }
@@ -349,7 +413,7 @@ public class TestRecorder
                 {"all:SOCGameState:", "|state=20"}
             });
 
-        /* leave game, check results */
+        /* leave game, consolidate results */
 
         tcli.destroy();
 
@@ -389,8 +453,8 @@ public class TestRecorder
      *     to ignore game name and variable fields
      * @return {@code null} if no differences, or the differences found
      */
-    private StringBuilder compareRecordsToExpected
-        (final Vector<QueueEntry> records, final String[][] expected)
+    public static StringBuilder compareRecordsToExpected
+        (final List<QueueEntry> records, final String[][] expected)
     {
         StringBuilder compares = new StringBuilder();
 
@@ -467,6 +531,32 @@ public class TestRecorder
         assertNull(qe.event);
         assertNull(qe.excludedPN);
         assertEquals("pn=3:null", qe.toString());
+    }
+
+    /**
+     * Data class for useful objects returned from
+     * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String)}.
+     */
+    public static final class StartedTestGameObjects
+    {
+        public final DisplaylessTesterClient tcli;
+        public final SavedGameModel sgm;
+        public final SOCGame gameAtServer;
+        public final SOCBoardLarge board;
+        public final SOCPlayer clientPlayer;
+        public final Vector<QueueEntry> records;
+
+        public StartedTestGameObjects
+            (DisplaylessTesterClient tcli, SavedGameModel sgm, SOCGame gameAtServer,
+             SOCBoardLarge board, SOCPlayer clientPlayer, Vector<QueueEntry> records)
+        {
+            this.tcli = tcli;
+            this.sgm = sgm;
+            this.gameAtServer = gameAtServer;
+            this.board = board;
+            this.clientPlayer = clientPlayer;
+            this.records = records;
+        }
     }
 
 }

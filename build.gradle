@@ -39,7 +39,7 @@ sourceSets {
         // also runs extraTest/python/*.py, see task extraTaskPython below
         java {
             compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
+            runtimeClasspath += test.output + test.runtimeClasspath
             srcDirs = ['src/extraTest/java']
         }
         // if needed later: resources.srcDir file('src/extraTest/resources')
@@ -337,6 +337,7 @@ clean {
 artifacts {
     archives serverJar, fullJar
 }
+
 
 /*
  * This file is part of the JSettlers project.
