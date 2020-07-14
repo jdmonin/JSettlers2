@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,8 @@ import static org.junit.Assert.*;
 
 /**
  * Extra testing for {@link TestBoardLayouts}: Run 2000 rounds.
+ * May actually run fewer to stay under a timeout threshold:
+ * See {@link TestBoardLayouts#roundCount}.
  * @since 2.0.00
  */
 public class TestBoardLayoutsRounds
@@ -45,7 +47,7 @@ public class TestBoardLayoutsRounds
             for (Failure f : rslt.getFailures())
             {
                 System.out.println("sub-test failure: " + f);
-                    // "testLayouts(soctest.game.TestBoardLayouts): test timed out after 300 milliseconds"
+                    // "testLayouts(soctest.game.TestBoardLayouts): test timed out after 30000 milliseconds"
                 // Was it a timeout?
                 // Test exception name, not class object, to avoid brittle dependency on junit package structure
                 Throwable tex = f.getException();

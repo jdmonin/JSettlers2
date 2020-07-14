@@ -31,6 +31,7 @@ and backport minor new features until `2.0.00` was ready.
 	        - GLAS field made non-static so unit tests can safely run in parallel for quicker builds
 	- Unit tests against running server for core game actions and message sequences
 	- Server consistently uses Properties if passed into constructors
+	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
 
 
 ## `2.4.00` (build JM20200704)
