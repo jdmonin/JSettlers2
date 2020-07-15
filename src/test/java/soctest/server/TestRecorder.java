@@ -49,7 +49,7 @@ import soctest.server.savegame.TestLoadgame;
 /**
  * A few tests for {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)} and similar methods.
  * Covers a few core game actions and message sequences. For more complete coverage of those,
- * you should periodically run {@code extraTest} {@code soctest.server.TestMessagesRecords}.
+ * you should periodically run {@code extraTest} {@code soctest.server.TestActionsMessages}.
  *<P>
  * Also has convenience methods like {@link #connectLoadJoinResumeGame(RecordingTesterServer, String)}
  * and {@link #compareRecordsToExpected(List, String[][])} which other test classes can use.
@@ -234,7 +234,7 @@ public class TestRecorder
      * <LI> Connect to test server with a new client
      * <LI> Load game artifact {@code "message-seqs.game.json"}
      * <LI> Confirm and retrieve {@link SOCGame} and client {@link SOCPlayer} info
-     * <LI> Resume the game; will be client player's turn
+     * <LI> Resume the game; will be client player's turn (player number 3) and game state {@link SOCGame#PLAY1 PLAY1}
      *</UL>
      * @param clientName  Unique client name to use for this client and game
      * @return  all the useful objects mentioned above
@@ -283,10 +283,13 @@ public class TestRecorder
         assertEquals(PN, ga.getCurrentPlayerNumber());
         final SOCPlayer cliPl = ga.getPlayer(PN);
         assertEquals(clientName, cliPl.getName());
+        assertEquals(SOCGame.PLAY1, sgm.gameState);
 
         resumeLoadedGame(ga, server, tcliConn);
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
+
+        assertEquals(SOCGame.PLAY1, ga.getGameState());
 
         final Vector<QueueEntry> records = server.records.get(loadedName);
         assertNotNull("record queue for game", records);
@@ -346,21 +349,23 @@ public class TestRecorder
         /* sequence recording: buy dev card */
 
         records.clear();
-        assertEquals(4, cliPl.getInventory().getTotal());
+        assertEquals(23, ga.getNumDevCards());
+        assertEquals(5, cliPl.getInventory().getTotal());
         tcli.buyDevCard(ga);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertEquals(5, cliPl.getInventory().getTotal());
+        assertEquals(22, ga.getNumDevCards());
+        assertEquals(6, cliPl.getInventory().getTotal());
 
         StringBuilder comparesBuyCard = compareRecordsToExpected
             (records, new String[][]
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1"},
-                {"all:SOCGameElements:", "|e2=24"},
+                {"all:SOCGameElements:", "|e2=22"},
                 {"pn=3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
                 {"pn=!3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=0"},
-                {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=24|v2=0"},
+                {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},
                 {"all:SOCGameState:", "|state=20"}
             });
 
@@ -368,10 +373,14 @@ public class TestRecorder
 
         records.clear();
         assertEquals("old robberHex", 2314, board.getRobberHex());  // 0x90a
+        assertFalse(cliPl.hasPlayedDevCard());
+        assertEquals(1, cliPl.getNumKnights());
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
+        assertTrue(cliPl.hasPlayedDevCard());
+        assertEquals(2, cliPl.getNumKnights());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
         tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
 

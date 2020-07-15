@@ -3015,8 +3015,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user picked 2 resources to discover (Year of Plenty),
-     * or picked these resources to gain from the gold hex.
+     * the user picked 2 resources to discover (Discovery/Year of Plenty),
+     * or picked these resources to gain from a gold hex.
      *<P>
      * Before v2.0.00, this method was {@code discoveryPick(..)}.
      *

@@ -3,10 +3,10 @@
   "savedByVersion": 2410,
   "gameMinVersion": 2000,
   "gameName": "message-seqs",
-  "comments": "board set up for message sequence testing with TestRecorder, TestMessagesRecords server unit tests",
+  "comments": "board set up for message sequence testing with TestRecorder, TestActionsMessages server unit tests",
   "author": "Jeremy D Monin  2020",
   "gameOptions": "BC\u003dt4,N7\u003dt99,PL\u003d4,RD\u003df,SBL\u003dt",
-  "gameDurationSeconds": 514,
+  "gameDurationSeconds": 679,
   "gameState": 20,
   "oldGameState": 20,
   "currentDice": 8,
@@ -22,12 +22,10 @@
     "KNIGHT",
     "KNIGHT",
     "KNIGHT",
-    "KNIGHT",
     "DISC",
     "ROADS",
     "MONO",
     "CHAPEL",
-    "KNIGHT",
     "KNIGHT",
     "KNIGHT",
     "ROADS",
@@ -438,7 +436,7 @@
         "ROADS": 13,
         "SETTLEMENTS": 3,
         "CITIES": 4,
-        "SHIPS": 15
+        "SHIPS": 13
       },
       "resRollStats": [
         0,
@@ -467,6 +465,14 @@
         {
           "pieceType": "ROAD",
           "coord": 2824
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 3080
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 3337
         }
       ]
     },
@@ -548,7 +554,7 @@
         "STARTING_LANDAREAS": 1
       },
       "elements": {
-        "NUMKNIGHTS": 0,
+        "NUMKNIGHTS": 1,
         "ROADS": 12,
         "SETTLEMENTS": 3,
         "CITIES": 4,
@@ -567,6 +573,7 @@
         "ROADS",
         "DISC",
         "MONO",
+        "KNIGHT",
         "KNIGHT"
       ],
       "newDevCards": [],

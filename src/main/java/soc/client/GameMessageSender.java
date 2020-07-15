@@ -319,8 +319,8 @@ import soc.message.SOCStartGame;
     }
 
     /**
-     * The user has picked these resources to gain from the gold hex.
-     * Or, in game state {@link SOCGame#WAITING_FOR_DISCOVERY}, has picked these
+     * The user has picked these resources to gain from a gold hex,
+     * or in game state {@link SOCGame#WAITING_FOR_DISCOVERY} has picked these
      * 2 free resources from a Discovery/Year of Plenty card.
      *
      * @param ga  the game
