@@ -95,11 +95,22 @@ public class TestActionsMessages
     public void testBuildAndMove()
         throws IOException
     {
-        // unique client nickname, in case tests run in parallel
-        final String CLIENT_NAME = "testBuildAndMove";
-
         assertNotNull(srv);
-        final StartedTestGameObjects objs = TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME);
+        testOne_BuildAndMove(false, false);
+        testOne_BuildAndMove(false, true);
+        testOne_BuildAndMove(true, false);
+        testOne_BuildAndMove(true, true);
+    }
+
+    private void testOne_BuildAndMove
+        (final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME = "testBuildAndMove_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -266,6 +277,7 @@ public class TestActionsMessages
 
         if (compares.length() > 0)
         {
+            compares.insert(0, "For test " + CLIENT_NAME + ": ");
             System.err.println(compares);
             fail(compares.toString());
         }
@@ -279,11 +291,21 @@ public class TestActionsMessages
     public void testPlayDevCards()
         throws IOException
     {
-        // unique client nickname, in case tests run in parallel
-        final String CLIENT_NAME = "testPlayDevCards";
-
         assertNotNull(srv);
-        final StartedTestGameObjects objs = TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME);
+        testOne_PlayDevCards(false, false);
+        testOne_PlayDevCards(false, true);
+        testOne_PlayDevCards(true, false);
+        testOne_PlayDevCards(true, true);
+    }
+
+    private void testOne_PlayDevCards(final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME = "testPlayDevCards_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -318,6 +340,8 @@ public class TestActionsMessages
                 {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y"},
                 {"all:SOCPlayerElement:", "|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y"},
                 {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=3|amount=6"},
+                (othersAsRobot ? null : new String[]{"pn=1:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 1 sheep."}),
+                (othersAsRobot ? null : new String[]{"pn=2:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 2 sheep."}),
                 {"all:SOCGameState:", "|state=20"}
             });
 
@@ -430,7 +454,7 @@ public class TestActionsMessages
         StringBuilder comparesMovePirate = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCGameServerText:", "|text=testPlayDevCards played a Soldier card."},
+                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Soldier card."},
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=9"},
                 {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
                 {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},
@@ -551,6 +575,7 @@ public class TestActionsMessages
 
         if (compares.length() > 0)
         {
+            compares.insert(0, "For test " + CLIENT_NAME + ": ");
             System.err.println(compares);
             fail(compares.toString());
         }

@@ -51,7 +51,7 @@ import soctest.server.savegame.TestLoadgame;
  * Covers a few core game actions and message sequences. For more complete coverage of those,
  * you should periodically run {@code extraTest} {@code soctest.server.TestActionsMessages}.
  *<P>
- * Also has convenience methods like {@link #connectLoadJoinResumeGame(RecordingTesterServer, String)}
+ * Also has convenience methods like {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, boolean, boolean)}
  * and {@link #compareRecordsToExpected(List, String[][])} which other test classes can use.
  *
  * @since 2.4.10
@@ -232,17 +232,29 @@ public class TestRecorder
      *<UL>
      * <LI> Assert {@code server} not null
      * <LI> Connect to test server with a new client
-     * <LI> Load game artifact {@code "message-seqs.game.json"}
+     * <LI> Load game artifact {@code "message-seqs.game.json"}; server will connect client and robots to it
      * <LI> Confirm and retrieve {@link SOCGame} and client {@link SOCPlayer} info
+     * <LI> Override all players' {@link SOCPlayer#isRobot()} flags to test varied server response message sequences
      * <LI> Resume the game; will be client player's turn (player number 3) and game state {@link SOCGame#PLAY1 PLAY1}
      *</UL>
+     * When {@code clientAsRobot}, the client's locale and i18n manager are cleared to null as a bot's would be.
+     *<P>
+     * Limitation: Even when ! {@code othersAsRobot}, those fields can't be set non-null for robot clients because
+     * those bot connections are also in other games which may have a different value for {@code othersAsRobot}.
+     *
      * @param clientName  Unique client name to use for this client and game
+     * @param clientAsRobot  Whether to mark client player as robot before resuming game:
+     *     Calls {@link SOCPlayer#setRobotFlag(boolean, boolean)}
+     *     and {@link Connection#setI18NStringManager(soc.util.SOCStringManager, String)}
+     * @param othersAsRobot  Whether to mark other players as robot before resuming game:
+     *     Calls {@link SOCPlayer#setRobotFlag(boolean, boolean)}
      * @return  all the useful objects mentioned above
      * @throws IllegalArgumentException if {@code clientName} is null
      * @throws IOException if game artifact file can't be loaded
      */
     public static StartedTestGameObjects connectLoadJoinResumeGame
-        (final RecordingTesterServer server, final String clientName)
+        (final RecordingTesterServer server, final String clientName,
+         final boolean clientAsRobot, final boolean othersAsRobot)
         throws IllegalArgumentException, IOException
     {
         if (clientName == null)
@@ -285,6 +297,13 @@ public class TestRecorder
         assertEquals(clientName, cliPl.getName());
         assertEquals(SOCGame.PLAY1, sgm.gameState);
 
+        cliPl.setRobotFlag(clientAsRobot, clientAsRobot);
+        if (clientAsRobot)
+            tcliConn.setI18NStringManager(null, null);
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            if ((pn != PN) && ! ga.isSeatVacant(pn))
+                ga.getPlayer(pn).setRobotFlag(othersAsRobot, othersAsRobot);
+
         resumeLoadedGame(ga, server, tcliConn);
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -313,7 +332,7 @@ public class TestRecorder
         // unique client nickname, in case tests run in parallel
         final String CLIENT_NAME = "testBasicSequences";
 
-        final StartedTestGameObjects objs = connectLoadJoinResumeGame(srv, CLIENT_NAME);
+        final StartedTestGameObjects objs = connectLoadJoinResumeGame(srv, CLIENT_NAME, false, true);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -459,7 +478,9 @@ public class TestRecorder
      * Compare game event records against expected sequence.
      * @param records  Game records from server
      * @param expected  Expected: Per-record lists of prefix, any other contained strings
-     *     to ignore game name and variable fields
+     *     to ignore game name and variable fields.
+     *     expected[i] which are {@code null} are skipped
+     *     as if the array didn't contain the null and was 1 element shorter.
      * @return {@code null} if no differences, or the differences found
      */
     public static StringBuilder compareRecordsToExpected
@@ -467,19 +488,27 @@ public class TestRecorder
     {
         StringBuilder compares = new StringBuilder();
 
+        int nExpected = 0;
+        for (int i = 0; i < expected.length; ++i)
+            if (expected[i] != null)
+                ++nExpected;
         int n = records.size();
-        if (expected.length < n)
-            n = expected.length;
+        if (n > nExpected)
+            n = nExpected;
 
-        if (records.size() != expected.length)
-            compares.append("Length mismatch: Expected " + expected.length + ", got " + records.size());
+        if (records.size() != nExpected)
+            compares.append("Length mismatch: Expected " + nExpected + ", got " + records.size());
 
         StringBuilder comp = new StringBuilder();
-        for (int i = 0; i < n; ++i)
+        for (int iExpected = 0, iRecords = 0; iRecords < n; ++iExpected)
         {
+            final String[] exps = expected[iExpected];
+            if (exps == null)
+                // skip null; this loop iteration did ++iExpected but not ++iRecords
+                continue;
+
             comp.setLength(0);
-            final String recStr = records.get(i).toString();
-            final String[] exps = expected[i];
+            final String recStr = records.get(iRecords).toString();
             if (! recStr.startsWith(exps[0]))
                 comp.append("expected start " + exps[0] + ", saw " + recStr.substring(0, exps[0].length()));
 
@@ -496,7 +525,9 @@ public class TestRecorder
                 comp.append(", saw message " + recStr);
 
             if (comp.length() > 0)
-                compares.append(" [" + i + "]: " + comp);
+                compares.append(" [" + iExpected + "]: " + comp);
+
+            ++iRecords;
         }
 
         if (compares.length() == 0)
@@ -544,7 +575,7 @@ public class TestRecorder
 
     /**
      * Data class for useful objects returned from
-     * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String)}.
+     * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, boolean, boolean)}.
      */
     public static final class StartedTestGameObjects
     {

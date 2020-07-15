@@ -3110,9 +3110,10 @@ public class SOCGameMessageHandler
                             continue;
 
                         int picked = monoPicks[pn];
-                        String viName = ga.getPlayer(pn).getName();
+                        SOCPlayer victim = ga.getPlayer(pn);
+                        String viName = victim.getName();
                         Connection viCon = srv.getConnection(viName);
-                        if ((viCon != null) && ! ((SOCClientData) viCon.getAppData()).isRobot)
+                        if ((viCon != null) && ! victim.isRobot())
                             srv.messageToPlayerKeyedSpecial
                                 (viCon, ga, pn,
                                  ((picked == 1) ? "action.mono.took.your.1" : "action.mono.took.your.n"),

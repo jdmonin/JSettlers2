@@ -233,8 +233,10 @@ public class SOCClientData
 
     /**
      * Is this connection a robot?
+     *<P>
+     * When available, use more-specific {@link soc.game.SOCPlayer#isRobot()} instead of this field.
+     *
      * @see #isBuiltInRobot
-     * @see soc.game.SOCPlayer#isRobot()
      * @since 1.1.07
      */
     public boolean isRobot;
