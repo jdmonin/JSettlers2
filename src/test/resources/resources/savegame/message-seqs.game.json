@@ -6,7 +6,7 @@
   "comments": "board set up for message sequence testing with TestRecorder, TestActionsMessages server unit tests",
   "author": "Jeremy D Monin  2020",
   "gameOptions": "BC\u003dt4,N7\u003dt99,PL\u003d4,RD\u003df,SBL\u003dt",
-  "gameDurationSeconds": 679,
+  "gameDurationSeconds": 726,
   "gameState": 20,
   "oldGameState": 20,
   "currentDice": 8,
@@ -362,6 +362,7 @@
         "game": "message-seqs",
         "playerNumber": 3,
         "psNodes": [
+          3076,
           3589,
           1546
         ],
@@ -558,7 +559,7 @@
         "ROADS": 12,
         "SETTLEMENTS": 3,
         "CITIES": 4,
-        "SHIPS": 12
+        "SHIPS": 11
       },
       "resRollStats": [
         0,
@@ -585,6 +586,10 @@
         {
           "pieceType": "SHIP",
           "coord": 3077
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 3076
         },
         {
           "pieceType": "SETTLEMENT",

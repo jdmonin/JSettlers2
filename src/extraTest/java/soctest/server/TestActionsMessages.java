@@ -171,7 +171,7 @@ public class TestActionsMessages
         /* build ship */
 
         records.clear();
-        assertEquals(12, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+        assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
         final int SHIP_EDGE = 0xe05;
         assertNull(board.roadOrShipAtEdge(SHIP_EDGE));
         tcli.putPiece(ga, new SOCShip(cliPl, SHIP_EDGE, board));
@@ -179,7 +179,7 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertTrue("ship built", board.roadOrShipAtEdge(SHIP_EDGE) instanceof SOCShip);
-        assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+        assertEquals(10, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
         assertArrayEquals(new int[]{2, 0, 1, 1, 2}, cliPl.getResources().getAmounts(false));
 
         StringBuilder comparesShipBuild = TestRecorder.compareRecordsToExpected
@@ -243,35 +243,35 @@ public class TestActionsMessages
         StringBuilder compares = new StringBuilder();
         if (comparesSettle != null)
         {
-            compares.append("Build settlement: Records mismatch: ");
+            compares.append("Build settlement: Message mismatch: ");
             compares.append(comparesSettle);
         }
         if (comparesCity != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Build city: Records mismatch: ");
+            compares.append("Build city: Message mismatch: ");
             compares.append(comparesCity);
         }
         if (comparesShipBuild != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Build ship: Records mismatch: ");
+            compares.append("Build ship: Message mismatch: ");
             compares.append(comparesShipBuild);
         }
         if (comparesShipMove != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Move ship: Records mismatch: ");
+            compares.append("Move ship: Message mismatch: ");
             compares.append(comparesShipMove);
         }
         if (comparesSettleIsl != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Build settlement on island: Records mismatch: ");
+            compares.append("Build settlement on island: Message mismatch: ");
             compares.append(comparesSettleIsl);
         }
 
@@ -541,35 +541,35 @@ public class TestActionsMessages
         StringBuilder compares = new StringBuilder();
         if (comparesMono != null)
         {
-            compares.append("Monopoly: Records mismatch: ");
+            compares.append("Monopoly: Message mismatch: ");
             compares.append(comparesMono);
         }
         if (comparesDisc != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Discovery/Year of Plenty: Records mismatch: ");
+            compares.append("Discovery/Year of Plenty: Message mismatch: ");
             compares.append(comparesDisc);
         }
         if (comparesRoadBuild != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Road Building: Records mismatch: ");
+            compares.append("Road Building: Message mismatch: ");
             compares.append(comparesRoadBuild);
         }
         if (comparesMovePirate != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Move Pirate: Records mismatch: ");
+            compares.append("Move Pirate: Message mismatch: ");
             compares.append(comparesMovePirate);
         }
         if (comparesMoveRobber != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Move Robber: Records mismatch: ");
+            compares.append("Move Robber: Message mismatch: ");
             compares.append(comparesMoveRobber);
         }
 
@@ -581,4 +581,169 @@ public class TestActionsMessages
         }
     }
 
+    /**
+     * Test 4:1 bank trades, 2:1 port trades, undoing those trades.
+     */
+    @Test
+    public void testBankPortTrades()
+        throws IOException
+    {
+        assertNotNull(srv);
+        // These messages are all public with no text, and should have no differences between human and robot clients.
+        // We'll test the usual 4 combinations just in case.
+        testOne_BankPortTrades(false, false);
+        testOne_BankPortTrades(false, true);
+        testOne_BankPortTrades(true, false);
+        testOne_BankPortTrades(true, true);
+    }
+
+    private void testOne_BankPortTrades
+        (final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        final String CLIENT_NAME = "testBankPortTrad_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli = objs.tcli;
+        final SOCGame ga = objs.gameAtServer;
+        final SOCBoardLarge board = objs.board;
+        final SOCPlayer cliPl = objs.clientPlayer;
+        final Vector<QueueEntry> records = objs.records;
+
+        final SOCResourceSet SHEEP_1 = new SOCResourceSet(0, 0, 1, 0, 0, 0),
+            WHEAT_4 = new SOCResourceSet(0, 0, 0, 4, 0, 0),
+            WHEAT_2 = new SOCResourceSet(0, 0, 0, 2, 0, 0);
+
+        /* 4:1 bank trade */
+
+        records.clear();
+        assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
+        assertTrue(ga.canMakeBankTrade(WHEAT_4, SHEEP_1));
+        assertFalse(ga.canMakeBankTrade(WHEAT_2, SHEEP_1));
+        tcli.bankTrade(ga, WHEAT_4, SHEEP_1);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertArrayEquals(new int[]{3, 3, 4, 0, 4}, cliPl.getResources().getAmounts(false));
+
+        StringBuilder compares_4_1 = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=4"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=1"},
+                {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=0|wheat=4|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3"}
+            });
+
+        /* undo 4:1 bank trade */
+
+        records.clear();
+        assertTrue(ga.canUndoBankTrade(WHEAT_4, SHEEP_1));
+        tcli.bankTrade(ga, SHEEP_1, WHEAT_4);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
+
+        StringBuilder compares_undo_4_1 = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=3|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=4"},
+                {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=4|wood=0|unknown=0|pn=3"}
+            });
+
+        /* build wheat port to enable 2:1 trades */
+
+        final int SETTLEMENT_NODE = 0xc04;
+        assertNull(board.settlementAtNode(SETTLEMENT_NODE));
+        assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(2, cliPl.getPublicVP());
+        assertFalse(ga.canMakeBankTrade(WHEAT_2, SHEEP_1));
+        tcli.putPiece(ga, new SOCSettlement(cliPl, SETTLEMENT_NODE, board));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertNotNull("settlement built", board.settlementAtNode(SETTLEMENT_NODE));
+        assertEquals(2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(3, cliPl.getPublicVP());
+        assertTrue(ga.canMakeBankTrade(WHEAT_2, SHEEP_1));
+        assertArrayEquals(new int[]{2, 3, 2, 3, 3}, cliPl.getResources().getAmounts(false));
+
+        // no need to check message records; another test already checks "build settlement" message sequence
+
+        /* 2:1 port trade */
+
+        records.clear();
+        tcli.bankTrade(ga, WHEAT_2, SHEEP_1);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertArrayEquals(new int[]{2, 3, 3, 1, 3}, cliPl.getResources().getAmounts(false));
+
+        StringBuilder compares_2_1 = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=2"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=1"},
+                {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3"}
+            });
+
+        /* undo 2:1 port trade */
+
+        records.clear();
+        assertTrue(ga.canUndoBankTrade(WHEAT_2, SHEEP_1));
+        tcli.bankTrade(ga, SHEEP_1, WHEAT_2);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertArrayEquals(new int[]{2, 3, 2, 3, 3}, cliPl.getResources().getAmounts(false));
+
+        StringBuilder compares_undo_2_1 = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=3|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=2"},
+                {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|pn=3"}
+            });
+
+        /* leave game, consolidate results */
+
+        tcli.destroy();
+
+        StringBuilder compares = new StringBuilder();
+        if (compares_4_1 != null)
+        {
+            compares.append("4:1 bank trade: Message mismatch: ");
+            compares.append(compares_4_1);
+        }
+        if (compares_undo_4_1 != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Undo 4:1 bank trade: Message mismatch: ");
+            compares.append(compares_undo_4_1);
+        }
+        if (compares_2_1 != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("2:1 port trade: Message mismatch: ");
+            compares.append(compares_2_1);
+        }
+        if (compares_undo_2_1 != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Undo 2:1 port trade: Message mismatch: ");
+            compares.append(compares_undo_2_1);
+        }
+
+        if (compares.length() > 0)
+        {
+            compares.insert(0, "For test " + CLIENT_NAME + ": ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
 }

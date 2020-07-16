@@ -249,7 +249,8 @@ public class TestRecorder
      * @param othersAsRobot  Whether to mark other players as robot before resuming game:
      *     Calls {@link SOCPlayer#setRobotFlag(boolean, boolean)}
      * @return  all the useful objects mentioned above
-     * @throws IllegalArgumentException if {@code clientName} is null
+     * @throws IllegalArgumentException if {@code clientName} is null or too long
+     *     (max length is {@link SOCServer#PLAYER_NAME_MAX_LENGTH})
      * @throws IOException if game artifact file can't be loaded
      */
     public static StartedTestGameObjects connectLoadJoinResumeGame
@@ -259,6 +260,9 @@ public class TestRecorder
     {
         if (clientName == null)
             throw new IllegalArgumentException("clientName");
+        if (clientName.length() > SOCServer.PLAYER_NAME_MAX_LENGTH)
+            throw new IllegalArgumentException("clientName.length " + clientName.length()
+                + ", max is " + SOCServer.PLAYER_NAME_MAX_LENGTH);
 
         assertNotNull(server);
 
@@ -448,21 +452,21 @@ public class TestRecorder
         StringBuilder compares = new StringBuilder();
         if (comparesBuild != null)
         {
-            compares.append("Build road: Records mismatch: ");
+            compares.append("Build road: Message mismatch: ");
             compares.append(comparesBuild);
         }
         if (comparesBuyCard != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Buy dev card: Records mismatch: ");
+            compares.append("Buy dev card: Message mismatch: ");
             compares.append(comparesBuyCard);
         }
         if (comparesMoveRobber != null)
         {
             if (compares.length() > 0)
                 compares.append("   ");
-            compares.append("Move robber: Records mismatch: ");
+            compares.append("Move robber: Message mismatch: ");
             compares.append(comparesMoveRobber);
         }
 
@@ -479,7 +483,7 @@ public class TestRecorder
      * @param records  Game records from server
      * @param expected  Expected: Per-record lists of prefix, any other contained strings
      *     to ignore game name and variable fields.
-     *     expected[i] which are {@code null} are skipped
+     *     {@code expected[i]} which are {@code null} are skipped
      *     as if the array didn't contain the null and was 1 element shorter.
      * @return {@code null} if no differences, or the differences found
      */
