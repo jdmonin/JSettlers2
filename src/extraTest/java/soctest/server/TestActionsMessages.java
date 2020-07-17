@@ -20,6 +20,10 @@
 package soctest.server;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.junit.AfterClass;
@@ -42,6 +46,7 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.message.SOCChoosePlayer;
 import soc.server.SOCServer;
+import soc.server.savegame.SavedGameModel;
 import soctest.server.RecordingTesterServer.QueueEntry;
 import soctest.server.TestRecorder.StartedTestGameObjects;
 
@@ -72,6 +77,15 @@ public class TestActionsMessages
     @AfterClass
     public static void shutdownServer()
     {
+        // for clearer sequences in System.out, wait for other threads' prints to complete
+        try
+        {
+            Thread.sleep(250);
+        }
+        catch (InterruptedException e) {}
+
+        System.out.flush();
+        System.out.println();
         srv.stopServer();
     }
 
@@ -110,7 +124,7 @@ public class TestActionsMessages
         final String CLIENT_NAME = "testBuildAndMove_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -172,6 +186,7 @@ public class TestActionsMessages
 
         records.clear();
         assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+        assertTrue(board.roadOrShipAtEdge(0xd05) instanceof SOCShip);
         final int SHIP_EDGE = 0xe05;
         assertNull(board.roadOrShipAtEdge(SHIP_EDGE));
         tcli.putPiece(ga, new SOCShip(cliPl, SHIP_EDGE, board));
@@ -305,7 +320,7 @@ public class TestActionsMessages
         final String CLIENT_NAME = "testPlayDevCards_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -379,6 +394,7 @@ public class TestActionsMessages
         records.clear();
         assertEquals(null, ga.getPlayerWithLongestRoad());
         assertEquals(2, cliPl.getPublicVP());
+        assertTrue(board.roadOrShipAtEdge(0x609) instanceof SOCRoad);
         final int ROAD_EDGE_1 = 0x70a, ROAD_EDGE_2 = 0x809;
         assertNull(board.roadOrShipAtEdge(ROAD_EDGE_1));
         assertNull(board.roadOrShipAtEdge(ROAD_EDGE_2));
@@ -423,10 +439,25 @@ public class TestActionsMessages
         /* soldier (move pirate ship) */
 
         records.clear();
-        SOCRoutePiece oppoShip = board.roadOrShipAtEdge(0xd09);
-        assertTrue(oppoShip instanceof SOCShip);
-        assertEquals(1, oppoShip.getPlayerNumber());
+
         final int PIRATE_HEX = 0xd0a;
+        // victim's ship should be sole adjacent piece
+        {
+            List<SOCPlayer> players = ga.getPlayersShipsOnHex(PIRATE_HEX);
+            assertNotNull(players);
+            assertEquals(1, players.size());
+            assertEquals(1, players.get(0).getPlayerNumber());
+
+            final int EXPECTED_VICTIM_SHIP_EDGE = 0xd09;
+            SOCRoutePiece oppoShip = board.roadOrShipAtEdge(EXPECTED_VICTIM_SHIP_EDGE);
+            assertTrue(oppoShip instanceof SOCShip);
+            assertEquals(1, oppoShip.getPlayerNumber());
+
+            final int[] PIRATE_HEX_OTHER_EDGES = {0xc09, 0xc0a, 0xd0b, 0xe0a, 0xe09};
+            for (final int edge : PIRATE_HEX_OTHER_EDGES)
+                assertNull(board.roadOrShipAtEdge(edge));
+        }
+
         assertNotEquals("pirate not moved there yet", PIRATE_HEX, board.getPirateHex());
         cliPl.setPlayedDevCard(false);
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
@@ -484,6 +515,30 @@ public class TestActionsMessages
         assertEquals(2, cliPl.getNumKnights());
         final int ROBBER_HEX = 0x703;
         assertNotEquals("robber not moved there yet", ROBBER_HEX, board.getRobberHex());
+        // victim's settlement should be sole adjacent piece
+        {
+            final int EXPECTED_VICTIM_SETTLEMENT_NODE = 0x604;
+
+            Set<SOCPlayingPiece> pp = new HashSet<>();
+            List<SOCPlayer> players = ga.getPlayersOnHex(ROBBER_HEX, pp);
+
+            assertNotNull(players);
+            assertEquals(1, players.size());
+            assertEquals(2, players.get(0).getPlayerNumber());
+
+            assertEquals(1, pp.size());
+            SOCPlayingPiece vset = (SOCPlayingPiece) (pp.toArray()[0]);
+            assertTrue(vset instanceof SOCSettlement);
+            assertEquals(2, vset.getPlayerNumber());
+            assertEquals(EXPECTED_VICTIM_SETTLEMENT_NODE, vset.getCoordinates());
+
+            assertTrue(board.settlementAtNode(EXPECTED_VICTIM_SETTLEMENT_NODE) instanceof SOCSettlement);
+
+            final int[] ROBBER_HEX_OTHER_NODES = {0x602, 0x603, 0x802, 0x803, 0x804};
+            for (final int node : ROBBER_HEX_OTHER_NODES)
+                assertNull(board.settlementAtNode(node));
+        }
+
         cliPl.setPlayedDevCard(false);
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
@@ -582,6 +637,309 @@ public class TestActionsMessages
     }
 
     /**
+     * Test rolling dice at start of turn, and all 4 possible sequences in this test game:
+     *<UL>
+     * <LI> players receive resources
+     * <LI> no one receives resources
+     * <LI> roll 7, steal from a player (same sequence covers: steal from no one)
+     * <LI> roll 7, discard, steal from a player
+     *</UL>
+     */
+    @Test
+    public void testRollDiceRsrcsOrMoveRobber()
+        throws IOException
+    {
+        assertNotNull(srv);
+        // These messages should have no differences between human and robot clients.
+        // We'll test the usual 4 combinations just in case.
+        testOne_RollDiceRsrcsOrMoveRobber(false, false);
+        testOne_RollDiceRsrcsOrMoveRobber(false, true);
+        testOne_RollDiceRsrcsOrMoveRobber(true, false);
+        testOne_RollDiceRsrcsOrMoveRobber(true, true);
+    }
+
+    private void testOne_RollDiceRsrcsOrMoveRobber
+        (final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        final String CLIENT_NAME = "testRollDice_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final int CLIENT_PN = 3;
+
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, false, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli = objs.tcli;
+        final SavedGameModel sgm = objs.sgm;
+        final SOCGame ga = objs.gameAtServer;
+        final SOCBoardLarge board = objs.board;
+        final SOCPlayer cliPl = objs.clientPlayer;
+        final Vector<QueueEntry> records = objs.records;
+
+        assertTrue(ga.isSeatVacant(0));
+        assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
+
+        // clear debug player's resources so no one needs to discard on 7;
+        // once that sequence is validated, will change so must discard on 7
+        ga.getPlayer(CLIENT_PN).getResources().setAmounts(new SOCResourceSet(0, 3, 1, 2, 0, 0));
+
+        // allow 7s to be rolled
+        ga.getGameOptions().remove("N7");
+
+        final SOCResourceSet[] savedRsrcs = new SOCResourceSet[ga.maxPlayers];
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            savedRsrcs[pn] = new SOCResourceSet(ga.getPlayer(pn).getResources());  // make independent copy
+
+        sgm.gameState = SOCGame.ROLL_OR_CARD;
+        TestRecorder.resumeLoadedGame(ga, srv, objs.tcliConn);
+
+        // Validate expected resources gained by each player number for each dice number vs artifact's board layout
+        final int[][] RSRC_GAINED_COUNTS =
+            {
+                null, null,
+                /* 2 */ {0, 1, 0, 0}, {0, 0, 1, 1}, {0, 0, 1, 0}, {0, 0, 1, 1}, {0, 1, 2, 0},
+                /* 7 */ null,
+                /* 8 */ null,
+                {0, 1, 0, 2}, {0, 2, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}
+            };
+        for (int diceNumber = 2; diceNumber <= 12; ++diceNumber)
+        {
+            final int[] counts = RSRC_GAINED_COUNTS[diceNumber];
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            {
+                SOCResourceSet rs = ga.getResourcesGainedFromRoll(ga.getPlayer(pn), diceNumber);
+                if (rs.isEmpty())
+                    assertTrue
+                        ("no res on board for: dice=" + diceNumber + " pn=" + pn,
+                         (counts == null) || (counts[pn] == 0));
+                else
+                {
+                    int n = rs.getTotal();
+                    assertTrue
+                        ("num res on board = " + n + " for: dice=" + diceNumber + " pn=" + pn,
+                         (counts != null) && (counts[pn] == n));
+                }
+            }
+        }
+
+        StringBuilder comparesRsrcs = null, comparesNoRsrcs = null,
+            compares7MoveRobber = null, compares7DiscardMove = null;
+        boolean testedRsrcs = false, testedNoRsrcs = false, tested7 = false, tested7Discard = false;
+
+        while (! (testedRsrcs && testedNoRsrcs && tested7 && tested7Discard))
+        {
+            ga.setGameState(SOCGame.ROLL_OR_CARD);
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                ga.getPlayer(pn).getResources().setAmounts(savedRsrcs[pn]);
+
+            records.clear();
+            tcli.rollDice(ga);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            final int diceNumber = ga.getCurrentDice();
+
+            if (diceNumber != 7)
+            {
+                assertEquals(SOCGame.PLAY1, ga.getGameState());
+
+                int nGainingPlayers = 0;
+                final int[] counts = RSRC_GAINED_COUNTS[diceNumber];
+                for (int pn = 1; pn < ga.maxPlayers; ++pn)  // pn 0 is vacant
+                {
+                    SOCPlayer pl = ga.getPlayer(pn);
+                    int nGains = pl.getRolledResources().getTotal();
+                    assertEquals
+                        ((counts != null) ? counts[pn] : 0, nGains);
+                    if (nGains > 0)
+                        ++nGainingPlayers;
+                }
+
+                if (counts != null)
+                {
+                    if (! testedRsrcs)
+                    {
+                        // SOCDiceResultResources:game has a very specific format; see its class javadoc.
+                        // We'll check that here.
+
+                        StringBuilder diceResRsrc = new StringBuilder();
+                        List<Integer> playerNums = new ArrayList<>();  // player numbers gaining resources
+                        List<StringBuilder> playerRsrcElems = new ArrayList<>();  // same indexes as pn
+
+                        // build expected SOCDiceResultResources and SOCPlayerElements strings
+                        for (int pn = 1; pn < ga.maxPlayers; ++pn)
+                        {
+                            SOCPlayer pl = ga.getPlayer(pn);
+                            SOCResourceSet rsGained = pl.getRolledResources();
+                            int nGain = rsGained.getTotal();
+                            if (nGain == 0)
+                                continue;
+
+                            SOCResourceSet rsPlayer = pl.getResources();
+                            playerNums.add(Integer.valueOf(pn));
+                            StringBuilder rsStrAdd = new StringBuilder("|playerNum=" + pn + "|actionType=SET|");
+                            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+                            {
+                                if (rtype > SOCResourceConstants.CLAY)
+                                    rsStrAdd.append(',');
+                                rsStrAdd.append("e" + rtype + "=" + rsPlayer.getAmount(rtype));
+                            }
+                            playerRsrcElems.add(rsStrAdd);
+
+                            if (diceResRsrc.length() == 0)
+                                diceResRsrc.append
+                                    ("game=" + ga.getName() + "|p=" + nGainingPlayers);  // first data fields of message
+                            else
+                                diceResRsrc.append("|p=0");  // separator from previous player
+
+                            diceResRsrc.append("|p=" + pn);
+                            diceResRsrc.append("|p=" + rsPlayer.getTotal());
+                            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+                            {
+                                int n = rsGained.getAmount(rtype);
+                                if (n == 0)
+                                    continue;
+                                diceResRsrc.append("|p=" + n);
+                                diceResRsrc.append("|p=" + rtype);
+                            }
+                        }
+
+                        /*
+                        example:
+                        all:SOCDiceResult:game=message-seqs|param=3
+                        all:SOCGameState:game=message-seqs|state=20
+                        all:SOCDiceResultResources:game=message-seqs|p=2|p=2|p=5|p=1|p=3|p=0|p=3|p=7|p=1|p=4
+                        pn=2:SOCPlayerElements:game=message-seqs|playerNum=2|actionType=SET|e1=1,e2=1,e3=3,e4=0,e5=0
+                        pn=3:SOCPlayerElements:game=message-seqs|playerNum=3|actionType=SET|e1=0,e2=3,e3=1,e4=3,e5=0
+                         */
+                        ArrayList<String[]> recordsList = new ArrayList<>();
+                        recordsList.add(new String[]{"all:SOCDiceResult:", "|param=" + diceNumber});
+                        recordsList.add(new String[]{"all:SOCGameState:", "|state=20"});
+                        recordsList.add(new String[]{"all:SOCDiceResultResources:", diceResRsrc.toString()});
+                        for (int i = 0; i < playerNums.size(); ++i)
+                        {
+                            int pn = playerNums.get(i);
+                            recordsList.add(new String[]
+                                {
+                                    "pn=" + pn + ":SOCPlayerElements:",
+                                    playerRsrcElems.get(i).toString()
+                                });
+                        }
+
+                        comparesRsrcs = TestRecorder.compareRecordsToExpected
+                            (records, recordsList.toArray(new String[recordsList.size()][]));
+
+                        testedRsrcs = true;
+                    }
+                } else {
+                    if (! testedNoRsrcs)
+                    {
+                        comparesNoRsrcs = TestRecorder.compareRecordsToExpected
+                            (records, new String[][]
+                            {
+                                {"all:SOCDiceResult:", "|param=" + diceNumber},
+                                {"all:SOCGameState:", "|state=20"},
+                                {"all:SOCGameServerText:", "|text=No player gets anything."}
+                            });
+
+                        testedNoRsrcs = true;
+                    }
+                }
+
+            } else {
+                /* 7: move robber, steal from 1 player */
+
+                if (! tested7)
+                {
+                    assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
+
+                    try { Thread.sleep(60); }
+                    catch(InterruptedException e) {}
+                    compares7MoveRobber = TestRecorder.moveRobberStealSequence
+                        (tcli, ga, cliPl, records,
+                         new String[][]
+                            {
+                                {"all:SOCDiceResult:", "|param=7"},
+                            });
+
+                    tested7 = true;
+
+                    // adjust player resources so will have to discard at next 7
+                    savedRsrcs[CLIENT_PN] = new SOCResourceSet(3, 3, 3, 4, 4, 0);
+                }
+                else if (! tested7Discard)
+                {
+                    assertEquals(SOCGame.WAITING_FOR_DISCARDS, ga.getGameState());
+                    assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
+
+                    try { Thread.sleep(60); }
+                    catch(InterruptedException e) {}
+                    tcli.discard(ga, new SOCResourceSet(0, 0, 0, 4, 4, 0));
+
+                    try { Thread.sleep(60); }
+                    catch(InterruptedException e) {}
+                    assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
+                    compares7DiscardMove = TestRecorder.moveRobberStealSequence
+                        (tcli, ga, cliPl, records,
+                         new String[][]
+                            {
+                                {"all:SOCDiceResult:", "|param=7"},
+                                {"all:SOCGameState:", "|state=50"},
+                                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
+                                {"pn=3:SOCDiscardRequest:", "|numDiscards=8"},
+                                {"pn=3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=4"},
+                                {"pn=3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=5|amount=4"},
+                                {"pn=!3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=6|amount=8|news=Y"},
+                                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " discarded 8 resources."}
+                            });
+
+                    tested7Discard = true;
+                }
+
+                // reset, for next robber move
+                board.setRobberHex(0x90a, false);
+            }
+        }
+
+        /* leave game, consolidate results */
+
+        tcli.destroy();
+
+        StringBuilder compares = new StringBuilder();
+        if (comparesRsrcs != null)
+        {
+            compares.append("Players get resources: Message mismatch: ");
+            compares.append(comparesRsrcs);
+        }
+        if (comparesNoRsrcs != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("No one gets resources: Message mismatch: ");
+            compares.append(comparesNoRsrcs);
+        }
+        if (compares7MoveRobber != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Roll 7 move robber: Message mismatch: ");
+            compares.append(compares7MoveRobber);
+        }
+        if (compares7DiscardMove != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Roll 7 discard move robber: Message mismatch: ");
+            compares.append(compares7DiscardMove);
+        }
+
+        if (compares.length() > 0)
+        {
+            compares.insert(0, "For test " + CLIENT_NAME + ": ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
      * Test 4:1 bank trades, 2:1 port trades, undoing those trades.
      */
     @Test
@@ -604,7 +962,7 @@ public class TestActionsMessages
         final String CLIENT_NAME = "testBankPortTrad_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = objs.board;

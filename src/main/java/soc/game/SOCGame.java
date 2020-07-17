@@ -5666,6 +5666,7 @@ public class SOCGame implements Serializable, Cloneable
      *         such as {@link RollResult#cloth}.  The game reuses the same instance
      *         each turn, so its field contents will change when <tt>rollDice()</tt>
      *         is called again.
+     * @see #getResourcesGainedFromRoll(SOCPlayer, int)
      */
     public RollResult rollDice()
     {
@@ -5875,7 +5876,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return the resource set
      */
-    private SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, final int roll)
+    public SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, final int roll)
     {
         SOCResourceSet resources = new SOCResourceSet();
         final int robberHex = board.getRobberHex();
@@ -7001,6 +7002,8 @@ public class SOCGame implements Serializable, Cloneable
      * Victims are players with resources; for scenario option
      * {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, also players with cloth
      * when robbing with the pirate.
+     *<P>
+     * Calls {@link #getPlayersOnHex(int, Set)} or {@link #getPlayersShipsOnHex(int)}.
      *
      *<H3>For scenario option {@link SOCGameOption#K_SC_PIRI}:</H3>
      * This is called after a 7 is rolled, or after the game moves the pirate ship (fleet).

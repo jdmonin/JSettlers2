@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +36,24 @@ import soc.game.SOCResourceSet;
  * Those players' new resource totals, however, are from {@link SOCPlayer#getResources()}
  * {@link SOCResourceSet#getTotal() .getTotal()} which includes any unknown resources.
  *<P>
- * Before v2.0.00 these were sent as {@link SOCPlayerElement SOCPlayerElement(GAIN)}
+ * Sent from sent as a list of integer parameters with this format: <pre>
+ * pa[0] = count of players gaining resource(s)
+ * Per-player sequences consisting of:
+ *   pa[i] = player number gaining resource(s)
+ *   pa[i+1] = new total resource count for that player
+ *   Pair of:
+ *   pa[i+2] = resource amount gained; not 0
+ *   pa[i+3] = resource type gained
+ *   More pairs, if any, for each other resource type gained by the player
+ *   If there are more players after this one:
+ *   pa[i+n] = 0, marking the end of the player's sequence</pre>
+ *
+ * The player count parameter helps delimit in case of future expansion of this message's fields.
+ *<P>
+ * Client constructor parses that int parameter list into usable fields like
+ * {@link #playerNum} and {@link #playerResTotal}.
+ *<P>
+ * Before v2.0.00 this info was sent as {@link SOCPlayerElement SOCPlayerElement(GAIN)}
  * and {@link SOCGameTextMsg}, followed by {@link SOCResourceCount}.
  * This single message is more efficient and also easier for i18n/localization.
  *
@@ -145,18 +162,8 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
      * and {@link #playerResTotal} lists.
      *
      * @param gameName Game name
-     * @param pa  Sequence of integer parameters with this format: <pre>
-     * pa[0] = count of players gaining resource(s)
-     * Per-player sequences consisting of:
-     *   pa[i] = player number gaining resource(s)
-     *   pa[i+1] = new total resource count for that player
-     *   Pair of:
-     *   pa[i+2] = resource amount gained; not 0
-     *   pa[i+3] = resource type gained
-     *   More pairs, if any, for each other resource type gained by the player
-     *   If there are more players after this one:
-     *   pa[i+n] = 0, marking the end of the player's sequence</pre>
-     * The player count parameter helps delimit in case of future expansion of this message's fields.
+     * @param pa  Int list from server's {@link #buildIntList(List, List, List)},
+     *     in format described in {@link SOCDiceResultResources class javadoc}
      * @throws IllegalArgumentException if {@code pa[]} doesn't fit that format, or ends in the middle of parsing
      */
     private SOCDiceResultResources(final String gameName, final int[] pa)
@@ -272,7 +279,7 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
     /**
      * Parse the command String list into a SOCDiceResultResources message.
      * Calls {@link #SOCDiceResultResources(String, int[])} constructor,
-     * see its javadoc for parameter details.
+     * see {@link SOCDiceResultResources class javadoc} for details
      *
      * @param pa   the parameters; length 2 or more required.
      * @return    a parsed message, or null if parsing errors

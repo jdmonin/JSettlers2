@@ -445,6 +445,7 @@ public class SOCServerMessageHandler
                     return;
                 }
             }
+            // else isPlayerRole: auth/connection.setData done by handleAUTHREQUEST's call to authOrRejectClientUser
         }
 
         final String txt = srv.getClientWelcomeMessage(c);  // "Welcome to Java Settlers of Catan!"
