@@ -38,8 +38,10 @@ import soc.game.SOCGameOption;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
+import soc.game.SOCTradeOffer;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.server.SOCGameListAtServer;
@@ -57,7 +59,7 @@ import soctest.server.savegame.TestLoadgame;
  * you should periodically run {@code extraTest} {@code soctest.server.TestActionsMessages}.
  *<P>
  * Also has convenience methods like
- * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, boolean, boolean, boolean)}
+ * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, boolean, boolean, boolean)}
  * and {@link #compareRecordsToExpected(List, String[][])} which other test classes can use.
  *
  * @since 2.4.10
@@ -258,6 +260,7 @@ public class TestRecorder
      *<UL>
      * <LI> Assert {@code server} not null
      * <LI> Connect to test server with a new client
+     * <LI> Optionally connect with another new client
      * <LI> Load 4-player game artifact {@code "message-seqs.game.json"}; server will connect client and robots to it
      * <LI> Confirm and retrieve {@link SOCGame} and client {@link SOCPlayer} info
      * <LI> Override all players' {@link SOCPlayer#isRobot()} flags to test varied server response message sequences
@@ -269,7 +272,10 @@ public class TestRecorder
      * Limitation: Even when ! {@code othersAsRobot}, those fields can't be set non-null for robot clients because
      * those bot connections are also in other games which may have a different value for {@code othersAsRobot}.
      *
-     * @param clientName  Unique client name to use for this client and game
+     * @param clientName  Unique client name to use for this client and game; will sit at player number 3
+     * @param client2Name  Optional unique second client name to use, or null
+     * @param client2PN    Player number if using {@code client2Name}: Either 1 or 2 (0 is vacant, 3 is first client).
+     *     If {@code client2Name} is null, should be 0.
      * @param withResume  If true, call {@link #resumeLoadedGame(SOCGame, SOCServer, Connection)}
      * @param clientAsRobot  Whether to mark client player as robot before resuming game:
      *     Calls {@link SOCPlayer#setRobotFlag(boolean, boolean)}
@@ -279,12 +285,13 @@ public class TestRecorder
      * @return  all the useful objects mentioned above
      * @throws IllegalArgumentException if {@code clientName} is null or too long
      *     (max length is {@link SOCServer#PLAYER_NAME_MAX_LENGTH})
-     * @throws IllegalStateException if {@code clientName} was already used for a different call to this method:
-     *     Use a unique name for each call to avoid intermittent auth problems
+     * @throws IllegalStateException if {@code clientName} or {@code client2Name} was already used for
+     *     a different call to this method: Use unique names for each call to avoid intermittent auth problems.
+     *     Also thrown if {@code client2PN} isn't 1 or 2 when {@code client2Name != null}.
      * @throws IOException if game artifact file can't be loaded
      */
     public static StartedTestGameObjects connectLoadJoinResumeGame
-        (final RecordingTesterServer server, final String clientName,
+        (final RecordingTesterServer server, final String clientName, final String client2Name, final int client2PN,
          final boolean withResume,
          final boolean clientAsRobot, final boolean othersAsRobot)
         throws IllegalArgumentException, IllegalStateException, IOException
@@ -294,6 +301,16 @@ public class TestRecorder
         if (clientName.length() > SOCServer.PLAYER_NAME_MAX_LENGTH)
             throw new IllegalArgumentException("clientName.length " + clientName.length()
                 + ", max is " + SOCServer.PLAYER_NAME_MAX_LENGTH);
+        if (client2Name == null)
+        {
+            if (client2PN != 0)
+                throw new IllegalArgumentException("client2PN should be 0 when client2Name null");
+        } else {
+            if ((client2PN != 1) && (client2PN != 2))
+                throw new IllegalArgumentException("client2PN: " + client2PN);
+            if (client2Name.equals(clientName))
+                throw new IllegalArgumentException("clientName == client2Name: " + clientName);
+        }
 
         synchronized(clientNamesUsed)
         {
@@ -301,11 +318,19 @@ public class TestRecorder
                 throw new IllegalStateException("already used clientName " + clientName);
 
             clientNamesUsed.add(clientName);
+
+            if (client2Name != null)
+            {
+                if (clientNamesUsed.contains(client2Name))
+                    throw new IllegalStateException("already used client2Name " + client2Name);
+
+                clientNamesUsed.add(client2Name);
+            }
         }
 
         assertNotNull(server);
 
-        DisplaylessTesterClient tcli = new DisplaylessTesterClient
+        final DisplaylessTesterClient tcli = new DisplaylessTesterClient
             (RecordingTesterServer.STRINGPORT_NAME, clientName);
         tcli.init();
         assertEquals(clientName, tcli.getNickname());
@@ -314,6 +339,21 @@ public class TestRecorder
         catch(InterruptedException e) {}
         assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
 
+        final DisplaylessTesterClient tcli2;
+        if (client2Name != null)
+        {
+            tcli2 = new DisplaylessTesterClient
+                (RecordingTesterServer.STRINGPORT_NAME, client2Name);
+            tcli2.init();
+            assertEquals(client2Name, tcli2.getNickname());
+
+            try { Thread.sleep(120); }
+            catch(InterruptedException e) {}
+            assertEquals("get version from test SOCServer", Version.versionNumber(), tcli2.getServerVersion());
+        } else {
+            tcli2 = null;
+        }
+
         SavedGameModel sgm = soctest.server.savegame.TestLoadgame.load("message-seqs.game.json", server);
         assertNotNull(sgm);
         assertEquals("message-seqs", sgm.gameName);
@@ -321,9 +361,20 @@ public class TestRecorder
         assertEquals("debug", sgm.playerSeats[3].name);
         sgm.playerSeats[3].name = clientName;
 
-        Connection tcliConn = server.getConnection(clientName);
+        final Connection tcliConn = server.getConnection(clientName);
         assertNotNull(tcliConn);
         assertEquals("conn.getData==" + clientName, clientName, tcliConn.getData());
+
+        final Connection tcli2Conn;
+        if (client2Name != null)
+        {
+            tcli2Conn = server.getConnection(client2Name);
+            assertNotNull(tcli2Conn);
+            assertEquals("conn2.getData==" + client2Name, client2Name, tcli2Conn.getData());
+        } else {
+            tcli2Conn = null;
+        }
+
         String loadedName = server.createAndJoinReloadedGame(sgm, tcliConn, null);
         assertNotNull("message-seqs game name", loadedName);
 
@@ -338,6 +389,25 @@ public class TestRecorder
         assertTrue("game uses sea board", ga.getBoard() instanceof SOCBoardLarge);
         assertEquals(SOCGame.PLAY1, sgm.gameState);
 
+        if (tcli2 != null)
+        {
+            tcli2.askJoinGame(loadedName);
+
+            // wait to join in client's thread
+            try { Thread.sleep(150); }
+            catch(InterruptedException e) {}
+
+            assertTrue("cli2 member of reloaded game?", server.getGameList().isMember(tcli2Conn, loadedName));
+
+            tcli2.sitDown(ga, client2PN);
+
+            try { Thread.sleep(90); }
+            catch(InterruptedException e) {}
+
+            // checks results soon: ga.getPlayer(client2PN) below
+        }
+
+
         // has N7: roll no 7s, to simplify test assumptions
         SOCGameOption opt = ga.getGameOptions().get("N7");
         assertNotNull(opt);
@@ -348,12 +418,21 @@ public class TestRecorder
         assertEquals(PN, ga.getCurrentPlayerNumber());
         final SOCPlayer cliPl = ga.getPlayer(PN);
         assertEquals(clientName, cliPl.getName());
+        final SOCPlayer cli2Pl = (client2Name != null) ? ga.getPlayer(client2PN) : null;
+        if (client2Name != null)
+            assertEquals(client2Name, cli2Pl.getName());
 
         cliPl.setRobotFlag(clientAsRobot, clientAsRobot);
+        if (cli2Pl != null)
+            cli2Pl.setRobotFlag(clientAsRobot, clientAsRobot);
         if (clientAsRobot)
+        {
             tcliConn.setI18NStringManager(null, null);
+            if (tcli2Conn != null)
+                tcli2Conn.setI18NStringManager(null, null);
+        }
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
-            if ((pn != PN) && ! ga.isSeatVacant(pn))
+            if ((pn != PN) && (! ga.isSeatVacant(pn)) && ((client2Name == null) || (pn != client2PN)))
                 ga.getPlayer(pn).setRobotFlag(othersAsRobot, othersAsRobot);
 
         if (withResume)
@@ -369,7 +448,7 @@ public class TestRecorder
         assertNotNull("record queue for game", records);
 
         return new StartedTestGameObjects
-            (tcli, tcliConn, sgm, ga, (SOCBoardLarge) ga.getBoard(), cliPl, records);
+            (tcli, tcli2, tcliConn, tcli2Conn, sgm, ga, (SOCBoardLarge) ga.getBoard(), cliPl, cli2Pl, records);
     }
 
     /**
@@ -388,7 +467,7 @@ public class TestRecorder
         // unique client nickname, in case tests run in parallel
         final String CLIENT_NAME = "testBasicSequences";
 
-        final StartedTestGameObjects objs = connectLoadJoinResumeGame(srv, CLIENT_NAME, true, false, true);
+        final StartedTestGameObjects objs = connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, false, true);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -512,7 +591,7 @@ public class TestRecorder
      *
      * @param tcli  Test client connected to server and playing in {@code ga}
      * @param ga  Game loaded and started by
-     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, boolean, boolean, boolean)}
+     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, boolean, boolean, boolean)}
      * @param cliPl  Client's Player object at test server
      * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
      * @param seqPrefix null, or messages which start the sequence to be compared here
@@ -598,6 +677,78 @@ public class TestRecorder
         }
 
         return compareRecordsToExpected(records, expectedSeq);
+    }
+
+    /**
+     * Connect with 2 clients, have one offer a trade to the other, decline it.
+     */
+    @Test
+    public void testTradeDecline2Clients()
+        throws IOException
+    {
+        final String CLIENT1_NAME = "testTradeDecline_p3", CLIENT2_NAME = "testTradeDecline_p2";
+        final int PN_C1 = 3, PN_C2 = 2;
+
+        final StartedTestGameObjects objs = connectLoadJoinResumeGame
+            (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, true, false, true);
+        final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
+        // final SavedGameModel sgm = objs.sgm;
+        final SOCGame ga = objs.gameAtServer;
+        final String gaName = ga.getName();
+        final SOCBoardLarge board = objs.board;
+        final SOCPlayer cli1Pl = objs.clientPlayer;
+        final Vector<QueueEntry> records = objs.records;
+
+        records.clear();
+
+        /* client 1: offer trade only to client 2 */
+
+        final boolean[] OFFERED_TO = {false, false, true, false};
+        final SOCResourceSet GIVING = new SOCResourceSet(0, 1, 0, 1, 0, 0),
+            GETTING = new SOCResourceSet(0, 0, 1, 0, 0, 0);
+        tcli1.offerTrade(ga, new SOCTradeOffer
+            (gaName, PN_C1, OFFERED_TO, GIVING, GETTING));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        SOCTradeOffer offer = cli1Pl.getCurrentOffer();
+        assertNotNull(offer);
+        assertEquals(PN_C1, offer.getFrom());
+        assertArrayEquals(OFFERED_TO, offer.getTo());
+        assertEquals(GIVING, offer.getGiveSet());
+        assertEquals(GETTING, offer.getGetSet());
+        assertTrue(offer.isWaitingReplyFrom(PN_C2));
+
+        /* client 2: decline offered trade */
+
+        tcli2.rejectOffer(ga);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertFalse(offer.isWaitingReplyFrom(PN_C2));
+
+        StringBuilder compares = compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C1
+                 + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"},
+                {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
+                {"all:SOCRejectOffer:", "|playerNumber=" + PN_C2}
+            });
+
+        /* leave game, check results */
+
+        tcli1.destroy();
+        tcli2.destroy();
+
+        if (compares != null)
+        {
+            compares.append("testTradeDecline2Clients: Message mismatch: ");
+            compares.append(compares);
+
+            System.err.println(compares);
+            fail(compares.toString());
+        }
     }
 
     /**
@@ -701,29 +852,43 @@ public class TestRecorder
 
     /**
      * Data class for useful objects returned from
-     * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, boolean, boolean, boolean)}.
+     * {@link TestRecorder#connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, boolean, boolean, boolean)}.
      */
     public static final class StartedTestGameObjects
     {
+        /** Client connected to test server; not null */
         public final DisplaylessTesterClient tcli;
+
+        /** Optional second client connected to test server, or null */
+        public final DisplaylessTesterClient tcli2;
+
         /** Client connection at server; not null */
         public final Connection tcliConn;
+
+        /** Optional second client connection at server, or null */
+        public final Connection tcli2Conn;
+
         public final SavedGameModel sgm;
         public final SOCGame gameAtServer;
         public final SOCBoardLarge board;
         public final SOCPlayer clientPlayer;
+        public final SOCPlayer client2Player;
         public final Vector<QueueEntry> records;
 
         public StartedTestGameObjects
-            (DisplaylessTesterClient tcli, Connection tcliConn, SavedGameModel sgm, SOCGame gameAtServer,
-             SOCBoardLarge board, SOCPlayer clientPlayer, Vector<QueueEntry> records)
+            (DisplaylessTesterClient tcli, DisplaylessTesterClient tcli2, Connection tcliConn, Connection tcli2Conn,
+             SavedGameModel sgm, SOCGame gameAtServer, SOCBoardLarge board,
+             SOCPlayer clientPlayer, SOCPlayer client2Player, Vector<QueueEntry> records)
         {
             this.tcli = tcli;
+            this.tcli2 = tcli2;
             this.tcliConn = tcliConn;
+            this.tcli2Conn = tcli2Conn;
             this.sgm = sgm;
             this.gameAtServer = gameAtServer;
             this.board = board;
             this.clientPlayer = clientPlayer;
+            this.client2Player = client2Player;
             this.records = records;
         }
     }

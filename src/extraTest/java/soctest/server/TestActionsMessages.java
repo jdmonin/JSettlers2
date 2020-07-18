@@ -124,7 +124,7 @@ public class TestActionsMessages
         final String CLIENT_NAME = "testBuildAndMove_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, true, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -320,7 +320,7 @@ public class TestActionsMessages
         final String CLIENT_NAME = "testPlayDevCards_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, true, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -666,7 +666,7 @@ public class TestActionsMessages
         final int CLIENT_PN = 3;
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, false, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, false, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -962,7 +962,7 @@ public class TestActionsMessages
         final String CLIENT_NAME = "testBankPortTrad_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, true, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = objs.board;

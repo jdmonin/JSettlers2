@@ -137,6 +137,12 @@ public class DisplaylessTesterClient
         return sLocalVersion;
     }
 
+    /** Ask to join a game; must have authed already. Sends {@link SOCJoinGame}. */
+    public void askJoinGame(String gaName)
+    {
+        put(new SOCJoinGame(nickname, "", SOCMessage.EMPTYSTR, gaName).toCmd());
+    }
+
     // message handlers
 
     /** To avoid confusion during gameplay, set both "server" version fields */
