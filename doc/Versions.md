@@ -32,6 +32,8 @@ and backport minor new features until `2.0.00` was ready.
 	- Unit tests against running server for core game actions and message sequences
 	- Server consistently uses Properties if passed into constructors
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
+- Server:
+	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
 	- If client's discard has incorrect total, server re-sends SOCDiscardRequest which includes required total
 
