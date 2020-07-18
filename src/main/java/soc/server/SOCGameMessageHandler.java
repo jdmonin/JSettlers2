@@ -790,11 +790,12 @@ public class SOCGameMessageHandler
                     handler.endGameTurn(ga, player, true);  // already did ga.takeMonitor()
                 }
             } else {
-                /**
-                 * (TODO) client knows how many discards are needed and should prevent this,
-                 * but there could be a better feedback message here
-                 */
-                srv.messageToPlayer(c, gn, pn, "You can't discard that many cards.");
+                // shouldn't occur: client was told how many discards are needed, if any
+
+                srv.messageToPlayer(c, gn, pn, "You can't discard that many cards.");  // I18N OK: not part of normal message flow
+                final int n = player.getCountToDiscard();
+                if (n > 0)
+                    srv.messageToPlayer(c, gn, pn, new SOCDiscardRequest(gn, n));
             }
         }
         catch (Throwable e)
