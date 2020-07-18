@@ -44,6 +44,7 @@ import soc.game.SOCRoad;
 import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCTradeOffer;
 import soc.message.SOCChoosePlayer;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
@@ -98,6 +99,7 @@ public class TestActionsMessages
         throws IOException
     {
         assertNotNull(srv);
+
         TestRecorder.testBasics_Loadgame(srv);
     }
 
@@ -110,6 +112,7 @@ public class TestActionsMessages
         throws IOException
     {
         assertNotNull(srv);
+
         testOne_BuildAndMove(false, false);
         testOne_BuildAndMove(false, true);
         testOne_BuildAndMove(true, false);
@@ -307,6 +310,7 @@ public class TestActionsMessages
         throws IOException
     {
         assertNotNull(srv);
+
         testOne_PlayDevCards(false, false);
         testOne_PlayDevCards(false, true);
         testOne_PlayDevCards(true, false);
@@ -650,8 +654,9 @@ public class TestActionsMessages
         throws IOException
     {
         assertNotNull(srv);
+
         // These messages should have no differences between human and robot clients.
-        // We'll test the usual 4 combinations just in case.
+        // We'll test all 4 combinations just in case.
         testOne_RollDiceRsrcsOrMoveRobber(false, false);
         testOne_RollDiceRsrcsOrMoveRobber(false, true);
         testOne_RollDiceRsrcsOrMoveRobber(true, false);
@@ -947,8 +952,9 @@ public class TestActionsMessages
         throws IOException
     {
         assertNotNull(srv);
+
         // These messages are all public with no text, and should have no differences between human and robot clients.
-        // We'll test the usual 4 combinations just in case.
+        // We'll test all 4 combinations just in case.
         testOne_BankPortTrades(false, false);
         testOne_BankPortTrades(false, true);
         testOne_BankPortTrades(true, false);
@@ -1104,4 +1110,210 @@ public class TestActionsMessages
             fail(compares.toString());
         }
     }
+
+    /**
+     * Player trade offers: Connect with 2 clients, have one offer a trade to the other,
+     * send a counter-offer, first client accepts counter-offer. Also tests clear offer.
+     * Declining a trade offer is tested by {@link TestRecorder#testTradeDecline2Clients()}.
+     */
+    @Test
+    public void testTradeCounterAccept()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        // These messages are all public with no text, and should have no differences between human and robot clients.
+        // We'll test all 4 combinations just in case.
+        testOne_TradeCounterAccept(false, false);
+        testOne_TradeCounterAccept(false, true);
+        testOne_TradeCounterAccept(true, false);
+        testOne_TradeCounterAccept(true, true);
+    }
+
+    private void testOne_TradeCounterAccept
+        (final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        final String nameSuffix = (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT1_NAME = "testTrades_p3_" + nameSuffix,
+            CLIENT2_NAME = "testTrades_p2_" + nameSuffix;
+        final int PN_C1 = 3, PN_C2 = 2;
+
+        final StartedTestGameObjects objs = TestRecorder.connectLoadJoinResumeGame
+            (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, true, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
+        final SOCGame ga = objs.gameAtServer;
+        final String gaName = ga.getName();
+        final SOCPlayer cli1Pl = objs.clientPlayer, cli2Pl = objs.client2Player;
+        final Vector<QueueEntry> records = objs.records;
+
+        records.clear();
+
+        /* client 1: offer trade only to client 2 */
+
+        final boolean[] OFFERED_TO = {false, false, true, false};
+        final SOCResourceSet GIVING = new SOCResourceSet(0, 1, 0, 1, 0, 0),
+            GETTING = new SOCResourceSet(0, 0, 1, 0, 0, 0);
+        tcli1.offerTrade(ga, new SOCTradeOffer
+            (gaName, PN_C1, OFFERED_TO, GIVING, GETTING));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        SOCTradeOffer offer = cli1Pl.getCurrentOffer();
+        assertNotNull(offer);
+        assertEquals(PN_C1, offer.getFrom());
+        assertArrayEquals(OFFERED_TO, offer.getTo());
+        assertEquals(GIVING, offer.getGiveSet());
+        assertEquals(GETTING, offer.getGetSet());
+        assertTrue(offer.isWaitingReplyFrom(PN_C2));
+
+        /* client 1: clear that offer */
+
+        tcli1.clearOffer(ga);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertNull(cli1Pl.getCurrentOffer());
+
+        /* client 2: counter-offer */
+
+        final boolean[] COUNTER_TO = {false, false, false, true};
+        final SOCResourceSet COUNTER_GIVING = new SOCResourceSet(1, 0, 0, 0, 0, 0),
+            COUNTER_GETTING = GIVING;
+        tcli2.offerTrade(ga, new SOCTradeOffer
+            (gaName, PN_C2, COUNTER_TO, COUNTER_GIVING, COUNTER_GETTING));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        offer = cli2Pl.getCurrentOffer();
+        assertNotNull(offer);
+        assertEquals(PN_C2, offer.getFrom());
+        assertArrayEquals(COUNTER_TO, offer.getTo());
+        assertEquals(COUNTER_GIVING, offer.getGiveSet());
+        assertEquals(COUNTER_GETTING, offer.getGetSet());
+        assertTrue(offer.isWaitingReplyFrom(PN_C1));
+
+        /* client 1: accept counter-offer */
+
+        assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cli1Pl.getResources().getAmounts(false));
+        assertArrayEquals(new int[]{1, 1, 2, 0, 0}, cli2Pl.getResources().getAmounts(false));
+
+        tcli1.acceptOffer(ga, PN_C2);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertArrayEquals(new int[]{4, 2, 3, 3, 4}, cli1Pl.getResources().getAmounts(false));
+        assertArrayEquals(new int[]{0, 2, 2, 1, 0}, cli2Pl.getResources().getAmounts(false));
+        assertNull(cli2Pl.getCurrentOffer());
+
+        StringBuilder compares = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C1
+                 + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"},
+                {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
+                {"all:SOCClearOffer:", "|playerNumber=" + PN_C1},
+                {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
+                {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C2
+                 + "|to=false,false,false,true|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
+                {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
+                {"all:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=1|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=1|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=2|actionType=GAIN|elementType=2|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=2|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=2|actionType=GAIN|elementType=4|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=1"},
+                {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2},
+                {"all:SOCClearOffer:", "|playerNumber=-1"}
+            });
+
+        /* leave game, check results */
+
+        tcli1.destroy();
+        tcli2.destroy();
+
+        if (compares != null)
+        {
+            compares.append("testTradeCounterAccept(" + nameSuffix + "): Message mismatch: ");
+            compares.append(compares);
+
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
+     * Test End Turn: Connect 2 clients, seated next to each other.
+     * Current player client 1 will end turn, then test will check messages before client 2 rolls.
+     */
+    @Test
+    public void testEndTurn()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        // These messages are all public with no text, and should have no differences between human and robot clients.
+        // We'll test all 4 combinations just in case.
+        testOne_EndTurn(false, false);
+        testOne_EndTurn(false, true);
+        testOne_EndTurn(true, false);
+        testOne_EndTurn(true, true);
+    }
+
+    private void testOne_EndTurn
+        (final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        final String nameSuffix = (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT1_NAME = "testEndTurn_p3_" + nameSuffix, CLIENT2_NAME = "testEndTurn_p1_" + nameSuffix;
+        final int PN_C2 = 1;
+
+        final StartedTestGameObjects objs = TestRecorder.connectLoadJoinResumeGame
+            (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, true, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
+        final SOCGame ga = objs.gameAtServer;
+        final Vector<QueueEntry> records = objs.records;
+
+        records.clear();
+
+        /* pn 3 client 1: end turn */
+
+        tcli1.endTurn(ga);
+
+        try { Thread.sleep(90); }
+        catch(InterruptedException e) {}
+
+        /* pn 1 client 2 is next player, since pn 0 is vacant */
+
+        assertEquals(PN_C2, ga.getCurrentPlayerNumber());
+        assertEquals(SOCGame.ROLL_OR_CARD, ga.getGameState());
+
+        // we don't need client 2 to do anything;
+        // it's here so that a robot player won't take action
+        // before we've captured and compared the message sequence
+
+        StringBuilder compares = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCClearOffer:", "|playerNumber=-1"},
+                {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=19|amount=0"},
+                {"all:SOCTurn:", "|playerNumber=1|gameState=15"},
+                {"all:SOCRollDicePrompt:", "|playerNumber=1"}
+            });
+
+        /* leave game, check results */
+
+        tcli1.destroy();
+        tcli2.destroy();
+
+        if (compares != null)
+        {
+            compares.append("testEndTurn(" + nameSuffix + "): Message mismatch: ");
+            compares.append(compares);
+
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
 }

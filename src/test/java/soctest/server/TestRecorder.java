@@ -681,6 +681,7 @@ public class TestRecorder
 
     /**
      * Connect with 2 clients, have one offer a trade to the other, decline it.
+     * Tests 2-client basics and trade decline message sequence.
      */
     @Test
     public void testTradeDecline2Clients()
@@ -692,10 +693,8 @@ public class TestRecorder
         final StartedTestGameObjects objs = connectLoadJoinResumeGame
             (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, true, false, true);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
-        // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
         final String gaName = ga.getName();
-        final SOCBoardLarge board = objs.board;
         final SOCPlayer cli1Pl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
 
