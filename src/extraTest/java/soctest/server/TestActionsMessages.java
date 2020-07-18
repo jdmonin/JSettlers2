@@ -355,8 +355,8 @@ public class TestActionsMessages
                 {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y"},
                 {"all:SOCPlayerElement:", "|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y"},
                 {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=3|amount=6"},
-                (othersAsRobot ? null : new String[]{"pn=1:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 1 sheep."}),
-                (othersAsRobot ? null : new String[]{"pn=2:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 2 sheep."}),
+                (othersAsRobot ? null : new String[]{"p1:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 1 sheep."}),
+                (othersAsRobot ? null : new String[]{"p2:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 2 sheep."}),
                 {"all:SOCGameState:", "|state=20"}
             });
 
@@ -426,7 +426,7 @@ public class TestActionsMessages
                 {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Road Building card."},
                 {"all:SOCGameState:", "|state=40"},
-                {"pn=3:SOCGameServerText:", "|text=You may place 2 roads/ships."},
+                {"p3:SOCGameServerText:", "|text=You may place 2 roads/ships."},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a road."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=70a"},
                 {"all:SOCGameState:", "|state=41"},
@@ -494,15 +494,15 @@ public class TestActionsMessages
                 {"all:SOCGameState:", "|state=34"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the pirate ship."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=-d0a"},
-                {"pn=3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"pn=3:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"pn=1:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"pn=1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"pn=![3, 1]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
-                {"pn=![3, 1]:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=1"},
-                {"pn=3:SOCGameServerText:", "|text=You stole a", " from "},  // "a wheat", "an ore"
-                {"pn=1:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a", " from you."},
-                {"pn=![3, 1]:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a resource from "},
+                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
+                {"p3:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
+                {"p1:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
+                {"p1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
+                {"!p[3, 1]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
+                {"!p[3, 1]:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=1"},
+                {"p3:SOCGameServerText:", "|text=You stole a", " from "},  // "a wheat", "an ore"
+                {"p1:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a", " from you."},
+                {"!p[3, 1]:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a resource from "},
                 {"all:SOCGameState:", "|state=20"},
             });
 
@@ -577,15 +577,15 @@ public class TestActionsMessages
                 {"all:SOCGameState:", "|state=33"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the robber."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=703"},
-                {"pn=3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"pn=3:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"pn=2:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"pn=2:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"pn=![3, 2]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
-                {"pn=![3, 2]:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=6|amount=1"},
-                {"pn=3:SOCGameServerText:", "|text=You stole a", " from "},
-                {"pn=2:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a", " from you."},
-                {"pn=![3, 2]:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a resource from"},
+                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
+                {"p3:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
+                {"p2:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
+                {"p2:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
+                {"!p[3, 2]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
+                {"!p[3, 2]:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=6|amount=1"},
+                {"p3:SOCGameServerText:", "|text=You stole a", " from "},
+                {"p2:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a", " from you."},
+                {"!p[3, 2]:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a resource from"},
                 {"all:SOCGameState:", "|state=20"}
             });
 
@@ -819,7 +819,7 @@ public class TestActionsMessages
                             int pn = playerNums.get(i);
                             recordsList.add(new String[]
                                 {
-                                    "pn=" + pn + ":SOCPlayerElements:",
+                                    "p" + pn + ":SOCPlayerElements:",
                                     playerRsrcElems.get(i).toString()
                                 });
                         }
@@ -884,10 +884,10 @@ public class TestActionsMessages
                                 {"all:SOCDiceResult:", "|param=7"},
                                 {"all:SOCGameState:", "|state=50"},
                                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
-                                {"pn=3:SOCDiscardRequest:", "|numDiscards=8"},
-                                {"pn=3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=4"},
-                                {"pn=3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=5|amount=4"},
-                                {"pn=!3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=6|amount=8|news=Y"},
+                                {"p3:SOCDiscardRequest:", "|numDiscards=8"},
+                                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=4"},
+                                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=5|amount=4"},
+                                {"!p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=6|amount=8|news=Y"},
                                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " discarded 8 resources."}
                             });
 

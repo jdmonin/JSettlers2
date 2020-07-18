@@ -30,7 +30,10 @@ import soc.message.SOCServerPing;
 import soc.server.SOCServer;
 
 /**
- * Non-testing class: Server which records game events into {@link #records}.
+ * Non-testing class: Server which records game events into {@link #records}
+ * having a human-readable delimited format, suitable for comparisons in unit tests:
+ * see {@link QueueEntry#toString()}.
+ *<P>
  * Works with {@link DisplaylessTesterClient}.
  *
  * @since 2.4.10
@@ -126,6 +129,7 @@ public class RecordingTesterServer
 
     /**
      * A recorded entry: Event SOCMessage, audience (all players, 1 player, or specifically excluded player(s)).
+     * See {@link #toString()} for human-readable delimited format.
      *<P>
      * If this class changes, update comprehensive unit test {@link soctest.server.TestRecorder#testQueueEntry()}.
      */
@@ -161,18 +165,29 @@ public class RecordingTesterServer
          * Calls {@link SOCMessage#toString()}, not {@link SOCMessage#toCmd()},
          * for class/field name label strings and to help test stable SOCMessage.toString results
          * for any third-party recorder implementers that use that format.
+         *<P>
+         * Shows message audience and human-readable but delimited {@link SOCMessage#toString()}.
+         * Possible formats:
+         *<UL>
+         * <LI> To all players: {@code all:MessageClassName:param=value|param=value|...}
+         * <LI> To a single player number: {@code p3:MessageClassName:param=value|param=value|...}
+         * <LI> To all but one player: {@code !p3:MessageClassName:param=value|param=value|...}
+         * <LI> To all but two players: {@code !p[3, 1]:MessageClassName:param=value|param=value|...}
+         *</UL>
+         * Non-playing game observers are also sent all messages, except those to a single player.
          */
+        @Override
         public String toString()
         {
             StringBuilder sb = new StringBuilder();
             if (toPN != -1)
-                sb.append("pn=" + toPN + ":");
+                sb.append("p" + toPN + ":");
             else if (excludedPN != null)
             {
                 if (excludedPN.length == 1)
-                    sb.append("pn=!" + excludedPN[0]);
+                    sb.append("!p" + excludedPN[0]);
                 else
-                    sb.append("pn=!" + Arrays.toString(excludedPN));
+                    sb.append("!p" + Arrays.toString(excludedPN));
                 sb.append(':');
             }
             else

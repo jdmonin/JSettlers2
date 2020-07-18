@@ -51,7 +51,8 @@ import soctest.server.RecordingTesterServer.QueueEntry;
 import soctest.server.savegame.TestLoadgame;
 
 /**
- * A few tests for {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)} and similar methods.
+ * A few tests for {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)} and similar methods,
+ * using {@link RecordingTesterServer} and its {@link QueueEntry} format.
  * Covers a few core game actions and message sequences. For more complete coverage of those,
  * you should periodically run {@code extraTest} {@code soctest.server.TestActionsMessages}.
  *<P>
@@ -437,8 +438,8 @@ public class TestRecorder
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1"},
                 {"all:SOCGameElements:", "|e2=22"},
-                {"pn=3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
-                {"pn=!3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=0"},
+                {"p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
+                {"!p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=0"},
                 {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},
                 {"all:SOCGameState:", "|state=20"}
             });
@@ -575,15 +576,15 @@ public class TestRecorder
                 {"all:SOCGameState:", "|state=33"},
                 {"all:SOCGameServerText:", "|text=" + clientName + " will move the robber."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=305"},
-                {"pn=3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"pn=3:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"pn=1:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"pn=1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"pn=![3, 1]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
-                {"pn=![3, 1]:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=1"},
-                {"pn=3:SOCGameServerText:", "|text=You stole a", " from "},  // "an ore", "a sheep", etc
-                {"pn=1:SOCGameServerText:", "|text=" + clientName + " stole a", " from you."},
-                {"pn=![3, 1]:SOCGameServerText:", "|text=" + clientName + " stole a resource from "},
+                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
+                {"p3:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
+                {"p1:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
+                {"p1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
+                {"!p[3, 1]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
+                {"!p[3, 1]:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=1"},
+                {"p3:SOCGameServerText:", "|text=You stole a", " from "},  // "an ore", "a sheep", etc
+                {"p1:SOCGameServerText:", "|text=" + clientName + " stole a", " from you."},
+                {"!p[3, 1]:SOCGameServerText:", "|text=" + clientName + " stole a resource from "},
                 {"all:SOCGameState:", "|state=20"}
             };
         final String[][] expectedSeq;
@@ -677,13 +678,13 @@ public class TestRecorder
         assertEquals(-1, qe.toPN);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{3}, qe.excludedPN);
-        assertEquals("pn=!3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        assertEquals("!p3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
         qe = new QueueEntry(event, new int[]{2,3,4});
         assertEquals(-1, qe.toPN);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{2,3,4}, qe.excludedPN);
-        assertEquals("pn=![2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        assertEquals("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
         qe = new QueueEntry(null, -1);
         assertEquals(-1, qe.toPN);
@@ -695,7 +696,7 @@ public class TestRecorder
         assertEquals(3, qe.toPN);
         assertNull(qe.event);
         assertNull(qe.excludedPN);
-        assertEquals("pn=3:null", qe.toString());
+        assertEquals("p3:null", qe.toString());
     }
 
     /**
