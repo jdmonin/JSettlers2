@@ -136,6 +136,14 @@ public class SOCGameHandler extends GameHandler
     public static int ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS = 60;
 
     /**
+     * To clean up during automated tests, should robot-only games be destroyed as soon as they're over?
+     * Checks {@link SOCGame#isBotsOnly}.
+     * True by default. Added in v2.4.10; previous versions always removed such games.
+     * @since 2.4.10
+     */
+    public static boolean DESTROY_BOT_ONLY_GAMES_WHEN_OVER = true;
+
+    /**
      * Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
      * @see #DEBUG_COMMANDS_HELP_PLAYER
      */
@@ -2702,7 +2710,7 @@ public class SOCGameHandler extends GameHandler
         srv.gameOverIncrGamesFinishedCount(ga);
         srv.storeGameScores(ga);
 
-        if (ga.isBotsOnly)
+        if (ga.isBotsOnly && DESTROY_BOT_ONLY_GAMES_WHEN_OVER)
         {
             srv.destroyGameAndBroadcast(gname, "sendGameStateOVER");
         }

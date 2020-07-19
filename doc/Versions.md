@@ -29,9 +29,10 @@ and backport minor new features until `2.0.00` was ready.
 	    - SavedGameModel:
 	        - PlayerInfo: Include number of Discovery, Monopoly, Road Building cards played
 	        - GLAS field made non-static so unit tests can safely run in parallel for quicker builds
-	- Unit tests against running server for core game actions and message sequences
+	- Unit tests and extraTests against running server for core game actions and message sequences
 	- Server consistently uses Properties if passed into constructors
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
+	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
 - Server:
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:

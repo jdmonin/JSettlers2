@@ -35,6 +35,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
+import soc.game.SOCInventory;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -46,6 +47,7 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCChoosePlayer;
+import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
 import soctest.server.RecordingTesterServer.QueueEntry;
@@ -63,6 +65,8 @@ public class TestActionsMessages
     @BeforeClass
     public static void startStringportServer()
     {
+        SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER = false;  // keep games around, to check asserts
+
         srv = new RecordingTesterServer();
         srv.setPriority(5);  // same as in SOCServer.main
         srv.start();
@@ -105,7 +109,8 @@ public class TestActionsMessages
 
     /**
      * Tests building pieces and moving ships.
-     * Builds all piece types except road, which is covered by {@link TestRecorder#testLoadAndBasicSequences()}.
+     * Builds all piece types, except road without SOCBuildingRequest
+     * (covered by {@link TestRecorder#testLoadAndBasicSequences()}).
      */
     @Test
     public void testBuildAndMove()
@@ -113,18 +118,22 @@ public class TestActionsMessages
     {
         assertNotNull(srv);
 
-        testOne_BuildAndMove(false, false);
-        testOne_BuildAndMove(false, true);
-        testOne_BuildAndMove(true, false);
-        testOne_BuildAndMove(true, true);
+        for (boolean withBuildRequest : new boolean[]{false, true})
+        {
+            testOne_BuildAndMove(withBuildRequest, false, false);
+            testOne_BuildAndMove(withBuildRequest, false, true);
+            testOne_BuildAndMove(withBuildRequest, true, false);
+            testOne_BuildAndMove(withBuildRequest, true, true);
+        }
     }
 
     private void testOne_BuildAndMove
-        (final boolean clientAsRobot, final boolean othersAsRobot)
+        (final boolean withBuildRequest, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IOException
     {
         // unique client nickname, in case tests run in parallel
-        final String CLIENT_NAME = "testBuildAndMove_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT_NAME = "testBuild_"
+            + (withBuildRequest ? "WB_" : "NB_") + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, clientAsRobot, othersAsRobot);
@@ -135,6 +144,22 @@ public class TestActionsMessages
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
 
+        /* build road */
+
+        records.clear();
+        StringBuilder comparesRoad;
+        if (withBuildRequest)
+        {
+            comparesRoad = TestRecorder.buildRoadSequence(tcli, ga, cliPl, records, true);
+
+            // don't deplete resources, since this sequence isn't unconditionally tested
+            cliPl.getResources().setAmounts(new SOCResourceSet(3, 3, 3, 4, 4, 0));
+        } else {
+            // already covered by another unit test in TestRecorder
+
+            comparesRoad = null;
+        }
+
         /* build settlement (on main island) */
 
         records.clear();
@@ -143,6 +168,15 @@ public class TestActionsMessages
         assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         assertEquals(2, cliPl.getPublicVP());
         assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
+        if (withBuildRequest)
+        {
+            tcli.buildRequest(ga, SOCPlayingPiece.SETTLEMENT);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(SOCGame.PLACING_SETTLEMENT, ga.getGameState());
+            assertArrayEquals(new int[]{2, 3, 2, 3, 3}, cliPl.getResources().getAmounts(false));
+        }
         tcli.putPiece(ga, new SOCSettlement(cliPl, SETTLEMENT_NODE, board));
 
         try { Thread.sleep(60); }
@@ -156,6 +190,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1"},
+                ((withBuildRequest) ? new String[]{"all:SOCGameState:", "|state=31"} : null),
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a settlement."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=60a"},
                 {"all:SOCGameState:", "|state=20"}
@@ -166,6 +201,15 @@ public class TestActionsMessages
         records.clear();
         assertEquals(4, cliPl.getNumPieces(SOCPlayingPiece.CITY));
         assertEquals(2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        if (withBuildRequest)
+        {
+            tcli.buildRequest(ga, SOCPlayingPiece.CITY);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(SOCGame.PLACING_CITY, ga.getGameState());
+            assertArrayEquals(new int[]{2, 0, 2, 1, 3}, cliPl.getResources().getAmounts(false));
+        }
         tcli.putPiece(ga, new SOCCity(cliPl, SETTLEMENT_NODE, board));
 
         try { Thread.sleep(60); }
@@ -180,6 +224,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=3,e4=2"},
+                ((withBuildRequest) ? new String[]{"all:SOCGameState:", "|state=32"} : null),
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a city."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=2|coord=60a"},
                 {"all:SOCGameState:", "|state=20"}
@@ -192,6 +237,15 @@ public class TestActionsMessages
         assertTrue(board.roadOrShipAtEdge(0xd05) instanceof SOCShip);
         final int SHIP_EDGE = 0xe05;
         assertNull(board.roadOrShipAtEdge(SHIP_EDGE));
+        if (withBuildRequest)
+        {
+            tcli.buildRequest(ga, SOCPlayingPiece.SHIP);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(SOCGame.PLACING_SHIP, ga.getGameState());
+            assertArrayEquals(new int[]{2, 0, 1, 1, 2}, cliPl.getResources().getAmounts(false));
+        }
         tcli.putPiece(ga, new SOCShip(cliPl, SHIP_EDGE, board));
 
         try { Thread.sleep(60); }
@@ -204,6 +258,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e3=1,e5=1"},
+                ((withBuildRequest) ? new String[]{"all:SOCGameState:", "|state=35"} : null),
                 {"all:SOCGameServerText:", "|text="+ CLIENT_NAME + " built a ship."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=e05"},
                 {"all:SOCGameState:", "|state=20"}
@@ -259,8 +314,15 @@ public class TestActionsMessages
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
+        if (comparesRoad != null)
+        {
+            compares.append("Build road: Message mismatch: ");
+            compares.append(comparesRoad);
+        }
         if (comparesSettle != null)
         {
+            if (compares.length() > 0)
+                compares.append("   ");
             compares.append("Build settlement: Message mismatch: ");
             compares.append(comparesSettle);
         }
@@ -1309,6 +1371,126 @@ public class TestActionsMessages
         if (compares != null)
         {
             compares.append("testEndTurn(" + nameSuffix + "): Message mismatch: ");
+            compares.append(compares);
+
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
+     * Test Win Game: With cient player win, another player win.
+     */
+    @Test
+    public void testWinGame()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        for (boolean clientWin : new boolean[]{true, false})
+        {
+            testOne_WinGame(clientWin, false, false);
+            testOne_WinGame(clientWin, false, true);
+            testOne_WinGame(clientWin, true, false);
+            testOne_WinGame(clientWin, true, true);
+        }
+    }
+
+    private void testOne_WinGame
+        (final boolean clientWin, final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        final String nameSuffix =
+            (clientWin ? "cw_" : "ow_") + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT_NAME = "testWinGame_" + nameSuffix,
+           OTHER_WIN_CLIENT_NAME = (clientWin) ? null : "testWinOther_" + nameSuffix;
+        final int PN_WIN = ((clientWin) ? 3 : 2),
+            PN_OTHER_NONWIN_PLAYER = 1;
+        final int SETTLE_NODE = (clientWin) ? 0x60a : 0x403;
+
+        final StartedTestGameObjects objs = TestRecorder.connectLoadJoinResumeGame
+            (srv, CLIENT_NAME, OTHER_WIN_CLIENT_NAME, (clientWin) ? 0 : PN_WIN,
+             false, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
+        if (! clientWin)
+        {
+            assertNotNull(tcli2);
+            if (othersAsRobot)
+                objs.tcli2Conn.setI18NStringManager(null, null);
+        }
+        final SOCGame ga = objs.gameAtServer;
+        final SOCPlayer plWin = ga.getPlayer(PN_WIN);
+        final String plName = plWin.getName();
+        if (! clientWin)
+            plWin.setRobotFlag(othersAsRobot, othersAsRobot);
+        final Vector<QueueEntry> records = objs.records;
+
+        /* prep: change game data and resume */
+
+        plWin.setNumKnights(3);
+        ga.setPlayerWithLargestArmy(plWin);
+        assertEquals(4, plWin.getTotalVP());
+
+        while (plWin.getTotalVP() < 9)
+            plWin.getInventory().addDevCard
+                (1, SOCInventory.OLD, SOCDevCardConstants.UNIV);
+        // for end-of-game messages, other player gets one too
+        ga.getPlayer(PN_OTHER_NONWIN_PLAYER).getInventory().addDevCard
+            (1, SOCInventory.OLD, SOCDevCardConstants.CAP);
+
+        ga.setCurrentPlayerNumber(PN_WIN);
+        plWin.getResources().setAmounts(SOCSettlement.COST);
+
+        TestRecorder.resumeLoadedGame(ga, srv, objs.tcliConn);
+        assertEquals(PN_WIN, ga.getCurrentPlayerNumber());
+        assertEquals(SOCGame.PLAY1, ga.getGameState());
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        records.clear();
+
+        /* build winning settlement */
+
+        final SOCSettlement sett = new SOCSettlement(plWin, SETTLE_NODE, ga.getBoard());
+        if (clientWin)
+            tcli.putPiece(ga, sett);
+        else
+            tcli2.putPiece(ga, sett);
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        assertEquals(10, plWin.getTotalVP());
+        StringBuilder compares = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElements:", "|playerNum=" + PN_WIN + "|actionType=LOSE|e1=1,e3=1,e4=1,e5=1"},
+                {"all:SOCGameServerText:", "|text=" + plName + " built a settlement."},
+                {"all:SOCPutPiece:", "|playerNumber=" + PN_WIN + "|pieceType=1|coord=" + Integer.toHexString(SETTLE_NODE)},
+                {"all:SOCGameElements:", "|e4=" + PN_WIN},
+                {"all:SOCGameState:", "|state=1000"},
+                {"all:SOCGameServerText:", "|text=>>> " + plName + " has won the game with 10 points."},
+                {"all:SOCDevCardAction:", "|playerNum=" + PN_OTHER_NONWIN_PLAYER + "|actionType=ADD_OLD|cardTypes=[4]"},
+                {"all:SOCDevCardAction:", "|playerNum=" + PN_WIN + "|actionType=ADD_OLD|cardTypes=[6, 6, 6, 6, 6]"},
+                {"all:SOCGameStats:",
+                   ((clientWin) ? "|0|3|2|10" : "|0|3|10|2")
+                   + ((othersAsRobot) ? "|false|true|true" : "|false|false|false")
+                   + ((clientAsRobot) ? "|true" : "|false") },
+                {"all:SOCGameServerText:", "|text=This game was 2 rounds, and took "},
+                ((othersAsRobot) ? null : new String[]{"p1:SOCPlayerStats:", "|p=1|p=1|p=1|p=1|p=2|p=0"}),
+                ((othersAsRobot) ? null : new String[]{"p2:SOCPlayerStats:", "|p=1|p=1|p=1|p=1|p=0|p=0"}),
+                ((clientAsRobot) ? null : new String[]{"p3:SOCPlayerStats:", "|p=1|p=1|p=0|p=0|p=2|p=2"})
+            });
+
+        /* leave game, check results */
+
+        tcli.destroy();
+        if (tcli2 != null)
+            tcli2.destroy();
+
+        if (compares != null)
+        {
+            compares.append("testWinGame(" + nameSuffix + "): Message mismatch: ");
             compares.append(compares);
 
             System.err.println(compares);

@@ -35,6 +35,7 @@ import soc.util.SOCGameBoardReset;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -819,6 +820,7 @@ public class SOCGame implements Serializable, Cloneable
      * a game with this flag, the game should continue play unless its state is {@link #OVER}.
      * @since 2.0.00
      * @see soc.robot.SOCRobotBrain#BOTS_ONLY_FAST_PAUSE_FACTOR
+     * @see soc.server.SOCGameHandler#DESTROY_BOT_ONLY_GAMES_WHEN_OVER
      */
     public boolean isBotsOnly;
 
@@ -947,15 +949,17 @@ public class SOCGame implements Serializable, Cloneable
     private Map<String, SOCGameOption> opts;
 
     /**
-     * the players; never contains a null element, use {@link #isSeatVacant(int)}
+     * the players; never contains a null element during play, use {@link #isSeatVacant(int)}
      * to see if a position is occupied.  Length is {@link #maxPlayers}.
      *<P>
      * If the game is reset or restarted by {@link #resetAsCopy()},
      * the new game gets new player objects, not the ones in this array.
+     *<P>
+     * Contains nulls after {@link #destroyGame()} is called.
      *
      * @see #currentPlayerNumber
      */
-    private SOCPlayer[] players;
+    private final SOCPlayer[] players;
 
     /**
      * State of each player number's seat: {@link #OCCUPIED}, {@link #VACANT}, etc.
@@ -8788,7 +8792,7 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
-        players = null;
+        Arrays.fill(players, null);
         board = null;
         rand = null;
         pendingMessagesOut = null;

@@ -140,7 +140,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int playerNumber;
 
     /**
-     * the game that this player is in
+     * The game that this player is in; not null until {@link #destroyPlayer()} is called.
      */
     private SOCGame game;
 
@@ -676,11 +676,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newName  new name to give copy of player, or {@code null} to copy current name.
      *     Useful for {@link soc.robot.SOCPlayerTracker} dummy players in debug prints.
      *     Note that {@link #toString()} prints the name and the copied {@link #getPlayerNumber()}.
+     * @throws IllegalArgumentException if {@code player.getGame()} is null; shouldn't occur
+     *     unless {@link #destroyPlayer()} has been called
      * @throws IllegalStateException if player's dev cards can't be cloned (internal error); should not possibly occur
      */
     public SOCPlayer(final SOCPlayer player, final String newName)
-        throws IllegalStateException
+        throws IllegalArgumentException, IllegalStateException
     {
+        if (player.game == null)
+            throw new IllegalArgumentException("game");
+
         int i;
         game = player.game;
         name = (newName != null) ? newName : player.name;
@@ -806,9 +811,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param pn the player number
      * @param ga the game that the player is in
+     * @throws IllegalArgumentException if {@code ga} is null
      */
     public SOCPlayer(int pn, SOCGame ga)
+        throws IllegalArgumentException
     {
+        if (ga == null)
+            throw new IllegalArgumentException("game");
+
         int i;
 
         game = ga;

@@ -31,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -44,6 +45,7 @@ import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCChoosePlayer;
+import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
 import soc.server.genericServer.Connection;
@@ -78,6 +80,8 @@ public class TestRecorder
     @BeforeClass
     public static void startStringportServer()
     {
+        SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER = false;  // keep games around, to check asserts
+
         srv = new RecordingTesterServer();
         srv.setPriority(5);  // same as in SOCServer.main
         srv.start();
@@ -388,6 +392,8 @@ public class TestRecorder
         assertNotNull("game object at server", ga);
         assertTrue("game uses sea board", ga.getBoard() instanceof SOCBoardLarge);
         assertEquals(SOCGame.PLAY1, sgm.gameState);
+        if (clientAsRobot && othersAsRobot)
+            ga.isBotsOnly = true;
 
         if (tcli2 != null)
         {
@@ -455,7 +461,7 @@ public class TestRecorder
      * Test loading {@code message-seqs.game.json} and recording a few basic game action sequences,
      * which also test the different {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)} methods:
      *<UL>
-     * <LI> Build a road: Sent to all players
+     * <LI> Build a road (without optional preceding SOCBuildRequest): Sent to all players
      * <LI> Buy a dev card: Some messages sent to 1 player, or all but 1
      * <LI> Choose and move robber, steal: Some messages sent to all but 2 players
      *</UL>
@@ -469,36 +475,14 @@ public class TestRecorder
 
         final StartedTestGameObjects objs = connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, false, true);
         final DisplaylessTesterClient tcli = objs.tcli;
-        // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
-        final SOCBoardLarge board = objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
 
         /* sequence recording: build road */
 
         records.clear();
-        final int ROAD_COORD = 0x40a;
-        assertNull(board.roadOrShipAtEdge(ROAD_COORD));
-        assertEquals(12, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
-        assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
-        tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_COORD, board));
-
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertNotNull("road built", board.roadOrShipAtEdge(ROAD_COORD));
-        assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
-        assertArrayEquals(new int[]{2, 3, 3, 4, 3}, cliPl.getResources().getAmounts(false));
-
-        // for now, quick rough comparison of record contents
-        StringBuilder comparesBuild = compareRecordsToExpected
-            (records, new String[][]
-            {
-                {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e1=1,e5=1"},
-                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a road."},
-                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=40a"},
-                {"all:SOCGameState:", "|state=20"}
-            });
+        StringBuilder comparesBuild = buildRoadSequence(tcli, ga, cliPl, records, false);
 
         /* sequence recording: buy dev card */
 
@@ -579,6 +563,60 @@ public class TestRecorder
     }
 
     /**
+     * Build a road on board of savegame artifact {@code message-seqs},
+     * optionally with preceding SOCBuildRequest message (which is optional in v2.0 and newer).
+     * Tests that sequence and {@code compareRecordsToExpected}'s null-element handling.
+     *
+     * @param tcli  Test client connected to server and playing in {@code ga}
+     * @param ga  Game loaded and started by
+     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, boolean, boolean, boolean)}
+     * @param cliPl  Client's Player object at test server
+     * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
+     * @return any discrepancies found by {@link #compareRecordsToExpected(List, String[][])}, or null if no differences
+     */
+    public static StringBuilder buildRoadSequence
+        (final DisplaylessTesterClient tcli, final SOCGame ga, final SOCPlayer cliPl,
+         final Vector<QueueEntry> records, final boolean withBuildRequest)
+    {
+        final SOCBoard board = ga.getBoard();
+        final String clientName = tcli.getNickname();
+
+        final int ROAD_COORD = 0x40a;
+        assertNull(board.roadOrShipAtEdge(ROAD_COORD));
+        assertEquals(12, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
+        assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
+
+        if (withBuildRequest)
+        {
+            tcli.buildRequest(ga, SOCPlayingPiece.ROAD);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(SOCGame.PLACING_ROAD, ga.getGameState());
+            assertArrayEquals(new int[]{2, 3, 3, 4, 3}, cliPl.getResources().getAmounts(false));
+        }
+
+        tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_COORD, board));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertNotNull("road built", board.roadOrShipAtEdge(ROAD_COORD));
+        assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
+        assertArrayEquals(new int[]{2, 3, 3, 4, 3}, cliPl.getResources().getAmounts(false));
+
+        // for now, quick rough comparison of record contents
+        return compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e1=1,e5=1"},
+                ((withBuildRequest) ? new String[]{"all:SOCGameState:", "|state=30"} : null),
+                {"all:SOCGameServerText:", "|text=" + clientName + " built a road."},
+                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=40a"},
+                {"all:SOCGameState:", "|state=20"}
+            });
+    }
+
+    /**
      * Robber hex to move to (0x305, decimal 773) during
      * {@link #moveRobberStealSequence(DisplaylessTesterClient, SOCGame, SOCPlayer, Vector, String[][])}.
      */
@@ -604,7 +642,6 @@ public class TestRecorder
     {
         assertTrue(ga.hasSeaBoard);
         final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
-
         final String clientName = tcli.getNickname();
 
         assertEquals("old robberHex", 2314, board.getRobberHex());  // 0x90a
@@ -855,23 +892,51 @@ public class TestRecorder
      */
     public static final class StartedTestGameObjects
     {
-        /** Client connected to test server; not null */
+        /**
+         * Client connected to test server; not null.
+         * @see #tcliConn
+         * @see #clientPlayer
+         */
         public final DisplaylessTesterClient tcli;
 
-        /** Optional second client connected to test server, or null */
+        /**
+         * Optional second client connected to test server, or null.
+         * @see #tcli2Conn
+         * @see #client2Player
+         */
         public final DisplaylessTesterClient tcli2;
 
-        /** Client connection at server; not null */
+        /** Client connection at server for {@link #tcli}; not null */
         public final Connection tcliConn;
 
-        /** Optional second client connection at server, or null */
+        /** Optional second client connection at server for {@link #tcli2}, or null */
         public final Connection tcli2Conn;
 
+        /**
+         * Reloaded game data which created {@link #gameAtServer}; not null.
+         * Since that game has been created, treat {@code sgm} as read-only:
+         * If changes are needed for test conditions, change {@code gameAtServer}.
+         */
         public final SavedGameModel sgm;
+
+        /**
+         * Reloaded game within the test server, from {@link #sgm}; not null.
+         * @see #board
+         * @see #clientPlayer
+         * @see #records
+         */
         public final SOCGame gameAtServer;
+
+        /** {@link #gameAtServer}'s board; not null. */
         public final SOCBoardLarge board;
+
+        /** Player in {@link #gameAtServer} controlled by {@link #tcli}; not null */
         public final SOCPlayer clientPlayer;
+
+        /** Player in {@link #gameAtServer} controlled by {@link #tcli2}, or null if not using tcli2 */
         public final SOCPlayer client2Player;
+
+        /** Game message records for {@link #gameAtServer}; not null */
         public final Vector<QueueEntry> records;
 
         public StartedTestGameObjects
