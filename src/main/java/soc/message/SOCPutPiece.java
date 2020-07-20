@@ -219,16 +219,24 @@ public class SOCPutPiece extends SOCMessage
         }
     }
 
-    public static String stripAttribNames(String message) {
-        String s = SOCMessage.stripAttribNames(message);
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Converts piece coordinate to decimal from hexadecimal format.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not null
+     * @return Message parameters without attribute names
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        String s = SOCMessage.stripAttribNames(messageStrParams);
         String[] pieces = s.split(SOCMessage.sep2);
+
         StringBuffer ret = new StringBuffer();
-        for (int i=0; i<3; i++) {
-                ret.append(pieces[i]);
-                ret.append(",");
-        }
-        // last piece needs hex-to-int conversion
+        for (int i = 0; i < 3; i++)
+            ret.append(pieces[i]).append(',');
         ret.append(Integer.parseInt(pieces[3], 16));
+
         return ret.toString();
     }
 

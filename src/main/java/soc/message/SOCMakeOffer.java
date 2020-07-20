@@ -189,9 +189,16 @@ public class SOCMakeOffer extends SOCMessage
     // 1) There is a bizarre "offer=game=gameName" in the second position
     // 2) Give and get are specified as give=clay=x|ore=y...
     //  When we strip attrip names, we get a meaningless second entry, which we can skip, and due to manner of parsing, clay is inserted before give and get sets.
-    public static String stripAttribNames(String message) {
-        // Strip the give= and get= from the message, then do the normal strip, then strip index 1 (could do more efficiently, but a previous incorrect implementation left
-        //  this same stuff here anyway, so use it.
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * @param message Params part of a message string formatted by {@link #toString()}; not null
+     * @return Message parameters without attribute names
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String message)
+    {
+        // Strip the give= and get= from the message, then do the normal strip, then strip index 1
         message = message.replace("give=", "");
         message = message.replace("get=", "");
         // strip with leading delim (hardcode here for now)
@@ -202,18 +209,17 @@ public class SOCMakeOffer extends SOCMessage
         StringBuffer ret = new StringBuffer();
         int[] skipIds = new int[]{1, -1};  // Append a -1 at the end so we don't have to worry about running off the end
         int si = 0; // Which index of skipIds are we currently looking for?
-        for (int i=0; i<pieces.length; i++) {
-                if (skipIds[si]==i) {
-                        // skip, but increment si
-                        si++;
-                }
-                else {
-                        ret.append(pieces[i]).append(SOCMessage.sep2);
-                }
+        for (int i = 0; i < pieces.length; i++)
+        {
+            if (skipIds[si]==i)
+                // skip, but increment si
+                si++;
+            else
+                ret.append(pieces[i]).append(SOCMessage.sep2);
         }
 
         // trim the last separator - it interferes with the parse, which dynamically determines number of players based on number of tokens.
-        return ret.substring(0, ret.length() -1);
+        return ret.substring(0, ret.length() - 1);
     }
 
     /**

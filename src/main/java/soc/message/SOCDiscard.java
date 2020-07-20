@@ -175,8 +175,17 @@ public class SOCDiscard extends SOCMessage
         return new SOCDiscard(ga, cl, or, sh, wh, wo, uk);
     }
 
-    public static String stripAttribNames(String message) {
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * @param message Params part of a message string formatted by {@link #toString()}; not null
+     * @return Message parameters without attribute names
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String message)
+    {
         message = message.replace("resources=",  "");
+
         return SOCMessage.stripAttribNames(message);
     }
 

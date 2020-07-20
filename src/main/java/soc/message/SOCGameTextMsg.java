@@ -210,12 +210,22 @@ public class SOCGameTextMsg extends SOCMessage
         return new SOCGameTextMsg(ga, nn, tm);
     }
 
-    // This uses special separators, presumably to handle special chars in the message itself.  Only replace the first two commas - everything after that is in the message
-    public static String stripAttribNames(String str) {
-        String ret = SOCMessage.stripAttribNames(str);
-        for (int i=0; i<2; i++) {
-                ret = ret.replaceFirst(SOCMessage.sep2, sep2);
-        }
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not null
+     * @return Message parameters without attribute names
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        // This type uses special separators, presumably to handle special chars in the message itself.
+        // Only replace the first two commas; everything after that is part of the message text
+
+        String ret = SOCMessage.stripAttribNames(messageStrParams);
+        for (int i = 0; i < 2; i++)
+            ret = ret.replaceFirst(SOCMessage.sep2, sep2);
+
         return ret;
     }
 
