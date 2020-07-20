@@ -170,16 +170,18 @@ public class SOCMoveRobber extends SOCMessage
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
      * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
      * Converts robber hex coordinate to decimal from hexadecimal format.
-     * @param message Params part of a message string formatted by {@link #toString()}; not null
-     * @return Message parameters without attribute names
+     * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @since 2.4.10
      */
     public static String stripAttribNames(String message)
     {
         String s = SOCMessage.stripAttribNames(message);
+        if (s == null)
+            return null;
         int i = s.lastIndexOf(SOCMessage.sep2_char);
 
-        StringBuffer ret = new StringBuffer();
+        StringBuilder ret = new StringBuilder();
         ret.append(s.substring(0, i + 1));
         String robberHex = s.substring(i + 1);
         ret.append(Integer.parseInt(robberHex, 16));

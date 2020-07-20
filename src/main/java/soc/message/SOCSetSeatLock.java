@@ -282,6 +282,47 @@ public class SOCSetSeatLock extends SOCMessage
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Undoes mapping of seat lock states -> strings ({@code "CLEAR_ON_RESET"} -> {@code "clear"} etc).
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        String s = SOCMessage.stripAttribNames(messageStrParams);
+        if (s == null)
+            return null;
+        String[] pieces = s.split(SOCMessage.sep2);
+        if (pieces.length < 2)
+            return s;  // probably malformed, but there's no lock state strings to un-map
+
+        for (int i = 1; i < pieces.length; ++i)
+        {
+            String lock = pieces[i];
+                // if message is for 1 player, [1] is player number; that's fine, number won't match any lock string
+
+            if ("LOCKED".equals(lock))
+                pieces[i] = "true";
+            else if ("UNLOCKED".equals(lock))
+                pieces[i] = "false";
+            else if ("CLEAR_ON_RESET".equals(lock))
+                pieces[i] = "clear";
+        }
+
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0; i < pieces.length; ++i)
+        {
+            if (i > 0)
+                ret.append(sep2_char);
+            ret.append(pieces[i]);
+        }
+
+        return ret.toString();
+    }
+
+    /**
      * @return a human readable form of the message
      */
     public String toString()

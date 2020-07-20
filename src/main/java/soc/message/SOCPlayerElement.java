@@ -743,18 +743,73 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
+     * Action string map from action constants ({@link #GAIN}, etc) for {@link #toString()}
+     * and {@link #stripAttribNames(String)}. Offset is 100.
+     * @since 2.4.10
+     */
+    public static final String[] ACTION_STRINGS = {"SET", "GAIN", "LOSE"};
+        // if you add to this array:
+        // - watch compatibility with older versions, which won't know the new entries
+        // - update its unit test in soctest.message.TestStringConstants
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        String s = SOCMessage.stripAttribNames(messageStrParams);
+        if (s == null)
+            return null;
+        String[] pieces = s.split(SOCMessage.sep2);
+        if ((pieces.length <= 2) || pieces[2].isEmpty())
+            return s;  // probably malformed, but there's no action string to un-map
+
+        String act = pieces[2];
+        if (Character.isDigit(act.charAt(0)))
+            try
+            {
+                if (Integer.parseInt(act) >= 0)
+                    return s;  // action field already an integer
+            } catch (NumberFormatException e) {}
+
+        int actType = -1;
+        for (int ac = 0; ac < ACTION_STRINGS.length; ++ac)
+        {
+            if (ACTION_STRINGS[ac].equals(act))
+            {
+                actType = ac + 100;
+                break;
+            }
+        }
+
+        if (actType != -1)
+            pieces[2] = Integer.toString(actType);
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0; i < pieces.length; ++i)
+        {
+            if (i > 0)
+                ret.append(sep2_char);
+            ret.append(pieces[i]);
+        }
+
+        return ret.toString();
+    }
+
+    /**
      * @return a human readable form of the message
      */
     public String toString()
     {
         final String act;
-        switch (actionType)
-        {
-        case SET:  act = "SET";  break;
-        case GAIN: act = "GAIN"; break;
-        case LOSE: act = "LOSE"; break;
-        default:   act = Integer.toString(actionType);
-        }
+        if ((actionType >= 100) && ((actionType - 100) < ACTION_STRINGS.length))
+            act = ACTION_STRINGS[actionType - 100];
+        else
+            act = Integer.toString(actionType);
 
         String s = "SOCPlayerElement:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act
             + "|elementType=" + elementType + "|amount=" + amount + ((news) ? "|news=Y" : "");

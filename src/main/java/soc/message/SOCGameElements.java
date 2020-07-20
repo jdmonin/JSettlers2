@@ -19,6 +19,7 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import soc.game.SOCGame;  // for javadocs only
@@ -315,6 +316,51 @@ public class SOCGameElements extends SOCMessageTemplateMi
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a list for {@link #parseDataStr(List)}.
+     * Handles elemNum=value pairs, undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed
+     * @since 2.4.10
+     */
+    public static List<String> stripAttribsToList(String messageStrParams)
+    {
+        // don't call SOCMessage.stripAttribsToList, we need the e# names in elemNum=value pairs
+
+        String[] pieces = messageStrParams.split(sepRE);
+        // [0] game=...
+        // [1] e#=#,e#=#,...
+
+        if (pieces.length != 2)
+            return null;
+
+        List<String> ret = new ArrayList<>();
+
+        if (pieces[0].startsWith("game="))
+            ret.add(pieces[0].substring(5));
+        else
+            return null;
+
+        // "e5=9,e7=12" -> "5", "9, "7", "12"
+        pieces = pieces[1].split(",");
+        for (int i = 0; i < pieces.length; ++i)
+        {
+            String piece = pieces[i];  // "e5=9"
+            if (piece.charAt(0) != 'e')
+                return null;
+
+            int j = piece.indexOf('=');
+            if (j < 2)
+                return null;
+
+            ret.add(piece.substring(1, j));
+            ret.add(piece.substring(j + 1));
+        }
+
+        return ret;
     }
 
     /**

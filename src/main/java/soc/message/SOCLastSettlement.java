@@ -147,6 +147,33 @@ public class SOCLastSettlement extends SOCMessage
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Converts settlement coordinate to decimal from hexadecimal format.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        String s = SOCMessage.stripAttribNames(messageStrParams);
+        if (s == null)
+            return null;
+
+        String[] pieces = s.split(SOCMessage.sep2);
+        if (pieces.length < 3)
+            return null;
+
+        pieces[2] = Integer.toString(Integer.parseInt(pieces[2], 16));
+
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0; i < pieces.length; ++i)
+            ret.append(pieces[i]).append(sep2_char);
+
+        return ret.toString();
+    }
+
+    /**
      * @return a human readable form of the message
      */
     public String toString()

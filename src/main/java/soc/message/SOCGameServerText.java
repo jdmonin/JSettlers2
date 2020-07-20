@@ -59,10 +59,13 @@ public class SOCGameServerText extends SOCMessage
     /**
      * Our token separator; not the normal {@link SOCMessage#sep2}.
      * Used in {@link #parseDataStr(String)} to get all of the text,
-     * by choosing an unlikely separator character.
+     * as a separator character unlikely to be found in text: {@code (char) 1}.
+     *<P>
      * {@link SOCGameTextMsg} overrides {@code sep2} instead.
+     *<P>
+     * Before v2.4.10, this was private and named {@code unlikely_char1}.
      */
-    private static final String unlikely_char1 = Character.toString( (char) 1 );
+    public static final String UNLIKELY_CHAR1 = Character.toString( (char) 1 );
 
     /**
      * Name of game
@@ -122,7 +125,7 @@ public class SOCGameServerText extends SOCMessage
      */
     public static String toCmd(final String ga, final String tm)
     {
-        return GAMESERVERTEXT + sep + ga + unlikely_char1 + tm;
+        return GAMESERVERTEXT + sep + ga + UNLIKELY_CHAR1 + tm;
     }
 
     /**
@@ -135,7 +138,7 @@ public class SOCGameServerText extends SOCMessage
     {
         final String ga, tm;
 
-        StringTokenizer st = new StringTokenizer(s, unlikely_char1);
+        StringTokenizer st = new StringTokenizer(s, UNLIKELY_CHAR1);
 
         try
         {
@@ -148,6 +151,27 @@ public class SOCGameServerText extends SOCMessage
         }
 
         return new SOCGameServerText(ga, tm);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Changes separator after game to the {@link #UNLIKELY_CHAR1} expected by {@link #parseDataStr(String)}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        if (! messageStrParams.startsWith("game="))
+            return messageStrParams;  // probably malformed
+        final int i = messageStrParams.indexOf("|text=");
+        if (i <= 0)
+            return messageStrParams;
+
+        final String ga = messageStrParams.substring(5, i),
+            tm = messageStrParams.substring(i + 6);
+        return ga + UNLIKELY_CHAR1 + tm;
     }
 
     /**

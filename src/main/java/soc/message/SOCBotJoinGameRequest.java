@@ -157,14 +157,17 @@ public class SOCBotJoinGameRequest extends SOCMessage
     }
 
     /**
+     * Simple human-readable delimited representation, used for debug purposes.
+     *<P>
+     * Before v2.4.10, opts didn't contain game option details, only "null" or "(non-null)".
      * @return a human readable form of the message
      */
     @Override
     public String toString()
     {
-        String s = "SOCBotJoinRequest:game=" + game + "|playerNumber=" + playerNumber;
+        String s = "SOCBotJoinGameRequest:game=" + game + "|playerNumber=" + playerNumber;
         if (opts != null)
-            s += "|opts=(non-null)";
+            s += "|opts=" + SOCGameOption.packOptionsToString(opts, false, false);
         else
             s += "|opts=null";
         return s;

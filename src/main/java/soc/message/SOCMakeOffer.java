@@ -192,8 +192,8 @@ public class SOCMakeOffer extends SOCMessage
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
      * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
-     * @param message Params part of a message string formatted by {@link #toString()}; not null
-     * @return Message parameters without attribute names
+     * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @since 2.4.10
      */
     public static String stripAttribNames(String message)
@@ -204,9 +204,11 @@ public class SOCMakeOffer extends SOCMessage
         // strip with leading delim (hardcode here for now)
         message = message.replaceAll("\\|unknown=0", "");
         String s = SOCMessage.stripAttribNames(message);
+        if (s == null)
+            return null;
         String[] pieces = s.split(SOCMessage.sep2);
 
-        StringBuffer ret = new StringBuffer();
+        StringBuilder ret = new StringBuilder();
         int[] skipIds = new int[]{1, -1};  // Append a -1 at the end so we don't have to worry about running off the end
         int si = 0; // Which index of skipIds are we currently looking for?
         for (int i = 0; i < pieces.length; i++)

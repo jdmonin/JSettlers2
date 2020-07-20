@@ -18,6 +18,7 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import soc.game.SOCResourceConstants;
@@ -267,19 +268,85 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a list for {@link #parseDataStr(List)}.
+     * Handles elemNum=value pairs, undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed
+     * @since 2.4.10
+     */
+    public static List<String> stripAttribsToList(String messageStrParams)
+    {
+        // don't call SOCMessage.stripAttribsToList, we need the e# names in elemNum=value pairs
+
+        String[] pieces = messageStrParams.split(sepRE);
+        // [0] game=...
+        // [1] playerNum=...
+        // [2] actionType=...
+        // [3] e#=#,e#=#,...
+
+        if (pieces.length != 4)
+            return null;
+
+        List<String> ret = new ArrayList<>();
+
+        if (pieces[0].startsWith("game="))
+            ret.add(pieces[0].substring(5));
+        else
+            return null;
+
+        if (pieces[1].startsWith("playerNum="))
+            ret.add(pieces[1].substring(10));
+        else
+            return null;
+
+        String act = pieces[2];
+        if (! act.startsWith("actionType="))
+            return null;
+        act = act.substring(11);
+        if (! Character.isDigit(act.charAt(0)))
+        {
+            for (int ac = 0; ac < SOCPlayerElement.ACTION_STRINGS.length; ++ac)
+            {
+                if (SOCPlayerElement.ACTION_STRINGS[ac].equals(act))
+                {
+                    act = Integer.toString(ac + 100);
+                    break;
+                }
+            }
+        }
+        ret.add(act);
+
+        // "e5=9,e7=12" -> "5", "9, "7", "12"
+        pieces = pieces[3].split(",");
+        for (int i = 0; i < pieces.length; ++i)
+        {
+            String piece = pieces[i];  // "e5=9"
+            if (piece.charAt(0) != 'e')
+                return null;
+
+            int j = piece.indexOf('=');
+            if (j < 2)
+                return null;
+
+            ret.add(piece.substring(1, j));
+            ret.add(piece.substring(j + 1));
+        }
+
+        return ret;
+    }
+
+    /**
      * @return a human readable form of the message
      * @since 2.0.00
      */
     public String toString()
     {
         final String act;
-        switch (actionType)
-        {
-        case SOCPlayerElement.SET:  act = "SET";  break;
-        case SOCPlayerElement.GAIN: act = "GAIN"; break;
-        case SOCPlayerElement.LOSE: act = "LOSE"; break;
-        default: act = Integer.toString(actionType);
-        }
+        if ((actionType >= 100) && ((actionType - 100) < SOCPlayerElement.ACTION_STRINGS.length))
+            act = SOCPlayerElement.ACTION_STRINGS[actionType - 100];
+        else
+            act = Integer.toString(actionType);
 
         StringBuilder sb = new StringBuilder
             ("SOCPlayerElements:game=" + game + "|playerNum=" + playerNumber + "|actionType=" + act + '|');

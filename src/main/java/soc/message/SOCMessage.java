@@ -26,7 +26,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -1044,18 +1046,56 @@ public abstract class SOCMessage implements Serializable, Cloneable
             @SuppressWarnings("unchecked")
             Class<SOCMessage> c = (Class<SOCMessage>) Class.forName("soc.message." + className);
 
-            Method m = c.getMethod("stripAttribNames", String.class);
+            Method m;
+
+            // if SOCMessageMulti, look for stripAttribsToList first
+            if (SOCMessageMulti.class.isAssignableFrom(c))
+            {
+                m = c.getMethod("stripAttribsToList", String.class);
+                if (! Modifier.isStatic(m.getModifiers()))
+                    throw new ParseException
+                        (className + ".stripAttribsToList must be static", 0);
+                if (m != null)
+                {
+                    currentCall = m.getDeclaringClass().getName() + "." + "stripAttribsToList";
+                    @SuppressWarnings("unchecked")
+                    List<String> treatedAttribs = (List<String>) m.invoke(null, msgBody);
+                    if (treatedAttribs == null)
+                        throw new InputMismatchException
+                            ("Unparsable message: stripAttribsToList: " + messageStr);
+
+                    m = c.getMethod("parseDataStr", List.class);
+                    if (m == null)
+                        throw new ParseException
+                            (className + ".parseDataStr(List) not found", 0);
+                    if (! Modifier.isStatic(m.getModifiers()))
+                        throw new ParseException
+                            (className + ".parseDataStr(List) must be static", 0);
+                    currentCall = m.getDeclaringClass().getName() + "." + "parseDataStr";
+                    Object o = m.invoke(null, treatedAttribs);
+                    if (o == null)
+                        throw new InputMismatchException
+                            ("Unparsable message: parseDataStr(List): " + messageStr);
+
+                    return (SOCMessage) o;
+                }
+            }
+
+            m = c.getMethod("stripAttribNames", String.class);
             if (! Modifier.isStatic(m.getModifiers()))
                 throw new ParseException
                     (className + ".stripAttribNames must be static", 0);
-            currentCall = m.getClass().getName() + "." + "stripAttribNames";
+            currentCall = m.getDeclaringClass().getName() + "." + "stripAttribNames";
             String treatedAttribs = (String) m.invoke(null,  msgBody);
+            if (treatedAttribs == null)
+                throw new InputMismatchException
+                    ("Unparsable message: stripAttribNames: " + messageStr);
 
             m = c.getMethod("parseDataStr", String.class);
             if (! Modifier.isStatic(m.getModifiers()))
                 throw new ParseException
                     (className + ".parseDataStr must be static", 0);
-            currentCall = m.getClass().getName() + "." + "parseDataStr";
+            currentCall = m.getDeclaringClass().getName() + "." + "parseDataStr";
             Object o = m.invoke(null, treatedAttribs);
             if (o == null)
             {
@@ -1065,7 +1105,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 //  log file, just in case.
 
                 throw new InputMismatchException
-                    ("Unparsable message: " + messageStr);
+                    ("Unparsable message: parseDataStr: " + messageStr);
             }
 
             return (SOCMessage) o;
@@ -1076,6 +1116,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             | IllegalAccessException | InvocationTargetException | ExceptionInInitializerError ex) {
             throw new ParseException
                 ("Reflection error calling " + currentCall + ": " + ex, 0);
+        } catch (InputMismatchException ex) {
+            throw ex;  // probably from recursive or "super" call of this method
         } catch (Exception ex) {
             throw new ParseException
                 ("Exception from " + currentCall + ": " + ex, 0);
@@ -1084,25 +1126,54 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}
+     * to pass to the message class's {@code parseDataStr(String)}.
      * Some messages will need to override this (new game with options,
-     *  any of the types which use hex encoding of coordinates)
-     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not null
-     * @return Message parameters without attribute names
+     * any of the types which use hex encoding of coordinates).
+     *<P>
+     * For {@link SOCMessageMulti} subclasses, use or override {@link #stripAttribsToList(String)} instead.
+     *
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed.
+     *     If {@code messageStrParams} is "", returns "".
+     * @see #stripAttribsToList(String)
      * @since 2.4.10
      */
     public static String stripAttribNames(String messageStrParams)
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         for (String s : messageStrParams.split(sepRE))
         {
             int eqIdx = s.indexOf('=');
-            // Not sure what to do if there is no equals?
-            sb.append(s.substring(eqIdx + 1)).append(',');
+            // if no '=', appends entire string
+            sb.append(s.substring(eqIdx + 1)).append(sep2_char);
         }
 
         return sb.substring(0, sb.length() - 1);  // omit final ','
+    }
+
+    /**
+     * For a {@link SOCMessageMulti} message, strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a list for {@link #parseMsgStr(String)} to pass to the
+     * message class's {@code parseDataStr(List)}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed.
+     *     If {@code messageStrParams} is "", returns a list with "" as its sole element.
+     * @see #stripAttribNames(String)
+     * @since 2.4.10
+     */
+    public static List<String> stripAttribsToList(String messageStrParams)
+    {
+        String[] params = messageStrParams.split(sepRE);
+        for (int i = 0; i < params.length; ++i)
+        {
+            int eqIdx = params[i].indexOf('=');
+            if (eqIdx > 0)
+                params[i] = params[i].substring(eqIdx + 1);
+        }
+
+        return Arrays.asList(params);
     }
 
 }

@@ -213,8 +213,8 @@ public class SOCGameTextMsg extends SOCMessage
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
      * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
-     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not null
-     * @return Message parameters without attribute names
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @since 2.4.10
      */
     public static String stripAttribNames(String messageStrParams)
@@ -223,6 +223,8 @@ public class SOCGameTextMsg extends SOCMessage
         // Only replace the first two commas; everything after that is part of the message text
 
         String ret = SOCMessage.stripAttribNames(messageStrParams);
+        if (ret == null)
+            return null;
         for (int i = 0; i < 2; i++)
             ret = ret.replaceFirst(SOCMessage.sep2, sep2);
 
