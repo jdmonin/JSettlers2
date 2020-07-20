@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -194,6 +195,11 @@ public class SOCPickResources extends SOCMessage
         }
 
         return new SOCPickResources(ga, cl, or, sh, wh, wo);
+    }
+
+    public static String stripAttribNames(String message) {
+        message = message.replace("resources=",  "");
+        return SOCMessage.stripAttribNames(message);
     }
 
     /**

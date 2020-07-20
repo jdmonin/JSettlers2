@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2008-2010,2012-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -207,6 +208,15 @@ public class SOCGameTextMsg extends SOCMessage
         }
 
         return new SOCGameTextMsg(ga, nn, tm);
+    }
+
+    // This uses special separators, presumably to handle special chars in the message itself.  Only replace the first two commas - everything after that is in the message
+    public static String stripAttribNames(String str) {
+        String ret = SOCMessage.stripAttribNames(str);
+        for (int i=0; i<2; i++) {
+                ret = ret.replaceFirst(SOCMessage.sep2, sep2);
+        }
+        return ret;
     }
 
     /**

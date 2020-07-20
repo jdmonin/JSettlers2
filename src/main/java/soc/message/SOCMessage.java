@@ -3,6 +3,7 @@
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@
 package soc.message;
 
 import java.io.Serializable;
-
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
@@ -429,6 +430,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @see #sep_char
      */
     public static final String sep = "|";
+
+    // Provide this in reg-exp form for replacement
+    public static final String sepRE = "\\|";
 
     /**
      * Secondary separator token SEP2, as string. SEP2 is ",".
@@ -983,6 +987,72 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             return null;
         }
+    }
+
+    /**
+     * Parse a message from a log file (assume date is stripped).
+     * Use reflection to call the appropriate parseDataStr method (this isn't
+     *  guaranteed to be there by the abstract class (impossible to do without parameterization,
+     *  which isn't in original JSettlers).
+     * Also call a function to treat the
+     * @param message
+     * @return
+     */
+    public static SOCMessage parseMsgStr(String message) {
+        // TODO: this could be problematic if params contain ":" - that will definitely happen
+        //  in chat :P
+
+        // pieces[0] = classname
+        // pieces[1] = params
+        try {
+            int colonIdx = message.indexOf(':');
+            String className = message.substring(0, colonIdx);
+            String msgBody = message.substring(colonIdx+1);
+
+                Class<SOCMessage> c = (Class<SOCMessage>) Class.forName("soc.message." + className);
+                Method m = c.getMethod("stripAttribNames", String.class);
+                String treatedAttribs = (String) m.invoke(null,  msgBody);
+
+                m = c.getMethod("parseDataStr", String.class);
+                Object o = m.invoke(null, treatedAttribs);
+                if (o == null) {
+                        // This occurs when a message can't be parsed.  Likely means stripAttribNames
+                        //  needs to be overridden.  Doesn't seem to happen for any replay-relevant messages.
+                        // Generally a good idea to put a breakpoint here and debug any time you handle a new
+                        //  log file, just in case.
+                        System.err.println("Unparsable message: " + message);
+                }
+                return (SOCMessage) o;
+        }
+        catch (Exception ex) {
+                // This seems to only happen with GAME-TEXT-MESSAGE, which we could handle as a special case,
+                // but is a client generated message and so unimportant during replay.
+                //if(message.contains("GAME-TEXT-MESSAGE")){
+                //      return new SOCGameTextMessage(message);
+
+                //}
+
+                return null;
+        }
+    }
+
+    /**
+     * Strip out the attribute names and spit out a simple CSV
+     * This is the default CSV version - some messages will need to extend this (eg new game with options,
+     *  any of the types which use hex encoding of coordinates)
+     * TODO: Give this a more descriptive name - stripping attrib names is only part of what this does.
+     * @param str
+     * @return
+     */
+    public static String stripAttribNames(String str) {
+        StringBuffer sb = new StringBuffer();
+        String[] pieces = str.split(sepRE);
+        for (String s : pieces) {
+            int eqIdx = s.indexOf('=');
+            // Not sure what to do if there is no equals?
+            sb.append(s.substring(eqIdx+1)).append(",");
+        }
+        return sb.substring(0, sb.length()-1);
     }
 
 }

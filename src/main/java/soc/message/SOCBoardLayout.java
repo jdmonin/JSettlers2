@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -323,6 +324,24 @@ public class SOCBoardLayout extends SOCMessage
         }
 
         return new SOCBoardLayout(ga, hl, nl, rh, true);
+    }
+
+    // Totally different format - it's just one long CSV
+    public static String stripAttribNames(String text) {
+        String[] pieces = SOCMessage.stripAttribNames(text).split(SOCMessage.sep2);
+        StringBuffer ret = new StringBuffer();
+        ret.append(pieces[0]);
+        ret.append(sep2);
+        for (int i=0; i<2; i++) {
+                // strip the leading "{ " and the trailing "}".  The space before the trailer will become a comma, exactly as we want.
+                String s = pieces[i+1];
+                s = s.substring(2, s.length()-1);
+                ret.append(s.replace(' ', sep2_char));
+        }
+        // Now append the robberhex - need to convert from hex string to int - strip 0x and parse with radix=16
+        int robber = Integer.parseInt(pieces[3].substring(2), 16);
+        ret.append(robber);
+        return ret.toString();
     }
 
     /**

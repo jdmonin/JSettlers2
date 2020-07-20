@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -163,6 +164,20 @@ public class SOCMoveRobber extends SOCMessage
         }
 
         return new SOCMoveRobber(na, pn, co);
+    }
+
+    // Robber coords are in hex format
+    public static String stripAttribNames(String message) {
+        String s = SOCMessage.stripAttribNames(message);
+        int i = s.lastIndexOf(SOCMessage.sep2_char);
+
+        StringBuffer ret = new StringBuffer();
+        ret.append(s.substring(0, i+1));
+        String robberHex = s.substring(i+1);
+
+        ret.append(Integer.parseInt(robberHex, 16));
+        return ret.toString();
+
     }
 
     /**
