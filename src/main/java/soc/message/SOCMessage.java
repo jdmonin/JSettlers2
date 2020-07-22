@@ -434,10 +434,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * For multi-messages, multiple SEP are allowed; see {@link SOCMessageMulti}.
      * SEP is "|".
      * @see #sep_char
+     * @see #sepRE
      */
     public static final String sep = "|";
 
-    // Provide this in reg-exp form for replacement
+    /**
+     * Main {@link #sep SEP} separator, in regexp form for splits and replacements.
+     * @since 2.4.10
+     */
     public static final String sepRE = "\\|";
 
     /**
@@ -1112,8 +1116,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
         } catch (ClassNotFoundException ex) {
             throw new ParseException
                 ("Class not found" + ((className != null) ? ": " + className : "") + ": " + messageStr, 0);
+        } catch (InvocationTargetException ex) {
+            throw new ParseException
+                ("Exception from " + currentCall + ": " + ex.getCause(), 0);
         } catch (NoSuchMethodException | SecurityException
-            | IllegalAccessException | InvocationTargetException | ExceptionInInitializerError ex) {
+            | IllegalAccessException | ExceptionInInitializerError ex) {
             throw new ParseException
                 ("Reflection error calling " + currentCall + ": " + ex, 0);
         } catch (InputMismatchException ex) {

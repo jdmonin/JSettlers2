@@ -94,8 +94,9 @@ public class SOCDiceResultResources extends SOCMessageTemplateMi
     /**
      * Builder for server to tell clients about players' gained resources and new total counts.
      * Only players with nonzero {@link SOCPlayer#getRolledResources()}
-     * {@link SOCResourceSet#getKnownTotal() .getKnownTotal()} are included.
-     * If no player gained any known resources, returns {@code null}.
+     * {@link SOCResourceSet#getKnownTotal() .getKnownTotal()} are included;
+     * also skips players having {@link SOCGame#isSeatVacant(int) ga.isSeatVacant(pn)}.
+     * Ignores game state.
      * @param ga  Game to check for rolled resources
      * @return  Message for this game's rolled resources, or {@code null} if no players gained known resources
      */

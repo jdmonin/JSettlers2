@@ -2799,7 +2799,11 @@ public class SOCBoardAtServer extends SOCBoardLarge
     /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * get the list of Legal Sea Edges arranged for the players not vacant.
-     * Arranged in same player order as the Lone Settlement locations in Added Layout Part {@code "LS"}.
+     *<P>
+     * Arranged in same player order as the Lone Settlement locations in Added Layout Part {@code "LS"}
+     * set up in {@link #startGame_putInitPieces(SOCGame)}:
+     * A player number's LSE and LS may differ from game to game, based on
+     * which lower-numbered seats are vacant, to avoid spacing gaps on the board.
      *
      * @param ga  Game data, for {@link SOCGame#maxPlayers} and {@link SOCGame#isSeatVacant(int)}
      * @return  Edge data from {@link #PIR_ISL_SEA_EDGES}, containing an array for each
@@ -2811,7 +2815,6 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *          is a range of the valid edges from C04 through C0D inclusive.
      *          <P>
      *          If game doesn't have {@link SOCGameOption#K_SC_PIRI}, returns {@code null}.
-     * @see #startGame_putInitPieces(SOCGame)
      */
     public static final int[][] getLegalSeaEdges(final SOCGame ga)
     {
@@ -2884,6 +2887,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * For {@code _SC_PIRI}, also calls each player's {@link SOCPlayer#addLegalSettlement(int, boolean)}
      * for their Lone Settlement location (adds layout part "LS").
      * Vacant player numbers get 0 for their {@code "LS"} element.
+     * (Same per-player arrangement as {@link #getLegalSeaEdges(SOCGame)})
      *<P>
      * Called only at server. For a method called during game start
      * at server and clients, see {@link SOCGame#updateAtBoardLayout()}.
@@ -2899,8 +2903,6 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * If ship placement is restricted by the scenario, please call each player's
      * {@link SOCPlayer#setRestrictedLegalShips(int[])} before calling this method,
      * so the legal and potential arrays will be initialized.
-     *
-     * @see #getLegalSeaEdges(SOCGame)
      */
     public void startGame_putInitPieces(SOCGame ga)
     {

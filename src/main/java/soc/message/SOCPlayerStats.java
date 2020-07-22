@@ -39,6 +39,9 @@ import soc.game.SOCResourceConstants;
  *   Older clients would ignore the extra item, but wouldn't be compatible
  *   anyway with any game scenario that features gold hexes.
  *</UL>
+ *
+ * Because this is one player's stats sent only to their client, doesn't include player number.
+ *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't care about their player stats.
  *

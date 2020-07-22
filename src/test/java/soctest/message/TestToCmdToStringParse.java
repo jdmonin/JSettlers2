@@ -25,66 +25,24 @@ import java.lang.reflect.Modifier;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Set;
 
+import soc.game.SOCBoard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCGame.SeatLockState;
-import soc.message.SOCAcceptOffer;
-import soc.message.SOCBankTrade;
-import soc.message.SOCBoardLayout;
-import soc.message.SOCBotJoinGameRequest;
-import soc.message.SOCBuyDevCardRequest;
-import soc.message.SOCChangeFace;
-import soc.message.SOCChoosePlayer;
-import soc.message.SOCClearOffer;
-import soc.message.SOCClearTradeMsg;
-import soc.message.SOCDeleteGame;
-import soc.message.SOCDevCardAction;
-import soc.message.SOCDiceResult;
-import soc.message.SOCDiscardRequest;
-import soc.message.SOCFirstPlayer;
-import soc.message.SOCGameElements;
+import soc.message.*;
 import soc.message.SOCGameElements.GEType;
-import soc.message.SOCGameServerText;
-import soc.message.SOCGameState;
-import soc.message.SOCGameStats;
-import soc.message.SOCGameTextMsg;
-import soc.message.SOCJoinGame;
-import soc.message.SOCJoinGameAuth;
-import soc.message.SOCLargestArmy;
-import soc.message.SOCLastSettlement;
-import soc.message.SOCLeaveAll;
-import soc.message.SOCLeaveGame;
-import soc.message.SOCLongestRoad;
-import soc.message.SOCMakeOffer;
-import soc.message.SOCMessage;
-import soc.message.SOCMovePiece;
-import soc.message.SOCMoveRobber;
-import soc.message.SOCNewGame;
-import soc.message.SOCNewGameWithOptions;
-import soc.message.SOCPlayDevCardRequest;
-import soc.message.SOCPlayerElement;
-import soc.message.SOCStartGame;
 import soc.message.SOCPlayerElement.PEType;
-import soc.message.SOCPlayerElements;
-import soc.message.SOCPutPiece;
-import soc.message.SOCRejectOffer;
-import soc.message.SOCRobotDismiss;
-import soc.message.SOCRollDice;
-import soc.message.SOCRollDicePrompt;
-import soc.message.SOCSVPTextMessage;
-import soc.message.SOCSetPlayedDevCard;
-import soc.message.SOCSetSeatLock;
-import soc.message.SOCSetTurn;
-import soc.message.SOCSimpleAction;
-import soc.message.SOCSitDown;
-import soc.message.SOCTurn;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -114,6 +72,16 @@ public class TestToCmdToStringParse
             final SOCMessage msg = (SOCMessage) compareCase[0];
             final Class<? extends SOCMessage> msgClass = msg.getClass();
             final String expectedToCmd = (String) compareCase[1], expectedToString = (String) compareCase[2];
+            Set<String> ignoreObjFields = null;
+            if (compareCase.length > 3)
+            {
+                if (compareCase[3] == OPT_IGNORE_OBJ_FIELDS)
+                {
+                    @SuppressWarnings("unchecked")
+                    Set<String> ignores = (Set<String>) compareCase[4];
+                    ignoreObjFields = ignores;
+                }
+            }
 
             String s = msg.toCmd();
             if (! s.equals(expectedToCmd))
@@ -128,7 +96,7 @@ public class TestToCmdToStringParse
                 } else if (! msgClass.isInstance(rev)) {
                     res.append(" toMsg(cmd): got wrong class " + rev.getClass().getSimpleName());
                 } else {
-                    compareMsgObjFields(msgClass, msg, rev, res);
+                    compareMsgObjFields(msgClass, msg, rev, res, ignoreObjFields);
                 }
             }
 
@@ -147,7 +115,7 @@ public class TestToCmdToStringParse
                     } else if (! msgClass.isInstance(rev)) {
                         res.append(" parseMsgStr(s): got wrong class " + rev.getClass().getSimpleName());
                     } else {
-                        compareMsgObjFields(msgClass, msg, rev, res);
+                        compareMsgObjFields(msgClass, msg, rev, res, ignoreObjFields);
                     }
                 } catch (InputMismatchException e) {
                     res.append(" parseMsgStr(s) rejected: " + e.getMessage());
@@ -177,10 +145,12 @@ public class TestToCmdToStringParse
      * @param mActual  Message from parsed string, to compare against {@code mExpected}
      * @param res  String where comparison results are reported;
      *     will add text to this only if field compare(s) fail.
+     * @param ignoreObjFields  Instance field names to ignore during comparison, or {@code null}
      */
     private void compareMsgObjFields
         (final Class<? extends SOCMessage> msgClass,
-         final SOCMessage mExpected, final SOCMessage mActual, final StringBuilder res)
+         final SOCMessage mExpected, final SOCMessage mActual, final StringBuilder res,
+         final Set<String> ignoreObjFields)
     {
         final String className = msgClass.getSimpleName();
         assertTrue("mExpected instanceof " + className, msgClass.isInstance(mExpected));
@@ -192,6 +162,9 @@ public class TestToCmdToStringParse
                 continue;
 
             final String fName = f.getName();
+            if ((ignoreObjFields != null) && ignoreObjFields.contains(fName))
+                continue;
+
             try
             {
 
@@ -208,6 +181,12 @@ public class TestToCmdToStringParse
                     if ((valueExpected instanceof int[]) && (valueActual instanceof int[]))
                     {
                         if (! Arrays.equals((int[]) valueExpected, (int[]) valueActual))
+                            res.append
+                                (" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
+                    }
+                    else if ((valueExpected instanceof int[][]) && (valueActual instanceof int[][]))
+                    {
+                        if (! Arrays.deepEquals((int[][]) valueExpected, (int[][]) valueActual))
                             res.append
                                 (" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
                     }
@@ -239,6 +218,7 @@ public class TestToCmdToStringParse
      *<UL>
      * <LI> string -> "string"
      * <LI> int[] -> [-2, 1, 3, 0]
+     * <LI> int[][] -> [[1, 2, 3], [3079, -3083, 3335]]
      * <LI> boolean[] -> [false, true, true, true]
      * <LI> Object[] -> [each elem.toString]
      * <LI> null -> null
@@ -256,6 +236,8 @@ public class TestToCmdToStringParse
             ret = '"' + (String) val + '"';
         else if (val instanceof int[])
             ret = Arrays.toString((int[]) val);
+        else if (val instanceof int[][])
+            ret = Arrays.deepToString((int[][]) val);
         else if (val instanceof boolean[])
             ret = Arrays.toString((boolean[]) val);
         else if (val instanceof Object[])
@@ -267,8 +249,40 @@ public class TestToCmdToStringParse
     }
 
     /**
-     * Message parsing round-trip test cases for {@link #testRoundTripParsing()}.
+     * {@link SOCDiceResultResources} has no server constructor, only {@code buildForGame(SOCGame)}, and
+     * {@link SOCPlayerStats#SOCPlayerStats(SOCPlayer, int) SOCPlayerStats constructor} also needs a SOCGame object.
+     * Player 1's {@link SOCPlayer#getRolledResources()} and {@link SOCPlayer#getResourceRollStats()}:
+     * 4 brick, 2 wood. Player 3: 2 ore, 5 wheat.
      */
+    private static final SOCGame GAME_WITH_PLAYER_RESOURCES;
+    static
+    {
+        final SOCGame ga = new SOCGame("ga");
+        ga.addPlayer("p1", 1);
+        ga.addPlayer("p3", 3);
+        ga.getPlayer(1).addRolledResources(new SOCResourceSet(4, 0, 0, 0, 2, 0));
+        ga.getPlayer(3).addRolledResources(new SOCResourceSet(0, 2, 0, 5, 0, 0));
+
+        GAME_WITH_PLAYER_RESOURCES = ga;
+    }
+
+    /**
+     * Marker to say next item is a <tt>{@link Set}&lt;String&gt;</tt> of fields to ignore when comparing object
+     * fields in {@link #compareMsgObjFields(Class, SOCMessage, SOCMessage, StringBuilder, Set)}.
+     */
+    private static final Object OPT_IGNORE_OBJ_FIELDS = new Object();
+
+    /**
+     * Message parsing round-trip test cases for {@link #testRoundTripParsing()}.
+     * Each element array's format is:
+     *<UL>
+     * <LI> Message object with expected field values
+     * <LI> {@link SOCMessage#toCmd()} expected output, for {@link SOCMessage#toMsg(String)} parsing
+     * <LI> {@link SOCMessage#toString()} expected output, for {@link SOCMessage#parseMsgStr(String)} parsing
+     *</UL>
+     * The element can end there or have markers like {@link #OPT_IGNORE_OBJ_FIELDS} and their associated data.
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })  // for SOCPotentialSettlements constructor calls
     private static final Object[][] TOCMD_TOSTRING_COMPARES =
     {
         {new SOCAcceptOffer("ga", 2, 3), "1039|ga,2,3", "SOCAcceptOffer:game=ga|accepting=2|offering=3"},
@@ -279,6 +293,7 @@ public class TestToCmdToStringParse
         },
         {new SOCBotJoinGameRequest("ga", 3, null), "1023|ga,3,-", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=null"},
         {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=PL=6"},
+        {new SOCBuildRequest("ga", SOCPlayingPiece.CITY), "1043|ga,2", "SOCBuildRequest:game=ga|pieceType=2"},
         {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyDevCardRequest:game=ga"},  // TODO SOCBuyCardRequest too (v1.x)?
         {
             new SOCBoardLayout
@@ -289,10 +304,23 @@ public class TestToCmdToStringParse
             "1014|ga,50,6,65,6,6,5,3,4,10,8,2,3,1,0,6,6,1,1,4,3,4,11,8,2,5,5,2,6,6,5,3,4,100,19,6,101,6,-1,-1,-1,-1,-1,1,4,0,-1,-1,5,2,6,-1,-1,-1,7,3,8,7,3,-1,-1,6,4,1,5,-1,-1,9,8,2,-1,-1,-1,-1,-1,155",
             "SOCBoardLayout:game=ga|hexLayout={ 50 6 65 6 6 5 3 4 10 8 2 3 1 0 6 6 1 1 4 3 4 11 8 2 5 5 2 6 6 5 3 4 100 19 6 101 6 }|numberLayout={ -1 -1 -1 -1 -1 1 4 0 -1 -1 5 2 6 -1 -1 -1 7 3 8 7 3 -1 -1 6 4 1 5 -1 -1 9 8 2 -1 -1 -1 -1 -1 }|robberHex=0x9b"
         },
+        {new SOCCancelBuildRequest("ga", SOCPlayingPiece.CITY), "1044|ga,2", "SOCCancelBuildRequest:game=ga|pieceType=2"},
         {new SOCChangeFace("ga", 3, 7), "1058|ga,3,7", "SOCChangeFace:game=ga|playerNumber=3|faceId=7"},
         {new SOCChoosePlayer("ga", 2), "1035|ga,2", "SOCChoosePlayer:game=ga|choice=2"},
+        {
+            new SOCChoosePlayerRequest("ga", new boolean[]{true, false, false, true}, true),
+            "1036|ga,NONE,true,false,false,true",
+            "SOCChoosePlayerRequest:game=ga|canChooseNone=true|choices=[true, false, false, true]"
+        },
+        {
+            new SOCChoosePlayerRequest("ga", new boolean[]{true, false, false, true}, false),
+            "1036|ga,true,false,false,true",
+            "SOCChoosePlayerRequest:game=ga|choices=[true, false, false, true]"
+        },
         {new SOCClearOffer("ga", 2), "1038|ga,2", "SOCClearOffer:game=ga|playerNumber=2"},
         {new SOCClearTradeMsg("ga", -1), "1042|ga,-1", "SOCClearTradeMsg:game=ga|playerNumber=-1"},
+        {new SOCDebugFreePlace("ga", 3, true), "1087|ga,3,0,1", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=0|coord=0x1"},
+        {new SOCDebugFreePlace("ga", 3, SOCPlayingPiece.SETTLEMENT, 0x405), "1087|ga,3,1,1029", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=1|coord=0x405"},
         {new SOCDeleteGame("ga"), "1015|ga", "SOCDeleteGame:game=ga"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, 6), "1046|ga,3,3,6", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardType=6"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_NEW, 9), "1046|ga,3,2,9", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_NEW|cardType=9"},
@@ -305,11 +333,27 @@ public class TestToCmdToStringParse
             "1046|ga,3,3,5,4",
             "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardTypes=[5, 4]"
         },
+        {new SOCDevCardCount("ga", 22), "1047|ga,22", "SOCDevCardCount:game=ga|numDevCards=22"},
         {new SOCDiceResult("ga", 9), "1028|ga,9", "SOCDiceResult:game=ga|param=9"},
-        /*
-SOCDiceResultResources:game=message-seqs|p=2|p=2|p=5|p=1|p=3|p=0|p=3|p=7|p=1|p=4
-         */
+        {
+            SOCDiceResultResources.buildForGame(GAME_WITH_PLAYER_RESOURCES),
+            "1092|ga|2|1|6|4|1|2|5|0|3|7|2|2|5|4",
+            "SOCDiceResultResources:game=ga|p=2|p=1|p=6|p=4|p=1|p=2|p=5|p=0|p=3|p=7|p=2|p=2|p=5|p=4",
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("playerNum", "playerRsrc", "playerResTotal"))
+        },
+        {
+            new SOCDiscard("ga", 3, new SOCResourceSet(2, 1, 3, 1, 2, 0)),
+            "1033|ga,2,1,3,1,2,0",
+            "SOCDiscard:game=ga|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
+        },
+        {
+            new SOCDiscard("ga", 2, 1, 3, 1, 2, 0),
+            "1033|ga,2,1,3,1,2,0",
+            "SOCDiscard:game=ga|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
+        },
         {new SOCDiscardRequest("ga", 4), "1029|ga,4", "SOCDiscardRequest:game=ga|numDiscards=4"},
+        {new SOCEndTurn("ga"), "1032|ga", "SOCEndTurn:game=ga"},
         {new SOCFirstPlayer("ga", 2), "1054|ga,2", "SOCFirstPlayer:game=ga|playerNumber=2"},
         {new SOCGameElements("ga", GEType.CURRENT_PLAYER, 1), "1096|ga|4|1", "SOCGameElements:game=ga|e4=1"},
         {
@@ -359,6 +403,10 @@ SOCGameMembers:game=ga|members=[testTradeDecline_p3, droid 1, robot 2, testTrade
             "1079|ga,-1,BC=t4,RD=f,N7=t7,PL=4",
             "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,N7=t7,PL=4"
         },
+        {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0)), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
+        {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
+        {new SOCPickResourceType("ga", SOCResourceConstants.SHEEP), "1053|ga,3", "SOCPickResourceType:game=ga|resType=3"},
+        {new SOCPieceValue("ga", SOCPlayingPiece.VILLAGE, 0xa06, 4, 0), "1095|ga,5,2566,4,0", "SOCPieceValue:game=ga|param1=5|param2=2566|param3=4|param4=0"},
         {new SOCPlayDevCardRequest("ga", SOCDevCardConstants.KNIGHT), "1049|ga,9", "SOCPlayDevCardRequest:game=ga|devCard=9"},
         {new SOCPlayerElement("ga", 1, SOCPlayerElement.SET, 105, 1), "1024|ga,1,100,105,1", "SOCPlayerElement:game=ga|playerNum=1|actionType=SET|elementType=105|amount=1"},
         {new SOCPlayerElement("ga", 2, SOCPlayerElement.LOSE, 4, 1, true), "1024|ga,2,102,4,1,Y", "SOCPlayerElement:game=ga|playerNum=2|actionType=LOSE|elementType=4|amount=1|news=Y"},
@@ -372,13 +420,73 @@ SOCGameMembers:game=ga|members=[testTradeDecline_p3, droid 1, robot 2, testTrade
             "1086|ga|2|100|18|69|15|0|10|13",
             "SOCPlayerElements:game=ga|playerNum=2|actionType=SET|e18=69,e15=0,e10=13"
         },
-        /*
-SOCPlayerStats:game=ga|p=1|p=2|p=5|p=0|p=3|p=0
-SOCPotentialSettlements:game=classic|playerNum=2|list=(empty)
-SOCPotentialSettlements:game=message-seqs|playerNum=3|list=c04 e05 60a
-         */
+        {
+            new SOCPlayerStats(GAME_WITH_PLAYER_RESOURCES.getPlayer(3), SOCPlayerStats.STYPE_RES_ROLL),
+            "1085|ga|1|0|2|0|5|0",
+            "SOCPlayerStats:game=ga|p=1|p=0|p=2|p=0|p=5|p=0"
+        },
+        {new SOCPotentialSettlements("ga", 2, new ArrayList<Integer>()), "1057|ga,2", "SOCPotentialSettlements:game=ga|playerNum=2|list=(empty)"},
+        {new SOCPotentialSettlements("ga", 3, new ArrayList<Integer>(Arrays.asList(0xc04, 0xe05, 0x60a))), "1057|ga,3,3076,3589,1546", "SOCPotentialSettlements:game=ga|playerNum=3|list=c04 e05 60a "},
+        // v2.x forms: For easier comparison, these tests all have 1 node in each land area set instead of many
+        {
+            // 1 player's info, non-null psNodes, no LSE
+            new SOCPotentialSettlements
+                ("ga", 0, new ArrayList<Integer>(Arrays.asList(0xa04, 0xa08)), 0,
+                 new HashSet[]{null, new HashSet(Arrays.asList(0xc02)), new HashSet(Arrays.asList(0x408)), new HashSet(Arrays.asList(0xa0f)), new HashSet(Arrays.asList(0x100c))},
+                 null ),
+            "1057|ga,0,2564,2568,NA,4,PAN,0,LA1,3074,LA2,1032,LA3,2575,LA4,4108",
+            "SOCPotentialSettlements:game=ga|playerNum=0|list=a04 a08 |pan=0|la1=c02 |la2=408 |la3=a0f |la4=100c "
+        },
+        {
+            // all players' info, "(null)" psNodes, no LSE
+            new SOCPotentialSettlements
+                ("ga", -1, null, 1,
+                 new HashSet[]{null, new HashSet(Arrays.asList(0x802)), new HashSet(Arrays.asList(0xc02))},
+                 null ),
+            "1057|ga,-1,NA,2,PAN,1,LA1,2050,LA2,3074",
+            "SOCPotentialSettlements:game=ga|playerNum=-1|list=(null)|pan=1|la1=802 |la2=c02 "
+        },
+        {
+            // 1 player's LSE, "(null)" psNodes
+            new SOCPotentialSettlements
+                ("ga", 3, null, 1,
+                 new HashSet[]{null, new HashSet(Arrays.asList(0xa0f)), new HashSet(Arrays.asList(0x60a))},
+                 new int[][]{{0xc07, -0xc0b, 0xd07, -0xd0b, 0xe04, -0xe0a, 0xa03}} ),
+            "1057|ga,3,NA,2,PAN,1,LA1,2575,LA2,1546,SE,c07,-c0b,d07,-d0b,e04,-e0a,a03",
+            "SOCPotentialSettlements:game=ga|playerNum=3|list=(null)|pan=1|la1=a0f |la2=60a |lse={{c07-c0b,d07-d0b,e04-e0a,a03}}"
+        },
+        {
+            // 1 player's LSE, "(fromAllLANodes)" psNodes
+            new SOCPotentialSettlements
+                ("ga", 3, null, 0,
+                 new HashSet[]{null, new HashSet(Arrays.asList(0xa0f)), new HashSet(Arrays.asList(0x60a))},
+                 new int[][]{{0xc07, -0xc0b, 0xd07, -0xd0b, 0xe04, -0xe0a, 0xa03}} ),
+            "1057|ga,3,NA,2,PAN,0,LA1,2575,LA2,1546,SE,c07,-c0b,d07,-d0b,e04,-e0a,a03",
+            "SOCPotentialSettlements:game=ga|playerNum=3|list=(fromAllLANodes)|pan=0|la1=a0f |la2=60a |lse={{c07-c0b,d07-d0b,e04-e0a,a03}}"
+        },
+        {
+            // 1 player's psList and LSE only, no LAs
+            new SOCPotentialSettlements
+                ("ga", 3,
+                 new ArrayList<Integer>(Arrays.asList(0xa04, 0xa08)),
+                 new int[][]{{0xc07, -0xc0b, 0xd07, -0xd0b, 0xe04, -0xe0a, 0xa03}}),
+            "1057|ga,3,2564,2568,NA,0,PAN,0,SE,c07,-c0b,d07,-d0b,e04,-e0a,a03",
+            "SOCPotentialSettlements:game=ga|playerNum=3|list=a04 a08 |lse={{c07-c0b,d07-d0b,e04-e0a,a03}}"
+        },
+        {
+            // all players' LSE, "(empty)" psNodes; final part of lse is {} to test: toCmd sends as if was {0}
+            new SOCPotentialSettlements
+                ("ga", 3, new ArrayList<Integer>(), 0,
+                 new HashSet[]{null, new HashSet(Arrays.asList(0xa0f)), new HashSet(Arrays.asList(0x60a))},
+                 new int[][]{{0xc07, -0xc0b, 0xe04, -0xe0a}, {}, {0xd07, -0xd0b, 0xa03}, {}} ),
+            "1057|ga,3,0,NA,2,PAN,0,LA1,2575,LA2,1546,SE,c07,-c0b,e04,-e0a,SE,SE,d07,-d0b,a03,SE,0",
+            "SOCPotentialSettlements:game=ga|playerNum=3|list=(empty)|pan=0|la1=a0f |la2=60a |lse={{c07-c0b,e04-e0a},{},{d07-d0b,a03},{}}"
+        },
         {new SOCPutPiece("ga", 3, 0, 1034), "1009|ga,3,0,1034", "SOCPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
+        {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|param1=2|param2=3|param3=3588"},
+        {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11"},
+        {new SOCRevealFogHex("ga", 3340, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|param1=3340|param2=5|param3=12"},
         {new SOCRobotDismiss("ga"), "1056|ga", "SOCRobotDismiss:game=ga"},
         {new SOCRollDice("ga"), "1031|ga", "SOCRollDice:game=ga"},
         {new SOCRollDicePrompt("ga", 3), "1072|ga,3", "SOCRollDicePrompt:game=ga|playerNumber=3"},
@@ -389,13 +497,19 @@ SOCPotentialSettlements:game=message-seqs|playerNum=3|list=c04 e05 60a
             "1068|ga,false,clear,true,false",
             "SOCSetSeatLock:game=ga|states=UNLOCKED,CLEAR_ON_RESET,LOCKED,UNLOCKED"
         },
+        /*
+SOCSetSpecialItem:game=w|op=SET|typeKey=_SC_WOND|gi=2|pi=0|pn=0|co=-1|lv=2|sv=w2
+         */
         {new SOCSetTurn("ga", 2), "1055|ga,2", "SOCSetTurn:game=ga|param=2"},
         {new SOCSimpleAction("ga", 3, 1, 22), "1090|ga,3,1,22,0", "SOCSimpleAction:game=ga|pn=3|actType=1|v1=22|v2=0"},
+        {new SOCSimpleRequest("ga", 2, 1001, 2562), "1089|ga,2,1001,2562,0", "SOCSimpleRequest:game=ga|pn=2|reqType=1001|v1=2562|v2=0"},
+        {new SOCSimpleRequest("ga", 2, 1001, 2562, 7), "1089|ga,2,1001,2562,7", "SOCSimpleRequest:game=ga|pn=2|reqType=1001|v1=2562|v2=7"},
         {new SOCSitDown("ga", "testp2", 2, false), "1012|ga,testp2,2,false", "SOCSitDown:game=ga|nickname=testp2|playerNumber=2|robotFlag=false"},
         {new SOCStartGame("ga", SOCGame.START1A), "1018|ga,5", "SOCStartGame:game=ga|gameState=5"},
         {new SOCSVPTextMessage("ga", 3, 2, "settling a new island", true), "1097|ga,3,2,settling a new island", "SOCSVPTextMessage:game=ga|pn=3|svp=2|desc=settling a new island"},
         {new SOCTurn("ga", 3, 0), "1026|ga,3", "SOCTurn:game=ga|playerNumber=3"},
         {new SOCTurn("ga", 3, SOCGame.ROLL_OR_CARD), "1026|ga,3,15", "SOCTurn:game=ga|playerNumber=3|gameState=15"},
+        // TODO SOCVersion
     };
 
     /** Tests for {@link SOCMessage#stripAttribNames(String)}. */

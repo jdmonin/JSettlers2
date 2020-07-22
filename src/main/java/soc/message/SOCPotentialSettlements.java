@@ -388,7 +388,7 @@ public class SOCPotentialSettlements extends SOCMessage
     private static String toCmd
         (String ga, int pn, final List<Integer> ps, final int pan, final HashSet<Integer>[] lan, final int[][] lse)
     {
-        StringBuffer cmd = new StringBuffer(POTENTIALSETTLEMENTS + sep + ga + sep2 + pn);
+        StringBuilder cmd = new StringBuilder(POTENTIALSETTLEMENTS + sep + ga + sep2 + pn);
 
         if (ps != null)
         {
@@ -631,19 +631,191 @@ public class SOCPotentialSettlements extends SOCMessage
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}
+     * to give to {@link #toCmd()}. Converts field values from their human-readable forms.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        // don't call SOCMessage.stripAttribNames(message), we need field names to parse here
+
+        String[] pieces = messageStrParams.split(sepRE);
+        if (pieces.length < 3)
+            return null;
+
+        // [0] game=
+        // [1] playerNum=
+        // [2] list=
+        // (may end here; all further fields are each optional)
+        // [3] pan=
+        // [i] la#=...
+        // [n] lse=...
+
+        StringBuilder ret = new StringBuilder();
+
+        if (pieces[0].startsWith("game="))
+            ret.append(pieces[0].substring(5));
+        else
+            return null;
+
+        if (pieces[1].startsWith("playerNum="))
+            ret.append(sep2_char).append(pieces[1].substring(10));
+        else
+            return null;
+
+        final int psListStatus;  // -1 null, 0 empty, 1 non-empty
+        String s = pieces[2];
+        if ((s.length() <= 5) || ! s.startsWith("list="))
+            return null;
+        s = s.substring(5);
+        if (s.equals("(null)") || s.equals("(fromAllLANodes)"))
+        {
+            psListStatus = -1;
+        } else {
+            if (s.equals("(empty)"))
+            {
+                psListStatus = 0;
+            } else {
+                psListStatus = 1;
+                for (String coordStr : s.split(" "))
+                    ret.append(sep2_char).append(Integer.toString(Integer.parseInt(coordStr, 16)));
+            }
+        }
+
+        if (pieces.length <= 3)
+            // nothing left to parse; not an "extended" v2.0 form with land areas and/or LSE
+            return ret.toString();
+
+        if (psListStatus == 0)
+            ret.append(sep2_char).append(0);  // extended forms send empty non-null psNodes as if contains 0
+
+        int pieceIdx = 3;
+        if (pieces[3].startsWith("pan="))
+        {
+            final int pan = Integer.parseInt(pieces[3].substring(4));
+
+            final List<List<Integer>> landAreaNodes = new ArrayList<>();
+            pieceIdx = 4;
+            for (; pieceIdx < pieces.length; ++pieceIdx)
+            {
+                String piece = pieces[pieceIdx];
+                if (! piece.startsWith("la"))
+                    break;
+
+                int i = piece.indexOf('=');  // "la4=a0f 60a ... "
+                if ((i < 3) || (i > 5))  // up to 3 digits is reasonable
+                    return null;
+                final int laNum = Integer.parseInt(piece.substring(2, i));
+                if (laNum <= 0)
+                    return null;
+                if ((laNum < landAreaNodes.size()) && (landAreaNodes.get(laNum) != null))
+                    return null;  // duplicate area number
+
+                List<Integer> nodes = new ArrayList<>();
+                String rhs = piece.substring(i + 1);
+                if (! rhs.equals("(empty)"))
+                    for (String node : rhs.split(" "))
+                        nodes.add(Integer.parseInt(node, 16));
+
+                while (laNum >= landAreaNodes.size())
+                    landAreaNodes.add(null);
+                landAreaNodes.set(laNum, nodes);
+            }
+
+            // done parsing LAs
+
+            // NA # PAN # LA# ... LA# ...
+            int numArea = landAreaNodes.size() - 1;
+            ret.append(",NA,").append(numArea);
+            ret.append(",PAN,").append(pan);
+            for (int i = 1; i <= numArea; ++i)
+            {
+                ret.append(",LA").append(i);
+                List<Integer> nodes = landAreaNodes.get(i);
+                if (nodes != null)
+                    for (Integer node : nodes)
+                        ret.append(sep2_char).append(node);
+            }
+        } else {
+            if (pieceIdx < pieces.length)
+                // message is only ps and lse: stub pan & la info like toCmd() does
+                ret.append(",NA,0,PAN,0");
+        }
+
+        if (pieceIdx < pieces.length)
+        {
+            String piece = pieces[pieceIdx];
+            final int pL = piece.length();
+            if (! (piece.startsWith("lse={") && piece.substring(pL - 2).equals("}}")))
+                return null;  // unknown token
+
+            // "lse={{c07-c0b,d07-d0b,e04-e0a},{207-20b,107-10b,4-a},{},{803-80a,903,905,a03,a04}}"
+            List<List<Integer>> lse = new ArrayList<>();
+            for (String subLseStr: piece.substring(6, pL - 2).split("\\},\\{", 99))
+                // 99 to not drop empty match at end; actual expected max is 6 players
+            {
+                List<Integer> subLse = new ArrayList<>();
+                if (! subLseStr.isEmpty())
+                    for (String item : subLseStr.split(","))
+                    {
+                        // "a03" or "c07-c0b"
+                        int i = item.indexOf('-');
+                        if (i == -1)
+                        {
+                            subLse.add(Integer.parseInt(item, 16));
+                        } else {
+                            subLse.add(Integer.parseInt(item.substring(0, i), 16));
+                            subLse.add(-Integer.parseInt(item.substring(i + 1), 16));
+                        }
+                    }
+
+                lse.add(subLse);
+            }
+
+            for (List<Integer> sublse : lse)
+            {
+                ret.append(",SE");
+                final int L = sublse.size();
+                for (int i = 0; i < L; ++i)
+                {
+                    ret.append(sep2_char).append(Integer.toString(sublse.get(i), 16));
+                    if (i + 1 < L)
+                    {
+                        int next = sublse.get(i + 1);
+                        if (next < 0)
+                        {
+                            ret.append(sep2_char).append(Integer.toString(next, 16));
+                            ++i;
+                        }
+                    }
+                }
+            }
+
+            // if last subLse was empty, pad with 0 to avoid no tokens in that subLse
+            if (lse.get(lse.size() - 1).isEmpty())
+                ret.append(",0");
+        }
+
+        return ret.toString();
+    }
+
+    /**
      * @return a human readable form of the message
      */
     @Override
     public String toString()
     {
-        StringBuffer s = new StringBuffer
+        StringBuilder s = new StringBuilder
             ("SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=");
-        if (psNodes == null)
+        if (psNodesFromAll)
+            s.append("(fromAllLANodes)");
+        else if (psNodes == null)
             s.append("(null)");
         else if (psNodes.isEmpty())
             s.append("(empty)");
-        else if (psNodesFromAll)
-            s.append("(fromAllLANodes)");
         else
             for (Integer number : psNodes)
             {
