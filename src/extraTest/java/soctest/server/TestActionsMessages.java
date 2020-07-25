@@ -31,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
@@ -52,9 +53,10 @@ import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
 import soctest.server.RecordingTesterServer.QueueEntry;
 import soctest.server.TestRecorder.StartedTestGameObjects;
+import soctest.server.savegame.TestLoadgame;
 
 /**
- * Extra testing to cover core game actions and their messages, as recorded by {@link RecordingTesterServer}.
+ * Extra testing to cover all core game actions and their messages, as recorded by {@link RecordingTesterServer}.
  * Expands coverage past the basic unit tests done by {@link TestRecorder}.
  * @since 2.4.10
  */
@@ -136,11 +138,12 @@ public class TestActionsMessages
             + (withBuildRequest ? "WB_" : "NB_") + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT_NAME, null, 0, null, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
-        final SOCBoardLarge board = objs.board;
+        final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
 
@@ -386,11 +389,12 @@ public class TestActionsMessages
         final String CLIENT_NAME = "testPlayDevCards_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT_NAME, null, 0, null, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
-        final SOCBoardLarge board = objs.board;
+        final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
 
@@ -733,11 +737,12 @@ public class TestActionsMessages
         final int CLIENT_PN = 3;
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, false, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT_NAME, null, 0, null, false, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
-        final SOCBoardLarge board = objs.board;
+        final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
 
@@ -1030,10 +1035,11 @@ public class TestActionsMessages
         final String CLIENT_NAME = "testBankPortTrad_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
-            TestRecorder.connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, true, clientAsRobot, othersAsRobot);
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT_NAME, null, 0, null, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer;
-        final SOCBoardLarge board = objs.board;
+        final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
 
@@ -1201,8 +1207,9 @@ public class TestActionsMessages
             CLIENT2_NAME = "testTrades_p2_" + nameSuffix;
         final int PN_C1 = 3, PN_C2 = 2;
 
-        final StartedTestGameObjects objs = TestRecorder.connectLoadJoinResumeGame
-            (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, true, clientAsRobot, othersAsRobot);
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
         final SOCGame ga = objs.gameAtServer;
         final String gaName = ga.getName();
@@ -1330,8 +1337,9 @@ public class TestActionsMessages
         final String CLIENT1_NAME = "testEndTurn_p3_" + nameSuffix, CLIENT2_NAME = "testEndTurn_p1_" + nameSuffix;
         final int PN_C2 = 1;
 
-        final StartedTestGameObjects objs = TestRecorder.connectLoadJoinResumeGame
-            (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, true, clientAsRobot, othersAsRobot);
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
         final SOCGame ga = objs.gameAtServer;
         final Vector<QueueEntry> records = objs.records;
@@ -1379,6 +1387,139 @@ public class TestActionsMessages
     }
 
     /**
+     * Test asking for Special Building Phase (SBP) in a 6-player game.
+     * Uses same savegame artifact {@code "test6p-sbp"} as {@link TestLoadgame#testLoad6PlayerSBP()}.
+     */
+    @Test
+    public void test6pAskSpecialBuild()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        testOne_6pAskSpecialBuild(false, false);
+        testOne_6pAskSpecialBuild(false, true);
+
+        // TODO server won't let clientAsRobot set up game properly
+        // testOne_6pAskSpecialBuild(true, false);
+        // testOne_6pAskSpecialBuild(true, true);
+    }
+
+    private void testOne_6pAskSpecialBuild
+        (final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        final String nameSuffix = (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT1_NAME = "testAskSBP_p5_" + nameSuffix, CLIENT2_NAME = "testAskSBP_p2_" + nameSuffix;
+        final int PN_CLI = 5, PN_C2 = 2;
+
+        final SavedGameModel sgm = TestLoadgame.load("test6p-sbp.game.json", srv);
+
+        // Test setup, slightly different than what's in artifact for TestLoadgame.testLoad6PlayerSBP:
+        sgm.gameState = SOCGame.PLAY1;
+        sgm.playerSeats[1].isRobot = true;  // needed for resumeLoadedGame
+        sgm.getGame().setCurrentPlayerNumber(PN_C2);
+
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, sgm, false, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
+        final SOCGame ga = objs.gameAtServer;
+        final SOCPlayer clientPlayer = objs.clientPlayer;
+        assertEquals(PN_CLI, clientPlayer.getPlayerNumber());
+        final Vector<QueueEntry> records = objs.records;
+
+        // Verify current player and basics of game: same as in TestLoadgame.testLoad6PlayerSBP.
+        // Copying that code instead of calling it, to ensure it's still checked here if that check changes.
+        // Also clears all players' Special Building flag to set up for test.
+        assertEquals("game name", "test6p-sbp", sgm.gameName);
+        assertEquals(PN_C2, ga.getCurrentPlayerNumber());
+        assertEquals("should be 6 players", 6, sgm.playerSeats.length);
+        assertEquals("should be 6 players", 6, ga.maxPlayers);
+        final boolean[] EXPECT_BOT = {false, true, true, true, true, false};
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            boolean expectVacant = (pn == 0);
+            assertEquals("players[" + pn + "]", expectVacant, ga.isSeatVacant(pn));
+            if (expectVacant)
+                continue;
+            assertEquals("isRobot[" + pn + "]", EXPECT_BOT[pn], sgm.playerSeats[pn].isRobot);
+
+            ga.getPlayer(pn).setAskedSpecialBuild(false);
+        }
+        clientPlayer.setSpecialBuilt(false);
+
+        // since current player is client 2, not a bot,
+        // when game resumes it'll wait to take action
+        // and client 1 has time to ask for SBP.
+
+        TestRecorder.resumeLoadedGame(ga, srv, objs.tcliConn);
+        assertEquals(SOCGame.PLAY1, ga.getGameState());
+        assertFalse(clientPlayer.hasSpecialBuilt());
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        records.clear();
+
+        // cli1 ask SBP
+
+        tcli1.buildRequest(ga, -1);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertTrue("asked special building?", clientPlayer.hasAskedSpecialBuild());
+
+        // cli2 end turn
+
+        tcli2.endTurn(ga);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertEquals(SOCGame.SPECIAL_BUILDING, ga.getGameState());
+        assertEquals(PN_CLI, ga.getCurrentPlayerNumber());
+
+        // cli1 try build something during SBP
+
+        SOCBoard board = ga.getBoard();
+        assertNull("no road already at 0x82", board.roadOrShipAtEdge(0x82));
+        tcli1.putPiece(ga, new SOCRoad(clientPlayer, 0x82, board));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertTrue("built road at 0x82", board.roadOrShipAtEdge(0x82) instanceof SOCRoad);
+
+        // check results
+
+        StringBuilder compares = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=16|amount=1"},
+                {"all:SOCClearOffer:game=", "|playerNumber=-1"},
+                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=19|amount=0"},
+                {"all:SOCTurn:game=", "|playerNumber=5|gameState=100"},
+                {"all:SOCGameServerText:game=", "|text=Special building phase: " + CLIENT1_NAME + "'s turn to place."},
+                {"all:SOCPlayerElements:game=", "|playerNum=5|actionType=LOSE|e1=1,e5=1"},
+                {"all:SOCGameServerText:game=", "|text="+ CLIENT1_NAME + " built a road."},
+                {"all:SOCPutPiece:game=", "|playerNumber=5|pieceType=0|coord=82"},
+                {"all:SOCGameState:game=", "|state=100"}
+            });
+
+        /* leave game, check results */
+
+        tcli1.destroy();
+        tcli2.destroy();
+
+        if (compares != null)
+        {
+            compares.append("testAskSBP(" + nameSuffix + "): Message mismatch: ");
+            compares.append(compares);
+
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
      * Test Win Game: With cient player win, another player win.
      */
     @Test
@@ -1408,9 +1549,10 @@ public class TestActionsMessages
             PN_OTHER_NONWIN_PLAYER = 1;
         final int SETTLE_NODE = (clientWin) ? 0x60a : 0x403;
 
-        final StartedTestGameObjects objs = TestRecorder.connectLoadJoinResumeGame
-            (srv, CLIENT_NAME, OTHER_WIN_CLIENT_NAME, (clientWin) ? 0 : PN_WIN,
-             false, clientAsRobot, othersAsRobot);
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT_NAME, OTHER_WIN_CLIENT_NAME, (clientWin) ? 0 : PN_WIN,
+                 null, false, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
         if (! clientWin)
         {

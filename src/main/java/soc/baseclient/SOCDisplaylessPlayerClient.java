@@ -2715,7 +2715,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * request to build something
+     * Request to build something or ask for the 6-player Special Building Phase (SBP).
      *
      * @param ga     the game
      * @param piece  the type of piece, from {@link soc.game.SOCPlayingPiece} constants,

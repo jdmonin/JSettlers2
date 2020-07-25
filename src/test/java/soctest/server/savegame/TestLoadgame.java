@@ -490,7 +490,11 @@ public class TestLoadgame
         assertEquals(SOCDevCardConstants.UNIV, cards.get(0).itype);
     }
 
-    /** Test loading and resuming a 6-player game, during Special Building Phase. */
+    /**
+     * Test loading and resuming a 6-player game, during Special Building Phase.
+     * Artifact {@code "test6p-sbp.game.json"} is used here and in
+     * extraTest {@code soctest.server.TestActionsMessages.test6pAskSpecialBuild()}.
+     */
     @Test
     public void testLoad6PlayerSBP()
         throws IOException

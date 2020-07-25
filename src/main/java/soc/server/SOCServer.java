@@ -3210,6 +3210,8 @@ public class SOCServer extends Server
 
         try
         {
+            // is the leaving player a bot who was told to leave so a
+            // human client can take over their seat?
             // check for robot-replace request; if so,
             // we'll soon tell waiting client to sit down
             if (reqList != null)
@@ -3232,6 +3234,7 @@ public class SOCServer extends Server
             final SOCClientData repScd = (hasReplacement)
                 ? (SOCClientData) (req.getArriving().getAppData())
                 : null;
+
             gameDestroyed = leaveGame
                 (c, game, gaName, hasReplacement, (repScd != null) && ! repScd.isRobot, true, false);
         }
@@ -7136,7 +7139,10 @@ public class SOCServer extends Server
 
     /**
      * Create a reloaded savegame and have a client join it.
-     * Calls {@link #createOrJoinGame(Connection, int, String, Map, SOCGame, int)}.
+     * Calls {@link #createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
+     * with player info from {@code sgm} and current contents of {@link SavedGameModel#getGame() sgm.getGame()}.
+     *<P>
+     * Will ask bots to join and sit down for any players marked as robots in {@code sgm}.
      *<P>
      * Before v2.4.10, this code was part of <tt>{@link SOCServerMessageHandler}.processDebugCommand_loadGame</tt>.
      *
@@ -7255,24 +7261,46 @@ public class SOCServer extends Server
     }
 
     /**
-     * Resume the current game, which was recently loaded with {@code *LOADGAME*}.
+     * Return value from {@link #resumeReloadedGame(Connection, SOCGame)} when game
+     * couldn't immediately be resumed, but robot players are available and have been invited
+     * to cover the unclaimed human player seats.
+     * @since 2.4.10
+     */
+    public static final String RESUME_RELOADED_FETCHING_ROBOTS = "member.bot.join.fetching";
+
+    /**
+     * Resume the current game, which was recently loaded with {@code *LOADGAME*},
+     * or start that process by inviting bots if possible to fill unclaimed human player seats.
+     *<P>
      * Must be in state {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}.
+     *<P>
+     * If no problems, sets game state to the regular game state saved within {@link SavedGameModel#gameState}.
+     * If game had unclaimed human seats (game has no member with that player name),
+     * sets game state to {@link SOCGame#LOADING_RESUMING} and tries to invite bots
+     * if available to join and sit down. If enough bots are available, once they've
+     * all sat down the game will resume automatically.
+     *
      * @param c  Client sending the command, game owner if being called by server after last bot has sat down,
      *     or null if owner not available
      * @param ga  Game in which the command was sent
-     * @return true if game could be resumed, false if not;
-     *     if false, server text with details is sent to the game to explain the problem
+     * @return null if game was resumed, or details of why not:
+     *     Server text with details is sent to the game to explain the problem
+     *     (or "fetching a robot" etc); same text is returned from here
+     *     in case it's useful for debug logs/unit test output.
+     *     If bots were available and invited, returns {@link #RESUME_RELOADED_FETCHING_ROBOTS}.
+     * @throws IllegalStateException if game state isn't {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING},
+     *     or {@link SOCGame#savedGameModel} is null or not a {@link SavedGameModel}
      * @see #createAndJoinReloadedGame(SavedGameModel, Connection, String)
      * @since 2.4.10
      */
-    public boolean resumeReloadedGame(final Connection c, final SOCGame ga)
+    public String resumeReloadedGame(final Connection c, final SOCGame ga)
         throws IllegalStateException
     {
-        final SavedGameModel sgm = (SavedGameModel) ga.savedGameModel;
         if (((ga.getGameState() != SOCGame.LOADING) && (ga.getGameState() != SOCGame.LOADING_RESUMING))
-            || (sgm == null))
+            || ! (ga.savedGameModel instanceof SavedGameModel))
             throw new IllegalStateException("game not waiting to be resumed");
 
+        final SavedGameModel sgm = (SavedGameModel) ga.savedGameModel;
         final String gaName = ga.getName();
         final boolean[] botsNeeded = sgm.findSeatsNeedingBots();
         if (botsNeeded != null)
@@ -7292,24 +7320,32 @@ public class SOCServer extends Server
                 e = ex;
             }
 
-            if (! invitedBots)
+            if (invitedBots)
             {
+                return RESUME_RELOADED_FETCHING_ROBOTS;  // "member.bot.join.fetching": "Fetching a robot player..."
+            } else {
                 // recover, so human players can try and fill those seats
                 ga.setGameState(SOCGame.LOADING);
                 if (hand != null)
                     hand.sendGameState(ga);
 
+                String retTxtKey = null;
+                String[] retParams = null;
                 if (e != null)
-                    messageToPlayerKeyed
-                        (c, gaName,"start.robots.cannot.join.problem", e.getMessage());
+                {
+                    retTxtKey = "start.robots.cannot.join.problem";
                         // "Sorry, robots cannot join this game: {0}"
-                else
-                    messageToPlayerKeyed
-                        (c, gaName, "admin.resumegame.err.not_enough_robots");
+                    retParams = new String[]{e.getMessage()};
+                    messageToPlayerKeyed(c, gaName, retTxtKey, (Object[]) retParams);
+                } else {
+                    retTxtKey = "admin.resumegame.err.not_enough_robots";
                         // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
-            }
+                    messageToPlayerKeyed(c, gaName, retTxtKey);
+                }
 
-            return false;
+                return SOCStringManager.getFallbackServerManagerForClient().get
+                    (retTxtKey, (Object[]) retParams);
+            }
         }
 
         // if no human players, set game's isBotsOnly flag so it won't be destroyed
@@ -7336,13 +7372,13 @@ public class SOCServer extends Server
                 (ga, true, "admin.resumegame.ok.resuming");
                 // ">>> Resuming game play."
 
-            return true;
+            return null;
         } catch (MissingResourceException e) {
-            messageToGameKeyed
-                (ga, true, "admin.resumegame.err.not_enough_robots");
+            String retTxtKey = "admin.resumegame.err.not_enough_robots";
                 // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
+            messageToGameKeyed(ga, true, retTxtKey);
 
-            return false;
+            return SOCStringManager.getFallbackServerManagerForClient().get(retTxtKey);
         }
     }
 
