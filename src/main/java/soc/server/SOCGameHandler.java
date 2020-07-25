@@ -2561,6 +2561,8 @@ public class SOCGameHandler extends GameHandler
                 (joiningConn, gname, SOCServer.PN_OBSERVER,
                  "stats.game.winner.withpoints", winPl.getName(), winPl.getTotalVP());
 
+        boolean hasOnlyBotPlayers = ga.isBotsOnly;
+
         ///
         /// send a message saying what VP cards each player has;
         /// before v2.0.00 this was sent as text messages after GameStats, not data messages before it
@@ -2568,6 +2570,10 @@ public class SOCGameHandler extends GameHandler
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
             final SOCPlayer pl = ga.getPlayer(pn);
+
+            if (hasOnlyBotPlayers && ! (ga.isSeatVacant(pn) || pl.isRobot()))
+                hasOnlyBotPlayers = false;
+
             final List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
             if (vpCards.isEmpty())
                 continue;
@@ -2710,10 +2716,8 @@ public class SOCGameHandler extends GameHandler
         srv.gameOverIncrGamesFinishedCount(ga);
         srv.storeGameScores(ga);
 
-        if (ga.isBotsOnly && DESTROY_BOT_ONLY_GAMES_WHEN_OVER)
-        {
+        if (ga.isBotsOnly && hasOnlyBotPlayers && DESTROY_BOT_ONLY_GAMES_WHEN_OVER)
             srv.destroyGameAndBroadcast(gname, "sendGameStateOVER");
-        }
     }
 
     /**

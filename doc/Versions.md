@@ -35,6 +35,7 @@ and backport minor new features until `2.0.00` was ready.
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
 	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
 - Server:
+	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
 	- If client's discard has incorrect total, server re-sends SOCDiscardRequest which includes required total
