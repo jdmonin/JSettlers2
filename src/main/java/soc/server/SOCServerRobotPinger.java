@@ -87,8 +87,6 @@ import soc.server.genericServer.Connection;
     @Override
     public void run()
     {
-        final String pingCmdStr = ping.toCmd();
-
         while (alive)
         {
             boolean retry = false;
@@ -101,7 +99,7 @@ import soc.server.genericServer.Connection;
                     {
                         if (D.ebugIsEnabled())
                             D.ebugPrintlnINFO("(*)(*)(*)(*) PINGING " + robotConnection.getData());
-                        robotConnection.put(pingCmdStr);
+                        robotConnection.put(ping);
                     }
                 } catch (ConcurrentModificationException e) {
                     retry = true;

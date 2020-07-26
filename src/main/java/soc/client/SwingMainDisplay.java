@@ -1941,15 +1941,16 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                         // if srv newer: empty 'changes' list and MARKER_ANY_CHANGED
             else if (client.wantsI18nStrings(false))
                 client.getGameMessageSender().put
-                    (SOCLocalizedStrings.toCmd
-                        (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_REQ_ALL, (List<String>) null),
+                    (new SOCLocalizedStrings
+                        (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_REQ_ALL,
+                         (List<String>) null).toCmd(),
                      false);
         }
 
         opts.newGameWaitingForOpts = true;
         opts.askedDefaultsAlready = true;
         opts.askedDefaultsTime = System.currentTimeMillis();
-        client.getGameMessageSender().put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
+        client.getGameMessageSender().put(new SOCGameOptionGetDefaults(null).toCmd(), forPracticeServer);
 
         if (gameOptsDefsTask != null)
             gameOptsDefsTask.cancel();

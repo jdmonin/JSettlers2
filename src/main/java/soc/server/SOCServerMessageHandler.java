@@ -374,14 +374,14 @@ public class SOCServerMessageHandler
             if (cliVersion <= 0)
             {
                 // unlikely: AUTHREQUEST was added in 1.1.19, version message timing was stable years earlier
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NOT_OK_GENERIC, "AUTHREQUEST: Send version first"));  // I18N OK: rare error
                 return;
             }
 
             if (mes.authScheme != SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT)
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                         (SOCStatusMessage.SV_NOT_OK_GENERIC, "AUTHREQUEST: Auth scheme unknown: " + mes.authScheme));
                         // I18N OK: rare error
                 return;
@@ -418,7 +418,7 @@ public class SOCServerMessageHandler
                 {
                     if (! srv.isUserDBUserAdmin(mesUser))
                     {
-                        c.put(SOCStatusMessage.toCmd
+                        c.put(SOCStatusMessage.buildForVersion
                                 (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVersion,
                                  c.getLocalized("account.create.not_auth")));
                                     // "Your account is not authorized to create accounts."
@@ -439,7 +439,7 @@ public class SOCServerMessageHandler
                     srv.nameConnection(c, false);
                 } catch (SQLException e) {
                     // unlikely, we've just queried db in authOrRejectClientUser
-                    c.put(SOCStatusMessage.toCmd
+                    c.put(SOCStatusMessage.buildForVersion
                             (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
                             "Problem connecting to database, please try again later."));
                     return;
@@ -450,10 +450,10 @@ public class SOCServerMessageHandler
 
         final String txt = srv.getClientWelcomeMessage(c);  // "Welcome to Java Settlers of Catan!"
         if (0 == (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK, txt));
         else
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK_SET_NICKNAME, c.getData() + SOCMessage.sep2_char + txt));
 
         final SOCClientData scd = (SOCClientData) c.getAppData();
@@ -496,7 +496,7 @@ public class SOCServerMessageHandler
         if (rejectReason != null)
         {
             if (rejectReason.equals(SOCServer.MSG_NICKNAME_ALREADY_IN_USE))
-                c.put(SOCStatusMessage.toCmd
+                c.put(SOCStatusMessage.buildForVersion
                         (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(), rejectReason));
             c.put(new SOCRejectConnection(rejectReason));
             c.disconnectSoft();
@@ -517,7 +517,7 @@ public class SOCServerMessageHandler
         //
         // send the current robot parameters
         //
-        c.put(SOCUpdateRobotParams.toCmd(srv.getRobotParameters(botName)));
+        c.put(new SOCUpdateRobotParams(srv.getRobotParameters(botName)));
     }
 
 
@@ -586,7 +586,7 @@ public class SOCServerMessageHandler
             flags = SOCLocalizedStrings.FLAG_TYPE_UNKNOWN;
         }
 
-        c.put(SOCLocalizedStrings.toCmd(type, flags, rets));  // null "rets" is ok
+        c.put(new SOCLocalizedStrings(type, flags, rets));  // null "rets" is ok
     }
 
     /**
@@ -613,7 +613,7 @@ public class SOCServerMessageHandler
             return;
 
         final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
-        c.put(SOCGameOptionGetDefaults.toCmd
+        c.put(new SOCGameOptionGetDefaults
               (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
     }
 
@@ -931,7 +931,7 @@ public class SOCServerMessageHandler
                 else
                     scenStrs = scKeys;  // re-use the empty list object
 
-                c.put(SOCLocalizedStrings.toCmd
+                c.put(new SOCLocalizedStrings
                         (SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_SENT_ALL, scenStrs));
             }
 
@@ -2118,7 +2118,7 @@ public class SOCServerMessageHandler
         if ( (! SOCMessage.isSingleLineAndSafe(ch))
              || "*".equals(ch))
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(SOCStatusMessage.buildForVersion
                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
                     c.getLocalized("netmsg.status.common.newgame_name_rejected")));
             // "This name is not permitted, please choose a different name."
@@ -2133,7 +2133,7 @@ public class SOCServerMessageHandler
             && (SOCServer.CLIENT_MAX_CREATE_CHANNELS >= 0)
             && (SOCServer.CLIENT_MAX_CREATE_CHANNELS <= scd.getcurrentCreatedChannels()))
         {
-            c.put(SOCStatusMessage.toCmd
+            c.put(SOCStatusMessage.buildForVersion
                    (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
                     c.getLocalized("netmsg.status.newchannel_too_many_created", SOCServer.CLIENT_MAX_CREATE_CHANNELS)));
             // "Too many of your chat channels still active; maximum: 2"
@@ -2149,15 +2149,15 @@ public class SOCServerMessageHandler
         {
             if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                     (SOCStatusMessage.SV_OK, txt));
                 scd.sentPostAuthWelcome = true;
             }
         } else {
-            c.put(SOCStatusMessage.toCmd
+            c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUser + SOCMessage.sep2_char + txt));
         }
-        c.put(SOCJoinChannelAuth.toCmd(msgUser, ch));
+        c.put(new SOCJoinChannelAuth(msgUser, ch));
 
         /**
          * Add the Connection to the channel
@@ -2194,8 +2194,8 @@ public class SOCServerMessageHandler
             }
 
             channelList.releaseMonitor();
-            srv.broadcast(SOCNewChannel.toCmd(ch));
-            c.put(SOCChannelMembers.toCmd(ch, channelList.getMembers(ch)));
+            srv.broadcast(new SOCNewChannel(ch));
+            c.put(new SOCChannelMembers(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
                 D.ebugPrintlnINFO("*** " + msgUser + " joined new channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
@@ -2530,7 +2530,7 @@ public class SOCServerMessageHandler
 
                     if ((robotCon != null) && gameList.isMember(robotCon, gaName))
                     {
-                        robotCon.put(SOCRobotDismiss.toCmd(gaName));
+                        robotCon.put(new SOCRobotDismiss(gaName));
 
                         /**
                          * this connection has to wait for the robot to leave,
@@ -2925,7 +2925,7 @@ public class SOCServerMessageHandler
                 // Put it to a vote
                 srv.messageToGameKeyed(ga, false, "resetboard.vote.request", c.getData());
                     // "requests a board reset - other players please vote."
-                String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
+                final SOCMessage vr = new SOCResetBoardVoteRequest(gaName, reqPN);
 
                 ga.resetVoteBegin(reqPN);
 
@@ -2933,7 +2933,7 @@ public class SOCServerMessageHandler
                 for (int i = 0; i < ga.maxPlayers; ++i)
                     if (humanConns[i] != null)
                         if (humanConns[i].getVersion() >= 1100)
-                            humanConns[i].put(vrCmd);
+                            humanConns[i].put(vr);
                         else
                             ga.resetVoteRegister
                                 (ga.getPlayer(humanConns[i].getData()).getPlayerNumber(), true);

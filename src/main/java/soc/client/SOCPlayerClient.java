@@ -685,7 +685,7 @@ public class SOCPlayerClient
             net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
         } else {
             // same version: need localization strings, at most
-            net.putNet(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scKey));
+            net.putNet(new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, 0, scKey).toCmd());
             tcpServGameOpts.scenKeys.add(scKey);  // don't ask again later
         }
     }

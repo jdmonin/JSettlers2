@@ -43,7 +43,7 @@ import soc.util.SOCFeatureSet;  // for javadocs only
  * without trying to parse anything.
  *
  * <H5>Status value back-compatibility:</H5>
- * The server-called method {@link #toCmd(int, int, String)} checks client version compatibility
+ * The server uses {@link #buildForVersion(int, int, String)} which checks client version compatibility
  * to avoid sending newly defined status codes/values to clients too old to understand them;
  * older "fallback" status values are sent instead. See individual status values' javadocs.
  *
@@ -374,10 +374,41 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
+     * STATUSMESSAGE sep [svalue sep2] status -- includes backwards compatibility.
+     * Calls {@link #statusValidAtVersion(int, int)}. if {@code sv} isn't recognized in
+     * that client version, will send {@link #SV_NOT_OK_GENERIC} or another "fallback"
+     * value defined in the client.
+     *<P>
+     * For details and the list of status value fallbacks, see {@link #statusFallbackForVersion(int, int)}.
+     *<P>
+     * Replaces {@link #toCmd(int, int, String)} used before v2.4.10.
+     *
+     * @param sv  the status value; if 0 or less, is not output.
+     *            Should be a constant such as {@link #SV_OK}.
+     * @param cliVers Client's version, same format as {@link soc.util.Version#versionNumber()}
+     * @param st  the status message text.
+     *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
+     *            in your string, and they will be passed on for the receiver to parse.
+     * @return the status message
+     * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVers},
+     *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
+     *     the exception is thrown to prevent continued server processing as if the fallback was successful.
+     * @since 2.4.10
+     */
+    public static SOCStatusMessage buildForVersion(int sv, final int cliVers, final String st)
+        throws IllegalArgumentException
+    {
+        final int fallSV = sv = statusFallbackForVersion(sv, cliVers);
+        return (fallSV != sv)
+            ? buildForVersion(fallSV, cliVers, st)  // ensure fallback value is valid at client's version
+            : new SOCStatusMessage(sv, st);
+    }
+
+    /**
      * Create a StatusMessage message, with a nonzero status value.
      * Does not check that {@code sv} is compatible with the client it's sent to;
      * for that check, call {@link #statusFallbackForVersion(int, int)}
-     * or use {@link #toCmd(int, int, String)} instead.
+     * or use {@link #buildForVersion(int, int, String)} instead.
      *
      * @param sv  status value (from constants defined here, such as {@link #SV_OK})
      * @param st  the status message text.
@@ -429,12 +460,12 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * STATUSMESSAGE sep [svalue sep2] status -- does not include backwards compatibility.
      * This method is best for sending status values {@link #SV_OK} or {@link #SV_NOT_OK_GENERIC}.
-     * for other newer status values, call {@link #toCmd(int, int, String)} instead.
+     * for other newer status values, call {@link #buildForVersion(int, int, String)} instead.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
      *            Remember that not all client versions recognize every status;
-     *            see {@link #toCmd(int, int, String)}.
+     *            see {@link #buildForVersion(int, int, String)}.
      * @param st  the status message text.
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
@@ -451,6 +482,7 @@ public class SOCStatusMessage extends SOCMessage
             sb.append(sep2);
         }
         sb.append(st);
+
         return sb.toString();
     }
 
@@ -473,14 +505,16 @@ public class SOCStatusMessage extends SOCMessage
      *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
      *     the exception is thrown to prevent continued server processing as if the fallback was successful.
      * @since 1.1.07
+     * @deprecated Use {@link #buildForVersion(int, int, String)} instead,
+     *     which returns a message object instead of a String
      * @see #statusFallbackForVersion(int, int)
      */
-    public static String toCmd(int sv, final int cliVers, final String st)
+    public static String toCmd(final int sv, final int cliVers, final String st)
         throws IllegalArgumentException
     {
-        int fallSV = sv = statusFallbackForVersion(sv, cliVers);
+        int fallSV = statusFallbackForVersion(sv, cliVers);
         if (fallSV != sv)
-            return toCmd(sv, cliVers, st);  // ensure fallback value is valid at client's version
+            return toCmd(fallSV, cliVers, st);  // ensure fallback value is valid at client's version
         else
             return toCmd(sv, st);
     }

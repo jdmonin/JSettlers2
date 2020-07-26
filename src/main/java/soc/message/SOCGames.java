@@ -82,13 +82,34 @@ public class SOCGames extends SOCMessage
     private List<String> games;
 
     /**
-     * Create a Games Message at client.
+     * Create a Games message at server.
+     *
+     * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
+     *     if a client can't join a game, it should be a String prefixed with
+     *     {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}. Any {@link SOCGame#getGameOptions()} will be ignored.
+     * @since 2.4.10
+     */
+    public SOCGames(final List<?> ga)
+    {
+        this(new ArrayList<String>(), false);
+
+        for (Object ob : ga)
+            if (ob instanceof SOCGame)
+                games.add(((SOCGame) ob).getName());
+            else
+                games.add(ob.toString());  // ob's almost certainly a String already
+    }
+
+    /**
+     * Create a Games message at client.
      *
      * @param ga  list of game names (Strings).
      *         Mark unjoinable games with the prefix
      *         {@link #MARKER_THIS_GAME_UNJOINABLE}.
+     * @param clientMarker  Parameter is here only to differentiate the public server-side (List&lt;Object>) constructor
+     *     from this private/client-side (List&lt;String>) one
      */
-    private SOCGames(List<String> ga)
+    private SOCGames(List<String> ga, final boolean clientMarker)
     {
         messageType = GAMES;
         games = ga;
@@ -110,25 +131,12 @@ public class SOCGames extends SOCMessage
     @Override
     public String toCmd()
     {
-        return toCmd(games);
-    }
-
-    /**
-     * GAMES sep games
-     *
-     * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
-     *            if a client can't join a game, it should be a String prefixed with
-     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @return    the command string
-     */
-    public static String toCmd(List<?> ga)
-    {
         StringBuilder cmd = new StringBuilder();
         cmd.append(GAMES);
         cmd.append(sep);
 
         boolean first = true;
-        for (Object ob : ga)
+        for (Object ob : games)
         {
             if (! first)
                 cmd.append(sep2);
@@ -169,7 +177,7 @@ public class SOCGames extends SOCMessage
             return null;
         }
 
-        return new SOCGames(ga);
+        return new SOCGames(ga, true);
     }
 
     /**
@@ -178,9 +186,11 @@ public class SOCGames extends SOCMessage
     @Override
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCGames:games=");
+        StringBuilder sb = new StringBuilder("SOCGames:games=");
         if (games != null)
             sb.append(games);  // "[game1, game2, ...]"
+
         return sb.toString();
     }
+
 }

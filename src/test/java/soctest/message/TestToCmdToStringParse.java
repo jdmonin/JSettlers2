@@ -100,27 +100,30 @@ public class TestToCmdToStringParse
                 }
             }
 
-            s = msg.toString();
-            if (! s.equals(expectedToString))
+            s = msg.toString();  // call even if not checking contents, to make sure no exception is thrown
+            if (expectedToString != null)
             {
-                res.append(" toString: expected \"" + expectedToString + "\", got \"" + s + "\"");
-            } else {
-                // round-trip compare msg -> toString() -> parseMsgStr(str)
-                try
+                if (! s.equals(expectedToString))
                 {
-                    SOCMessage rev = SOCMessage.parseMsgStr(s);
-                    if (rev == null)
+                    res.append(" toString: expected \"" + expectedToString + "\", got \"" + s + "\"");
+                } else {
+                    // round-trip compare msg -> toString() -> parseMsgStr(str)
+                    try
                     {
-                        res.append(" parseMsgStr(s): got null");
-                    } else if (! msgClass.isInstance(rev)) {
-                        res.append(" parseMsgStr(s): got wrong class " + rev.getClass().getSimpleName());
-                    } else {
-                        compareMsgObjFields(msgClass, msg, rev, res, ignoreObjFields);
+                        SOCMessage rev = SOCMessage.parseMsgStr(s);
+                        if (rev == null)
+                        {
+                            res.append(" parseMsgStr(s): got null");
+                        } else if (! msgClass.isInstance(rev)) {
+                            res.append(" parseMsgStr(s): got wrong class " + rev.getClass().getSimpleName());
+                        } else {
+                            compareMsgObjFields(msgClass, msg, rev, res, ignoreObjFields);
+                        }
+                    } catch (InputMismatchException e) {
+                        res.append(" parseMsgStr(s) rejected: " + e.getMessage());
+                    } catch (ParseException e) {
+                        res.append(" parseMsgStr(s) failed: " + e);
                     }
-                } catch (InputMismatchException e) {
-                    res.append(" parseMsgStr(s) rejected: " + e.getMessage());
-                } catch (ParseException e) {
-                    res.append(" parseMsgStr(s) failed: " + e);
                 }
             }
 
@@ -278,7 +281,8 @@ public class TestToCmdToStringParse
      *<UL>
      * <LI> Message object with expected field values
      * <LI> {@link SOCMessage#toCmd()} expected output, for {@link SOCMessage#toMsg(String)} parsing
-     * <LI> {@link SOCMessage#toString()} expected output, for {@link SOCMessage#parseMsgStr(String)} parsing
+     * <LI> {@link SOCMessage#toString()} expected output, for {@link SOCMessage#parseMsgStr(String)} parsing,
+     *      or {@code null} to not validate {@code toString()} contents
      *</UL>
      * The element can end there or have markers like {@link #OPT_IGNORE_OBJ_FIELDS} and their associated data.
      */
@@ -382,6 +386,60 @@ SOCGameMembers:game=ga|members=[testTradeDecline_p3, droid 1, robot 2, testTrade
         {new SOCLastSettlement("ga", 2, 0x405), "1060|ga,2,1029", "SOCLastSettlement:game=ga|playerNumber=2|coord=405"},
         {new SOCLeaveAll(), "1008", "SOCLeaveAll:"},
         {new SOCLeaveGame("testp2", "-", "ga"), "1011|testp2,-,ga", "SOCLeaveGame:nickname=testp2|host=-|game=ga"},
+        {
+            new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, 0, "SC_FOG"),
+            "1100|S|0|SC_FOG",
+            null  // TODO SOCLocalizedStrings +stripAttribNames
+        },
+        {
+            new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_REQ_ALL, (List<String>) null),
+            "1100|S|2",
+            null
+        },
+        {
+            new SOCLocalizedStrings
+                (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "SC_WOND")),
+            "1100|S|0|SC_FOG|SC_WOND",
+            null
+        },
+        {
+            new SOCLocalizedStrings
+                (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "name text", "desc text")),
+            "1100|S|0|SC_FOG|name text|desc text",
+            null
+        },
+        {
+            new SOCLocalizedStrings
+                (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "name text", null)),
+            "1100|S|0|SC_FOG|name text|\t",
+            null
+        },
+        {
+            new SOCLocalizedStrings
+                (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", SOCLocalizedStrings.MARKER_KEY_UNKNOWN)),
+            "1100|S|0|SC_FOG|\026K",
+            null
+        },
+        {
+            new SOCLocalizedStrings
+                (SOCLocalizedStrings.TYPE_SCENARIO, 0,
+                 Arrays.asList("SC_WOND", SOCLocalizedStrings.MARKER_KEY_UNKNOWN, "SC_FOG", "name text", "desc text")),
+            "1100|S|0|SC_WOND|\026K|SC_FOG|name text|desc text",
+            null
+        },
+        {
+            new SOCLocalizedStrings
+                (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL, (List<String>) null),
+            "1100|O|4",
+            null
+        },
+        {
+            new SOCLocalizedStrings
+                (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL,
+                 Arrays.asList("SC", "scenario")),
+             "1100|O|4|SC|scenario",
+             null
+        },
         {new SOCLongestRoad("ga", 2), "1066|ga,2", "SOCLongestRoad:game=ga|playerNumber=2"},
         {
             new SOCMakeOffer("ga", new SOCTradeOffer

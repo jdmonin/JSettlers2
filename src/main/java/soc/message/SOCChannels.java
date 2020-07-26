@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -77,21 +77,10 @@ public class SOCChannels extends SOCMessage
     @Override
     public String toCmd()
     {
-        return toCmd(channels);
-    }
-
-    /**
-     * CHANNELS sep channels
-     *
-     * @param cl  the list of channels
-     * @return    the command string
-     */
-    public static String toCmd(final List<String> cl)
-    {
         StringBuilder cmd = new StringBuilder(CHANNELS + sep);
 
         boolean any = false;
-        for (String chan : cl)
+        for (String chan : channels)
         {
             if (any)
                 cmd.append(sep2);

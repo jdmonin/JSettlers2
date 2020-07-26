@@ -86,17 +86,6 @@ public class SOCGameOptionGetDefaults extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(opts);
-    }
-
-    /**
-     * GAMEOPTIONGETDEFAULTS [sep opts]
-     *
-     * @param opts  the options string, or null if none (cli->serv)
-     * @return    the command string
-     */
-    public static String toCmd(String opts)
-    {
         if (opts != null)
             return GAMEOPTIONGETDEFAULTS + sep + opts;
         else

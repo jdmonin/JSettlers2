@@ -50,13 +50,44 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
+     * Constructor from a set of game names/objects; used at server side.
+     *<P>
+     * Before v2.4.10 this was a static {@code toCmd(..)} method.
+     *
+     * @param ga  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
+     *            if a client can't join a game, it should be a String prefixed with
+     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+     *            If any game's options need adjustment for an older client, cliVers triggers that.
+     * @return    the command string
+     * @since 2.4.10
+     */
+    public SOCGamesWithOptions(List<?> ga, final int cliVers)
+    {
+        this(null);
+        pa = new ArrayList<String>();
+
+        for (int i = 0; i < ga.size(); ++i)
+        {
+            Object ob = ga.get(i);
+            if (ob instanceof SOCGame)
+            {
+                pa.add(((SOCGame) ob).getName());
+                pa.add(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false, false, cliVers));
+            } else {
+                pa.add((String) ob);  // ob is most likely a String already
+                pa.add("-");
+            }
+        }
+    }
+
+    /**
      * Constructor for client to parse server's list of games.
      * This collects the paired games and options into a string list,
      * but doesn't parse the game option strings into {@link soc.game.SOCGameOption}
      * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String)} for that.
      *<P>
-     * There is no server-side constructor, because the server
-     * instead calls {@link #toCmd(List, int)}.
+     * The server instead calls {@link #SOCGamesWithOptions(List, int)}.
      *
      * @param gl  Game list; can be empty, but not null
      */
@@ -118,37 +149,6 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             return null;  // must have an even # of strings
 
         return new SOCGamesWithOptions(gl);
-    }
-
-    /**
-     * Build the command string from a set of games; used at server side.
-     * @param ga  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
-     *            if a client can't join a game, it should be a String prefixed with
-     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
-     *            If any game's options need adjustment for an older client, cliVers triggers that.
-     * @return    the command string
-     */
-    public static String toCmd(List<?> ga, final int cliVers)
-    {
-        StringBuilder sb = new StringBuilder(Integer.toString(SOCMessage.GAMESWITHOPTIONS));
-        for (int i = 0; i < ga.size(); ++i)
-        {
-            sb.append(sep);
-            Object ob = ga.get(i);
-            if (ob instanceof SOCGame)
-            {
-                sb.append(((SOCGame) ob).getName());
-                sb.append(sep);
-                sb.append(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false, false, cliVers));
-            } else {
-                sb.append((String) ob);  // ob is most likely a String already
-                sb.append(sep);
-                sb.append("-");
-            }
-        }
-
-        return sb.toString();
     }
 
 }

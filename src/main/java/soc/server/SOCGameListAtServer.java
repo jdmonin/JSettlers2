@@ -931,9 +931,9 @@ public class SOCGameListAtServer extends SOCGameList
             {
                 // send the full list as 1 message
                 if (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    c.put(SOCGamesWithOptions.toCmd(gl, cliVers));
+                    c.put(new SOCGamesWithOptions(gl, cliVers));
                 else
-                    c.put(SOCGames.toCmd(gl));
+                    c.put(new SOCGames(gl));
             } else {
                 // send deltas only
                 for (int i = 0; i < gl.size(); ++i)
@@ -948,13 +948,13 @@ public class SOCGameListAtServer extends SOCGameList
                     if (cliCouldKnow)
                     {
                         // first send delete, if it's on their list already
-                        c.put(SOCDeleteGame.toCmd(gaName));
+                        c.put(new SOCDeleteGame(gaName));
                     }
                     // announce as 'new game' to client
                     if ((ob instanceof SOCGame) && (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                        c.put(SOCNewGameWithOptions.toCmd((SOCGame) ob, cliVers));
+                        c.put(new SOCNewGameWithOptions((SOCGame) ob, cliVers));
                     else
-                        c.put(SOCNewGame.toCmd(gaName));
+                        c.put(new SOCNewGame(gaName));
                 }
             }
         }

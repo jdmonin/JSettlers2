@@ -266,7 +266,7 @@ public class TestI18NGameoptScenStrings
 
         final int MAX = Connection.MAX_MESSAGE_SIZE_UTF8;  // alias for brevity
 
-        String msg = SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_GAMEOPT, Integer.MAX_VALUE, optsStr);
+        String msg = new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_GAMEOPT, Integer.MAX_VALUE, optsStr).toCmd();
         int L = msg.getBytes("utf-8").length;
         if (L > MAX)
         {
@@ -276,7 +276,7 @@ public class TestI18NGameoptScenStrings
                  + L + ", max " + MAX + ")");
         }
 
-        msg = SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, Integer.MAX_VALUE, scenStr);
+        msg = new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, Integer.MAX_VALUE, scenStr).toCmd();
         L = msg.getBytes("utf-8").length;
         if (L > MAX)
         {

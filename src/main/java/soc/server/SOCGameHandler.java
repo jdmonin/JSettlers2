@@ -983,7 +983,7 @@ public class SOCGameHandler extends GameHandler
             final SOCClientData scd = (SOCClientData) c.getAppData();
             if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))
             {
-                c.put(SOCStatusMessage.toCmd
+                c.put(new SOCStatusMessage
                        (SOCStatusMessage.SV_OK, srv.getClientWelcomeMessage(c)));  // "Welcome to Java Settlers of Catan!"
                 scd.sentPostAuthWelcome = true;
             }
@@ -1046,7 +1046,7 @@ public class SOCGameHandler extends GameHandler
                         // left by human players when game was saved, show them as bots
                         isRobot = true;
                     }
-                    c.put(SOCSitDown.toCmd(gameName, plName, i, isRobot || allSeatsBots));
+                    c.put(new SOCSitDown(gameName, plName, i, isRobot || allSeatsBots));
 
                     if (isRobot)
                         hasRobot = true;
@@ -1077,7 +1077,7 @@ public class SOCGameHandler extends GameHandler
         {
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
                 // Board's general supply of cloth:
-                c.put(SOCPlayerElement.toCmd
+                c.put(new SOCPlayerElement
                     (gameName, -1, SOCPlayerElement.SET,
                      PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
                 // Individual villages' cloth counts are sent soon below.
@@ -1133,7 +1133,7 @@ public class SOCGameHandler extends GameHandler
             c.put(new SOCGameElements
                 (gameName, GEType.CURRENT_PLAYER, gameData.getCurrentPlayerNumber()));
         else
-            c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
+            c.put(new SOCSetTurn(gameName, gameData.getCurrentPlayerNumber()));
 
         /**
          * Send the game's Special Item info, if any, if game has started:
@@ -1283,9 +1283,9 @@ public class SOCGameHandler extends GameHandler
                 SOCPlayingPiece piece = piecesEnum.nextElement();
 
                 if (piece.getType() == SOCPlayingPiece.CITY)
-                    c.put(SOCPutPiece.toCmd(gameName, i, SOCPlayingPiece.SETTLEMENT, piece.getCoordinates()));
+                    c.put(new SOCPutPiece(gameName, i, SOCPlayingPiece.SETTLEMENT, piece.getCoordinates()));
 
-                c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), piece.getCoordinates()));
+                c.put(new SOCPutPiece(gameName, i, piece.getType(), piece.getCoordinates()));
             }
 
             // _SC_PIRI: special-case piece not part of getPieces
@@ -1296,7 +1296,7 @@ public class SOCGameHandler extends GameHandler
                     final int coord = piece.getCoordinates(),
                               str   = piece.getStrength();
 
-                    c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), coord));
+                    c.put(new SOCPutPiece(gameName, i, piece.getType(), coord));
 
                     if (str != SOCFortress.STARTING_STRENGTH)
                         c.put(new SOCPieceValue(gameName, SOCPlayingPiece.FORTRESS, coord, str, 0));
@@ -1329,7 +1329,7 @@ public class SOCGameHandler extends GameHandler
                      (gameData.hasSeaBoard) ? ELEM_JOINGAME_WITH_PIECETYPES_SEA : ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC,
                      counts));
             } else {
-                c.put(SOCLastSettlement.toCmd(gameName, i, counts[0]));
+                c.put(new SOCLastSettlement(gameName, i, counts[0]));
                     // client too old for SOCPlayerElement.LAST_SETTLEMENT_NODE
                 for (int j = 1; j < counts.length; ++j)
                     c.put(new SOCPlayerElement
@@ -1393,18 +1393,18 @@ public class SOCGameHandler extends GameHandler
                 // too old to send together with other game elements,
                 // otherwise send soon with longest road / largest army
 
-                c.put(SOCFirstPlayer.toCmd(gameName, gameData.getFirstPlayer()));
+                c.put(new SOCFirstPlayer(gameName, gameData.getFirstPlayer()));
 
-                c.put(SOCDevCardCount.toCmd(gameName, gameData.getNumDevCards()));
+                c.put(new SOCDevCardCount(gameName, gameData.getNumDevCards()));
             }
 
-            c.put(SOCChangeFace.toCmd(gameName, i, pl.getFaceId()));
+            c.put(new SOCChangeFace(gameName, i, pl.getFaceId()));
 
             if (i == 0)
             {
                 // per-game data, send once
 
-                c.put(SOCDiceResult.toCmd(gameName, gameData.getCurrentDice()));
+                c.put(new SOCDiceResult(gameName, gameData.getCurrentDice()));
             }
 
             // more per-player data to send after dice result
@@ -1421,8 +1421,8 @@ public class SOCGameHandler extends GameHandler
                   laPlayerNum = (laPlayer != null) ? laPlayer.getPlayerNumber() : -1;
         if (cliVers < SOCGameElements.MIN_VERSION)
         {
-            c.put(SOCLongestRoad.toCmd(gameName, lrPlayerNum));
-            c.put(SOCLargestArmy.toCmd(gameName, laPlayerNum));
+            c.put(new SOCLongestRoad(gameName, lrPlayerNum));
+            c.put(new SOCLargestArmy(gameName, laPlayerNum));
         } else {
             c.put(new SOCGameElements
                 (gameName, ELEM_JOINGAME_DEVCARDS_ROUNDS_PLNUMS_FIRST_LONGEST_LARGEST,
@@ -1437,7 +1437,7 @@ public class SOCGameHandler extends GameHandler
         if (gameState >= SOCGame.START1A)
         {
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
-                c.put(SOCPlayerElement.toCmd
+                c.put(new SOCPlayerElement
                     (gameName, -1, SOCPlayerElement.SET,
                      PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
         }
@@ -1479,27 +1479,33 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
-        String membersCommand = null;
-        srv.gameList.takeMonitorForGame(gameName);
-
         /**
          * Almost done; send GAMEMEMBERS as a hint to client that we're almost ready for its input.
-         * There's no new data in GAMEMEMBERS, because player names have already been sent by
-         * the SITDOWN messages above.
+         * The only new data in GAMEMEMBERS is observer names, because
+         * player names have already been sent by the SITDOWN messages above.
          */
+        List<String> memberNames = null;
+        srv.gameList.takeMonitorForGame(gameName);
         try
         {
-            membersCommand = SOCGameMembers.toCmd(gameName, srv.gameList.getMembers(gameName));
+            final List<Connection> gameMembers = srv.gameList.getMembers(gameName);
+            synchronized(gameMembers)
+            {
+                final int n = gameMembers.size();
+                memberNames = new ArrayList<String>(n);
+                for (int i = 0; i < n; ++i)
+                    memberNames.add(gameMembers.get(i).getData());
+            }
         }
         catch (Exception e)
         {
             D.ebugPrintlnINFO("Exception in SGH.joinGame (gameMembers) - " + e);
+        } finally {
+            srv.gameList.releaseMonitorForGame(gameName);
         }
 
-        srv.gameList.releaseMonitorForGame(gameName);
-
-        if (membersCommand != null)
-            c.put(membersCommand);
+        if (memberNames != null)
+            c.put(new SOCGameMembers(gameName, memberNames));
 
         // before v2.0.00, current player number (SETTURN) was sent here,
         // between membersCommand and GAMESTATE.
@@ -1676,7 +1682,7 @@ public class SOCGameHandler extends GameHandler
 
                 if (seType != edgeSEType)
                     // removed (type 0) or changed type
-                    c.put(SOCSimpleAction.toCmd(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
+                    c.put(new SOCSimpleAction(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
             }
         }
 
@@ -1714,7 +1720,7 @@ public class SOCGameHandler extends GameHandler
 
             if (! found)
                 // added since start of game
-                c.put(SOCSimpleAction.toCmd(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
+                c.put(new SOCSimpleAction(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
         }
     }
 
