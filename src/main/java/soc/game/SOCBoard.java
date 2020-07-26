@@ -1813,6 +1813,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *
      * @return the dice-roll number on that hex, or 0 if not a hex coordinate
      * @see #getNumberOnHexFromNumber(int)
+     * @see #getHexTypeFromCoord(int)
      */
     public int getNumberOnHexFromCoord(final int hex)
     {
@@ -1875,6 +1876,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *
      * @see #getHexNumFromCoord(int)
      * @see #getLandHexCoords()
+     * @see #getNumberOnHexFromCoord(int)
      */
     public int getHexTypeFromCoord(final int hex)
     {

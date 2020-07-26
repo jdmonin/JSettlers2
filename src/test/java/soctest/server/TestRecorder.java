@@ -468,7 +468,7 @@ public class TestRecorder
             SOCGameOption opt = ga.getGameOptions().get("N7");
             assertNotNull(opt);
             assertTrue(opt.getBoolValue());
-            assertEquals(99, opt.getIntValue());
+            assertEquals(999, opt.getIntValue());
 
             assertEquals(clientPN, ga.getCurrentPlayerNumber());
         }

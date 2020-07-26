@@ -714,6 +714,7 @@ public class TestActionsMessages
      * <LI> roll 7, steal from a player (same sequence covers: steal from no one)
      * <LI> roll 7, discard, steal from a player
      *</UL>
+     * @see #testRollDiceGoldHexGain()
      */
     @Test
     public void testRollDiceRsrcsOrMoveRobber()
@@ -751,7 +752,7 @@ public class TestActionsMessages
 
         // clear debug player's resources so no one needs to discard on 7;
         // once that sequence is validated, will change so must discard on 7
-        ga.getPlayer(CLIENT_PN).getResources().setAmounts(new SOCResourceSet(0, 3, 1, 2, 0, 0));
+        cliPl.getResources().setAmounts(new SOCResourceSet(0, 3, 1, 2, 0, 0));
 
         // allow 7s to be rolled
         ga.getGameOptions().remove("N7");
@@ -763,7 +764,7 @@ public class TestActionsMessages
         sgm.gameState = SOCGame.ROLL_OR_CARD;
         TestRecorder.resumeLoadedGame(ga, srv, objs.tcliConn);
 
-        // Validate expected resources gained by each player number for each dice number vs artifact's board layout
+        // Validate expected resources gained by each player number for each dice number vs artifact's board layout:
         final int[][] RSRC_GAINED_COUNTS =
             {
                 null, null,
@@ -829,7 +830,7 @@ public class TestActionsMessages
                 {
                     if (! testedRsrcs)
                     {
-                        // SOCDiceResultResources:game has a very specific format; see its class javadoc.
+                        // SOCDiceResultResources has a very specific format; see its class javadoc.
                         // We'll check that here.
 
                         StringBuilder diceResRsrc = new StringBuilder();
@@ -879,8 +880,8 @@ public class TestActionsMessages
                         all:SOCDiceResult:game=message-seqs|param=3
                         all:SOCGameState:game=message-seqs|state=20
                         all:SOCDiceResultResources:game=message-seqs|p=2|p=2|p=5|p=1|p=3|p=0|p=3|p=7|p=1|p=4
-                        pn=2:SOCPlayerElements:game=message-seqs|playerNum=2|actionType=SET|e1=1,e2=1,e3=3,e4=0,e5=0
-                        pn=3:SOCPlayerElements:game=message-seqs|playerNum=3|actionType=SET|e1=0,e2=3,e3=1,e4=3,e5=0
+                        p2:SOCPlayerElements:game=message-seqs|playerNum=2|actionType=SET|e1=1,e2=1,e3=3,e4=0,e5=0
+                        p3:SOCPlayerElements:game=message-seqs|playerNum=3|actionType=SET|e1=0,e2=3,e3=1,e4=3,e5=0
                          */
                         ArrayList<String[]> recordsList = new ArrayList<>();
                         recordsList.add(new String[]{"all:SOCDiceResult:", "|param=" + diceNumber});
@@ -1006,6 +1007,172 @@ public class TestActionsMessages
         if (compares.length() > 0)
         {
             compares.insert(0, "For test " + CLIENT_NAME + ": ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
+     * Test rolling dice at start of turn, eventually roll 8, gain resources from gold hex.
+     * @see #testRollDiceRsrcsOrMoveRobber()
+     */
+    @Test
+    public void testRollDiceGoldHexGain()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        // These messages should have no differences between human and robot clients.
+        // We'll test all 4 combinations just in case.
+        testOne_RollDiceGoldHexGain(false, false);
+        testOne_RollDiceGoldHexGain(false, true);
+        testOne_RollDiceGoldHexGain(true, false);
+        testOne_RollDiceGoldHexGain(true, true);
+    }
+
+    private void testOne_RollDiceGoldHexGain
+        (final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        final String nameSuffix = (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT_NAME = "testRollGold_p3_" + nameSuffix,
+            CLIENT2_NAME = "testRollGold_p1_" + nameSuffix;
+        final int CLIENT_PN = 3, CLIENT2_PN = 1;
+        final int GOLD_DICE_NUM = 8;
+
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT_NAME, CLIENT2_NAME, CLIENT2_PN, null, false, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
+        final SavedGameModel sgm = objs.sgm;
+        final SOCGame ga = objs.gameAtServer;
+        final SOCBoardLarge board = (SOCBoardLarge) objs.board;
+        final SOCPlayer cliPl = objs.clientPlayer, cli2Pl = objs.client2Player;
+        final Vector<QueueEntry> records = objs.records;
+
+        assertEquals(SOCBoardLarge.GOLD_HEX, board.getHexTypeFromCoord(0xF05));
+        assertEquals(GOLD_DICE_NUM, board.getNumberOnHexFromCoord(0xF05));
+        assertTrue(ga.isSeatVacant(0));
+        assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
+
+        // reminder: message-seqs.game.json has "N7" option to prevent 7s from being rolled
+        // but just in case: clear debug player's resources to prevent discard on 7 from accumulated rolls
+        final int[] RS_KNOWN_AMOUNTS_ARR = {0, 3, 1, 2, 0}, RS_KNOWN_PLUS_CLAY = {1, 3, 1, 2, 0},
+            CLI2_RS_KNOWN_AMOUNTS_ARR = {1, 0, 3, 0, 2}, CLI2_RS_KNOWN_PLUS_WHEAT = {1, 0, 3, 1, 2};
+        final SOCResourceSet RS_KNOWN = new SOCResourceSet(RS_KNOWN_AMOUNTS_ARR),
+            CLI2_RS_KNOWN = new SOCResourceSet(CLI2_RS_KNOWN_AMOUNTS_ARR);
+        cliPl.getResources().setAmounts(RS_KNOWN);
+        cli2Pl.getResources().setAmounts(CLI2_RS_KNOWN);
+
+        // change board at server to build some pieces, so client and client2 players gain on 8 (GOLD_DICE_NUM):
+
+        final int SHIP_EDGE = 0xe04, ISLAND_SETTLE_NODE = 0xe04;
+        assertNull(board.roadOrShipAtEdge(SHIP_EDGE));
+        assertNull(board.settlementAtNode(ISLAND_SETTLE_NODE));
+
+        final int[] CLI2_SHIPS_EDGE = {0xe08, 0xe07, 0xe06};
+        final int CLI2_ISLAND_SETTLE_NODE = 0xe06;
+        for (int edge : CLI2_SHIPS_EDGE)
+            assertNull(board.roadOrShipAtEdge(edge));
+        assertNull(board.settlementAtNode(CLI2_ISLAND_SETTLE_NODE));
+
+        ga.putPiece(new SOCShip(cliPl, SHIP_EDGE, board));
+        ga.putPiece(new SOCSettlement(cliPl, ISLAND_SETTLE_NODE, board));
+
+        for (int edge : CLI2_SHIPS_EDGE)
+            ga.putPiece(new SOCShip(cli2Pl, edge, board));
+        ga.putPiece(new SOCSettlement(cli2Pl, CLI2_ISLAND_SETTLE_NODE, board));
+
+        assertTrue(board.roadOrShipAtEdge(SHIP_EDGE) instanceof SOCShip);
+        assertTrue(board.settlementAtNode(ISLAND_SETTLE_NODE) instanceof SOCSettlement);
+        for (int edge : CLI2_SHIPS_EDGE)
+            assertTrue(board.roadOrShipAtEdge(edge) instanceof SOCShip);
+        assertTrue(board.settlementAtNode(CLI2_ISLAND_SETTLE_NODE) instanceof SOCSettlement);
+
+        final int[] EXPECTED_GOLD_GAINS = {0, 1, 0, 1};
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            assertEquals
+                ("pn[" + pn + "] gains", EXPECTED_GOLD_GAINS[pn],
+                 ga.getResourcesGainedFromRoll(ga.getPlayer(pn), GOLD_DICE_NUM)
+                     .getAmount(SOCResourceConstants.GOLD_LOCAL));
+
+        // ready to resume
+        sgm.gameState = SOCGame.ROLL_OR_CARD;
+        TestRecorder.resumeLoadedGame(ga, srv, objs.tcliConn);
+
+        StringBuilder compares = null;
+
+        for (int diceNumber = 0; diceNumber != GOLD_DICE_NUM; )
+        {
+            ga.setGameState(SOCGame.ROLL_OR_CARD);
+            cliPl.getResources().setAmounts(RS_KNOWN);
+            cli2Pl.getResources().setAmounts(CLI2_RS_KNOWN);
+
+            records.clear();
+            tcli.rollDice(ga);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            diceNumber = ga.getCurrentDice();
+
+            if (diceNumber != GOLD_DICE_NUM)
+                continue;
+
+            assertEquals(1, cliPl.getNeedToPickGoldHexResources());
+            assertEquals(1, cli2Pl.getNeedToPickGoldHexResources());
+            assertArrayEquals(RS_KNOWN_AMOUNTS_ARR, cliPl.getResources().getAmounts(false));
+            assertArrayEquals(CLI2_RS_KNOWN_AMOUNTS_ARR, cli2Pl.getResources().getAmounts(false));
+            assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, ga.getGameState());
+
+            tcli.pickResources(ga, new SOCResourceSet(1, 0, 0, 0, 0, 0));
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(0, cliPl.getNeedToPickGoldHexResources());
+            assertEquals(1, cli2Pl.getNeedToPickGoldHexResources());
+            assertArrayEquals(RS_KNOWN_PLUS_CLAY, cliPl.getResources().getAmounts(false));
+            assertArrayEquals(CLI2_RS_KNOWN_AMOUNTS_ARR, cli2Pl.getResources().getAmounts(false));
+            assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, ga.getGameState());
+
+            tcli2.pickResources(ga, new SOCResourceSet(0, 0, 0, 1, 0, 0));
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(0, cliPl.getNeedToPickGoldHexResources());
+            assertEquals(0, cli2Pl.getNeedToPickGoldHexResources());
+            assertArrayEquals(CLI2_RS_KNOWN_PLUS_WHEAT, cli2Pl.getResources().getAmounts(false));
+            assertEquals(SOCGame.PLAY1, ga.getGameState());
+
+            compares = TestRecorder.compareRecordsToExpected
+                (records, new String[][]
+                {
+                    {"all:SOCDiceResult:game=", "|param=" + GOLD_DICE_NUM},
+                    {"all:SOCGameState:game=", "|state=56"},
+                    {"all:SOCGameServerText:game=", "|text=No player gets anything."},
+                    {"all:SOCGameServerText:game=", "|text=" + CLIENT2_NAME + " and " + CLIENT_NAME + " need to pick resources from the gold hex."},
+                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=1"},
+                    {"p1:SOCSimpleRequest:game=", "|pn=1|reqType=1|v1=1|v2=0"},
+                    {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=1"},
+                    {"p3:SOCSimpleRequest:game=", "|pn=3|reqType=1|v1=1|v2=0"},
+                    {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=GAIN|elementType=1|amount=1"},
+                    {"all:SOCGameServerText:game=", "|text=" + CLIENT_NAME + " has picked 1 clay from the gold hex."},
+                    {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=0"},
+                    {"all:SOCGameState:game=", "|state=56"},
+                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=GAIN|elementType=4|amount=1"},
+                    {"all:SOCGameServerText:game=", "|text=" + CLIENT2_NAME + " has picked 1 wheat from the gold hex."},
+                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=0"},
+                    {"all:SOCGameState:game=", "|state=20"}
+                });
+        }
+
+        /* leave game, consolidate results */
+
+        tcli.destroy();
+        tcli2.destroy();
+
+        if (compares != null)
+        {
+            compares.insert(0, "For test testRollDiceGoldHexGain(" + nameSuffix + "): Message mismatch: ");
             System.err.println(compares);
             fail(compares.toString());
         }
