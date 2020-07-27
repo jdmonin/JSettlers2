@@ -2530,7 +2530,8 @@ public class SOCServerMessageHandler
 
                     if ((robotCon != null) && gameList.isMember(robotCon, gaName))
                     {
-                        robotCon.put(new SOCRobotDismiss(gaName));
+                        srv.messageToPlayer(robotCon, gaName, pn,
+                            new SOCRobotDismiss(gaName));
 
                         /**
                          * this connection has to wait for the robot to leave,
@@ -2886,54 +2887,57 @@ public class SOCServerMessageHandler
             {
                 srv.resetBoardAndNotify(gaName, reqPN);
             } else if (hadRobot) {
-                srv.messageToPlayerKeyed(c, gaName, "resetboard.request.unlock.bot");
+                srv.messageToPlayerKeyed(c, gaName, reqPN, "resetboard.request.unlock.bot");
                     // "Please unlock at least one bot, so you will have an opponent."
             } else {
-                srv.messageToGameKeyed(ga, true, "resetboard.request.everyone.left");
+                srv.messageToGameKeyed(ga, true, true, "resetboard.request.everyone.left");
                     // "Everyone has left this game. Please start a new game with players or bots."
             }
         }
         else
         {
             // Probably put it to a vote.
-            gameList.takeMonitorForGame(gaName);
 
             // First, Count number of other players who can vote (connected, version chk)
+            gameList.takeMonitorForGame(gaName);
             int votingPlayers = 0;
-            for (int i = ga.maxPlayers - 1; i>=0; --i)
+            try
             {
-                if ((i != reqPN) && ! ga.isSeatVacant(i))
+                for (int i = ga.maxPlayers - 1; i>=0; --i)
                 {
-                    Connection pc = srv.getConnection(ga.getPlayer(i).getName());
-                    if ((pc != null) && pc.isConnected() && (pc.getVersion() >= 1100))
-                         ++votingPlayers;
+                    if ((i != reqPN) && ! ga.isSeatVacant(i))
+                    {
+                        Connection pc = srv.getConnection(ga.getPlayer(i).getName());
+                        if ((pc != null) && pc.isConnected() && (pc.getVersion() >= 1100))
+                             ++votingPlayers;
+                    }
                 }
+            } finally {
+                gameList.releaseMonitorForGame(gaName);
             }
 
             if (votingPlayers == 0)
             {
                 // No one else is capable of voting.
                 // Reset the game immediately.
-                srv.messageToGameKeyed(ga, false, "resetboard.vote.request.alloldcli", c.getData());
+                srv.messageToGameKeyed(ga, true, false, "resetboard.vote.request.alloldcli", c.getData());
                     // ">>> {0} is resetting the game - other connected players are unable to vote (client too old)."
 
-                gameList.releaseMonitorForGame(gaName);
                 srv.resetBoardAndNotify(gaName, reqPN);
             }
             else
             {
                 // Put it to a vote
-                srv.messageToGameKeyed(ga, false, "resetboard.vote.request", c.getData());
+                srv.messageToGameKeyed(ga, true, false, "resetboard.vote.request", c.getData());
                     // "requests a board reset - other players please vote."
                 final SOCMessage vr = new SOCResetBoardVoteRequest(gaName, reqPN);
 
                 ga.resetVoteBegin(reqPN);
 
-                gameList.releaseMonitorForGame(gaName);
                 for (int i = 0; i < ga.maxPlayers; ++i)
                     if (humanConns[i] != null)
                         if (humanConns[i].getVersion() >= 1100)
-                            humanConns[i].put(vr);
+                            srv.messageToPlayer(humanConns[i], gaName, i, vr);
                         else
                             ga.resetVoteRegister
                                 (ga.getPlayer(humanConns[i].getData()).getPlayerNumber(), true);

@@ -930,10 +930,11 @@ public class SOCGameListAtServer extends SOCGameList
             if (! alreadySent)
             {
                 // send the full list as 1 message
-                if (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    c.put(new SOCGamesWithOptions(gl, cliVers));
-                else
-                    c.put(new SOCGames(gl));
+                c.put
+                    ((cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                     ? new SOCGamesWithOptions(gl, cliVers)
+                     : new SOCGames(gl));
+
             } else {
                 // send deltas only
                 for (int i = 0; i < gl.size(); ++i)

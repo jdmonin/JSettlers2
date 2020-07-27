@@ -3412,8 +3412,10 @@ public class SOCGameMessageHandler
         }
 
         if (sendDenyReply)
-            c.put(new SOCSetSpecialItem
-                (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber));
+            srv.messageToPlayer
+                (c, gaName, (pn >= 0) ? pn : SOCServer.PN_REPLY_TO_UNDETERMINED,
+                 new SOCSetSpecialItem
+                     (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber));
     }
 
 }
