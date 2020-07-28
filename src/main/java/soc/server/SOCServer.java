@@ -2814,7 +2814,7 @@ public class SOCServer extends Server
      * @param isBotsOnly  True if the game's only players are bots, no humans and no owner
      * @param hasGameListMonitor  True if caller holds the {@link SOCGameList#takeMonitor()} lock already.
      *                If true, this method won't take or release that monitor.  Otherwise will take it before creating
-     *                the game, and release it before calling {@link #broadcast(String)}.
+     *                the game, and release it before calling {@link #broadcast(SOCMessage)}.
      * @return  Newly created game, or null if an unexpected error occurs during creation
      * @throws NoSuchElementException if {@code loadedGame != null}, its game name is already in use,
      *           and an unused name couldn't be generated.
@@ -2903,7 +2903,7 @@ public class SOCServer extends Server
         if ((gVers <= cversMin) && (gaOpts == null))
         {
             // All clients can join it, and no game options: use simplest message
-            broadcast(SOCNewGame.toCmd(gaName));
+            broadcast(new SOCNewGame(gaName));
 
         } else {
             // Send messages, based on clients' versions/features
@@ -2965,7 +2965,7 @@ public class SOCServer extends Server
             {
                 // All cli can understand msg with version/options included
                 broadcast
-                    (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2));
+                    (new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2));
             } else {
                 // Only some can understand msg with version/options included;
                 // send at most 1 message to each connected client, split by client version.
@@ -3251,7 +3251,7 @@ public class SOCServer extends Server
 
         if (gameDestroyed)
         {
-            broadcast(SOCDeleteGame.toCmd(gaName));
+            broadcast(new SOCDeleteGame(gaName));
         }
         else
         {
@@ -3507,7 +3507,7 @@ public class SOCServer extends Server
     /**
      * Destroy a game and then broadcast its deletion, including lock handling.
      * Calls {@link SOCGameList#takeMonitor()}, {@link #destroyGame(String)},
-     * {@link SOCGameList#releaseMonitor()}, and {@link #broadcast(String) broadcast}({@link SOCDeleteGame}).
+     * {@link SOCGameList#releaseMonitor()}, and {@link #broadcast(SOCMessage) broadcast}({@link SOCDeleteGame}).
      * @param gaName  Game name to destroy
      * @param descForStackTrace  Activity description in case of exception thrown from destroyGame;
      *     will debug-print a mesasge "Exception in " + desc, followed by a stack trace.
@@ -3525,9 +3525,12 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in " + descForStackTrace);
         }
+        finally
+        {
+            gameList.releaseMonitor();
+        }
 
-        gameList.releaseMonitor();
-        broadcast(SOCDeleteGame.toCmd(gaName));
+        broadcast(new SOCDeleteGame(gaName));
     }
 
     /**
@@ -3731,20 +3734,24 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in leaveAllChannels");
         }
+        finally
+        {
+            try
+            {
+                /** After iterating through all channels, destroy newly empty ones */
+                for (String ch : toDestroy)
+                    destroyChannel(ch);
+            } finally {
+                channelList.releaseMonitor();
+            }
+        }
 
-        /** After iterating through all channels, destroy newly empty ones */
-        for (String ch : toDestroy)
-            destroyChannel(ch);
-
-        channelList.releaseMonitor();
 
         /**
          * let everyone know about the destroyed channels
          */
         for (String ga : toDestroy)
-        {
-            broadcast(SOCDeleteChannel.toCmd(ga));
-        }
+            broadcast(new SOCDeleteChannel(ga));
     }
 
     /**
@@ -3793,12 +3800,17 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in leaveAllGames");
         }
-
-        /** After iterating through all games, destroy newly empty ones */
-        for (String ga : toDestroy)
-            destroyGame(ga);
-
-        gameList.releaseMonitor();
+        finally
+        {
+            /** After iterating through all games, destroy newly empty ones */
+            try
+            {
+                for (String ga : toDestroy)
+                    destroyGame(ga);
+            } finally {
+                gameList.releaseMonitor();
+            }
+        }
 
         /**
          * let everyone know about the destroyed games
@@ -3806,7 +3818,7 @@ public class SOCServer extends Server
         for (String ga : toDestroy)
         {
             D.ebugPrintlnINFO("** Broadcasting SOCDeleteGame " + ga);
-            broadcast(SOCDeleteGame.toCmd(ga));
+            broadcast(new SOCDeleteGame(ga));
         }
     }
 
@@ -5908,7 +5920,7 @@ public class SOCServer extends Server
                     sb.append((char) (33 + rand.nextInt(126 - 33)));
                 srvShutPassword = sb.toString();
                 System.err.println("** Shutdown password generated: " + srvShutPassword);
-                broadcast(SOCBCastTextMsg.toCmd(debugCli.getData() + " WANTS TO STOP THE SERVER"));
+                broadcast(new SOCBCastTextMsg(debugCli.getData() + " WANTS TO STOP THE SERVER"));
                 messageToPlayer(debugCli, gaName, PN_REPLY_TO_UNDETERMINED,
                     "Send stop command again with the password.");
             }
@@ -7259,7 +7271,7 @@ public class SOCServer extends Server
                         // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
                 } else if (sgm.gameState < SOCGame.OVER) {
                     messageToGameKeyed
-                        (ga, true, true, "admin.loadgame.ok.to_continue_resumegame");
+                        (ga, false, true, "admin.loadgame.ok.to_continue_resumegame");
                         // ">>> To continue playing, type *RESUMEGAME*"
                 } else {
                     sgm.resumePlay(true);

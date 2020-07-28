@@ -117,50 +117,22 @@ public class SOCPickResources extends SOCMessage
     }
 
     /**
+     * Build a command string for this message:
      * PICKRESOURCES sep game sep2 clay sep2 ore sep2 sheep sep2 wheat sep2 wood
      *
      * @return the command string
      */
     public String toCmd()
     {
-        return toCmd(game, resources);
-    }
-
-    /**
-     * Build a command string for this message.
-     *
-     * @param ga  the name of the game
-     * @param rs  the resources being picked
-     * @return the command string
-     */
-    public static String toCmd(String ga, SOCResourceSet rs)
-    {
-        String cmd = PICKRESOURCES + sep + ga;
+        StringBuilder cmd = new StringBuilder(PICKRESOURCES + sep + game);
 
         for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
                 i++)
         {
-            cmd += (sep2 + rs.getAmount(i));
+            cmd.append(sep2_char).append(resources.getAmount(i));
         }
 
-        return cmd;
-    }
-
-    /**
-     * PICKRESOURCES sep game sep2 clay sep2 ore sep2 sheep sep2 wheat sep2 wood
-     *
-     * @param ga  the name of the game
-     * @param cl  the amount of clay being picked
-     * @param or  the amount of ore being picked
-     * @param sh  the amount of sheep being picked
-     * @param wh  the amount of wheat being picked
-     * @param wo  the amount of wood being picked
-     * @return the command string
-     * @since 2.0.00
-     */
-    public static String toCmd(String ga, int cl, int or, int sh, int wh, int wo)
-    {
-        return PICKRESOURCES + sep + ga + sep2 + cl + sep2 + or + sep2 + sh + sep2 + wh + sep2 + wo;
+        return cmd.toString();
     }
 
     /**

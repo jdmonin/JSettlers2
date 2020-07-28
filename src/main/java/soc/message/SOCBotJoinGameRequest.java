@@ -105,25 +105,14 @@ public class SOCBotJoinGameRequest extends SOCMessage
     }
 
     /**
-     * BOTJOINGAMEREQUEST sep game sep2 playerNumber
+     * BOTJOINGAMEREQUEST sep game sep2 playerNumber sep2 optionstring
      *
      * @return the command String
      */
     @Override
     public String toCmd()
     {
-        return toCmd(game, playerNumber, opts);
-    }
-
-    /**
-     * BOTJOINGAMEREQUEST sep game sep2 playerNumber sep2 optionstring
-     *
-     * @param ga  the game name
-     * @return    the command string
-     */
-    public static String toCmd(String ga, int pn, Map<String,SOCGameOption> opts)
-    {
-        return BOTJOINGAMEREQUEST + sep + ga + sep2 + pn + sep2
+        return BOTJOINGAMEREQUEST + sep + game + sep2 + playerNumber + sep2
             + SOCGameOption.packOptionsToString(opts, false, false);
     }
 

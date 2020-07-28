@@ -1797,9 +1797,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             client.isNGOFWaitingForAuthStatus = true;
             status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // NGOF create calls setCursor(DEFAULT_CURSOR)
-            net.putNet(SOCAuthRequest.toCmd
+            net.putNet(new SOCAuthRequest
                 (SOCAuthRequest.ROLE_GAME_PLAYER, client.getNickname(forPracticeServer), client.password,
-                 SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, net.getHost()));
+                 SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, net.getHost()).toCmd());
 
             return;
         }

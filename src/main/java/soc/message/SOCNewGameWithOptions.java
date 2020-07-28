@@ -141,40 +141,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     }
 
     /**
-     * NEWGAMEWITHOPTIONS sep game sep2 minVers sep2 optionstring
-     *
-     * @param ga  the name of the game; the game name may have
-     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)},
-     *            or null
-     * @param minVers Minimum client version required, or -1
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final String optstr, final int minVers)
-    {
-        return NEWGAMEWITHOPTIONS + sep + ga + sep2 + Integer.toString(minVers) + sep2
-               + (((optstr != null) && (optstr.length() > 0)) ? optstr : "-");
-    }
-
-    /**
-     * NEWGAMEWITHOPTIONS sep game sep2 minVers sep2 optionstring
-     *
-     * @param ga  the name of the game; the game name may have
-     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     * @param opts Requested game options, as a read-only map
-     * @param gameMinVers Minimum client version required, or -1
-     * @param cliVers  Client version, if any game's options need adjustment for an older client.
-     *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
-     * @return the command string
-     */
-    public static String toCmd
-        (final String ga, final Map<String,SOCGameOption> opts, final int gameMinVers, final int cliVers)
-    {
-        return toCmd(ga, SOCGameOption.packOptionsToString(opts, false, false, cliVers), gameMinVers);
-    }
-
-    /**
      * Parse the command String into a SOCNewGameWithOptions message.
      *
      * @param s   the String to parse: NEWGAMEWITHOPTIONS sep game sep2 opts

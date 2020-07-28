@@ -1319,7 +1319,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             /**
              * change our face to the robot face
              */
-            put(SOCChangeFace.toCmd(ga.getName(), pn, faceId));
+            put(new SOCChangeFace(ga.getName(), pn, faceId).toCmd());
         }
         else
         {

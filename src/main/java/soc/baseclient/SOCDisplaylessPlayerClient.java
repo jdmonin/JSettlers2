@@ -2711,7 +2711,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void buyDevCard(SOCGame ga)
     {
-        put(SOCBuyDevCardRequest.toCmd(ga.getName()));
+        put(new SOCBuyDevCardRequest(ga.getName()).toCmd());
     }
 
     /**
@@ -2725,7 +2725,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public void buildRequest(SOCGame ga, int piece)
         throws IllegalArgumentException
     {
-        put(SOCBuildRequest.toCmd(ga.getName(), piece));
+        put(new SOCBuildRequest(ga.getName(), piece).toCmd());
     }
 
     /**
@@ -2736,7 +2736,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
-        put(SOCCancelBuildRequest.toCmd(ga.getName(), piece));
+        put(new SOCCancelBuildRequest(ga.getName(), piece).toCmd());
     }
 
     /**
@@ -3025,7 +3025,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void pickResources(SOCGame ga, SOCResourceSet rscs)
     {
-        put(SOCPickResources.toCmd(ga.getName(), rscs));
+        put(new SOCPickResources(ga.getName(), rscs).toCmd());
     }
 
     /**
@@ -3039,7 +3039,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void pickResourceType(SOCGame ga, int res)
     {
-        put(SOCPickResourceType.toCmd(ga.getName(), res));
+        put(new SOCPickResourceType(ga.getName(), res).toCmd());
     }
 
     /**
@@ -3050,7 +3050,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void changeFace(SOCGame ga, int id)
     {
-        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), id));
+        put(new SOCChangeFace(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), id).toCmd());
     }
 
     /**

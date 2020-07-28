@@ -1056,7 +1056,7 @@ public class SOCServerMessageHandler
                     channelList.releaseMonitor();
                 }
 
-                srv.broadcast(SOCDeleteChannel.toCmd(chName));
+                srv.broadcast(new SOCDeleteChannel(chName));
 
                 return;
             }
@@ -1322,7 +1322,7 @@ public class SOCServerMessageHandler
         }
         else if (cmdTextUC.startsWith("*BCAST* "))
         {
-            srv.broadcast(SOCBCastTextMsg.toCmd(c.getData() + ": " + cmdText.substring(8).trim()));
+            srv.broadcast(new SOCBCastTextMsg(c.getData() + ": " + cmdText.substring(8).trim()));
         }
         else if (cmdTextUC.startsWith("*BOTLIST*"))
         {
@@ -2285,12 +2285,14 @@ public class SOCServerMessageHandler
         {
             D.ebugPrintStackTrace(e, "Exception in handleLEAVECHANNEL");
         }
-
-        channelList.releaseMonitorForChannel(chName);
+        finally
+        {
+            channelList.releaseMonitorForChannel(chName);
+        }
 
         if (destroyedChannel)
         {
-            srv.broadcast(SOCDeleteChannel.toCmd(chName));
+            srv.broadcast(new SOCDeleteChannel(chName));
         }
     }
 

@@ -264,33 +264,17 @@ public class SOCBoardLayout extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, hexLayout, numberLayout, robberHex);
-    }
-
-    /**
-     * Formatted string to send this BOARDLAYOUT over the network.
-     * BOARDLAYOUT sep game sep2 hexLayout[0] sep2 ... sep2 hexLayout[36]
-     * sep2 numberLayout[0] sep2 ... sep2 numberLayout[36] sep2 robberHex
-     *
-     * @return the command string
-     */
-    public static String toCmd(String ga, int[] hl, int[] nl, int rh)
-    {
-        String cmd = BOARDLAYOUT + sep + ga;
+        StringBuilder cmd = new StringBuilder(BOARDLAYOUT + sep + game);
 
         for (int i = 0; i < 37; i++)
-        {
-            cmd += (sep2 + hl[i]);
-        }
+            cmd.append(sep2_char).append(hexLayout[i]);
 
         for (int i = 0; i < 37; i++)
-        {
-            cmd += (sep2 + nl[i]);
-        }
+            cmd.append(sep2_char).append(numberLayout[i]);
 
-        cmd += (sep2 + rh);
+        cmd.append(sep2_char).append(robberHex);
 
-        return cmd;
+        return cmd.toString();
     }
 
     /**

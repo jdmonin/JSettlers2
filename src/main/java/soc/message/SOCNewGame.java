@@ -76,19 +76,7 @@ public class SOCNewGame extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game);
-    }
-
-    /**
-     * NEWGAME sep game
-     *
-     * @param ga  the name of the new game; may have
-     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     * @return    the command string
-     */
-    public static String toCmd(String ga)
-    {
-        return NEWGAME + sep + ga;
+        return NEWGAME + sep + game;
     }
 
     /**
@@ -109,4 +97,5 @@ public class SOCNewGame extends SOCMessage
     {
         return "SOCNewGame:game=" + game;
     }
+
 }

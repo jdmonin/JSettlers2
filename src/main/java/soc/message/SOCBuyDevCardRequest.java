@@ -101,18 +101,7 @@ public class SOCBuyDevCardRequest extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game);
-    }
-
-    /**
-     * BUYDEVCARDREQUEST sep game
-     *
-     * @param ga  the game name
-     * @return    the command string
-     */
-    public static String toCmd(String ga)
-    {
-        return BUYDEVCARDREQUEST + sep + ga;
+        return BUYDEVCARDREQUEST + sep + game;
     }
 
     /**
@@ -135,4 +124,5 @@ public class SOCBuyDevCardRequest extends SOCMessage
 
         return s;
     }
+
 }

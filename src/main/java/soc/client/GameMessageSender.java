@@ -124,7 +124,7 @@ import soc.message.SOCStartGame;
      */
     public void buyDevCard(SOCGame ga)
     {
-        put(SOCBuyDevCardRequest.toCmd(ga.getName()), ga.isPractice);
+        put(new SOCBuyDevCardRequest(ga.getName()).toCmd(), ga.isPractice);
     }
 
     /**
@@ -138,7 +138,7 @@ import soc.message.SOCStartGame;
     public void buildRequest(SOCGame ga, int piece)
         throws IllegalArgumentException
     {
-        put(SOCBuildRequest.toCmd(ga.getName(), piece), ga.isPractice);
+        put(new SOCBuildRequest(ga.getName(), piece).toCmd(), ga.isPractice);
     }
 
     /**
@@ -149,7 +149,7 @@ import soc.message.SOCStartGame;
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
-        put(SOCCancelBuildRequest.toCmd(ga.getName(), piece), ga.isPractice);
+        put(new SOCCancelBuildRequest(ga.getName(), piece).toCmd(), ga.isPractice);
     }
 
     /**
@@ -329,7 +329,7 @@ import soc.message.SOCStartGame;
      */
     public void pickResources(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
+        put(new SOCPickResources(ga.getName(), rs).toCmd(), ga.isPractice);
     }
 
     /**
@@ -484,7 +484,7 @@ import soc.message.SOCStartGame;
      */
     public void pickResourceType(SOCGame ga, int res)
     {
-        put(SOCPickResourceType.toCmd(ga.getName(), res), ga.isPractice);
+        put(new SOCPickResourceType(ga.getName(), res).toCmd(), ga.isPractice);
     }
 
     /**
@@ -496,7 +496,7 @@ import soc.message.SOCStartGame;
     public void changeFace(SOCGame ga, int id)
     {
         client.lastFaceChange = id;
-        put(SOCChangeFace.toCmd(ga.getName(), 0, id), ga.isPractice);
+        put(new SOCChangeFace(ga.getName(), 0, id).toCmd(), ga.isPractice);
     }
 
     /**

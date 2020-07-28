@@ -153,35 +153,9 @@ public class SOCAuthRequest extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(role, nickname, password, authScheme, host);
-    }
-
-    /**
-     * AUTHREQUEST sep role sep2 nickname sep2 authScheme sep2 host sep2 password
-     *
-     * @param ro  the {@link #role} they've connected to server for, such as {@link #ROLE_GAME_PLAYER}
-     * @param nn  the nickname
-     * @param pw  the optional password, or ""; this is the last field of the message
-     *     so that it can contain delimiter chars
-     * @param sch  auth scheme number, such as {@link #SCHEME_CLIENT_PLAINTEXT}
-     * @param hn  the server host name, or null; "" is sent as null
-     * @return    the command string
-     * @throws IllegalArgumentException if {@code ro}, {@code nn}, or {@code hn} contains a delimiter character
-     *     or is null or otherwise doesn't pass {@link SOCMessage#isSingleLineAndSafe(String)}
-     */
-    public static String toCmd(final String ro, final String nn, String pw, final int sch, final String hn)
-        throws IllegalArgumentException
-    {
-        if (! SOCMessage.isSingleLineAndSafe(ro))
-            throw new IllegalArgumentException("role: " + ro);
-        if (! SOCMessage.isSingleLineAndSafe(nn))
-            throw new IllegalArgumentException("nickname: " + nn);
-        if ((hn != null) && ! SOCMessage.isSingleLineAndSafe(hn))
-            throw new IllegalArgumentException("hostname: " + hn);
-
-        return AUTHREQUEST + sep + ro + sep2 + nn + sep2 + sch + sep2
-            + (((hn != null) && (hn.length() > 0)) ? hn : EMPTYSTR)
-            + sep2 + pw;
+        return AUTHREQUEST + sep + role + sep2 + nickname + sep2 + authScheme + sep2
+            + (((host != null) && (host.length() > 0)) ? host : EMPTYSTR)
+            + sep2 + password;
     }
 
     /**

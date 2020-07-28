@@ -107,24 +107,7 @@ public class SOCBuildRequest extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, pieceType);
-    }
-
-    /**
-     * BUILDREQUEST sep game sep2 pieceType
-     *
-     * @param ga  the name of the game
-     * @param pt  the type of piece to build, or -1 for Special Building Phase
-     * @return the command string
-     * @throws IllegalArgumentException if {@code pt} &lt; -1
-     */
-    public static String toCmd(String ga, int pt)
-        throws IllegalArgumentException
-    {
-        if (pt < -1)
-            throw new IllegalArgumentException("pt: " + pt);
-
-        return BUILDREQUEST + sep + ga + sep2 + pt;
+        return BUILDREQUEST + sep + game + sep2 + pieceType;
     }
 
     /**
@@ -160,4 +143,5 @@ public class SOCBuildRequest extends SOCMessage
     {
         return "SOCBuildRequest:game=" + game + "|pieceType=" + pieceType;
     }
+
 }

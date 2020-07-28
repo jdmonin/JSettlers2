@@ -404,29 +404,19 @@ public class SOCBoardLayout2 extends SOCMessage
     @Override
     public String toCmd()
     {
-        return toCmd(game, boardEncodingFormat, layoutParts);
-    }
+        StringBuilder cmd = new StringBuilder();
 
-    /**
-     * Formatted string to send this BOARDLAYOUT2 over the network.
-     * See {@link #toCmd()} for details.
-     *
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final int bef, final Map<String, Object> parts)
-    {
-        StringBuffer cmd = new StringBuffer();
         cmd.append(BOARDLAYOUT2);
-        cmd.append(sep);
-        cmd.append(ga);
-        cmd.append(sep2);
-        cmd.append(bef);
-        for (String okey : parts.keySet())
+        cmd.append(sep).append(game);
+        cmd.append(sep2_char).append(boardEncodingFormat);
+
+        for (String okey : layoutParts.keySet())
         {
-            cmd.append(sep2);
+            cmd.append(sep2_char);
             cmd.append(okey);
-            cmd.append(sep2);
-            Object ov = parts.get(okey);
+            cmd.append(sep2_char);
+
+            Object ov = layoutParts.get(okey);
             if (ov instanceof Integer)
             {
                 cmd.append(Integer.toString(((Integer) ov).intValue()));
@@ -437,7 +427,7 @@ public class SOCBoardLayout2 extends SOCMessage
                 cmd.append(Integer.toString(ovi.length));
                 for (int i = 0; i < ovi.length; ++i)
                 {
-                    cmd.append(sep2);
+                    cmd.append(sep2_char);
                     cmd.append(Integer.toString(ovi[i]));
                 }
             } else {

@@ -23,6 +23,7 @@ package soctest.server;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.Vector;
 
@@ -45,11 +46,13 @@ import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCChoosePlayer;
+import soc.message.SOCGameServerText;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
 import soc.server.genericServer.Connection;
 import soc.server.savegame.SavedGameModel;
+import soc.util.SOCStringManager;
 import soc.util.Version;
 import soctest.server.RecordingTesterServer.QueueEntry;
 import soctest.server.savegame.TestLoadgame;
@@ -77,9 +80,20 @@ public class TestRecorder
      */
     private static Set<String> clientNamesUsed = new HashSet<>();
 
+    /** Localized text for {@link #compareRecordsToExpected(List, String[][])} to ignore */
+    private static final String GAME_RENAMED_LOCAL_TEXT
+        = SOCStringManager.getFallbackServerManagerForClient().get("admin.loadgame.ok.game_renamed", "x");
+            // "Game was renamed: Original name {0} is already used."
+
+    /** Localized text for {@link #compareRecordsToExpected(List, String[][])} to ignore */
+    private static final String GAME_RENAMED_TEXT_PREFIX
+        = GAME_RENAMED_LOCAL_TEXT.substring(0, 17);
+
     @BeforeClass
     public static void startStringportServer()
     {
+        assertEquals("internal test comparison", "Game was renamed:", GAME_RENAMED_TEXT_PREFIX);
+
         SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER = false;  // keep games around, to check asserts
 
         srv = new RecordingTesterServer();
@@ -853,6 +867,19 @@ public class TestRecorder
         (final List<QueueEntry> records, final String[][] expected)
     {
         StringBuilder compares = new StringBuilder();
+
+        // preprocess: ignore/remove incidental rename message from artifact loading
+        {
+            ListIterator<QueueEntry> ri = records.listIterator();
+            while (ri.hasNext())
+            {
+                QueueEntry rec = ri.next();
+                if ((rec.toPN == SOCServer.PN_REPLY_TO_UNDETERMINED)
+                    && (rec.event instanceof SOCGameServerText)
+                    && ((SOCGameServerText) rec.event).getText().startsWith(GAME_RENAMED_TEXT_PREFIX))
+                    ri.remove();
+            }
+        }
 
         int nExpected = 0;
         for (int i = 0; i < expected.length; ++i)
