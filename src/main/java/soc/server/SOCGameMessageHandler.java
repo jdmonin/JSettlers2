@@ -1381,7 +1381,7 @@ public class SOCGameMessageHandler
                         srv.messageToGameWithMon(gaName, true, new SOCClearOffer(gaName, -1));
                     } else {
                         for (int i = 0; i < ga.maxPlayers; i++)
-                            srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, i));
+                            srv.messageToGameWithMon(gaName, false, new SOCClearOffer(gaName, i));
 
                         if (srv.recordGameEventsIsActive())
                             srv.recordGameEvent(gaName, new SOCClearOffer(gaName, -1));
@@ -2345,7 +2345,8 @@ public class SOCGameMessageHandler
             return;
 
         boolean didPut = false;
-        final int pieceType = mes.getPieceType();
+        final int pieceType = mes.getPieceType(),
+            pn = player.getPlayerNumber();
 
         final boolean initialDeny
             = ga.isInitialPlacement() && ! player.canBuildInitialPieceType(pieceType);
@@ -2391,13 +2392,14 @@ public class SOCGameMessageHandler
             break;
 
         default:
-            srv.messageToPlayer(c, gaName, "* Unknown piece type: " + pieceType);
+            srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                "* Unknown piece type: " + pieceType);
         }
 
         if (didPut)
         {
-            srv.messageToGame(gaName, new SOCPutPiece
-                              (gaName, mes.getPlayerNumber(), pieceType, coord));
+            srv.messageToGame(gaName, true, new SOCPutPiece
+                              (gaName, pn, pieceType, coord));
             handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, false);
 
             if (! (ga.pendingMessagesOut.isEmpty() && player.pendingMessagesOut.isEmpty()))
@@ -2408,11 +2410,13 @@ public class SOCGameMessageHandler
             if (numGoldRes > 0)
             {
                 final int newGS = ga.getGameState();
+
                 if (newGS == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                    srv.messageToGame(gaName, new SOCGameState(gaName, newGS));
+                    srv.messageToGame(gaName, true, new SOCGameState(gaName, newGS));
                     // state not sent for STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
-                srv.messageToPlayer(c, new SOCSimpleRequest
-                    (gaName, player.getPlayerNumber(), SOCSimpleRequest.PROMPT_PICK_RESOURCES, numGoldRes));
+                srv.messageToPlayer(c, gaName, pn,
+                    new SOCSimpleRequest
+                        (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numGoldRes));
             }
 
             final int newState = ga.getGameState();
@@ -2431,11 +2435,14 @@ public class SOCGameMessageHandler
                     ((player.getPieces().size() % 2) == 0)
                     ? "settlement"
                     : "road";
-                srv.messageToPlayer(c, gaName, "Place a " + pieceTypeFirst + " before placing that.");
+                srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                    "Place a " + pieceTypeFirst + " before placing that.");
             } else if (denyInSpecial) {
-                srv.messageToPlayer(c, gaName, "Can't currently do that during Free Placement.");
+                srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                    "Can't currently do that during Free Placement.");
             } else {
-                srv.messageToPlayer(c, gaName, "Not a valid location to place that.");
+                srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                    "Not a valid location to place that.");
             }
         }
     }
@@ -3172,8 +3179,9 @@ public class SOCGameMessageHandler
         final int replyCannot = ga.canPlayInventoryItem(pn, mes.itemType);
         if (replyCannot != 0)
         {
-            srv.messageToPlayer(c, new SOCInventoryItemAction
-                (gaName, -1, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, replyCannot));
+            srv.messageToPlayer(c, gaName, pn,
+                new SOCInventoryItemAction
+                    (gaName, -1, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, replyCannot));
             return;
         }
 
@@ -3185,15 +3193,18 @@ public class SOCGameMessageHandler
         {
             // Wasn't able to play.  Assume canPlay was recently called and returned OK; the most
             // volatile of its conditions is player's inventory, so assume that's what changed.
-            srv.messageToPlayer(c, new SOCInventoryItemAction
-                (gaName, -1, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, 1));  // 1 == item not in inventory
+            srv.messageToPlayer(c, gaName, pn,
+                new SOCInventoryItemAction
+                    (gaName, -1, SOCInventoryItemAction.CANNOT_PLAY, mes.itemType, 1));  // 1 == item not in inventory
             return;
         }
 
         // Item played.  Announce play and removal (or keep) from player's inventory.
         // Announce game state if changed.
-        srv.messageToGame(gaName, new SOCInventoryItemAction
-            (gaName, pn, SOCInventoryItemAction.PLAYED, item.itype, item.isKept(), item.isVPItem(), item.canCancelPlay));
+        srv.messageToGame(gaName, true,
+            new SOCInventoryItemAction
+                (gaName, pn, SOCInventoryItemAction.PLAYED, item.itype,
+                 item.isKept(), item.isVPItem(), item.canCancelPlay));
 
         final int gstate = ga.getGameState();
         if (gstate != oldGameState)
@@ -3323,10 +3334,10 @@ public class SOCGameMessageHandler
                             if (gAfter == null)
                             {
                                 if (gBefore != null)
-                                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                                    srv.messageToGame(gaName, true, new SOCSetSpecialItem
                                         (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, -1, -1));
                             } else {
-                                srv.messageToGame(gaName, new SOCSetSpecialItem
+                                srv.messageToGame(gaName, true, new SOCSetSpecialItem
                                     (ga, SOCSetSpecialItem.OP_SET, typeKey, gi, -1, gAfter));
 
                                 pickCoord = gAfter.getCoordinates();
@@ -3338,10 +3349,10 @@ public class SOCGameMessageHandler
                             if (pAfter == null)
                             {
                                 if (pBefore != null)
-                                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                                    srv.messageToGame(gaName, true, new SOCSetSpecialItem
                                         (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, -1, pi, pn));
                             } else {
-                                srv.messageToGame(gaName, new SOCSetSpecialItem
+                                srv.messageToGame(gaName, true, new SOCSetSpecialItem
                                     (ga, SOCSetSpecialItem.OP_SET, typeKey, -1, pi, pAfter));
                                 if (! setPickFieldsFromGAfter)
                                 {
@@ -3353,7 +3364,7 @@ public class SOCGameMessageHandler
                          }
                     }
 
-                    srv.messageToGame(gaName, new SOCSetSpecialItem
+                    srv.messageToGame(gaName, true, new SOCSetSpecialItem
                         (gaName, replyPickOp, typeKey, gi, pi, pickPN, pickCoord, pickLevel, pickSV));
 
                     if (isStartingPick)
@@ -3361,7 +3372,7 @@ public class SOCGameMessageHandler
                         final int startCostPType = itm.getStartingCostPiecetype();
                         if (startCostPType != -1)
                             // report player's new total piecetype count, to avoid confusion if client decremented it
-                            srv.messageToGame(gaName, new SOCPlayerElement
+                            srv.messageToGame(gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET,
                                  SOCPlayerElement.elementTypeForPieceType(startCostPType),
                                  pl.getNumPieces(startCostPType)));
@@ -3386,10 +3397,11 @@ public class SOCGameMessageHandler
                         itm = ga.getSpecialItem(typeKey, gi, pi, pn);
 
                     if ((op == SOCSetSpecialItem.OP_CLEAR) || (itm == null))
-                        srv.messageToGame(gaName, new SOCSetSpecialItem
+                        srv.messageToGame(gaName, true, new SOCSetSpecialItem
                             (gaName, SOCSetSpecialItem.OP_CLEAR, typeKey, gi, pi, pn));
                     else
-                        srv.messageToGame(gaName, new SOCSetSpecialItem(ga, op, typeKey, gi, pi, itm));
+                        srv.messageToGame(gaName, true,
+                            new SOCSetSpecialItem(ga, op, typeKey, gi, pi, itm));
                 }
 
                 // check game state, check for winner

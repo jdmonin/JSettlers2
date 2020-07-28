@@ -56,8 +56,8 @@ import soc.util.SOCGameList;
  *      {@link GameMessageHandler#dispatch(SOCGame, SOCMessageForGame, Connection)},
  *      called for each {@link SOCMessageForGame} sent to the server about this handler's game.
  * <LI> Communication to game members is done by handler methods calling server methods
- *      such as {@link SOCServer#messageToGame(String, soc.message.SOCMessage)}
- *      or {@link SOCServer#messageToPlayer(Connection, soc.message.SOCMessage)}.
+ *      such as {@link SOCServer#messageToGame(String, boolean, soc.message.SOCMessage)}
+ *      or {@link SOCServer#messageToPlayer(Connection, String, int, soc.message.SOCMessage)}.
  *</UL>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

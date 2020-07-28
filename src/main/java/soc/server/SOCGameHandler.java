@@ -346,6 +346,7 @@ public class SOCGameHandler extends GameHandler
         final String gaName = ga.getName();
         final boolean wasInitial = ga.isInitialPlacement();
         final boolean ppValue = ga.isDebugFreePlacement();
+        int eventPN = SOCServer.PN_REPLY_TO_UNDETERMINED;
 
         final boolean ppWanted;
         if ((arg == null) || (arg.length() == 0))
@@ -366,38 +367,48 @@ public class SOCGameHandler extends GameHandler
                     if (wasInitial)
                     {
                         srv.messageToPlayer
-                          (c, gaName, "* To exit this debug mode, all players must have either");
+                          (c, gaName, eventPN,
+                           "* To exit this debug mode, all players must have either");
                         srv.messageToPlayer
-                          (c, gaName, "  1 settlement and 1 road, or all must have at least 2 of each.");
+                          (c, gaName, eventPN,
+                           "  1 settlement and 1 road, or all must have at least 2 of each.");
                     } else {
                         srv.messageToPlayer
-                          (c, gaName, "* Could not exit this debug mode: " + e.getMessage());
+                          (c, gaName, eventPN,
+                           "* Could not exit this debug mode: " + e.getMessage());
                     }
+
                     return;  // <--- early return ---
                 }
             } else {
                 if (c.getVersion() < SOCDebugFreePlace.VERSION_FOR_DEBUGFREEPLACE)
                 {
                     srv.messageToPlayer
-                        (c, gaName, "* Requires client version "
+                        (c, gaName, eventPN,
+                         "* Requires client version "
                          + Version.version(SOCDebugFreePlace.VERSION_FOR_DEBUGFREEPLACE)
                          + " or newer.");
+
                     return;  // <--- early return ---
                 }
                 SOCPlayer cliPl = ga.getPlayer(c.getData());
                 if (cliPl == null)
                     return;  // <--- early return ---
-                if (ga.getCurrentPlayerNumber() != cliPl.getPlayerNumber())
+
+                eventPN = cliPl.getPlayerNumber();
+                if (ga.getCurrentPlayerNumber() != eventPN)
                 {
                     srv.messageToPlayer
-                        (c, gaName, "* Can do this only on your own turn.");
+                        (c, gaName, eventPN, "* Can do this only on your own turn.");
+
                     return;  // <--- early return ---
                 }
                 if ((ga.getGameState() != SOCGame.PLAY1)
                     && ! ga.isInitialPlacement())
                 {
                     srv.messageToPlayer
-                        (c, gaName, "* Can do this only after rolling the dice.");
+                        (c, gaName, eventPN, "* Can do this only after rolling the dice.");
+
                     return;  // <--- early return ---
                 }
 
@@ -406,12 +417,15 @@ public class SOCGameHandler extends GameHandler
         }
 
         srv.messageToPlayer
-            (c, gaName, "- Free Placement mode is "
+            (c, gaName, eventPN, "- Free Placement mode is "
              + (ppWanted ? "ON -" : "off -" ));
 
         if (ppValue != ppWanted)
         {
-            srv.messageToPlayer(c, new SOCDebugFreePlace(gaName, ga.getCurrentPlayerNumber(), ppWanted));
+            srv.messageToPlayer
+                (c, gaName, eventPN,
+                 new SOCDebugFreePlace(gaName, ga.getCurrentPlayerNumber(), ppWanted));
+
             if (wasInitial && ! ppWanted)
             {
                 if (! checkTurn(c, ga))
@@ -454,12 +468,12 @@ public class SOCGameHandler extends GameHandler
 
         if (ga.getGameOptionStringValue("SC") == null)
         {
-            srv.messageToPlayer(c, gaName, "This game has no scenario");
+            srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "This game has no scenario");
             return;
         }
         if (! ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
         {
-            srv.messageToPlayer(c, gaName, "This scenario has no debug commands");
+            srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "This scenario has no debug commands");
             return;
         }
 
@@ -505,9 +519,15 @@ public class SOCGameHandler extends GameHandler
 
             if (! parseOK)
             {
-                srv.messageToPlayer(c, gaName, "### Usage: giveport #typenum #placeflag player");
-                srv.messageToPlayer(c, gaName, "### typenum: 0 for 3:1 port, or 1 to 5 (clay, ore, sheep, wheat, wood)");
-                srv.messageToPlayer(c, gaName, "### placeflag: 1 to force placement now, 0 to add to inventory");
+                final String[] usage =
+                    {
+                        "### Usage: giveport #typenum #placeflag player",
+                        "### typenum: 0 for 3:1 port, or 1 to 5 (clay, ore, sheep, wheat, wood)",
+                        "### placeflag: 1 to force placement now, 0 to add to inventory"
+                    };
+                for (final String txt : usage)
+                    srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, txt);
+
                 return;
             }
 
@@ -518,13 +538,15 @@ public class SOCGameHandler extends GameHandler
                 if ((ga.getCurrentPlayerNumber() != pl.getPlayerNumber())
                     || (pl.getPortMovePotentialLocations(false) == null))
                 {
-                    srv.messageToPlayer(c, gaName, "Player must be current and have a potential location for the port");
+                    srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT,
+                        "Player must be current and have a potential location for the port");
+
                     return;
                 }
 
                 // Fake placement off-board so we can call ga.removePort,
-                // which will handle game states and notification, at a
-                // vertical edge just past the side of the board: 0x113, 0x115, ...
+                // which will handle game states and notification through listener callbacks,
+                // at a vertical edge just past the side of the board: 0x113, 0x115, etc
                 final int edge = (ga.getBoard().getBoardWidth() + 2) | 0x101;
                 ga.placePort(null, edge, ptype);
                 ga.removePort(pl, edge);
@@ -534,12 +556,12 @@ public class SOCGameHandler extends GameHandler
             } else {
                 pl.getInventory().addItem
                     (SOCInventoryItem.createForScenario(ga, -ptype, true, false, false, ! placeNow));
-                srv.messageToGame(gaName, new SOCInventoryItemAction
+                srv.messageToGame(gaName, true, new SOCInventoryItemAction
                     (gaName, pl.getPlayerNumber(), SOCInventoryItemAction.ADD_PLAYABLE, -ptype, false, false, true));
             }
 
         } else {
-            srv.messageToPlayer(c, gaName, "Unknown debug command: " + subCmd);
+            srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "Unknown debug command: " + subCmd);
         }
     }
 
@@ -3136,9 +3158,9 @@ public class SOCGameHandler extends GameHandler
      *     from before the game action which might have changed it
      * @param hasGameMonitor  If true, caller already has
      *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
-     *     and this method should use {@link SOCServer#messageToGameWithMon(String, SOCMessage)}.
+     *     and this method should use {@link SOCServer#messageToGameWithMon(String, boolean, SOCMessage)}.
      *     Otherwise will take and release that monitor here by using
-     *     {@link SOCServer#messageToGame(String, SOCMessage)} instead.
+     *     {@link SOCServer#messageToGame(String, boolean, SOCMessage)} instead.
      * @since 2.4.00
      */
     final void reportLongestRoadIfChanged
@@ -3545,8 +3567,8 @@ public class SOCGameHandler extends GameHandler
 
         if (parseError)
         {
-            srv.messageToPlayer(c, gaName, "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
-            srv.messageToPlayer(c, gaName, DEBUG_COMMANDS_HELP_PLAYER);
+            srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
+            srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, DEBUG_COMMANDS_HELP_PLAYER);
 
             return;  // <--- early return ---
         }
@@ -3570,15 +3592,15 @@ public class SOCGameHandler extends GameHandler
             // SOCResourceConstants.CLAY == SOCPlayerElement.CLAY
             if (hasOldClients)
                 srv.messageToGame
-                    (gaName, new SOCPlayerElement(gaName, pnum, SOCPlayerElement.GAIN, resourceType, amt));
+                    (gaName, true, new SOCPlayerElement(gaName, pnum, SOCPlayerElement.GAIN, resourceType, amt));
         }
         if (! hasOldClients)
             srv.messageToGame
-                (gaName, new SOCPlayerElements(gaName, pnum, SOCPlayerElement.GAIN, rset));
+                (gaName, true, new SOCPlayerElements(gaName, pnum, SOCPlayerElement.GAIN, rset));
 
         pl.getResources().add(rset);
 
-        srv.messageToGame(gaName, outTxt.toString());
+        srv.messageToGame(gaName, true, outTxt.toString());
     }
 
     /** this is a debugging command that gives a dev card to a player.
@@ -3706,7 +3728,7 @@ public class SOCGameHandler extends GameHandler
 
             if (err != null)
             {
-                srv.messageToPlayer(c, ga.getName(), "### " + err);
+                srv.messageToPlayer(c, ga.getName(), SOCServer.PN_NON_EVENT, "### " + err);
 
                 return null;  // <--- early return ---
             }
@@ -3715,7 +3737,8 @@ public class SOCGameHandler extends GameHandler
         if (pl == null)
             pl = ga.getPlayer(name);
         if (pl == null)
-            srv.messageToPlayer(c, ga.getName(), "### Player name not found: " + name);
+            srv.messageToPlayer(c, ga.getName(), SOCServer.PN_NON_EVENT,
+                "### Player name not found: " + name);
 
         return pl;
     }
