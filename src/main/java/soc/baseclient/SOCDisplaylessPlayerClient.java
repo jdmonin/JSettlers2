@@ -2667,7 +2667,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void chSend(String ch, String mes)
     {
-        put(SOCChannelTextMsg.toCmd(ch, nickname, mes));
+        put(new SOCChannelTextMsg(ch, nickname, mes).toCmd());
     }
 
     /**
@@ -2853,7 +2853,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me));
+        put(new SOCGameTextMsg(ga.getName(), nickname, me).toCmd());
     }
 
     /**

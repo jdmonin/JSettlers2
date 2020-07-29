@@ -2575,7 +2575,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     {
         if (! doLocalCommand(ch, mes))
         {
-            net.putNet(SOCChannelTextMsg.toCmd(ch, client.nickname, mes));
+            net.putNet(new SOCChannelTextMsg(ch, client.nickname, mes).toCmd());
         }
     }
 

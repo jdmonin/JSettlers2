@@ -324,7 +324,7 @@ public class SOCDevCardAction extends SOCMessage
 
     /**
      * Action string map from action constants ({@link #ADD_NEW}, etc) for {@link #toString()}
-     * and {@link #stripAttribNames(String)}.
+     * and {@link #stripAttribNames(String, String)}.
      * @since 2.4.10
      */
     public static final String[] ACTION_STRINGS
@@ -338,13 +338,17 @@ public class SOCDevCardAction extends SOCMessage
      * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
      * Undoes mapping of action constant integers -> strings ({@code "ADD_NEW"} etc).
      * In multi-card form, removes array brackets: {@code ,[5, 4]} -> {@code ,5,4}.
+     * @param messageTypeName  Message type: v1.x {@code "SOCDevCard"} or current {@code "SOCDevCardAction"}.
+     *     The {@link SOCDevCardConstants#KNIGHT} constant has different values in v1.x vs current.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @since 2.4.10
      */
-    public static String stripAttribNames(String messageStrParams)
+    public static String stripAttribNames(final String messageTypeName, final String messageStrParams)
     {
-        boolean hasArray = (messageStrParams.indexOf("|cardTypes=[") > 0);
+        final boolean isV1Format = ("SOCDevCard".equals(messageTypeName));
+        final boolean hasArray = (! isV1Format) && (messageStrParams.indexOf("|cardTypes=[") > 0);
+
         String s = SOCMessage.stripAttribNames(messageStrParams);
         if (s == null)
             return null;
@@ -352,26 +356,24 @@ public class SOCDevCardAction extends SOCMessage
         String[] pieces = s.split(SOCMessage.sep2);
         if ((pieces.length <= 2) || pieces[2].isEmpty())
             return s;  // probably malformed, but there's no action string to un-map
-        String act = pieces[2];
-        if (Character.isDigit(act.charAt(0)) && ! hasArray)
-            try
-            {
-                if (Integer.parseInt(act) >= 0)
-                    return s;  // action field already an integer
-            } catch (NumberFormatException e) {}
 
-        int actType = -1;
-        for (int ac = 0; ac < ACTION_STRINGS.length; ++ac)
+        // Look up action type integer. If already an int, won't match any string in this short array of actions
         {
-            if (ACTION_STRINGS[ac].equals(act))
+            String act = pieces[2];
+            int actType = -1;
+            for (int ac = 0; ac < ACTION_STRINGS.length; ++ac)
             {
-                actType = ac;
-                break;
+                if (ACTION_STRINGS[ac].equals(act))
+                {
+                    actType = ac;
+                    break;
+                }
             }
+
+            if (actType != -1)
+                pieces[2] = Integer.toString(actType);
         }
 
-        if (actType != -1)
-            pieces[2] = Integer.toString(actType);
         if (hasArray)
         {
             // {"ga", "3", "2", "[5", " 4]"} -> {"ga", "3", "2", "5", "4"}
@@ -390,6 +392,15 @@ public class SOCDevCardAction extends SOCMessage
             int charIdxLast = piece.length() - 1;
             if ((charIdxLast >= 0) && (piece.charAt(charIdxLast) == ']'))
                 pieces[ilast] = piece.substring(charIdxFirst, charIdxLast);
+        } else if (isV1Format) {
+            try
+            {
+                int cardType = Integer.parseInt(pieces[3]);
+                if (cardType == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
+                    pieces[3] = Integer.toString(SOCDevCardConstants.KNIGHT);
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
 
         StringBuilder ret = new StringBuilder();

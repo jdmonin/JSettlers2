@@ -180,6 +180,27 @@ public class SOCJoinChannel extends SOCMessage
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list
+     * for {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * Converts "password empty" to {@link SOCMessage#EMPTYSTR}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        final int pwEmptyIdx = messageStrParams.indexOf("|password empty|host=");
+        if (pwEmptyIdx > 0)
+            messageStrParams =
+                messageStrParams.substring(0, pwEmptyIdx + 1)
+                + EMPTYSTR
+                + messageStrParams.substring(pwEmptyIdx + 15);
+
+        return SOCMessage.stripAttribNames(messageStrParams);
+    }
+
+    /**
      * @return a human readable form of the message
      */
     public String toString()

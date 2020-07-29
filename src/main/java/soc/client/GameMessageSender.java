@@ -247,12 +247,12 @@ import soc.message.SOCStartGame;
      * send a text message to the people in the game
      *
      * @param ga   the game
-     * @param me   the message text
+     * @param txt  the message text
      * @see MainDisplay#sendToChannel(String, String)
      */
-    public void sendText(SOCGame ga, String me)
+    public void sendText(SOCGame ga, String txt)
     {
-        put(SOCGameTextMsg.toCmd(ga.getName(), "-", me), ga.isPractice);
+        put(new SOCGameTextMsg(ga.getName(), "-", txt).toCmd(), ga.isPractice);
     }
 
     /**
@@ -580,7 +580,7 @@ import soc.message.SOCStartGame;
         }
 
         msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), client.getNickname(ga.isPractice), msg), ga.isPractice);
+        sendText(ga, msg);
     }
 
     /**
@@ -619,7 +619,7 @@ import soc.message.SOCStartGame;
         }
 
         msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), client.getNickname(ga.isPractice), msg), ga.isPractice);
+        sendText(ga, msg);
     }
 
 }

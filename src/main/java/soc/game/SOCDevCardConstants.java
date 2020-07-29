@@ -124,6 +124,8 @@ public interface SOCDevCardConstants
     /** Knight, soldier, robber card.
      *<P>
      * In game scenario <tt>SC_PIRI</tt>, used for "Warship" cards to convert normal ships to warships.
+     *<P>
+     * Before v2.0.00 this constant had a different value: See {@link #KNIGHT_FOR_VERS_1_X}.
      */
     public static final int KNIGHT = 9;
 

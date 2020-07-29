@@ -163,6 +163,23 @@ public class SOCChannelMembers extends SOCMessage
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for
+     * {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * Handles square brackets around list of members.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Member list for {@link #parseDataStr(String)}, or {@code null} if params are malformed
+     * @see #stripAttribNamesToMemberList(String, String)
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        // "channel=chn|members=[player0, droid 1, robot 2, debug]"
+
+        return SOCGameMembers.stripAttribNamesToMemberList("channel=", messageStrParams);
+    }
+
+    /**
      * @return a human readable form of the message
      */
     @Override

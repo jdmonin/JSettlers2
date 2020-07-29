@@ -60,7 +60,10 @@ import static org.junit.Assert.*;
  */
 public class TestToCmdToStringParse
 {
-    /** Round-trip parsing tests on messages listed in {@link #TOCMD_TOSTRING_COMPARES}. */
+    /**
+     * Round-trip parsing tests on messages listed in {@link #TOCMD_TOSTRING_COMPARES}.
+     * @see #testCoverageMessageRenameMap()
+     */
     @Test
     public void testRoundTripParsing()
     {
@@ -72,10 +75,15 @@ public class TestToCmdToStringParse
             final SOCMessage msg = (SOCMessage) compareCase[0];
             final Class<? extends SOCMessage> msgClass = msg.getClass();
             final String expectedToCmd = (String) compareCase[1], expectedToString = (String) compareCase[2];
+            boolean parseOnly = false;  // if true, not round-trip
             Set<String> ignoreObjFields = null;
             if (compareCase.length > 3)
             {
-                if (compareCase[3] == OPT_IGNORE_OBJ_FIELDS)
+                if (compareCase[3] == OPT_PARSE_ONLY)
+                {
+                    parseOnly = true;
+                }
+                else if (compareCase[3] == OPT_IGNORE_OBJ_FIELDS)
                 {
                     @SuppressWarnings("unchecked")
                     Set<String> ignores = (Set<String>) compareCase[4];
@@ -83,12 +91,14 @@ public class TestToCmdToStringParse
                 }
             }
 
-            String s = msg.toCmd();
-            if (! s.equals(expectedToCmd))
+            String s = msg.toCmd();  // call even if not checking contents, to make sure no exception is thrown
+            if (expectedToCmd == null)
             {
+                // that's fine, skip toCmd
+            } else if (! s.equals(expectedToCmd)) {
                 res.append(" toCmd: expected \"" + expectedToCmd + "\", got \"" + s + "\"");
             } else {
-                // round-trip compare msg -> toCmd() -> toMsg(cmd)
+                // finish round-trip compare msg -> toCmd() -> toMsg(cmd)
                 SOCMessage rev = SOCMessage.toMsg(s);
                 if (rev == null)
                 {
@@ -100,14 +110,16 @@ public class TestToCmdToStringParse
                 }
             }
 
-            s = msg.toString();  // call even if not checking contents, to make sure no exception is thrown
+            s = (parseOnly)
+                ? expectedToString
+                : msg.toString();  // call even if not checking contents, to make sure no exception is thrown
             if (expectedToString != null)
             {
-                if (! s.equals(expectedToString))
+                if (! (parseOnly || s.equals(expectedToString)))
                 {
                     res.append(" toString: expected \"" + expectedToString + "\", got \"" + s + "\"");
                 } else {
-                    // round-trip compare msg -> toString() -> parseMsgStr(str)
+                    // finish round-trip compare msg -> toString() -> parseMsgStr(str)
                     try
                     {
                         SOCMessage rev = SOCMessage.parseMsgStr(s);
@@ -272,19 +284,30 @@ public class TestToCmdToStringParse
     /**
      * Marker to say next item is a <tt>{@link Set}&lt;String&gt;</tt> of fields to ignore when comparing object
      * fields in {@link #compareMsgObjFields(Class, SOCMessage, SOCMessage, StringBuilder, Set)}.
+     * @see #OPT_PARSE_ONLY
      */
     private static final Object OPT_IGNORE_OBJ_FIELDS = new Object();
+
+    /**
+     * Marker to say message should only be parsed from its toCmd/toString delimited strings into a SOCMessage,
+     * not round-trip rendered to toString and recompared. Still round-trips to toCmd unless that element is {@code null}.
+     * Useful for v1.x message backwards-compatibility tests.
+     * @see #OPT_IGNORE_OBJ_FIELDS
+     */
+    private static final Object OPT_PARSE_ONLY = new Object();
 
     /**
      * Message parsing round-trip test cases for {@link #testRoundTripParsing()}.
      * Each element array's format is:
      *<UL>
      * <LI> Message object with expected field values
-     * <LI> {@link SOCMessage#toCmd()} expected output, for {@link SOCMessage#toMsg(String)} parsing
+     * <LI> {@link SOCMessage#toCmd()} expected output, for {@link SOCMessage#toMsg(String)} parsing,
+     *      or {@code null} to not validate {@code toCmd()} contents
      * <LI> {@link SOCMessage#toString()} expected output, for {@link SOCMessage#parseMsgStr(String)} parsing,
      *      or {@code null} to not validate {@code toString()} contents
      *</UL>
-     * The element can end there or have markers like {@link #OPT_IGNORE_OBJ_FIELDS} and their associated data.
+     * The element can end there, or have markers like {@link #OPT_PARSE_ONLY} or {@link #OPT_IGNORE_OBJ_FIELDS}
+     * and any associated parameters.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })  // for SOCPotentialSettlements constructor calls
     private static final Object[][] TOCMD_TOSTRING_COMPARES =
@@ -297,8 +320,12 @@ public class TestToCmdToStringParse
         },
         {new SOCBotJoinGameRequest("ga", 3, null), "1023|ga,3,-", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=null"},
         {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=PL=6"},
+            // v1.x was SOCJoinGameRequest:
+        {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCJoinGameRequest:game=ga|playerNumber=3|opts=PL=6", OPT_PARSE_ONLY},
         {new SOCBuildRequest("ga", SOCPlayingPiece.CITY), "1043|ga,2", "SOCBuildRequest:game=ga|pieceType=2"},
-        {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyDevCardRequest:game=ga"},  // TODO SOCBuyCardRequest too (v1.x)?
+        {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyDevCardRequest:game=ga"},
+            // v1.x was SOCBuyCardRequest:
+        {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyCardRequest:game=ga", OPT_PARSE_ONLY},
         {
             new SOCBoardLayout
                 ("ga",
@@ -310,6 +337,23 @@ public class TestToCmdToStringParse
         },
         {new SOCCancelBuildRequest("ga", SOCPlayingPiece.CITY), "1044|ga,2", "SOCCancelBuildRequest:game=ga|pieceType=2"},
         {new SOCChangeFace("ga", 3, 7), "1058|ga,3,7", "SOCChangeFace:game=ga|playerNumber=3|faceId=7"},
+        {new SOCChannelMembers("cha", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1002|cha,player0,droid 1,robot 2,debug", "SOCChannelMembers:channel=cha|members=[player0, droid 1, robot 2, debug]"},
+        {new SOCChannelMembers("cha", Arrays.asList("m")), "1002|cha,m", "SOCChannelMembers:channel=cha|members=[m]"},  // shortest list
+            // v1.x was SOCMembers, slightly different list format:
+        {new SOCChannelMembers("cha", Arrays.asList("player0", "droid 1", "debug")), "1002|cha,player0,droid 1,debug", "SOCMembers:channel=cha|members=player0,droid 1,debug", OPT_PARSE_ONLY},
+        // {"SOCTextMsg", "SOCChannelTextMsg"}
+        {
+            new SOCChannelTextMsg("cha", "member name", "msg which may,have,delimiters"),
+            "1005|cha\000member name\000msg which may,have,delimiters",
+            "SOCChannelTextMsg:channel=cha|nickname=member name|text=msg which may,have,delimiters"
+        },
+            // v1.x was SOCTextMsg:
+        {
+            new SOCChannelTextMsg("cha", "member name", "txt contents"),
+            "1005|cha\000member name\000txt contents",
+            "SOCTextMsg:channel=cha|nickname=member name|text=txt contents",
+            OPT_PARSE_ONLY
+        },
         {new SOCChoosePlayer("ga", 2), "1035|ga,2", "SOCChoosePlayer:game=ga|choice=2"},
         {
             new SOCChoosePlayerRequest("ga", new boolean[]{true, false, false, true}, true),
@@ -330,7 +374,9 @@ public class TestToCmdToStringParse
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_NEW, 9), "1046|ga,3,2,9", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_NEW|cardType=9"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, 5), "1046|ga,3,0,5", "SOCDevCardAction:game=ga|playerNum=3|actionType=DRAW|cardType=5"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.PLAY, 9), "1046|ga,3,1,9", "SOCDevCardAction:game=ga|playerNum=3|actionType=PLAY|cardType=9"},
-        // TODO SOCDevCard too (v1.x)?
+            // v1.x was SOCDevCard:
+        {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, 2), "1046|ga,3,0,2", "SOCDevCard:game=ga|playerNum=3|actionType=0|cardType=2", OPT_PARSE_ONLY},
+        {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), null, "SOCDevCard:game=ga|playerNum=3|actionType=0|cardType=0", OPT_PARSE_ONLY},
         {
             // v2.x end-of-game form
             new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, Arrays.asList(new Integer[]{5, 4})),
@@ -367,10 +413,10 @@ public class TestToCmdToStringParse
             "1096|ga|2|25|1|2|3|1|6|-1|5|-1",
             "SOCGameElements:game=ga|e2=25,e1=2,e3=1,e6=-1,e5=-1"
         },
-        /*
-SOCGameMembers:game=ga|members=[testLoadgame]
-SOCGameMembers:game=ga|members=[testTradeDecline_p3, droid 1, robot 2, testTradeDecline_p2]
-         */
+        {new SOCGameMembers("ga", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1017|ga,player0,droid 1,robot 2,debug", "SOCGameMembers:game=ga|members=[player0, droid 1, robot 2, debug]"},
+        {new SOCGameMembers("ga", Arrays.asList("p")), "1017|ga,p", "SOCGameMembers:game=ga|members=[p]"},  // shortest list
+            // v1.x: slightly different list format, same message type name
+        {new SOCGameMembers("ga", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1017|ga,player0,droid 1,robot 2,debug", "SOCGameMembers:game=ga|members=player0,droid 1,robot 2,debug", OPT_PARSE_ONLY},
         {
             new SOCGameServerText("ga", "You stole a wheat from robot 2."),
             "1091|ga" + SOCGameServerText.UNLIKELY_CHAR1 + "You stole a wheat from robot 2.",
@@ -378,13 +424,27 @@ SOCGameMembers:game=ga|members=[testTradeDecline_p3, droid 1, robot 2, testTrade
         },
         {new SOCGameState("ga", 20), "1025|ga,20", "SOCGameState:game=ga|state=20"},
         {new SOCGameStats("ga", new int[]{10,  4, 3, 2}, new boolean[]{false, true, true, true}), "1061|ga,10,4,3,2,false,true,true,true", "SOCGameStats:game=ga|10|4|3|2|false|true|true|true"},
-        {new SOCGameTextMsg("ga", SOCGameTextMsg.SERVERNAME, "testp3 built a road."), "1010|ga Server testp3 built a road.", "SOCGameTextMsg:game=ga|nickname=Server|text=testp3 built a road."},
+        {
+            new SOCGameTextMsg("ga", SOCGameTextMsg.SERVERNAME, "testp3 built a road, text,may=contain,delimiters"),
+            "1010|ga\000Server\000testp3 built a road, text,may=contain,delimiters",
+            "SOCGameTextMsg:game=ga|nickname=Server|text=testp3 built a road, text,may=contain,delimiters"
+        },
+        {new SOCJoinChannel("m name", "", "-", "ch name"), "1004|m name,\t,-,ch name", "SOCJoinChannel:nickname=m name|password empty|host=-|channel=ch name"},
+        {new SOCJoinChannel("m name", "***", "-", "ch name"), "1004|m name,***,-,ch name", "SOCJoinChannel:nickname=m name|password=***|host=-|channel=ch name"},
+            // v1.x was SOCJoin:
+        {new SOCJoinChannel("m name", "", "-", "ch name"), "1004|m name,\t,-,ch name", "SOCJoin:nickname=m name|password empty|host=-|channel=ch name", OPT_PARSE_ONLY},
+        {new SOCJoinChannelAuth("m name", "ch name"), "1020|m name,ch name", "SOCJoinChannelAuth:nickname=m name|channel=ch name"},
+            // v1.x was SOCJoinAuth:
+        {new SOCJoinChannelAuth("m name", "ch name"), "1020|m name,ch name", "SOCJoinAuth:nickname=m name|channel=ch name", OPT_PARSE_ONLY},
         {new SOCJoinGame("testp2", "", SOCMessage.EMPTYSTR, "ga"), "1013|testp2,\t,\t,ga", "SOCJoinGame:nickname=testp2|password empty|host=\t|game=ga"},
         {new SOCJoinGameAuth("ga"), "1021|ga", "SOCJoinGameAuth:game=ga"},
         {new SOCJoinGameAuth("ga", 20, 21, new int[]{-2, 1, 3, 0}), "1021|ga,20,21,S,-2,1,3,0", "SOCJoinGameAuth:game=ga|bh=20|bw=21|vs=[-2, 1, 3, 0]"},
         {new SOCLargestArmy("ga", 2), "1067|ga,2", "SOCLargestArmy:game=ga|playerNumber=2"},
         {new SOCLastSettlement("ga", 2, 0x405), "1060|ga,2,1029", "SOCLastSettlement:game=ga|playerNumber=2|coord=405"},
         {new SOCLeaveAll(), "1008", "SOCLeaveAll:"},
+        {new SOCLeaveChannel("m name", "-", "ch name"), "1006|m name,-,ch name", "SOCLeaveChannel:nickname=m name|host=-|channel=ch name"},
+            // v1.x was SOCLeave:
+        {new SOCLeaveChannel("m name", "-", "ch name"), "1006|m name,-,ch name", "SOCLeave:nickname=m name|host=-|channel=ch name", OPT_PARSE_ONLY},
         {new SOCLeaveGame("testp2", "-", "ga"), "1011|testp2,-,ga", "SOCLeaveGame:nickname=testp2|host=-|game=ga"},
         {
             new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, 0, "SC_FOG"),
@@ -463,7 +523,11 @@ SOCGameMembers:game=ga|members=[testTradeDecline_p3, droid 1, robot 2, testTrade
         },
         {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0)), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
         {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
+            // v1.x was SOCDiscoveryPick:
+        {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCDiscoveryPick:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0", OPT_PARSE_ONLY},
         {new SOCPickResourceType("ga", SOCResourceConstants.SHEEP), "1053|ga,3", "SOCPickResourceType:game=ga|resType=3"},
+            // v1.x was SOCMonopolyPick:
+        {new SOCPickResourceType("ga", SOCResourceConstants.WHEAT), "1053|ga,4", "SOCMonopolyPick:game=ga|resource=4", OPT_PARSE_ONLY},
         {new SOCPieceValue("ga", SOCPlayingPiece.VILLAGE, 0xa06, 4, 0), "1095|ga,5,2566,4,0", "SOCPieceValue:game=ga|param1=5|param2=2566|param3=4|param4=0"},
         {new SOCPlayDevCardRequest("ga", SOCDevCardConstants.KNIGHT), "1049|ga,9", "SOCPlayDevCardRequest:game=ga|devCard=9"},
         {new SOCPlayerElement("ga", 1, SOCPlayerElement.SET, 105, 1), "1024|ga,1,100,105,1", "SOCPlayerElement:game=ga|playerNum=1|actionType=SET|elementType=105|amount=1"},
@@ -570,14 +634,65 @@ SOCSetSpecialItem:game=w|op=SET|typeKey=_SC_WOND|gi=2|pi=0|pn=0|co=-1|lv=2|sv=w2
         // TODO SOCVersion
     };
 
+    /**
+     * Make sure {@link #TOCMD_TOSTRING_COMPARES} includes all
+     * old and new message type names from {@link SOCMessage#MESSAGE_RENAME_MAP},
+     * with same old->new mappings.
+     * @see #testRoundTripParsing()
+     */
+    @Test
+    public void testCoverageMessageRenameMap()
+    {
+        Set<String> unseenOldNames = new HashSet<>(SOCMessage.MESSAGE_RENAME_MAP.keySet()),
+            unseenNewNames = new HashSet<>(SOCMessage.MESSAGE_RENAME_MAP.values());
+
+        for (Object[] compareCase : TOCMD_TOSTRING_COMPARES)
+        {
+            final String newTypeName = compareCase[0].getClass().getSimpleName();
+            unseenNewNames.remove(newTypeName);  // ok if wasn't in there
+
+            String oldMsgToString = (String) compareCase[2];
+            if (oldMsgToString == null)
+                continue;
+            int i = oldMsgToString.indexOf(':');
+            assertTrue("can parsetype msg out of " + oldMsgToString, i > 0);
+
+            final String oldTypeName = oldMsgToString.substring(0, i);
+            if (unseenOldNames.contains(oldTypeName))
+            {
+                unseenOldNames.remove(oldTypeName);
+                // consistency check
+                assertEquals("new value SOCMessage.MESSAGE_RENAME_MAP(\"" + oldTypeName + "\")",
+                    SOCMessage.MESSAGE_RENAME_MAP.get(oldTypeName), newTypeName);
+            }
+        }
+
+        if (! unseenOldNames.isEmpty())
+            fail("TOCMD_TOSTRING_COMPARES doesn't test these MESSAGE_RENAME_MAP old types: " + unseenOldNames);
+        if (! unseenNewNames.isEmpty())
+            fail("TOCMD_TOSTRING_COMPARES doesn't test these MESSAGE_RENAME_MAP new types: " + unseenNewNames);
+    }
+
     /** Tests for {@link SOCMessage#stripAttribNames(String)}. */
+    @Test
     public void testStripAttribNames()
     {
-        assertEquals("", SOCMessage.stripAttribNames(""));
-        assertEquals("xyz", SOCMessage.stripAttribNames("xyz"));
-        assertEquals("xyz", SOCMessage.stripAttribNames("param=xyz"));
-        assertEquals("xyz,abc", SOCMessage.stripAttribNames("xyz|p=abc"));
-        assertEquals("xyz,abc", SOCMessage.stripAttribNames("param=xyz|p=abc"));
+        final String[][] expected_actual =
+            {
+                {"", ""},
+                {"xyz", "xyz"},
+                {"xyz", "param=xyz"},
+                {"xyz,abc", "xyz|p=abc"},
+                {"xyz,abc", "param=xyz|p=abc"},
+                // game name contains '='
+                {"fancy=game==name,abc,xyz", "game=fancy=game==name|p1=abc|p2=xyz"},
+                // other param contains '='
+                {"ga,usual_name,==fancy=name", "game=ga|pn1=usual_name|pn2===fancy=name"},
+                {"ga_special=name,[player==0, droid 1, robot 2, debug]",
+                    "game=ga_special=name|members=[player==0, droid 1, robot 2, debug]"},
+            };
+        for (String[] exp_act : expected_actual)
+            assertEquals(exp_act[0], SOCMessage.stripAttribNames(exp_act[1]));
     }
 
     /** Tests for {@link SOCMessage#stripAttribsToList(String)}. */

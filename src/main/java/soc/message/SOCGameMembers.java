@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -174,6 +174,69 @@ public class SOCGameMembers extends SOCMessage
         }
 
         return new SOCGameMembers(ga, ml);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for
+     * {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}
+     * by calling @{link {@link #stripAttribNamesToMemberList(String, String)}}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Member list for {@link #parseDataStr(String)}, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        return stripAttribNamesToMemberList("game=", messageStrParams);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for
+     * {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * Handles square brackets around list of members (current format), list without brackets (v1.x format).
+     * @param prefix  Expected prefix and first parameter name: {@code "game="}, {@code "channel="}, etc
+     * @param messageStrParams  Parameters from {@link #toString()}'s format.<BR>
+     *     Example: {@code "game=ga|members=[player0, droid 1, robot 2, debug]"}<BR>
+     *     v1.x example: {@code "game=ga|members=player0,droid 1,robot 2,debug"}
+     * @return Member list for {@link #parseDataStr(String)}, or {@code null} if params are malformed
+     */
+    public static String stripAttribNamesToMemberList
+        (final String prefix, final String messageStrParams)
+    {
+        if (! messageStrParams.startsWith(prefix))
+            return null;
+        int L = messageStrParams.length();
+        int pipeIdx = messageStrParams.indexOf(sep_char);
+        if ((pipeIdx <= 0) || (pipeIdx >= (L - 11)))
+            return null;
+        if (! "members=".equals(messageStrParams.subSequence(pipeIdx + 1, pipeIdx + 9)))
+            return null;
+
+        StringBuilder ret = new StringBuilder(messageStrParams.subSequence(prefix.length(), pipeIdx));  // skip prefix
+
+        if ('[' != messageStrParams.charAt(pipeIdx + 9))  // just after "members=": '[' or first char of a name
+        {
+            // no brackets in this message; separator is "," not ", " which is also what toCmd is expecting
+            ret.append(sep2_char).append(messageStrParams.substring(pipeIdx + 9));
+        } else {
+            // member name list; ignore [ ] brackets, change separator ", " -> ",":
+
+            if (']' != messageStrParams.charAt(L - 1))
+                return null;
+
+            int prevComma = pipeIdx + 8;  // 10-2 because skips 2 chars as if first name preceded by ", "
+            for (int commaIdx = messageStrParams.indexOf(", ", prevComma + 2);
+                 commaIdx != -1;
+                 prevComma = commaIdx, commaIdx = messageStrParams.indexOf(", ", prevComma + 2))
+            {
+                ret.append(sep2_char).append(messageStrParams.subSequence(prevComma + 2, commaIdx));
+            }
+            // member after last comma
+            ret.append(sep2_char).append(messageStrParams.subSequence(prevComma + 2, messageStrParams.length() - 1));
+        }
+
+        return ret.toString();
     }
 
     /**

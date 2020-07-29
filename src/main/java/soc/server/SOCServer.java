@@ -4304,7 +4304,7 @@ public class SOCServer extends Server
                         if (c.getVersion() >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT)
                             c.put(gameServTxtMsg);
                         else
-                            c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, txt));
+                            c.put(new SOCGameTextMsg(ga, SERVERNAME, txt));
                     }
                 }
             }

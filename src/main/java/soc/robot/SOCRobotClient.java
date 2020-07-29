@@ -1534,7 +1534,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         List<String> rbSta = brain.debugPrintBrainStatus();
         if (sendTextToGame)
             for (final String st : rbSta)
-                put(SOCGameTextMsg.toCmd(gameName, nickname, st));
+                put(new SOCGameTextMsg(gameName, nickname, st).toCmd());
         else
             for (final String st : rbSta)
                 System.err.println(st);
