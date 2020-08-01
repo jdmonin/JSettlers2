@@ -341,7 +341,6 @@ public class TestToCmdToStringParse
         {new SOCChannelMembers("cha", Arrays.asList("m")), "1002|cha,m", "SOCChannelMembers:channel=cha|members=[m]"},  // shortest list
             // v1.x was SOCMembers, slightly different list format:
         {new SOCChannelMembers("cha", Arrays.asList("player0", "droid 1", "debug")), "1002|cha,player0,droid 1,debug", "SOCMembers:channel=cha|members=player0,droid 1,debug", OPT_PARSE_ONLY},
-        // {"SOCTextMsg", "SOCChannelTextMsg"}
         {
             new SOCChannelTextMsg("cha", "member name", "msg which may,have,delimiters"),
             "1005|cha\000member name\000msg which may,have,delimiters",
@@ -619,9 +618,16 @@ public class TestToCmdToStringParse
             "1068|ga,false,clear,true,false",
             "SOCSetSeatLock:game=ga|states=UNLOCKED,CLEAR_ON_RESET,LOCKED,UNLOCKED"
         },
-        /*
-SOCSetSpecialItem:game=w|op=SET|typeKey=_SC_WOND|gi=2|pi=0|pn=0|co=-1|lv=2|sv=w2
-         */
+        {
+            new SOCSetSpecialItem("ga", SOCSetSpecialItem.OP_CLEAR_PICK, "_SC_WOND", 2, 0, 3),
+            "1099|ga,6,_SC_WOND,2,0,3,-1,0,\t",
+            "SOCSetSpecialItem:game=ga|op=CLEAR_PICK|typeKey=_SC_WOND|gi=2|pi=0|pn=3|co=-1|lv=0|sv null"
+        },
+        {
+            new SOCSetSpecialItem("ga", SOCSetSpecialItem.OP_SET, "_SC_WOND", 2, 0, 3, -1, 2, "w2"),
+            "1099|ga,1,_SC_WOND,2,0,3,-1,2,w2",
+            "SOCSetSpecialItem:game=ga|op=SET|typeKey=_SC_WOND|gi=2|pi=0|pn=3|co=-1|lv=2|sv=w2"
+        },
         {new SOCSetTurn("ga", 2), "1055|ga,2", "SOCSetTurn:game=ga|param=2"},
         {new SOCSimpleAction("ga", 3, 1, 22), "1090|ga,3,1,22,0", "SOCSimpleAction:game=ga|pn=3|actType=1|v1=22|v2=0"},
         {new SOCSimpleRequest("ga", 2, 1001, 2562), "1089|ga,2,1001,2562,0", "SOCSimpleRequest:game=ga|pn=2|reqType=1001|v1=2562|v2=0"},
@@ -631,7 +637,16 @@ SOCSetSpecialItem:game=w|op=SET|typeKey=_SC_WOND|gi=2|pi=0|pn=0|co=-1|lv=2|sv=w2
         {new SOCSVPTextMessage("ga", 3, 2, "settling a new island", true), "1097|ga,3,2,settling a new island", "SOCSVPTextMessage:game=ga|pn=3|svp=2|desc=settling a new island"},
         {new SOCTurn("ga", 3, 0), "1026|ga,3", "SOCTurn:game=ga|playerNumber=3"},
         {new SOCTurn("ga", 3, SOCGame.ROLL_OR_CARD), "1026|ga,3,15", "SOCTurn:game=ga|playerNumber=3|gameState=15"},
-        // TODO SOCVersion
+        {
+            new SOCVersion(2410, "2.4.10", "JM20200801", ";6pl;sb;", "en_US"),
+            "9998|2410,2.4.10,JM20200801,;6pl;sb;,en_US",
+            "SOCVersion:2410|str=2.4.10|verBuild=JM20200801|feats=;6pl;sb;|cliLocale=en_US"
+        },
+        {
+            new SOCVersion(1118, "1.1.18", "OV20130402", null, null),
+            "9998|1118,1.1.18,OV20130402,\t",
+            "SOCVersion:1118|str=1.1.18|verBuild=OV20130402|feats=(null)|cliLocale=(null)"
+        },
     };
 
     /**

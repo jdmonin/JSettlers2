@@ -19,6 +19,7 @@
  **/
 package soc.message;
 
+import java.util.List;
 import java.util.StringTokenizer;
 
 import soc.util.SOCFeatureSet;  // for javadocs only
@@ -233,14 +234,54 @@ public class SOCVersion extends SOCMessage
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters delimited for {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * Handles various null/empty fields.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        List<String> pieces = SOCMessage.stripAttribsToList(messageStrParams);
+        if ((pieces == null) || (pieces.size() < 5))
+            return null;
+
+        if (pieces.get(2).equals("(null)"))
+            pieces.set(2, EMPTYSTR);
+        if (pieces.get(3).equals("(null)"))
+            pieces.set(3, EMPTYSTR);
+        if (pieces.get(4).equals("(null)"))
+            pieces.set(4, "");
+
+        StringBuilder ret = new StringBuilder();
+        boolean hadAny = false;
+        for (String piece : pieces)
+        {
+            if (hadAny)
+                ret.append(sep2_char);
+            else
+                hadAny = true;
+
+            ret.append(piece);
+        }
+        return ret.toString();
+    }
+
+    /**
+     * Get a delimited human-readable form of this message.
+     * Null fields are rendered as {@code "=(null)"}, which is unambiguous because of the restricted format of
+     * those fields; the string {@code "(null)"} wouldn't be valid contents.
+     *<P>
+     * Before v2.4.10, fields were comma-separated; that version changed to use standard {@code '|'} separator.
      * @return a human readable form of the message
      */
     public String toString()
     {
-        return "SOCVersion:" + versNum + ",str=" + versStr + ",verBuild="
+        return "SOCVersion:" + versNum + "|str=" + versStr + "|verBuild="
             + (versBuild != null ? versBuild : "(null)")
-            + ",feats=" + (feats != null ? feats : "(null)")
-            + ",cliLocale=" + (cliLocale != null ? cliLocale : "(null)");
+            + "|feats=" + (feats != null ? feats : "(null)")
+            + "|cliLocale=" + (cliLocale != null ? cliLocale : "(null)");
     }
 
     /**
