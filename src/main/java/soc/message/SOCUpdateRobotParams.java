@@ -112,11 +112,11 @@ public class SOCUpdateRobotParams extends SOCMessage
     }
 
     /**
-     * @return a human readable form of the message
+     * @return a human readable form of the message, calling {@link SOCRobotParameters#toString()} for field contents
      */
     public String toString()
     {
-        return "SOCUpdateRobotParams:params=" + params;
+        return "SOCUpdateRobotParams:" + params;
     }
 
 }

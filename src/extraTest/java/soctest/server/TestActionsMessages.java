@@ -285,7 +285,7 @@ public class TestActionsMessages
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCMovePiece:", "|param1=3|param2=3|param3=3078|param4=3846"}
+                {"all:SOCMovePiece:", "|pn=3|pieceType=3|fromCoord=3078|toCoord=3846"}
             });
 
         /* build settlement (on small island) */

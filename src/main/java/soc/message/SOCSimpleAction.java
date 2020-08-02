@@ -298,7 +298,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
 
     /**
      * Build a human-readable form of the message, with this class's field names
-     * instead of generic SOCMessageTemplate4i names.
+     * instead of generic names from {@link SOCMessageTemplate4i}.
      * @return a human readable form of the message
      * @since 2.0.00
      */

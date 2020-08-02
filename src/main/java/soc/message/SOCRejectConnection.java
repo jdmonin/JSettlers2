@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,7 +78,7 @@ public class SOCRejectConnection extends SOCMessage
     /**
      * Parse the command String into a RejectConnection message
      *
-     * @param s   the String to parse
+     * @param s   the String to parse; will be directly used as {@link #getText()} without any parsing
      * @return    a RejectConnection message
      */
     public static SOCRejectConnection parseDataStr(String s)
@@ -93,4 +93,5 @@ public class SOCRejectConnection extends SOCMessage
     {
         return "SOCRejectConnection:" + text;
     }
+
 }

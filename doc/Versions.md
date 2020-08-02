@@ -34,8 +34,10 @@ and backport minor new features until `2.0.00` was ready.
 	- Server consistently uses Properties if passed into constructors
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
 	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
-	- Refactored message classes: Server now mostly calls constructors, not static toCmd methods
-	- SOCVersion.toString: Use standard delimiter `|`, not `,`
+	- Refactored message classes:
+	    - Server now mostly calls constructors, not static toCmd methods
+	    - Add toString to several message types to clarify fields
+	    - SOCLocalizedStrings, SOCStatusMessage, SOCVersion: toString: Use standard delimiter `|`, not `,`
 - Server:
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown

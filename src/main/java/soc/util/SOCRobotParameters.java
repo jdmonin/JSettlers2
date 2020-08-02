@@ -207,6 +207,31 @@ public class SOCRobotParameters implements Serializable
     }
 
     /**
+     * Check for equality to another {@link SOCRobotParameters} or other object.
+     *
+     * @return true if {@code other} is a {@link SOCRobotParameters} having the same values
+     *     for all fields listed in constructor
+     * @see Object#equals(Object)
+     * @since 2.4.10
+     */
+    public boolean equals(Object o)
+    {
+        if (! (o instanceof SOCRobotParameters))
+            return false;
+
+        final SOCRobotParameters params = (SOCRobotParameters) o;
+        return (maxGameLength == params.maxGameLength)
+            && (maxETA == params.maxETA)
+            && (etaBonusFactor == params.etaBonusFactor)
+            && (adversarialFactor == params.adversarialFactor)
+            && (leaderAdversarialFactor == params.leaderAdversarialFactor)
+            && (devCardMultiplier == params.devCardMultiplier)
+            && (threatMultiplier == params.threatMultiplier)
+            && (strategyType == params.strategyType)
+            && (tradeFlag == params.tradeFlag);
+    }
+
+    /**
      * @return a human readable form of the data
      */
     @Override
@@ -220,4 +245,5 @@ public class SOCRobotParameters implements Serializable
 
         return s;
     }
+
 }

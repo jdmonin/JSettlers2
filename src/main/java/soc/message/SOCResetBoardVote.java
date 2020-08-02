@@ -121,4 +121,18 @@ public class SOCResetBoardVote extends SOCMessageTemplate2i
      */
     public int getMinimumVersion() { return 1100; }
 
+    /**
+     * Build a human-readable form of the message, with this class's field names
+     * instead of generic names from {@link SOCMessageTemplate2i}.
+     * {@code vote} field shows 1 for yes, 0 for no.
+     * @return a human readable form of the message
+     * @since 2.4.10
+     */
+    @Override
+    public String toString()
+    {
+        return "SOCResetBoardVote:game=" + game
+            + "|pn=" + p1 + "|vote=" + p2;
+    }
+
 }

@@ -169,6 +169,12 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      */
     public static final int MARKER_KEY_UNKNOWN = -2;  // not -1, which is valid for sc.lastModVersion
 
+    /**
+     * Rendered {@link #MARKER_KEY_UNKNOWN} for known value in {@link #toString()}.
+     * @since 2.4.10
+     */
+    private static final String STR_MARKER_KEY_UNKNOWN = Integer.toString(MARKER_KEY_UNKNOWN);
+
     /** True if this message is scenario info from server, not a request from client. */
     public final boolean isFromServer;
 
@@ -206,7 +212,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      *     Scenario key isn't checked here for {@link SOCMessage#isSingleLineAndSafe(String)}
      *     because the {@link SOCScenario} constructor already checked it against
      *     more restrictive {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)}.
-     * @param localDesc  i18n localized brief description, or {@code null} to use
+     * @param localDesc  i18n localized brief description/title, or {@code null} to use
      *     {@link SOCVersionedItem#getDesc() SOCScenario.getDesc()}
      * @param localLongDesc  i18n localized long description, or {@code null} to use
      *     {@link SOCScenario#getLongDesc()}
@@ -276,14 +282,15 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
             return;  // <--- Early return: Sending request from client ---
 
         /* [1] */ pa.add("0");  // minVersion
-        /* [2] */ pa.add(Integer.toString(MARKER_KEY_UNKNOWN));  // lastModVersion
+        /* [2] */ pa.add(STR_MARKER_KEY_UNKNOWN);  // lastModVersion: Integer.toString(MARKER_KEY_UNKNOWN)
     }
 
     /**
      * Constructor for client to ask a server for info about any new or changed scenarios
      * and/or about specific scenario keys.
      *
-     * @param scKeys  List of scenarios to ask about, or {@code null} for an empty list
+     * @param scKeys  List of scenarios to ask about, or {@code null} for an empty list.
+     *     Items may be added by this constructor.
      * @param addMarkerAnyChanged  If true, append {@link #MARKER_ANY_CHANGED} to the sent list
      * @throws IllegalArgumentException if ! {@code addMarkerAnyChanged} and {@code scKeys} is {@code null} or empty
      *     (this would be an empty message), or if any element of {@code scKeys} fails
@@ -449,6 +456,38 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
         } catch (Throwable e) {
             return null;
         }
+    }
+
+    /**
+     * Field names for {@link #toString()} when {@link #isFromServer}.
+     * @since 2.4.10
+     */
+    private final String[] FIELD_NAMES = {"key", "minVers", "lastModVers", "opts", "title", "desc"};
+
+    /**
+     * Build a human-readable form of the message.
+     *<UL>
+     * <LI> When {@link #isFromServer}, this is info about 1 scenario, and fields are named/labeled.
+     *    {@code lastModVers} will show {@code "MARKER_KEY_UNKNOWN"} if {@link #isKeyUnknown}
+     *    (field value sent as {@link #MARKER_KEY_UNKNOWN}).
+     * <LI> Otherwise, is from client and this is a list of keys, possibly with a leading or trailing marker.
+     *    No field labeling or change to contents is done here; field "labels" are generic {@code "p="}.
+     *</UL>
+     * @return a human readable form of the message
+     * @since 2.4.10
+     */
+    @Override
+    public String toString()
+    {
+        List<String> fields = pa;
+        if (isFromServer && (fields.size() > 2)
+            && (isKeyUnknown || fields.get(2).equals(STR_MARKER_KEY_UNKNOWN)))
+        {
+            fields = new ArrayList<>(fields);
+            fields.set(2, "MARKER_KEY_UNKNOWN");
+        }
+
+        return toString(fields, isFromServer ? FIELD_NAMES : null);
     }
 
 }

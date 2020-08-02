@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -263,7 +263,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
 
     /**
      * Build a human-readable form of the message, with this class's field names
-     * instead of generic SOCMessageTemplate4i names.
+     * instead of generic names from {@link SOCMessageTemplate4i}.
      * @return a human readable form of the message
      * @since 2.0.00
      */

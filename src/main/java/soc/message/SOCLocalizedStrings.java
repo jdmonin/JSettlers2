@@ -380,8 +380,8 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * Build and return a human-readable form of the message:
      *<BR>
      * {@code "SOCLocalizedStrings:type="} + {@link #getType() getType()}
-     * + {@code ",flags=0x"} + hex({@link #flags flags})
-     * + {@code strs=str1|str2|str3|...}
+     * + {@code "|flags=0x"} + hex({@link #flags flags})
+     * + {@code |strs=str1|str2|str3|...}
      *<P>
      * Null string elements are shown as {@code "(null)"}.
      * If the string list is empty, builds {@code "(strs empty)"} instead.
@@ -391,16 +391,15 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     @Override
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCLocalizedStrings:type=");
+        StringBuilder sb = new StringBuilder("SOCLocalizedStrings:type=");
         sb.append(pa.get(0));
-        sb.append(",flags=0x");
-        sb.append(Integer.toHexString(flags));
+        sb.append("|flags=0x").append(Integer.toHexString(flags));
         final int L = pa.size();
         if (L < 2)
         {
-            sb.append(",(strs empty)");
+            sb.append("|(strs empty)");
         } else {
-            sb.append(",strs=");
+            sb.append("|strs=");
             for (int i = 1; i < L; ++i)
             {
                 if (i > 1)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2012,2014-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2012,2014-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -185,40 +185,58 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 
     /**
      * Get a human-readable form of this message.
-     * Starts with {@link Class#getSimpleName() getClass().getSimpleName()} and then one of:
+     * Starts with {@link Class#getSimpleName() getClass().getSimpleName()} {@code + ":"}, then one of:
      *<UL>
-     *  <LI> each parameter, as {@code "|p=value.toString()"}
-     *  <LI> {@code "|(pa is empty)"}
-     *  <LI> {@code "|(pa is null)"}
+     *  <LI> each parameter, as {@code "p=value"} or {@code "(p null)"},
+     *       separated by {@code "|"}
+     *  <LI> {@code "(pa empty)"}
+     *  <LI> {@code "(pa null)"}
      *</UL>
      * @return a human readable form of the message
+     * @see #toString(List, String[])
      */
     public String toString()
     {
-        StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+        return toString(pa, null);
+    }
 
-        if (pa != null)
+    /**
+     * Get a human-readable form of this message after changing parameter values for readability.
+     * Produces same format as {@link #toString()}, optionally with named parameters.
+     * @param params  Parameters to include
+     * @param fieldNames  Field names, or {@code null} for generic {@code "p="}.
+     *     Can be longer or shorter than {@code params}: Extra entries are ignored,
+     *     uses {@code "p="} after end of a too-short list.
+     * @return a human readable form of the message and parameters
+     * @since 2.4.10
+     */
+    protected String toString(final List<String> params, final String[] fieldNames)
+    {
+        StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+        sb.append(':');
+
+        if (params != null)
         {
-            if (pa.isEmpty())
+            if (params.isEmpty())
             {
-                sb.append(":(pa is empty)");
+                sb.append("(pa empty)");
             } else {
-                boolean first = true;
-                for (final String p : pa)
+                int S = params.size();
+                for (int i = 0; i < S; ++i)
                 {
-                    if (first)
-                    {
-                        sb.append(":p=");
-                        first = false;
-                    } else {
-                        sb.append("|p=");
-                    }
+                    if (i > 0)
+                        sb.append('|');
+
+                    String p = params.get(i);
+                    String name = ((fieldNames != null) && (i < fieldNames.length)) ? fieldNames[i] : "p";
                     if (p != null)
-                        sb.append(p);
+                        sb.append(name).append('=').append(p);
+                    else
+                        sb.append('(').append(name).append(" null)");
                 }
             }
         } else {
-            sb.append(":(pa is null)");
+            sb.append("(pa null)");
         }
 
         return sb.toString();

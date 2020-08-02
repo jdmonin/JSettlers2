@@ -38,6 +38,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.game.SOCScenario;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCGame.SeatLockState;
 import soc.message.*;
@@ -56,6 +57,7 @@ import static org.junit.Assert.*;
  * <LI> {@link SOCMessage#stripAttribNames(String)}
  * <LI> {@link SOCMessage#stripAttribsToList(String)}
  *</UL>
+ * @see TestTemplatesAbstracts
  * @since 2.4.10
  */
 public class TestToCmdToStringParse
@@ -76,17 +78,24 @@ public class TestToCmdToStringParse
             final Class<? extends SOCMessage> msgClass = msg.getClass();
             final String expectedToCmd = (String) compareCase[1], expectedToString = (String) compareCase[2];
             boolean parseOnly = false;  // if true, not round-trip
+            boolean skipParseToString = false;  // if true, not round-trip
             Set<String> ignoreObjFields = null;
-            if (compareCase.length > 3)
+            // look for test options/params
+            for (int i = 3; i < compareCase.length; ++i)
             {
-                if (compareCase[3] == OPT_PARSE_ONLY)
+                if (compareCase[i] == OPT_PARSE_ONLY)
                 {
                     parseOnly = true;
                 }
-                else if (compareCase[3] == OPT_IGNORE_OBJ_FIELDS)
+                else if (compareCase[i] == OPT_SKIP_PARSE)
                 {
+                    skipParseToString = true;
+                }
+                else if (compareCase[i] == OPT_IGNORE_OBJ_FIELDS)
+                {
+                    ++i;
                     @SuppressWarnings("unchecked")
-                    Set<String> ignores = (Set<String>) compareCase[4];
+                    Set<String> ignores = (Set<String>) compareCase[i];
                     ignoreObjFields = ignores;
                 }
             }
@@ -118,7 +127,9 @@ public class TestToCmdToStringParse
                 if (! (parseOnly || s.equals(expectedToString)))
                 {
                     res.append(" toString: expected \"" + expectedToString + "\", got \"" + s + "\"");
-                } else {
+                }
+                else if (! skipParseToString)
+                {
                     // finish round-trip compare msg -> toString() -> parseMsgStr(str)
                     try
                     {
@@ -281,20 +292,40 @@ public class TestToCmdToStringParse
         GAME_WITH_PLAYER_RESOURCES = ga;
     }
 
+    /** Test data; copy before passing to any message constructor. */
+    private static final List<String> SCENS_KEY_LIST;
+    static
+    {
+        SCENS_KEY_LIST = new ArrayList<>();
+        SCENS_KEY_LIST.add("KEY1");
+        SCENS_KEY_LIST.add("KEY2");
+    }
+
     /**
      * Marker to say next item is a <tt>{@link Set}&lt;String&gt;</tt> of fields to ignore when comparing object
      * fields in {@link #compareMsgObjFields(Class, SOCMessage, SOCMessage, StringBuilder, Set)}.
      * @see #OPT_PARSE_ONLY
+     * @see #OPT_SKIP_PARSE
      */
     private static final Object OPT_IGNORE_OBJ_FIELDS = new Object();
 
     /**
      * Marker to say message should only be parsed from its toCmd/toString delimited strings into a SOCMessage,
-     * not round-trip rendered to toString and recompared. Still round-trips to toCmd unless that element is {@code null}.
+     * not round-trip rendered to toString and recompared.
+     * Still round-trips from/to toCmd unless that element is {@code null}.
      * Useful for v1.x message backwards-compatibility tests.
      * @see #OPT_IGNORE_OBJ_FIELDS
+     * @see #OPT_SKIP_PARSE
      */
     private static final Object OPT_PARSE_ONLY = new Object();
+
+    /**
+     * Marker to say message should not be parsed from its toString delimited string into a SOCMessage,
+     * only rendered from message to toString. Still round-trips from/to toCmd unless that element is {@code null}.
+     * Useful during initial/basic tests of a new message.
+     * @see #OPT_PARSE_ONLY
+     */
+    private static final Object OPT_SKIP_PARSE = new Object();
 
     /**
      * Message parsing round-trip test cases for {@link #testRoundTripParsing()}.
@@ -305,6 +336,7 @@ public class TestToCmdToStringParse
      *      or {@code null} to not validate {@code toCmd()} contents
      * <LI> {@link SOCMessage#toString()} expected output, for {@link SOCMessage#parseMsgStr(String)} parsing,
      *      or {@code null} to not validate {@code toString()} contents
+     *      (see also {@link #OPT_SKIP_PARSE})
      *</UL>
      * The element can end there, or have markers like {@link #OPT_PARSE_ONLY} or {@link #OPT_IGNORE_OBJ_FIELDS}
      * and any associated parameters.
@@ -313,19 +345,15 @@ public class TestToCmdToStringParse
     private static final Object[][] TOCMD_TOSTRING_COMPARES =
     {
         {new SOCAcceptOffer("ga", 2, 3), "1039|ga,2,3", "SOCAcceptOffer:game=ga|accepting=2|offering=3"},
+        // TODO? SOCAdminPing
+        {new SOCAdminReset(), "1065", "SOCAdminReset:"},
+        // TODO SOCAuthRequest
         {
             new SOCBankTrade("ga", new SOCResourceSet(0, 0, 2, 0, 0, 0), new SOCResourceSet(1, 0, 0, 0, 0, 0), 3),
             "1040|ga,0,0,2,0,0,1,0,0,0,0,3",
             "SOCBankTrade:game=ga|give=clay=0|ore=0|sheep=2|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3"
         },
-        {new SOCBotJoinGameRequest("ga", 3, null), "1023|ga,3,-", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=null"},
-        {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=PL=6"},
-            // v1.x was SOCJoinGameRequest:
-        {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCJoinGameRequest:game=ga|playerNumber=3|opts=PL=6", OPT_PARSE_ONLY},
-        {new SOCBuildRequest("ga", SOCPlayingPiece.CITY), "1043|ga,2", "SOCBuildRequest:game=ga|pieceType=2"},
-        {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyDevCardRequest:game=ga"},
-            // v1.x was SOCBuyCardRequest:
-        {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyCardRequest:game=ga", OPT_PARSE_ONLY},
+        {new SOCBCastTextMsg("msg text"), "1062|msg text", "SOCBCastTextMsg:text=msg text"},
         {
             new SOCBoardLayout
                 ("ga",
@@ -335,12 +363,22 @@ public class TestToCmdToStringParse
             "1014|ga,50,6,65,6,6,5,3,4,10,8,2,3,1,0,6,6,1,1,4,3,4,11,8,2,5,5,2,6,6,5,3,4,100,19,6,101,6,-1,-1,-1,-1,-1,1,4,0,-1,-1,5,2,6,-1,-1,-1,7,3,8,7,3,-1,-1,6,4,1,5,-1,-1,9,8,2,-1,-1,-1,-1,-1,155",
             "SOCBoardLayout:game=ga|hexLayout={ 50 6 65 6 6 5 3 4 10 8 2 3 1 0 6 6 1 1 4 3 4 11 8 2 5 5 2 6 6 5 3 4 100 19 6 101 6 }|numberLayout={ -1 -1 -1 -1 -1 1 4 0 -1 -1 5 2 6 -1 -1 -1 7 3 8 7 3 -1 -1 6 4 1 5 -1 -1 9 8 2 -1 -1 -1 -1 -1 }|robberHex=0x9b"
         },
+        // TODO SOCBoardLayout2
+        {new SOCBotJoinGameRequest("ga", 3, null), "1023|ga,3,-", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=null"},
+        {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=PL=6"},
+            // v1.x was SOCJoinGameRequest:
+        {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCJoinGameRequest:game=ga|playerNumber=3|opts=PL=6", OPT_PARSE_ONLY},
+        {new SOCBuildRequest("ga", SOCPlayingPiece.CITY), "1043|ga,2", "SOCBuildRequest:game=ga|pieceType=2"},
+        {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyDevCardRequest:game=ga"},
+            // v1.x was SOCBuyCardRequest:
+        {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyCardRequest:game=ga", OPT_PARSE_ONLY},
         {new SOCCancelBuildRequest("ga", SOCPlayingPiece.CITY), "1044|ga,2", "SOCCancelBuildRequest:game=ga|pieceType=2"},
         {new SOCChangeFace("ga", 3, 7), "1058|ga,3,7", "SOCChangeFace:game=ga|playerNumber=3|faceId=7"},
         {new SOCChannelMembers("cha", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1002|cha,player0,droid 1,robot 2,debug", "SOCChannelMembers:channel=cha|members=[player0, droid 1, robot 2, debug]"},
         {new SOCChannelMembers("cha", Arrays.asList("m")), "1002|cha,m", "SOCChannelMembers:channel=cha|members=[m]"},  // shortest list
             // v1.x was SOCMembers, slightly different list format:
         {new SOCChannelMembers("cha", Arrays.asList("player0", "droid 1", "debug")), "1002|cha,player0,droid 1,debug", "SOCMembers:channel=cha|members=player0,droid 1,debug", OPT_PARSE_ONLY},
+        // TODO SOCChannels
         {
             new SOCChannelTextMsg("cha", "member name", "msg which may,have,delimiters"),
             "1005|cha\000member name\000msg which may,have,delimiters",
@@ -366,8 +404,10 @@ public class TestToCmdToStringParse
         },
         {new SOCClearOffer("ga", 2), "1038|ga,2", "SOCClearOffer:game=ga|playerNumber=2"},
         {new SOCClearTradeMsg("ga", -1), "1042|ga,-1", "SOCClearTradeMsg:game=ga|playerNumber=-1"},
+        // TODO? SOCCreateAccount
         {new SOCDebugFreePlace("ga", 3, true), "1087|ga,3,0,1", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=0|coord=0x1"},
         {new SOCDebugFreePlace("ga", 3, SOCPlayingPiece.SETTLEMENT, 0x405), "1087|ga,3,1,1029", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=1|coord=0x405"},
+        {new SOCDeleteChannel("ch name"), "1007|ch name", "SOCDeleteChannel:channel=ch name"},
         {new SOCDeleteGame("ga"), "1015|ga", "SOCDeleteGame:game=ga"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, 6), "1046|ga,3,3,6", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardType=6"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_NEW, 9), "1046|ga,3,2,9", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_NEW|cardType=9"},
@@ -416,6 +456,8 @@ public class TestToCmdToStringParse
         {new SOCGameMembers("ga", Arrays.asList("p")), "1017|ga,p", "SOCGameMembers:game=ga|members=[p]"},  // shortest list
             // v1.x: slightly different list format, same message type name
         {new SOCGameMembers("ga", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1017|ga,player0,droid 1,robot 2,debug", "SOCGameMembers:game=ga|members=player0,droid 1,robot 2,debug", OPT_PARSE_ONLY},
+        // TODO SOCGameOptionGetDefaults, SOCGameOptionGetInfos, SOCGameOptionInfo
+        // TODO? SOCGames
         {
             new SOCGameServerText("ga", "You stole a wheat from robot 2."),
             "1091|ga" + SOCGameServerText.UNLIKELY_CHAR1 + "You stole a wheat from robot 2.",
@@ -423,10 +465,37 @@ public class TestToCmdToStringParse
         },
         {new SOCGameState("ga", 20), "1025|ga,20", "SOCGameState:game=ga|state=20"},
         {new SOCGameStats("ga", new int[]{10,  4, 3, 2}, new boolean[]{false, true, true, true}), "1061|ga,10,4,3,2,false,true,true,true", "SOCGameStats:game=ga|10|4|3|2|false|true|true|true"},
+        // TODO? SOCGamesWithOptions
         {
             new SOCGameTextMsg("ga", SOCGameTextMsg.SERVERNAME, "testp3 built a road, text,may=contain,delimiters"),
             "1010|ga\000Server\000testp3 built a road, text,may=contain,delimiters",
             "SOCGameTextMsg:game=ga|nickname=Server|text=testp3 built a road, text,may=contain,delimiters"
+        },
+        {new SOCImARobot("robot 7", "**", "soc.robot.SomeExample"), "1022|robot 7,**,soc.robot.SomeExample", "SOCImARobot:nickname=robot 7|cookie=**|rbclass=soc.robot.SomeExample"},
+        {
+            new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.PLAY, 3),
+            "1098|ga,3,4,3",
+            "SOCInventoryItemAction:game=ga|playerNum=3|action=PLAY|itemType=3|rc=0",
+            OPT_SKIP_PARSE
+            // TODO +stripAttribNames
+        },
+        {
+            new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.CANNOT_PLAY, 3, 1),
+            "1098|ga,3,5,3,1",
+            "SOCInventoryItemAction:game=ga|playerNum=3|action=CANNOT_PLAY|itemType=3|rc=1",
+            OPT_SKIP_PARSE
+        },
+        {
+            new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.ADD_OTHER, 5, true, false, true),
+            "1098|ga,3,3,5,5",
+            "SOCInventoryItemAction:game=ga|playerNum=3|action=ADD_OTHER|itemType=5|kept=true|isVP=false|canCancel=true",
+            OPT_SKIP_PARSE
+        },
+        {
+            new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.ADD_PLAYABLE, 2, false, false, false),
+            "1098|ga,3,2,2",
+            "SOCInventoryItemAction:game=ga|playerNum=3|action=ADD_PLAYABLE|itemType=2|kept=false|isVP=false|canCancel=false",
+            OPT_SKIP_PARSE
         },
         {new SOCJoinChannel("m name", "", "-", "ch name"), "1004|m name,\t,-,ch name", "SOCJoinChannel:nickname=m name|password empty|host=-|channel=ch name"},
         {new SOCJoinChannel("m name", "***", "-", "ch name"), "1004|m name,***,-,ch name", "SOCJoinChannel:nickname=m name|password=***|host=-|channel=ch name"},
@@ -448,56 +517,66 @@ public class TestToCmdToStringParse
         {
             new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, 0, "SC_FOG"),
             "1100|S|0|SC_FOG",
-            null  // TODO SOCLocalizedStrings +stripAttribNames
+            "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_FOG",
+            OPT_SKIP_PARSE
+            // TODO SOCLocalizedStrings +stripAttribNames
         },
         {
             new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, SOCLocalizedStrings.FLAG_REQ_ALL, (List<String>) null),
             "1100|S|2",
-            null
+            "SOCLocalizedStrings:type=S|flags=0x2|(strs empty)",
+            OPT_SKIP_PARSE
         },
         {
             new SOCLocalizedStrings
                 (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "SC_WOND")),
             "1100|S|0|SC_FOG|SC_WOND",
-            null
+            "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_FOG|SC_WOND",
+            OPT_SKIP_PARSE
         },
         {
             new SOCLocalizedStrings
                 (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "name text", "desc text")),
             "1100|S|0|SC_FOG|name text|desc text",
-            null
+            "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_FOG|name text|desc text",
+            OPT_SKIP_PARSE
         },
         {
             new SOCLocalizedStrings
                 (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "name text", null)),
             "1100|S|0|SC_FOG|name text|\t",
-            null
+            "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_FOG|name text|(null)",
+            OPT_SKIP_PARSE
         },
         {
             new SOCLocalizedStrings
                 (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", SOCLocalizedStrings.MARKER_KEY_UNKNOWN)),
             "1100|S|0|SC_FOG|\026K",
-            null
+            "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_FOG|K",
+            OPT_SKIP_PARSE
         },
         {
             new SOCLocalizedStrings
                 (SOCLocalizedStrings.TYPE_SCENARIO, 0,
                  Arrays.asList("SC_WOND", SOCLocalizedStrings.MARKER_KEY_UNKNOWN, "SC_FOG", "name text", "desc text")),
             "1100|S|0|SC_WOND|\026K|SC_FOG|name text|desc text",
-            null
+            "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_WOND|K|SC_FOG|name text|desc text",
+            OPT_SKIP_PARSE
         },
         {
             new SOCLocalizedStrings
                 (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL, (List<String>) null),
             "1100|O|4",
-            null
+            "SOCLocalizedStrings:type=O|flags=0x4|(strs empty)",
+            OPT_SKIP_PARSE
         },
         {
             new SOCLocalizedStrings
                 (SOCLocalizedStrings.TYPE_GAMEOPT, SOCLocalizedStrings.FLAG_SENT_ALL,
                  Arrays.asList("SC", "scenario")),
              "1100|O|4|SC|scenario",
-             null
+             "SOCLocalizedStrings:type=O|flags=0x4|strs=SC|scenario",
+             OPT_SKIP_PARSE
         },
         {new SOCLongestRoad("ga", 2), "1066|ga,2", "SOCLongestRoad:game=ga|playerNumber=2"},
         {
@@ -511,14 +590,23 @@ public class TestToCmdToStringParse
         {
             new SOCMovePiece("ga", 1, SOCPlayingPiece.SHIP, 3078, 3846),
             "1093|ga,1,3,3078,3846",
-            "SOCMovePiece:game=ga|param1=1|param2=3|param3=3078|param4=3846"
+            "SOCMovePiece:game=ga|pn=1|pieceType=3|fromCoord=3078|toCoord=3846"
         },
         {new SOCMoveRobber("ga", 3, 0x305), "1034|ga,3,773", "SOCMoveRobber:game=ga|playerNumber=3|coord=305"},
+        {new SOCNewChannel("ch name"), "1001|ch name", "SOCNewChannel:channel=ch name"},
         {new SOCNewGame("ga"), "1016|ga", "SOCNewGame:game=ga"},
         {
             new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToMap("BC=t4,RD=f,N7=t7,PL=4"), -1, 0),
             "1079|ga,-1,BC=t4,RD=f,N7=t7,PL=4",
             "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,N7=t7,PL=4"
+        },
+        {
+            new SOCNewGameWithOptionsRequest("uname", "", "-", "newgame", "N7=t7,PL=4"),
+            "1078|uname,\t,-,newgame,N7=t7,PL=4",
+            "SOCNewGameWithOptionsRequest:nickname=uname|password empty|host=-|game=newgame|opts=N7=t7,PL=4",
+            OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("optsStr"))
+            // TODO +stripAttribNames
         },
         {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0)), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
         {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
@@ -527,7 +615,7 @@ public class TestToCmdToStringParse
         {new SOCPickResourceType("ga", SOCResourceConstants.SHEEP), "1053|ga,3", "SOCPickResourceType:game=ga|resType=3"},
             // v1.x was SOCMonopolyPick:
         {new SOCPickResourceType("ga", SOCResourceConstants.WHEAT), "1053|ga,4", "SOCMonopolyPick:game=ga|resource=4", OPT_PARSE_ONLY},
-        {new SOCPieceValue("ga", SOCPlayingPiece.VILLAGE, 0xa06, 4, 0), "1095|ga,5,2566,4,0", "SOCPieceValue:game=ga|param1=5|param2=2566|param3=4|param4=0"},
+        {new SOCPieceValue("ga", SOCPlayingPiece.VILLAGE, 0xa06, 4, 0), "1095|ga,5,2566,4,0", "SOCPieceValue:game=ga|pieceType=5|coord=2566|pv1=4|pv2=0"},
         {new SOCPlayDevCardRequest("ga", SOCDevCardConstants.KNIGHT), "1049|ga,9", "SOCPlayDevCardRequest:game=ga|devCard=9"},
         {new SOCPlayerElement("ga", 1, SOCPlayerElement.SET, 105, 1), "1024|ga,1,100,105,1", "SOCPlayerElement:game=ga|playerNum=1|actionType=SET|elementType=105|amount=1"},
         {new SOCPlayerElement("ga", 2, SOCPlayerElement.LOSE, 4, 1, true), "1024|ga,2,102,4,1,Y", "SOCPlayerElement:game=ga|playerNum=2|actionType=LOSE|elementType=4|amount=1|news=Y"},
@@ -604,13 +692,51 @@ public class TestToCmdToStringParse
             "SOCPotentialSettlements:game=ga|playerNum=3|list=(empty)|pan=0|la1=a0f |la2=60a |lse={{c07-c0b,e04-e0a},{},{d07-d0b,a03},{}}"
         },
         {new SOCPutPiece("ga", 3, 0, 1034), "1009|ga,3,0,1034", "SOCPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
+        {new SOCRejectConnection("reason msg"), "1059|reason msg", "SOCRejectConnection:reason msg"},
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
-        {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|param1=2|param2=3|param3=3588"},
+        {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|pn=2|pieceType=3|coord=3588"},
+        {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|rejoinPN=3|requestingPN=2"},
+            // parse from old field names, which are in some STACSettlers soclog files:
+        {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|param1=3|param2=2", OPT_PARSE_ONLY},
+        {new SOCResetBoardReject("ga"), "1077|ga", "SOCResetBoardReject:game=ga"},
+        {new SOCResetBoardRequest("ga"), "1073|ga", "SOCResetBoardRequest:game=ga"},
+        {new SOCResetBoardVote("ga", 3, true), "1076|ga,3,1", "SOCResetBoardVote:game=ga|pn=3|vote=1"},
+            // parse from old field names, which are in some STACSettlers soclog files:
+        {new SOCResetBoardVote("ga", 3, true), "1076|ga,3,1", "SOCResetBoardVote:game=ga|param1=3|param2=1", OPT_PARSE_ONLY},
+        {new SOCResetBoardVoteRequest("ga", 3), "1075|ga,3", "SOCResetBoardVoteRequest:game=ga|param=3"},
         {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11"},
-        {new SOCRevealFogHex("ga", 3340, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|param1=3340|param2=5|param3=12"},
+        {new SOCRevealFogHex("ga", 3340, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|hexCoord=3340|hexType=5|diceNum=12"},
         {new SOCRobotDismiss("ga"), "1056|ga", "SOCRobotDismiss:game=ga"},
         {new SOCRollDice("ga"), "1031|ga", "SOCRollDice:game=ga"},
         {new SOCRollDicePrompt("ga", 3), "1072|ga,3", "SOCRollDicePrompt:game=ga|playerNumber=3"},
+        // can ignore unused SOCRollDiceRequest
+        {new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), false), "1101|[|KEY1|KEY2", "SOCScenarioInfo:p=[|p=KEY1|p=KEY2", OPT_SKIP_PARSE},
+        {new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), true), "1101|[|KEY1|KEY2|?", "SOCScenarioInfo:p=[|p=KEY1|p=KEY2|p=?", OPT_SKIP_PARSE},
+        {new SOCScenarioInfo("KEY3", true), "1101|KEY3|0|-2", "SOCScenarioInfo:key=KEY3|minVers=0|lastModVers=MARKER_KEY_UNKNOWN", OPT_SKIP_PARSE},
+        {
+            new SOCScenarioInfo("KEY4", false),
+            "1101|[|KEY4",
+            "SOCScenarioInfo:p=[|p=KEY4", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+        },
+        {
+            new SOCScenarioInfo(SOCScenario.getScenario(SOCScenario.K_SC_NSHO), "new shores", null),  // has no long desc
+            "1101|SC_NSHO|2000|2000|_SC_SEAC=t,SBL=t,VP=t13|new shores",
+            "SOCScenarioInfo:key=SC_NSHO|minVers=2000|lastModVers=2000|opts=_SC_SEAC=t,SBL=t,VP=t13|title=new shores",
+            OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+        },
+        {
+            new SOCScenarioInfo(SOCScenario.getScenario(SOCScenario.K_SC_4ISL), "4 islands", "long desc, 4 islands"),
+            "1101|SC_4ISL|2000|2000|_SC_SEAC=t,SBL=t,VP=t12|4 islands|long desc, 4 islands",
+            "SOCScenarioInfo:key=SC_4ISL|minVers=2000|lastModVers=2000|opts=_SC_SEAC=t,SBL=t,VP=t12|title=4 islands|desc=long desc, 4 islands",
+            OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+        },
+        {new SOCServerPing(42), "9999|42", "SOCServerPing:sleepTime=42"},
         {new SOCSetPlayedDevCard("ga", 2, false), "1048|ga,2,false", "SOCSetPlayedDevCard:game=ga|playerNumber=2|playedDevCard=false"},
         {new SOCSetSeatLock("ga", 2, SeatLockState.LOCKED), "1068|ga,2,true", "SOCSetSeatLock:game=ga|playerNumber=2|state=LOCKED"},
         {
@@ -634,9 +760,17 @@ public class TestToCmdToStringParse
         {new SOCSimpleRequest("ga", 2, 1001, 2562, 7), "1089|ga,2,1001,2562,7", "SOCSimpleRequest:game=ga|pn=2|reqType=1001|v1=2562|v2=7"},
         {new SOCSitDown("ga", "testp2", 2, false), "1012|ga,testp2,2,false", "SOCSitDown:game=ga|nickname=testp2|playerNumber=2|robotFlag=false"},
         {new SOCStartGame("ga", SOCGame.START1A), "1018|ga,5", "SOCStartGame:game=ga|gameState=5"},
+        {new SOCStatusMessage("simple ok status"), "1069|simple ok status", "SOCStatusMessage:status=simple ok status"},
+        {new SOCStatusMessage(11, "nonzero status text"), "1069|11,nonzero status text", "SOCStatusMessage:sv=11|status=nonzero status text"},
         {new SOCSVPTextMessage("ga", 3, 2, "settling a new island", true), "1097|ga,3,2,settling a new island", "SOCSVPTextMessage:game=ga|pn=3|svp=2|desc=settling a new island"},
+        {new SOCTimingPing("ga"), "1088|ga", "SOCTimingPing:game=ga"},
         {new SOCTurn("ga", 3, 0), "1026|ga,3", "SOCTurn:game=ga|playerNumber=3"},
         {new SOCTurn("ga", 3, SOCGame.ROLL_OR_CARD), "1026|ga,3,15", "SOCTurn:game=ga|playerNumber=3|gameState=15"},
+        {
+            new SOCUpdateRobotParams(new soc.util.SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 0, 1)),
+            "1071|120,35,0.13,1.0,1.0,3.0,1.0,0,1",
+            "SOCUpdateRobotParams:mgl=120|me=35|ebf=0.13|af=1.0|laf=1.0|dcm=3.0|tm=1.0|st=0|tf=1"
+        },
         {
             new SOCVersion(2410, "2.4.10", "JM20200801", ";6pl;sb;", "en_US"),
             "9998|2410,2.4.10,JM20200801,;6pl;sb;,en_US",
