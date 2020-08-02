@@ -39,6 +39,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;  // for javadoc
+import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -412,22 +413,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private HashSet<Integer> legalRoads;
 
     /**
-     * a set of nodes where it is legal to place a
-     * settlement. A node is legal if a settlement
-     * can ever be placed there.
-     * Placing a settlement will clear its node and adjacent nodes.
-     *<P>
-     * Key = node coordinate, as {@link Integer}.
-     * If {@link HashSet#contains(Object) legalSettlements.contains(Integer.valueOf(nodeCoord))},
-     * then <tt>nodeCoord</tt> is a legal settlement.
-     *<P>
-     * If not {@link SOCGame#hasSeaBoard}, initialized in constructor
-     * from {@link SOCBoard#initPlayerLegalSettlements()}.
-     *<P>
-     * If {@link SOCGame#hasSeaBoard}: Empty at server until {@link SOCBoardLarge#makeNewBoard(Map)}
-     * and {@link SOCGame#startGame()}, because the board layout and legal settlements vary
-     * from game to game.  Empty at client until
-     * {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])} is called.
+     * The set of nodes where it's legal to place a settlement;
+     * see {@link #getLegalSettlements()} for details.
      *
      * @see #potentialSettlements
      * @see SOCBoard#nodesOnLand
@@ -4203,11 +4190,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Afterwards it's mostly empty, and follows from the player's road locations.
      *<P>
      * Please make no changes, treat the returned set as read-only.
-     * @return the player's set of {@link Integer} potential-settlement node coordinates.
+     * @return the player's set of potential-settlement node coordinates.
      *     Not {@code null} unless {@link #destroyPlayer()} has been called.
      * @see #getPotentialSettlements_arr()
      * @see #hasPotentialSettlement()
      * @see #hasPotentialSettlementsInitialInFog()
+     * @see #getLegalSettlements()
      * @since 2.0.00
      */
     public HashSet<Integer> getPotentialSettlements()
@@ -4329,6 +4317,32 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public boolean hasPotentialSettlementsInitialInFog()
     {
         return hasPotentialSettlesInitInFog;
+    }
+
+    /**
+     * The set of nodes where it's legal to place a settlement. A node is legal if a settlement
+     * can ever be placed there. Placing a settlement will clear its node and adjacent nodes.
+     *<P>
+     * Set members are node coordinate {@link Integer}s: If
+     * {@link Set#contains(Object) legalSettlements.contains}({@link Integer#valueOf(int) Integer.valueOf(nodeCoord))},
+     * {@code nodeCoord} is a legal settlement.
+     *<P>
+     * If not {@link SOCGame#hasSeaBoard}: Initialized in constructor
+     * from {@link SOCBoard#initPlayerLegalSettlements()}.
+     *<P>
+     * If {@link SOCGame#hasSeaBoard}: Empty at server until {@link SOCBoardLarge#makeNewBoard(Map)}
+     * and {@link SOCGame#startGame()}, because the board layout and legal settlements vary
+     * from game to game.  Empty at client until
+     * {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])} is called.
+     *
+     * @return The player's set of legal-settlement node coordinates; please treat as read-only.
+     *     Not {@code null} unless {@link #destroyPlayer()} has been called.
+     * @see #getPotentialSettlements()
+     * @since 2.4.10
+     */
+    public Set<Integer> getLegalSettlements()
+    {
+        return legalSettlements;
     }
 
     /**
@@ -4712,10 +4726,38 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Does this player have at least one potential road?
      * @return true if there is at least one potential road
+     * @see #hasTwoPotentialRoads()
      */
     public boolean hasPotentialRoad()
     {
         return ! potentialRoads.isEmpty();
+    }
+
+    /**
+     * Does this player have at least 2 potential roads (useful for Road Building),
+     * or have 1 current potential plus another that becomes potential after placement there?
+     * @return true if player has 2 such roads
+     * @since 2.4.10
+     */
+    public boolean hasTwoPotentialRoads()
+    {
+        final int S = potentialRoads.size();
+        if (S == 0)
+            return false;
+        if (S > 1)
+            return true;
+
+        // currently 1 potential road; see if placing there opens up another one
+
+        Integer[] edges = potentialRoads.toArray(new Integer[1]);
+        if ((edges == null) || (edges.length == 0))
+            return false;  // unlikely
+        SOCRoad tmpRoad = new SOCRoad(this, edges[0], null);
+        game.putTempPiece(tmpRoad);
+        final boolean hasAnother = ! potentialRoads.isEmpty();
+        game.undoPutTempPiece(tmpRoad);
+
+        return hasAnother;
     }
 
     /**

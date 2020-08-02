@@ -19,6 +19,8 @@
  **/
 package soc.game;
 
+import java.io.Serializable;
+
 import soc.util.SOCStringManager;
 
 /**
@@ -88,8 +90,10 @@ import soc.util.SOCStringManager;
  * @since 2.0.00
  */
 public class SOCInventoryItem
-    implements Cloneable
+    implements Cloneable, Serializable
 {
+    /** Latest structural change: v2.0.00 */
+    private static final long serialVersionUID = 2000L;
 
     /**
      * This inventory item's identifying type code or Dev Card type, which may be used at client and
