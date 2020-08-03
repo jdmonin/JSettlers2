@@ -38,6 +38,12 @@ and backport minor new features until `2.0.00` was ready.
 	    - Server now mostly calls constructors, not static toCmd methods
 	    - Add toString to several message types to clarify fields
 	    - SOCLocalizedStrings, SOCStatusMessage, SOCVersion: toString: Use standard delimiter `|`, not `,`
+	- Game Options:
+	    - "Inactive Options" concept: Developer-only or specialty gameopts
+	        - To avoid clutter, normally hidden and not sent to connecting clients
+	        - Activate in server config if needed: `jsettlers.gameopts.activate=SAMPLEIN,OTHEROPT`
+	        - For details see [Readme.developer.md](Readme.developer.md) section "Game rules, Game Options"
+	    - Robot clients now handle game option info sync messages
 - Server:
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown

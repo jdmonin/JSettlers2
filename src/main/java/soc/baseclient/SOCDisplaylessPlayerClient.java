@@ -78,8 +78,9 @@ import java.util.Map;
  * Some static methods here are used by {@link soc.client.SOCPlayerClient}
  * and {@link soc.robot.SOCRobotClient}, to prevent code duplication.
  *<P>
- * Since robot client and server are the same version, this client ignores game option sync
- * and scenario synchronization messages ({@link SOCGameOptionInfo}, {@link SOCScenarioInfo}).
+ * Since server and built-in robots are the same version, this client doesn't need
+ * game option sync messages ({@link SOCGameOptionInfo}) but handles them if sent.
+ * Ignores scenario synchronization messages ({@link SOCScenarioInfo}).
  * Being GUI-less, it ignores i18n localization messages ({@link SOCLocalizedStrings}).
  *<P>
  * Before v1.1.20, this class was in the {@code soc.client} package. In 1.1.20,
@@ -117,9 +118,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Robot clients should set non-null {@link ServerConnectInfo#robotCookie} when constructing.
      *<P>
      * Versions before 2.2.00 instead had {@code host}, {@code port}, {@code strSocketName} fields.
+     *
+     * @see #allOptsReceived
      * @since 2.2.00
      */
     protected final ServerConnectInfo serverConnectInfo;
+
+    /**
+     * Since server and built-in robots are the same version,
+     * this client doesn't need {@link SOCGameOption} synchronization messages.
+     * Server still sends them in some conditions, such as when gameopts are limited by client features
+     * or when inactive opts have been activated.
+     *<P>
+     * By default assumes true, there's no pending info to receive, because is same version as server.
+     * If a gameopt sync message is sent, will set false until the "end of list" marker message is sent.
+     *
+     * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
+     * @since 2.4.10
+     */
+    protected boolean allOptsReceived = true;
 
     protected Socket s;
     protected DataInputStream in;
@@ -775,6 +792,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
+                break;
+
+            /**
+             * handle updated game option info from server
+             */
+            case SOCMessage.GAMEOPTIONINFO:
+                handleGAMEOPTIONINFO((SOCGameOptionInfo) mes);
                 break;
 
             /**
@@ -2388,6 +2412,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * process the "game option info" message
+     * by calling {@link ServerGametypeInfo#receiveInfo(SOCGameOptionInfo)}.
+     * If all are now received, sets {@link #allOptsReceived} flag.
+     * @since 2.4.10
+     */
+    protected void handleGAMEOPTIONINFO(final SOCGameOptionInfo gi)
+    {
+        SOCGameOption oinfo = gi.getOptionInfo();
+
+        if ((oinfo.key.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
+        {
+            allOptsReceived = true;
+        } else {
+            if (allOptsReceived)
+                allOptsReceived = false;
+
+            SOCGameOption.addKnownOption(oinfo);
+        }
+    }
+
+    /**
      * Update any game data from "simple request" announcements from the server.
      * Currently ignores them except for:
      *<UL>
@@ -2857,14 +2902,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user leaves the given game
+     * user wants to leave a game.
      *
      * @param ga   the game
+     * @see #leaveGame(String)
      */
     public void leaveGame(SOCGame ga)
     {
-        games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(nickname, "-", ga.getName()));
+        leaveGame(ga.getName());
+    }
+
+    /**
+     * user wants to leave a game, which they may not have been able to fully join.
+     *
+     * @param gaName  the game name
+     * @see #leaveGame(SOCGame)
+     * @since 2.4.10
+     */
+    public void leaveGame(final String gaName)
+    {
+        games.remove(gaName);
+        put(new SOCLeaveGame(nickname, "-", gaName).toCmd());
     }
 
     /**

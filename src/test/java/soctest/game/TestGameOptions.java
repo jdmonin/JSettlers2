@@ -20,6 +20,7 @@
 package soctest.game;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -174,6 +175,203 @@ public class TestGameOptions
         // cleanup
         SOCGameOption.addKnownOption(new SOCGameOption("_TESTF"));
         assertNull(SOCGameOption.getOption("_TESTF", false));
+    }
+
+    /**
+     * Inactive/activated gameopts: Test {@link SOCGameOption#activate(String)},
+     * {@link SOCGameOption#optionsActivated(int)}.
+     * Test {@link SOCGameOption#optionsForVersion(int, Map) SOCGameOption#optionsForVersion(cvers, null)} and
+     * {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean) SGO.adjustOptionsToKnown(gameOpts, null, doServerPreadjust=true)}
+     * checks for {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}.
+     * @since 2.4.10
+     */
+    @Test
+    public void testFlagInactiveActivate()
+    {
+        final int TEST_CLI_VERSION = 2100;
+
+        // setup:
+        // - an option changed after client version 2100:
+        final SOCGameOption newKnown = new SOCGameOption
+            ("_TESTACT", 2000, 2410, 0, 0, 0xFFFF, SOCGameOption.FLAG_INACTIVE_HIDDEN,
+             "For unit test");
+        assertNull(SOCGameOption.getOption("_TESTACT", false));
+        SOCGameOption.addKnownOption(newKnown);
+        assertNotNull(SOCGameOption.getOption("_TESTACT", false));
+        assertTrue(newKnown.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertFalse(newKnown.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        // - an option unchanged at client version 2100:
+        final SOCGameOption newKnown2 = new SOCGameOption
+            ("_TESTA2", 2000, 2000, 0, 0, 0xFFFF, SOCGameOption.FLAG_INACTIVE_HIDDEN,
+             "For unit test");
+        assertNull(SOCGameOption.getOption("_TESTA2", false));
+        SOCGameOption.addKnownOption(newKnown2);
+        assertNotNull(SOCGameOption.getOption("_TESTA2", false));
+        assertTrue(newKnown2.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertFalse(newKnown2.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+
+        Map<String, SOCGameOption> activatedOpts = SOCGameOption.optionsActivated(2410);
+        assertNull("not activated yet", activatedOpts);
+
+        // not in known options when inactive, even if changed after client version
+        {
+            List<SOCGameOption> opts = SOCGameOption.optionsNewerThanVersion(TEST_CLI_VERSION, false, true, null);
+            boolean found = false, found2 = false;
+            if (opts != null)
+            {
+                for (SOCGameOption opt : opts)
+                {
+                    String okey = opt.key;
+                    if (okey.equals("_TESTACT"))
+                        found = true;
+                    else if (okey.equals("_TESTA2"))
+                        found2 = true;
+                }
+            }
+            assertFalse("_TESTACT not in optionsNewerThanVersion when inactive", found);
+            assertFalse("_TESTA2 not in optionsNewerThanVersion when inactive", found2);
+
+            opts = SOCGameOption.optionsForVersion(TEST_CLI_VERSION, null);
+            found = false;
+            found2 = false;
+            assertNotNull(opts);
+            for (SOCGameOption opt : opts)
+            {
+                String okey = opt.key;
+                if (okey.equals("_TESTACT"))
+                    found = true;
+                else if (okey.equals("_TESTA2"))
+                    found2 = true;
+            }
+            assertFalse("_TESTACT not in optionsForVersion when inactive", found);
+            assertFalse("_TESTA2 not in optionsForVersion when inactive", found2);
+        }
+
+        HashMap<String, SOCGameOption> newGameReqOpts = new HashMap<>();
+        newGameReqOpts.put("_TESTACT", newKnown);
+        StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(newGameReqOpts, null, true);
+        assertNotNull(optProblems);
+        assertTrue(optProblems.toString().contains("_TESTACT: inactive"));
+
+        SOCGameOption.activate("_TESTACT");
+        SOCGameOption.activate("_TESTA2");
+
+        SOCGameOption activated = SOCGameOption.getOption("_TESTACT", false);  // non-cloned reference
+        assertFalse(activated.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertTrue(activated.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+
+        activated = SOCGameOption.getOption("_TESTACT", true);  // clone should copy flags
+        assertFalse(activated.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertTrue(activated.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+
+        SOCGameOption activated2 = SOCGameOption.getOption("_TESTA2", true);
+        assertFalse(activated2.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertTrue(activated2.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+
+        activatedOpts = SOCGameOption.optionsActivated(2410);
+        assertNotNull(activatedOpts);
+        assertEquals(2, activatedOpts.size());
+        assertEquals(activated, activatedOpts.get("_TESTACT"));
+        assertEquals(activated2, activatedOpts.get("_TESTA2"));
+
+        activatedOpts = SOCGameOption.optionsActivated(1999);  // older than _TESTACT minVersion
+        assertNull(activatedOpts);
+
+        // is in known options when active, even if not changed after client version
+        {
+            List<SOCGameOption> opts = SOCGameOption.optionsNewerThanVersion(TEST_CLI_VERSION, false, true, null);
+            boolean found = false, found2 = false;
+            if (opts != null)
+            {
+                for (SOCGameOption opt : opts)
+                {
+                    String okey = opt.key;
+                    if (okey.equals("_TESTACT"))
+                    {
+                        if (found)
+                            fail("optionsNewerThanVersion: found twice in list: _TESTACT");
+                        found = true;
+                    }
+                    else if (okey.equals("_TESTA2"))
+                    {
+                        if (found2)
+                            fail("optionsNewerThanVersion: found twice in list: _TESTA2");
+                        found2 = true;
+                    }
+                }
+            }
+            assertTrue("_TESTACT in optionsNewerThanVersion after activated", found);
+            assertTrue("_TESTA2 in optionsNewerThanVersion after activated", found2);
+
+            opts = SOCGameOption.optionsForVersion(TEST_CLI_VERSION, null);
+            assertNotNull(opts);
+            found = false;
+            found2 = false;
+            for (SOCGameOption opt : opts)
+            {
+                String okey = opt.key;
+                if (okey.equals("_TESTACT"))
+                {
+                    if (found)
+                        fail("optionsForVersion: found twice in list: _TESTACT");
+                    found = true;
+                }
+                else if (okey.equals("_TESTA2"))
+                {
+                    if (found2)
+                        fail("optionsForVersion: found twice in list: _TESTA2");
+                    found2 = true;
+                }
+            }
+            assertTrue("_TESTACT in optionsForVersion after activated", found);
+            assertTrue("_TESTA2 in optionsForVersion after activated", found2);
+        }
+
+        newGameReqOpts.put("_TESTACT", activated);
+        optProblems = SOCGameOption.adjustOptionsToKnown(newGameReqOpts, null, true);
+        assertNull(optProblems);
+
+        // cleanup
+        SOCGameOption.addKnownOption(new SOCGameOption("_TESTACT"));
+        SOCGameOption.addKnownOption(new SOCGameOption("_TESTA2"));
+        assertNull(SOCGameOption.getOption("_TESTACT", false));
+        assertNull(SOCGameOption.getOption("_TESTA2", false));
+    }
+
+    /**
+     * Test {@link SOCGameOption#activate(String)} when known option not found.
+     * @since 2.4.10
+     */
+    @Test(expected=IllegalArgumentException.class)
+    public void testFlagInactiveActivate_notFound()
+    {
+        assertNull(SOCGameOption.getOption("_NONEXISTENT", false));
+        SOCGameOption.activate("_NONEXISTENT");
+    }
+
+    /**
+     * Test {@link SOCGameOption#activate(String)} when known option not inactive.
+     * @since 2.4.10
+     */
+    @Test(expected=IllegalArgumentException.class)
+    public void testFlagInactiveActivate_notInactive()
+    {
+        SOCGameOption.activate("PL");
+    }
+
+    /**
+     * Test that gameopt constructors can't be called with both
+     * {@link SOCGameOption#FLAG_ACTIVATED} and {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} set at same time.
+     * @since 2.4.10
+     */
+    @Test(expected=IllegalArgumentException.class)
+    public void testFlagInactiveActivate_constructor()
+    {
+        final SOCGameOption opt = new SOCGameOption
+            ("_TESTIAF", 2000, 2410, false, SOCGameOption.FLAG_ACTIVATED | SOCGameOption.FLAG_INACTIVE_HIDDEN,
+             "test active and inactive at same time");
+        // should throw IllegalArgumentException; next statement is there only to avoid compiler warnings
+        assertNotNull(opt);
     }
 
     /**

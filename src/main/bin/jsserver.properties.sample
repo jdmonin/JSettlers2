@@ -54,13 +54,18 @@
 # jsettlers.gameopt. + the name and value:
 #   jsettlers.gameopt.RD=y
 # The game option values use the same syntax as the command line; see
-# README.txt section "Parameters and game option defaults".
+# Readme section "Parameters and game option defaults".
 # You can also get a list of all default game option values by running
 #	java -jar JSettlersServer.jar --help
 # Note the format of those default values: Some options are shown as "(INTBOOL)"
 # and need both a true/false flag and a numeric value. For example, to change
 # the default winning victory points to 12:
 #   jsettlers.gameopt.vp=t12
+
+# Activating Inactive game options:
+# Optional list of inactive game options to activate, separated by commas without spaces.
+# (For more about Inactive Options, see "Game rules, Game Options" section of /doc/Readme.developer.md)
+# jsettlers.gameopts.activate=SAMPLEIN,OTHEROPT
 
 # Server Config Validation:
 # (This flag is equivalent to command line option -t or --test-config.)
@@ -80,7 +85,7 @@
 # JSettlers can optionally use a database for game scores and/or user accounts
 # ("nicknames" and passwords). Here are the properties for server features
 # which require a database, then those for the database connection details.
-# For more info see README.txt section "Database Setup".
+# For more info see "Database Setup" section of /doc/Database.md.
 
 # - DB: Server features:
 
@@ -143,7 +148,7 @@
 # varies by database type and version. The driver JAR should usually be placed
 # in the same directory as the JSettlersServer JAR, because of Java's
 # restrictions about JARs loading other JARs. You will probably need to
-# download the driver JAR for your DB type; see README.txt for URLs.
+# download the driver JAR for your DB type; see Readme for URLs.
 # jsettlers.db.jar=...    # (Blank by default)
 
 # For SQLite, the JVM property name that xerial sqlite-jdbc uses
@@ -195,7 +200,7 @@
 # Practice games always allow debug commands, since those aren't multiplayer.
 # When this flag is set, the server version banner shown at connect includes
 # the text "debugging is on". For debug command info, login as debug and type
-# *help*; see also README.developer.
+# *help*; see also /doc/Readme.developer.md.
 # jsettlers.allow.debug=N
 
 # Run this many robot-only games, a few at a time, until this many have been

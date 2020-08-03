@@ -950,16 +950,24 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             gameOpts.put("_BHW", opt);
         }
 
-        SOCGame ga = new SOCGame(gaName, gameOpts);
-        ga.isPractice = isPractice;
-        ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
-        games.put(gaName, ga);
+        try
+        {
+            final SOCGame ga = new SOCGame(gaName, gameOpts);
+            ga.isPractice = isPractice;
+            ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
+            games.put(gaName, ga);
 
-        CappedQueue<SOCMessage> brainQ = new CappedQueue<SOCMessage>();
-        brainQs.put(gaName, brainQ);
+            CappedQueue<SOCMessage> brainQ = new CappedQueue<SOCMessage>();
+            brainQs.put(gaName, brainQ);
 
-        SOCRobotBrain rb = createBrain(currentRobotParameters, ga, brainQ);
-        robotBrains.put(gaName, rb);
+            SOCRobotBrain rb = createBrain(currentRobotParameters, ga, brainQ);
+            robotBrains.put(gaName, rb);
+        } catch (IllegalArgumentException e) {
+            System.err.println
+                ("Sync error: Bot " + nickname + " can't join game " + gaName + ": " + e.getMessage());
+            brainQs.remove(gaName);
+            leaveGame(gaName);
+        }
     }
 
     /**

@@ -11,6 +11,7 @@
 - Current partially-done work
 - To do: The current TODO list
 - Saving and loading games at server
+- Game rules, Game Options
 - Developing with a database (JDBC)
 - Internationalization (I18N)
 - Robots (AI)
@@ -44,18 +45,15 @@ are dispatched into `SOCServerMessageHandler`, `SOCGameMessageHandler`, and
 `soc.client.SOCPlayerInterface`. Game state is held at the server in
 `soc.game.SOCGame` and its fields; only partial game state is known at clients.
 The game's "business logic" is mostly in `SOCGame`, `SOCPlayer`, and `SOCBoard`.
-The sea board and scenarios use `SOCBoardLarge`.
+
+The sea board and scenarios use `SOCBoardLarge`. Game options and scenario rules
+are controlled through `SOCGameOption`: See section "Game rules, Game Options"
+for details.
 
 Communication is described in soc.message.SOCMessage. Robots talk with the
 server like normal human clients. Most robot messages are per-game; instead
 of being handled in SOCRobotClient, these are handled in a loop in
 SOCRobotBrain.run().
-
-Game options and scenario rules are controlled through SOCGameOption;
-see initAllOptions javadoc for a list. Options have flags for their properties
-("hidden internal option", "drop if not set", etc). All scenario-related
-game option keynames start with `_SC_`, and provide special rules for the
-scenario.
 
 For more information about the AI, please see the "Robots (AI)" section
 and Robert S Thomas' dissertation.
@@ -581,6 +579,35 @@ https://mvnrepository.com/artifact/com.google.code.gson/gson/2.8.6 .
 If using Eclipse, also add GSON to the project's build path -> Libraries -> Add External JAR
 
 If you're not using this feature, JSettlers doesn't require or use the GSON jar.
+
+
+## Game rules, Game Options
+
+Game rules and actions are controlled through Game Options (class
+`SOCGameOption`; see SOCGameOptions.initAllOptions javadoc for a list.)
+Options have types (bool, enum, etc) and flags for their properties
+("hidden internal option", "drop if not set", etc). All scenario-related
+game option keynames start with `_SC_` and provide special rules/behaviors
+for the scenario.
+
+If you're developing a change to the game rules or behavior, see
+SOCGameOption.initAllOptions javadoc for how to add a Game Option.
+
+For quick tests or prototyping, including third-party bots/AI development,
+there are a few predefined but unused game options available:
+`_EXT_BOT`, `_EXT_CLI`, and `_EXT_GAM`. For more info, search this file for
+those names or see initAllOptions javadoc.
+
+### Inactive/activated Game Options:
+
+Some game options might be useful only for developers or in other special
+situations, and would only be clutter if they always appeared in every client's
+New Game Options window. So those are declared as Inactive Options, which are
+unused and hidden unless activated during server startup by setting a
+config property:  
+`jsettlers.gameopts.activate=SAMPLEIN,OTHEROPT`  
+Activated Options are then handled like any regular game option.
+For more details, see the SOCGameOption.activate javadoc.
 
 
 ## Developing with a database (JDBC)

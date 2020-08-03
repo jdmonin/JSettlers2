@@ -167,13 +167,16 @@ import soc.util.Version;
      */
     private final boolean readOnly;
 
-    /** Contains this game's {@link SOCGameOption}s, or null if none.
-     *  Unknowns (OTYPE_UNKNOWN) are removed in initInterface_options.
+    /**
+     * Contains this game's {@link SOCGameOption}s, or null if none.
+     * Unknowns (OTYPE_UNKNOWN) and inactives (SGO.FLAG_INACTIVE_HIDDEN) are removed in
+     * {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints) initInterface_Options(..)}.
      *<P>
      * The opts' values are updated from UI components when the user hits the Create Game button,
      * and sent to the server to create the game.  If there are {@link SOCGameOption.ChangeListener}s,
      * they are updated as soon as the user changes them in the components, then re-updated when
      * Create is hit.
+     *
      * @see #readOptsValuesFromControls(boolean)
      */
     private Map<String, SOCGameOption> opts;
@@ -582,11 +585,18 @@ import soc.util.Version;
                 continue;  // <-- Removed, Go to next entry --
             }
 
+            if (op.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+            {
+                if (! readOnly)
+                    opts.remove(op.key);  // don't send inactive options when requesting new game from client
+                continue;  // <-- Don't show inactive options --
+            }
+
             if (op.hasFlag(SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
             {
                 if (! readOnly)
                     opts.remove(op.key);  // ignore internal-property options when requesting new game from client
-                continue;  // <-- Don't show internal-property options
+                continue;  // <-- Don't show internal-property options --
             }
 
             if (op.key.charAt(0) == '_')

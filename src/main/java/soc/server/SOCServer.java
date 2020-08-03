@@ -523,6 +523,13 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_GAMEOPT_PREFIX = "jsettlers.gameopt.";
 
     /**
+     * Property {@code jsettlers.gameopts.activate} to activate and use inactive game options;
+     * see {@link SOCGameOption#activate(String)}.
+     * @since 2.4.10
+     */
+    public static final String PROP_JSETTLERS_GAMEOPTS_ACTIVATE = "jsettlers.gameopts.activate";
+
+    /**
      * Property {@code jsettlers.savegame.dir} to enable SAVEGAME/LOADGAME debug commands
      * and set the directory in which to store savegame files.
      *<P>
@@ -589,6 +596,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
         PROP_JSETTLERS_GAMEOPT_PREFIX + "*",    "Game option defaults, case-insensitive: jsettlers.gameopt.RD=y",
+        PROP_JSETTLERS_GAMEOPTS_ACTIVATE,       "If set, activate these inactive game options (comma-separated list)",
         // I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US, for console output",
             // -- not used yet at server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
@@ -1670,8 +1678,9 @@ public class SOCServer extends Server
         }
 
         /**
-         * Check other misc optional properties
+         * Check other misc optional properties:
          */
+
         if (props.containsKey(PROP_JSETTLERS_ADMIN_WELCOME))
         {
             String txt0 = props.getProperty(PROP_JSETTLERS_ADMIN_WELCOME),
@@ -1698,6 +1707,42 @@ public class SOCServer extends Server
 
                 if (! txt.equals(txt0))
                     props.setProperty(PROP_JSETTLERS_ADMIN_WELCOME, txt);  // use trimmed text
+            }
+        }
+
+        if (props.containsKey(PROP_JSETTLERS_GAMEOPTS_ACTIVATE))
+        {
+            String txt0 = props.getProperty(PROP_JSETTLERS_GAMEOPTS_ACTIVATE),
+                   txt = txt0.trim();
+            if (! txt.isEmpty())
+            {
+                StringBuilder err = new StringBuilder();
+                for (final String optKey : txt.split(","))
+                {
+                    if (null == SOCGameOption.getOption(optKey, false))
+                    {
+                        if (err.length() > 0)
+                            err.append(", ");
+                        err.append(optKey).append(": Not found");
+
+                        continue;
+                    }
+
+                    try
+                    {
+                        SOCGameOption.activate(optKey);
+                    } catch (IllegalArgumentException e) {
+                        if (err.length() > 0)
+                            err.append(", ");
+                        err.append(optKey).append(": Not inactive");
+                    }
+                }
+
+                if (err.length() > 0)
+                    throw new IllegalArgumentException
+                        ("Config: " + PROP_JSETTLERS_GAMEOPTS_ACTIVATE + ": " + err);
+                else
+                    System.err.println("Activated game options: " + txt);
             }
         }
 
@@ -6533,24 +6578,44 @@ public class SOCServer extends Server
             return false;  // <--- Early return: Rejected client ---
         }
 
-        // If client is limited and not older, check now for unsupported/limited SGOs
-        if (hasLimitedFeats && (cvers >= Version.versionNumber()))
+        // Unless client is older, check now for unsupported/limited/activated SGOs
+        if (cvers >= Version.versionNumber())
         {
             boolean hadAny = false;
-            final Map<String, SOCGameOption> unsupportedOpts = SOCGameOption.optionsNotSupported(scd.feats);
-            if (unsupportedOpts != null)
+            Map<String, SOCGameOption> unsupportedOpts = null, trimmedOpts = null;
+
+            if (hasLimitedFeats)
             {
-                for (String okey : unsupportedOpts.keySet())
-                    c.put(new SOCGameOptionInfo(new SOCGameOption(okey), cvers, "-"));
-                hadAny = true;
+                unsupportedOpts = SOCGameOption.optionsNotSupported(scd.feats);
+                if (unsupportedOpts != null)
+                {
+                    for (String okey : unsupportedOpts.keySet())
+                        c.put(new SOCGameOptionInfo(new SOCGameOption(okey), cvers, "-"));
+                    hadAny = true;
+                }
+
+                trimmedOpts = SOCGameOption.optionsTrimmedForSupport(scd.feats);
+                if (trimmedOpts != null)
+                {
+                    for (SOCGameOption opt : trimmedOpts.values())
+                        c.put(new SOCGameOptionInfo(opt, cvers, null));
+                    hadAny = true;
+                }
             }
 
-            final Map<String, SOCGameOption> trimmedOpts = SOCGameOption.optionsTrimmedForSupport(scd.feats);
-            if (trimmedOpts != null)
+            Map<String, SOCGameOption> activatedOpts = SOCGameOption.optionsActivated(cvers);
+            if (activatedOpts != null)
             {
-                for (SOCGameOption opt : trimmedOpts.values())
+                for (SOCGameOption opt : activatedOpts.values())
+                {
+                    if ((unsupportedOpts != null) && unsupportedOpts.containsKey(opt.key))
+                        continue;
+                    if ((trimmedOpts != null) && trimmedOpts.containsKey(opt.key))
+                        continue;
+
                     c.put(new SOCGameOptionInfo(opt, cvers, null));
-                hadAny = true;
+                    hadAny = true;
+                }
             }
 
             if (hadAny && (cvers == Version.versionNumber()))
@@ -6996,7 +7061,7 @@ public class SOCServer extends Server
         /**
          * If we have game options, we're being asked to load a game or create a new one.
          * Validate them and ensure the new game doesn't already exist.
-         * For SOCScenarios, adjustOptionsToKnown will recognize game opt "SC".
+         * For SOCScenarios, adjustOptionsToKnown will recognize and apply game opt "SC".
          */
         if (gameOpts != null)
         {
@@ -7015,8 +7080,8 @@ public class SOCServer extends Server
                 return false;  // <---- Early return ----
             }
 
-            // Make sure all options are known.  If has game opt "SC" for scenarios,
-            // also adds that scenario's options into gameOpts.
+            // Make sure all requested options are known and active.
+            // If has game opt "SC" for scenarios, also adds that scenario's options into gameOpts.
             // If has game opt "VP" but boolean part is false, use server default instead.
 
             final StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null, true);

@@ -37,6 +37,10 @@ import java.util.StringTokenizer;
  * To request a new game with game options, send
  * {@link SOCNewGameWithOptionsRequest NEWGAMEWITHOPTIONSREQUEST} instead.
  *<P>
+ * If a new game can't be created (name too long, etc), server will reply with {@link SOCStatusMessage}
+ * with a status value explaining the reason: {@link SOCStatusMessage#SV_NEWGAME_TOO_MANY_CREATED},
+ * {@link SOCStatusMessage#SV_NEWGAME_NAME_REJECTED}, etc.
+ *<P>
  * If the join request is successful, requesting client is sent a specific sequence
  * of messages with details about the game; see {@link SOCGameMembers}.
  * In order for robot clients to be certain they have all details about a game

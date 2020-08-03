@@ -34,8 +34,12 @@ import soc.game.SOCGameOption;
  * nickname and password fields can be left blank or "-" in later join/create requests.
  * All server versions ignore the password field after a successful request.
  *<P>
+ * If the new game can't be created (name too long, unknown options specified, etc),
+ * server will reply with {@link SOCStatusMessage} with a status value explaining the reason:
+ * {@link SOCStatusMessage#SV_NEWGAME_TOO_MANY_CREATED}, {@link SOCStatusMessage#SV_NEWGAME_NAME_REJECTED}, etc.
+ *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
- * before sending this message.  Older servers should be given {@link SOCJoinGame JOINGAME} instead.
+ * before sending this message.  Older servers should be sent {@link SOCJoinGame} instead.
  *<P>
  * Some game options have the {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} flag.
  * The client should not send these as part of a new-game request message,
