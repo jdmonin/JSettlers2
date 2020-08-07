@@ -26,6 +26,7 @@ import java.util.Map;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCGameOption;
 import soc.game.SOCVersionedItem;
 
@@ -182,7 +183,8 @@ public class TestGameOptions
      * {@link SOCGameOption#optionsActivated(int)}.
      * Test {@link SOCGameOption#optionsForVersion(int, Map) SOCGameOption#optionsForVersion(cvers, null)} and
      * {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean) SGO.adjustOptionsToKnown(gameOpts, null, doServerPreadjust=true)}
-     * checks for {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}.
+     * checks for {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}. Uses game options
+     * {@link SOCGameOption#K_PLAY_FO "PLAY_FO"}, {@link SOCGameOption#K_PLAY_VPO "PLAY_VPO"}.
      * @since 2.4.10
      */
     @Test
@@ -192,23 +194,31 @@ public class TestGameOptions
 
         // setup:
         // - an option changed after client version 2100:
-        final SOCGameOption newKnown = new SOCGameOption
-            ("_TESTACT", 2000, 2410, 0, 0, 0xFFFF, SOCGameOption.FLAG_INACTIVE_HIDDEN,
-             "For unit test");
-        assertNull(SOCGameOption.getOption("_TESTACT", false));
-        SOCGameOption.addKnownOption(newKnown);
-        assertNotNull(SOCGameOption.getOption("_TESTACT", false));
-        assertTrue(newKnown.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
-        assertFalse(newKnown.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        final SOCGameOption optPlayVPO = SOCGameOption.getOption("PLAY_VPO", false);
+        assertNotNull(optPlayVPO);
+        assertTrue(optPlayVPO.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertFalse(optPlayVPO.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        assertEquals("minVersion 2000", 2000, optPlayVPO.minVersion);
+        assertEquals
+            ("netcode version assumptions OK", optPlayVPO.minVersion, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES);
+        assertTrue("changed after client version 2100", optPlayVPO.lastModVersion > TEST_CLI_VERSION);
         // - an option unchanged at client version 2100:
         final SOCGameOption newKnown2 = new SOCGameOption
-            ("_TESTA2", 2000, 2000, 0, 0, 0xFFFF, SOCGameOption.FLAG_INACTIVE_HIDDEN,
+            ("_TESTACT", 2000, 2000, 0, 0, 0xFFFF, SOCGameOption.FLAG_INACTIVE_HIDDEN,
              "For unit test");
-        assertNull(SOCGameOption.getOption("_TESTA2", false));
+        assertNull(SOCGameOption.getOption("_TESTACT", false));
         SOCGameOption.addKnownOption(newKnown2);
-        assertNotNull(SOCGameOption.getOption("_TESTA2", false));
+        assertNotNull(SOCGameOption.getOption("_TESTACT", false));
         assertTrue(newKnown2.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
         assertFalse(newKnown2.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        // - make sure PLAY_FO also has proper minVersion
+        SOCGameOption optFO = SOCGameOption.getOption("PLAY_FO", false);
+        assertNotNull(optFO);
+        assertTrue(optFO.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertFalse(optFO.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        assertEquals("minVersion 2000", 2000, optFO.minVersion);
+
+        // testing the actual feature:
 
         Map<String, SOCGameOption> activatedOpts = SOCGameOption.optionsActivated(2410);
         assertNull("not activated yet", activatedOpts);
@@ -222,14 +232,14 @@ public class TestGameOptions
                 for (SOCGameOption opt : opts)
                 {
                     String okey = opt.key;
-                    if (okey.equals("_TESTACT"))
+                    if (okey.equals("PLAY_VPO"))
                         found = true;
-                    else if (okey.equals("_TESTA2"))
+                    else if (okey.equals("_TESTACT"))
                         found2 = true;
                 }
             }
-            assertFalse("_TESTACT not in optionsNewerThanVersion when inactive", found);
-            assertFalse("_TESTA2 not in optionsNewerThanVersion when inactive", found2);
+            assertFalse("PLAY_VPO not in optionsNewerThanVersion when inactive", found);
+            assertFalse("_TESTACT not in optionsNewerThanVersion when inactive", found2);
 
             opts = SOCGameOption.optionsForVersion(TEST_CLI_VERSION, null);
             found = false;
@@ -238,41 +248,41 @@ public class TestGameOptions
             for (SOCGameOption opt : opts)
             {
                 String okey = opt.key;
-                if (okey.equals("_TESTACT"))
+                if (okey.equals("PLAY_VPO"))
                     found = true;
-                else if (okey.equals("_TESTA2"))
+                else if (okey.equals("_TESTACT"))
                     found2 = true;
             }
-            assertFalse("_TESTACT not in optionsForVersion when inactive", found);
-            assertFalse("_TESTA2 not in optionsForVersion when inactive", found2);
+            assertFalse("PLAY_VPO not in optionsForVersion when inactive", found);
+            assertFalse("_TESTACT not in optionsForVersion when inactive", found2);
         }
 
         HashMap<String, SOCGameOption> newGameReqOpts = new HashMap<>();
-        newGameReqOpts.put("_TESTACT", newKnown);
+        newGameReqOpts.put("PLAY_VPO", optPlayVPO);
         StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(newGameReqOpts, null, true);
         assertNotNull(optProblems);
-        assertTrue(optProblems.toString().contains("_TESTACT: inactive"));
+        assertTrue(optProblems.toString().contains("PLAY_VPO: inactive"));
 
+        SOCGameOption.activate("PLAY_VPO");
         SOCGameOption.activate("_TESTACT");
-        SOCGameOption.activate("_TESTA2");
 
-        SOCGameOption activated = SOCGameOption.getOption("_TESTACT", false);  // non-cloned reference
+        SOCGameOption activated = SOCGameOption.getOption("PLAY_VPO", false);  // non-cloned reference
         assertFalse(activated.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
         assertTrue(activated.hasFlag(SOCGameOption.FLAG_ACTIVATED));
 
-        activated = SOCGameOption.getOption("_TESTACT", true);  // clone should copy flags
+        activated = SOCGameOption.getOption("PLAY_VPO", true);  // clone should copy flags
         assertFalse(activated.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
         assertTrue(activated.hasFlag(SOCGameOption.FLAG_ACTIVATED));
 
-        SOCGameOption activated2 = SOCGameOption.getOption("_TESTA2", true);
+        SOCGameOption activated2 = SOCGameOption.getOption("_TESTACT", true);
         assertFalse(activated2.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
         assertTrue(activated2.hasFlag(SOCGameOption.FLAG_ACTIVATED));
 
         activatedOpts = SOCGameOption.optionsActivated(2410);
         assertNotNull(activatedOpts);
         assertEquals(2, activatedOpts.size());
-        assertEquals(activated, activatedOpts.get("_TESTACT"));
-        assertEquals(activated2, activatedOpts.get("_TESTA2"));
+        assertEquals(activated, activatedOpts.get("PLAY_VPO"));
+        assertEquals(activated2, activatedOpts.get("_TESTACT"));
 
         activatedOpts = SOCGameOption.optionsActivated(1999);  // older than _TESTACT minVersion
         assertNull(activatedOpts);
@@ -286,22 +296,22 @@ public class TestGameOptions
                 for (SOCGameOption opt : opts)
                 {
                     String okey = opt.key;
-                    if (okey.equals("_TESTACT"))
+                    if (okey.equals("PLAY_VPO"))
                     {
                         if (found)
-                            fail("optionsNewerThanVersion: found twice in list: _TESTACT");
+                            fail("optionsNewerThanVersion: found twice in list: PLAY_VPO");
                         found = true;
                     }
-                    else if (okey.equals("_TESTA2"))
+                    else if (okey.equals("_TESTACT"))
                     {
                         if (found2)
-                            fail("optionsNewerThanVersion: found twice in list: _TESTA2");
+                            fail("optionsNewerThanVersion: found twice in list: _TESTACT");
                         found2 = true;
                     }
                 }
             }
-            assertTrue("_TESTACT in optionsNewerThanVersion after activated", found);
-            assertTrue("_TESTA2 in optionsNewerThanVersion after activated", found2);
+            assertTrue("PLAY_VPO in optionsNewerThanVersion after activated", found);
+            assertTrue("_TESTACT in optionsNewerThanVersion after activated", found2);
 
             opts = SOCGameOption.optionsForVersion(TEST_CLI_VERSION, null);
             assertNotNull(opts);
@@ -310,32 +320,30 @@ public class TestGameOptions
             for (SOCGameOption opt : opts)
             {
                 String okey = opt.key;
-                if (okey.equals("_TESTACT"))
+                if (okey.equals("PLAY_VPO"))
                 {
                     if (found)
-                        fail("optionsForVersion: found twice in list: _TESTACT");
+                        fail("optionsForVersion: found twice in list: PLAY_VPO");
                     found = true;
                 }
-                else if (okey.equals("_TESTA2"))
+                else if (okey.equals("_TESTACT"))
                 {
                     if (found2)
-                        fail("optionsForVersion: found twice in list: _TESTA2");
+                        fail("optionsForVersion: found twice in list: _TESTACT");
                     found2 = true;
                 }
             }
-            assertTrue("_TESTACT in optionsForVersion after activated", found);
-            assertTrue("_TESTA2 in optionsForVersion after activated", found2);
+            assertTrue("PLAY_VPO in optionsForVersion after activated", found);
+            assertTrue("_TESTACT in optionsForVersion after activated", found2);
         }
 
-        newGameReqOpts.put("_TESTACT", activated);
+        newGameReqOpts.put("PLAY_VPO", activated);
         optProblems = SOCGameOption.adjustOptionsToKnown(newGameReqOpts, null, true);
         assertNull(optProblems);
 
         // cleanup
         SOCGameOption.addKnownOption(new SOCGameOption("_TESTACT"));
-        SOCGameOption.addKnownOption(new SOCGameOption("_TESTA2"));
         assertNull(SOCGameOption.getOption("_TESTACT", false));
-        assertNull(SOCGameOption.getOption("_TESTA2", false));
     }
 
     /**

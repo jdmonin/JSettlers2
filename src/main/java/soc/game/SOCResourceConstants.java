@@ -59,7 +59,9 @@ public class SOCResourceConstants
      * Unknown resource type (6).  Occurs after {@link #WOOD} (5).
      * Sometimes also used as a "MAX+1" for array sizing
      * for per-resource-type arrays that contain {@link #CLAY} through {@link #WOOD}
-     * but don't contain <tt>UNKNOWN</tt>.
+     * but don't contain {@code UNKNOWN}.
+     *<P>
+     * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO} is set.
      *<P>
      * Same numeric value as {@link #GOLD_LOCAL}.
      * @see #MAXPLUSONE

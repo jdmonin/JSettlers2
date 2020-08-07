@@ -342,8 +342,9 @@ import javax.swing.UIManager;
     /**
      * For right-click resource to trade - If playerIsClient, track cost
      * of bank/port trade per resource. Index 0 unused; index 1 is
-     * {@link SOCResourceConstants#CLAY}, etc. Highest index is 5.
+     * {@link SOCResourceConstants#CLAY}, etc. Highest index is 5 {@link SOCResourceConstants#WOOD}.
      * Null, unless playerIsClient and addPlayer has been called.
+     * @see #resourceTradeMenu
      * @since 1.1.00
      */
     protected int[] resourceTradeCost;
@@ -351,8 +352,9 @@ import javax.swing.UIManager;
     /**
      * For right-click resource to trade - If playerIsClient, popup menus
      * to bank/port trade resources. Index 0 unused; index 1 is
-     * {@link SOCResourceConstants#CLAY}, etc. Highest index is 5.
+     * {@link SOCResourceConstants#CLAY}, etc. Highest index is 5 {@link SOCResourceConstants#WOOD}.
      * Null, unless playerIsClient and addPlayer has been called.
+     * @see #resourceTradeCost
      * @since 1.1.00
      */
     protected ResourceTradeTypeMenu[] resourceTradeMenu;
@@ -431,7 +433,8 @@ import javax.swing.UIManager;
     /**
      * Wonder Level label, for scenario {@link SOCGameOption#K_SC_WOND _SC_WOND}; null otherwise.
      * Blank ("") if player has no current wonder level.
-     * Appears in same areas as {@link #clothLab} and {@link #clothSq}.
+     * Appears in same areas as {@link #clothLab} and {@link #clothSq};
+     * doLayout's topFaceAreaHeight calc assumes that area's on same row as svpLab.
      * @since 2.0.00
      */
     private JLabel wonderLab;
@@ -712,6 +715,12 @@ import javax.swing.UIManager;
      * If {@link #playerIsClient} true, implies interactive.
      */
     protected final boolean interactive;
+
+    /**
+     * Cached result for {@link #doLayout()} for width of resource labels.
+     * @since 2.4.10
+     */
+    private int doLayout_resourceLabelsWidth;
 
     /**
      * Construct a new hand panel.
@@ -2204,7 +2213,7 @@ import javax.swing.UIManager;
         }
 
         //cardLab.setVisible(false);
-        inventory.setVisible(false);
+        inventoryScroll.setVisible(false);
         playCardBut.setVisible(false);
 
         giveLab.setVisible(false);
@@ -2419,6 +2428,7 @@ import javax.swing.UIManager;
 
         playerIsCurrent = (game.getCurrentPlayerNumber() == playerNumber);
 
+        final boolean showResourceDetails;
         if (player.getName().equals(playerInterface.getClientNickname()))
         {
             // this is our hand
@@ -2442,19 +2452,7 @@ import javax.swing.UIManager;
 
             faceImg.addFacePopupMenu();  // Also enables left-click to change
 
-            claySq.setVisible(true);
-            clayLab.setVisible(true);
-            oreSq.setVisible(true);
-            oreLab.setVisible(true);
-            sheepSq.setVisible(true);
-            sheepLab.setVisible(true);
-            wheatSq.setVisible(true);
-            wheatLab.setVisible(true);
-            woodSq.setVisible(true);
-            woodLab.setVisible(true);
-            resourceSqDivLine.setVisible(true);
-            resourceSq.setBorderColor(ColorSquare.ORE);  // dark gray
-            resourceLab.setText(RESOURCES_TOTAL);
+            showResourceDetails = true;
 
             resourceTradeCost = new int[6];
             if (resourceTradeMenu != null)
@@ -2479,7 +2477,7 @@ import javax.swing.UIManager;
             //cardLab.setVisible(true);
             canCancelInvItemPlay = false;
             inventory.setEnabled(true);
-            inventory.setVisible(true);
+            inventoryScroll.setVisible(true);
             playCardBut.setVisible(true);
 
             giveLab.setVisible(true);
@@ -2567,8 +2565,7 @@ import javax.swing.UIManager;
 
             vpLab.setVisible(true);
             vpSq.setVisible(true);
-            resourceSq.setBorderColor(Color.BLACK);
-            resourceLab.setText(RESOURCES);
+            showResourceDetails = playerInterface.isGameFullyObservable;
             if (counterOfferPanel != null)
                 counterOfferPanel.setLine1Text
                     (strings.get("trade.counter.to.x", player.getName()));  // "Counter to {0}:"
@@ -2576,8 +2573,34 @@ import javax.swing.UIManager;
             developmentLab.setVisible(true);
             developmentSq.setVisible(true);
 
+            if (playerInterface.isGameObservableVP)
+            {
+                inventory.setEnabled(false);
+                inventoryScroll.setVisible(true);
+            }
+
             removeSitBut();
             removeRobotBut();
+        }
+
+        if (showResourceDetails)
+        {
+            claySq.setVisible(true);
+            clayLab.setVisible(true);
+            oreSq.setVisible(true);
+            oreLab.setVisible(true);
+            sheepSq.setVisible(true);
+            sheepLab.setVisible(true);
+            wheatSq.setVisible(true);
+            wheatLab.setVisible(true);
+            woodSq.setVisible(true);
+            woodLab.setVisible(true);
+            resourceSqDivLine.setVisible(true);
+            resourceSq.setBorderColor(ColorSquare.ORE);  // dark gray
+            resourceLab.setText(RESOURCES_TOTAL);
+        } else {
+            resourceSq.setBorderColor(Color.BLACK);
+            resourceLab.setText(RESOURCES);
         }
 
         if (wonderLab != null)
@@ -2846,7 +2869,7 @@ import javax.swing.UIManager;
      */
     public void updateDevCards(final boolean addedPlayable)
     {
-        if (! playerIsClient)
+        if (! (playerIsClient || playerInterface.isGameObservableVP))
         {
             updateValue(PlayerClientListener.UpdateType.DevCards);
 
@@ -2882,7 +2905,7 @@ import javax.swing.UIManager;
             invModel.clear();
             inventoryItems.clear();
 
-            if (addedPlayable && ! inventory.isEnabled())
+            if (addedPlayable && playerIsClient && ! inventory.isEnabled())
                 inventory.setEnabled(true);  // can become disabled in game state PLACING_INV_ITEM
 
             // show all new cards first, then all playable, then all kept (VP cards)
@@ -2907,7 +2930,7 @@ import javax.swing.UIManager;
             }
         }
 
-        playCardBut.setEnabled(hasOldCards && playerIsCurrent);
+        playCardBut.setEnabled(hasOldCards && playerIsClient && playerIsCurrent);
     }
 
     /**
@@ -3234,6 +3257,15 @@ import javax.swing.UIManager;
             {
                 shipSq.setVisible(hideTradeMsg);
                 shipLab.setVisible(hideTradeMsg);
+            }
+            if (playerInterface.isGameObservableVP)
+            {
+                inventoryScroll.setVisible(hideTradeMsg);
+                if (playerInterface.isGameFullyObservable)
+                    for (JComponent resComp : new JComponent[]
+                        {claySq, clayLab, oreSq, oreLab, sheepSq, sheepLab,
+                         wheatSq, wheatLab, woodSq, woodLab, resourceSqDivLine})
+                        resComp.setVisible(hideTradeMsg);
             }
 
             if (inPlay && player.isRobot())
@@ -3780,7 +3812,7 @@ import javax.swing.UIManager;
             break;
 
         case ResourceTotalAndDetails:
-            if (playerIsClient)
+            if (playerIsClient || playerInterface.isGameFullyObservable)
             {
                 // Update the 5 individual ones too, not just the total count
                 final SOCResourceSet rsrc = player.getResources();
@@ -4138,6 +4170,7 @@ import javax.swing.UIManager;
             vpSq.setLocation(inset + faceW + inset + vpW + space, y);
 
             final int topStuffW = inset + faceW + inset + vpW + space + sqSize + space;
+            int topFaceAreaHeight = y + lineH;
 
             // always position these: though they may not be visible
             larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
@@ -4147,7 +4180,9 @@ import javax.swing.UIManager;
             // SVP goes below Victory Points count; usually unused or 0, thus invisible
             if (svpSq != null)
             {
-                y += (lineH + 1);
+                y += (lineH + displayScale);
+                topFaceAreaHeight += (lineH + displayScale);
+
                 svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
                 svpSq.setLocation(inset + faceW + inset + vpW + space, y);
 
@@ -4160,14 +4195,23 @@ import javax.swing.UIManager;
                 }
             }
 
+            if (topFaceAreaHeight < (inset + faceW + inset))
+                topFaceAreaHeight = inset + faceW + inset;
+
+            // If nonzero, should lay out per-resource count squares & dev card inventory starting at this Y-position
+            int resourceInventoryTop = 0;
+
             //if (true) {
             if (playerIsClient)
             {
                 /* This is our hand */
 
-                // Top has name, then a row with VP count, largest army, longest road
+                // Top area has rows for:
+                // - Player name
+                // - VP count, largest army, longest road
                 //   (If game hasn't started yet, "Start Game" button is here instead of that row)
-                //   SVP is under VP count, if applicable
+                // - SVP if applicable, info for wonder or cloth scenario
+                // topFaceAreaHeight = height of all that top area
                 // To left below top area: Trade area
                 //   (Give/Get and SquaresPanel; below that, Offer button and checkboxes, then Clear/Bank buttons)
                 // To left below trade area: Resource counts
@@ -4179,30 +4223,6 @@ import javax.swing.UIManager;
 
                 final Dimension sqpDim = sqPanel.getSize();  // Trading SquaresPanel (doesn't include Give/Get labels)
                 final int labelspc = fm.stringWidth("_") / 3;  // Bug in stringWidth does not give correct size for ' '
-                final int sheepW;  // width of longest localized string clay/sheep/ore/wheat/wood
-                {
-                    int wmax = 0;
-                    final JLabel[] rLabs = { clayLab, oreLab, sheepLab, wheatLab, woodLab };
-                    for (int i = 0; i < rLabs.length; ++i)
-                    {
-                        final JLabel rl = rLabs[i];
-                        if (rl != null)
-                        {
-                            final String txt = rl.getText();
-                            if (txt != null)
-                            {
-                                final int w = fm.stringWidth(rl.getText());
-                                if (w > wmax)
-                                    wmax = w;
-                            }
-                        }
-                    }
-                    if (wmax == 0)
-                        wmax = fm.stringWidth("Sheep:");  // fallback
-
-                    sheepW = wmax + labelspc;
-                }
-                final int pcW = 10 * displayScale + fm.stringWidth(CARD.replace(' ','_'));  // Play Card; bug in stringWidth(" ")
                 final int giveW;  // width of trading Give/Get labels
                 {
                     final int gv = fm.stringWidth(GIVE), gt = fm.stringWidth(GET);
@@ -4210,11 +4230,12 @@ import javax.swing.UIManager;
                 }
                 // int clearW = fm.stringWidth(CLEAR.replace(' ','_'));
                 // int bankW = fm.stringWidth(BANK.replace(' ','_'));
-                final int resCardsH = 5 * (lineH + space);   // Clay,Ore,Sheep,Wheat,Wood
+                final int resCardsH = 6 * (lineH + space);   // Clay,Ore,Sheep,Wheat,Wood,Total
                 final int tradeH = sqpDim.height + space + (2 * (lineH + space));  // sqPanel + 2 rows of buttons
-                final int sectionSpace = (dim.height - (inset + faceW + resCardsH + tradeH + lineH + inset)) / 3;
-                final int tradeY = inset + faceW + sectionSpace;  // top of trade area
-                final int devCardsY = tradeY + tradeH + sectionSpace;  // top of dev card list
+                final int sectionSpace = (dim.height - (topFaceAreaHeight + resCardsH + tradeH + inset)) / 5;
+                    // will use 1x sectionSpace above trade area, and 2x above & below resource/inventory area
+                final int tradeY = topFaceAreaHeight + sectionSpace;  // top of trade area
+                final int devCardsY = tradeY + tradeH + (2 * sectionSpace);  // top of resources/dev card list
 
                 // Always reposition everything
                 startBut.setBounds
@@ -4229,10 +4250,10 @@ import javax.swing.UIManager;
                 getLab.setBounds(inset, tradeY + ColorSquareLarger.HEIGHT_L * displayScale, giveW, lineH);
                 sqPanel.setLocation(inset + giveW + space, tradeY);
 
-                // Button rows Below SquaresPanel:
-                // Offer button, playerSend checkboxes (3 or 5)
-                // Clear, Bank/Port
-                // Undo button (below Bank/Port, leaving room on left for resource card counts)
+                // 3 rows of buttons right below SquaresPanel:
+                // - Offer button, playerSend checkboxes (3 or 5)
+                // - Clear, Bank/Port
+                // - Undo button (below Bank/Port, leaving room on left for resource card counts)
 
                 final int tbW = ((giveW + sqpDim.width) / 2);
                 final int tbX = inset;
@@ -4308,47 +4329,17 @@ import javax.swing.UIManager;
                     shipSq.setLocation(x, tradeY + (4 * (lineH + space)));
                 }
 
-                // Player's resource counts
-                //   center the group vertical between bottom of Clear button, top of Quit button
-                tbY = (((dim.height - lineH - inset) + (tbY + (2 * lineH) + space)) / 2)
-                  - (3 * (lineH + space));
-                clayLab.setBounds(inset, tbY, sheepW, lineH);
-                claySq.setLocation(inset + sheepW + space, tbY);
-                tbY += (lineH + space);
-                oreLab.setBounds(inset, tbY, sheepW, lineH);
-                oreSq.setLocation(inset + sheepW + space, tbY);
-                tbY += (lineH + space);
-                sheepLab.setBounds(inset, tbY, sheepW, lineH);
-                sheepSq.setLocation(inset + sheepW + space, tbY);
-                tbY += (lineH + space);
-                wheatLab.setBounds(inset, tbY, sheepW, lineH);
-                wheatSq.setLocation(inset + sheepW + space, tbY);
-                tbY += (lineH + space);
-                woodLab.setBounds(inset, tbY, sheepW, lineH);
-                woodSq.setLocation(inset + sheepW + space, tbY);
-                // Line between woodSq, resourceSq
-                tbY += (lineH + space);
-                resourceSqDivLine.setBounds(inset + space, tbY - displayScale, sheepW + sqSize, displayScale);
-                // Total Resources
-                ++tbY;
-                resourceLab.setBounds(inset, tbY, sheepW, lineH);
-                resourceSq.setLocation(inset + sheepW + space, tbY);
-
-                // To the right of resource counts:
-                // Development Card list, Play button below
-                final int clW = dim.width - (inset + sheepW + space + sqSize + (4 * space) + inset);
-                final int clX = inset + sheepW + space + sqSize + (4 * space);
-                inventoryScroll.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2 * displayScale);
-                playCardBut.setBounds(((clW - pcW) / 2) + clX, devCardsY + (4 * (lineH + space)), pcW, lineH);
+                // Position the player's resource counts and dev card inventory
+                // in middle vertical area between bottom of Clear button, top of Quit button
+                resourceInventoryTop = devCardsY;
 
                 // Bottom of panel:
-                // 1 button row: Quit to left; Roll, Restart to right
+                // 1 row of buttons: Quit to left; Roll, Restart to right
                 final int bbW = 50 * displayScale;
                 tbY = dim.height - lineH - inset;
                 // Label lines up over Roll button
                 rollPromptCountdownLab.setBounds
                     (dim.width - (bbW + space + bbW + inset), tbY - lineH, dim.width - 2*inset, lineH);
-                // Bottom row of buttons
                 quitBut.setBounds(inset, tbY, bbW, lineH);
                 rollBut.setBounds(dim.width - (bbW + space + bbW + inset), tbY, bbW, lineH);
                 doneBut.setBounds(dim.width - inset - bbW, tbY, bbW, lineH);
@@ -4360,7 +4351,11 @@ import javax.swing.UIManager;
             {
                 /* This is another player's hand */
 
-                // Top has name, VP count, largest army, longest road; SVP under VP count if applicable
+                // Top area has rows for:
+                // - Player name
+                // - VP count, largest army, longest road
+                // - SVP if applicable, info for wonder or cloth scenario
+                // topFaceAreaHeight = height of all that top area
                 // MessagePanel or Trade offer/counteroffer appears in center when a trade is active
                 // Bottom has columns of item counts on left, right, having 3 or 4 rows:
                 //   Cloth (if that scenario), Soldiers, Res, Dev Cards to left;
@@ -4409,17 +4404,12 @@ import javax.swing.UIManager;
                 if (isCounterOfferMode)
                     offerMinHeight += counterOfferHeight + space;
 
-                // TODO chk num lines here
-                final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
-                int topFaceAreaHeight = inset + faceW + space;
-                if (((svpSq != null) && svpSq.isVisible())
-                    || ((wonderLab != null) && wonderLab.isVisible()))
-                {
-                    final int ybelow = svpSq.getY() + svpSq.getHeight() + space;
-                    if (ybelow > topFaceAreaHeight)
-                        topFaceAreaHeight = ybelow;
-                }
-                final int availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
+                int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
+                if (game.hasSeaBoard)
+                    ++numBottomLines;  // ship count
+                final int resInventoryHeight = (playerInterface.isGameObservableVP) ? (6 * (lineH + space)) : 0;
+                final int availHeightNoHide =
+                    (dim.height - topFaceAreaHeight - resInventoryHeight - (numBottomLines * (lineH + space)));
                 int miy = 0, mih = 0;  // miscInfoArea y and height, if visible
 
                 if ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled)
@@ -4488,6 +4478,10 @@ import javax.swing.UIManager;
                     // usual size & position
 
                     int py = topFaceAreaHeight;
+
+                    if (resInventoryHeight > 0)
+                        // position those just above bottom area
+                        resourceInventoryTop = dim.height - resInventoryHeight - (numBottomLines * (lineH + space));
 
                     if (offerPanel != null)
                     {
@@ -4632,6 +4626,80 @@ import javax.swing.UIManager;
                 if (((wasHidesControls != offerHidesControls) || (offerCounterHidingFace != offerCounterHidesFace))
                     && (messagePanel.isVisible() || ((offerPanel != null) && offerPanel.isVisible())))
                     hideTradeMsgShowOthers(false);
+            }
+
+            if (resourceInventoryTop != 0)
+            {
+                // Client player's hand panel, or observable game:
+                // Player's resource counts and dev card inventory
+                // - Left side: Resource count squares take up 6 rows of (lineH + space)
+                // - Right: Inventory takes 5 rows, so is + 1/2 lineH from resources
+
+                int sheepW = doLayout_resourceLabelsWidth;  // width of longest localized string clay/sheep/ore/wheat/wood
+                if (sheepW == 0)
+                {
+                    final int labelspc = fm.stringWidth("_") / 3;  // Bug in old stringWidth does not give correct size for ' '
+                    int wmax = 0;
+                    final JLabel[] rLabs = { clayLab, oreLab, sheepLab, wheatLab, woodLab };
+                    for (int i = 0; i < rLabs.length; ++i)
+                    {
+                        final JLabel rl = rLabs[i];
+                        if (rl != null)
+                        {
+                            final String txt = rl.getText();
+                            if (txt != null)
+                            {
+                                final int w = fm.stringWidth(rl.getText());
+                                if (w > wmax)
+                                    wmax = w;
+                            }
+                        }
+                    }
+                    if (wmax == 0)
+                        wmax = fm.stringWidth("Sheep:");  // fallback
+
+                    sheepW = wmax + labelspc;
+                    doLayout_resourceLabelsWidth = sheepW;
+                }
+
+                int tbY;
+                if (playerIsClient || playerInterface.isGameFullyObservable)
+                {
+                    tbY = resourceInventoryTop;
+
+                    clayLab.setBounds(inset, tbY, sheepW, lineH);
+                    claySq.setLocation(inset + sheepW + space, tbY);
+                    tbY += (lineH + space);
+                    oreLab.setBounds(inset, tbY, sheepW, lineH);
+                    oreSq.setLocation(inset + sheepW + space, tbY);
+                    tbY += (lineH + space);
+                    sheepLab.setBounds(inset, tbY, sheepW, lineH);
+                    sheepSq.setLocation(inset + sheepW + space, tbY);
+                    tbY += (lineH + space);
+                    wheatLab.setBounds(inset, tbY, sheepW, lineH);
+                    wheatSq.setLocation(inset + sheepW + space, tbY);
+                    tbY += (lineH + space);
+                    woodLab.setBounds(inset, tbY, sheepW, lineH);
+                    woodSq.setLocation(inset + sheepW + space, tbY);
+                    // Line between woodSq, resourceSq
+                    tbY += (lineH + space);
+                    resourceSqDivLine.setBounds(inset + space, tbY - displayScale, sheepW + sqSize, displayScale);
+                    // Total Resources
+                    ++tbY;
+                    resourceLab.setBounds(inset, tbY, sheepW, lineH);
+                    resourceSq.setLocation(inset + sheepW + space, tbY);
+                }
+
+                // To the right of resource counts:
+                // Development Card list, Play button below
+                final int clW = dim.width - (inset + sheepW + space + sqSize + (4 * space) + inset);
+                final int clX = inset + sheepW + space + sqSize + (4 * space);
+                final int pcW = 10 * displayScale + fm.stringWidth(CARD.replace(' ','_')); // Play Card; bug in stringWidth(" ")
+                tbY = resourceInventoryTop + ((lineH + space) / 2);
+                inventoryScroll.setBounds
+                    (clX, tbY, clW, (4 * (lineH + space)) - 2 * displayScale);
+                playCardBut.setBounds
+                    (((clW - pcW) / 2) + clX, tbY + (4 * (lineH + space)), pcW, lineH);
             }
         }
     }

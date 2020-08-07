@@ -23,6 +23,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;    // for javadocs only
+import soc.game.SOCGameOption;  // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants; // for javadocs only
@@ -107,12 +108,18 @@ public class SOCPlayerElement extends SOCMessage
 
         /**
          * Amount of resources of unknown type; sent in messages about opponents' resources.
+         * Also sent as player's total resource count when client joins a game.
+         *<P>
          * For some loops which send resource types + unknown, this constant's {@link #getValue()} is 6
          * (5 known resource types + 1), same numeric value as {@link SOCResourceConstants#UNKNOWN}.
+         *<P>
+         * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO} is set.
          *<P>
          * Not to be confused with {@link #UNKNOWN_TYPE}.
          *<P>
          * Before v2.3.00 this was named {@code UNKNOWN}.
+         *
+         * @see PEType#RESOURCE_COUNT
          */
         UNKNOWN_RESOURCE(6),
 
@@ -165,6 +172,8 @@ public class SOCPlayerElement extends SOCMessage
          *<P>
          * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
          * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         *
+         * @see PEType#UNKNOWN_RESOURCE
          * @since 2.0.00
          */
         RESOURCE_COUNT(17),

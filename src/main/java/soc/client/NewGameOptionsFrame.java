@@ -556,7 +556,8 @@ import soc.util.Version;
         for (final SOCGameOption opt : opts.values())
         {
             final String okey = opt.key;
-            if ((okey.length() <= 2) || (opt.optType == SOCGameOption.OTYPE_UNKNOWN))
+            if ((okey.length() <= 2) || (opt.optType == SOCGameOption.OTYPE_UNKNOWN)
+                || opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
                 continue;
 
             final String kf2 = okey.substring(0, 2);

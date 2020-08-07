@@ -22,6 +22,7 @@ package soc.message;
 
 import soc.game.SOCDevCard;  // for javadocs only
 import soc.game.SOCDevCardConstants;  // for javadocs only
+import soc.game.SOCGameOption;  // for javadocs only
 
 
 /**
@@ -46,6 +47,9 @@ import soc.game.SOCDevCardConstants;  // for javadocs only
  *          {@link SOCDevCardConstants cardTypeConstant})
  *   <LI> To all other players: {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW},
  *          {@link SOCDevCardConstants#UNKNOWN})
+ *          <BR>
+ *          Sends actual card type if game option {@link SOCGameOption#K_PLAY_FO "PLAY_FO"}
+ *          or {@link SOCGameOption#K_PLAY_VPO "PLAY_VPO"} is set.
  *   <LI> Action announcement to entire game: {@link SOCSimpleAction}
  *          (gaName, playerNumber, {@link SOCSimpleAction#DEVCARD_BOUGHT}, remainingUnboughtCount, 0)
  *   <LI> New {@code gameState}, to entire game: {@link SOCGameState}.

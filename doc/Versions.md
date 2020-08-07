@@ -41,14 +41,20 @@ and backport minor new features until `2.0.00` was ready.
 	- Game Options:
 	    - "Inactive Options" concept: Developer-only or specialty gameopts
 	        - To avoid clutter, normally hidden and not sent to connecting clients
-	        - Activate in server config if needed: `jsettlers.gameopts.activate=SAMPLEIN,OTHEROPT`
+	        - Activate in server config if needed: `jsettlers.gameopts.activate=PLAY_VPO,OTHEROPT`
 	        - For details see [Readme.developer.md](Readme.developer.md) section "Game rules, Game Options"
-	    - Robot clients now handle game option info sync messages
+	    - New inactive options, to show or help debug gameplay details:
+	        - `PLAY_VPO`: Show all players' VP/dev card info
+	        - `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
+	    - Robot clients no longer ignore game option info sync messages
 - Server:
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
 	- If client's discard has incorrect total, server re-sends SOCDiscardRequest which includes required total
+- Client:
+	- Game window:
+	    - Hand Panel: Shorten unused space above trading squares
 
 
 ## `2.4.00` (build JM20200704)

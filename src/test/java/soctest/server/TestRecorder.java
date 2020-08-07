@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -64,7 +65,7 @@ import soctest.server.savegame.TestLoadgame;
  * you should periodically run {@code extraTest} {@code soctest.server.TestActionsMessages}.
  *<P>
  * Also has convenience methods like
- * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, boolean, boolean)}
+ * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
  * and {@link #compareRecordsToExpected(List, String[][])} which other test classes can use.
  *
  * @since 2.4.10
@@ -326,6 +327,12 @@ public class TestRecorder
      *     that player number will be used for {@code clientName}.
      * @param withResume  If true and {@code gameArtifactSGM} is null,
      *     call {@link #resumeLoadedGame(SOCGame, SOCServer, Connection)}
+     * @param observabilityMode Whether to test using normally-inactive game options for "observability":
+     *     <UL>
+     *      <LI> 0: Normal mode: Resources and Victory Point/development cards are hidden as usual
+     *      <LI> 1: Activate and test with VP Observable mode: {@link SOCGameOption#K_PLAY_VPO PLAY_VPO}
+     *      <LI> 2: Activate and test with Fully Observable mode: {@link SOCGameOption#K_PLAY_FO PLAY_FO}
+     *     </UL>
      * @param clientAsRobot  Whether to mark client player as robot before resuming game:
      *     Calls {@link SOCPlayer#setRobotFlag(boolean, boolean)}
      *     and {@link Connection#setI18NStringManager(soc.util.SOCStringManager, String)}
@@ -335,7 +342,8 @@ public class TestRecorder
      * @throws IllegalArgumentException if {@code clientName} is null or too long
      *     (max length is {@link SOCServer#PLAYER_NAME_MAX_LENGTH});
      *     or if using {@code client2Name} but {@code client2PN} isn't a non-vacant robot player number;
-     *     or if {@code withResume} but {@code gameArtifactSGM != null}
+     *     or if {@code withResume} but {@code gameArtifactSGM != null};
+     *     or if {@code observabilityMode} not in range 0..2
      * @throws IllegalStateException if {@code clientName} or {@code client2Name} was already used for
      *     a different call to this method: Use unique names for each call to avoid intermittent auth problems
      * @throws IOException if game artifact file can't be loaded
@@ -343,7 +351,7 @@ public class TestRecorder
     public static StartedTestGameObjects connectLoadJoinResumeGame
         (final RecordingTesterServer server, final String clientName, final String client2Name, final int client2PN,
          final SavedGameModel gameArtifactSGM, final boolean withResume,
-         final boolean clientAsRobot, final boolean othersAsRobot)
+         final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IllegalArgumentException, IllegalStateException, IOException
     {
         if (withResume && (gameArtifactSGM != null))
@@ -363,6 +371,8 @@ public class TestRecorder
 
             // client2PN will be checked soon, once sgm seats' robot and vacant flags are known
         }
+        if ((observabilityMode < 0) || (observabilityMode > 2))
+            throw new IllegalArgumentException("observabilityMode: " + observabilityMode);
 
         synchronized(clientNamesUsed)
         {
@@ -381,6 +391,25 @@ public class TestRecorder
         }
 
         assertNotNull(server);
+
+        final SOCGameOption observabilityOpt;
+        if (observabilityMode > 0)
+        {
+            final String key = (observabilityMode == 1) ? SOCGameOption.K_PLAY_VPO : SOCGameOption.K_PLAY_FO;
+            SOCGameOption opt = SOCGameOption.getOption(key, true);
+            assertNotNull("found option " + key, opt);
+            if (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+            {
+                SOCGameOption.activate(key);
+                opt = SOCGameOption.getOption(key, true);
+                assertNotNull("found option " + key, opt);
+            }
+
+            assertTrue("option activated: " + key, opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+            observabilityOpt = opt;
+        } else {
+            observabilityOpt = null;
+        }
 
         final DisplaylessTesterClient tcli = new DisplaylessTesterClient
             (RecordingTesterServer.STRINGPORT_NAME, clientName);
@@ -435,6 +464,22 @@ public class TestRecorder
             assertEquals("conn2.getData==" + client2Name, client2Name, tcli2Conn.getData());
         } else {
             tcli2Conn = null;
+        }
+
+        if (observabilityMode > 0)
+        {
+            assertNotNull("SGM has gameopts: " + sgm.gameName, sgm.gameOptions);
+            SOCGame sgmGame = sgm.getGame();
+            Map<String, SOCGameOption> opts = sgmGame.getGameOptions();
+            assertNotNull("SGM.getGame has gameopts: " + sgmGame.getName(), opts);
+            final String optKey = observabilityOpt.key;
+            assertFalse
+                ("game shouldn't already have observ gameopt " + optKey,
+                 opts.containsKey(optKey));
+
+            observabilityOpt.setBoolValue(true);
+            opts.put(optKey, observabilityOpt);
+            sgm.gameOptions += ';' + observabilityOpt.toString();
         }
 
         String loadedName = server.createAndJoinReloadedGame(sgm, tcliConn, null);
@@ -539,7 +584,7 @@ public class TestRecorder
         final String CLIENT_NAME = "testBasicSequences";
 
         final StartedTestGameObjects objs =
-            connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, null, true, false, true);
+            connectLoadJoinResumeGame(srv, CLIENT_NAME, null, 0, null, true, 0, false, true);
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer;
         final SOCPlayer cliPl = objs.clientPlayer;
@@ -586,7 +631,7 @@ public class TestRecorder
         assertTrue(cliPl.hasPlayedDevCard());
         assertEquals(2, cliPl.getNumKnights());
         StringBuilder comparesSoldierMoveRobber = moveRobberStealSequence
-            (tcli, ga, cliPl, records,
+            (tcli, ga, cliPl, 0, records,
              new String[][]
                 {
                     {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Soldier card."},
@@ -635,7 +680,7 @@ public class TestRecorder
      *
      * @param tcli  Test client connected to server and playing in {@code ga}
      * @param ga  Game loaded and started by
-     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, boolean, boolean)}
+     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
      * @param cliPl  Client's Player object at test server
      * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
      * @return any discrepancies found by {@link #compareRecordsToExpected(List, String[][])}, or null if no differences
@@ -684,7 +729,7 @@ public class TestRecorder
 
     /**
      * Robber hex to move to (0x305, decimal 773) during
-     * {@link #moveRobberStealSequence(DisplaylessTesterClient, SOCGame, SOCPlayer, Vector, String[][])}.
+     * {@link #moveRobberStealSequence(DisplaylessTesterClient, SOCGame, SOCPlayer, int, Vector, String[][])}.
      */
     public static final int MOVE_ROBBER_STEAL_SEQUENCE_NEW_HEX = 0x305;
 
@@ -695,14 +740,15 @@ public class TestRecorder
      *
      * @param tcli  Test client connected to server and playing in {@code ga}
      * @param ga  Game loaded and started by
-     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, boolean, boolean)}
+     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
      * @param cliPl  Client's Player object at test server
+     * @param observabilityMode  Observability mode (0..2, normally 0): See {@code connectLoadJoinResumeGame(..)} javadoc
      * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
      * @param seqPrefix null, or messages which start the sequence to be compared here
      * @return any discrepancies found by {@link #compareRecordsToExpected(List, String[][])}, or null if no differences
      */
     public static StringBuilder moveRobberStealSequence
-        (final DisplaylessTesterClient tcli, final SOCGame ga, final SOCPlayer cliPl,
+        (final DisplaylessTesterClient tcli, final SOCGame ga, final SOCPlayer cliPl, final int observabilityMode,
          final Vector<QueueEntry> records, final String[][] seqPrefix)
         throws UnsupportedOperationException
     {
@@ -758,12 +804,26 @@ public class TestRecorder
                 {"all:SOCGameState:", "|state=33"},
                 {"all:SOCGameServerText:", "|text=" + clientName + " will move the robber."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=305"},
-                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"p3:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"p1:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"p1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"!p[3, 1]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
-                {"!p[3, 1]:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=1"},
+                {
+                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
+                    "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"
+                },
+                {
+                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
+                    "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"
+                },
+                (observabilityMode != 2)
+                    ? new String[]{"p1:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"}
+                    : null,
+                (observabilityMode != 2)
+                    ? new String[]{"p1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"}
+                    : null,
+                (observabilityMode != 2)
+                    ? new String[]{"!p[3, 1]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"}
+                    : null,
+                (observabilityMode != 2)
+                   ? new String[]{"!p[3, 1]:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=1"}
+                   : null,
                 {"p3:SOCGameServerText:", "|text=You stole a", " from "},  // "an ore", "a sheep", etc
                 {"p1:SOCGameServerText:", "|text=" + clientName + " stole a", " from you."},
                 {"!p[3, 1]:SOCGameServerText:", "|text=" + clientName + " stole a resource from "},
@@ -795,7 +855,7 @@ public class TestRecorder
 
         final StartedTestGameObjects objs =
             connectLoadJoinResumeGame
-                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, false, true);
+                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, 0, false, true);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
         final SOCGame ga = objs.gameAtServer;
         final String gaName = ga.getName();
@@ -968,7 +1028,7 @@ public class TestRecorder
 
     /**
      * Data class for useful objects returned from
-     * {@link TestRecorder#connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, boolean, boolean)}
+     * {@link TestRecorder#connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
      */
     public static final class StartedTestGameObjects
     {

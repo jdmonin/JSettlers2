@@ -433,8 +433,6 @@ public class SOCGameMessageHandler
                         final int lootTotal = (loot != null) ? loot.getTotal() : 0;
                         if (lootTotal != 0)
                         {
-                            // use same resource-loss messages sent in handleDISCARD
-
                             final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
                             SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
                             final String vicName = vic.getName();
@@ -449,20 +447,27 @@ public class SOCGameMessageHandler
                                     (ga, true, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
                                     // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
                             } else {
-                                /**
-                                 * tell the victim client that the player lost the resources
-                                 */
-                                handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, vCon);
+                                // use same resource-loss messages sent in handleDISCARD
+
+                                if (ga.isGameOptionSet(SOCGameOption.K_PLAY_FO))
+                                {
+                                    // fully observable: announce to everyone
+                                    handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, null);
+                                } else {
+                                    // tell the victim client that the player lost the resources
+                                    handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, vCon);
+
+                                    // tell everyone else that the player lost unknown resources
+                                    srv.messageToGameExcept(gn, vCon, vpn, new SOCPlayerElement
+                                        (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal), true);
+                                }
+
                                 srv.messageToPlayerKeyedSpecial
                                     (vCon, ga, vpn, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
                                     // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
 
-                                /**
-                                 * tell everyone else that the player lost unknown resources
-                                 */
-                                srv.messageToGameExcept(gn, vCon, vpn, new SOCPlayerElement
-                                    (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal), true);
-                                srv.messageToGameKeyedSpecialExcept(ga, vpn, true, vCon,
+                                srv.messageToGameKeyedSpecialExcept
+                                    (ga, vpn, true, vCon,
                                     "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
                                     // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
                                     // "Joe lost 3 resources to pirate fleet attack (strength 3)."
@@ -759,19 +764,21 @@ public class SOCGameMessageHandler
 
                 // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
 
-                /**
-                 * tell the player client that the player discarded the resources
-                 */
-                handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, c);
-
-                /**
-                 * tell everyone else that the player discarded unknown resources
-                 */
                 final int numRes = res.getTotal();
-                srv.messageToGameExcept
-                    (gn, c, pn, new SOCPlayerElement
-                        (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
-                     true);
+                if (ga.isGameOptionSet(SOCGameOption.K_PLAY_FO))
+                {
+                    // fully observable: announce to everyone
+                    handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, null);
+                } else {
+                    // tell the player client that the player discarded the resources
+                    handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, c);
+
+                    // tell everyone else that the player discarded unknown resources
+                    srv.messageToGameExcept
+                        (gn, c, pn, new SOCPlayerElement
+                            (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
+                         true);
+                }
                 srv.messageToGameKeyed(ga, true, true, "action.discarded", player.getName(), numRes);
                     // "{0} discarded {1} resources."
 
@@ -2531,10 +2538,17 @@ public class SOCGameMessageHandler
                         }
                     }
 
+                    // send as Unknown to other members of game, unless game/cards are Observable:
+
                     if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                     {
+                        final int ctypeToOthers =
+                            (ga.isGameOptionSet(SOCGameOption.K_PLAY_FO) || ga.isGameOptionSet(SOCGameOption.K_PLAY_VPO))
+                            ? card
+                            : SOCDevCardConstants.UNKNOWN;
+
                         srv.messageToGameExcept(gaName, c, pn, new SOCDevCardAction
-                            (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                            (gaName, pn, SOCDevCardAction.DRAW, ctypeToOthers), true);
                     } else {
                         srv.messageToGameForVersionsExcept
                             (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
@@ -2692,6 +2706,7 @@ public class SOCGameMessageHandler
                         final String cardplayed = (isWarshipConvert)
                             ? "action.card.soldier.warship"  // "converted a ship to a warship."
                             : "action.card.soldier";         // "played a Soldier card."
+
                         srv.gameList.takeMonitorForGame(gaName);
 
                         srv.messageToGameKeyed(ga, true, false, cardplayed, player.getName());

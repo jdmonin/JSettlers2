@@ -2205,6 +2205,8 @@ import soc.util.Version;
 
     /**
      * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
+     * In case this is part of a list of cards, does not call
+     * {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}: Caller must do so afterwards.
      */
     private void handleDEVCARDACTION
         (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
@@ -2485,7 +2487,7 @@ import soc.util.Version;
             hasAllNow = opts.receiveInfo(mes);
         }
 
-        boolean isDash = mes.getOptionNameKey().equals("-");  // I18N: do not localize "-" keyname
+        boolean isDash = mes.getOptionNameKey().equals("-");  // I18N OK: do not localize "-" or any other keyname
         client.getMainDisplay().optionsReceived(opts, isPractice, isDash, hasAllNow);
     }
 

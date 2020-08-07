@@ -102,16 +102,16 @@ import soc.util.SOCFeatureSet;
  *
  *<H3>Inactive Options/Activated Options</H3>
  *
- * Some game options might be useful only for developers or in other special
- * situations, and would only be clutter if they always appeared in the New Game
- * options window. To help with this:
+ * Some game options might be useful only for developers or in other special situations,
+ * and would only be clutter if they always appeared in every client's New Game Options window.
+ * To help with this:
  *<P>
  * An Inactive Option is a Known Option which remains hidden and unused at server and clients which
  * have its definition, and not sent to older clients which don't, as if the option doesn't exist.
  * The server's owner can choose to {@link #activate(String)} the option during server startup,
  * making it visible and available for games.
  *<P>
- * Added in 2.4.10, also compatible with earlier clients.
+ * Added in 2.4.10, also compatible with earlier clients. Example: {@link #K_PLAY_VPO "PLAY_VPO"}.
  *
  *<H3>Version negotiation</H3>
  *
@@ -337,6 +337,26 @@ public class SOCGameOption
     public static final String K_SC_WOND = "_SC_WOND";
 
     // -- End of scenario flag keynames --
+
+    /**
+     * Inactive boolean game option {@code "PLAY_FO"}:
+     * All player info is fully observable. If activated and true,
+     * server announces all resource and dev card details with actual types, not "unknown".
+     * Useful for developers. Minimum client version 2.0.00.
+     * @see #K_PLAY_VPO
+     * @since 2.4.10
+     */
+    public static final String K_PLAY_FO = "PLAY_FO";
+
+    /**
+     * Inactive boolean game option {@code "PLAY_VPO"}:
+     * All player VP/card info is observable. If activated and true,
+     * server announces all dev card details with actual types, not "unknown".
+     * Useful for developers. Minimum client version 2.0.00.
+     * @see #K_PLAY_FO
+     * @since 2.4.10
+     */
+    public static final String K_PLAY_VPO = "PLAY_VPO";
 
     // -- Extra option keynames --
 
@@ -691,6 +711,15 @@ public class SOCGameOption
         opt.put(K__EXT_GAM, new SOCGameOption
                 (K__EXT_GAM, 2000, 2000, TEXT_OPTION_MAX_LENGTH, false, FLAG_DROP_IF_UNUSED,
                  "Extra non-core option available for this game"));
+
+        // Player info observability, for developers
+
+        opt.put(K_PLAY_FO, new SOCGameOption
+                (K_PLAY_FO, 2000, 2410, false, FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
+                 "Show all player info and resources"));
+        opt.put(K_PLAY_VPO, new SOCGameOption
+                (K_PLAY_VPO, 2000, 2410, false, FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
+                 "Show all VP/dev card info"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -1815,6 +1844,7 @@ public class SOCGameOption
 
     /**
      * Get information about a known option. See {@link #initAllOptions()} for a summary of each known option.
+     * Will return the info if known, even if option has {@link #FLAG_INACTIVE_HIDDEN}.
      * @param key  Option key
      * @param clone  True if a copy of the option is needed; set this true
      *               unless you're sure you won't be changing any fields of

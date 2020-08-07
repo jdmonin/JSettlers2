@@ -241,7 +241,22 @@ public class SOCPlayerInterface extends Frame
      * Checks {@link SOCGame#maxPlayers}.
      * @since 1.1.08
      */
-    private boolean is6player;
+    private final boolean is6player;
+
+    /**
+     * Is this game using developer Game Option {@link SOCGameOption#K_PLAY_FO PLAY_FO}?
+     * If so, all {@link SOCHandPanel}s will show dev cards/inventory details
+     * ({@link #isGameObservableVP}) and each resource type amount (brick, ore, ...).
+     * @since 2.4.10
+     */
+    protected final boolean isGameFullyObservable;
+
+    /**
+     * Is this game using developer Game Option {@link SOCGameOption#K_PLAY_VPO PLAY_VPO}
+     * or {@link #isGameFullyObservable}? If so, all {@link SOCHandPanel}s will show dev cards/inventory details.
+     * @since 2.4.10
+     */
+    protected final boolean isGameObservableVP;
 
     /**
      * For perf/display-bugs during component layout (OSX firefox),
@@ -816,6 +831,10 @@ public class SOCPlayerInterface extends Frame
         client = md.getClient();
         game = ga;
         game.setGameEventListener(this);
+        is6player = (game.maxPlayers > 4);
+        isGameFullyObservable = game.isGameOptionSet(SOCGameOption.K_PLAY_FO);
+        isGameObservableVP = isGameFullyObservable || game.isGameOptionSet(SOCGameOption.K_PLAY_VPO);
+
         knowsGameState = (game.getGameState() != 0);
         this.layoutVS = layoutVS;
         clientListener = new ClientBridge(this);
@@ -823,7 +842,6 @@ public class SOCPlayerInterface extends Frame
         gameIsStarting = false;
         clientHand = null;
         clientHandPlayerNum = -1;
-        is6player = (game.maxPlayers > 4);
 
         if (localPrefs != null)
         {
@@ -4308,15 +4326,18 @@ public class SOCPlayerInterface extends Frame
             if (hpan == null)
                 return;  // <--- early return: not a per-player element ---
 
+            final boolean isClientPlayer = hpan.isClientPlayer();
+
             if (hpanUpdateRsrcType != 0)
             {
-                if (hpan.isClientPlayer())
+                if (isClientPlayer || pi.isGameFullyObservable)
                 {
                     hpan.updateValue(utype);
 
                     // Because client player's available resources have changed,
                     // update any trade offers currently showing (show or hide Accept button)
-                    pi.updateAtClientPlayerResources();
+                    if (isClientPlayer)
+                        pi.updateAtClientPlayerResources();
 
                     // If good or bad news from unexpectedly gained or lost
                     // resources or pieces, let the player know
@@ -4324,14 +4345,12 @@ public class SOCPlayerInterface extends Frame
                         pi.playSound(SOUND_RSRC_GAINED_FREE);
                     else if (isBadNews)
                         pi.playSound(SOUND_RSRC_LOST);
-                }
-                else
-                {
+                } else {
                     hpan.updateValue(PlayerClientListener.UpdateType.Resources);
                 }
             }
 
-            if (hpan.isClientPlayer() && (pi.getGame().getGameState() != SOCGame.NEW))
+            if (isClientPlayer && (pi.getGame().getGameState() != SOCGame.NEW))
                 pi.buildingPanel.updateButtonStatus();
         }
 
@@ -4351,15 +4370,15 @@ public class SOCPlayerInterface extends Frame
 
         public void playerDevCardsUpdated(SOCPlayer player, final boolean addedPlayable)
         {
-            if (pi.isClientPlayer(player))
+            final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
+            if (pi.isGameObservableVP || pi.isClientPlayer(player))
             {
-                SOCHandPanel hp = pi.getClientHand();
-                hp.updateDevCards(addedPlayable);
-                hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
+                hpan.updateDevCards(addedPlayable);
+                hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
             }
             else if (player != null)
             {
-                pi.getPlayerHandPanel(player.getPlayerNumber()).updateDevCards(addedPlayable);
+                hpan.updateDevCards(addedPlayable);
             }
         }
 

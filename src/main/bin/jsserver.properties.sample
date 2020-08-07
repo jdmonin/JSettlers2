@@ -65,7 +65,7 @@
 # Activating Inactive game options:
 # Optional list of inactive game options to activate, separated by commas without spaces.
 # (For more about Inactive Options, see "Game rules, Game Options" section of /doc/Readme.developer.md)
-# jsettlers.gameopts.activate=SAMPLEIN,OTHEROPT
+# jsettlers.gameopts.activate=PLAY_VPO,OTHEROPT
 
 # Server Config Validation:
 # (This flag is equivalent to command line option -t or --test-config.)

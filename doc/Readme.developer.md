@@ -123,6 +123,14 @@ in SOCPlayer.java you would change the line
 to  
 `import soc.debug.D;`
 
+To show hidden/private player details, activate and use the "Fully Observable"
+or "VP Observable" inactive game option:
+
+- `PLAY_VPO`: Show all players' VP/dev card info
+- `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
+
+(For activation process, search this file for "Inactive Options".)
+
 To print the contents of messages sent between the server and client, start the
 client with vm argument `-Djsettlers.debug.traffic=Y` (this goes before `-jar` if using
 the command line). This works for the player client and the robot client, including
@@ -584,7 +592,7 @@ If you're not using this feature, JSettlers doesn't require or use the GSON jar.
 ## Game rules, Game Options
 
 Game rules and actions are controlled through Game Options (class
-`SOCGameOption`; see SOCGameOptions.initAllOptions javadoc for a list.)
+`SOCGameOption`; see SOCGameOptions.initAllOptions javadoc for a list).
 Options have types (bool, enum, etc) and flags for their properties
 ("hidden internal option", "drop if not set", etc). All scenario-related
 game option keynames start with `_SC_` and provide special rules/behaviors
@@ -605,7 +613,7 @@ situations, and would only be clutter if they always appeared in every client's
 New Game Options window. So those are declared as Inactive Options, which are
 unused and hidden unless activated during server startup by setting a
 config property:  
-`jsettlers.gameopts.activate=SAMPLEIN,OTHEROPT`  
+`jsettlers.gameopts.activate=PLAY_VPO,OTHEROPT`  
 Activated Options are then handled like any regular game option.
 For more details, see the SOCGameOption.activate javadoc.
 
