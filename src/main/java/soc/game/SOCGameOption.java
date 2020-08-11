@@ -3083,7 +3083,7 @@ public class SOCGameOption
      * Compare two options, for display purposes. ({@link Comparable} interface)
      * Two gameoptions are considered equal if they have the same {@link SOCVersionedItem#key key}.
      * Greater/lesser is determined by
-     * {@link SOCVersionedItem#getDesc() desc}.{@link String#compareTo(String) compareTo()}.
+     * {@link SOCVersionedItem#getDesc() desc}.{@link String#toLowerCase() toLowercase()}.{@link String#compareTo(String) compareTo(otherDesc.toLowercase())}.
      * @param other A SOCGameOption to compare, or another object;  if other isn't a
      *              gameoption, the {@link #hashCode()}s are compared.
      * @see #equals(Object)
@@ -3095,7 +3095,7 @@ public class SOCGameOption
             SOCGameOption oopt = (SOCGameOption) other;
             if (key.equals(oopt.key))
                 return 0;
-            return desc.compareTo(oopt.desc);
+            return desc.toLowerCase().compareTo(oopt.desc.toLowerCase());
         } else {
             return hashCode() - other.hashCode();
         }

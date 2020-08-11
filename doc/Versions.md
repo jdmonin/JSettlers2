@@ -53,6 +53,10 @@ and backport minor new features until `2.0.00` was ready.
 - Network/Message traffic:
 	- If client's discard has incorrect total, server re-sends SOCDiscardRequest which includes required total
 - Client:
+	- New Game dialog:
+	    - Sort game option descriptions case-insensitively, in case of acronyms
+	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
+	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- Game window:
 	    - Hand Panel: Shorten unused space above trading squares
 
