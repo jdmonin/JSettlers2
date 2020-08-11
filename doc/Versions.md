@@ -46,7 +46,12 @@ and backport minor new features until `2.0.00` was ready.
 	    - New inactive options, to show or help debug gameplay details:
 	        - `PLAY_VPO`: Show all players' VP/dev card info
 	        - `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
+	    - "Third-Party Options" concept: Gameopts defined by a 3rd-party client, server, bot, or JSettlers fork,
+	      which might not be known by all currently connected clients/servers at the same version
+	        - When connecting, client must ask server if it knows about all such gameopts, regardless of version
+	        - Associated with a given client feature; server looks for feature when a client connects
 	    - Robot clients no longer ignore game option info sync messages
+	    - SGH.calcGameClientFeaturesRequired checks each gameopt for features
 - Server:
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown

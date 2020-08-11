@@ -34,6 +34,7 @@ import java.util.StringTokenizer;
 import soc.message.SOCMessage;
 import soc.server.savegame.SavedGameModel;  // for javadocs only
 import soc.util.SOCFeatureSet;
+import soc.util.Version;
 
 /**
  * Game-specific options, configurable at game creation.
@@ -208,10 +209,29 @@ public class SOCGameOption
      * This separate flag bit helps the server tell connecting clients the option is available,
      * as long as their version &gt;= its {@link SOCVersionedItem#minVersion minVersion}.
      *
-     * @see #optionsActivated(int)
+     * @see #optionsWithFlag(int, int)
      * @since 2.4.10
      */
     public static final int FLAG_ACTIVATED = 0x08;
+
+    /**
+     * {@link #optFlags} bitfield constant for a "third-party" game option defined by
+     * a 3rd-party client, server, bot, or JSettlers fork, which might not be known by all
+     * currently connected clients/servers at the same version.
+     *<UL>
+     * <LI> Each such game opt should require an accompanying client feature name, so a server
+     *      which knows about the opt can easily tell if a client knows it
+     * <LI> A client which knows 3rd-party game opts should ask server about all of them
+     *      during game option info sync, to see whether server knows them.
+     *      (Client call to {@link #optionsNewerThanVersion(int, boolean, boolean, Map)} handles this.)
+     * <LI> The client feature name can be as long as needed, and named using the same
+     *      "reverse DNS" convention as java package names
+     * <LI> The game option name key should start with {@code "3"} or {@code "_3"}
+     *</UL>
+     *
+     * @since 2.4.10
+     */
+    public static final int FLAG_3RD_PARTY = 0x10;
 
     // -- Option Types --
     // OTYPE_*: See comment above optType for "If you create a new option type"
@@ -486,7 +506,7 @@ public class SOCGameOption
      *
      * <h3>If you want to add a game option:</h3>
      *<UL>
-     *<LI> Choose an unused 2-character key name: for example, "PL" for "max players".
+     *<LI> Choose an unused unique name key: for example, "PL" for "max players".
      *   All in-game code uses these key strings to query and change
      *   game option settings; only a very few places use SOCGameOption
      *   objects, and you won't need to adjust those places.
@@ -495,6 +515,10 @@ public class SOCGameOption
      *   If your option is useful only for developers or in other special situations,
      *   and should normally be hidden from clients, define it as an Inactive Option
      *   by using the {@link #FLAG_INACTIVE_HIDDEN} flag.
+     *   <P>
+     *   If you're forking JSettlers or developing a third-party client, server, or bot,
+     *   any game options you add should start their name with {@code "3"} or {@code "_3"}.
+     *   Use {@link #FLAG_3RD_PARTY} when defining your options; see its javadoc for details.
      *   <P>
      *   If your option supports a {@link SOCScenario}, its name should
      *   start with "_SC_" and it should have a constant name field here
@@ -879,21 +903,22 @@ public class SOCGameOption
             // OTYPE_* - Add a commented-out debug of the new type, for testing the new type.
 
         opt.put("DEBUGBOOL", new SOCGameOption
-                ("DEBUGBOOL", 2000, 2000, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option bool"));
+                ("DEBUGBOOL", 2000, Version.versionNumber(), false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option bool"));
         opt.put("DEBUGENUM", new SOCGameOption
-                ("DEBUGENUM", 1107, 1107, 3,
+                ("DEBUGENUM", 1107, Version.versionNumber(), 3,
                  new String[]{ "First", "Second", "Third", "Fourth"},
                  SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option # enum"));
         opt.put("DEBUGENUMBOOL", new SOCGameOption
-                ("DEBUGENUMBOOL", 1107, 1108, true, 3,
+                ("DEBUGENUMBOOL", 1107, Version.versionNumber(), true, 3,
                  new String[]{ "First", "Second", "Third", "Fourth"},
                  SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option # enumbool"));
         opt.put("DEBUGINT", new SOCGameOption
-                ("DEBUGINT", -1, 1113, 500, 1, 1000, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option int # (range 1-1000)"));
+                ("DEBUGINT", -1, Version.versionNumber(), 500, 1, 1000,
+                 SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option int # (range 1-1000)"));
         opt.put("DEBUGSTR", new SOCGameOption
-                ("DEBUGSTR", 1107, 1107, 20, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option str"));
+                ("DEBUGSTR", 1107, Version.versionNumber(), 20, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option str"));
         opt.put("DEBUGSTRHIDE", new SOCGameOption
-                ("DEBUGSTRHIDE", 1107, 1107, 20, true, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option strhide"));
+                ("DEBUGSTRHIDE", 1107, Version.versionNumber(), 20, true, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option strhide"));
         */
 
         return opt;
@@ -986,7 +1011,9 @@ public class SOCGameOption
 
     private boolean boolValue;
     private int     intValue;
-    private String  strValue;  // no default value: is "", stored as null
+
+    /** no default value field; "" if unset, stored as null */
+    private String  strValue;
 
     /**
      * The option's ChangeListener, or null.
@@ -1407,8 +1434,26 @@ public class SOCGameOption
     }
 
     /**
+     * Is a value currently stored in this option?
+     * Any of:
+     *<UL>
+     * <LI> {@link #getBoolValue()} true
+     * <LI> {@link #getIntValue()} != 0
+     * <LI> {@link #getStringValue()} != ""
+     *</UL>
+     *
+     * @return true if any value field is set
+     * @since 2.4.10
+     */
+    public boolean hasValue()
+    {
+        return (boolValue || (intValue != 0) || ((strValue != null) && ! strValue.isEmpty()));
+    }
+
+    /**
      * Is this option set, if this option's type has a boolean component?
      * @return current boolean value of this option
+     * @see #hasValue()
      * @see SOCGame#isGameOptionSet(Map, String)
      */
     public boolean getBoolValue() { return boolValue; }
@@ -1418,6 +1463,7 @@ public class SOCGameOption
     /**
      * This option's integer value, if this option's type has an integer component.
      * @return current integer value of this option
+     * @see #hasValue()
      * @see SOCGame#getGameOptionIntValue(Map, String)
      * @see SOCGame#getGameOptionIntValue(Map, String, int, boolean)
      */
@@ -1440,6 +1486,7 @@ public class SOCGameOption
     /**
      * @return current string value of this option, or "" (empty string) if not set.
      * Will not contain newlines or otherwise fail {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @see #hasValue()
      * @see SOCGame#getGameOptionStringValue(Map, String)
      */
     public String getStringValue()
@@ -1532,7 +1579,7 @@ public class SOCGameOption
      *               Otherwise, the minimum version at which this option's value isn't changed
      *               (for compatibility) by the presence of other options.
      * @return minimum version, or -1;
-     *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
+     *     same format as {@link Version#versionNumber()}.
      *     If <tt>opts != null</tt>, the returned version will either be -1 or >= 1107
      *     (the first version with game options).
      * @see SOCVersionedItem#itemsMinimumVersion(Map)
@@ -1632,7 +1679,7 @@ public class SOCGameOption
      *
      * @param optKey Option's keyname
      * @param vers   Version of client, same format as {@link soc.message.SOCVersion#getVersionNumber()}
-     *               and {@link soc.util.Version#versionNumber()}
+     *               and {@link Version#versionNumber()}
      * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
      *          if this option has no restriction.
      *          Enum values range from 1 to n, not from 0 to n-1.
@@ -1662,7 +1709,7 @@ public class SOCGameOption
      *
      * @param optKey Option's keyname
      * @param vers   Version of client, same format as {@link soc.message.SOCVersion#getVersionNumber()}
-     *               and {@link soc.util.Version#versionNumber()}
+     *               and {@link Version#versionNumber()}
      * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
      *          if this option has no restriction.
      * @since 1.1.08
@@ -1735,10 +1782,13 @@ public class SOCGameOption
      *<P>
      * Since {@link #optFlags} field is {@code final}, copies to a new option object with updated flags,
      * replacing the old one in the set of known options.
+     *<P>
+     * To get the list of currently activated options compatible with a certain client version,
+     * call {@link #optionsWithFlag(int, int) optionsWithFlag(FLAG_ACTIVATED, cliVersion)}.
+     *
      * @param optKey  Known game option's alphanumeric keyname
      * @throws IllegalArgumentException if {@code optKey} isn't a known game option, or if that option
      *     has neither {@link #FLAG_INACTIVE_HIDDEN} nor {@link #FLAG_ACTIVATED}
-     * @see #optionsActivated(int)
      * @since 2.4.10
      */
     public static void activate(final String optKey)
@@ -2319,6 +2369,9 @@ public class SOCGameOption
      *              having {@link SOCVersionedItem#minVersion minVersion} &lt;= {@code vers},
      *              ignoring their {@link SOCVersionedItem#lastModVersion lastModVersion}
      *              in case activation is the opt's only recent change.
+     *             <BR>
+     *              If {@code checkValues} and {@code trimEnums} both false, assumes is a client-side call
+     *              and also adds any opts with {@link #FLAG_3RD_PARTY} to the returned list.
      *             <P>
      *              If true, any returned items are from {@code opts} but too new for client {@code vers}:
      *              Game creation should be rejected.
@@ -2333,8 +2386,8 @@ public class SOCGameOption
      * @return List of the newer (added or changed) {@link SOCGameOption}s, or null
      *     if all are known and unchanged since <tt>vers</tt>.
      *     <BR>
-     *     <B>Note:</B> May include options with {@link #minVersion} &gt; {@code vers};
-     *     the client may want to know about those.
+     *     <B>Note:</B> May include options with {@link #minVersion} &gt; {@code vers}
+     *     if client has asked about them by name.
      * @see #optionsForVersion(int, Map)
      * @see #optionsTrimmedForSupport(SOCFeatureSet)
      */
@@ -2386,6 +2439,9 @@ public class SOCGameOption
      *              having {@link SOCVersionedItem#minVersion minVersion} &lt;= {@code vers},
      *              ignoring their {@link SOCVersionedItem#lastModVersion lastModVersion}
      *              in case activation is the opt's only recent change.
+     *             <BR>
+     *              If {@code checkValues}, {@code getAllForVersion}, and {@code trimEnums} all false, assumes is
+     *              a client-side call and also adds any opts with {@link #FLAG_3RD_PARTY} to the returned list.
      *             <P>
      *              If true, any returned items are from {@code opts} but too new for client {@code vers}:
      *              Game creation should be rejected.
@@ -2401,7 +2457,7 @@ public class SOCGameOption
      *     see {@code optionsNewerThanVersion} and {@code optionsForVersion} for return details.
      *     <BR>
      *     <B>Note:</B> If not {@code getAllForVersion}, may include options with
-     *     {@link #minVersion} &gt; {@code vers}; the client may want to know about those.
+     *     {@link #minVersion} &gt; {@code vers} if client has asked about them by name.
      * @throws IllegalArgumentException  if {@code getAllForVersion && checkValues}: Cannot combine these modes
      * @since 2.0.00
      */
@@ -2433,7 +2489,7 @@ public class SOCGameOption
 
             // add any activated ones, even if unchanged since vers
             {
-                Map<String, SOCGameOption> actives = optionsActivated(vers);
+                Map<String, SOCGameOption> actives = optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, vers);
                 if (actives != null)
                 {
                     if (uopt != null)
@@ -2447,7 +2503,28 @@ public class SOCGameOption
                 }
             }
 
-            if (uopt.isEmpty())
+            // if client-side, also add any with FLAG_3RD_PARTY
+            if (! (getAllForVersion || trimEnums))
+            {
+                for (SOCGameOption opt : allOptions.values())
+                {
+                    if ((0 == (opt.optFlags & FLAG_3RD_PARTY))
+                        || (0 != (opt.optFlags & FLAG_INACTIVE_HIDDEN)))
+                        continue;
+
+                    if (uopt != null)
+                    {
+                        if (uopt.contains(opt))
+                            continue;
+                    } else {
+                        uopt = new ArrayList<>();
+                    }
+
+                    uopt.add(opt);
+                }
+            }
+
+            if ((uopt != null) && uopt.isEmpty())
                 uopt = null;
         }
 
@@ -2555,29 +2632,45 @@ public class SOCGameOption
     }
 
     /**
-     * Return any Activated Options compatible with client version. Checks all Known Options
-     * for {@link #FLAG_ACTIVATED} and <tt>{@link SOCVersionedItem#minVersion minVersion} &lt;= cliVers</tt>.
+     * Find all Known Options having the specified flag(s) and optional minimum version.
      *<P>
-     * Server calls this as part of client connect. If client has limited features, assumes server has already
+     * Some uses:
+     *<UL>
+     * <LI> {@link #FLAG_3RD_PARTY}:
+     *   Find any Third-party Options defined at client, to ask server if it knows them too.
+     *   Client calls this as part of connect to server, ignoring minVersion so all are asked about.
+     * <LI> {@link #FLAG_ACTIVATED}:
+     *   Find any Activated Options compatible with client version.
+     *   Server calls this as part of client connect, with {@code minVers} = client version.
+     *</UL>
+     * Ignores any option with {@link #FLAG_INACTIVE_HIDDEN} unless that's part of {@code flagMask}.
+     *<P>
+     * If calling at server and the connecting client has limited features, assumes has already
      * called {@link #optionsNotSupported(SOCFeatureSet)} and {@link #optionsTrimmedForSupport(SOCFeatureSet)}.
      * So this method filters only by minVersion, not by feature requirement or any other field.
      *
-     * @param cliVers  Client's version, same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}
-     * @return  Map of activated options at cliVers, or {@code null} if none.
+     * @param flagMask  Flag(s) to check for; {@link #hasFlag(int)} return value is the filter
+     * @param minVers  Minimum compatible version to look for, same format as {@link Version#versionNumber()},
+     *     or 0 to ignore {@link SOCVersionedItem#minVersion opt.minVersion}
+     * @return  Map of found options compatible with {@code minVers}, or {@code null} if none.
      *     Each map key is its option value's {@link SOCVersionedItem#key key}.
      * @see #activate()
      * @since 2.4.10
      */
-    public static Map<String, SOCGameOption> optionsActivated(final int cliVers)
+    public static Map<String, SOCGameOption> optionsWithFlag(final int flagMask, final int minVers)
     {
         Map<String, SOCGameOption> ret = null;
+        final boolean ignoreInactives = (0 == (flagMask & FLAG_INACTIVE_HIDDEN));
 
         for (final SOCGameOption opt : allOptions.values())
         {
-            if (opt.minVersion > cliVers)
+            if ((minVers != 0) && (opt.minVersion > minVers))
                 continue;
 
-            if (opt.hasFlag(FLAG_ACTIVATED))
+            if (ignoreInactives && (0 != (opt.optFlags & FLAG_INACTIVE_HIDDEN)))
+                continue;
+
+            if (opt.hasFlag(flagMask))
             {
                 if (ret == null)
                     ret = new HashMap<>();
@@ -3004,7 +3097,7 @@ public class SOCGameOption
 
     /**
      * Does this game option have these specified flag(s)?
-     * @param flagMask  Option flag such as {@link #FLAG_DROP_IF_UNUSED}, or multiple flags added together
+     * @param flagMask  Option flag such as {@link #FLAG_DROP_IF_UNUSED}, or multiple flags or'd together
      * @return  True if {@link #optFlags} contains all flags in {@code flagMask}
      * @since 2.0.00
      */

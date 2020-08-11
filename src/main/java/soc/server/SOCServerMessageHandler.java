@@ -56,6 +56,7 @@ import soc.server.genericServer.Connection;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.*;
 import soc.util.I18n;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
@@ -635,6 +636,9 @@ public class SOCServerMessageHandler
      * If {@link SOCClientData#hasLimitedFeats c.hasLimitedFeats} and any known options require client features
      * not supported by client {@code c}, they'll be sent to the client as {@link SOCGameOption#OTYPE_UNKNOWN}
      * even if not asked for. Also sends info for any game options whose value range is limited by client features.
+     *<P>
+     * If any third-party options are active ({@link SOCGameOption#FLAG_3RD_PARTY}), always checks client features
+     * for compatibility with those 3P options.
      *
      * @param c  the connection
      * @param mes  the message
@@ -650,8 +654,7 @@ public class SOCServerMessageHandler
         final boolean hasLimitedFeats = scd.hasLimitedFeats;
 
         boolean alreadyTrimmedEnums = false;
-        List<String> okeys = mes.optionKeys;
-        List<SOCGameOption> opts = null;  // opts to send as SOCGameOptionInfo
+        Map<String, SOCGameOption> opts = new HashMap<>();  // opts to send as SOCGameOptionInfo
         final Map<String, SOCGameOption> optsToLocal;  // opts to send in a SOCLocalizedStrings instead
 
         // check for request for i18n localized descriptions (client v2.0.00 or newer);
@@ -674,145 +677,131 @@ public class SOCServerMessageHandler
         }
 
         // Gather requested game option info:
-        if ((okeys == null) && ! mes.hasOnlyTokenI18n)
-        {
-            // received "-", look for newer options (cli is older than us).
-            // opts will be null if there are no newer ones.
-            opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
-            alreadyTrimmedEnums = true;
 
-            if ((opts != null) && (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
+        if (mes.optionKeys != null)
+        {
+            for (String okey : mes.optionKeys)
+            {
+                SOCGameOption opt = SOCGameOption.getOption(okey, false);
+
+                if ((opt == null) || (opt.minVersion > cliVers))  // don't use dynamic opt.getMinVersion(Map) here
+                    opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+
+                opts.put(okey, opt);
+            }
+        }
+
+        if (mes.hasTokenGetAnyChanges
+            || ((mes.optionKeys == null) && ! mes.hasOnlyTokenI18n))
+        {
+            // received "-" or "?CHANGES", so look for newer options (cli is older than us).
+
+            List<SOCGameOption> newerOpts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
+            if (newerOpts != null)
+                for (SOCGameOption opt : newerOpts)
+                    opts.put(opt.key, opt);
+
+            if (mes.optionKeys == null)
+                alreadyTrimmedEnums = true;
+
+            if (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES)
             {
                 // Client is older than 2.0.00; we can't send it any long option names.
-                Iterator<SOCGameOption> opi = opts.iterator();
+                Iterator<String> opi = opts.keySet().iterator();
                 while (opi.hasNext())
                 {
-                    final SOCGameOption op = opi.next();
-                    if ((op.key.length() > 3) || op.key.contains("_"))
+                    final String okey = opi.next();
+                    if ((okey.length() > 3) || okey.contains("_"))
                         opi.remove();
                 }
-
-                if (opts.isEmpty())
-                    opts = null;
             }
         }
 
         // If any known opts which require client features limited/not supported by this client,
-        // add them to opts or okeys so unknowns will be sent as OTYPE_UNKNOWN
+        // add them to opts so unknowns will be sent as OTYPE_UNKNOWN.
+        // Unsupported 3rd-party opts aren't sent unless client asked about them by key.
 
         final Map<String, SOCGameOption> unsupportedOpts =
             (hasLimitedFeats) ? SOCGameOption.optionsNotSupported(scd.feats) : null;
         if (unsupportedOpts != null)
-        {
-            if (opts != null)
-                opts.addAll(unsupportedOpts.values());
-            else if (okeys != null)
-                okeys.addAll(unsupportedOpts.keySet());
-            else
-                okeys = new ArrayList<>(unsupportedOpts.keySet());
-        }
+            opts.putAll(unsupportedOpts);
 
         final Map<String, SOCGameOption> trimmedOpts =
             (hasLimitedFeats) ? SOCGameOption.optionsTrimmedForSupport(scd.feats) : null;
         if (trimmedOpts != null)
+            opts.putAll(trimmedOpts);
+
+        final Map<String, SOCGameOption> opts3p = SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0);
+        if (opts3p != null)
         {
-            if (opts != null)
+            final SOCFeatureSet cliFeats = scd.feats;
+            final List<String> requestedKeys = mes.optionKeys;
+
+            for (SOCGameOption opt : opts3p.values())
             {
-                for (SOCGameOption tr : trimmedOpts.values())
+                final String ofeat = opt.getClientFeature();
+                if (ofeat == null)
+                    continue;
+
+                if ((cliFeats == null) || ! cliFeats.isActive(ofeat))
                 {
-                    // replace if key already in opts, otherwise add
-                    final String okey = tr.key;
-                    boolean match = false;
-                    for (int i = 0; i < opts.size(); ++i)
+                    final String okey = opt.key;
+
+                    if ((requestedKeys != null) && requestedKeys.contains(okey))
                     {
-                        if (opts.get(i).key.equals(okey))
-                        {
-                            opts.set(i, tr);
-                            match = true;
-                            break;
-                        }
+                        opts.put(okey, new SOCGameOption(okey));  // OTYPE_UNKNOWN
+                    } else {
+                        opts.remove(okey);
+                        if (wantsLocalDescs)
+                            optsToLocal.remove(okey);
                     }
-                    if (! match)
-                        opts.add(tr);
                 }
-            } else if (okeys != null) {
-                for (String okey : trimmedOpts.keySet())
-                    if (! okeys.contains(okey))
-                        okeys.add(okey);
-            } else {
-                okeys = new ArrayList<>(trimmedOpts.keySet());
             }
         }
 
-        // Iterate through requested okeys or calculated opts list.
+        // Iterate through requested or calculated opts list.
         // Send requested options' info, and remove them from optsToLocal to
         // avoid sending separate message with those opts' localization info:
 
-        if ((opts != null) || (okeys != null))
+        for (SOCGameOption opt : opts.values())
         {
-            final int L = (opts != null) ? opts.size() : okeys.size();
-            for (int i = 0; i < L; ++i)
+            // this iteration's opt reference may be changed in loop body to customize gameopt info
+            // sent to client; same key, but might change optType or other fields
+
+            final String okey = opt.key;
+            String localDesc = null;  // i18n-localized opt.desc, if wantsLocalDescs
+
+            if (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
             {
-                SOCGameOption opt;
-                String localDesc = null;  // i18n-localized opt.desc, if wantsLocalDescs
-
-                if (opts != null)
-                {
-                    opt = opts.get(i);
-                    final String okey = opt.key;
-                    if ((opt.minVersion > cliVers)
-                        || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
-                    {
-                        opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
-                    }
-                    else if (wantsLocalDescs)
-                    {
-                        try {
-                            localDesc = c.getLocalized("gameopt." + okey);
-                        } catch (MissingResourceException e) {}
-                    }
-                } else {
-                    final String okey = okeys.get(i);
-                    opt = SOCGameOption.getOption(okey, false);
-
-                    if ((opt == null) || (opt.minVersion > cliVers)  // Don't use dynamic opt.getMinVersion(Map) here
-                        || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
-                    {
-                        opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
-                    }
-                    else 
-                    {
-                        if ((trimmedOpts != null) && trimmedOpts.containsKey(okey))
-                            opt = trimmedOpts.get(okey);
-
-                        if (wantsLocalDescs)
-                            try {
-                                localDesc = c.getLocalized("gameopt." + okey);
-                            } catch (MissingResourceException e) {}
-                    }
-                }
-
-                if (wantsLocalDescs)
-                {
-                    // don't send opt's localization info again after GAMEOPTIONINFOs
-                    optsToLocal.remove(opt.key);
-
-                    if (opt.getDesc().equals(localDesc))
-                        // don't send desc if not localized, client already has unlocalized desc string
-                        localDesc = null;
-                }
-
-                // Enum-type options may have their values restricted by version.
-                if ( (! alreadyTrimmedEnums)
-                    && (opt.enumVals != null)
-                    && (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
-                    && (opt.lastModVersion > cliVers))
-                {
-                    opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
-                }
-
-                c.put(new SOCGameOptionInfo(opt, cliVers, localDesc));
+                if ((opt.minVersion > cliVers)
+                    || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
+                    opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                else if (wantsLocalDescs)
+                    try {
+                        localDesc = c.getLocalized("gameopt." + okey);
+                    } catch (MissingResourceException e) {}
             }
+
+            if (wantsLocalDescs)
+            {
+                // don't send opt's localization info again after GAMEOPTIONINFOs
+                optsToLocal.remove(okey);
+
+                if (opt.getDesc().equals(localDesc))
+                    // don't send desc if not localized, client already has unlocalized desc string
+                    localDesc = null;
+            }
+
+            // Enum-type options may have their values restricted by version.
+            if ( (! alreadyTrimmedEnums)
+                && (opt.enumVals != null)
+                && (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
+                && (opt.lastModVersion > cliVers))
+            {
+                opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
+            }
+
+            c.put(new SOCGameOptionInfo(opt, cliVers, localDesc));
         }
 
         // send any opts which are localized but otherwise unchanged between server's/client's version
@@ -2381,8 +2370,10 @@ public class SOCServerMessageHandler
         {
             D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (isMember)");
         }
-
-        gameList.releaseMonitorForGame(gaName);
+        finally
+        {
+            gameList.releaseMonitorForGame(gaName);
+        }
 
         if (isMember)
         {

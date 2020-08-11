@@ -22,6 +22,7 @@
  **/
 package soc.server;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.baseclient.ServerConnectInfo;
 
 import soc.debug.D;  // JM
@@ -627,6 +628,25 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, "Flag: If set, server will upgrade the DB schema to latest version and exit (if 1 or Y)",
     };
 
+    // JVM/System properties for testing
+    //
+    // See also:
+    // - SOCBoardAtServer.PROP_JSETTLERS_DEBUG_BOARD_FOG, PROP_JSETTLERS_DEBUG_BOARD_FOG__GOLD
+    // - SOCRobotClient.PROP_JSETTLERS_BOTS_TEST_QUIT_AT_JOINREQ
+
+    /**
+     * For server testing, JVM/system property {@code "jsettlers.debug.server.gameopt3p"}
+     * with name of a "third-party" Known Game Option to create; will have {@link SOCGameOption#FLAG_3RD_PARTY}
+     * and require client feature {@code "com.example.js."} + optionName.
+     *<P>
+     * For robots' benefit, if this system property is set but the equivalent client property
+     * {@link soc.baseclient.SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P} isn't,
+     * server will set that to the same value.
+     *
+     * @since 2.4.10
+     */
+    public static final String PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P = "jsettlers.debug.server.gameopt3p";
+
     /**
      * Name used when sending message text from the server: {@link SOCGameTextMsg#SERVERNAME}.
      * Sends {@link SOCGameServerText} to v2.0 and newer clients, {@link SOCGameTextMsg} to older ones.
@@ -892,6 +912,16 @@ public class SOCServer extends Server
      * @since 1.1.19
      */
     private SOCFeatureSet features = new SOCFeatureSet(false, false);
+
+    /**
+     * True if server has any known game options with {@link SOCGameOption#FLAG_3RD_PARTY} active.
+     * Those typically require an accompanying client feature, which means all clients should be treated
+     * as if their {@link SOCClientData#hasLimitedFeats} flag is set.
+     *
+     * @see #PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P
+     * @since 2.4.10
+     */
+    private boolean has3rdPartyGameopts;
 
     /**
      * Game type handler, currently shared by all game instances.
@@ -1745,6 +1775,28 @@ public class SOCServer extends Server
                     System.err.println("Activated game options: " + txt);
             }
         }
+
+        // JVM/system props for testing
+        {
+            String gameopt3p = System.getProperty(PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P);
+            if (gameopt3p != null)
+            {
+                gameopt3p = gameopt3p.toUpperCase(Locale.US);
+                SOCGameOption opt = new SOCGameOption
+                    (gameopt3p, 2000, Version.versionNumber(), false,
+                     SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED,
+                     "Server test 3p option " + gameopt3p);
+                opt.setClientFeature("com.example.js." + gameopt3p);
+                SOCGameOption.addKnownOption(opt);
+
+                if (null == System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P))
+                    System.setProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P, gameopt3p);
+            }
+        }
+
+        // Don't add/activate any more Known Options past this point
+
+        has3rdPartyGameopts = (null != SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0));
 
         /**
          * See if the user specified a non-random robot cookie value.
@@ -2754,7 +2806,7 @@ public class SOCServer extends Server
                         cliVersOld = true;
                     } else {
                         SOCClientData scd = (SOCClientData) c.getAppData();
-                        if (scd.hasLimitedFeats)
+                        if (has3rdPartyGameopts || scd.hasLimitedFeats)
                         {
                             cliMissingFeats = ga.checkClientFeatures(scd.feats, false);
                             if (cliMissingFeats != null)
@@ -2974,7 +3026,7 @@ public class SOCServer extends Server
             Connection cliLimited = null;  // the first limited connection found, if any
             SOCMessage cannotJoinMsg = null;  // if needed, lazy init in loop body
 
-            if (! limitedConns.isEmpty())
+            if (has3rdPartyGameopts || ! limitedConns.isEmpty())
             {
                 final SOCFeatureSet gameFeats = newGame.getClientFeaturesRequired();
                 if (gameFeats != null)
@@ -2993,6 +3045,38 @@ public class SOCServer extends Server
                                 cliLimited = lc;
                                 break;
                             }
+                        }
+
+                        if ((cliLimited == null) && has3rdPartyGameopts)
+                        {
+                            for (final Connection c : conns.values())
+                            {
+                                final SOCClientData scd = (SOCClientData) c.getAppData();
+
+                                if (scd.isRobot)
+                                    continue;
+
+                                if ((gVers <= c.getVersion()) && ! newGame.canClientJoin(scd.feats))
+                                {
+                                    cliLimited = c;
+                                    break;
+                                }
+                            }
+
+                            if (cliLimited == null)
+                                for (final Connection c : unnamedConns)
+                                {
+                                    final SOCClientData scd = (SOCClientData) c.getAppData();
+
+                                    if (scd.isRobot)
+                                        continue;
+
+                                    if ((gVers <= c.getVersion()) && ! newGame.canClientJoin(scd.feats))
+                                    {
+                                        cliLimited = c;
+                                        break;
+                                    }
+                                }
                         }
                     }
 
@@ -3055,7 +3139,7 @@ public class SOCServer extends Server
                 if (c == cliLimited)
                     continue;  // already sent
 
-                if (limitedConns.contains(c)
+                if ((has3rdPartyGameopts || limitedConns.contains(c))
                     && ! newGame.canClientJoin(((SOCClientData) c.getAppData()).feats))
                 {
                     if (cannotJoinMsg == null)
@@ -5507,7 +5591,7 @@ public class SOCServer extends Server
 
         if (isReplacing)
         {
-            final List<SOCGame> cannotReplace = gameList.replaceMemberAllGames(oldConn, c);
+            final List<SOCGame> cannotReplace = gameList.replaceMemberAllGames(oldConn, c, has3rdPartyGameopts);
             channelList.replaceMemberAllChannels(oldConn, c);
 
             SOCClientData scdNew = (SOCClientData) (c.getAppData());
@@ -6603,7 +6687,8 @@ public class SOCServer extends Server
                 }
             }
 
-            Map<String, SOCGameOption> activatedOpts = SOCGameOption.optionsActivated(cvers);
+            Map<String, SOCGameOption> activatedOpts =
+                SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, cvers);
             if (activatedOpts != null)
             {
                 for (SOCGameOption opt : activatedOpts.values())
@@ -6626,7 +6711,7 @@ public class SOCServer extends Server
         // Send game list?
         // Will check c.getAppData().hasSentGameList() flag.
         // prevVers is ignored unless already sent game list.
-        gameList.sendGameList(c, prevVers);
+        gameList.sendGameList(c, prevVers, has3rdPartyGameopts);
 
         // Check for custom welcome message
         final String welcomeText = props.getProperty(PROP_JSETTLERS_ADMIN_WELCOME);

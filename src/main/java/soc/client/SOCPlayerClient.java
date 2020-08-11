@@ -109,6 +109,8 @@ public class SOCPlayerClient
      *<P>
      * Format: Empty for none, or string of semicolon-surrounded client features: <tt>";6pl;sb;"</tt><BR>
      * Same format as {@link SOCFeatureSet#getEncodedList()}.
+     *
+     * @see SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_DEBUG_CLIENT_FEATURES = "jsettlers.debug.client.features";
@@ -496,6 +498,17 @@ public class SOCPlayerClient
         String debug_clearPrefs = System.getProperty(PROP_JSETTLERS_DEBUG_CLEAR__PREFS);
         if (debug_clearPrefs != null)
             UserPreferences.clear(debug_clearPrefs);
+
+        String gameopt3p = System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P);
+        if (gameopt3p != null)
+        {
+            gameopt3p = gameopt3p.toUpperCase(Locale.US);
+            SOCGameOption.addKnownOption(new SOCGameOption
+                (gameopt3p, 2000, Version.versionNumber(), false,
+                 SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED,
+                 "Client test 3p option " + gameopt3p));
+            // similar code is in SOCRobotClient.buildClientFeats()
+        }
 
         net = new ClientNetwork(this);
         gameMessageSender = new GameMessageSender(this, clientListeners);

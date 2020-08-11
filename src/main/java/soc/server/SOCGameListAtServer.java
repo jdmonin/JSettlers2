@@ -396,6 +396,8 @@ public class SOCGameListAtServer extends SOCGameList
      *
      * @param  oldConn  the member's old connection
      * @param  newConn  the member's new connection
+     * @param alwaysCheckFeats  If true, client features against each game as if {@link SOCClientData#hasLimitedFeats}.
+     *     Useful when server has {@link SOCGameOption#FLAG_3RD_PARTY} options active.
      * @return  {@code null} if replacement was done in all games; otherwise those games having {@code oldConn} which
      *            {@code newConn} can't join because of its more limited client features (this is unlikely to occur)
      * @throws IllegalArgumentException  if oldConn's keyname (via {@link Connection#getData()})
@@ -404,7 +406,8 @@ public class SOCGameListAtServer extends SOCGameList
      * @see #memberGames(Connection, String)
      * @since 1.1.08
      */
-    public synchronized List<SOCGame> replaceMemberAllGames(Connection oldConn, Connection newConn)
+    public synchronized List<SOCGame> replaceMemberAllGames
+        (final Connection oldConn, final Connection newConn, final boolean alwaysCheckFeats)
         throws IllegalArgumentException
     {
         if (! oldConn.getData().equals(newConn.getData()))
@@ -414,7 +417,7 @@ public class SOCGameListAtServer extends SOCGameList
 
         final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
         final SOCClientData scd = (SOCClientData) newConn.getAppData();
-        final boolean cliHasLimitedFeats = scd.hasLimitedFeats;
+        final boolean cliHasLimitedFeats = alwaysCheckFeats || scd.hasLimitedFeats;
 
         for (String gaName : getGameNames())
         {
@@ -718,7 +721,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  plConn   the previous connection of the player, which might be taken over
      * @return Minimum version, in same format as {@link SOCGame#getClientVersionMinRequired()},
      *         or 0 if player isn't in any games.
-     * @see #replaceMemberAllGames(Connection, Connection)
+     * @see #replaceMemberAllGames(Connection, Connection, boolean)
      * @since 1.1.08
      */
     public int playerGamesMinVersion(Connection plConn)
@@ -752,7 +755,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @return The games, in no particular order (past firstGameName),
      *           or a 0-length Vector, if member isn't in any game.
      *
-     * @see #replaceMemberAllGames(Connection, Connection)
+     * @see #replaceMemberAllGames(Connection, Connection, boolean)
      * @since 1.1.08
      */
     public List<SOCGame> memberGames(Connection c, final String firstGameName)
@@ -829,9 +832,12 @@ public class SOCGameListAtServer extends SOCGameList
      * @param c Client's connection; will call getVersion() on it
      * @param prevVers  Previously assumed version of this client;
      *                  if re-sending the list, should be less than c.getVersion.
+     * @param alwaysCheckFeats  If true, client features against each game as if {@link SOCClientData#hasLimitedFeats}.
+     *     Useful when server has {@link SOCGameOption#FLAG_3RD_PARTY} options active.
      * @since 1.1.06
      */
-    public void sendGameList(Connection c, int prevVers)
+    public void sendGameList
+        (final Connection c, final int prevVers, final boolean alwaysCheckFeats)
     {
         final int cliVers = c.getVersion();   // Need to know this before sending
         final SOCClientData scd = (SOCClientData) c.getAppData();
@@ -849,7 +855,7 @@ public class SOCGameListAtServer extends SOCGameList
         // that it isn't capable of joining.
         boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
         final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
-        final boolean cliNotLimitedFeats = ! scd.hasLimitedFeats;
+        final boolean cliNotLimitedFeats = ! (alwaysCheckFeats || scd.hasLimitedFeats);
         final SOCFeatureSet cliLimitedFeats = cliNotLimitedFeats ? null : scd.feats;
 
         ArrayList<Object> gl = new ArrayList<Object>();  // contains Strings and/or SOCGames;

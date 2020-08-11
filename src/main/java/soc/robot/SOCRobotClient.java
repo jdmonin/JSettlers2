@@ -48,6 +48,7 @@ import java.net.Socket;
 
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
@@ -455,6 +456,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * <LI>{@link SOCFeatureSet#CLIENT_SEA_BOARD}
      * <LI>{@link SOCFeatureSet#CLIENT_SCENARIO_VERSION} = {@link Version#versionNumber()}
      *</UL>
+     * For robot debugging and testing, will also add a feature from
+     * {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P} if set,
+     * and create that Known Option with {@link SOCGameOption#FLAG_3RD_PARTY} if not already created.
      *<P>
      * Called from {@link #init()}.
      *
@@ -467,6 +471,22 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         feats.add(SOCFeatureSet.CLIENT_6_PLAYERS);
         feats.add(SOCFeatureSet.CLIENT_SEA_BOARD);
         feats.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, Version.versionNumber());
+
+        String gameopt3p = System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P);
+        if (gameopt3p != null)
+        {
+            gameopt3p = gameopt3p.toUpperCase(Locale.US);
+            feats.add("com.example.js." + gameopt3p);
+
+            if (null == SOCGameOption.getOption(gameopt3p, false))
+            {
+                SOCGameOption.addKnownOption(new SOCGameOption
+                    (gameopt3p, 2000, Version.versionNumber(), false,
+                     SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED,
+                     "Client test 3p option " + gameopt3p));
+                // similar code is in SOCPlayerClient constructor
+            }
+        }
 
         return feats;
     }

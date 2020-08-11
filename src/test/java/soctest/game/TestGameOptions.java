@@ -21,6 +21,7 @@ package soctest.game;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.junit.Test;
@@ -29,6 +30,7 @@ import static org.junit.Assert.*;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGameOption;
 import soc.game.SOCVersionedItem;
+import soc.util.Version;
 
 /**
  * Tests for {@link SOCGameOption}.
@@ -59,7 +61,11 @@ public class TestGameOptions
 
     /**
      * Test that keys of {@link SOCGameOption#initAllOptions()} and {@link SOCGameOption#getAllKnownOptions()}
-     * are consistent internally and with each other. Each option's map key must be its option key.
+     * are consistent internally and with each other.
+     *<UL>
+     * <LI> Each option's map key must be its option key
+     * <LI> Key must not start with {@code "3"} or {@code "_3"} unless option has {@link SOCGameOption#FLAG_3RD_PARTY}
+     *</UL>
      */
     @Test
     public void testKnownOptionMapKeysConsistent()
@@ -74,6 +80,11 @@ public class TestGameOptions
             assertTrue
                 ("key " + okey + " in initAllOptions() but missing from getAllKnownOptions()",
                  knownOpts.containsKey(okey));
+
+            boolean named3p = okey.startsWith("3") || okey.startsWith("_3");
+            assertEquals
+                ("key " + okey + " starts with 3 only if FLAG_3RD_PARTY",
+                 named3p, opt.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
         }
     }
 
@@ -180,7 +191,7 @@ public class TestGameOptions
 
     /**
      * Inactive/activated gameopts: Test {@link SOCGameOption#activate(String)},
-     * {@link SOCGameOption#optionsActivated(int)}.
+     * {@link SOCGameOption#optionsWithFlag(int, int)}.
      * Test {@link SOCGameOption#optionsForVersion(int, Map) SOCGameOption#optionsForVersion(cvers, null)} and
      * {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean) SGO.adjustOptionsToKnown(gameOpts, null, doServerPreadjust=true)}
      * checks for {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}. Uses game options
@@ -218,10 +229,19 @@ public class TestGameOptions
         assertFalse(optFO.hasFlag(SOCGameOption.FLAG_ACTIVATED));
         assertEquals("minVersion 2000", 2000, optFO.minVersion);
 
-        // testing the actual feature:
+        // optionsWithFlag ignores inactives unless asked for that flag
+        {
+            Map<String, SOCGameOption> inacts = SOCGameOption.optionsWithFlag
+                (SOCGameOption.FLAG_INACTIVE_HIDDEN, 0);
+            assertNotNull(inacts);
+            assertTrue("inactive gameopts should include _TESTACT", inacts.containsKey("_TESTACT"));
+            assertTrue("inactive gameopts should include PLAY_FO", inacts.containsKey("PLAY_FO"));
+        }
 
-        Map<String, SOCGameOption> activatedOpts = SOCGameOption.optionsActivated(2410);
+        Map<String, SOCGameOption> activatedOpts = SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2410);
         assertNull("not activated yet", activatedOpts);
+
+        // testing the actual activation feature:
 
         // not in known options when inactive, even if changed after client version
         {
@@ -278,13 +298,13 @@ public class TestGameOptions
         assertFalse(activated2.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
         assertTrue(activated2.hasFlag(SOCGameOption.FLAG_ACTIVATED));
 
-        activatedOpts = SOCGameOption.optionsActivated(2410);
+        activatedOpts = SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2410);
         assertNotNull(activatedOpts);
         assertEquals(2, activatedOpts.size());
         assertEquals(activated, activatedOpts.get("PLAY_VPO"));
         assertEquals(activated2, activatedOpts.get("_TESTACT"));
 
-        activatedOpts = SOCGameOption.optionsActivated(1999);  // older than _TESTACT minVersion
+        activatedOpts = SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 1999);  // older than _TESTACT minVersion
         assertNull(activatedOpts);
 
         // is in known options when active, even if not changed after client version
@@ -394,6 +414,131 @@ public class TestGameOptions
         assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(new HashMap<String, SOCGameOption>(), false));
 
         // TODO expand beyond empty/null tests
+    }
+
+    /**
+     * Test {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}.
+     * Currently client-side functions only: checkValues=false, trimEnums=false.
+     * Also tests {@link SOCGameOption#FLAG_3RD_PARTY} and its interaction at client
+     * with {@code optionsNewerThanVersion(..)}.
+     * @since 2.4.10
+     */
+    @Test
+    public void testOptionsNewerThanVersion()
+    {
+        final int currVers = Version.versionNumber();
+
+        // client-side tests: checkValues=false, trimEnums=false
+
+        // Nothing newer than current version
+        for (int vers = currVers; vers <= (currVers + 1); ++vers)
+        {
+            List<SOCGameOption> opts = SOCGameOption.optionsNewerThanVersion(currVers, false, false, null);
+            if (opts != null)
+            {
+                // filter out any activated options (like PLAY_VPO from other unit test)
+                // which are added regardless of version
+
+                ListIterator<SOCGameOption> iter = opts.listIterator();
+                while (iter.hasNext())
+                {
+                    SOCGameOption opt = iter.next();
+                    if (opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
+                        iter.remove();
+                }
+                if (opts.isEmpty())
+                    opts = null;
+            }
+
+            assertNull(opts);
+        }
+
+        // checks for an older server version:
+
+        final int OLDER_VERSION = 1201;  // 1.2.01, to return a decently-sized list
+
+        // add a Known Option unchanged at server version 1201:
+        // we'll soon change it to be 3rd-party and look for it.
+        SOCGameOption opt3PKnown = new SOCGameOption
+            ("T3P", -1, 1107, 0, 0, 0xFFFF, 0, "For unit test");
+        assertFalse(opt3PKnown.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
+        assertNull(SOCGameOption.getOption("T3P", false));
+        SOCGameOption.addKnownOption(opt3PKnown);
+        assertNotNull(SOCGameOption.getOption("T3P", false));
+
+        // also add a 3P Known Option that's inactive, so it should be ignored client-side and server-side
+        SOCGameOption new3PInact = new SOCGameOption
+            ("T3I", -1, 1107, 0, 0, 0xFFFF,
+            SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_INACTIVE_HIDDEN,
+             "For unit test");
+        assertTrue(new3PInact.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
+        assertTrue(new3PInact.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertNull(SOCGameOption.getOption("T3I", false));
+        SOCGameOption.addKnownOption(new3PInact);
+        assertNotNull(SOCGameOption.getOption("T3I", false));
+
+        assertNull("no active 3P gameopts yet", SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0));
+        {
+            Map<String, SOCGameOption> inacts3p = SOCGameOption.optionsWithFlag
+                (SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_INACTIVE_HIDDEN, 0);
+            assertNotNull(inacts3p);
+            assertTrue("inactive gameopts should include T3I", inacts3p.containsKey("T3I"));
+        }
+
+        // build a reasonable expected list
+        Map<String, SOCGameOption> builtMap = new HashMap<>();
+        for (SOCGameOption opt : SOCGameOption.getAllKnownOptions().values())
+        {
+            if (((opt.lastModVersion > OLDER_VERSION) || opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
+                && ! opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+                builtMap.put(opt.key, opt);
+        }
+        assertTrue("contains SC", builtMap.containsKey("SC"));    // added at v2000
+        assertTrue("contains PLP", builtMap.containsKey("PLP"));  // added at v2300
+        assertFalse("shouldn't contain T3P yet", builtMap.containsKey("T3P"));  // not recent, not 3rd-party yet
+
+        List<SOCGameOption> newerOpts = SOCGameOption.optionsNewerThanVersion(OLDER_VERSION, false, false, null);
+        assertNotNull(newerOpts);
+        Map<String, SOCGameOption> testMap = new HashMap<>();
+        for (SOCGameOption opt : newerOpts)
+            testMap.put(opt.key, opt);
+        assertEquals("expected key count", builtMap.size(), testMap.size());
+        for (String optKey : builtMap.keySet())
+            if (! testMap.containsKey(optKey))
+                fail("missing expected key: " + optKey);
+
+        // client-side test FLAG-3RD_PARTY
+        opt3PKnown = new SOCGameOption
+            ("T3P", -1, 1107, 0, 0, 0xFFFF, SOCGameOption.FLAG_3RD_PARTY, "For unit test");
+        opt3PKnown.setClientFeature("com.example.js.test3p");
+        assertTrue(opt3PKnown.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
+        SOCGameOption.addKnownOption(opt3PKnown);
+        SOCGameOption knOpt = SOCGameOption.getOption("T3P", false);
+        assertNotNull(knOpt);
+        assertTrue(knOpt.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
+        Map<String, SOCGameOption> opts3p = SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0);
+        assertNotNull(opts3p);
+        assertEquals(1, opts3p.size());
+        assertTrue(opts3p.containsKey("T3P"));
+
+        builtMap.put("T3P", opt3PKnown);
+
+        newerOpts = SOCGameOption.optionsNewerThanVersion(OLDER_VERSION, false, false, null);
+        assertNotNull(newerOpts);
+        testMap = new HashMap<>();
+        for (SOCGameOption opt : newerOpts)
+            testMap.put(opt.key, opt);
+        assertTrue("testMap should contain third-party T3P", testMap.containsKey("T3P"));
+        assertEquals("expected key count", builtMap.size(), testMap.size());
+        for (String optKey : builtMap.keySet())
+            if (! testMap.containsKey(optKey))
+                fail("missing expected key: " + optKey);
+
+        // cleanup
+        SOCGameOption.addKnownOption(new SOCGameOption("T3P"));
+        assertNull(SOCGameOption.getOption("T3P", false));
+
+        // TODO server-side tests too: call w/ (cliVers, false, true, null) etc
     }
 
     /**

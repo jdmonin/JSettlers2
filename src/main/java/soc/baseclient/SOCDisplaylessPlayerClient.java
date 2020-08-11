@@ -99,6 +99,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public static final String PROP_JSETTLERS_DEBUG_TRAFFIC = "jsettlers.debug.traffic";
 
+    /**
+     * For client/robot testing, string property {@code "jsettlers.debug.client.gameopt3p"}
+     * with name of a "third-party" Known Game Option to create; will have {@link SOCGameOption#FLAG_3RD_PARTY}.
+     * At server connect, will report having client feature {@code "com.example.js."} + optionName
+     * along with default features or {@link soc.client.SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}.
+     *
+     * @see soc.server.SOCServer#PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P
+     * @since 2.4.10
+     */
+    public static final String PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P = "jsettlers.debug.client.gameopt3p";
+
     protected static String STATSPREFEX = "  [";
     protected String doc;
     protected String lastMessage;

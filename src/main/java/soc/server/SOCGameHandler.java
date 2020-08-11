@@ -592,6 +592,27 @@ public class SOCGameHandler extends GameHandler
             fs.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, scVers);
         }
 
+        final Map<String, SOCGameOption> opts = ga.getGameOptions();
+        if (opts != null)
+        {
+            for (SOCGameOption opt : opts.values())
+            {
+                String feat = opt.getClientFeature();
+                if ((feat == null) || ! opt.hasValue())
+                    continue;
+
+                if (fs != null)
+                {
+                    if (fs.isActive(feat))
+                        continue;
+                } else {
+                    fs = new SOCFeatureSet((String) null);
+                }
+
+                fs.add(feat);
+            }
+        }
+
         if (fs != null)
             ga.setClientFeaturesRequired(fs);
     }

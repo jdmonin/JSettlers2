@@ -64,6 +64,7 @@ public class TestToCmdToStringParse
 {
     /**
      * Round-trip parsing tests on messages listed in {@link #TOCMD_TOSTRING_COMPARES}.
+     * Message forms which need more detailed tests are in {@link #testMiscMessageForms()} instead.
      * @see #testCoverageMessageRenameMap()
      */
     @Test
@@ -456,7 +457,24 @@ public class TestToCmdToStringParse
         {new SOCGameMembers("ga", Arrays.asList("p")), "1017|ga,p", "SOCGameMembers:game=ga|members=[p]"},  // shortest list
             // v1.x: slightly different list format, same message type name
         {new SOCGameMembers("ga", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1017|ga,player0,droid 1,robot 2,debug", "SOCGameMembers:game=ga|members=player0,droid 1,robot 2,debug", OPT_PARSE_ONLY},
-        // TODO SOCGameOptionGetDefaults, SOCGameOptionGetInfos, SOCGameOptionInfo
+        // TODO SOCGameOptionGetDefaults
+        {new SOCGameOptionGetInfos(null, false, false), "1081|-", "SOCGameOptionGetInfos:options=-"},
+        {new SOCGameOptionGetInfos(null, true, false), "1081|-,?I18N", "SOCGameOptionGetInfos:options=-,?I18N"},
+        {new SOCGameOptionGetInfos(null, true, true), "1081|?I18N", "SOCGameOptionGetInfos:options=?I18N"},
+        {new SOCGameOptionGetInfos(Arrays.asList("SC", "PLP"), false, false), "1081|SC,PLP", "SOCGameOptionGetInfos:options=SC,PLP"},
+        {new SOCGameOptionGetInfos(Arrays.asList("SC", "PLP"), true, false), "1081|SC,PLP,?I18N", "SOCGameOptionGetInfos:options=SC,PLP,?I18N"},
+        {
+            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7"), new SOCGameOption("PL")), false),
+            "1081|N7,PL",
+            "SOCGameOptionGetInfos:options=N7,PL"
+        },
+        {
+            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7"), new SOCGameOption("PL")), true),
+            "1081|N7,PL,?I18N",
+            "SOCGameOptionGetInfos:options=N7,PL,?I18N"
+        },
+        // For SOCGameOptionGetInfos forms with OPTKEY_GET_ANY_CHANGES, see testMiscMessageForms()
+        // TODO SOCGameOptionInfo
         // TODO? SOCGames
         {
             new SOCGameServerText("ga", "You stole a wheat from robot 2."),
@@ -820,6 +838,78 @@ public class TestToCmdToStringParse
             fail("TOCMD_TOSTRING_COMPARES doesn't test these MESSAGE_RENAME_MAP old types: " + unseenOldNames);
         if (! unseenNewNames.isEmpty())
             fail("TOCMD_TOSTRING_COMPARES doesn't test these MESSAGE_RENAME_MAP new types: " + unseenNewNames);
+    }
+
+    /**
+     * Test various forms of messages which need more detailed checks than
+     * {@link #testRoundTripParsing()} runs on {@link #SCENS_KEY_LIST}:
+     *<UL>
+     * <LI> {@link SOCGameOptionGetInfos} with {@link SOCGameOptionGetInfos#OPTKEY_GET_ANY_CHANGES OPTKEY_GET_ANY_CHANGES}
+     *      token / {@link SOCGameOptionGetInfos#hasTokenGetAnyChanges hasTokenGetAnyChanges} flag
+     *</UL>
+     */
+    @Test
+    public void testMiscMessageForms()
+        throws InputMismatchException, ParseException
+    {
+        // SOCGameOptionGetInfos with OPTKEY_GET_ANY_CHANGES token
+        {
+            // without i18n flag:
+            String EXPECTED_CMD = "1081|SC,PLP,?CHANGES",
+                EXPECTED_STR = "SOCGameOptionGetInfos:options=SC,PLP,?CHANGES";
+            SOCGameOptionGetInfos msg = new SOCGameOptionGetInfos(Arrays.asList
+                ("SC", "PLP", SOCGameOptionGetInfos.OPTKEY_GET_ANY_CHANGES), false, false);
+            assertEquals(EXPECTED_CMD, msg.toCmd());
+            assertEquals(EXPECTED_STR, msg.toString());
+
+            SOCMessage fromCmd = SOCMessage.toMsg(EXPECTED_CMD);
+            assertTrue(fromCmd instanceof SOCGameOptionGetInfos);
+            assertTrue(((SOCGameOptionGetInfos) fromCmd).hasTokenGetAnyChanges);
+            assertFalse(((SOCGameOptionGetInfos) fromCmd).hasTokenGetI18nDescs);
+            assertFalse(((SOCGameOptionGetInfos) fromCmd).hasOnlyTokenI18n);
+            assertEquals(Arrays.asList("SC", "PLP"), ((SOCGameOptionGetInfos) fromCmd).optionKeys);
+
+            SOCMessage fromStr = SOCMessage.parseMsgStr(EXPECTED_STR);
+            assertTrue(fromStr instanceof SOCGameOptionGetInfos);
+            // fromStr's field contents should be identical to fromCmd
+            StringBuilder ret = new StringBuilder();
+            compareMsgObjFields(SOCGameOptionGetInfos.class, fromCmd, fromStr, ret, null);
+            if (ret.length() > 0)
+                fail("SOCGameOptionGetInfos: fromStr field mismatch vs fromCmd: " + ret);
+
+            // same, with i18n flag:
+
+            EXPECTED_CMD = "1081|SC,PLP,?CHANGES,?I18N";
+            EXPECTED_STR = "SOCGameOptionGetInfos:options=SC,PLP,?CHANGES,?I18N";
+            msg = new SOCGameOptionGetInfos
+                (Arrays.asList("SC", "PLP", SOCGameOptionGetInfos.OPTKEY_GET_ANY_CHANGES), true, false);
+            assertEquals(EXPECTED_CMD, msg.toCmd());
+            assertEquals(EXPECTED_STR, msg.toString());
+
+            fromCmd = SOCMessage.toMsg(EXPECTED_CMD);
+            assertTrue(fromCmd instanceof SOCGameOptionGetInfos);
+            assertTrue(((SOCGameOptionGetInfos) fromCmd).hasTokenGetAnyChanges);
+            assertTrue(((SOCGameOptionGetInfos) fromCmd).hasTokenGetI18nDescs);
+            assertFalse(((SOCGameOptionGetInfos) fromCmd).hasOnlyTokenI18n);
+            assertEquals(Arrays.asList("SC", "PLP"), ((SOCGameOptionGetInfos) fromCmd).optionKeys);
+
+            fromStr = SOCMessage.parseMsgStr(EXPECTED_STR);
+            assertTrue(fromStr instanceof SOCGameOptionGetInfos);
+            // fromStr's field contents should be identical to fromCmd
+            compareMsgObjFields(SOCGameOptionGetInfos.class, fromCmd, fromStr, ret, null);
+            if (ret.length() > 0)
+                fail("SOCGameOptionGetInfos: fromStr field mismatch vs fromCmd: " + ret);
+
+            // other forms shouldn't set hasTokenGetAnyChanges:
+
+            fromCmd = SOCMessage.toMsg("1081|SC,PLP,?I18N");
+            assertTrue(fromCmd instanceof SOCGameOptionGetInfos);
+            assertFalse(((SOCGameOptionGetInfos) fromCmd).hasTokenGetAnyChanges);
+
+            fromStr = SOCMessage.parseMsgStr("SOCGameOptionGetInfos:options=SC,PLP,?I18N");
+            assertTrue(fromStr instanceof SOCGameOptionGetInfos);
+            assertFalse(((SOCGameOptionGetInfos) fromStr).hasTokenGetAnyChanges);
+        }
     }
 
     /** Tests for {@link SOCMessage#stripAttribNames(String)}. */

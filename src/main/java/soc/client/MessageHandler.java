@@ -736,41 +736,60 @@ import soc.util.Version;
 
         // If we ever require a minimum server version, would check that here.
 
-        // Pre-1.1.06 versions would reply here with our client version.
-        // That's been sent to server already in connect() in 1.1.06 and later.
-
         // Check known game options vs server's version. (added in 1.1.07)
         // Server's responses will add, remove or change our "known options".
         // In v2.0.00 and later, also checks for game option localized descriptions.
+        // In v2.4.10 and later, also checks for 3rd-party game opts.
+
         final int cliVersion = Version.versionNumber();
         final boolean sameVersion = (client.sVersion == cliVersion);
         final boolean withTokenI18n =
             (client.cliLocale != null) && (isPractice || (client.sVersion >= SOCStringManager.VERSION_FOR_I18N))
             && ! ("en".equals(client.cliLocale.getLanguage()) && "US".equals(client.cliLocale.getCountry()));
+        Map<String, SOCGameOption> opts3p =
+            ((client.sVersion >= cliVersion) && ! isPractice)
+            ? SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0)
+            : null;   // sVersion < cliVersion, so SOCGameOption.optionsNewerThanVersion will find any 3rd-party opts
 
         if ( ((! isPractice) && (client.sVersion > cliVersion))
-             || (withTokenI18n && (isPractice || sameVersion)) )
+             || ((isPractice || sameVersion) && (withTokenI18n || (opts3p != null))) )
         {
             // Newer server: Ask it to list any options we don't know about yet.
             // Same version: Ask for all localized option descs if available.
+            // Also ask about any 3rd-party options known at client.
+
+            final SOCGameOptionGetInfos ogiMsg;
+            if (opts3p != null)
+            {
+                ArrayList<String> olist = new ArrayList<>(opts3p.keySet());
+                if (! sameVersion)
+                    olist.add(SOCGameOptionGetInfos.OPTKEY_GET_ANY_CHANGES);
+                ogiMsg = new SOCGameOptionGetInfos(olist, withTokenI18n, false);
+                    // sends opts and maybe "?I18N"
+            } else {
+                ogiMsg = new SOCGameOptionGetInfos(null, withTokenI18n, withTokenI18n && sameVersion);
+                    // sends "-" and/or "?I18N"
+            }
+
             if (! isPractice)
                 client.getMainDisplay().optionsRequested();
-            gms.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n, withTokenI18n && sameVersion), isPractice);
-            // sends "-" and/or "?I18N"
+            gms.put(ogiMsg.toCmd(), isPractice);
         }
         else if ((client.sVersion < cliVersion) && ! isPractice)
         {
             if (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
             {
-                // Older server: Look for options created or changed since server's version.
+                // Older server: Look for options created or changed since server's version
+                // (and any 3rd-party options).
                 // Ask it what it knows about them.
+
                 List<SOCGameOption> tooNewOpts =
                     SOCGameOption.optionsNewerThanVersion(client.sVersion, false, false, null);
-                if ((tooNewOpts != null) && (client.sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES)
-                    && ! isPractice)
+
+                if ((tooNewOpts != null) && (client.sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
                 {
                     // Server is older than 2.0.00; we can't send it any long option names.
-                    // Remove them from our set of options for games at this server.
+                    // Remove them from our set of options usable for games on that server.
                     if (client.tcpServGameOpts.optionSet == null)
                         client.tcpServGameOpts.optionSet = SOCGameOption.getAllKnownOptions();
 
@@ -791,28 +810,25 @@ import soc.util.Version;
 
                 if (tooNewOpts != null)
                 {
-                    if (! isPractice)
-                        client.getMainDisplay().optionsRequested();
-                    gms.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n, false), isPractice);
+                    client.getMainDisplay().optionsRequested();
+                    gms.put(new SOCGameOptionGetInfos(tooNewOpts, withTokenI18n).toCmd(), isPractice);
                 }
-                else if (withTokenI18n && ! isPractice)
+                else if (withTokenI18n)
                 {
                     // server is older than client but understands i18n: request gameopt localized strings
 
-                    gms.put(SOCGameOptionGetInfos.toCmd(null, true, false), false);  // sends opt list "-,?I18N"
+                    gms.put(new SOCGameOptionGetInfos(null, true, false).toCmd(), false);  // sends opt list "-,?I18N"
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
                 // because that's our version (it runs from our own JAR file).
 
-                if (! isPractice)
-                {
-                    client.tcpServGameOpts.noMoreOptions(true);
-                    client.tcpServGameOpts.optionSet = null;
-                }
+                client.tcpServGameOpts.noMoreOptions(true);
+                client.tcpServGameOpts.optionSet = null;
             }
         } else {
-            // client.sVersion == cliVersion, so we have same code as server for scenarios and getAllKnownOptions.
+            // client.sVersion == cliVersion, so we have same info/code as server for getAllKnownOptions, scenarios, etc
+            // and found nothing else to ask about (i18n, 3rd-party gameopts).
 
             // For practice games, optionSet may already be initialized, so check vs null.
             ServerGametypeInfo opts = (isPractice ? client.practiceServGameOpts : client.tcpServGameOpts);
@@ -2450,7 +2466,7 @@ import soc.util.Version;
             if (! isPractice)
                 client.getMainDisplay().optionsRequested();
 
-            gms.put(SOCGameOptionGetInfos.toCmd(unknowns, client.wantsI18nStrings(isPractice), false), isPractice);
+            gms.put(new SOCGameOptionGetInfos(unknowns, client.wantsI18nStrings(isPractice), false).toCmd(), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             client.getMainDisplay().optionsReceived(opts, isPractice);

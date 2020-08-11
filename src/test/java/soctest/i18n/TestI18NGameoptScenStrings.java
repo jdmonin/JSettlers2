@@ -84,15 +84,16 @@ public class TestI18NGameoptScenStrings
                               missingKeys  = new TreeSet<>();
         for (final SOCGameOption opt : allOpts.values())
         {
-            // "Hidden" gameopts starting with "_" don't need to be in sm, nor do temporary DEBUG options,
-            // but if present there the description strings do need to match.
+            // "Hidden" gameopts starting with "_" don't need to be in sm, nor do third-party or
+            // temporary DEBUG options, but if present there the description strings do need to match.
             try
             {
                 final String smDesc = sm.get("gameopt." + opt.key);
                 if (! opt.getDesc().equals(smDesc))
                     mismatchKeys.add(opt.key);
             } catch (MissingResourceException e) {
-                if ((opt.key.charAt(0) != '_') && ! opt.key.startsWith("DEBUG"))
+                if ((opt.key.charAt(0) != '_')
+                    && ! (opt.key.startsWith("DEBUG") || opt.hasFlag(SOCGameOption.FLAG_3RD_PARTY)))
                     missingKeys.add(opt.key);
             }
         }
