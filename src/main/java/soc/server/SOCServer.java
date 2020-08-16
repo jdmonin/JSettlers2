@@ -6691,14 +6691,26 @@ public class SOCServer extends Server
                 SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, cvers);
             if (activatedOpts != null)
             {
+                final boolean wantsLocalDescs =
+                    ! ("en_US".equals(clocale) || i18n_gameopt_PL_desc.equals(c.getLocalized("gameopt.PL")));
+
                 for (SOCGameOption opt : activatedOpts.values())
                 {
-                    if ((unsupportedOpts != null) && unsupportedOpts.containsKey(opt.key))
+                    final String okey = opt.key;
+                    if ((unsupportedOpts != null) && unsupportedOpts.containsKey(okey))
                         continue;
-                    if ((trimmedOpts != null) && trimmedOpts.containsKey(opt.key))
+                    if ((trimmedOpts != null) && trimmedOpts.containsKey(okey))
                         continue;
 
-                    c.put(new SOCGameOptionInfo(opt, cvers, null));
+                    String localDesc = null;
+                    if (wantsLocalDescs)
+                        try {
+                            localDesc = c.getLocalized("gameopt." + okey);
+                            if (opt.getDesc().equals(localDesc))
+                                localDesc = null;
+                        } catch (MissingResourceException e) {}
+
+                    c.put(new SOCGameOptionInfo(opt, cvers, localDesc));
                     hadAny = true;
                 }
             }

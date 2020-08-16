@@ -810,6 +810,9 @@ public class SOCServerMessageHandler
             List<String> strs = new ArrayList<>(2 * optsToLocal.size());
             for (final SOCGameOption opt : optsToLocal.values())
             {
+                if (opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
+                    continue;  // already sent localized during SOCServer.setClientVersSendGamesOrReject
+
                 try {
                     String localDesc = c.getLocalized("gameopt." + opt.key);
                     if (! opt.getDesc().equals(localDesc))
