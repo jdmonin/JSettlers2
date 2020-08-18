@@ -152,8 +152,9 @@ public class SavedGameModel
      * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
      *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_DISC NUM_PLAYED_DEV_CARD_DISC},
      *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
-     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}.
-     *      Earlier server versions will ignore them while loading a savegame.
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}
+     * <LI> Adds per-player list of dev cards played: {@link PlayerInfo#playedDevCards}
+     * <LI> Earlier server versions will ignore these added fields while loading a savegame
      *</UL>
      */
     public static final int MODEL_VERSION = 2400;
@@ -272,6 +273,8 @@ public class SavedGameModel
      * {@code "UNIV"}, etc) from {@link SOCDevCard#getCardTypeName(int)}. For compatibility, unknown types
      * are written as integer strings ({@code "42"}), and the adapter can read both integers and strings.
      * See {@link DevCardEnumListAdapter} code for details.
+     *
+     * @see PlayerInfo#playedDevCards
      */
     @JsonAdapter(DevCardEnumListAdapter.class)
     public ArrayList<Integer> devCardDeck;
@@ -876,11 +879,24 @@ public class SavedGameModel
          * {@code "UNIV"}, etc) from {@link SOCDevCard#getCardTypeName(int)}. For compatibility, unknown types
          * are written as integer strings ({@code "42"}), and the adapter can read both integers and strings.
          * See {@link SavedGameModel.DevCardEnumListAdapter} code for details.
+         *
+         * @see #playedDevCards
          */
         @JsonAdapter(DevCardEnumListAdapter.class)
         public ArrayList<Integer> oldDevCards = new ArrayList<>(),
                            newDevCards = new ArrayList<>();
         // TODO: future: support general SOCInventoryItems/SOCSpecialItems for scenarios
+
+        /**
+         * List of dev cards played, or null if none, from {@link SOCPlayer#getDevCardsPlayed()}
+         *
+         * @see #oldDevCards
+         * @see #newDevCards
+         * @see SavedGameModel#devCardDeck
+         * @since 2.4.10
+         */
+        @JsonAdapter(DevCardEnumListAdapter.class)
+        public ArrayList<Integer> playedDevCards;
 
         /**
          * Player's pieces in chronological order, from {@link SOCPlayer#getPieces()}.
@@ -1018,6 +1034,9 @@ public class SavedGameModel
                     if (item instanceof SOCDevCard)
                         oldDevCards.add(item.itype);
             // TODO: future: for scenarios, other inventory item types: see SGH.sitDown_sendPrivateInfo
+            List<Integer> cards = pl.getDevCardsPlayed();
+            if (cards != null)
+                playedDevCards = new ArrayList<>(cards);
 
             pieces.addAll(pl.getPieces());
             // fortressPiece = pl.getFortress();
@@ -1053,6 +1072,10 @@ public class SavedGameModel
                 for (final int ctype : newDevCards)
                     inv.addDevCard(1, SOCInventory.NEW, ctype);
             }
+
+            if (playedDevCards != null)
+                for (final int ctype : playedDevCards)
+                    pl.updateDevCardsPlayed(ctype);
 
             // Set some elements for scenario info before any putpiece,
             // so they know their starting land areas and scenario events

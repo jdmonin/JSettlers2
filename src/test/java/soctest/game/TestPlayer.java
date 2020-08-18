@@ -20,6 +20,10 @@
 
 package soctest.game;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import soc.game.SOCBoard;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
@@ -127,8 +131,8 @@ public class TestPlayer
     }
 
     /**
-     * Test {@link SOCPlayer#updateDevCardsPlayed(int)} and related stats fields
-     * ({@link SOCPlayer#numDISCCards} etc).
+     * Test {@link SOCPlayer#updateDevCardsPlayed(int)}, {@link SOCPlayer#getDevCardsPlayed()},
+     * and related stats fields ({@link SOCPlayer#numDISCCards} etc).
      * @since 2.4.10
      */
     @Test
@@ -138,6 +142,7 @@ public class TestPlayer
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
         assertEquals(0, pl.numRBCards);
+        assertNull(pl.getDevCardsPlayed());
 
         pl.updateDevCardsPlayed(SOCDevCardConstants.UNKNOWN);
         pl.updateDevCardsPlayed(SOCDevCardConstants.UNIV);
@@ -146,6 +151,9 @@ public class TestPlayer
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
         assertEquals(0, pl.numRBCards);
+        List<Integer> expectedCards = new ArrayList<Integer>
+            (Arrays.asList(SOCDevCardConstants.UNKNOWN, SOCDevCardConstants.UNIV, -42, 42));
+        assertEquals(expectedCards, pl.getDevCardsPlayed());
 
         pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
         pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
@@ -154,11 +162,15 @@ public class TestPlayer
         assertEquals(2, pl.numDISCCards);
         assertEquals(1, pl.numMONOCards);
         assertEquals(1, pl.numRBCards);
+        expectedCards.addAll(Arrays.asList
+            (SOCDevCardConstants.DISC, SOCDevCardConstants.MONO, SOCDevCardConstants.ROADS, SOCDevCardConstants.DISC));
+        assertEquals(expectedCards, pl.getDevCardsPlayed());
 
         SOCPlayer pclone = new SOCPlayer(pl, null);
         assertEquals(2, pclone.numDISCCards);
         assertEquals(1, pclone.numMONOCards);
         assertEquals(1, pclone.numRBCards);
+        assertEquals(expectedCards, pclone.getDevCardsPlayed());
     }
 
 }

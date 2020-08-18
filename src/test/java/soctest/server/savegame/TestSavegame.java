@@ -22,6 +22,7 @@ package soctest.server.savegame;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -245,6 +246,7 @@ public class TestSavegame
         assertEquals(2, pl.numRBCards);
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
+        assertEquals(Arrays.asList(SOCDevCardConstants.ROADS, SOCDevCardConstants.ROADS), pl.getDevCardsPlayed());
 
         pl = ga.getPlayer(3);
         pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
@@ -252,6 +254,7 @@ public class TestSavegame
         assertEquals(0, pl.numRBCards);
         assertEquals(1, pl.numDISCCards);
         assertEquals(1, pl.numMONOCards);
+        assertEquals(Arrays.asList(SOCDevCardConstants.DISC, SOCDevCardConstants.MONO), pl.getDevCardsPlayed());
 
         SavedGameModel sgm = new SavedGameModel(ga, srv);
         assertNotNull(sgm);
@@ -260,11 +263,13 @@ public class TestSavegame
         assertEquals(Integer.valueOf(2), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_ROADS));
         assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_DISC));
         assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_MONO));
+        assertEquals(Arrays.asList(SOCDevCardConstants.ROADS, SOCDevCardConstants.ROADS), pi.playedDevCards);
 
         pi = sgm.playerSeats[3];
         assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_ROADS));
         assertEquals(Integer.valueOf(1), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_DISC));
         assertEquals(Integer.valueOf(1), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_MONO));
+        assertEquals(Arrays.asList(SOCDevCardConstants.DISC, SOCDevCardConstants.MONO), pi.playedDevCards);
     }
 
     /**

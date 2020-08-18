@@ -21,6 +21,7 @@
 package soctest.server;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -624,12 +625,14 @@ public class TestRecorder
 
         assertFalse(cliPl.hasPlayedDevCard());
         assertEquals(1, cliPl.getNumKnights());
+        assertEquals(Arrays.asList(SOCDevCardConstants.KNIGHT), cliPl.getDevCardsPlayed());
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertEquals(2, cliPl.getNumKnights());
+        assertEquals(Arrays.asList(SOCDevCardConstants.KNIGHT, SOCDevCardConstants.KNIGHT), cliPl.getDevCardsPlayed());
         StringBuilder comparesSoldierMoveRobber = moveRobberStealSequence
             (tcli, ga, cliPl, 0, records,
              new String[][]

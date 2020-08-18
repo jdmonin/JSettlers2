@@ -246,6 +246,10 @@
       ],
       "oldDevCards": [],
       "newDevCards": [],
+      "playedDevCards": [
+        "ROADS",
+        "ROADS"
+      ],
       "pieces": [
         {
           "pieceType": "SETTLEMENT",
@@ -373,6 +377,10 @@
       ],
       "oldDevCards": [],
       "newDevCards": [],
+      "playedDevCards": [
+        "MONO",
+        "DISC"
+      ],
       "pieces": [
         {
           "pieceType": "SETTLEMENT",

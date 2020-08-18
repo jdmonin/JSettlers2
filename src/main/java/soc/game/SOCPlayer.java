@@ -290,7 +290,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int numKnights;
 
     /**
+     * Development cards played this game by this player, or null if none, at server:
+     * See {@link #getDevCardsPlayed()} for details.
+     * @since 2.4.10
+     */
+    private List<Integer> devCardsPlayed;
+
+    /**
      * How many Road Building cards ({@link SOCDevCardConstants#ROADS}) this player has played.
+     * @see #getDevCardsPlayed()
      * @see #updateDevCardsPlayed(int)
      * @since 2.4.10
      */
@@ -298,6 +306,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * How many Discovery/Year of Plenty cards ({@link SOCDevCardConstants#DISC}) this player has played.
+     * @see #getDevCardsPlayed()
      * @see #updateDevCardsPlayed(int)
      * @since 2.4.10
      */
@@ -305,6 +314,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * How many Monopoly cards ({@link SOCDevCardConstants#MONO}) this player has played.
+     * @see #getDevCardsPlayed()
      * @see #updateDevCardsPlayed(int)
      * @since 2.4.10
      */
@@ -729,6 +739,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         numRBCards = player.numRBCards;
         numDISCCards = player.numDISCCards;
         numMONOCards = player.numMONOCards;
+        if (player.devCardsPlayed != null)
+            devCardsPlayed = new ArrayList<>(player.devCardsPlayed);
         playedDevCard = player.playedDevCard;
         needToDiscard = player.needToDiscard;
         needToPickGoldHexResources = player.needToPickGoldHexResources;
@@ -1000,6 +1012,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return true if the player played a dev card this turn
+     * @see #setPlayedDevCard(boolean)
+     * @see #getDevCardsPlayed()
      */
     public boolean hasPlayedDevCard()
     {
@@ -1007,9 +1021,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the playedDevCard flag
+     * Set or clear the {@link #hasPlayedDevCard()} flag.
      *
-     * @param value         the value of the flag
+     * @param value  new value of the flag
+     * @see #updateDevCardsPlayed(int)
      */
     public void setPlayedDevCard(boolean value)
     {
@@ -1017,16 +1032,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Update stats for player's Discovery/Year of Plenty, Monopoly, or Road Building dev cards
-     * when such a card is played: Increment {@link #numDISCCards}, {@link #numMONOCards},
+     * Update player's {@link #getDevCardsPlayed()} list, and stats for Discovery/Year of Plenty, Monopoly,
+     * or Road Building dev cards when such a card is played: Increment {@link #numDISCCards}, {@link #numMONOCards},
      * or {@link #numRBCards}.
+     *
      * @param ctype  Any development card type such as {@link SOCDevCardConstants#ROADS},
      *     {@link SOCDevCardConstants#UNIV}, or {@link SOCDevCardConstants#UNKNOWN}.
-     *     Ignores all types except {@link SOCDevCardConstants#DISC DISC},
-     *     {@link SOCDevCardConstants#MONO MONO}, {@link SOCDevCardConstants#ROADS ROADS}.
+     *     Out-of-range values are allowed, not rejected with an Exception,
+     *     for compatibility if range is expanded in a later version.
+     * @see #setPlayedDevCard(boolean)
+     * @see SOCGame#playDiscovery()
+     * @see SOCGame#playKnight()
+     * @see SOCGame#playMonopoly()
+     * @see SOCGame#playRoadBuilding()
      * @since 2.4.10
      */
-    public void updateDevCardsPlayed(final int ctype)
+    public synchronized void updateDevCardsPlayed(final int ctype)
     {
         switch (ctype)
         {
@@ -1042,6 +1063,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             ++numRBCards;
             break;
         }
+
+        if (devCardsPlayed == null)
+            devCardsPlayed = new ArrayList<>();
+        devCardsPlayed.add(Integer.valueOf(ctype));
+    }
+
+    /**
+     * Get the chronological list of development cards played by player so far this game, or null if none, at server.
+     * Elements are card type constants: {@link SOCDevCardConstants#ROADS}, {@link SOCDevCardConstants#UNIV}, etc.,
+     * but can be any int value (for upwards compatibility).
+     *<P>
+     * {@link #updateDevCardsPlayed(int)} adds to this list.
+     *<P>
+     * At client, may be incomplete or null: Updated during game play, but not sent from server as client joins mid-game.
+     *
+     * @return copy of list of dev cards played, or {@code null} if none
+     * @since 2.4.10
+     */
+    public List<Integer> getDevCardsPlayed()
+    {
+        if (devCardsPlayed == null)
+            return null;
+
+        return new ArrayList<Integer>(devCardsPlayed);
     }
 
     /**
@@ -2280,7 +2325,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return whether this player has any unplayed dev cards
+     * @return whether this player has any unplayed dev cards in their Inventory
      *
      * @see #getInventory()
      * @since 1.1.00

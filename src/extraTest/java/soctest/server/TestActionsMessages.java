@@ -21,6 +21,7 @@ package soctest.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -476,6 +477,13 @@ public class TestActionsMessages
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
 
+        List<Integer> expectedCardsPlayed = new ArrayList<>(Arrays.asList(SOCDevCardConstants.KNIGHT));
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
+        assertEquals(1, cliPl.getNumKnights());
+        assertEquals(0, cliPl.numDISCCards);
+        assertEquals(0, cliPl.numMONOCards);
+        assertEquals(0, cliPl.numRBCards);
+
         /* monopoly: Sheep (victims pn=1 and pn=2 both have some sheep) */
 
         records.clear();
@@ -485,6 +493,9 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(SOCGame.WAITING_FOR_MONOPOLY, ga.getGameState());
+        assertEquals(1, cliPl.numMONOCards);
+        expectedCardsPlayed.add(SOCDevCardConstants.MONO);
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         tcli.pickResourceType(ga, SOCResourceConstants.SHEEP);
 
         try { Thread.sleep(60); }
@@ -520,6 +531,9 @@ public class TestActionsMessages
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(SOCGame.WAITING_FOR_DISCOVERY, ga.getGameState());
+            assertEquals(1, cliPl.numDISCCards);
+            expectedCardsPlayed.add(SOCDevCardConstants.DISC);
+            assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
             tcli.pickResources(ga, new SOCResourceSet(0, 1, 0, 1, 0, 0));
 
             try { Thread.sleep(60); }
@@ -557,6 +571,9 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(SOCGame.PLACING_FREE_ROAD1, ga.getGameState());
+        assertEquals(1, cliPl.numRBCards);
+        expectedCardsPlayed.add(SOCDevCardConstants.ROADS);
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_EDGE_1, board));
 
         try { Thread.sleep(60); }
@@ -619,6 +636,8 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertEquals(2, cliPl.getNumKnights());
+        expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
         tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
 
@@ -680,6 +699,7 @@ public class TestActionsMessages
         assertEquals(null, ga.getPlayerWithLargestArmy());
         assertEquals(4, cliPl.getPublicVP());
         assertEquals(2, cliPl.getNumKnights());
+
         final int ROBBER_HEX = 0x703;
         assertNotEquals("robber not moved there yet", ROBBER_HEX, board.getRobberHex());
         // victim's settlement should be sole adjacent piece
@@ -713,6 +733,8 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertEquals(3, cliPl.getNumKnights());
+        expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         assertEquals(6, cliPl.getPublicVP());
         assertEquals(cliPl, ga.getPlayerWithLargestArmy());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());

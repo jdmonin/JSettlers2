@@ -578,6 +578,9 @@
         "KNIGHT"
       ],
       "newDevCards": [],
+      "playedDevCards": [
+        "KNIGHT"
+      ],
       "pieces": [
         {
           "pieceType": "SETTLEMENT",

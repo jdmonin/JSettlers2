@@ -7995,6 +7995,10 @@ public class SOCGame implements Serializable, Cloneable
      * removes and returns a dev card from the deck without giving it to any player.
      *
      * @return the card that was drawn; a dev card type from {@link SOCDevCardConstants}.
+     * @see #playDiscovery()
+     * @see #playKnight()
+     * @see #playMonopoly()
+     * @see #playRoadBuilding()
      */
     public int buyDevCard()
     {
@@ -8256,16 +8260,19 @@ public class SOCGame implements Serializable, Cloneable
      * Call {@link SOCPlayer#getNumWarships()} afterwards to get the current player's new count.
      * Ships are converted in the chronological order they're placed, out to sea from the
      * player's coastal settlement; see {@link #isShipWarship(SOCShip)}.
+     *
+     * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playKnight()
     {
         final boolean isWarshipConvert = isGameOptionSet(SOCGameOption.K_SC_PIRI);
-        SOCPlayer pl = players[currentPlayerNumber];
+        final SOCPlayer pl = players[currentPlayerNumber];
 
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
+        pl.setPlayedDevCard(true);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.KNIGHT);
+        pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
 
         if (! isWarshipConvert)
         {
@@ -8304,6 +8311,8 @@ public class SOCGame implements Serializable, Cloneable
      * Doesn't set <tt>oldGameState</tt>, because after placing the road, we might need that field.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
+     *
+     * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playRoadBuilding()
     {
@@ -8312,7 +8321,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer player = players[currentPlayerNumber];
         player.setPlayedDevCard(true);
         player.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.ROADS);
-        player.numRBCards++;
+        player.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
 
         final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
             + player.getNumPieces(SOCPlayingPiece.SHIP);
@@ -8326,32 +8335,40 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the current player plays a Discovery card.
+     * Assumes {@link #canPlayDiscovery(int)} has already been called, and move is valid.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
+     *
+     * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playDiscovery()
     {
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.DISC);
-        players[currentPlayerNumber].numDISCCards++;
+        final SOCPlayer pl = players[currentPlayerNumber];
+        pl.setPlayedDevCard(true);
+        pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.DISC);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
         oldGameState = gameState;
         gameState = WAITING_FOR_DISCOVERY;
     }
 
     /**
      * the current player plays a Monopoly card.
+     * Assumes {@link #canPlayMonopoly(int)} has already been called, and move is valid.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
+     *
+     * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playMonopoly()
     {
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.MONO);
-        players[currentPlayerNumber].numMONOCards++;
+        final SOCPlayer pl = players[currentPlayerNumber];
+        pl.setPlayedDevCard(true);
+        pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.MONO);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
         oldGameState = gameState;
         gameState = WAITING_FOR_MONOPOLY;
     }
