@@ -729,7 +729,12 @@ import soc.util.Version;
                 while (net.isConnected())
                 {
                     String s = net.in.readUTF();
-                    handler.handle(SOCMessage.toMsg(s), false);
+                    SOCMessage msg = SOCMessage.toMsg(s);
+
+                    if (msg != null)
+                        handler.handle(msg, false);
+                    else if (client.debugTraffic)
+                        soc.debug.D.ebugERROR("Could not parse net message: " + s);
                 }
             }
             catch (IOException e)
@@ -792,7 +797,10 @@ import soc.util.Version;
                     String s = locl.readNext();
                     SOCMessage msg = SOCMessage.toMsg(s);
 
-                    handler.handle(msg, true);
+                    if (msg != null)
+                        handler.handle(msg, true);
+                    else if (client.debugTraffic)
+                        soc.debug.D.ebugERROR("Could not parse practice server message: " + s);
                 }
             }
             catch (IOException e)

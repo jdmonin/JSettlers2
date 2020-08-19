@@ -60,10 +60,12 @@ import soc.util.Version;
 
 /**
  * Nested class for processing incoming messages (treating).
- * {@link #handle(SOCMessage, boolean)} dispatches messages to their
+ * {@link ClientNetwork}'s reader thread calls
+ * {@link #handle(SOCMessage, boolean)} to dispatch messages to their
  * handler methods (such as {@link #handleBANKTRADE(SOCBankTrade)}).
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
+ *
  * @author paulbilnoski
  * @since 2.0.00
  */

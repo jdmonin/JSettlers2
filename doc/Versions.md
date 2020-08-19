@@ -66,6 +66,7 @@ and backport minor new features until `2.0.00` was ready.
 	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- Game window:
 	    - Hand Panel: Shorten unused space above trading squares
+	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 
 
 ## `2.4.00` (build JM20200704)

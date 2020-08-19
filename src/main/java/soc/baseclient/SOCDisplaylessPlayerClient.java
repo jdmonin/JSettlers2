@@ -270,7 +270,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
                     s = in.readUTF();
                 else
                     s = sLocal.readNext();
-                treat(SOCMessage.toMsg(s));
+
+                SOCMessage msg = SOCMessage.toMsg(s);
+                if (msg != null)
+                    treat(msg);
+                else if (debugTraffic)
+                    soc.debug.D.ebugERROR(nickname + ": Could not parse net message: " + s);
             }
         }
         catch (InterruptedIOException e)

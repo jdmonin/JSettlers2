@@ -810,7 +810,12 @@ public class SOCAccountClient extends Applet
             while (connected)
             {
                 String s = in.readUTF();
-                treat((SOCMessage) SOCMessage.toMsg(s));
+                SOCMessage msg = SOCMessage.toMsg(s);
+
+                if (msg != null)
+                    treat(msg);
+                else if (debugTraffic)
+                    soc.debug.D.ebugERROR("Could not parse net message: " + s);
             }
         } catch (IOException e) {
             // purposefully closing the socket brings us here too
@@ -858,13 +863,10 @@ public class SOCAccountClient extends Applet
      *<P>
      * If {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_TRAFFIC} is set, debug-prints message contents.
      *
-     * @param mes    the message
+     * @param mes    the message; not null
      */
     public void treat(SOCMessage mes)
     {
-        if (mes == null)
-            return;  // Msg parsing error
-
         if (debugTraffic || D.ebugIsEnabled())
             soc.debug.D.ebugPrintlnINFO("IN - " + mes.toString());
 
