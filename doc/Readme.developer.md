@@ -284,9 +284,14 @@ its `build.gradle` into other IDEs.
             - Name matches: `.git`
             - OK
     - Java Compiler:
-	    - Enable project specific settings
-	    - JDK compliance
-    	    - Compliance level: 1.7
+        - Enable project specific settings
+        - JDK compliance
+            - Compliance level: 1.7
+        - Errors/Warnings:
+            - Enable project specific settings
+            - Defaults are generally OK, but be sure to change these from "Ignore" to "Warning":
+                - Potential programming problems: switch case fall-through
+                - Name shadowing and conflicts: All
     - OK
     	- If eclipse asks "Build the project now?", hit Yes
 - Run the `assemble` or `build` gradle task now to copy resources from `src/main/resources/`.  

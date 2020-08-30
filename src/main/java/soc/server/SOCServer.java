@@ -1571,8 +1571,8 @@ public class SOCServer extends Server
      * For the password reset parameter, the caller will need to prompt for and change the password;
      * this method will not do that.
      *
-     * @param databaseUserName Used for DB connect - not retained
-     * @param databasePassword Used for DB connect - not retained
+     * @param dbUserName Used for DB connect - not retained
+     * @param dbPassword Used for DB connect - not retained
      * @throws SocketException  If a network setup problem occurs
      * @throws EOFException   If db setup script or upgrade ran successfully and server should exit now;
      *       thrown in Utility Mode ({@link #hasUtilityModeProp}).
@@ -1592,7 +1592,7 @@ public class SOCServer extends Server
      * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      * @since 1.1.00
      */
-    private void initSocServer(String databaseUserName, String databasePassword)
+    private void initSocServer(String dbUserName, String dbPassword)
         throws SocketException, EOFException, SQLException, IllegalArgumentException, IllegalStateException
     {
         Version.printVersionText(System.err, "Java Settlers Server ");
@@ -1838,7 +1838,7 @@ public class SOCServer extends Server
          * Checks schema version, runs upgrade if wants_upg_schema.
          */
         initSocServer_DB
-            (databaseUserName, databasePassword, wants_upg_schema, accountsRequired, db_test_bcrypt_mode);
+            (dbUserName, dbPassword, wants_upg_schema, accountsRequired, db_test_bcrypt_mode);
 
         /**
          * No errors thrown by now: Continue normal startup.
@@ -1930,8 +1930,8 @@ public class SOCServer extends Server
             }
         }
 
-        this.databaseUserName = databaseUserName;
-        this.databasePassword = databasePassword;
+        this.databaseUserName = dbUserName;
+        this.databasePassword = dbPassword;
 
         /**
          * Print game options if we've set them on commandline, or if
@@ -1997,8 +1997,8 @@ public class SOCServer extends Server
      *<P>
      * Before v2.2.00 this code was part of {@code initSocServer}.
      *
-     * @param databaseUserName  DB username given to {@code initSocServer}, or {@code null}
-     * @param databasePassword  DB password given to {@code initSocServer}, or ""
+     * @param dbUserName  DB username given to {@code initSocServer}, or {@code null}
+     * @param dbPassword  DB password given to {@code initSocServer}, or ""
      * @param wants_upg_schema  True if {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag is set
      * @param accountsRequired  True if {@link #PROP_JSETTLERS_ACCOUNTS_REQUIRED} flag is set
      * @param db_test_bcrypt_mode  True if {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} == "test"
@@ -2008,7 +2008,7 @@ public class SOCServer extends Server
      * @since 2.2.00
      */
     private void initSocServer_DB
-        (final String databaseUserName, final String databasePassword,
+        (final String dbUserName, final String dbPassword,
          final boolean wants_upg_schema, final boolean accountsRequired, final boolean db_test_bcrypt_mode)
         throws IllegalStateException, SQLException, EOFException
     {
@@ -2016,8 +2016,8 @@ public class SOCServer extends Server
 
         try
         {
-            SOCDBHelper.initialize(databaseUserName, databasePassword, props);
-            if (databaseUserName == null)
+            SOCDBHelper.initialize(dbUserName, dbPassword, props);
+            if (dbUserName == null)
                 return;
 
             features.add(SOCFeatureSet.SERVER_ACCOUNTS);
@@ -7029,9 +7029,9 @@ public class SOCServer extends Server
                 (c, msgUser, msgPass, cliVers, true, true,
                  new AuthSuccessRunnable()
                  {
-                    public void success(Connection c, int authResult)
+                    public void success(Connection conn, int authResult)
                     {
-                        createOrJoinGame(c, cliVers, gName, gameOpts, null, authResult);
+                        createOrJoinGame(conn, cliVers, gName, gameOpts, null, authResult);
                     }
                  });
         }

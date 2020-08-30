@@ -89,10 +89,10 @@ public class DisplaylessTesterClient
         {
             if (serverConnectInfo.stringSocketName == null)
             {
-                s = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
-                s.setSoTimeout(300000);
-                in = new DataInputStream(s.getInputStream());
-                out = new DataOutputStream(s.getOutputStream());
+                sock = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
+                sock.setSoTimeout(300000);
+                in = new DataInputStream(sock.getInputStream());
+                out = new DataOutputStream(sock.getOutputStream());
             }
             else
             {

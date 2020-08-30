@@ -951,7 +951,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Board layout generator stability:
     - See `TestBoardLayoutsRounds` in "extraTest" section
 - Build contents and built artifacts:
-    - `gradle dist` runs without errors, under gradle 5.6 and also gradle 6.4
+    - `gradle dist` runs without errors or unusual warnings, under gradle 5.6 and also gradle 6.4
     - Full jar and server jar manifests should include correct JSettlers version and git commit id:
         - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
         - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`

@@ -110,9 +110,9 @@ public class TestTemplatesAbstracts
             super(0, pal);
         }
 
-        public String toString(List<String> pa, String[] fieldNames)
+        public String toString(List<String> params, String[] fieldNames)
         {
-            return super.toString(pa, fieldNames);
+            return super.toString(params, fieldNames);
         }
     }
 

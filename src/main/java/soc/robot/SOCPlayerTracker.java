@@ -883,7 +883,7 @@ public class SOCPlayerTracker
      * Before v2.0.00 this method was {@code expandRoad}.
      *
      * @param targetRoad   the possible road
-     * @param player    the player who owns the original road
+     * @param pl        the player who owns the original road
      * @param dummy     the dummy player used to see what's legal; created by caller copying {@code player}
      * @param trackers  player trackers
      * @param level     how many levels (additional pieces) to expand;
@@ -894,7 +894,7 @@ public class SOCPlayerTracker
      *                  acts as if {@code level == 0}.
      */
     public void expandRoadOrShip
-        (final SOCPossibleRoad targetRoad, final SOCPlayer player, final SOCPlayer dummy,
+        (final SOCPossibleRoad targetRoad, final SOCPlayer pl, final SOCPlayer dummy,
          final SOCPlayerTracker[] trackers, final int level)
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
@@ -960,7 +960,7 @@ public class SOCPlayerTracker
                     List<SOCPossibleRoad> nr = new ArrayList<SOCPossibleRoad>();
                     nr.add(targetRoad);
 
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), nr);
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(pl, adjNode.intValue(), nr);
                     newPosSet.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
                     possibleSettlements.put(adjNode, newPosSet);
                     targetRoad.addNewPossibility(newPosSet);
@@ -1112,9 +1112,9 @@ public class SOCPlayerTracker
 
                         if (isRoad && ! isCoastal)
                         {
-                            newPR = new SOCPossibleRoad(player, edge, neededRoads);
+                            newPR = new SOCPossibleRoad(pl, edge, neededRoads);
                         } else {
-                            newPR = new SOCPossibleShip(player, edge, isCoastal, neededRoads);
+                            newPR = new SOCPossibleShip(pl, edge, isCoastal, neededRoads);
                             // System.err.println
                             //     ("L1072: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
                         }
@@ -1140,7 +1140,7 @@ public class SOCPlayerTracker
             //
             for (SOCPossibleRoad expandPR : roadsToExpand)
             {
-                expandRoadOrShip(expandPR, player, dummy, trackers, level - 1);
+                expandRoadOrShip(expandPR, pl, dummy, trackers, level - 1);
             }
         }
 

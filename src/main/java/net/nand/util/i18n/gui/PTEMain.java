@@ -744,12 +744,12 @@ public class PTEMain extends JFrame
             }
 
 
-            JPanel btns = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
-            bCreate = addBtn(btns, this, strings.get("base.create"), KeyEvent.VK_N);
+            JPanel btnsP = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
+            bCreate = addBtn(btnsP, this, strings.get("base.create"), KeyEvent.VK_N);
             bCreate.setEnabled(false);  // must enter or change text fields before Create
-            bCancel = addBtn(btns, this, strings.get("base.cancel"), KeyEvent.VK_ESCAPE);
+            bCancel = addBtn(btnsP, this, strings.get("base.cancel"), KeyEvent.VK_ESCAPE);
 
-            p.add(btns);
+            p.add(btnsP);
             setContentPane(p);
             getRootPane().setDefaultButton(bCreate);
             getRootPane().registerKeyboardAction
@@ -1075,10 +1075,10 @@ public class PTEMain extends JFrame
                 // "Destination (more specific locale):"
             addToGrid(p, gbl, gbc, new JLabel(dest.getPath()));  // show dest's entire path for clarity
 
-            JPanel btns = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
-            bEdit = addBtn(btns, this, strings.get("base.edit"), KeyEvent.VK_E);
-            bCancel = addBtn(btns, this, strings.get("base.cancel"), KeyEvent.VK_ESCAPE);
-            addToGrid(p, gbl, gbc, btns);
+            JPanel btnsP = new JPanel(new FlowLayout(FlowLayout.TRAILING, 3, 15));  // 15 for space above buttons
+            bEdit = addBtn(btnsP, this, strings.get("base.edit"), KeyEvent.VK_E);
+            bCancel = addBtn(btnsP, this, strings.get("base.cancel"), KeyEvent.VK_ESCAPE);
+            addToGrid(p, gbl, gbc, btnsP);
 
             setContentPane(p);
             getRootPane().setDefaultButton(bEdit);

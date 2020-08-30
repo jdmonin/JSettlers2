@@ -2593,11 +2593,11 @@ public class SOCRobotDM
    * @param posRoad  the possible piece that we're scoring
    * @param roadETA  the ETA for a road or ship, from building speed estimates
    * @param leadersCurrentWGETA  the leaders current WGETA
-   * @param playerTrackers  the player trackers (for figuring out road building plan and bonus/ETA)
+   * @param plTrackers  the player trackers (for figuring out road building plan and bonus/ETA)
    */
   protected float getWinGameETABonusForRoad
       (final SOCPossibleRoad posRoad, final int roadETA, final int leadersCurrentWGETA,
-       final SOCPlayerTracker[] playerTrackers)
+       final SOCPlayerTracker[] plTrackers)
   {
     D.ebugPrintlnINFO("--- addWinGameETABonusForRoad");
     int ourCurrentWGETA = ourPlayerTracker.getWinGameETA();
@@ -2628,9 +2628,9 @@ public class SOCRobotDM
         ? new SOCShip(ourPlayerData, posRoad.getCoordinates(), null)
         : new SOCRoad(ourPlayerData, posRoad.getCoordinates(), null);
 
-    trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, playerTrackers);
+    trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRS, game, plTrackers);
     SOCPlayerTracker.updateWinGameETAs(trackersCopy);
-    float score = calcWGETABonus(playerTrackers, trackersCopy);
+    float score = calcWGETABonus(plTrackers, trackersCopy);
 
     if (! posRoad.getThreats().isEmpty())
     {

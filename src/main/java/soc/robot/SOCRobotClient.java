@@ -351,10 +351,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         {
             if (serverConnectInfo.stringSocketName == null)
             {
-                s = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
-                s.setSoTimeout(300000);
-                in = new DataInputStream(s.getInputStream());
-                out = new DataOutputStream(s.getOutputStream());
+                sock = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
+                sock.setSoTimeout(300000);
+                in = new DataInputStream(sock.getInputStream());
+                out = new DataOutputStream(sock.getOutputStream());
             }
             else
             {
@@ -403,10 +403,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 connected = false;
                 if (serverConnectInfo.stringSocketName == null)
                 {
-                    s.close();
-                    s = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
-                    in = new DataInputStream(s.getInputStream());
-                    out = new DataOutputStream(s.getOutputStream());
+                    sock.close();
+                    sock = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
+                    in = new DataInputStream(sock.getInputStream());
+                    out = new DataOutputStream(sock.getOutputStream());
                 }
                 else
                 {

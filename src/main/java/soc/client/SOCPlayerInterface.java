@@ -4659,7 +4659,7 @@ public class SOCPlayerInterface extends Frame
         }
 
         public void playerPickSpecialItem
-            (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi,
+            (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gidx, final int pidx,
              final boolean isPick, final int coord, final int level, final String sv)
         {
             if ((pl == null) && isPick)
@@ -4671,7 +4671,7 @@ public class SOCPlayerInterface extends Frame
             if (isPick)
             {
                 String iname = null;
-                final SOCSpecialItem itm = ga.getSpecialItem(typeKey, gi);
+                final SOCSpecialItem itm = ga.getSpecialItem(typeKey, gidx);
 
                 if (itm != null)
                     iname = itm.getStringValue();
@@ -4679,23 +4679,24 @@ public class SOCPlayerInterface extends Frame
                 if (iname != null)
                     iname = strings.get("game.specitem.sc_wond." + iname); // "w3" -> "Monument", etc
                 else
-                    iname = "# " + gi;
+                    iname = "# " + gidx;
 
                 if (level == 1)
-                    this.pi.printKeyed("game.specitem.sc_wond.started", pl.getName(), iname);
+                    pi.printKeyed("game.specitem.sc_wond.started", pl.getName(), iname);
                         // "{0} started building a Wonder! ({1})"
                 else
-                    this.pi.printKeyed("game.specitem.sc_wond.built", pl.getName(), level, iname);
+                    pi.printKeyed("game.specitem.sc_wond.built", pl.getName(), level, iname);
                         // "{0} has built level # of their Wonder ({2})."
 
                 // TODO any visual effect?
             } else {
-                this.pi.printKeyed("game.specitem.sc_wond.decl");  // "You cannot build that Wonder right now."
+                pi.printKeyed("game.specitem.sc_wond.decl");  // "You cannot build that Wonder right now."
             }
         }
 
         public void playerSetSpecialItem
-            (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isSet)
+            (final String typeKey, final SOCGame ga, final SOCPlayer pl,
+             final int gidx, final int pidx, final boolean isSet)
         {
             if (pl == null)
                 return;  // <--- Early return: So far, everything implemented is player-specific ---
@@ -4703,7 +4704,7 @@ public class SOCPlayerInterface extends Frame
             if (! typeKey.equals(SOCGameOption.K_SC_WOND))
                 return;  // <--- Early return: So far, the only known typeKey is _SC_WOND ---
 
-            final SOCHandPanel hp = this.pi.getPlayerHandPanel(pl.getPlayerNumber());
+            final SOCHandPanel hp = pi.getPlayerHandPanel(pl.getPlayerNumber());
             if (hp != null)
                 hp.updateValue(PlayerClientListener.UpdateType.WonderLevel);
         }

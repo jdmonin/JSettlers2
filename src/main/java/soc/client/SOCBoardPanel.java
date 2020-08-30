@@ -4235,7 +4235,7 @@ import javax.swing.JComponent;
         if (pnum < 0)
             return;
 
-        int arrowX, arrowY, diceX, diceY;  // diceY always arrowY + 5
+        int aX, aY, diceX, diceY;  // diceY is always aY + 5
         boolean arrowLeft;
 
         // Player numbers are clockwise, starting at upper-left.
@@ -4262,44 +4262,44 @@ import javax.swing.JComponent;
         {
         case 0:
             // top left
-            arrowY = scaleToActual(5);
+            aY = scaleToActual(5);
             arrowLeft = true;
             break;
 
         case 1:
             // top right
-            arrowY = scaleToActual(5);
+            aY = scaleToActual(5);
             arrowLeft = false;
             break;
 
         case 2:
             // bottom right
-            arrowY = scaledPanelH - scaleToActual(42);
+            aY = scaledPanelH - scaleToActual(42);
             arrowLeft = false;
             break;
 
         default:  // 3: (Default prevents compiler var-not-init errors)
             // bottom left
-            arrowY = scaledPanelH - scaleToActual(42);
+            aY = scaledPanelH - scaleToActual(42);
             arrowLeft = true;
             break;
 
         case 4:
             // middle right
-            arrowY = scaledPanelH / 2 - scaleToActual(12);
+            aY = scaledPanelH / 2 - scaleToActual(12);
             arrowLeft = false;
             break;
 
         case 5:
             // middle left
-            arrowY = scaledPanelH / 2 - scaleToActual(12);
+            aY = scaledPanelH / 2 - scaleToActual(12);
             arrowLeft = true;
             break;
         }
 
-        arrowX = (arrowLeft) ? scaleToActual(3) : scaledPanelW - scaleToActual(40);
+        aX = (arrowLeft) ? scaleToActual(3) : scaledPanelW - scaleToActual(40);
         diceX = (arrowLeft) ? scaleToActual(12) : scaledPanelW - scaleToActual(39);
-        diceY = arrowY + scaleToActual(6);
+        diceY = aY + scaleToActual(6);
 
         /**
          * Draw Arrow
@@ -4311,7 +4311,7 @@ import javax.swing.JComponent;
         else
             scArrowX = scaledArrowXR;
 
-        g.translate(arrowX, arrowY);
+        g.translate(aX, aY);
 
         if (! (game.isSpecialBuilding() || (gameState == SOCGame.OVER)))
             g.setColor(ARROW_COLOR);
@@ -4321,7 +4321,7 @@ import javax.swing.JComponent;
         g.setColor(Color.BLACK);
         g.drawPolygon(scArrowX, scaledArrowY, scArrowX.length);
 
-        g.translate(-arrowX, -arrowY);
+        g.translate(-aX, -aY);
 
         /**
          * Draw Dice result number
@@ -4511,6 +4511,7 @@ import javax.swing.JComponent;
      *
      * @see #drawBoardEmpty(Graphics)
      */
+    @SuppressWarnings("fallthrough")
     private void drawBoard(Graphics g)
     {
         Image ebb = emptyBoardBuffer;
@@ -6656,6 +6657,7 @@ import javax.swing.JComponent;
      *
      * @param evt DOCUMENT ME!
      */
+    @SuppressWarnings("fallthrough")
     public void mouseClicked(MouseEvent evt)
     {
         try
@@ -9032,6 +9034,7 @@ import javax.swing.JComponent;
        *             <tt>hSh &lt; 0</tt> is the only time this method trusts the caller's
        *             game state checks, instead of doing its own checking.
        */
+      @SuppressWarnings("fallthrough")
       public void showBuild(int x, int y, int hR, int hSe, int hC, int hSh)
       {
           wantsCancel = false;

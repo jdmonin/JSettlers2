@@ -644,24 +644,24 @@ public class SOCGameOption
         // I18N: Game option descriptions are also stored as gameopt.* in server/strings/toClient_*.properties
         //       to be sent to clients if needed.
 
-        final SOCGameOption pl = new SOCGameOption
+        final SOCGameOption optPL = new SOCGameOption
                 ("PL", -1, 1108, 4, 2, 6, 0, "Maximum # players");
-        opt.put("PL", pl);
+        opt.put("PL", optPL);
 
-        final SOCGameOption plb = new SOCGameOption
+        final SOCGameOption optPLB = new SOCGameOption
                 ("PLB", 1108, 1113, false, FLAG_DROP_IF_UNUSED, "Use 6-player board");
-        plb.setClientFeature(SOCFeatureSet.CLIENT_6_PLAYERS);
-        opt.put("PLB", plb);
+        optPLB.setClientFeature(SOCFeatureSet.CLIENT_6_PLAYERS);
+        opt.put("PLB", optPLB);
 
-        final SOCGameOption plp = new SOCGameOption
+        final SOCGameOption optPLP = new SOCGameOption
                 ("PLP", 1108, 2300, false, FLAG_DROP_IF_UNUSED, "6-player board: Can Special Build only if 5 or 6 players in game");
-        plp.setClientFeature(SOCFeatureSet.CLIENT_6_PLAYERS);
-        opt.put("PLP", plp);
+        optPLP.setClientFeature(SOCFeatureSet.CLIENT_6_PLAYERS);
+        opt.put("PLP", optPLP);
 
-        SOCGameOption op = new SOCGameOption
+        SOCGameOption optSBL = new SOCGameOption
                 ("SBL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Use sea board");  // see also SOCBoardLarge
-        op.setClientFeature(SOCFeatureSet.CLIENT_SEA_BOARD);
-        opt.put("SBL", op);
+        optSBL.setClientFeature(SOCFeatureSet.CLIENT_SEA_BOARD);
+        opt.put("SBL", optSBL);
 
         opt.put("_BHW", new SOCGameOption
                 ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED | FLAG_INTERNAL_GAME_PROPERTY,
@@ -682,10 +682,10 @@ public class SOCGameOption
                 // If min or max changes, test client to make sure New Game dialog still shows it as a dropdown
                 // (not a text box) for user convenience
 
-        final SOCGameOption sc = new SOCGameOption
+        final SOCGameOption optSC = new SOCGameOption
                 ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
-        sc.setClientFeature(SOCFeatureSet.CLIENT_SCENARIO_VERSION);
-        opt.put("SC", sc);
+        optSC.setClientFeature(SOCFeatureSet.CLIENT_SCENARIO_VERSION);
+        opt.put("SC", optSC);
 
         // Game scenario options (rules and events)
         //      Constructor calls setClientFeature(SOCFeatureSet.CLIENT_SCENARIO_VERSION) for these
@@ -753,10 +753,10 @@ public class SOCGameOption
         // If you create a ChangeListener, also update adjustOptionsToKnown for server-side code.
 
         // If PL goes over 4, set PLB.
-        pl.addChangeListener(new ChangeListener()
+        optPL.addChangeListener(new ChangeListener()
         {
             public void valueChanged
-                (final SOCGameOption opt, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
+                (final SOCGameOption op, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
             {
                 if  (! (oldValue instanceof Integer))
                     return;  // ignore unless int
@@ -775,10 +775,10 @@ public class SOCGameOption
 
         // If PLB becomes unchecked, set PL to 4 if it's 5 or 6;
         // if it becomes checked, set PL to 6 if <= 4, unless PL.userChanged already
-        plb.addChangeListener(new ChangeListener()
+        optPLB.addChangeListener(new ChangeListener()
         {
             public void valueChanged
-                (final SOCGameOption opt, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
+                (final SOCGameOption op, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)
             {
                 SOCGameOption pl = currentOpts.get("PL");
                 if (pl == null)
@@ -819,9 +819,9 @@ public class SOCGameOption
         });
 
         // If PLP is set or cleared, also set or clear PLB unless user's already changed it
-        plp.addChangeListener(new ChangeListener()
+        optPLP.addChangeListener(new ChangeListener()
         {
-            public void valueChanged(SOCGameOption opt, Object oldValue, Object newValue,
+            public void valueChanged(SOCGameOption op, Object oldValue, Object newValue,
                     Map<String, SOCGameOption> currentOpts)
             {
                 final boolean changedTo = (Boolean.TRUE.equals(newValue));
@@ -841,7 +841,7 @@ public class SOCGameOption
         // Game creation at the server doesn't rely on these updates.
         // For game creation with scenario options, see adjustOptionsToKnown(doServerPreadjust=true).
 
-        sc.addChangeListener(new ChangeListener()
+        optSC.addChangeListener(new ChangeListener()
         {
             public void valueChanged
                 (final SOCGameOption optSc, Object oldValue, Object newValue, Map<String, SOCGameOption> currentOpts)

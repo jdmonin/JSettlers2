@@ -567,7 +567,6 @@ import javax.swing.border.EmptyBorder;
                 // may allow other actions besides PICK, or actions
                 // during other players' turns.
 
-                final SOCGame ga = pi.getGame();
                 final GameMessageSender messageSender = pi.getClient().getGameMessageSender();
                 boolean askedSBP = false;
                 if (! pi.clientIsCurrentPlayer())

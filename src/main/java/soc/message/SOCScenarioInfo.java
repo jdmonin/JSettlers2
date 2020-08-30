@@ -130,7 +130,7 @@ import soc.util.SOCFeatureSet;  // for javadocs only
 public class SOCScenarioInfo extends SOCMessageTemplateMs
     implements SOCMessageFromUnauthClient
 {
-    private static final long serialVersionUID = 2000L;
+    private static final long serialVersionUID = 2410L;
 
     /**
      * If an older client is asking for any changed/new scenarios,
@@ -183,12 +183,14 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * or {@code null} if {@link #isKeyUnknown} or {@link #noMoreScens}
      * or if this message is from client to server.
      * When {@code null}, see field {@link #scKey} for scenario name.
+     *<P>
+     * Before v2.4.10, this field was {@code sc}.
      */
-    private SOCScenario sc;
+    private SOCScenario scen;
 
     /**
      * The scenario key in a reply from server.
-     * If {@link #isKeyUnknown}, use this field because {@link #sc} is null.
+     * If {@link #isKeyUnknown}, use this field because {@link #scen} is null.
      */
     private final String scKey;
 
@@ -227,7 +229,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
         isKeyUnknown = false;
         noMoreScens = (sc != null);
 
-        this.sc = sc;
+        scen = sc;
         if (sc != null)
         {
             scKey = sc.key;
@@ -371,7 +373,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
                 if (! isKeyUnknown)
                 {
                     final String longDesc = (L >= 6) ? pa.get(5) : null;
-                    sc = new SOCScenario(scKey, minVers, lastModVers, pa.get(4), longDesc, pa.get(3));
+                    scen = new SOCScenario(scKey, minVers, lastModVers, pa.get(4), longDesc, pa.get(3));
                 }
             } else {
                 isKeyUnknown = false;
@@ -395,7 +397,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      */
     public SOCScenario getScenario()
     {
-        return sc;
+        return scen;
     }
 
     /**

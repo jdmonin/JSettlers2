@@ -493,8 +493,8 @@ public interface PlayerClientListener
      * @param ga  Game containing {@code pl} and special items
      * @param pl  Player who picked: Never {@code null} when {@code isPick},
      *                is {@code null} if server declined our player's request
-     * @param gi  Picked this index within game's Special Item list, or -1
-     * @param pi  Picked this index within {@code pl}'s Special Item list, or -1
+     * @param gidx  Picked this index within game's Special Item list, or -1
+     * @param pidx  Picked this index within {@code pl}'s Special Item list, or -1
      * @param isPick  True if calling for {@code PICK}, false if server has {@code DECLINE}d the client player's request
      * @param coord  Optional coordinates on the board for this item, or -1. An edge or a node, depending on item type
      * @param level  Optional level of construction or strength, or 0
@@ -503,8 +503,8 @@ public interface PlayerClientListener
      * @see SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)
      */
     void playerPickSpecialItem
-        (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isPick,
-         final int coord, final int level, final String sv);
+        (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gidx, final int pidx,
+         final boolean isPick, final int coord, final int level, final String sv);
 
     /**
      * Show the results of a player's {@code SET} or {@code CLEAR} of a known {@link SOCSpecialItem Special Item}.
@@ -515,14 +515,15 @@ public interface PlayerClientListener
      * @param typeKey  Item's {@code typeKey}, as described in the {@link SOCSpecialItem} class javadoc
      * @param ga  Game containing {@code pl} and special items
      * @param pl  Requesting player; never {@code null}
-     * @param gi  Set or clear this index within game's Special Item list, or -1
-     * @param pi  Set or clear this index within {@code pl}'s Special Item list, or -1
+     * @param gidx  Set or clear this index within game's Special Item list, or -1
+     * @param pidx  Set or clear this index within {@code pl}'s Special Item list, or -1
      * @param isSet  True if player has set, false if player has cleared, this item index
      * @see #playerPickSpecialItem(String, SOCGame, SOCPlayer, int, int, boolean, int, int, String)
      * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     void playerSetSpecialItem
-        (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isSet);
+        (final String typeKey, final SOCGame ga, final SOCPlayer pl,
+         final int gidx, final int pidx, final boolean isSet);
 
     /**
      * In scenario _SC_PIRI, present the server's response to a Pirate Fortress Attack request from the

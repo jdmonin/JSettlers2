@@ -936,6 +936,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
+    @SuppressWarnings("fallthrough")
     private void handleCHOOSEPLAYER(SOCGame ga, Connection c, final SOCChoosePlayer mes)
     {
         ga.takeMonitor();

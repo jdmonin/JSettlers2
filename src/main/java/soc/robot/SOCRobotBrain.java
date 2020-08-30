@@ -3058,6 +3058,7 @@ public class SOCRobotBrain extends Thread
      * In general, most tracking is done a bit later in {@link #handlePUTPIECE_updateTrackers(int, int, int)}.
      * @since 1.1.08
      */
+    @SuppressWarnings("fallthrough")
     protected void handlePUTPIECE_updateGameData(SOCPutPiece mes)
     {
         switch (mes.getPieceType())
@@ -3789,6 +3790,7 @@ public class SOCRobotBrain extends Thread
      * @param amount  The new value to set, or the delta to gain/lose
      * @since 2.0.00
      */
+    @SuppressWarnings("fallthrough")
     protected void handlePLAYERELEMENT
         (SOCPlayer pl, final int pn, final int action, final PEType etype, final int amount)
     {

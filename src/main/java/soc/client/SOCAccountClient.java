@@ -179,7 +179,8 @@ public class SOCAccountClient extends Applet
 
     protected String host;
     protected int port;
-    protected Socket s;
+    /** Network socket. Before v2.4.10 this field was {@code s}. */
+    protected Socket sock;
     protected DataInputStream in;
     protected DataOutputStream out;
     protected Thread reader = null;
@@ -652,9 +653,9 @@ public class SOCAccountClient extends Applet
 
         try
         {
-            s = new Socket(host, port);
-            in = new DataInputStream(s.getInputStream());
-            out = new DataOutputStream(s.getOutputStream());
+            sock = new Socket(host, port);
+            in = new DataInputStream(sock.getInputStream());
+            out = new DataOutputStream(sock.getOutputStream());
             connected = true;
             (reader = new Thread(this)).start();
 
@@ -1061,7 +1062,7 @@ public class SOCAccountClient extends Applet
 
         try
         {
-            s.close();
+            sock.close();
         } catch (Exception e) {
             ex = e;
         }

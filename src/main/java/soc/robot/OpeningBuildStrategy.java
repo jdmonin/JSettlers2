@@ -762,7 +762,7 @@ public class OpeningBuildStrategy {
          * check out good 2:1 ports that we don't have
          * and calculate the resourceEstimates field
          */
-        final int[] resourceEstimates = estimateResourceRarity();
+        final int[] resourceEstis = estimateResourceRarity();
 
         for (int portType = SOCBoard.CLAY_PORT; portType <= SOCBoard.WOOD_PORT;
                 portType++)
@@ -771,10 +771,10 @@ public class OpeningBuildStrategy {
              * if the chances of rolling a number on the resource is better than 1/3,
              * then it's worth looking at the port
              */
-            if ((resourceEstimates[portType] > 33) && (!ourPlayerData.getPortFlag(portType)))
+            if ((resourceEstis[portType] > 33) && (!ourPlayerData.getPortFlag(portType)))
             {
                 List<Integer> portNodes = game.getBoard().getPortCoordinates(portType);
-                int estimatedPortWeight = (resourceEstimates[portType] * portWeight) / 56;
+                int estimatedPortWeight = (resourceEstis[portType] * portWeight) / 56;
                 bestSpotInANodeSet(nodes, portNodes, estimatedPortWeight);
             }
         }

@@ -769,7 +769,7 @@ public class SOCDBHelper
      *
      * @param user  the user name for accessing the database, or {@code null} to not attempt connection
      * @param pswd  the password for the user, or ""
-     * @param props  null, or properties containing {@link #PROP_JSETTLERS_DB_DRIVER},
+     * @param dbProps  null, or properties containing {@link #PROP_JSETTLERS_DB_DRIVER},
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
      *       Ignores {@link #PROP_JSETTLERS_DB_USER} and {@link #PROP_JSETTLERS_DB_PASS} if present,
      *       uses the {@code user} and {@code pswd} parameters instead.
@@ -798,7 +798,7 @@ public class SOCDBHelper
      * @throws IOException  if <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP} but
      *         the SQL file wasn't found, or if any other IO error occurs reading the script
      */
-    public static void initialize(final String user, final String pswd, Properties props)
+    public static void initialize(final String user, final String pswd, Properties dbProps)
         throws IllegalArgumentException, DBSettingMismatchException, SQLException, IOException
     {
         initialized = false;
@@ -809,15 +809,15 @@ public class SOCDBHelper
         driverclass = "com.mysql.jdbc.Driver";
         dbType = DBTYPE_MYSQL;
         dbURL = "jdbc:mysql://localhost/socdata";
-        SOCDBHelper.props = props;
+        SOCDBHelper.props = dbProps;
 
         if (user == null)
             return;
 
-        if (props != null)
+        if (dbProps != null)
         {
-            String prop_dbURL = props.getProperty(PROP_JSETTLERS_DB_URL);
-            String prop_driverclass = props.getProperty(PROP_JSETTLERS_DB_DRIVER);
+            String prop_dbURL = dbProps.getProperty(PROP_JSETTLERS_DB_URL);
+            String prop_driverclass = dbProps.getProperty(PROP_JSETTLERS_DB_DRIVER);
 
             if (prop_dbURL != null)
             {
@@ -889,7 +889,7 @@ public class SOCDBHelper
                 }
             }
 
-            String prop_bcryptWF = props.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+            String prop_bcryptWF = dbProps.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
             if (prop_bcryptWF != null)
             {
                 String errMsg = null;
@@ -911,7 +911,7 @@ public class SOCDBHelper
                          + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + ")");
             }
 
-            String pval = props.getProperty(PROP_JSETTLERS_DB_SETTINGS);
+            String pval = dbProps.getProperty(PROP_JSETTLERS_DB_SETTINGS);
             if ((pval != null) && ! pval.equals("write"))
                 throw new IllegalArgumentException
                     ("DB: Utility property " + PROP_JSETTLERS_DB_SETTINGS + "'s value must be \"write\"");
@@ -974,7 +974,7 @@ public class SOCDBHelper
             // Load the JDBC driver
             try
             {
-                String prop_jarname = (props != null) ? props.getProperty(PROP_JSETTLERS_DB_JAR) : null;
+                String prop_jarname = (dbProps != null) ? dbProps.getProperty(PROP_JSETTLERS_DB_JAR) : null;
                 if ((prop_jarname != null) && (prop_jarname.length() == 0))
                     prop_jarname = null;
 
@@ -1009,7 +1009,7 @@ public class SOCDBHelper
             }
 
             // Do we have a setup script to run?
-            String prop_dbSetupScript = (props != null) ? props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP) : null;
+            String prop_dbSetupScript = (dbProps != null) ? dbProps.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP) : null;
             if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
                 prop_dbSetupScript = null;
 
@@ -1191,10 +1191,10 @@ public class SOCDBHelper
         if (driverinstance == null) {
             connection = DriverManager.getConnection(dbURL, user, pswd);
         } else {
-            Properties props = new Properties();
-            props.put("user", user);
-            props.put("password", pswd);
-            connection = driverinstance.connect(dbURL, props);
+            Properties dbProps = new Properties();
+            dbProps.put("user", user);
+            dbProps.put("password", pswd);
+            connection = driverinstance.connect(dbURL, dbProps);
         }
 
         errorCondition = false;
@@ -1610,9 +1610,9 @@ public class SOCDBHelper
                                     {
                                         try
                                         {
-                                            boolean ok = BCrypt.checkpw(sPass, dbPass);
+                                            boolean pwOK = BCrypt.checkpw(sPass, dbPass);
                                                 // may throw IllegalArgumentException
-                                            authCallback.authResult((ok) ? dbUser: null, true);  // <--- Callback ---
+                                            authCallback.authResult((pwOK) ? dbUser: null, true);  // <--- Callback ---
                                         } catch (RuntimeException e) {}
                                     }
                                 });

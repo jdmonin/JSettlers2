@@ -2241,9 +2241,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         fr.deleteMember(nickname);
     }
 
-    public void channelMemberList(String channel, Collection<String> members)
+    public void channelMemberList(String channelName, Collection<String> members)
     {
-        ChannelFrame fr = channels.get(channel);
+        ChannelFrame fr = channels.get(channelName);
 
         for (String member : members)
             fr.addMember(member);

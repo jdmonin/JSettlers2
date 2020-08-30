@@ -4847,6 +4847,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return true if this piece type is the next to be placed
      * @throws IllegalStateException if gameState is past initial placement (> {@link SOCGame#START3B})
      */
+    @SuppressWarnings("fallthrough")
     public boolean canBuildInitialPieceType(final int pieceType)
         throws IllegalStateException
     {

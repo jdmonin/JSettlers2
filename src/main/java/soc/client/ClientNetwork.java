@@ -122,7 +122,11 @@ import soc.util.Version;
      */
     SOCServer localTCPServer = null;
 
-    Socket s;
+    /**
+     * Network socket.
+     * Before v2.4.10 this field was {@code s}.
+     */
+    Socket sock;
     DataInputStream in;
     DataOutputStream out;
     Thread reader = null;
@@ -433,10 +437,10 @@ import soc.util.Version;
             final SocketAddress srvAddr = (host != null)
                 ? new InetSocketAddress(host, port)
                 : new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
-            s = new Socket();
-            s.connect(srvAddr, CONNECT_TIMEOUT_MS);
-            in = new DataInputStream(s.getInputStream());
-            out = new DataOutputStream(s.getOutputStream());
+            sock = new Socket();
+            sock.connect(srvAddr, CONNECT_TIMEOUT_MS);
+            in = new DataInputStream(sock.getInputStream());
+            out = new DataOutputStream(sock.getOutputStream());
             connected = true;
 
             (reader = new Thread(new NetReadTask(client, this))).start();
@@ -449,12 +453,14 @@ import soc.util.Version;
             String msg = client.strings.get("pcli.error.couldnotconnect", ex);  // "Could not connect to the server: " + ex
             System.err.println(msg);
             mainDisplay.showErrorPanel(msg, (ex_P == null));
+
             if (connected)
             {
                 disconnect();
                 connected = false;
             }
             serverConnectInfo = null;
+
             if (in != null)
             {
                 try { in.close(); } catch (Throwable th) {}
@@ -465,7 +471,8 @@ import soc.util.Version;
                 try { out.close(); } catch (Throwable th) {}
                 out = null;
             }
-            s = null;
+
+            sock = null;
         }
     }
 
@@ -482,7 +489,7 @@ import soc.util.Version;
 
         try
         {
-            s.close();
+            sock.close();
         }
         catch (Exception e)
         {

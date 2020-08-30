@@ -394,9 +394,9 @@ public class SOCServerMessageHandler
                 (c, mesUser, mes.password, cliVersion, isPlayerRole, false,
                  new SOCServer.AuthSuccessRunnable()
                  {
-                    public void success(final Connection c, final int authResult)
+                    public void success(final Connection conn, final int authResult)
                     {
-                        handleAUTHREQUEST_postAuth(c, mesUser, mesRole, isPlayerRole, cliVersion, authResult);
+                        handleAUTHREQUEST_postAuth(conn, mesUser, mesRole, isPlayerRole, cliVersion, authResult);
                     }
                  });
         }
@@ -2094,9 +2094,9 @@ public class SOCServerMessageHandler
                 (c, msgUser, msgPass, cliVers, true, false,
                  new SOCServer.AuthSuccessRunnable()
                  {
-                    public void success(final Connection c, final int authResult)
+                    public void success(final Connection conn, final int authResult)
                     {
-                        handleJOINCHANNEL_postAuth(c, chName, cv, authResult);
+                        handleJOINCHANNEL_postAuth(conn, chName, cv, authResult);
                     }
                  });
         }

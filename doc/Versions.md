@@ -67,6 +67,8 @@ and backport minor new features until `2.0.00` was ready.
 	- Game window:
 	    - Hand Panel: Shorten unused space above trading squares
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
+- Code internals:
+	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields
 
 
 ## `2.4.00` (build JM20200704)

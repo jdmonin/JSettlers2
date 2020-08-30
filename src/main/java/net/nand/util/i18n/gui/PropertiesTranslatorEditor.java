@@ -323,7 +323,7 @@ public class PropertiesTranslatorEditor
         opan.setOpaque(true);  //content panes must be opaque
         opan.setLayout(new BorderLayout());  // stretch JTable on resize
 
-        mod = new PTSwingTableModel(this);  // sets up model to pair
+        mod = new PTSwingTableModel();  // sets up model to pair
         jtab = new JTable(mod)
         {
             /** Table header tooltips show full src, dest paths */
@@ -1125,7 +1125,7 @@ public class PropertiesTranslatorEditor
             {
                 public void run()
                 {
-                    final JComponent component = (JComponent) e.getComponent();
+                    final JComponent component = e.getComponent();
                     component.requestFocusInWindow();
                     component.removeAncestorListener(RequestFocusListener.this);
                     if (component instanceof JTextComponent)
@@ -1316,6 +1316,7 @@ public class PropertiesTranslatorEditor
                 // fall through
             case DEST_ONLY_ERROR:
                 c.setBackground(Color.RED);
+                break;
 
             case DEST_EMPTY:
                 c.setBackground(Color.GREEN.brighter());
@@ -1347,12 +1348,10 @@ public class PropertiesTranslatorEditor
     private class PTSwingTableModel
         extends AbstractTableModel
     {
-        private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 2L;
 
         /** Number of columns: key, value src, value dest */
         private static final int NUM_COLS = 3;
-
-        public ParsedPropsFilePair pair;
 
         /** Search: lowercased current search text, or null if no search or no matches found */
         private String searchText;
@@ -1378,11 +1377,10 @@ public class PropertiesTranslatorEditor
         public boolean searchWrapped;
 
         /**
-         * Create and populate with existing data.
+         * Create and populate with our {@link PropertiesTranslatorEditor}'s existing data.
          */
-        public PTSwingTableModel(PropertiesTranslatorEditor pted)
+        public PTSwingTableModel()
         {
-            pair = pted.pair;
         }
 
         /**
@@ -1556,6 +1554,7 @@ public class PropertiesTranslatorEditor
             return "";
         }
 
+        @SuppressWarnings("fallthrough")
         public void setValueAt(final Object newVal, final int r, final int c)
         {
             final int sz = pair.size();

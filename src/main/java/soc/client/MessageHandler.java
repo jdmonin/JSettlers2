@@ -2712,6 +2712,7 @@ import soc.util.Version;
      * Handle "simple action" announcements from the server.
      * @since 1.1.19
      */
+    @SuppressWarnings("fallthrough")
     private final void handleSIMPLEACTION(final SOCSimpleAction mes)
     {
         final String gaName = mes.getGame();

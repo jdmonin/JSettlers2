@@ -1339,7 +1339,7 @@ import javax.swing.UIManager;
                 int[] give = new int[5];
                 int[] get = new int[5];
                 sqPanel.getValues(give, get);
-                createSendBankTradeRequest(game, give, get, true);
+                createSendBankTradeRequest(give, get, true);
             }
             else if (gstate == SOCGame.OVER)
             {
@@ -1524,7 +1524,7 @@ import javax.swing.UIManager;
      * @since 1.1.13
      */
     private void createSendBankTradeRequest
-        (SOCGame game, final int[] give, final int[] get, final boolean isFromTradePanel)
+        (final int[] give, final int[] get, final boolean isFromTradePanel)
     {
         final boolean isOldServer = (client.getServerVersion(game) < SOCStringManager.VERSION_FOR_I18N);
             // old server version won't send SOCBankTrade if successful:
@@ -1565,7 +1565,7 @@ import javax.swing.UIManager;
      * Enable the bank/port trade undo button.
      * Call when server has announced a successful bank/port trade.
      * Will not enable if the give/get resource fields weren't initialized during send
-     * ({@link #createSendBankTradeRequest(SOCGame, int[], int[], boolean)} does so):
+     * ({@link #createSendBankTradeRequest(int[], int[], boolean)} does so):
      * To use the undo button, the give/get resources must be known.
      *
      * @see #disableBankUndoButton()
@@ -3054,14 +3054,15 @@ import javax.swing.UIManager;
         {
             for (int i = 0; i < (game.maxPlayers - 1); i++)
             {
-                boolean seatTaken = ! game.isSeatVacant(playerSendMap[i]);
+                final int pn = playerSendMap[i];
+                boolean seatTaken = ! game.isSeatVacant(pn);
                 playerSend[i].setBoolValue(seatTaken);
                 playerSend[i].setEnabled(seatTaken);
                 if (seatTaken)
                 {
-                    String pname = game.getPlayer(playerSendMap[i]).getName();
-                    if (pname != null)
-                        playerSend[i].setToolTipText(pname);
+                    String sendPName = game.getPlayer(pn).getName();
+                    if (sendPName != null)
+                        playerSend[i].setToolTipText(sendPName);
                 }
             }
         }
@@ -3731,6 +3732,7 @@ import javax.swing.UIManager;
      * @param utype  the type of value update, such as {@link #VICTORYPOINTS}
      *            or {@link PlayerClientListener.UpdateType#Sheep}.
      */
+    @SuppressWarnings("fallthrough")
     public void updateValue(PlayerClientListener.UpdateType utype)
     {
         boolean updateTotalResCount = false;
@@ -4853,7 +4855,6 @@ import javax.swing.UIManager;
         public void createBankTradeRequest(SOCHandPanel hp)
         {
             // Code like actionPerformed for BANK button
-            SOCGame game = hp.getGame();
             if (game.getGameState() != SOCGame.PLAY1)
             {
                 hp.getPlayerInterface().print("* " + strings.get("hpan.trade.msg.notnow") + "\n");
@@ -4865,7 +4866,7 @@ import javax.swing.UIManager;
             int[] get = new int[5];
             give[tradeFrom - 1] = tradeNum;
             get[tradeTo - 1] = 1;
-            hp.createSendBankTradeRequest(game, give, get, false);
+            hp.createSendBankTradeRequest(give, get, false);
         }
 
     }  // ResourceTradeMenuItem

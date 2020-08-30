@@ -38,9 +38,11 @@ public class SOCChannelTextMsg extends SOCMessage
 
     /**
      * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}.
-     * Same separator as {@link SOCGameTextMsg}.
+     * Same separator as in {@link SOCGameTextMsg}.
+     *<P>
+     * Before v2.4.10 this field was named {@code sep2}.
      */
-    private static String sep2 = "" + (char) 0;
+    private static String sep2_alt = "" + (char) 0;
 
     /**
      * Name of channel
@@ -109,13 +111,13 @@ public class SOCChannelTextMsg extends SOCMessage
     }
 
     /**
-     * CHANNELTEXTMSG sep channel sep2 nickname sep2 text
+     * CHANNELTEXTMSG sep channel sep2_alt nickname sep2 text
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return CHANNELTEXTMSG + sep + channel + sep2 + nickname + sep2 + text;
+        return CHANNELTEXTMSG + sep + channel + sep2_alt + nickname + sep2_alt + text;
     }
 
     /**
@@ -130,7 +132,7 @@ public class SOCChannelTextMsg extends SOCMessage
         String nn;
         String tm;
 
-        StringTokenizer st = new StringTokenizer(s, sep2);
+        StringTokenizer st = new StringTokenizer(s, sep2_alt);
 
         try
         {

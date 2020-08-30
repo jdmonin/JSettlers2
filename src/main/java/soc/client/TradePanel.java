@@ -729,7 +729,7 @@ public class TradePanel extends ShadowedBox
         if (hasLineBelow)
             ++nLines;
         h = (lineHeight + lineSpace) * nLines + lineSpace
-            + (SquaresPanel.HEIGHT + SHADOW_SIZE) * displayScale + lineSpace;
+            + (SquaresPanel.HEIGHT_PX + SHADOW_SIZE) * displayScale + lineSpace;
         if ((! ignoreButtonRow) && buttonRowVis)
             h += (BUTTON_HEIGHT + 2) * displayScale + lineSpace;
         if (! hasLineBelow)
@@ -748,7 +748,7 @@ public class TradePanel extends ShadowedBox
     {
         int bw, w, h;
 
-        w = ((2 * PANEL_MARGIN_HORIZ) + SquaresPanel.WIDTH + SQUARES_LAB_MARGIN_RIGHT)
+        w = ((2 * PANEL_MARGIN_HORIZ) + SquaresPanel.WIDTH_PX + SQUARES_LAB_MARGIN_RIGHT)
             * displayScale + calcLabelWidth();
         bw = MIN_WIDTH_FROM_BUTTON_ROW * displayScale;
         if (w < bw)
@@ -769,7 +769,7 @@ public class TradePanel extends ShadowedBox
     {
         int w, h;
 
-        w = ((2 * PANEL_MARGIN_HORIZ) + SquaresPanel.WIDTH + (2 * BUTTON_MARGIN_COMPACT) + BUTTON_WIDTH)
+        w = ((2 * PANEL_MARGIN_HORIZ) + SquaresPanel.WIDTH_PX + (2 * BUTTON_MARGIN_COMPACT) + BUTTON_WIDTH)
             * displayScale + calcLabelWidth();
 
         h = getPreferredHeight(true);
@@ -841,7 +841,7 @@ public class TradePanel extends ShadowedBox
         if (compactMode)
         {
             // Buttons to right of offer squares, y-centered vs. height of panel
-            final int buttonX = inset + squaresLabelW + ((SquaresPanel.WIDTH + BUTTON_MARGIN_COMPACT) * displayScale),
+            final int buttonX = inset + squaresLabelW + ((SquaresPanel.WIDTH_PX + BUTTON_MARGIN_COMPACT) * displayScale),
                       buttonW = BUTTON_WIDTH * displayScale,
                       buttonH = BUTTON_HEIGHT * displayScale,
                       buttonMar = BUTTON_MARGIN_COMPACT * displayScale;

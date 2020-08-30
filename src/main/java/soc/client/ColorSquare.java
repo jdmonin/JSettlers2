@@ -118,7 +118,9 @@ public class ColorSquare extends JComponent implements MouseListener
      */
     public static final int TEXT = 5;
 
+    @SuppressWarnings("hiding")
     public final static int WIDTH = 16;
+    @SuppressWarnings("hiding")
     public final static int HEIGHT = 16;
 
     /**

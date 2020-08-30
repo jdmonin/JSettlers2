@@ -86,9 +86,11 @@ public class SOCGameTextMsg extends SOCMessage
 
     /**
      * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}.
-     * Same separator as {@link SOCChannelTextMsg}.
+     * Same separator as in {@link SOCChannelTextMsg}.
+     *<P>
+     * Before v2.4.10 this field was named {@code sep2}.
      */
-    private static String sep2 = "" + (char) 0;
+    private static String sep2_alt = "" + (char) 0;
 
     /**
      * Name of game
@@ -161,13 +163,13 @@ public class SOCGameTextMsg extends SOCMessage
     }
 
     /**
-     * GAMETEXTMSG sep game sep2 nickname sep2 text
+     * GAMETEXTMSG sep game sep2_alt nickname sep2_alt text
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return GAMETEXTMSG + sep + game + sep2 + nickname + sep2 + text;
+        return GAMETEXTMSG + sep + game + sep2_alt + nickname + sep2_alt + text;
     }
 
     /**
@@ -182,7 +184,7 @@ public class SOCGameTextMsg extends SOCMessage
         String nn;
         String tm;
 
-        StringTokenizer st = new StringTokenizer(s, sep2);
+        StringTokenizer st = new StringTokenizer(s, sep2_alt);
 
         try
         {
@@ -235,8 +237,8 @@ public class SOCGameTextMsg extends SOCMessage
 
         // This type uses special separators, to handle standard separator chars in the message itself
         return messageStrParams.substring(prefix.length(), pipeIdx)
-            + SOCGameTextMsg.sep2 + messageStrParams.substring(pipeIdx + 10, pipe2Idx)
-            + SOCGameTextMsg.sep2 + messageStrParams.substring(pipe2Idx + 6);
+            + sep2_alt + messageStrParams.substring(pipeIdx + 10, pipe2Idx)
+            + sep2_alt + messageStrParams.substring(pipe2Idx + 6);
     }
 
     /**

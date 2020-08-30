@@ -149,7 +149,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected boolean allOptsReceived = true;
 
-    protected Socket s;
+    /**
+     * Network socket. Initialized in subclasses.
+     * Before v2.4.10 this field was {@code s}.
+     */
+    protected Socket sock;
+
     protected DataInputStream in;
     protected DataOutputStream out;
 
@@ -2227,6 +2232,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @return  True if this message is a "cannot play this type now" from server for our client player.
      * @since 2.0.00
      */
+    @SuppressWarnings("fallthrough")
     public static boolean handleINVENTORYITEMACTION(Hashtable<String, SOCGame> games, SOCInventoryItemAction mes)
     {
         SOCGame ga = games.get(mes.getGame());
@@ -2479,6 +2485,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             case SOCSimpleRequest.TRADE_PORT_PLACE:
                 if (pn >= 0)  // if pn -1, request was rejected
                     ga.placePort(ga.getPlayer(pn), value1, value2);
+                break;
 
             // Known types with no game data update:
             // Catch these before default case, so 'unknown type' won't be printed
@@ -2757,7 +2764,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         try
         {
-            s.close();
+            sock.close();
         }
         catch (Exception e)
         {

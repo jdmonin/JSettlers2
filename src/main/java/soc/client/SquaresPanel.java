@@ -48,21 +48,27 @@ import soc.game.SOCResourceSet;
     implements MouseListener, ColorSquareListener
 {
     /**
-     * Width of this panel: 5 columns of {@link ColorSquareLarger}s,
+     * Width of this panel, in unscaled pixels: 5 columns of {@link ColorSquareLarger}s,
      * which share 1 pixel overlap for squares' shared border.
+     *<P>
+     * Before v2.4.10 this field was {@code WIDTH}.
+     *
      * @since 2.0.00
      */
-    public static final int WIDTH = 5 * (ColorSquareLarger.WIDTH_L - 1) + 1;
+    public static final int WIDTH_PX = 5 * (ColorSquareLarger.WIDTH_L - 1) + 1;
 
     /**
-     * Height of this panel: 2 lines of {@link ColorSquareLarger}s,
+     * Height of this panel, in unscaled pixels: 2 lines of {@link ColorSquareLarger}s,
      * which share 1 pixel overlap for squares' shared border.
+     *<P>
+     * Before v2.4.10 this field was {@code HEIGHT}.
+     *
      * @since 1.1.08
      */
-    public static final int HEIGHT = (2 * (ColorSquareLarger.HEIGHT_L - 1)) + 1;
+    public static final int HEIGHT_PX = (2 * (ColorSquareLarger.HEIGHT_L - 1)) + 1;
 
     /**
-     * Size of this panel: {@link #HEIGHT} 2 lines x {@link #WIDTH} 5 columns of {@link ColorSquareLarger}s.
+     * Size of this panel: {@link #HEIGHT_PX} 2 lines x {@link #WIDTH_PX} 5 columns of {@link ColorSquareLarger}s.
      * Scaled by {@link #displayScale}.
      * @since 2.0.00
      */
@@ -140,7 +146,7 @@ import soc.game.SOCResourceSet;
         }
 
         // without these calls, parent panel layout is incomplete even when this panel overrides get*Size
-        size = new Dimension(WIDTH * displayScale, HEIGHT * displayScale);
+        size = new Dimension(WIDTH_PX * displayScale, HEIGHT_PX * displayScale);
         setSize(size);
         setMinimumSize(size);
         setPreferredSize(size);
@@ -297,15 +303,15 @@ import soc.game.SOCResourceSet;
     /**
      * DOCUMENT ME!
      *
-     * @param give DOCUMENT ME!
-     * @param get DOCUMENT ME!
+     * @param giveRsrcs DOCUMENT ME!
+     * @param getRsrcs DOCUMENT ME!
      */
-    public void getValues(int[] give, int[] get)
+    public void getValues(int[] giveRsrcs, int[] getRsrcs)
     {
         for (int i = 0; i < 5; i++)
         {
-            give[i] = this.give[i].getIntValue();
-            get[i] = this.get[i].getIntValue();
+            giveRsrcs[i] = give[i].getIntValue();
+            getRsrcs[i] = get[i].getIntValue();
         }
     }
 

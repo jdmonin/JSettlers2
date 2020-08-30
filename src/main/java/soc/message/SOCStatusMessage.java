@@ -599,6 +599,7 @@ public class SOCStatusMessage extends SOCMessage
      * @see #statusValidAtVersion(int, int)
      * @since 2.0.00
      */
+    @SuppressWarnings("fallthrough")
     public static int statusFallbackForVersion(int sv, int cliVersion)
     {
         if (! statusValidAtVersion(sv, cliVersion))
