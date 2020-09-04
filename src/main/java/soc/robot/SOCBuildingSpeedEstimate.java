@@ -460,8 +460,8 @@ public class SOCBuildingSpeedEstimate
      * {@link #calculateRollsAndRsrcFast(ResourceSet, SOCResourceSet, int, boolean[])}
      * with a simpler return type and no thrown exception.
      *
-     * @param startingResources   the starting resources
-     * @param targetResources     the target resources
+     * @param startingResources   the starting resources; is treated as read-only
+     * @param targetResources     the target resources; is treated as read-only
      * @param cutoff              maximum number of rolls
      * @param ports               a list of port flags
      *
@@ -491,8 +491,8 @@ public class SOCBuildingSpeedEstimate
      *<P>
      * Before v2.0.00, this was {@code calculateRollsFast}.
      *
-     * @param startingResources   the starting resources
-     * @param targetResources     the target resources
+     * @param startingResources   the starting resources; is treated as read-only
+     * @param targetResources     the target resources; is treated as read-only
      * @param cutoff              throw an exception if the total speed is greater than this
      * @param ports               a list of port flags
      *
@@ -754,8 +754,8 @@ public class SOCBuildingSpeedEstimate
      * player to get the target set of resources given
      * a starting set
      *
-     * @param startingResources   the starting resources
-     * @param targetResources     the target resources
+     * @param startingResources   the starting resources; is treated as read-only
+     * @param targetResources     the target resources; is treated as read-only
      * @param cutoff              throw an exception if the total speed is greater than this
      * @param ports               a list of port flags
      *

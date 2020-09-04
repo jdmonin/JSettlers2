@@ -77,6 +77,8 @@ import java.util.StringTokenizer;
  *      If the message is specific to the JSettlers game and its interface,
  *      use a message number above 10000.  The intention is that other kinds of games
  *      can be played eventually within this server framework.
+ *      For message types added during a fork or third-party work, use the 2xxx range;
+ *      that range won't be used by the JSettlers core itself.
  * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version with a comment.
  *      In the switch you will call <tt>yourMessageType.parseDataStr(data)</tt>.
  *      If your message class extends {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi},
@@ -102,6 +104,7 @@ import java.util.StringTokenizer;
  *      <P>
  *      If the message is player-state related, you might also want to add
  *      it in your game type's <tt>soc.server.GameHandler.sitDown_sendPrivateInfo()</tt>.
+ * <LI> Add it to unit test {@code soctest.message.TestToCmdToStringParse}'s {@code TOCMD_TOSTRING_COMPARES} array
  *</UL>
  *
  *<H3>Backwards compatibility:</H3>
@@ -109,8 +112,32 @@ import java.util.StringTokenizer;
  * They are returned as {@code null} from {@link #toMsg(String)} if the local copy
  * (the old version's code) of SOCMessage doesn't know that message type.
  *
+ *<H3>Changing or adding to a message type:</H3>
+ * It's sometimes useful to add new fields to a message, to support new features
+ * or optimize the message stream.
+ *<P>
+ * It's important that previous JSettlers versions are still able to parse the message
+ * when it includes its new field(s), unless the addition supports a feature which isn't compatible with
+ * those previous versions. Try to avoid adding code to the server/client
+ * to send different formats of the same message to different versions.
+ * Compatibility is made easier because most messages' {@code parseDataStr} methods will
+ * ignore extra fields and/or were designed to be extensible by using field markers, length
+ * prefixes, etc.
+ *
+ *<H3>Renaming a message or improving its {@link #toString()} form:</H3>
+ * For debugging purposes, it's sometimes useful to make the output of {@link #toString()} more meaningful:
+ * Translating enum integers like {@code pieceType} to their strings, etc.
+ * Starting in v2.4.10, the {@code toString()} form must be parsable back into {@code SOCMessage}
+ * through {@link #parseMsgStr(String)}.
+ *<P>
+ * In versions after 2.4.10: If you must make an incompatible change to a message's toString form,
+ * and a previous version's {@code parseMsgStr} wouldn't be able to parse that new form,
+ * rename the message class and make sure the old name can still be parsed with its old format
+ * (see {@link #MESSAGE_RENAME_MAP}, write a static {@code stripAttribNames(messageTypeName, messageStrParams)}, etc.)
+ * Don't change the message {@link #getType()} constant's numeric value.
+ *
  *<H3>Format:</H3>
- * For most messages, at most one {@link #sep} token per message, which separates the messagetype number
+ * For most messages, at most one {@link #sep} token per message, which separates its {@link #getType()} number
  * from the message data; multiple SEP2 are allowed after SEP.
  * For multi-messages, multiple SEP are allowed; see {@link SOCMessageMulti}.
  * Some message types allow blank fields; these must use a token like {@link #EMPTYSTR}
@@ -413,6 +440,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /////////////////////////////////////////
     // Gametype-specific messages (jsettlers) above 10000;
     // messages applicable to any game (game options, move piece, etc) in current low-1000s range.
+    // Third-party/project-fork message types in 2000s range.
     // Please see class javadoc.
     /////////////////////////////////////////
 
@@ -481,12 +509,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final String GAME_NONE = "\026";  // 0x16 ^V (SYN)
 
     /**
-     * An ID identifying the type of message
+     * An ID identifying the type of message; see {@link #getType()}.
      */
     protected int messageType;
 
     /**
-     * @return  the message type
+     * @return  the message type number sent over the network, such as {@link #JOINGAMEAUTH} or {@link #PUTPIECE}
      */
     public int getType()
     {
@@ -1014,6 +1042,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /**
      * Map of renamed classes for backwards compatibility in {@link #parseMsgStr(String)}:
      * Key is old name of message type, value is new name (SOCMessage subclass).
+     * See {@code parseMsgStr(..)} javadoc for more details, including expected
+     * static {@code stripAttribNames(messageTypeName, messageStrParams)} method.
      * @since 2.4.10
      */
     public static Map<String, String> MESSAGE_RENAME_MAP = new HashMap<>();

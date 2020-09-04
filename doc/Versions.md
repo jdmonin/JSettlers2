@@ -6,12 +6,9 @@ Source history for version `1.1.06` and earlier is at [https://github.com/jdmoni
 JARs for recent JSettlers versions can be downloaded from
 [https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases) .
 
-From `1.0` up through `1.1.13`, there was a single line of development.
-Right after `1.1.13` the master branch started work on 2.0, with a
-stable branch for further 1.x versions to release bugfixes
-and backport minor new features until `2.0.00` was ready.
 
 ## `3.0.00` (build JX202xxxxx)
+- Experimental branch `v3`, not currently the main line of development
 - Experimental features: html5 client, jetty/tomcat servlet; protobuf option for bots
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 

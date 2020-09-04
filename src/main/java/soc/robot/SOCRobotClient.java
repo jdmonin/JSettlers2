@@ -514,9 +514,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Messages of unknown type are ignored. All {@link SOCGameServerText} are ignored.
      * ({@code mes} will be null from {@link SOCMessage#toMsg(String)}).
      *<P>
-     *<B>Note:</B> Currently, does not call {@link SOCDisplaylessPlayerClient#treat(SOCMessage)}.
-     * New message types should be added to both methods if both displayless and robot should handle them.
-     * The robot treat's switch case can call super.treat before or after any robot-specific handling.
+     *<B>Note:</B> If a message doesn't need any robot-specific handling,
+     * and doesn't appear as a specific case in this method's switch,
+     * this method calls {@link SOCDisplaylessPlayerClient#treat(SOCMessage)} for it.
      *
      * @param mes    the message
      */

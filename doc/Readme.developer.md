@@ -860,7 +860,7 @@ sequences, and informally document examples of those expected sequences.
 See `src/test/java/soctest/server/TestRecorder.java` and
 `src/extraTest/java/soctest/server/TestActionsMessages.java`.
 Those classes also show how you can start up a SOCServer and non-GUI clients
-and connect and control them as needed.
+and connect and control them as needed, including loading saved game artifacts.
 
 The experimental `v3` branch replaces the homegrown SOCMessage protocol with
 Protobuf, optionally encapsulated in JSON over HTTP. Proof-of-concept bots
@@ -1059,10 +1059,10 @@ from 2.0 to the stable-1.x.xx git branch; changeset comments often mention
 a hash from a master commit.
 
 There will be periodic v2.x minor releases. Each release's files are tagged for
-the release (older example: "release-1.1.14"). The last commit for the release
-updates VERSIONS.txt with the final build number, with a commit message like:
-"Version 1.1.14 is build OV20120930"  
-Then: `git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'`
+the release (format: "release-2.4.00"). The last commit for the release
+updates [Versions.md](Versions.md) with the final build number,
+with a commit message like: "Version 2.4.00 is build JM20200704"  
+Then: `git tag -a release-2.4.00 -m 'Version 2.4.00 is build JM20200704'`
 
 The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
 https://sourceforge.net/projects/jsettlers2/ , converted to git on 2012-09-28
