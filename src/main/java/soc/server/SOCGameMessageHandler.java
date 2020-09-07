@@ -5,6 +5,7 @@
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1409,6 +1410,17 @@ public class SOCGameMessageHandler
         {
             ga.releaseMonitor();
         }
+    }
+
+    /**
+     * NOTE: calling this method to execute a trade assumes the players' have either accepted and/or made a new offer
+     * and that the player who initiated the offer object has its currentOffer field set to the trade to be executed.
+     * @param ga the game object to execute the trade on
+     * @param c the connection for reporting an illegal trade in case it is one
+     */
+    private void executeTrade
+        (SOCGame ga, Connection c)
+    {
     }
 
     /**

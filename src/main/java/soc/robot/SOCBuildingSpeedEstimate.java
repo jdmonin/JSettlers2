@@ -4,6 +4,7 @@
  * Portions of this file copyright (C) 2012-2013,2015-2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -197,15 +198,18 @@ public class SOCBuildingSpeedEstimate
             estimatesFromNothing[CARD] = DEFAULT_ROLL_LIMIT;
             estimatesFromNothing[SHIP] = DEFAULT_ROLL_LIMIT;
 
-            SOCResourceSet emptySet = new SOCResourceSet();
-
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCDevCard.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCDevCard.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -231,15 +235,18 @@ public class SOCBuildingSpeedEstimate
             estimatesFromNothing[CARD] = limit;
             estimatesFromNothing[SHIP] = limit;
 
-            SOCResourceSet emptySet = new SOCResourceSet();
-
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.COST, limit, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, limit, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCCity.COST, limit, ports).getRolls();
-                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCDevCard.COST, limit, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCShip.COST, limit, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCRoad.COST, limit, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCSettlement.COST, limit, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCCity.COST, limit, ports).getRolls();
+                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCDevCard.COST, limit, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCShip.COST, limit, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {

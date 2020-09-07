@@ -2423,7 +2423,7 @@ public class SOCPlayerTracker
         D.ebugPrintlnINFO("===  recalcLongestRoadETA for player " + playerNumber);
 
         final int roadETA;
-        SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
+        SOCBuildingSpeedEstimate bse = brain.getEstimator(player.getNumbers());
         roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCRoad.COST, 500, player.getPortFlags());
 
         roadsToGo = 500;
@@ -2543,7 +2543,7 @@ public class SOCPlayerTracker
             ///
             /// figure out how long it takes to buy this many knights
             ///
-            SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
+            SOCBuildingSpeedEstimate bse = brain.getEstimator(player.getNumbers());
             int[] ourBuildingSpeed = bse.getEstimatesFromNothingFast(player.getPortFlags());
             int cardETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CARD];
             largestArmyETA = (cardETA + 1) * knightsToBuy;
@@ -2790,18 +2790,18 @@ public class SOCPlayerTracker
             SOCBuildingSpeedEstimate[] tempSetBSE = new SOCBuildingSpeedEstimate[2];
             SOCBuildingSpeedEstimate[] tempCityBSE = new SOCBuildingSpeedEstimate[2];
 
-            tempCityBSE[0] = new SOCBuildingSpeedEstimate();
-            tempCityBSE[1] = new SOCBuildingSpeedEstimate();
+            tempCityBSE[0] = brain.getEstimator();
+            tempCityBSE[1] = brain.getEstimator();
 
-            tempSetBSE[0] = new SOCBuildingSpeedEstimate();
-            tempSetBSE[1] = new SOCBuildingSpeedEstimate();
+            tempSetBSE[0] = brain.getEstimator();
+            tempSetBSE[1] = brain.getEstimator();
 
             int[][] chosenSetBuildingSpeed = new int[2][SOCBuildingSpeedEstimate.MAXPLUSONE];
             int[][] chosenCityBuildingSpeed = new int[2][SOCBuildingSpeedEstimate.MAXPLUSONE];
 
-            SOCBuildingSpeedEstimate tempBSE = new SOCBuildingSpeedEstimate();
+            SOCBuildingSpeedEstimate tempBSE = brain.getEstimator();
 
-            SOCBuildingSpeedEstimate ourBSE = new SOCBuildingSpeedEstimate(player.getNumbers());
+            SOCBuildingSpeedEstimate ourBSE = brain.getEstimator(player.getNumbers());
             int[] ourBuildingSpeed = ourBSE.getEstimatesFromNothingFast(tempPortFlags);
             int cityETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CITY];
             int settlementETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.SETTLEMENT];

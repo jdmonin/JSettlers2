@@ -4,6 +4,7 @@
  * Portions of this file copyright (C) 2009-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,6 +44,7 @@ import soc.game.SOCGameOption;
 import soc.game.SOCInventory;
 import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayerNumbers;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
@@ -307,7 +309,7 @@ public class SOCRobotDM
       //long startTime = System.currentTimeMillis();
     D.ebugPrintlnINFO("PLANSTUFF");
 
-    SOCBuildingSpeedEstimate currentBSE = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
+    SOCBuildingSpeedEstimate currentBSE = getEstimator(ourPlayerData.getNumbers());
     int currentBuildingETAs[] = currentBSE.getEstimatesFromNowFast
         (ourPlayerData.getResources(), ourPlayerData.getPortFlags());
 
@@ -454,7 +456,7 @@ public class SOCRobotDM
         game.isSpecialBuilding() || (game.getCurrentPlayerNumber() != ourPlayerNumber);
 
     int bestETA = 500;
-    SOCBuildingSpeedEstimate ourBSE = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
+    SOCBuildingSpeedEstimate ourBSE = getEstimator(ourPlayerData.getNumbers());
 
     if (ourPlayerData.getTotalVP() < 5)
     {
@@ -2414,6 +2416,8 @@ public class SOCRobotDM
    * calculate those settlements' {@link SOCPossiblePiece#getScore()}s.
    * Ignores possible settlements that require roads or ships.
    *
+   * @param settlementETA  the estimated time to build a settlement
+   * @param leadersCurrentWGETA  the leading player's estimated time to win the game
    * @see #scoreSettlementsForDumb(int, SOCBuildingSpeedEstimate)
    */
   protected void scorePossibleSettlements(final int settlementETA, final int leadersCurrentWGETA)
@@ -2612,7 +2616,7 @@ public class SOCRobotDM
 
     D.ebugPrintlnINFO("--- before [start] ---");
     SOCResourceSet originalResources = ourPlayerData.getResources().copy();
-    SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
+    SOCBuildingSpeedEstimate estimate = getEstimator(ourPlayerData.getNumbers());
     //SOCPlayerTracker.playerTrackersDebug(playerTrackers);
     D.ebugPrintlnINFO("--- before [end] ---");
     try
@@ -2853,6 +2857,9 @@ public class SOCRobotDM
    * Calls {@link SOCPlayerTracker#updateWinGameETAs(SOCPlayerTracker[])} after temporarily adding
    * a knight or +1VP card, but doesn't call it after cleaning up from the temporary add,
    * so {@link SOCPlayerTracker#getWinGameETA()} will be inaccurate afterwards.
+   *
+   * @param cardETA  estimated time to buy a card
+   * @param leadersCurrentWGETA  the leading player's estimated time to win the game
    */
   public SOCPossibleCard getDevCardScore(final int cardETA, final int leadersCurrentWGETA)
   {
@@ -3021,6 +3028,50 @@ public class SOCRobotDM
     return (bonus / (float)Math.pow((1+etaBonusFactor), eta));
 
     //return (bonus * (float)Math.pow(etaBonusFactor, ((float)(eta*eta*eta)/(float)1000.0)));
+  }
+
+  /**
+   * Should the player play a knight for the purpose of working towards largest army?
+   * @return
+   */
+  public boolean shouldPlayKnightForLA()
+  {
+      return false;
+  }
+
+  /**
+   * Estimator constructor.  While this is preferably deferred to the brain,
+   * in simulation situations this object doesn't have a brain.
+   *
+   * Note that this may be overridden by extending classes.  However, it's
+   * also not unreasonable to expect that simulation of opponent planning
+   * would involve a more rough estimation than considering our own plans.
+   * @param numbers
+   * @return
+   */
+  protected SOCBuildingSpeedEstimate getEstimator(SOCPlayerNumbers numbers)
+  {
+      if (brain != null)
+          return brain.getEstimator(numbers);
+      else
+          return new SOCBuildingSpeedEstimate(numbers);
+  }
+
+  /**
+   * Estimator constructor.  While this is preferably deferred to the brain,
+   * in simulation situations this object doesn't have a brain.
+   *
+   * Note that this may be overridden by extending classes.  However, it's
+   * also not unreasonable to expect that simulation of opponent planning
+   * would involve a more rough estimation than considering our own plans.
+   * @return
+   */
+  protected SOCBuildingSpeedEstimate getEstimator()
+  {
+      if (brain != null)
+          return brain.getEstimator();
+      else
+          return new SOCBuildingSpeedEstimate();
   }
 
 }

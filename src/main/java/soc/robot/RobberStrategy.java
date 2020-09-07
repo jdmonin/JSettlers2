@@ -4,6 +4,7 @@
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2009,2011,2012,2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -140,7 +141,7 @@ public class RobberStrategy
         * figure out the best way to thwart that player
         */
        SOCPlayer victim = game.getPlayer(victimNum);
-       SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
+       SOCBuildingSpeedEstimate estimate = brain.getEstimator();
        int bestHex = prevRobberHex;
        int worstSpeed = 0;
        final boolean skipDeserts = game.isGameOptionSet("RD");  // can't move robber to desert
@@ -262,6 +263,31 @@ public class RobberStrategy
         */
 
        return choice;
+   }
+
+   /**
+    * Select the player to target with the robber given the current hex the robber is on.
+    * Default implementation targets the player closest to winning.  This may be overridden, for
+    *  example, to target the player with the resources we want most badly.
+    * @param robberHex the current location of the robber
+    * @return
+    */
+   public int selectPlayerToThwart(int robberHex)
+   {
+       return 0;
+   }
+
+   /**
+    * Select the hex to rob, based on the fact we are targeting the specified player,
+    * and the robber is currently on the specified hex.
+    * @param robberHex the robber's current location
+    * @param victimNum the targeted player
+    * @return
+    */
+   public int selectRobberHex(int robberHex, int victimNum)
+   {
+       int bestHex = robberHex;
+       return bestHex;
    }
 
 }

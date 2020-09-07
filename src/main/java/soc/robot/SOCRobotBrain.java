@@ -35,6 +35,7 @@ import soc.game.SOCGameOption;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayerNumbers;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
@@ -55,6 +56,7 @@ import soc.message.SOCDevCardAction;
 import soc.message.SOCDiceResult;
 import soc.message.SOCDiscardRequest;
 import soc.message.SOCGameState;
+import soc.message.SOCGameStats;
 import soc.message.SOCInventoryItemAction;
 import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
@@ -1073,8 +1075,8 @@ public class SOCRobotBrain extends Thread
      */
     protected void setStrategyFields()
     {
-        decisionMaker = new SOCRobotDM(this);
-        negotiator = new SOCRobotNegotiator(this);
+        decisionMaker = createDM();
+        negotiator = createNegotiator();
         discardStrategy = new DiscardStrategy(game, ourPlayerData, this, rand);
         monopolyStrategy = new MonopolyStrategy(game, ourPlayerData);
         openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData);
@@ -1229,6 +1231,8 @@ public class SOCRobotBrain extends Thread
             // once per second, to aid the robot's timekeeping counter.
             //
 
+            boolean hasStartedTurn = true; // Variable to track whether turn-start actions have been taken
+
             while (alive)
             {
                 try
@@ -1278,6 +1282,15 @@ public class SOCRobotBrain extends Thread
                         handleGAMESTATE(((SOCGameState) mes).getState());
                             // clears waitingForGameState, updates oldGameState, calls ga.setGameState
                             // If state is LOADING, sets waitingForGameState
+
+                        if (game.getGameState() == SOCGame.PLAY) {
+                            // probably need to restrict - currently will call this after every action within a turn.  Set a flag when TURN is issued, unset here
+                            hasStartedTurn = false;
+                        }
+                        else if (hasStartedTurn == false && game.getGameState() == SOCGame.PLAY1){
+                            startTurnActions(game.getCurrentPlayerNumber());
+                            hasStartedTurn = true;
+                        }
                     }
 
                     else if (mesType == SOCMessage.STARTGAME)
@@ -1376,6 +1389,10 @@ public class SOCRobotBrain extends Thread
 
                         turnExceptionCount = 0;
                     }
+                    else if (mesType == SOCMessage.GAMESTATS)
+                    {
+                        handleGAMESTATS((SOCGameStats) mes);
+                    }
 
                     if (game.getCurrentPlayerNumber() == ourPlayerNumber)
                     {
@@ -1431,7 +1448,7 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.DICERESULT:
-                        game.setCurrentDice(((SOCDiceResult) mes).getResult());
+                        handleDICERESULT((SOCDiceResult) mes);
                         break;
 
                     case SOCMessage.PUTPIECE:
@@ -1461,10 +1478,9 @@ public class SOCRobotBrain extends Thread
                         // MOVEROBBER will be followed by PLAYERELEMENT messages to
                         // report the gain/loss of resources.
                         //
-                        moveRobberOnSeven = false;
                         final int newHex = ((SOCMoveRobber) mes).getCoordinates();
                         if (newHex > 0)
-                            game.getBoard().setRobberHex(newHex, true);
+                            handleMOVEROBBER((SOCMoveRobber) mes);
                         else
                             ((SOCBoardLarge) game.getBoard()).setPirateHex(-newHex, true);
                         }
@@ -2298,6 +2314,35 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Plan what to do during PLAY1 game state
+     * NOTE: method required for SmartSettlers agent to override
+     */
+    protected void getActionForPLAY1()
+    {
+    }
+
+    /**
+     * We need this method to override it in children classes.
+     * All it does is to set the dice result in the SOCGame object.
+     * @param mes
+     */
+    protected void handleDICERESULT(SOCDiceResult mes)
+    {
+        game.setCurrentDice(mes.getResult());
+    }
+
+    /**
+     * We need this method to override it in children classes.
+     * All it does is to move the robber on the board inside the game object and to reset the moveRobberOnSeven flag.
+     * @param mes
+     */
+    protected void handleMOVEROBBER(SOCMoveRobber mes)
+    {
+        moveRobberOnSeven = false;
+        game.getBoard().setRobberHex(((SOCMoveRobber) mes).getCoordinates(), true);
+    }
+
+    /**
      * Stop waiting for responses to a trade offer.
      * Remember other players' responses,
      * Call {@link SOCRobotClient#clearOffer(SOCGame) client.clearOffer},
@@ -2548,63 +2593,59 @@ public class SOCRobotBrain extends Thread
 
         case SOCGame.START1A:
             {
-                expectSTART1A = false;
-
                 if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START1A && (counter < 4000))))
                 {
-                    expectPUTPIECE_FROM_START1A = true;
-                    counter = 0;
-                    waitingForGameState = true;
                     final int firstSettleNode = openingBuildStrategy.planInitialSettlements();
                     placeFirstSettlement(firstSettleNode);
+                    expectPUTPIECE_FROM_START1A = true;
+                    waitingForGameState = true;
+                    counter = 0;
                 }
+                expectSTART1A = false;
             }
             break;
 
         case SOCGame.START1B:
             {
-                expectSTART1B = false;
-
                 if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START1B && (counter < 4000))))
                 {
+                    planAndPlaceInitRoad();
                     expectPUTPIECE_FROM_START1B = true;
                     counter = 0;
                     waitingForGameState = true;
                     waitingForOurTurn = true;  // ignore next player's GameState(START1A) message seen before Turn(nextPN)
                     pause(1500);
-                    planAndPlaceInitRoad();
                 }
+                expectSTART1B = false;
             }
             break;
 
         case SOCGame.START2A:
             {
-                expectSTART2A = false;
-
                 if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START2A && (counter < 4000))))
                 {
+                    final int secondSettleNode = openingBuildStrategy.planSecondSettlement();
+                    placeInitSettlement(secondSettleNode);
                     expectPUTPIECE_FROM_START2A = true;
                     counter = 0;
                     waitingForGameState = true;
-                    final int secondSettleNode = openingBuildStrategy.planSecondSettlement();
-                    placeInitSettlement(secondSettleNode);
                 }
+                expectSTART2A = false;
             }
             break;
 
         case SOCGame.START2B:
             {
-                expectSTART2B = false;
-
                 if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START2B && (counter < 4000))))
                 {
+                    planAndPlaceInitRoad();
                     expectPUTPIECE_FROM_START2B = true;
                     counter = 0;
                     waitingForGameState = true;
                     waitingForOurTurn = true;  // ignore next player's GameState(START2A) message seen before Turn(nextPN)
                     pause(1500);
-                    planAndPlaceInitRoad();
                 }
+                expectSTART2B = false;
             }
             break;
 
@@ -3179,6 +3220,16 @@ public class SOCRobotBrain extends Thread
             }
 
         }  // switch (gameState)
+    }
+
+    /**
+     * Note that a player has replied to our offer.  Determine whether to keep waiting
+     *  for responses, and update negotiator appropriately
+     * @param playerNum
+     * @param accept
+     */
+    protected void handleTradeResponse(int playerNum, boolean accept)
+    {
     }
 
     /**
@@ -3961,8 +4012,7 @@ public class SOCRobotBrain extends Thread
         /**
          * Update game data.
          */
-        SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
-            (pl, action, rtype, amount);
+        handleResources(action, pl, rtype, amount);
 
         /**
          * Clear building plan, if we just lost a resource we need.
@@ -5166,7 +5216,7 @@ public class SOCRobotBrain extends Thread
          * longest to acquire
          */
         SOCResourceSet rsCopy = ourPlayerData.getResources().copy();
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
+        SOCBuildingSpeedEstimate estimate = getEstimator(ourPlayerData.getNumbers());
         int[] rollsPerResource = estimate.getRollsPerResource();
 
         for (int resourceCount = 0; resourceCount < numChoose; resourceCount++)
@@ -5320,9 +5370,98 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Handle the tracking of changing resources.  Allows us to determine how accurately this is tracked
+     *   eg full tracking of unknowns vs. cognitive modelling
+     * @param action  SET, GAIN, LOSE
+     * @param player
+     * @param resourceType
+     * @param amount
+     */
+    protected void handleResources(int action, SOCPlayer player, int resourceType, int amount)
+    {
+        SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
+            (player, action, resourceType, amount);
+    }
+
+    /**
+     * Creates a decision maker
+     * @return the decision maker depending on the type of brain
+     */
+    protected SOCRobotDM createDM()
+    {
+        return new SOCRobotDM(this);
+    }
+
+    /**
+     * Recreates a decision maker
+     * @return the decision maker depending on the type of brain
+     */
+    public void recreateDM()
+    {
+        decisionMaker = createDM();
+    }
+
+    /**
+     * Creates a Negotiator object
+     * @return the Negotiator depending on the brain type
+     */
+    protected SOCRobotNegotiator createNegotiator()
+    {
+        return new SOCRobotNegotiator(this);
+    }
+
+    /**
+     * perform specific actions required by some of the brain types during a start of turn.
+     * This is actually executed when the game enters Play1 state,
+     * so it isn't exactly start of turn, rather after rolling the dice
+     * @param player the player number representing the position of the player on the board to do the actions for
+     */
+    protected void startTurnActions(int player)
+    {
+        // Default behaviour: no special action at beginning of turn
+    }
+
+    /**
+     * Some robot types require specific actions just before ending their turn,
+     * which may result in continuing their turn for a little while.
+     * e.g. TRY_N_BEST agent may decide to try another build plan before ending its turn
+     * @return true if can end turn, false otherwise
+     */
+    protected boolean endTurnActions()
+    {
+        // Default behaviour: always end turn
+        return true;
+    }
+
+    /**
+     * Inform the brain of the final game result.  Brain implementations may have some bookkeeping to do.
+     * @param message
+     */
+    protected void handleGAMESTATS(SOCGameStats message)
+    {
+    }
+
+    /**
+     * @param numbers the current resources in hand of the player we are estimating for
+     * @return an estimate of time to build something
+     */
+    public SOCBuildingSpeedEstimate getEstimator(SOCPlayerNumbers numbers)
+    {
+        return new SOCBuildingSpeedEstimate(numbers);
+    }
+
+    /**
+     * @return an estimate of time to build something
+     */
+    public SOCBuildingSpeedEstimate getEstimator()
+    {
+        return new SOCBuildingSpeedEstimate();
+    }
+
+    /**
      * this is for debugging
      */
-    private void debugInfo()
+    protected void debugInfo()
     {
         /*
            if (D.ebugOn) {

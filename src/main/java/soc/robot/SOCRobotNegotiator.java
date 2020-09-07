@@ -3,6 +3,7 @@
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -321,7 +322,7 @@ public class SOCRobotNegotiator
         SOCTradeOffer batna = getOfferToBank(targetResources);
         D.ebugPrintlnINFO("*** BATNA = " + batna);
 
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
+        SOCBuildingSpeedEstimate estimate = brain.getEstimator(ourPlayerData.getNumbers());
 
         SOCResourceSet giveResourceSet = new SOCResourceSet();
         SOCResourceSet getResourceSet = new SOCResourceSet();
@@ -1115,7 +1116,7 @@ public class SOCRobotNegotiator
                 if (targetResources == null)
                     return REJECT_OFFER;
 
-                SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(receiverPlayerData.getNumbers());
+                SOCBuildingSpeedEstimate estimate = brain.getEstimator(receiverPlayerData.getNumbers());
 
                 SOCTradeOffer receiverBatna = getOfferToBank(targetResources);
                 D.ebugPrintlnINFO("*** receiverBatna = " + receiverBatna);
@@ -1595,7 +1596,7 @@ public class SOCRobotNegotiator
         SOCTradeOffer batna = getOfferToBank(targetResources);
         D.ebugPrintlnINFO("*** BATNA = " + batna);
 
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
+        SOCBuildingSpeedEstimate estimate = brain.getEstimator(ourPlayerData.getNumbers());
 
         SOCResourceSet giveResourceSet = new SOCResourceSet();
         SOCResourceSet getResourceSet = new SOCResourceSet();
@@ -2236,7 +2237,7 @@ public class SOCRobotNegotiator
             return bankTrade;
         }
 
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
+        SOCBuildingSpeedEstimate estimate = brain.getEstimator(ourPlayerData.getNumbers());
         int[] rollsPerResource = estimate.getRollsPerResource();
         boolean[] ports = ourPlayerData.getPortFlags();
 
@@ -2486,6 +2487,41 @@ public class SOCRobotNegotiator
     public SOCTradeOffer getOfferToBank(SOCResourceSet targetResources)
     {
         return getOfferToBank(targetResources, ourPlayerData.getResources());
+    }
+
+    /// logic recording isSelling or wantingAnotherOffer based on responses: Accept, Reject or no response ///
+
+    /**
+     * Marks what a player wants or is not selling based on the received offer.
+     * @param offer the offer we have received
+     */
+    protected void recordResourcesFromOffer(SOCTradeOffer offer)
+    {
+    }
+
+    /**
+     * Marks what resources a player is not selling based on a reject to our offer
+     * @param rejector the player number corresponding to the player who has rejected an offer
+     */
+    protected void recordResourcesFromReject(int rejector)
+    {
+    }
+
+    /**
+     * Marks what resources a player is not selling based on a reject to other offers
+     * @param rejector the player number corresponding to the player who has rejected an offer
+     */
+    protected void recordResourcesFromRejectAlt(int rejector)
+    {
+    }
+
+    /**
+     * This is called when players haven't responded to our offer, so we assume they are not selling and that they don't want anything else
+     * Marks the resources we offered as not selling and marks that the player doesn't want a different offer for that resource
+     * @param ourCurrentOffer the offer we made and not received an answer to
+     */
+    protected void recordResourcesFromNoResponse(SOCTradeOffer ourCurrentOffer)
+    {
     }
 
 }
