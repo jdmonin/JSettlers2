@@ -28,8 +28,8 @@ package soc.game;
  * Warning: Many pieces of code depend on these values and their count.
  *          Clay is first (1), Wood is last (5), Unknown is after wood.
  *          Those are the 5 resource types (count==5 or ==6 (unknown) is also assumed).
- *          Adding a new resource type would require changes in many places.
- *          SOCRobotBrain.estimateResourceRarity is one of many examples.
+ *          Adding a new resource type would require changes in many places,
+ *          like robot's {@code OpeningBuildStrategy.estimateResourceRarity}.
  * Constants in other places (like {@link soc.message.SOCPlayerElement.PEType#CLAY})
  * have the same hardcoded values.
  *<P>

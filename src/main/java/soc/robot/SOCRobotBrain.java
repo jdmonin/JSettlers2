@@ -110,7 +110,8 @@ import java.util.Vector;
  * (search {@link #run()} for <tt>mesType == SOCMessage.TURN</tt>).
  * The plan for what to build next is decided in {@link SOCRobotDM#planStuff(int)}
  * (called from {@link #planBuilding()} and some other places) which updates {@link #buildingPlan}.
- * That plan is executed in {@link #buildOrGetResourceByTradeOrCard()}.
+ * That plan is executed in {@link #planAndDoActionForPLAY1()}, which calls {@link #buildOrGetResourceByTradeOrCard()}
+ * and other strategy/decision methods.
  *<P>
  * Current status and the next expected action are tracked by the "waitingFor" and "expect" flag fields.
  * If we've sent the server an action and we're waiting for the result, {@link #waitingForGameState} is true
@@ -136,10 +137,12 @@ import java.util.Vector;
  * <LI> Factory is {@link SOCRobotClient#createBrain(SOCRobotParameters, SOCGame, CappedQueue)},
  *      which can be overridden in a custom bot client like {@link soc.robot.sample3p.Sample3PClient}
  * <LI> For a trivial example see {@link soc.robot.sample3p.Sample3PBrain}
- * <LI> For more complicated extensions, extend strategy classes and override {@link #setStrategyFields()}
+ * <LI> For more complicated extensions, extend strategy classes and/or {@link SOCRobotDM},
+ *      and override {@link #setStrategyFields()} and any other factory methods needed.
  * <LI> Game option {@link SOCGameOption#K__EXT_BOT}, which can be set at server startup using the command line
  *      or {@code jsserver.properties} file, can be used to send custom data or config from server to third-party bots
  *</UL>
+ * For other methods/stubs/callbacks which can be extended, browse this package for {@code protected} methods.
  * See {@code Readme.developer.md} for more about bot development.
  *
  * @author Robert S Thomas
@@ -203,22 +206,12 @@ public class SOCRobotBrain extends Thread
     protected boolean ourTurn;
 
     /**
-     * Timer for turn taking
-     */
-    protected int turnTime;
-
-    /**
      * {@link #pause(int) Pause} for less time;
      * speeds up response in 6-player games.
      * Ignored if {@link SOCGame#isBotsOnly}, which pauses for even less time.
      * @since 1.1.09
      */
     private boolean pauseFaster;
-
-    /**
-     * Our current state
-     */
-    protected int curState;
 
     /**
      * Random number generator
@@ -323,7 +316,8 @@ public class SOCRobotBrain extends Thread
      * This is our current building plan, a stack of {@link SOCPossiblePiece}.
      *<P>
      * Cleared at the start of each player's turn, and a few other places
-     * if certain conditions arise.  Set in {@link #planBuilding()}.
+     * if certain conditions arise, by calling {@link #resetBuildingPlan()}.
+     * Set in {@link #planBuilding()}.
      * When making a {@link #buildingPlan}, be sure to also set
      * {@link #negotiator}'s target piece.
      *<P>
@@ -354,12 +348,6 @@ public class SOCRobotBrain extends Thread
      * @since 1.1.00
      */
     protected int failedBuildingAttempts;
-
-    /**
-     * these are the two resources that we want
-     * when we play a discovery dev card
-     */
-    protected SOCResourceSet resourceChoices;
 
     /**
      * Our player tracker within {@link #playerTrackers}.
@@ -583,8 +571,18 @@ public class SOCRobotBrain extends Thread
     /**
      * true if we're waiting for a {@link SOCTurn TURN} message from the server
      * when it's our turn
+     * @see #waitingForTurnMain
      */
     protected boolean waitingForOurTurn;
+
+    /**
+     * True if it's a new turn and game state is or was recently {@link SOCGame#ROLL_OR_CARD},
+     * not yet {@link SOCGame#PLAY1}. When this flag is true and state becomes {@code PLAY1},
+     * brain will set it false and call {@link #startTurnMainActions()}.
+     * @see #waitingForOurTurn
+     * @since 2.4.10
+     */
+    private boolean waitingForTurnMain;
 
     /**
      * true when we're waiting for the results of a trade
@@ -809,8 +807,6 @@ public class SOCRobotBrain extends Thread
         }
 
         buildingPlan = new Stack<SOCPossiblePiece>();
-        resourceChoices = new SOCResourceSet();
-        resourceChoices.add(2, SOCResourceConstants.CLAY);
         pinger = new SOCRobotPinger(gameEventQ, game.getName(), client.getNickname() + "-" + game.getName());
         dRecorder = new DebugRecorder[2];
         dRecorder[0] = new DebugRecorder();
@@ -1061,8 +1057,8 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Fields set here:
      *<UL>
-     * <LI> {@link #decisionMaker}
-     * <LI> {@link #negotiator}
+     * <LI> {@link #decisionMaker}: calls {@link #createDM()}
+     * <LI> {@link #negotiator}: calls {@link #createNegotiator()}
      * <LI> {@link #discardStrategy}
      * <LI> {@link #monopolyStrategy}
      * <LI> {@link #openingBuildStrategy}
@@ -1120,7 +1116,7 @@ public class SOCRobotBrain extends Thread
 
         final String[] s = {
             "ourTurn", "doneTrading",
-            "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard",
+            "waitingForGameState", "waitingForOurTurn", "waitingForTurnMain", "waitingForTradeMsg", "waitingForDevCard",
             "waitingForTradeResponse", "waitingForSC_PIRI_FortressRequest",
             "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B", "expectSTART3A", "expectSTART3B",
             "expectROLL_OR_CARD", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY", "expectPLACING_SHIP",
@@ -1131,7 +1127,7 @@ public class SOCRobotBrain extends Thread
         };
         final boolean[] b = {
             ourTurn, doneTrading,
-            waitingForGameState, waitingForOurTurn, waitingForTradeMsg, waitingForDevCard,
+            waitingForGameState, waitingForOurTurn, waitingForTurnMain, waitingForTradeMsg, waitingForDevCard,
             waitingForTradeResponse, waitingForSC_PIRI_FortressRequest,
             moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B, expectSTART3A, expectSTART3B,
             expectROLL_OR_CARD, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY, expectPLACING_SHIP,
@@ -1225,13 +1221,10 @@ public class SOCRobotBrain extends Thread
         if (pinger != null)
         {
             pinger.start();
-
             //
             // Along with actual game events, the pinger sends a TIMINGPING message
             // once per second, to aid the robot's timekeeping counter.
             //
-
-            boolean hasStartedTurn = true; // Variable to track whether turn-start actions have been taken
 
             while (alive)
             {
@@ -1281,16 +1274,8 @@ public class SOCRobotBrain extends Thread
                     {
                         handleGAMESTATE(((SOCGameState) mes).getState());
                             // clears waitingForGameState, updates oldGameState, calls ga.setGameState
+                            // May call startTurnMainActions
                             // If state is LOADING, sets waitingForGameState
-
-                        if (game.getGameState() == SOCGame.PLAY) {
-                            // probably need to restrict - currently will call this after every action within a turn.  Set a flag when TURN is issued, unset here
-                            hasStartedTurn = false;
-                        }
-                        else if (hasStartedTurn == false && game.getGameState() == SOCGame.PLAY1){
-                            startTurnActions(game.getCurrentPlayerNumber());
-                            hasStartedTurn = true;
-                        }
                     }
 
                     else if (mesType == SOCMessage.STARTGAME)
@@ -1373,7 +1358,7 @@ public class SOCRobotBrain extends Thread
                             //
                             // reset any plans we had
                             //
-                            buildingPlan.clear();
+                            resetBuildingPlan();
                         }
                         negotiator.resetTargetPieces();
 
@@ -1470,20 +1455,7 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.MOVEROBBER:
-                        {
-                        //
-                        // Note: Don't call ga.moveRobber() because that will call the
-                        // functions to do the stealing.  We just want to set where
-                        // the robber moved, without seeing if something was stolen.
-                        // MOVEROBBER will be followed by PLAYERELEMENT messages to
-                        // report the gain/loss of resources.
-                        //
-                        final int newHex = ((SOCMoveRobber) mes).getCoordinates();
-                        if (newHex > 0)
-                            handleMOVEROBBER((SOCMoveRobber) mes);
-                        else
-                            ((SOCBoardLarge) game.getBoard()).setPirateHex(-newHex, true);
-                        }
+                        robberMoved(((SOCMoveRobber) mes).getCoordinates());
                         break;
 
                     case SOCMessage.MAKEOFFER:
@@ -1508,10 +1480,12 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.ACCEPTOFFER:
                         if (waitingForTradeResponse && (robotParameters.getTradeFlag() == 1))
                         {
+                            final int acceptingPN = ((SOCAcceptOffer) mes).getAcceptingNumber();
+
                             if ((ourPlayerNumber == (((SOCAcceptOffer) mes).getOfferingNumber()))
-                                || (ourPlayerNumber == ((SOCAcceptOffer) mes).getAcceptingNumber()))
+                                || (ourPlayerNumber == acceptingPN))
                             {
-                                waitingForTradeResponse = false;
+                                handleTradeResponse(acceptingPN, true);
                             }
                         }
                         break;
@@ -1630,24 +1604,25 @@ public class SOCRobotBrain extends Thread
 
                     else if ((game.getGameState() == SOCGame.PLACING_ROBBER) && ! waitingForGameState)
                     {
-                        expectPLACING_ROBBER = false;
-
                         if ((! waitingForOurTurn) && ourTurn)
                         {
                             if (! ((expectROLL_OR_CARD || expectPLAY1) && (counter < 4000)))
                             {
+                                moveRobber();
+                                    // call before updating expect/waitingFor fields,
+                                    // in case a 3rd-party bot wants to note/save current brain state
+                                counter = 0;
+
                                 if (moveRobberOnSeven)
                                 {
                                     // robber moved because 7 rolled on dice
                                     moveRobberOnSeven = false;
                                     waitingForGameState = true;
-                                    counter = 0;
                                     expectPLAY1 = true;
                                 }
                                 else
                                 {
                                     waitingForGameState = true;
-                                    counter = 0;
 
                                     if (oldGameState == SOCGame.ROLL_OR_CARD)
                                     {
@@ -1660,11 +1635,10 @@ public class SOCRobotBrain extends Thread
                                         expectPLAY1 = true;
                                     }
                                 }
-
-                                counter = 0;
-                                moveRobber();
                             }
                         }
+
+                        expectPLACING_ROBBER = false;
                     }
 
                     if ((game.getGameState() == SOCGame.WAITING_FOR_DISCOVERY) && ! waitingForGameState)
@@ -1678,7 +1652,7 @@ public class SOCRobotBrain extends Thread
                                 waitingForGameState = true;
                                 expectPLAY1 = true;
                                 counter = 0;
-                                client.pickResources(game, resourceChoices);
+                                client.pickResources(game, decisionMaker.resourceChoices);
                                 pause(1500);
                             }
                         }
@@ -1810,107 +1784,7 @@ public class SOCRobotBrain extends Thread
                                     printResources();
                                 }
 
-                                /**
-                                 * if we haven't played a dev card yet,
-                                 * and we have a knight, and we can get
-                                 * largest army, play the knight.
-                                 * If we're in SPECIAL_BUILDING (not PLAY1),
-                                 * can't trade or play development cards.
-                                 *
-                                 * In scenario _SC_PIRI (which has no robber and
-                                 * no largest army), play one whenever we have
-                                 * it, someone else has resources, and we can
-                                 * convert a ship to a warship.
-                                 */
-                                if ((game.getGameState() == SOCGame.PLAY1) && ! ourPlayerData.hasPlayedDevCard())
-                                {
-                                    playKnightCardIfShould();  // might set expectPLACING_ROBBER and waitingForGameState
-                                }
-
-                                /**
-                                 * make a plan if we don't have one,
-                                 * and if we haven't given up building
-                                 * attempts this turn.
-                                 */
-                                if ( (! expectPLACING_ROBBER) && buildingPlan.empty()
-                                     && (ourPlayerData.getResources().getTotal() > 1)
-                                     && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
-                                {
-                                    planBuilding();
-
-                                        /*
-                                         * planBuilding takes these actions, sets buildingPlan and other fields
-                                         * (see its javadoc):
-                                         *
-                                        decisionMaker.planStuff(robotParameters.getStrategyType());
-
-                                        if (! buildingPlan.empty())
-                                        {
-                                            lastTarget = (SOCPossiblePiece) buildingPlan.peek();
-                                            negotiator.setTargetPiece(ourPlayerNumber, buildingPlan.peek());
-                                        }
-                                         */
-                                }
-
-                                //D.ebugPrintln("DONE PLANNING");
-                                if ( (! expectPLACING_ROBBER) && (! buildingPlan.empty()))
-                                {
-                                    // Time to build something.
-
-                                    // Either ask to build a piece, or use trading or development
-                                    // cards to get resources to build it.  See javadoc for flags set
-                                    // (expectPLACING_ROAD, etc).  In a future iteration of the run loop
-                                    // with the expected PLACING_ state, we'll build whatWeWantToBuild
-                                    // in placeIfExpectPlacing().
-
-                                    buildOrGetResourceByTradeOrCard();
-                                }
-
-                                /**
-                                 * see if we're done with our turn
-                                 */
-                                if (! (expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2
-                                       || expectPLACING_ROAD || expectPLACING_CITY || expectPLACING_SHIP
-                                       || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY
-                                       || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse
-                                       || waitingForDevCard
-                                       || waitingForGameState
-                                       || (waitingForPickSpecialItem != null)))
-                                {
-                                    // Any last things for turn from game's scenario?
-                                    boolean scenActionTaken = false;
-                                    if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
-                                        || game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                                    {
-                                        // possibly attack pirate fortress
-                                        // or place a gift port for better bank trades
-                                        scenActionTaken = considerScenarioTurnFinalActions();
-                                    }
-
-                                    if (! scenActionTaken)
-                                    {
-                                        resetFieldsAtEndTurn();
-                                            /*
-                                             * These state fields are reset:
-                                             *
-                                            waitingForGameState = true;
-                                            counter = 0;
-                                            expectROLL_OR_CARD = true;
-                                            waitingForOurTurn = true;
-
-                                            doneTrading = (robotParameters.getTradeFlag() != 1);
-
-                                            //D.ebugPrintln("!!! ENDING TURN !!!");
-                                            negotiator.resetIsSelling();
-                                            negotiator.resetOffersMade();
-                                            buildingPlan.clear();
-                                            negotiator.resetTargetPieces();
-                                             */
-
-                                        pause(1500);
-                                        client.endTurn(game);
-                                    }
-                                }
+                                planAndDoActionForPLAY1();
                             }
                         }
                     }
@@ -2022,7 +1896,10 @@ public class SOCRobotBrain extends Thread
                             case SOCSimpleRequest.PROMPT_PICK_RESOURCES:
                                 // gold hex
                                 counter = 0;
-                                pickFreeResources(rqMes.getValue1());
+                                // try to make a plan if we don't have one
+                                if (buildingPlan.isEmpty())
+                                    planBuilding();
+                                client.pickResources(game, decisionMaker.pickFreeResources(rqMes.getValue1()));
                                 waitingForGameState = true;
                                 if (game.isInitialPlacement())
                                 {
@@ -2187,7 +2064,6 @@ public class SOCRobotBrain extends Thread
         whatWeWantToBuild = null;
         whatWeFailedToBuild = null;
         rejectedPlayInvItem = null;
-        resourceChoices = null;
         ourPlayerTracker = null;
         playerTrackers = null;
 
@@ -2201,6 +2077,10 @@ public class SOCRobotBrain extends Thread
      * (unless {@code gs} is {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}),
      * updates {@link #oldGameState} if state value is actually changing, then calls
      * {@link SOCDisplaylessPlayerClient#handleGAMESTATE(SOCGame, int)}.
+     *<P>
+     * When state moves from {@link SOCGame#ROLL_OR_CARD} to {@link SOCGame#PLAY1},
+     * calls {@link #startTurnMainActions()}.
+     *
      * @param gs  New game state, like {@link SOCGame#ROLL_OR_CARD}; if 0, does nothing
      * @since 2.0.00
      */
@@ -2215,6 +2095,16 @@ public class SOCRobotBrain extends Thread
             oldGameState = currGS;  // if no actual change, don't overwrite previously known oldGameState
 
         SOCDisplaylessPlayerClient.handleGAMESTATE(game, gs);
+
+        if (gs == SOCGame.ROLL_OR_CARD)
+        {
+            waitingForTurnMain = true;
+        }
+        else if ((gs == SOCGame.PLAY1) && waitingForTurnMain)
+        {
+            startTurnMainActions();
+            waitingForTurnMain = false;
+        }
     }
 
     /**
@@ -2225,12 +2115,13 @@ public class SOCRobotBrain extends Thread
      * <LI> {@link #waitingForOurTurn} = true
      * <LI> {@link #doneTrading} = false only if {@link #robotParameters} allow trade
      * <LI> {@link #counter} = 0
-     * <LI> clear {@link #buildingPlan}
+     * <LI> clear/{@link #resetBuildingPlan()}
      * <LI> {@link SOCRobotNegotiator#resetIsSelling() negotiator.resetIsSelling()},
      *      {@link SOCRobotNegotiator#resetOffersMade() .resetOffersMade()},
      *      {@link SOCRobotNegotiator#resetTargetPieces() .resetTargetPieces()}
      *</UL>
      *<P>
+     * Called only after {@link #endTurnActions()} returns true.
      * Does not call {@link SOCRobotClient#endTurn(SOCGame)}.
      * @since 2.0.00
      */
@@ -2246,12 +2137,13 @@ public class SOCRobotBrain extends Thread
         //D.ebugPrintln("!!! ENDING TURN !!!");
         negotiator.resetIsSelling();
         negotiator.resetOffersMade();
-        buildingPlan.clear();
+        resetBuildingPlan();
         negotiator.resetTargetPieces();
     }
 
     /**
      * Look for and take any scenario-specific final actions before ending the turn.
+     * Is called before {@link #endTurnActions()}.
      *<P>
      * For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} will check if we've reached the fortress
      * and have 5 or more warships, and if so will attack the fortress.  Doing so ends the turn, so
@@ -2314,17 +2206,132 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Plan what to do during PLAY1 game state
-     * NOTE: method required for SmartSettlers agent to override
+     * Plan what to do during {@code PLAY1} game state and do that planned action, or end turn.
+     * Calls some or all of these strategy/decision methods, which third-party bots may override:
+     *<UL>
+     * <LI> {@link #playKnightCardIfShould()}
+     * <LI> {@link #planBuilding()}
+     * <LI> {@link #buildOrGetResourceByTradeOrCard()}
+     * <LI> {@link #considerScenarioTurnFinalActions()}
+     *</UL>
+     * If nothing to do, will call {@link #resetFieldsAtEndTurn()} and {@link SOCRobotClient#endTurn(SOCGame)}.
+     *<P>
+     * Third-party bots may instead choose to override this entire method.
+     *
+     * @since 2.4.10
      */
-    protected void getActionForPLAY1()
+    protected void planAndDoActionForPLAY1()
     {
+        /**
+         * if we haven't played a dev card yet,
+         * and we have a knight, and we can get
+         * largest army, play the knight.
+         * If we're in SPECIAL_BUILDING (not PLAY1),
+         * can't trade or play development cards.
+         *
+         * In scenario _SC_PIRI (which has no robber and
+         * no largest army), play one whenever we have
+         * it, someone else has resources, and we can
+         * convert a ship to a warship.
+         */
+        if ((game.getGameState() == SOCGame.PLAY1) && ! ourPlayerData.hasPlayedDevCard())
+        {
+            playKnightCardIfShould();  // might set expectPLACING_ROBBER and waitingForGameState
+        }
+
+        /**
+         * make a plan if we don't have one,
+         * and if we haven't given up building
+         * attempts this turn.
+         */
+        if ( (! expectPLACING_ROBBER) && buildingPlan.empty()
+             && (ourPlayerData.getResources().getTotal() > 1)
+             && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+        {
+            planBuilding();
+                /*
+                 * planBuilding takes these actions, sets buildingPlan and other fields
+                 * (see its javadoc):
+                 *
+                decisionMaker.planStuff(robotParameters.getStrategyType());
+
+                if (! buildingPlan.empty())
+                {
+                    lastTarget = (SOCPossiblePiece) buildingPlan.peek();
+                    negotiator.setTargetPiece(ourPlayerNumber, buildingPlan.peek());
+                }
+                 */
+        }
+
+        //D.ebugPrintln("DONE PLANNING");
+        if ( (! expectPLACING_ROBBER) && (! buildingPlan.empty()))
+        {
+            // Time to build something.
+
+            // Either ask to build a piece, or use trading or development
+            // cards to get resources to build it.  See javadoc for flags set
+            // (expectPLACING_ROAD, etc).  In a future iteration of the run loop
+            // with the expected PLACING_ state, we'll build whatWeWantToBuild
+            // in placeIfExpectPlacing().
+
+            buildOrGetResourceByTradeOrCard();
+        }
+
+        /**
+         * see if we're done with our turn
+         */
+        if (! (expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2
+               || expectPLACING_ROAD || expectPLACING_CITY || expectPLACING_SHIP
+               || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY
+               || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse
+               || waitingForDevCard
+               || waitingForGameState
+               || (waitingForPickSpecialItem != null)))
+        {
+            // Any last things for turn from game's scenario?
+            boolean scenActionTaken = false;
+            if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
+                || game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            {
+                // possibly attack pirate fortress
+                // or place a gift port for better bank trades
+                scenActionTaken = considerScenarioTurnFinalActions();
+            }
+
+            boolean finishTurnNow = (! scenActionTaken) && endTurnActions();
+
+            if (finishTurnNow)
+            {
+                resetFieldsAtEndTurn();
+                    /*
+                     * These state fields are reset:
+                     *
+                    waitingForGameState = true;
+                    counter = 0;
+                    expectROLL_OR_CARD = true;
+                    waitingForOurTurn = true;
+
+                    doneTrading = (robotParameters.getTradeFlag() != 1);
+
+                    //D.ebugPrintln("!!! ENDING TURN !!!");
+                    negotiator.resetIsSelling();
+                    negotiator.resetOffersMade();
+                    resetBuildingPlan();
+                    negotiator.resetTargetPieces();
+                     */
+
+                pause(1500);
+                client.endTurn(game);
+            }
+        }
     }
 
     /**
-     * We need this method to override it in children classes.
-     * All it does is to set the dice result in the SOCGame object.
-     * @param mes
+     * Update game data and any bot tracking when dice have been rolled.
+     * Calls {@link SOCGame#setCurrentDice(int)}.
+     * Third-party bots can override if needed; if so, be sure to call {@code super.handleDICERESULT(..)}.
+     * @param mes  Dice result info message
+     * @since 2.4.10
      */
     protected void handleDICERESULT(SOCDiceResult mes)
     {
@@ -2332,14 +2339,26 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * We need this method to override it in children classes.
-     * All it does is to move the robber on the board inside the game object and to reset the moveRobberOnSeven flag.
-     * @param mes
+     * Update game data and bot flags when robot or pirate has moved,
+     * including clear {@link #moveRobberOnSeven} flag.
+     * Third-party bots can override if needed; if so, be sure to call {@code super.robberMoved(..)}.
+     *<P>
+     * Doesn't call server-only {@link SOCGame#moveRobber(int, int)} because that would call the
+     * functions to do the stealing. We just want to set where the robber moved.
+     * Server's {@code MoveRobber} message will be followed by messages like {@code PlayerElement}
+     * to report the gain/loss of resources.
+     *
+     * @param newHex  New hex coordinate of robber if &gt; 0, pirate if &lt;= 0 (invert before using)
+     * @since 2.4.10
      */
-    protected void handleMOVEROBBER(SOCMoveRobber mes)
+    protected void robberMoved(final int newHex)
     {
         moveRobberOnSeven = false;
-        game.getBoard().setRobberHex(((SOCMoveRobber) mes).getCoordinates(), true);
+
+        if (newHex > 0)
+            game.getBoard().setRobberHex(newHex, true);
+        else
+            ((SOCBoardLarge) game.getBoard()).setPirateHex(-newHex, true);
     }
 
     /**
@@ -2347,6 +2366,7 @@ public class SOCRobotBrain extends Thread
      * Remember other players' responses,
      * Call {@link SOCRobotClient#clearOffer(SOCGame) client.clearOffer},
      * clear {@link #waitingForTradeResponse} and {@link #counter}.
+     * Call {@link SOCRobotNegotiator#recordResourcesFromNoResponse(SOCTradeOffer)}.
      * @since 1.1.09
      */
     protected void tradeStopWaitingClearOffer()
@@ -2358,25 +2378,7 @@ public class SOCRobotBrain extends Thread
 
         if (ourCurrentOffer != null)
         {
-            boolean[] offeredTo = ourCurrentOffer.getTo();
-            SOCResourceSet getSet = ourCurrentOffer.getGetSet();
-
-            for (int rsrcType = SOCResourceConstants.CLAY;
-                    rsrcType <= SOCResourceConstants.WOOD;
-                    rsrcType++)
-            {
-                if (getSet.contains(rsrcType))
-                {
-                    for (int pn = 0; pn < game.maxPlayers; pn++)
-                    {
-                        if (offeredTo[pn])
-                        {
-                            negotiator.markAsNotSelling(pn, rsrcType);
-                            negotiator.markAsNotWantingAnotherOffer(pn, rsrcType);
-                        }
-                    }
-                }
-            }
+            negotiator.recordResourcesFromNoResponse(ourCurrentOffer);
 
             pause(1500);
             client.clearOffer(game);
@@ -2403,6 +2405,11 @@ public class SOCRobotBrain extends Thread
      */
     private void playKnightCardIfShould()
     {
+        // Make sure we have an old KNIGHT dev card, etc;
+        // for _SC_PIRI, also checks if # of warships ships less than # of ships
+        if (! game.canPlayKnight(ourPlayerNumber))
+            return;
+
         final boolean canGrowArmy;
 
         if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
@@ -2424,35 +2431,11 @@ public class SOCRobotBrain extends Thread
             }
 
             canGrowArmy = anyOpponentHasRsrcs;
-
         } else {
-
-            final SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
-
-            if ((laPlayer == null) || (laPlayer.getPlayerNumber() != ourPlayerNumber))
-            {
-                final int larmySize;
-
-                if (laPlayer == null)
-                    larmySize = 3;
-                else
-                    larmySize = laPlayer.getNumKnights() + 1;
-
-                canGrowArmy =
-                    ((ourPlayerData.getNumKnights()
-                      + ourPlayerData.getInventory().getAmount(SOCDevCardConstants.KNIGHT))
-                      >= larmySize);
-
-            } else {
-                canGrowArmy = false;  // we already have largest army
-
-                // TODO Should we defend it if another player is close to taking it from us?
-            }
+            canGrowArmy = decisionMaker.shouldPlayKnightForLA();
         }
 
         if (canGrowArmy
-            && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc;
-                  // for _SC_PIRI, also checks if # of warships ships less than # of ships
             && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
         {
             /**
@@ -2601,6 +2584,7 @@ public class SOCRobotBrain extends Thread
                     waitingForGameState = true;
                     counter = 0;
                 }
+
                 expectSTART1A = false;
             }
             break;
@@ -2610,12 +2594,14 @@ public class SOCRobotBrain extends Thread
                 if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START1B && (counter < 4000))))
                 {
                     planAndPlaceInitRoad();
+
                     expectPUTPIECE_FROM_START1B = true;
                     counter = 0;
                     waitingForGameState = true;
                     waitingForOurTurn = true;  // ignore next player's GameState(START1A) message seen before Turn(nextPN)
                     pause(1500);
                 }
+
                 expectSTART1B = false;
             }
             break;
@@ -2626,10 +2612,12 @@ public class SOCRobotBrain extends Thread
                 {
                     final int secondSettleNode = openingBuildStrategy.planSecondSettlement();
                     placeInitSettlement(secondSettleNode);
+
                     expectPUTPIECE_FROM_START2A = true;
                     counter = 0;
                     waitingForGameState = true;
                 }
+
                 expectSTART2A = false;
             }
             break;
@@ -2639,44 +2627,48 @@ public class SOCRobotBrain extends Thread
                 if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START2B && (counter < 4000))))
                 {
                     planAndPlaceInitRoad();
+
                     expectPUTPIECE_FROM_START2B = true;
                     counter = 0;
                     waitingForGameState = true;
                     waitingForOurTurn = true;  // ignore next player's GameState(START2A) message seen before Turn(nextPN)
                     pause(1500);
                 }
+
                 expectSTART2B = false;
             }
             break;
 
         case SOCGame.START3A:
             {
-                expectSTART3A = false;
-
                 if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START3A && (counter < 4000))))
                 {
+                    final int secondSettleNode = openingBuildStrategy.planSecondSettlement();  // TODO planThirdSettlement
+                    placeInitSettlement(secondSettleNode);
+
                     expectPUTPIECE_FROM_START3A = true;
                     counter = 0;
                     waitingForGameState = true;
-                    final int secondSettleNode = openingBuildStrategy.planSecondSettlement();  // TODO planThirdSettlement
-                    placeInitSettlement(secondSettleNode);
                 }
+
+                expectSTART3A = false;
             }
             break;
 
         case SOCGame.START3B:
             {
-                expectSTART3B = false;
-
                 if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START3B && (counter < 4000))))
                 {
+                    planAndPlaceInitRoad();
+
                     expectPUTPIECE_FROM_START3B = true;
                     counter = 0;
                     waitingForGameState = true;
                     waitingForOurTurn = true;  // ignore next player's GameState(START3A) message seen before Turn(nextPN)
                     pause(1500);
-                    planAndPlaceInitRoad();
                 }
+
+                expectSTART3B = false;
             }
             break;
 
@@ -2899,7 +2891,7 @@ public class SOCRobotBrain extends Thread
             && ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.DISC)
             && (rejectedPlayDevCardType != SOCDevCardConstants.DISC))
         {
-            if (chooseFreeResourcesIfNeeded(targetResources, 2, false))
+            if (decisionMaker.chooseFreeResourcesIfNeeded(targetResources, 2, false))
             {
                 ///
                 /// play the card
@@ -3223,13 +3215,55 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Note that a player has replied to our offer.  Determine whether to keep waiting
-     *  for responses, and update negotiator appropriately
-     * @param playerNum
-     * @param accept
+     * Note that a player has replied to our offer, or we've accepted another player's offer.
+     * Determine whether to keep waiting for responses, and update negotiator appropriately.
+     * @param playerNum  Player number: The other player accepting or rejecting our offer,
+     *     or {@link #ourPlayerNumber} if called for accepting another player's offer
+     * @param accepted  True if offer was accepted, false if rejected
+     * @since 2.4.10
      */
-    protected void handleTradeResponse(int playerNum, boolean accept)
+    protected void handleTradeResponse(final int playerNum, final boolean accepted)
     {
+        if (accepted)
+        {
+            waitingForTradeResponse = false;
+
+            return;
+        }
+
+        offerRejections[playerNum] = true;
+
+        boolean everyoneRejected = true,
+            allHumansRejected = (tradeResponseTimeoutSec > TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY);
+        D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
+
+        boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
+
+        for (int pn = 0; pn < game.maxPlayers; ++pn)
+        {
+            D.ebugPrintlnINFO("offerRejections[" + pn + "]=" + offerRejections[pn]);
+
+            if (offeredTo[pn] && ! offerRejections[pn])
+            {
+                everyoneRejected = false;
+                if (allHumansRejected && ! game.getPlayer(pn).isRobot())
+                    allHumansRejected = false;
+            }
+        }
+
+        D.ebugPrintlnINFO("everyoneRejected=" + everyoneRejected);
+
+        if (everyoneRejected)
+        {
+            negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
+            client.clearOffer(game);
+            waitingForTradeResponse = false;
+        }
+        else if (allHumansRejected)
+        {
+            // can now shorten timeout
+            tradeResponseTimeoutSec = TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY;
+        }
     }
 
     /**
@@ -3239,6 +3273,7 @@ public class SOCRobotBrain extends Thread
      * Call {@link #considerOffer(SOCTradeOffer)}, and if
      * we accept, clear our {@link #buildingPlan} so we'll replan it.
      * Ignore our own MAKEOFFERs echoed from server.
+     * Call {@link SOCRobotNegotiator#recordResourcesFromOffer(SOCTradeOffer)}.
      * @since 1.1.08
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
@@ -3251,39 +3286,7 @@ public class SOCRobotBrain extends Thread
             return;  // <---- Ignore our own offers ----
         }
 
-        ///
-        /// record that this player wants to sell me the stuff
-        ///
-        SOCResourceSet giveSet = offer.getGiveSet();
-
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD;
-                rsrcType++)
-        {
-            if (giveSet.contains(rsrcType))
-            {
-                D.ebugPrintlnINFO("%%% player " + offer.getFrom() + " wants to sell " + rsrcType);
-                negotiator.markAsWantsAnotherOffer(offer.getFrom(), rsrcType);
-            }
-        }
-
-        ///
-        /// record that this player is not selling the resources
-        /// he is asking for
-        ///
-        SOCResourceSet getSet = offer.getGetSet();
-
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD;
-                rsrcType++)
-        {
-            if (getSet.contains(rsrcType))
-            {
-                D.ebugPrintlnINFO("%%% player " + offer.getFrom() + " wants to buy " + rsrcType
-                    + " and therefore does not want to sell it");
-                negotiator.markAsNotSelling(offer.getFrom(), rsrcType);
-            }
-        }
+        negotiator.recordResourcesFromOffer(offer);
 
         if (waitingForTradeResponse)
         {
@@ -3340,7 +3343,7 @@ public class SOCRobotBrain extends Thread
             ///
             /// clear our building plan, so that we replan
             ///
-            buildingPlan.clear();
+            resetBuildingPlan();
             negotiator.setTargetPiece(ourPlayerNumber, null);
 
             break;
@@ -3369,95 +3372,22 @@ public class SOCRobotBrain extends Thread
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
-        ///
-        /// see if everyone has rejected our offer
-        ///
         int rejector = mes.getPlayerNumber();
 
-        if ((ourPlayerData.getCurrentOffer() != null) && (waitingForTradeResponse))
+        if (waitingForTradeResponse)
         {
-            D.ebugPrintlnINFO("%%%%%%%%% REJECT OFFER %%%%%%%%%%%%%");
-
-            ///
-            /// record which player said no
-            ///
-            SOCResourceSet getSet = ourPlayerData.getCurrentOffer().getGetSet();
-
-            for (int rsrcType = SOCResourceConstants.CLAY;
-                    rsrcType <= SOCResourceConstants.WOOD;
-                    rsrcType++)
+            if (ourPlayerData.getCurrentOffer() == null)
             {
-                if (getSet.contains(rsrcType) && ! negotiator.wantsAnotherOffer(rejector, rsrcType))
-                    negotiator.markAsNotSelling(rejector, rsrcType);
+                return;  // <--- Early return: Inconsistent data, should have an offer ---
             }
 
-            offerRejections[mes.getPlayerNumber()] = true;
+            negotiator.recordResourcesFromReject(rejector);
 
-            boolean everyoneRejected = true,
-                allHumansRejected = (tradeResponseTimeoutSec > TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY);
-            D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
-
-            boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
-
-            for (int pn = 0; pn < game.maxPlayers; ++pn)
-            {
-                D.ebugPrintlnINFO("offerRejections[" + pn + "]=" + offerRejections[pn]);
-
-                if (offeredTo[pn] && ! offerRejections[pn])
-                {
-                    everyoneRejected = false;
-                    if (allHumansRejected && ! game.getPlayer(pn).isRobot())
-                        allHumansRejected = false;
-                }
-            }
-
-            D.ebugPrintlnINFO("everyoneRejected=" + everyoneRejected);
-
-            if (everyoneRejected)
-            {
-                negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
-                client.clearOffer(game);
-                waitingForTradeResponse = false;
-            }
-            else if (allHumansRejected)
-            {
-                // can now shorten timeout
-                tradeResponseTimeoutSec = TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY;
-            }
+            handleTradeResponse(rejector, false);  // clear trading flags
         }
         else
         {
-            ///
-            /// we also want to watch rejections of other players' offers
-            ///
-            D.ebugPrintlnINFO("%%%% ALT REJECT OFFER %%%%");
-
-            for (int pn = 0; pn < game.maxPlayers; pn++)
-            {
-                SOCTradeOffer offer = game.getPlayer(pn).getCurrentOffer();
-
-                if (offer != null)
-                {
-                    boolean[] offeredTo = offer.getTo();
-
-                    if (offeredTo[rejector])
-                    {
-                        //
-                        // I think they were rejecting this offer
-                        // mark them as not selling what was asked for
-                        //
-                        SOCResourceSet getSet = offer.getGetSet();
-
-                        for (int rsrcType = SOCResourceConstants.CLAY;
-                                rsrcType <= SOCResourceConstants.WOOD;
-                                rsrcType++)
-                        {
-                            if (getSet.contains(rsrcType) && ! negotiator.wantsAnotherOffer(rejector, rsrcType))
-                                negotiator.markAsNotSelling(rejector, rsrcType);
-                        }
-                    }
-                }
-            }
+            negotiator.recordResourcesFromRejectAlt(rejector);
         }
     }
 
@@ -4029,7 +3959,7 @@ public class SOCRobotBrain extends Thread
 
             if (! ourPlayerData.getResources().contains(targetResources))
             {
-                buildingPlan.clear();
+                resetBuildingPlan();
 
                 // The buildingPlan is clear, so we'll calculate
                 // a new plan when our Special Building turn begins.
@@ -4466,7 +4396,7 @@ public class SOCRobotBrain extends Thread
              *  us from trying later to build it.
              */
             whatWeWantToBuild = null;
-            buildingPlan.clear();
+            resetBuildingPlan();
         }
 
         /**
@@ -4592,7 +4522,7 @@ public class SOCRobotBrain extends Thread
         }
 
         whatWeWantToBuild = null;
-        buildingPlan.clear();
+        resetBuildingPlan();
     }
 
     /**
@@ -4719,69 +4649,18 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * move the robber
+     * Select a new robber location and move the robber there.
+     * Calls {@link RobberStrategy#getBestRobberHex()}.
+     *<P>
+     * Currently the robot always chooses to move the robber, never the pirate.
      */
     protected void moveRobber()
     {
         final int bestHex = robberStrategy.getBestRobberHex();
+
         D.ebugPrintlnINFO("!!! MOVING ROBBER !!!");
         client.moveRobber(game, ourPlayerData, bestHex);
         pause(2000);
-    }
-
-    /**
-     * Respond to server's request to pick resources to gain from the Gold Hex.
-     * Use {@link #buildingPlan} or, if that's empty (like during initial placement),
-     * pick what's rare from {@link OpeningBuildStrategy#estimateResourceRarity()}.
-     * @param numChoose  Number of resources to pick
-     * @since 2.0.00
-     */
-    protected void pickFreeResources(int numChoose)
-    {
-        SOCResourceSet targetResources;
-
-        // try to make a plan if we don't have one
-        if (buildingPlan.isEmpty())
-        {
-            planBuilding();
-        }
-
-        if (! buildingPlan.isEmpty())
-        {
-            final SOCPossiblePiece targetPiece = buildingPlan.peek();
-            targetResources = targetPiece.getResourcesToBuild();  // may be null
-            chooseFreeResourcesIfNeeded(targetResources, numChoose, true);
-        } else {
-            // Pick based on board dice-roll rarities.
-            // TODO: After initial placement, consider based on our
-            // number probabilities based on settlements/cities placed.
-            //  (BSE.getRollsForResourcesSorted)
-
-            resourceChoices.clear();
-            final int[] resourceEstimates = openingBuildStrategy.estimateResourceRarity();
-            int numEach = 0;  // in case we pick 5, keep going for 6-10
-            while (numChoose > 0)
-            {
-                int res = -1, pct = Integer.MAX_VALUE;
-                for (int i = SOCBoard.CLAY_HEX; i <= SOCBoard.WOOD_HEX; ++i)
-                {
-                    if ((resourceEstimates[i] < pct) && (resourceChoices.getAmount(i) < numEach))
-                    {
-                        res = i;
-                        pct = resourceEstimates[i];
-                    }
-                }
-                if (res != -1)
-                {
-                    resourceChoices.add(1, res);
-                    --numChoose;
-                } else {
-                    ++numEach;  // has chosen all 5 by now
-                }
-            }
-        }
-
-        client.pickResources(game, resourceChoices);
     }
 
     /**
@@ -5183,199 +5062,17 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Choose the resources we need most, for playing a Discovery development card
-     * or when a Gold Hex number is rolled.
-     * Find the most needed resource by looking at
-     * which of the resources we still need takes the
-     * longest to acquire, then add to {@link #resourceChoices}.
-     * Looks at our player's current resources.
-     * @param targetResources  Resources needed to build our next planned piece,
-     *             from {@link SOCPossiblePiece#getResourcesToBuild()}
-     *             for {@link #buildingPlan}.peek()
-     * @param numChoose  Number of resources to choose
-     * @param clearResChoices  If true, clear {@link #resourceChoices} before choosing what to add to it;
-     *             set false if calling several times to iteratively build up a big choice.
-     * @return  True if we could choose <tt>numChoose</tt> resources towards <tt>targetResources</tt>,
-     *             false if we could fully satisfy <tt>targetResources</tt>
-     *             from our current resources + less than <tt>numChoose</tt> more.
-     *             Examine {@link #resourceChoices}{@link SOCResourceSet#getTotal() .getTotal()}
-     *             to see how many were chosen.
-     */
-    protected boolean chooseFreeResources
-        (final SOCResourceSet targetResources, final int numChoose, final boolean clearResChoices)
-    {
-        /**
-         * clear our resource choices
-         */
-        if (clearResChoices)
-            resourceChoices.clear();
-
-        /**
-         * find the most needed resource by looking at
-         * which of the resources we still need takes the
-         * longest to acquire
-         */
-        SOCResourceSet rsCopy = ourPlayerData.getResources().copy();
-        SOCBuildingSpeedEstimate estimate = getEstimator(ourPlayerData.getNumbers());
-        int[] rollsPerResource = estimate.getRollsPerResource();
-
-        for (int resourceCount = 0; resourceCount < numChoose; resourceCount++)
-        {
-            int mostNeededResource = -1;
-
-            for (int resource = SOCResourceConstants.CLAY;
-                    resource <= SOCResourceConstants.WOOD; resource++)
-            {
-                if (rsCopy.getAmount(resource) < targetResources.getAmount(resource))
-                {
-                    if (mostNeededResource < 0)
-                    {
-                        mostNeededResource = resource;
-                    }
-                    else
-                    {
-                        if (rollsPerResource[resource] > rollsPerResource[mostNeededResource])
-                        {
-                            mostNeededResource = resource;
-                        }
-                    }
-                }
-            }
-
-            if (mostNeededResource == -1)
-                return false;  // <--- Early return: couldn't choose enough ---
-
-            resourceChoices.add(1, mostNeededResource);
-            rsCopy.add(1, mostNeededResource);
-        }
-
-        return true;
-    }
-
-    /**
-     * Do we need to acquire at least <tt>numChoose</tt> resources to build our next piece?
-     * Choose the resources we need most; used when we want to play a discovery development card
-     * or when a Gold Hex number is rolled.
-     * If returns true, has called {@link #chooseFreeResources(SOCResourceSet, int, boolean)}
-     * and has set {@link #resourceChoices}.
+     * Handle the tracking of changing resources.
+     * Third-party bots can override this to
+     * allow them to determine how accurately this is tracked
+     * (full tracking of unknowns vs. cognitive modelling, etc).
      *
-     * @param targetResources  Resources needed to build our next planned piece,
-     *             from {@link SOCPossiblePiece#getResourcesToBuild()}
-     *             for {@link #buildingPlan}.
-     *             If {@code null}, returns false (no more resources required).
-     * @param numChoose  Number of resources to choose
-     * @param chooseIfNotNeeded  Even if we find we don't need them, choose anyway;
-     *             set true for Gold Hex choice, false for Discovery card pick.
-     * @return  true if we need <tt>numChoose</tt> resources
-     * @since 2.0.00
-     */
-    protected boolean chooseFreeResourcesIfNeeded
-        (SOCResourceSet targetResources, final int numChoose, final boolean chooseIfNotNeeded)
-    {
-        if (targetResources == null)
-            return false;
-
-        if (chooseIfNotNeeded)
-            resourceChoices.clear();
-
-        final SOCResourceSet ourResources = ourPlayerData.getResources();
-        int numMore = numChoose;
-
-        // Used only if chooseIfNotNeeded:
-        int buildingItem = 0;  // for ourBuildingPlan.peek
-        boolean stackTopIs0 = false;
-
-        /**
-         * If ! chooseIfNotNeeded, this loop
-         * body will only execute once.
-         */
-        do
-        {
-            int numNeededResources = 0;
-            if (targetResources == null)  // can be null from SOCPossiblePickSpecialItem.cost
-                break;
-
-            for (int resource = SOCResourceConstants.CLAY;
-                    resource <= SOCResourceConstants.WOOD;
-                    resource++)
-            {
-                final int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);
-                if (diff > 0)
-                    numNeededResources += diff;
-            }
-
-            if ((numNeededResources == numMore)  // TODO >= numMore ? (could change details of current bot behavior)
-                || (chooseIfNotNeeded && (numNeededResources > numMore)))
-            {
-                chooseFreeResources(targetResources, numMore, ! chooseIfNotNeeded);
-                return true;
-            }
-
-            if (! chooseIfNotNeeded)
-                return false;
-
-            // Assert: numNeededResources < numMore.
-            // Pick the first numNeeded, then loop to pick additional ones.
-            chooseFreeResources(targetResources, numMore, false);
-            numMore = numChoose - resourceChoices.getTotal();
-
-            if (numMore > 0)
-            {
-                // Pick a new target from building plan, if we can.
-                // Otherwise, choose our least-frequently-rolled resources.
-
-                ++buildingItem;
-                final int bpSize = buildingPlan.size();
-                if (bpSize > buildingItem)
-                {
-                    if (buildingItem == 1)
-                    {
-                        // validate direction of stack growth for buildingPlan
-                        stackTopIs0 = (0 == buildingPlan.indexOf(buildingPlan.peek()));
-                    }
-
-                    int i = (stackTopIs0) ? buildingItem : (bpSize - buildingItem) - 1;
-
-                    SOCPossiblePiece targetPiece = buildingPlan.elementAt(i);
-                    targetResources = targetPiece.getResourcesToBuild();  // may be null
-
-                    // Will continue at top of loop to add
-                    // targetResources to resourceChoices.
-
-                } else {
-
-                    // This will be the last iteration.
-                    // Choose based on our least-frequent dice rolls.
-
-                    final int[] resourceOrder =
-                        SOCBuildingSpeedEstimate.getRollsForResourcesSorted(ourPlayerData);
-
-                    int curRsrc = 0;
-                    while (numMore > 0)
-                    {
-                        resourceChoices.add(1, resourceOrder[curRsrc]);
-                        --numMore;
-                        ++curRsrc;
-                        if (curRsrc == resourceOrder.length)
-                            curRsrc = 0;
-                    }
-
-                    // now, numMore == 0, so do-while loop will exit at bottom.
-                }
-            }
-
-        } while (numMore > 0);
-
-        return true;
-    }
-
-    /**
-     * Handle the tracking of changing resources.  Allows us to determine how accurately this is tracked
-     *   eg full tracking of unknowns vs. cognitive modelling
-     * @param action  SET, GAIN, LOSE
-     * @param player
-     * @param resourceType
-     * @param amount
+     * @param action  {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
+     *     or {@link SOCPlayerElement#LOSE LOSE}
+     * @param player  Player to update
+     * @param resourceType  Type of resource, like {@link SOCResourceConstants#CLAY}
+     * @param amount  The new value to set, or the delta to gain/lose
+     * @since 2.4.10
      */
     protected void handleResources(int action, SOCPlayer player, int resourceType, int amount)
     {
@@ -5384,8 +5081,15 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Creates a decision maker
-     * @return the decision maker depending on the type of brain
+     * Creates and returns a DecisionMaker based on this brain.
+     * Does not set the field returned by {@link #getDecisionMaker()},
+     * only calls a DM constructor.
+     *<P>
+     * Third-party bots may override this factory method.
+     *
+     * @return a DecisionMaker based on this brain
+     * @see #recreateDM()
+     * @since 2.4.10
      */
     protected SOCRobotDM createDM()
     {
@@ -5393,8 +5097,9 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Recreates a decision maker
-     * @return the decision maker depending on the type of brain
+     * Recreates our decision maker, by calling {@link #createDM()} and setting the field
+     * returned by {@link #getDecisionMaker()}.
+     * @since 2.4.10
      */
     public void recreateDM()
     {
@@ -5402,8 +5107,12 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Creates a Negotiator object
-     * @return the Negotiator depending on the brain type
+     * Creates and return a Negotiator based on this brain.
+     *<P>
+     * Third-party bots may override this factory method.
+     *
+     * @return a Negotiator based on this brain
+     * @since 2.4.10
      */
     protected SOCRobotNegotiator createNegotiator()
     {
@@ -5411,39 +5120,54 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * perform specific actions required by some of the brain types during a start of turn.
-     * This is actually executed when the game enters Play1 state,
-     * so it isn't exactly start of turn, rather after rolling the dice
-     * @param player the player number representing the position of the player on the board to do the actions for
+     * Perform any specific actions needed by this brain at start of the main part of any player's turn:
+     * Dice roll actions are done, game state just became {@link SOCGame#PLAY1}.
+     *<P>
+     * Default behaviour: No special actions. Third-party bots may override this stub.
+     *
+     * @see #endTurnActions()
+     * @since 2.4.10
      */
-    protected void startTurnActions(int player)
+    protected void startTurnMainActions()
     {
-        // Default behaviour: no special action at beginning of turn
     }
 
     /**
-     * Some robot types require specific actions just before ending their turn,
+     * Perform any specific actions needed by this brain just before ending their own turn,
      * which may result in continuing their turn for a little while.
-     * e.g. TRY_N_BEST agent may decide to try another build plan before ending its turn
+     *<P>
+     * If returns true, caller will call {@link #resetFieldsAtEndTurn()}.
+     *<P>
+     * Is called only after {@link #considerScenarioTurnFinalActions()} returns false.
+     *<P>
+     * Default behaviour: Always end turn immediately. Third-party bots may override this stub.
+     *
      * @return true if can end turn, false otherwise
+     * @see #startTurnMainActions()
+     * @since 2.4.10
      */
     protected boolean endTurnActions()
     {
-        // Default behaviour: always end turn
         return true;
     }
 
     /**
-     * Inform the brain of the final game result.  Brain implementations may have some bookkeeping to do.
-     * @param message
+     * Inform the brain of the final game result at end of game.
+     * Third-party bots can override this stub to do any work needed.
+     * @param message Game stats info message
+     * @since 2.4.10
      */
     protected void handleGAMESTATS(SOCGameStats message)
     {
     }
 
     /**
-     * @param numbers the current resources in hand of the player we are estimating for
-     * @return an estimate of time to build something
+     * Estimator factory for when a player's dice numbers are known.
+     * @param numbers the current resources in hand of the player we are estimating for,
+     *     in same format passed into {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate(SOCPlayerNumbers)}
+     * @return an estimate of time to build something, based on {@code numbers}
+     * @see #getEstimator()
+     * @since 2.4.10
      */
     public SOCBuildingSpeedEstimate getEstimator(SOCPlayerNumbers numbers)
     {
@@ -5451,7 +5175,11 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * @return an estimate of time to build something
+     * Estimator factory for when a player's dice numbers are unknown or don't matter yet.
+     * @return an estimate of time to build something, which doesn't consider player's dice numbers yet;
+     *     see {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate()} javadoc
+     * @see #getEstimator(SOCPlayerNumbers)
+     * @since 2.4.10
      */
     public SOCBuildingSpeedEstimate getEstimator()
     {

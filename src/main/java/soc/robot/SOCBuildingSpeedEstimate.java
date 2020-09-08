@@ -40,6 +40,9 @@ import java.util.Vector;
  * Uses {@link SOCPlayerNumbers} to get resources of currently reached hexes.
  * The {@code getEstimates...} methods use {@link SOCPlayer#getPortFlags()}.
  * Used by {@link SOCRobotDM#planStuff(int)} and other tactical planning methods.
+ *<P>
+ * Robot typically uses factory methods like {@link SOCRobotBrain#getEstimator(SOCPlayerNumbers)}
+ * and {@link SOCRobotDM#getEstimator(SOCPlayerNumbers)} instead of directly instantiating this class.
  */
 public class SOCBuildingSpeedEstimate
 {
@@ -164,15 +167,18 @@ public class SOCBuildingSpeedEstimate
             estimatesFromNothing[CARD] = DEFAULT_ROLL_LIMIT;
             estimatesFromNothing[SHIP] = DEFAULT_ROLL_LIMIT;
 
-            SOCResourceSet emptySet = new SOCResourceSet();
-
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAccurate(emptySet, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAccurate(emptySet, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAccurate(emptySet, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CARD] = calculateRollsAccurate(emptySet, SOCDevCard.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAccurate(emptySet, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CARD] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCDevCard.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {

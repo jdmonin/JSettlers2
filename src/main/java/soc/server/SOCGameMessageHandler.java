@@ -1357,12 +1357,30 @@ public class SOCGameMessageHandler
         if (player == null)
             return;
 
+        executeTrade(ga, mes.getOfferingNumber(), player.getPlayerNumber(), c);
+    }
+
+    /**
+     * Check and complete a player trade accepted by both sides, and announce it with messages to the game.
+     * Calls {@link SOCGame#canMakeTrade(int, int)}, {@link SOCGame#makeTrade(int, int)},
+     * {@link SOCGameHandler#reportTrade(SOCGame, int, int)}.
+     *<P>
+     * <B>Note:</B> Calling this method assumes the players have either accepted and/or made a counter-offer,
+     * and that the offer-initiating player's {@link SOCPlayer#getCurrentOffer()} is set to the trade to be executed.
+     *
+     * @param ga the game object to execute the trade in
+     * @param offeringNumber  Player number offering the trade
+     * @param acceptingNumber  Player number accepting the trade
+     * @param c  accepting player client's connection, if need to reply that trade is not possible
+     * @since 2.4.10
+     */
+    private void executeTrade
+        (final SOCGame ga, final int offeringNumber, final int acceptingNumber, final Connection c)
+    {
         ga.takeMonitor();
 
         try
         {
-            final int acceptingNumber = player.getPlayerNumber();
-            final int offeringNumber = mes.getOfferingNumber();
             final String gaName = ga.getName();
 
             if (ga.canMakeTrade(offeringNumber, acceptingNumber))
@@ -1410,17 +1428,6 @@ public class SOCGameMessageHandler
         {
             ga.releaseMonitor();
         }
-    }
-
-    /**
-     * NOTE: calling this method to execute a trade assumes the players' have either accepted and/or made a new offer
-     * and that the player who initiated the offer object has its currentOffer field set to the trade to be executed.
-     * @param ga the game object to execute the trade on
-     * @param c the connection for reporting an illegal trade in case it is one
-     */
-    private void executeTrade
-        (SOCGame ga, Connection c)
-    {
     }
 
     /**

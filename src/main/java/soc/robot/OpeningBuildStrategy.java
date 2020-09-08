@@ -120,7 +120,6 @@ public class OpeningBuildStrategy {
 
         int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
         SOCBoard board = game.getBoard();
-        SOCResourceSet emptySet = new SOCResourceSet();
         SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
         int probTotal;
         int bestProbTotal;
@@ -175,10 +174,10 @@ public class OpeningBuildStrategy {
 
             try
             {
-                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, 300, ports).getRolls();
-                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCCity.COST, 300, ports).getRolls();
-                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCDevCard.COST, 300, ports).getRolls();
-                speed += estimate.calculateRollsAndRsrcFast(emptySet, SOCRoad.COST, 300, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(SOCResourceSet.EMPTY_SET, SOCSettlement.COST, 300, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(SOCResourceSet.EMPTY_SET, SOCCity.COST, 300, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(SOCResourceSet.EMPTY_SET, SOCDevCard.COST, 300, ports).getRolls();
+                speed += estimate.calculateRollsAndRsrcFast(SOCResourceSet.EMPTY_SET, SOCRoad.COST, 300, ports).getRolls();
             }
             catch (CutoffExceededException e) {}
 
@@ -258,22 +257,22 @@ public class OpeningBuildStrategy {
                 try
                 {
                     speed += estimate.calculateRollsAndRsrcFast
-                        (emptySet, SOCSettlement.COST, bestSpeed, ports).getRolls();
+                        (SOCResourceSet.EMPTY_SET, SOCSettlement.COST, bestSpeed, ports).getRolls();
 
                     if (speed < bestSpeed)
                     {
                         speed += estimate.calculateRollsAndRsrcFast
-                            (emptySet, SOCCity.COST, bestSpeed, ports).getRolls();
+                            (SOCResourceSet.EMPTY_SET, SOCCity.COST, bestSpeed, ports).getRolls();
 
                         if (speed < bestSpeed)
                         {
                             speed += estimate.calculateRollsAndRsrcFast
-                                (emptySet, SOCDevCard.COST, bestSpeed, ports).getRolls();
+                                (SOCResourceSet.EMPTY_SET, SOCDevCard.COST, bestSpeed, ports).getRolls();
 
                             if (speed < bestSpeed)
                             {
                                 speed += estimate.calculateRollsAndRsrcFast
-                                    (emptySet, SOCRoad.COST, bestSpeed, ports).getRolls();
+                                    (SOCResourceSet.EMPTY_SET, SOCRoad.COST, bestSpeed, ports).getRolls();
                                 allTheWay = true;
                             }
                         }
@@ -350,10 +349,10 @@ public class OpeningBuildStrategy {
         int firstSpeed = 0;
         final int cutoff = 100;
 
-        firstSpeed += estimate.calculateRollsFast(emptySet, SOCSettlement.COST, cutoff, ports);
-        firstSpeed += estimate.calculateRollsFast(emptySet, SOCCity.COST, cutoff, ports);
-        firstSpeed += estimate.calculateRollsFast(emptySet, SOCDevCard.COST, cutoff, ports);
-        firstSpeed += estimate.calculateRollsFast(emptySet, SOCRoad.COST, cutoff, ports);
+        firstSpeed += estimate.calculateRollsFast(SOCResourceSet.EMPTY_SET, SOCSettlement.COST, cutoff, ports);
+        firstSpeed += estimate.calculateRollsFast(SOCResourceSet.EMPTY_SET, SOCCity.COST, cutoff, ports);
+        firstSpeed += estimate.calculateRollsFast(SOCResourceSet.EMPTY_SET, SOCDevCard.COST, cutoff, ports);
+        firstSpeed += estimate.calculateRollsFast(SOCResourceSet.EMPTY_SET, SOCRoad.COST, cutoff, ports);
 
         playerNumbers.clear();
         playerNumbers.updateNumbers(secondSettlement, board);
@@ -370,10 +369,10 @@ public class OpeningBuildStrategy {
 
         int secondSpeed = 0;
 
-        secondSpeed += estimate.calculateRollsFast(emptySet, SOCSettlement.COST, bestSpeed, ports);
-        secondSpeed += estimate.calculateRollsFast(emptySet, SOCCity.COST, bestSpeed, ports);
-        secondSpeed += estimate.calculateRollsFast(emptySet, SOCDevCard.COST, bestSpeed, ports);
-        secondSpeed += estimate.calculateRollsFast(emptySet, SOCRoad.COST, bestSpeed, ports);
+        secondSpeed += estimate.calculateRollsFast(SOCResourceSet.EMPTY_SET, SOCSettlement.COST, bestSpeed, ports);
+        secondSpeed += estimate.calculateRollsFast(SOCResourceSet.EMPTY_SET, SOCCity.COST, bestSpeed, ports);
+        secondSpeed += estimate.calculateRollsFast(SOCResourceSet.EMPTY_SET, SOCDevCard.COST, bestSpeed, ports);
+        secondSpeed += estimate.calculateRollsFast(SOCResourceSet.EMPTY_SET, SOCRoad.COST, bestSpeed, ports);
 
         if (firstSpeed > secondSpeed)
         {
@@ -399,7 +398,6 @@ public class OpeningBuildStrategy {
 
         int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
         final SOCBoard board = game.getBoard();
-        SOCResourceSet emptySet = new SOCResourceSet();
         SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
@@ -460,22 +458,22 @@ public class OpeningBuildStrategy {
             try
             {
                 speed += estimate.calculateRollsAndRsrcFast
-                    (emptySet, SOCSettlement.COST, bestSpeed, ports).getRolls();
+                    (SOCResourceSet.EMPTY_SET, SOCSettlement.COST, bestSpeed, ports).getRolls();
 
                 if (speed < bestSpeed)
                 {
                     speed += estimate.calculateRollsAndRsrcFast
-                        (emptySet, SOCCity.COST, bestSpeed, ports).getRolls();
+                        (SOCResourceSet.EMPTY_SET, SOCCity.COST, bestSpeed, ports).getRolls();
 
                     if (speed < bestSpeed)
                     {
                         speed += estimate.calculateRollsAndRsrcFast
-                            (emptySet, SOCDevCard.COST, bestSpeed, ports).getRolls();
+                            (SOCResourceSet.EMPTY_SET, SOCDevCard.COST, bestSpeed, ports).getRolls();
 
                         if (speed < bestSpeed)
                         {
                             speed += estimate.calculateRollsAndRsrcFast
-                                (emptySet, SOCRoad.COST, bestSpeed, ports).getRolls();
+                                (SOCResourceSet.EMPTY_SET, SOCRoad.COST, bestSpeed, ports).getRolls();
                         }
                     }
                 }

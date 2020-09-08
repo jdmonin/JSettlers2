@@ -1009,7 +1009,9 @@ public class SOCRobotNegotiator
         if (receiverTargetPiece == null)
         {
             Stack<SOCPossiblePiece> receiverBuildingPlan = new Stack<SOCPossiblePiece>();
-            simulator = new SOCRobotDM(brain.getRobotParameters(), playerTrackers, receiverPlayerTracker, receiverPlayerData, receiverBuildingPlan);
+            simulator = new SOCRobotDM
+                (brain.getRobotParameters(), brain.openingBuildStrategy,
+                 playerTrackers, receiverPlayerTracker, receiverPlayerData, receiverBuildingPlan);
 
             if (receiverNum == ourPlayerNumber)
             {
@@ -1040,7 +1042,9 @@ public class SOCRobotNegotiator
         if (senderTargetPiece == null)
         {
             Stack<SOCPossiblePiece> senderBuildingPlan = new Stack<SOCPossiblePiece>();
-            simulator = new SOCRobotDM(brain.getRobotParameters(), playerTrackers, senderPlayerTracker, senderPlayerData, senderBuildingPlan);
+            simulator = new SOCRobotDM
+                (brain.getRobotParameters(), brain.openingBuildStrategy,
+                 playerTrackers, senderPlayerTracker, senderPlayerData, senderBuildingPlan);
 
             if (senderNum == ourPlayerNumber)
             {
@@ -1559,7 +1563,9 @@ public class SOCRobotNegotiator
             {
                 SOCRobotDM simulator;
                 D.ebugPrintlnINFO("**** our building plan is empty ****");
-                simulator = new SOCRobotDM(brain.getRobotParameters(), playerTrackers, ourPlayerTracker, ourPlayerData, ourBuildingPlan);
+                simulator = new SOCRobotDM
+                    (brain.getRobotParameters(), brain.openingBuildStrategy,
+                     playerTrackers, ourPlayerTracker, ourPlayerData, ourBuildingPlan);
                 simulator.planStuff(strategyType);
             }
 
@@ -2489,39 +2495,145 @@ public class SOCRobotNegotiator
         return getOfferToBank(targetResources, ourPlayerData.getResources());
     }
 
-    /// logic recording isSelling or wantingAnotherOffer based on responses: Accept, Reject or no response ///
+    /// logic recording isSelling or wantsAnotherOffer based on responses: Accept, Reject or no response ///
 
     /**
      * Marks what a player wants or is not selling based on the received offer.
      * @param offer the offer we have received
+     * @since 2.4.10
      */
     protected void recordResourcesFromOffer(SOCTradeOffer offer)
     {
+        ///
+        /// record that this player wants to sell me the stuff
+        ///
+        SOCResourceSet giveSet = offer.getGiveSet();
+
+        for (int rsrcType = SOCResourceConstants.CLAY;
+                rsrcType <= SOCResourceConstants.WOOD;
+                rsrcType++)
+        {
+            if (giveSet.contains(rsrcType))
+            {
+                D.ebugPrintlnINFO("%%% player " + offer.getFrom() + " wants to sell " + rsrcType);
+                markAsWantsAnotherOffer(offer.getFrom(), rsrcType);
+            }
+        }
+
+        ///
+        /// record that this player is not selling the resources
+        /// he is asking for
+        ///
+        SOCResourceSet getSet = offer.getGetSet();
+
+        for (int rsrcType = SOCResourceConstants.CLAY;
+                rsrcType <= SOCResourceConstants.WOOD;
+                rsrcType++)
+        {
+            if (getSet.contains(rsrcType))
+            {
+                D.ebugPrintlnINFO("%%% player " + offer.getFrom() + " wants to buy " + rsrcType
+                    + " and therefore does not want to sell it");
+                markAsNotSelling(offer.getFrom(), rsrcType);
+            }
+        }
+
     }
 
     /**
      * Marks what resources a player is not selling based on a reject to our offer
+     *<P>
+     * To do so for another player's offer, use {@link #recordResourcesFromRejectAlt(int)}.
+     *
      * @param rejector the player number corresponding to the player who has rejected an offer
+     * @since 2.4.10
      */
     protected void recordResourcesFromReject(int rejector)
     {
+        D.ebugPrintlnINFO("%%%%%%%%% REJECT OFFER %%%%%%%%%%%%%");
+
+        ///
+        /// record which player said no
+        ///
+        SOCResourceSet getSet = ourPlayerData.getCurrentOffer().getGetSet();
+
+        for (int rsrcType = SOCResourceConstants.CLAY;
+                rsrcType <= SOCResourceConstants.WOOD;
+                rsrcType++)
+        {
+            if (getSet.contains(rsrcType) && ! wantsAnotherOffer(rejector, rsrcType))
+                markAsNotSelling(rejector, rsrcType);
+        }
     }
 
     /**
      * Marks what resources a player is not selling based on a reject to other offers
+     *<P>
+     * To do so for our player's offer, use {@link #recordResourcesFromReject(int)}.
+     *
      * @param rejector the player number corresponding to the player who has rejected an offer
+     * @since 2.4.10
      */
     protected void recordResourcesFromRejectAlt(int rejector)
     {
+        D.ebugPrintlnINFO("%%%% ALT REJECT OFFER %%%%");
+
+        for (int pn = 0; pn < game.maxPlayers; pn++)
+        {
+            SOCTradeOffer offer = game.getPlayer(pn).getCurrentOffer();
+
+            if (offer != null)
+            {
+                boolean[] offeredTo = offer.getTo();
+
+                if (offeredTo[rejector])
+                {
+                    //
+                    // I think they were rejecting this offer
+                    // mark them as not selling what was asked for
+                    //
+                    SOCResourceSet getSet = offer.getGetSet();
+
+                    for (int rsrcType = SOCResourceConstants.CLAY;
+                            rsrcType <= SOCResourceConstants.WOOD;
+                            rsrcType++)
+                    {
+                        if (getSet.contains(rsrcType) && ! wantsAnotherOffer(rejector, rsrcType))
+                            markAsNotSelling(rejector, rsrcType);
+                    }
+                }
+            }
+        }
+
     }
 
     /**
      * This is called when players haven't responded to our offer, so we assume they are not selling and that they don't want anything else
      * Marks the resources we offered as not selling and marks that the player doesn't want a different offer for that resource
      * @param ourCurrentOffer the offer we made and not received an answer to
+     * @since 2.4.10
      */
     protected void recordResourcesFromNoResponse(SOCTradeOffer ourCurrentOffer)
     {
+        boolean[] offeredTo = ourCurrentOffer.getTo();
+        SOCResourceSet getSet = ourCurrentOffer.getGetSet();
+
+        for (int rsrcType = SOCResourceConstants.CLAY;
+                rsrcType <= SOCResourceConstants.WOOD;
+                rsrcType++)
+        {
+            if (getSet.contains(rsrcType))
+            {
+                for (int pn = 0; pn < game.maxPlayers; pn++)
+                {
+                    if (offeredTo[pn])
+                    {
+                        markAsNotSelling(pn, rsrcType);
+                        markAsNotWantingAnotherOffer(pn, rsrcType);
+                    }
+                }
+            }
+        }
     }
 
 }
