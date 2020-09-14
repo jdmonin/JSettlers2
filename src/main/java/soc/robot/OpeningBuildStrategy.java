@@ -623,7 +623,7 @@ public class OpeningBuildStrategy {
                  * check 3:1 ports
                  */
                 List<Integer> miscPortNodes = board.getPortCoordinates(SOCBoard.MISC_PORT);
-                bestSpot2AwayFromANodeSet(board, allNodes, miscPortNodes, 5);
+                bestSpot2AwayFromANodeSet(allNodes, miscPortNodes, 5);
 
                 /**
                  * check out good 2:1 ports
@@ -640,7 +640,7 @@ public class OpeningBuildStrategy {
                     {
                         List<Integer> portNodes = board.getPortCoordinates(portType);
                         final int portWeight = (resourceEstis[portType] * 10) / 56;
-                        bestSpot2AwayFromANodeSet(board, allNodes, portNodes, portWeight);
+                        bestSpot2AwayFromANodeSet(allNodes, portNodes, portWeight);
                     }
                 }
 
@@ -831,15 +831,16 @@ public class OpeningBuildStrategy {
      * If a node is two away from a node in the desired set of nodes it gets 100.
      * Otherwise it gets 0.
      *
-     * @param board     the game board
      * @param nodesIn   the table of nodes to evaluate: Hashtable&lt;Integer,Integer&gt; .
      *                     Contents will be modified by the scoring.
      * @param goodNodes the set of desired nodes
      * @param weight    the score multiplier
      */
     protected void bestSpot2AwayFromANodeSet
-        (final SOCBoard board, final Hashtable<Integer,Integer> nodesIn, final List<Integer> goodNodes, final int weight)
+        (final Hashtable<Integer,Integer> nodesIn, final List<Integer> goodNodes, final int weight)
     {
+        final SOCBoard board = game.getBoard();
+
         Enumeration<Integer> nodesInEnum = nodesIn.keys();
 
         while (nodesInEnum.hasMoreElements())
@@ -1013,8 +1014,8 @@ public class OpeningBuildStrategy {
      * that the player isn't touching yet are better than ones
      * that the player is already touching.
      *
-     * @param nodes    the table of nodes with scores: Hashtable&lt;Integer,Integer&gt; .
-     *                   Contents will be modified by the scoring.
+     * @param nodes    the "table" of nodes to add scores to: key = a node on land; value = its Integer score.
+     *                   Score values will be updated here.
      * @param player   the player that we are doing the rating for, or <tt>null</tt>;
      *                   will give a bonus to numbers the player isn't already touching
      * @param weight   a number that is multiplied by the score
