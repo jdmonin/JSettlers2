@@ -7609,12 +7609,21 @@ public class SOCServer extends Server
                 nParallel = numRobotOnlyGamesRemaining;
         }
 
+        final Map<String, SOCGameOption> allOpts = new HashMap<>();
+        for (SOCGameOption opt : SOCGameOption.getAllKnownOptions().values())
+        {
+            if (! ((opt.key.charAt(0) == '_')
+                   || opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN)
+                   || opt.hasFlag(SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY)))
+                allOpts.put(opt.key, opt);
+        }
+
         StringBuilder desc = new StringBuilder();
         for (int i = 0; (i < nParallel) && (numRobotOnlyGamesRemaining > 0); ++i)
         {
             final int gameNum = numRobotOnlyGamesRemaining;
             String gaName = "~botsOnly~" + gameNum;
-            final Map<String, SOCGameOption> opts = SOCGameOption.getAllKnownOptions();
+            final Map<String, SOCGameOption> opts = new HashMap<>(allOpts);
             if (gameTypes > 1)
             {
                 desc.setLength(0);
