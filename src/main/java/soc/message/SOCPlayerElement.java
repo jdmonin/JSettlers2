@@ -56,6 +56,15 @@ import soc.game.SOCResourceConstants; // for javadocs only
  *<P>
  * To use less overhead to send multiple similar element changes, use {@link SOCPlayerElements} instead;
  * doing so requires client version 2.0.00 or newer.
+ *<P>
+ * For some game events/actions, for efficiency and to help bots understand the event
+ * (since they aren't sent {@link SOCGameServerText}s),
+ * newer client versions are sent a more specific message instead of
+ * several {@code SOCPlayerElement} and {@link SOCGameServerText}s:
+ *<UL>
+ * <LI> {@link SOCDiceResultResources}: v2.0.00 and newer
+ * <LI> {@link SOCReportRobbery}: v2.4.10 and newer
+ *</UL>
  *
  * @author Robert S Thomas
  * @see SOCGameElements
@@ -113,7 +122,8 @@ public class SOCPlayerElement extends SOCMessage
          * For some loops which send resource types + unknown, this constant's {@link #getValue()} is 6
          * (5 known resource types + 1), same numeric value as {@link SOCResourceConstants#UNKNOWN}.
          *<P>
-         * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO} is set.
+         * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO} is set:
+         * May want to send as known resource type instead.
          *<P>
          * Not to be confused with {@link #UNKNOWN_TYPE}.
          *<P>

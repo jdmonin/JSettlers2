@@ -46,6 +46,7 @@ import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
+import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
 import soc.util.SOCStringManager;
@@ -3034,6 +3035,81 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * A robbery has just occurred; show details.
+     * Is called after game data has been updated.
+     *
+     * @param perpPN  Perpetrator's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param victimPN  Victim's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param resType  Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
+     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code peType != null}.
+     * @param peType  PlayerElement type such as {@link PEType#SCENARIO_CLOTH_COUNT},
+     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} instead).
+     * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
+     * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
+     * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
+     * @since 2.4.10
+     */
+    public void reportRobbery
+        (final int perpPN, final int victimPN, final int resType, final PEType peType,
+         final boolean isGainLose, final int amount, final int victimAmount)
+    {
+        // These texts are also sent from SOCGameHandler.reportRobbery to older clients;
+        // if you change the logic or text, make sure it's updated in both places
+
+        final String peName = (perpPN >= 0) ? game.getPlayer(perpPN).getName() : null,
+            viName = (victimPN >= 0) ? game.getPlayer(victimPN).getName() : null;
+
+        if (peType == null)
+        {
+            if ((resType == SOCResourceConstants.UNKNOWN) || (clientHandPlayerNum < 0)
+                || ((clientHandPlayerNum != perpPN) && (clientHandPlayerNum != victimPN)))
+            {
+                printKeyed("robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+            } else {
+                if (perpPN == clientHandPlayerNum)
+                    printKeyedSpecial
+                        ("robber.common.you.stole.resource.from", -1, resType, viName);  // "You stole {0,rsrcs} from {2}."
+                else
+                    printKeyedSpecial
+                        ("robber.common.stole.resource.from.you", peName, -1, resType);  // "{0} stole {1,rsrcs} from you."
+            }
+
+            if (perpPN >= 0)
+                hands[perpPN].updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+            if (victimPN >= 0)
+            {
+                hands[victimPN].updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+                if (victimPN == clientHandPlayerNum)
+                    playSound(SOUND_RSRC_LOST);
+            }
+        } else {
+            PlayerClientListener.UpdateType utype = null;
+
+            switch (peType)
+            {
+            case SCENARIO_CLOTH_COUNT:
+                printKeyed("robber.common.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
+                utype = PlayerClientListener.UpdateType.Cloth;
+                break;
+
+            default:
+                // Nothing else recognized yet
+                // Other PETypes may be used in future scenarios/expansions
+            }
+
+            if (utype != null)
+            {
+                if (perpPN >= 0)
+                    clientListener.playerElementUpdated
+                        (game.getPlayer(perpPN), utype, false, false);
+                if (victimPN >= 0)
+                    clientListener.playerElementUpdated
+                        (game.getPlayer(victimPN), utype, false, (victimPN == clientHandPlayerNum));
+            }
+        }
+    }
+
+    /**
      * Update interface after the server sends us a new board layout.
      * Call after setting game data and board data.
      * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}.
@@ -4813,6 +4889,13 @@ public class SOCPlayerInterface extends Frame
         public void requestedChooseRobResourceType(SOCPlayer player)
         {
             pi.showChooseRobClothOrResourceDialog(player.getPlayerNumber());
+        }
+
+        public void reportRobbery
+            (final int perpPN, final int victimPN, final int resType, final PEType peType,
+             final boolean isGainLose, final int amount, final int victimAmount)
+        {
+            pi.reportRobbery(perpPN, victimPN, resType, peType, isGainLose, amount, victimAmount);
         }
 
         public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)

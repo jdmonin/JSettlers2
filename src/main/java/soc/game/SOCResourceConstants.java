@@ -61,7 +61,8 @@ public class SOCResourceConstants
      * for per-resource-type arrays that contain {@link #CLAY} through {@link #WOOD}
      * but don't contain {@code UNKNOWN}.
      *<P>
-     * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO} is set.
+     * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO} is set:
+     * May want to send as known resource type instead.
      *<P>
      * Same numeric value as {@link #GOLD_LOCAL}.
      * @see #MAXPLUSONE

@@ -84,6 +84,7 @@ import soc.message.SOCPlayerElements;
 import soc.message.SOCPlayerStats;
 import soc.message.SOCPotentialSettlements;
 import soc.message.SOCPutPiece;
+import soc.message.SOCReportRobbery;
 import soc.message.SOCResetBoardReject;
 import soc.message.SOCRevealFogHex;
 import soc.message.SOCRollDice;
@@ -2895,6 +2896,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * The current player is stealing from another player.
      * Send messages saying what was stolen.
+     * Use {@link SOCReportRobbery} if clients are compatible.
      *
      * @param ga  the game
      * @param pe  the perpetrator
@@ -2920,16 +2922,74 @@ public class SOCGameHandler extends GameHandler
             // Client's game will recalculate players' VP based on
             // the cloth counts, so we don't need to also send VP.
 
-            srv.messageToGame(gaName, true,
-                new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET,
-                    PEType.SCENARIO_CLOTH_COUNT, vi.getCloth(), true));
-            srv.messageToGame(gaName, true,
-                new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET,
-                    PEType.SCENARIO_CLOTH_COUNT, pe.getCloth()));
-            srv.messageToGameKeyed
-                (ga, true, true, "robber.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
+            final int peAmt = pe.getCloth(), viAmt = vi.getCloth();
+            final SOCReportRobbery rrMsg = new SOCReportRobbery
+                (gaName, pePN, viPN, PEType.SCENARIO_CLOTH_COUNT, false, peAmt, viAmt);
+
+            if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+            {
+                srv.messageToGame(gaName, true, rrMsg);
+            } else {
+                srv.recordGameEvent(gaName, rrMsg);
+
+                srv.messageToGameForVersions
+                    (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, rrMsg, true);
+
+                srv.messageToGameForVersions
+                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1,
+                     new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, viAmt, true),
+                     true);
+                srv.messageToGameForVersions
+                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1,
+                     new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, peAmt),
+                     true);
+                srv.messageToGameForVersionsKeyed
+                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1, true, false,
+                     "robber.common.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
+            }
 
             return;  // <--- early return: cloth is announced to entire game ---
+        }
+
+        final boolean isFullyObservable = ga.isGameOptionSet(SOCGameOption.K_PLAY_FO);
+
+        final SOCReportRobbery gainLoseRsrc = new SOCReportRobbery(gaName, pePN, viPN, rsrc, true, 1, 0),
+            gainLoseUnknown = (isFullyObservable)
+                ? null
+                : new SOCReportRobbery(gaName, pePN, viPN, SOCResourceConstants.UNKNOWN, true, 1, 0);
+
+        Connection peCon = srv.getConnection(peName);
+        Connection viCon = srv.getConnection(viName);
+        int[] notToPNs = {pePN, viPN};
+        List<Connection> sendNotTo = new ArrayList<Connection>(2);
+        sendNotTo.add(peCon);
+        sendNotTo.add(viCon);
+
+        if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+        {
+            if (isFullyObservable)
+            {
+                srv.messageToGame(gaName, true, gainLoseRsrc);
+            } else {
+                srv.messageToPlayer(peCon, gaName, pePN, gainLoseRsrc);
+                srv.messageToPlayer(viCon, gaName, viPN, gainLoseRsrc);
+                srv.messageToGameExcept(gaName, sendNotTo, notToPNs, gainLoseUnknown, true);
+            }
+
+            return;  // <--- early return: no further messages needed here ---
+        }
+
+        /**
+         * send appropriate messages to current/older client versions
+         */
+
+        if (isFullyObservable)
+        {
+            srv.recordGameEvent(gaName, gainLoseRsrc);
+        } else {
+            srv.recordGameEventTo(gaName, pePN, gainLoseRsrc);
+            srv.recordGameEventTo(gaName, viPN, gainLoseRsrc);
+            srv.recordGameEventNotTo(gaName, notToPNs, gainLoseUnknown);
         }
 
         SOCPlayerElement gainRsrc = null;
@@ -2943,42 +3003,55 @@ public class SOCGameHandler extends GameHandler
 
         /**
          * send the game data messages
+         * and the text messages if needed.
+         * these texts are also printed in SOCPlayerInterface.reportRobbery in recent clients;
+         * if you change the logic or text, make sure it's updated in both places
          */
-        Connection peCon = srv.getConnection(peName);
-        Connection viCon = srv.getConnection(viName);
-        int[] notToPNs = {pePN, viPN};
-        List<Connection> sendNotTo = new ArrayList<Connection>(2);
-        sendNotTo.add(peCon);
-        sendNotTo.add(viCon);
 
-        if (ga.isGameOptionSet(SOCGameOption.K_PLAY_FO))
+        if (isFullyObservable)
         {
-            srv.messageToGame(gaName, true, gainRsrc);
-            srv.messageToGame(gaName, true, loseRsrc);
+            srv.messageToGameForVersions(ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, gainLoseRsrc, true);
+            srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, gainRsrc, true);
+            srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, loseRsrc, true);
         } else {
-            srv.messageToPlayer(peCon, gaName, pePN, gainRsrc);
-            srv.messageToPlayer(peCon, gaName, pePN, loseRsrc);
-            srv.messageToPlayer(viCon, gaName, viPN, gainRsrc);
-            srv.messageToPlayer(viCon, gaName, viPN, loseRsrc);
+            if (peCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+            {
+                srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, gainRsrc);
+                srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, loseRsrc);
+                srv.messageToPlayerKeyedSpecial
+                    (peCon, ga, SOCServer.PN_NON_EVENT,
+                     "robber.common.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
+            } else {
+                srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, gainLoseRsrc);
+            }
+
+            if (viCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+            {
+                srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, gainRsrc);
+                srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, loseRsrc);
+                srv.messageToPlayerKeyedSpecial
+                    (viCon, ga, SOCServer.PN_NON_EVENT,
+                     "robber.common.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
+            } else {
+                srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, gainLoseRsrc);
+            }
+
             // generic message to all except pe or vi
+
+            srv.messageToGameForVersionsExcept
+                (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, sendNotTo, gainLoseUnknown, true);
+
             gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN_RESOURCE, 1);
             loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, 1);
-            srv.messageToGameExcept(gaName, sendNotTo, notToPNs, gainUnknown, true);
-            srv.messageToGameExcept(gaName, sendNotTo, notToPNs, loseUnknown, true);
+            srv.messageToGameForVersionsExcept
+                (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, gainUnknown, true);
+            srv.messageToGameForVersionsExcept
+                (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, loseUnknown, true);
         }
 
-        /**
-         * send the text messages:
-         * "You stole a sheep from viName."  [In v1.x.xx, "stole a sheep resource"]
-         * "peName stole a sheep from you."
-         * "peName stole a resource from viName."
-         */
-        srv.messageToPlayerKeyedSpecial
-            (peCon, ga, pePN, "robber.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
-        srv.messageToPlayerKeyedSpecial
-            (viCon, ga, viPN, "robber.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
-        srv.messageToGameKeyedSpecialExcept
-            (ga, notToPNs, true, sendNotTo, "robber.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+        srv.messageToGameForVersionsKeyedExcept
+            (ga, 0, SOCReportRobbery.MIN_VERSION - 1, true, sendNotTo,
+             true, "robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
     }
 
     /**

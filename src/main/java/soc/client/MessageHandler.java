@@ -698,6 +698,15 @@ import soc.util.Version;
                 handleSCENARIOINFO((SOCScenarioInfo) mes, isPractice);
                 break;
 
+            /**
+             * Report Robbery.
+             * Added 2020-09-15 for v2.4.10.
+             */
+            case SOCMessage.REPORTROBBERY:
+                handleREPORTROBBERY
+                    ((SOCReportRobbery) mes, client.games.get(((SOCReportRobbery) mes).getGame()));
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Throwable th)
@@ -2066,6 +2075,22 @@ import soc.util.Version;
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.requestedChooseRobResourceType(player);
+    }
+
+    /**
+     * Handle the "report robbery" message.
+     * @param mes  the message
+     * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}
+     * @since 2.4.10
+     */
+    protected void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    {
+        SOCDisplaylessPlayerClient.handleREPORTROBBERY(mes, ga);
+
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        if (pcl != null)
+            pcl.reportRobbery
+                (mes.perpPN, mes.victimPN, mes.resType, mes.peType, mes.isGainLose, mes.amount, mes.victimAmount);
     }
 
     /**

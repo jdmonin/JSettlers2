@@ -895,6 +895,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
                 break;
 
+            /**
+             * Report Robbery.
+             * Added 2020-09-15 for v2.4.10.
+             */
+            case SOCMessage.REPORTROBBERY:
+                handleREPORTROBBERY
+                    ((SOCReportRobbery) mes, games.get(((SOCReportRobbery) mes).getGame()));
+                break;
             }
         }
         catch (Exception e)
@@ -2106,6 +2114,59 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      */
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes) {}
+
+    /**
+     * Handle the "report robbery" message.
+     * Updates game data by calling {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
+     * or {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
+     *<P>
+     * This method is public static for access by {@code SOCPlayerClient} and robot client classes.
+     *
+     * @param mes  the message
+     * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}; if {@code null}, message is ignored
+     * @since 2.4.10
+     */
+    public static void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    {
+        if (ga == null)
+            return;
+
+        final int perpPN = mes.perpPN, victimPN = mes.victimPN;
+        final SOCPlayer perp = (perpPN >= 0) ? ga.getPlayer(perpPN) : null,
+            victim = (victimPN >= 0) ? ga.getPlayer(victimPN) : null;
+
+        final PEType peType = mes.peType;
+        if (peType != null)
+        {
+            if (mes.isGainLose)
+            {
+                if (perp != null)
+                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.GAIN, peType, mes.amount, null);
+                if (victim != null)
+                    handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.LOSE, peType, mes.amount, null);
+            } else {
+                if (perp != null)
+                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.SET, peType, mes.amount, null);
+                if (victim != null)
+                    handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.SET, peType, mes.victimAmount, null);
+            }
+        } else {
+            final int resType = mes.resType;
+
+            if (mes.isGainLose)
+            {
+                if (perp != null)
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.GAIN, resType, mes.amount);
+                if (victim != null)
+                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.LOSE, resType, mes.amount);
+            } else {
+                if (perp != null)
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.SET, resType, mes.amount);
+                if (victim != null)
+                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.SET, resType, mes.victimAmount);
+            }
+        }
+    }
 
     /**
      * handle the "make offer" message

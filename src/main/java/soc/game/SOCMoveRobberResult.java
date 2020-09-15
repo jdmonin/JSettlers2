@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2012,2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2012,2018-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -25,11 +25,11 @@ import java.util.List;
 
 
 /**
- * This class holds the results of moving the robber or pirate.
- * Specifically, the victim or possible victims, and
- * what was stolen.
+ * At server, this class holds the results of moving the robber or pirate:
+ * The victim or possible victims, and what was stolen.
  * Call {@link SOCGame#getRobberyPirateFlag()} to see which one was moved.
- * Each game has 1 instance of this object, which is updated each time the robber or pirate is moved.
+ * Each game has 1 instance of this object, updated each time the robber or pirate is moved
+ * and a victim chosen: {@link SOCGame#getRobberyResult()}.
  *
  * @see SOCGame.RollResult
  */

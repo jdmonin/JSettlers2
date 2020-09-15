@@ -4473,7 +4473,7 @@ public class SOCServer extends Server
      */
     public void messageToGameKeyedType(SOCGame ga, final boolean isEvent, SOCKeyedMessage msg, final boolean takeMon)
     {
-        // Very similar code to impl_messageToGameKeyedSpecial:
+        // Very similar code to impl_messageToGameKeyedSpecial, messageToGameForVersionsKeyedExcept:
         // if you change code here, consider changing it there too
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
@@ -4706,6 +4706,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, String, Object...)
      * @since 2.4.10
      */
     public void messageToGameKeyed
@@ -4752,6 +4753,7 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, String, Object...)
      * @since 2.0.00
      */
     public final void messageToGameKeyedSpecial
@@ -4900,7 +4902,7 @@ public class SOCServer extends Server
         if (members == null)
             return;
 
-        // Very similar code to messageToGameKeyedType:
+        // Very similar code to messageToGameKeyedType, messageToGameForVersionsKeyedExcept:
         // If you change code here, change it there too.
         // Indentation within try/catch matches messageToGameKeyedType's.
 
@@ -5094,6 +5096,7 @@ public class SOCServer extends Server
      * @param takeMon Should this method take and release
      *     game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      * @see #messageToGameExcept(String, Connection, int, SOCMessage, boolean)
+     * @see #messageToGameForVersionsExcept(SOCGame, int, int, List, SOCMessage, boolean)
      */
     public void messageToGameExcept
         (final String gn, final List<Connection> ex, final int[] eventExclPNs, final SOCMessage mes, final boolean takeMon)
@@ -5210,12 +5213,13 @@ public class SOCServer extends Server
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                If the game's clients are all older than <tt>vmin</tt> or
      *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
+     * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, String, Object...)
      * @since 1.1.19
      */
     public final void messageToGameForVersions
         (final SOCGame ga, final int vmin, final int vmax, final SOCMessage mes, final boolean takeMon)
     {
-        messageToGameForVersionsExcept(ga, vmin, vmax, null, mes, takeMon);
+        messageToGameForVersionsExcept(ga, vmin, vmax, (List<Connection>) null, mes, takeMon);
     }
 
     /**
@@ -5237,10 +5241,51 @@ public class SOCServer extends Server
      *                If the game's clients are all older than <tt>vmin</tt> or
      *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
      * @since 1.1.19
+     * @see #messageToGameForVersionsExcept(SOCGame, int, int, List, SOCMessage, boolean)
      * @see #messageToGameExcept(String, Connection, int, SOCMessage, boolean)
+     * @see #messageToGameForVersionsKeyedExcept(SOCGame, int, int, boolean, List, boolean, String, Object...)
      */
     public final void messageToGameForVersionsExcept
         (final SOCGame ga, final int vmin, final int vmax, final Connection ex,
+         final SOCMessage mes, final boolean takeMon)
+    {
+        final ArrayList<Connection> exs;
+        if (ex != null)
+        {
+            exs = new ArrayList<>();
+            exs.add(ex);
+        } else {
+            exs = null;
+        }
+
+        messageToGameForVersionsExcept(ga, vmin, vmax, exs, mes, takeMon);
+    }
+
+    /**
+     * Send a message to all the connections in a game in a certain version range, excluding some.
+     * Used for backwards compatibility.
+     *<P>
+     * If the message sent here should be recorded as a game event and
+     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
+     *
+     * @param ga  the game
+     * @param vmin  Minimum version to send to, or -1.  Same format as
+     *                {@link Version#versionNumber()} and {@link Connection#getVersion()}.
+     * @param vmax  Maximum version to send to, or {@link Integer#MAX_VALUE}
+     * @param ex  the excluded connections, or null
+     * @param mes  the message
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                If the game's clients are all older than <tt>vmin</tt> or
+     *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
+     * @since 2.4.10
+     * @see #messageToGameForVersionsExcept(SOCGame, int, int, Connection, SOCMessage, boolean)
+     * @see #messageToGameExcept(String, List, int[], SOCMessage, boolean)
+     * @see #messageToGameForVersionsKeyedExcept(SOCGame, int, int, boolean, List, boolean, String, Object...)
+     */
+    public final void messageToGameForVersionsExcept
+        (final SOCGame ga, final int vmin, final int vmax, final List<Connection> ex,
          final SOCMessage mes, final boolean takeMon)
     {
         if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
@@ -5250,6 +5295,9 @@ public class SOCServer extends Server
 
         if (takeMon)
             gameList.takeMonitorForGame(gn);
+
+        // Some code here is similar to messageToGameForVersionsKeyed:
+        // If you change code here, consider changing it there too
 
         try
         {
@@ -5262,7 +5310,7 @@ public class SOCServer extends Server
                 while (menum.hasMoreElements())
                 {
                     Connection con = menum.nextElement();
-                    if ((con == null) || (con == ex))
+                    if ((con == null) || ((ex != null) && ex.contains(con)))
                         continue;
 
                     final int cv = con.getVersion();
@@ -5278,12 +5326,179 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintStackTrace(e, "Exception in messageToGameForVersions");
+            D.ebugPrintStackTrace(e, "Exception in messageToGameForVersionsExcept");
         }
         finally
         {
             if (takeMon)
                 gameList.releaseMonitorForGame(gn);
+        }
+    }
+
+    /**
+     * Send a localized {@link SOCGameServerText} game text message (optionally with parameters)
+     * to all the connections in a game in a certain version range, except bots.
+     * Same as {@link #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)} but calls each
+     * member connection's {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
+     * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
+     *<P>
+     * If the message sent here should be recorded as a game event and
+     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
+     *<P>
+     * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * before calling this method.
+     *
+     * @param ga  The game
+     * @param vmin  Minimum version to send to, or -1. Same format as
+     *            {@link Version#versionNumber()} and {@link Connection#getVersion()}.
+     * @param vmax  Maximum version to send to, or {@link Integer#MAX_VALUE}
+     * @param takeMon  Should this method take and release
+     *            game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *            If the game's clients are all older than {@code vmin} or
+     *            newer than {@code vmax}, nothing happens and the monitor isn't taken.
+     * @param formatSpecial  Should this method call {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}
+     *            instead of the usual {@link SOCStringManager#get(String, Object...)} ?
+     * @param key  Message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way
+     *            (see {@link #messageToGameUrgent(String, boolean, String)}).
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *            by calling {@link MessageFormat#format(String, Object...)}
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error
+     *            (closing '}' brace without opening '{' brace, etc)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
+     * @see #messageToGameForVersionsKeyedExcept(SOCGame, int, int, boolean, List, boolean, String, Object...)
+     * @since 2.4.10
+     */
+    public final void messageToGameForVersionsKeyed
+        (final SOCGame ga, final int vmin, final int vmax, final boolean takeMon,
+         final boolean formatSpecial, final String key, final Object ... params)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        messageToGameForVersionsKeyedExcept(ga, vmin, vmax, takeMon, null, formatSpecial, key, params);
+    }
+
+    /**
+     * Send a localized {@link SOCGameServerText} game text message (optionally with parameters)
+     * to all connections in a game having a certain version range except bots,
+     * optionally with special formatting like <tt>{0,rsrcs}</tt>, optionally excluding some connections.
+     * Same as {@link #messageToGameForVersionsExcept(SOCGame, int, int, List, SOCMessage, boolean)} but calls each
+     * member connection's {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
+     *<P>
+     * Game members with null locale (such as robots) will not be sent the message.
+     * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
+     *<P>
+     * If the message sent here should be recorded as a game event and
+     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
+     *<P>
+     * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     * before calling this method.
+     *
+     * @param ga  The game
+     * @param vmin  Minimum version to send to, or -1. Same format as
+     *            {@link Version#versionNumber()} and {@link Connection#getVersion()}.
+     * @param vmax  Maximum version to send to, or {@link Integer#MAX_VALUE}
+     * @param takeMon  Should this method take and release
+     *            game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *            If the game's clients are all older than {@code vmin} or
+     *            newer than {@code vmax}, nothing happens and the monitor isn't taken.
+     * @param ex  the excluded connections, or {@code null}
+     * @param formatSpecial  Should this method call {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}
+     *            instead of the usual {@link SOCStringManager#get(String, Object...)} ?
+     * @param key  Message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *            If its localized text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way
+     *            (see {@link #messageToGameUrgent(String, boolean, String)}).
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *            by calling {@link MessageFormat#format(String, Object...)}
+     * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
+     * @throws IllegalArgumentException if the localized pattern string has a parse error
+     *            (closing '}' brace without opening '{' brace, etc)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
+     * @see #messageToGameForVersionsExcept(SOCGame, int, int, Connection, SOCMessage, boolean)
+     * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, boolean, String, Object...)
+     * @since 2.4.10
+     */
+    public final void messageToGameForVersionsKeyedExcept
+        (final SOCGame ga, final int vmin, final int vmax, final boolean takeMon, final List<Connection> ex,
+         final boolean formatSpecial, final String key, final Object ... params)
+        throws MissingResourceException, IllegalArgumentException
+    {
+        if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
+            return;  // <--- All clients too old or too new ---
+
+        final boolean hasMultiLocales = ga.hasMultiLocales;
+        final String gaName = ga.getName();
+
+        if (takeMon)
+            gameList.takeMonitorForGame(gaName);
+
+        // Some code here is similar to messageToGameKeyedType, impl_messageToGameKeyedSpecial,
+        // or messageToGameForVersionsExcept: If you change code here, consider changing it there too
+
+        try
+        {
+            Vector<Connection> v = gameList.getMembers(gaName);
+            if (v == null)
+                return;
+
+            // for reuse as rendered for previous client during loop:
+            String gameText = null, gameTxtLocale = null;
+            SOCMessage gameTextMsg = null;
+
+            final Enumeration<Connection> menum = v.elements();
+            while (menum.hasMoreElements())
+            {
+                final Connection c = menum.nextElement();
+                if ((c == null) || ((ex != null) && ex.contains(c)))
+                    continue;
+
+                final int cv = c.getVersion();
+                if ((cv < vmin) || (cv > vmax))
+                    continue;
+
+                final String cliLocale = c.getI18NLocale();
+                if (cliLocale == null)
+                    continue;  // skip bots
+
+                if ((gameTextMsg == null)
+                    || (hasMultiLocales && ! cliLocale.equals(gameTxtLocale)))
+                {
+                    gameText = (formatSpecial)
+                        ? c.getLocalizedSpecial(ga, key, params)
+                        : ((params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
+                    gameTextMsg = new SOCGameServerText(gaName, gameText);
+                    gameTxtLocale = cliLocale;
+                }
+
+                if ((cv >= SOCGameServerText.VERSION_FOR_GAMESERVERTEXT) && (gameTextMsg != null))
+                    c.put(gameTextMsg);
+                else
+                    // old client (this is uncommon) needs a different message type
+                    c.put(new SOCGameTextMsg
+                        (gaName, SERVERNAME, gameText));
+
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in messageToGameForVersionsKeyedExcept");
+        }
+        finally
+        {
+            if (takeMon)
+                gameList.releaseMonitorForGame(gaName);
         }
     }
 

@@ -713,6 +713,37 @@ public class TestToCmdToStringParse
         {new SOCRejectConnection("reason msg"), "1059|reason msg", "SOCRejectConnection:reason msg"},
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
         {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|pn=2|pieceType=3|coord=3588"},
+        {
+            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.UNKNOWN, true, 1, 0),
+            "1102|ga,2,3,R,6,T,1",
+            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=6|isGainLose=true|amount=1"
+        },
+        {
+            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, true, 1, 0),
+            "1102|ga,2,3,R,4,T,1",
+            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|isGainLose=true|amount=1"
+        },
+        {
+            new SOCReportRobbery("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0),
+                // pn -1 is only for future scenario/expansion use
+            "1102|ga,-1,-1,R,4,T,1",
+            "SOCReportRobbery:game=ga|perp=-1|victim=-1|resType=4|isGainLose=true|amount=1"
+        },
+        {
+            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7),
+            "1102|ga,2,3,R,4,F,5,7",
+            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|isGainLose=false|amount=5|victimAmount=7"
+        },
+        {
+            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0),
+            "1102|ga,3,2,E,106,T,1",
+            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|isGainLose=true|amount=1"
+        },
+        {
+            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7),
+            "1102|ga,3,2,E,106,F,5,7",
+            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|isGainLose=false|amount=5|victimAmount=7"
+        },
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|rejoinPN=3|requestingPN=2"},
             // parse from old field names, which are in some STACSettlers soclog files:
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|param1=3|param2=2", OPT_PARSE_ONLY},

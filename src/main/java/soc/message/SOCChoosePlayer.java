@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2012,2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2012,2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,6 +41,8 @@ import java.util.StringTokenizer;
  *     rob cloth or rob a resource from the victim. (v2.0.00+)
  *</UL>
  * {@link #getChoice()} gets the client's choice.
+ *<P>
+ * Server will respond with the results of the choice: {@link SOCReportRobbery}, {@link SOCGameState}, etc.
  *<P>
  * Also sent from server to client (v2.0.00+) in game state
  * {@link soc.game.SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE}

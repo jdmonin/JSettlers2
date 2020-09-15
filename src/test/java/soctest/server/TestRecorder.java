@@ -808,28 +808,15 @@ public class TestRecorder
                 {"all:SOCGameServerText:", "|text=" + clientName + " will move the robber."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=305"},
                 {
-                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
-                    "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"
-                },
-                {
-                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
-                    "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"
+                    ((observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:"),
+                    "|perp=3|victim=1|resType=" + resType + "|isGainLose=true|amount=1"
                 },
                 (observabilityMode != 2)
-                    ? new String[]{"p1:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"}
+                    ? new String[]{"p1:SOCReportRobbery:", "|perp=3|victim=1|resType=" + resType + "|isGainLose=true|amount=1"}
                     : null,
                 (observabilityMode != 2)
-                    ? new String[]{"p1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"}
+                    ? new String[]{"!p[3, 1]:SOCReportRobbery:", "|perp=3|victim=1|resType=6|isGainLose=true|amount=1"}
                     : null,
-                (observabilityMode != 2)
-                    ? new String[]{"!p[3, 1]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"}
-                    : null,
-                (observabilityMode != 2)
-                   ? new String[]{"!p[3, 1]:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=1"}
-                   : null,
-                {"p3:SOCGameServerText:", "|text=You stole a", " from "},  // "an ore", "a sheep", etc
-                {"p1:SOCGameServerText:", "|text=" + clientName + " stole a", " from you."},
-                {"!p[3, 1]:SOCGameServerText:", "|text=" + clientName + " stole a resource from "},
                 {"all:SOCGameState:", "|state=20"}
             };
         final String[][] expectedSeq;

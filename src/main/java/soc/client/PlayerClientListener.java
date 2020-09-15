@@ -33,8 +33,10 @@ import soc.game.SOCInventory;   // for javadocs only
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;  // for javadocs only
 import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
+import soc.message.SOCPlayerElement.PEType;
 
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
@@ -242,6 +244,24 @@ public interface PlayerClientListener
     void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
 
     void requestedChooseRobResourceType(SOCPlayer player);
+
+    /**
+     * A robbery has just occurred; show details. Is called after game data has been updated.
+     *
+     * @param perpPN  Perpetrator's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param victimPN  Victim's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param resType  Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
+     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code peType != null}.
+     * @param peType  PlayerElement type such as {@link PEType#SCENARIO_CLOTH_COUNT},
+     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} instead).
+     * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
+     * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
+     * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
+     * @since 2.4.10
+     */
+    void reportRobbery
+        (final int perpPN, final int victimPN, final int resType, final PEType peType,
+         final boolean isGainLose, final int amount, final int victimAmount);
 
     /**
      * This player has just made a successful trade with the bank or a port.
@@ -550,11 +570,20 @@ public interface PlayerClientListener
         Sheep,
         Wheat,
         Wood,
+
         /** amount of resources of unknown type (not same as total resource count) */
         Unknown,
-        /** Update Total Resource count only. */
+
+        /**
+         * Update Total Resource count only.
+         * @see #ResourceTotalAndDetails
+         */
         Resources,
-        /** Update Total Resource count, and also each box (Clay,Ore,Sheep,Wheat,Wood) if shown. */
+
+        /**
+         * Update Total Resource count, and also each box (Clay,Ore,Sheep,Wheat,Wood) if shown.
+         * @see #Resources
+         */
         ResourceTotalAndDetails,
 
         Road,

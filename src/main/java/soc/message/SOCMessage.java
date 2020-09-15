@@ -434,6 +434,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int SCENARIOINFO = 1101;    // Scenario info, 20150920, v2.0.00
 
+    /**
+     * {@link SOCReportRobbery} - Info from server about a robbery's perpetrator, victim, and what was stolen.
+     * @since 2.4.10
+     */
+    public static final int REPORTROBBERY = 1102;  // Report Robbery, 20200915, v2.4.10
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -1020,6 +1026,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
                 return SOCScenarioInfo.parseDataStr(multiData, data);
 
+            case REPORTROBBERY:        // Report Robbery, 20200915, v2.4.10
+                return SOCReportRobbery.parseDataStr(data);
+
             // gametype-specific messages:
 
             case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
@@ -1131,7 +1140,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                     List<String> treatedAttribs = (List<String>) m.invoke(null, msgBody);
                     if (treatedAttribs == null)
                         throw new InputMismatchException
-                            ("Unparsable message: stripAttribsToList: " + messageStr);
+                            ("Unparsable message: stripAttribsToList rets null: " + messageStr);
 
                     try
                     {
@@ -1147,7 +1156,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                     Object o = m.invoke(null, treatedAttribs);
                     if (o == null)
                         throw new InputMismatchException
-                            ("Unparsable message: parseDataStr(List): " + messageStr);
+                            ("Unparsable message: parseDataStr(List) rets null: " + messageStr);
 
                     return (SOCMessage) o;
                 } catch (NoSuchMethodException e) {}
@@ -1173,7 +1182,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                     (null, (origClassName != null) ? origClassName : className, msgBody);
                 if (treatedAttribs == null)
                     throw new InputMismatchException
-                        ("Unparsable message: stripAttribNames(String,String): " + messageStr);
+                        ("Unparsable message: stripAttribNames(String,String) rets null: " + messageStr);
             } catch (NoSuchMethodException e) {}
 
             if (treatedAttribs == null)
@@ -1192,7 +1201,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             }
             if (treatedAttribs == null)
                 throw new InputMismatchException
-                    ("Unparsable message: stripAttribNames: " + messageStr);
+                    ("Unparsable message: stripAttribNames rets null: " + messageStr);
 
             m = c.getMethod("parseDataStr", String.class);
             currentCall = m.getDeclaringClass().getName() + "." + "parseDataStr";
@@ -1209,7 +1218,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 //  log file, just in case.
 
                 throw new InputMismatchException
-                    ("Unparsable message: parseDataStr: " + messageStr);
+                    ("Unparsable message: parseDataStr rets null: " + messageStr);
             }
 
             return (SOCMessage) o;
@@ -1265,12 +1274,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
     }
 
     /**
-     * For a {@link SOCMessageMulti} message, strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a list for {@link #parseMsgStr(String)} to pass to the
-     * message class's {@code parseDataStr(List)}.
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a list for further parsing or for
+     * {@link #parseMsgStr(String)} to pass to a {@link SOCMessageMulti} message class's {@code parseDataStr(List)}.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed.
      *     If {@code messageStrParams} is "", returns a list with "" as its sole element.
+     *     The returned List might not support optional methods like {@link List#add(int, Object)}.
      * @see #stripAttribNames(String)
      * @since 2.4.10
      */
