@@ -4936,6 +4936,14 @@ public class SOCPlayerInterface extends Frame
                 pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), false, acceptor);
         }
 
+        public void playerTradeDisallowed(final int offeringPN, final boolean isNotTurn)
+        {
+            pi.printKeyed
+                ((isNotTurn)
+                 ? "base.reply.not.your.turn"  // "It's not your turn."
+                 : "reply.common.trade.cannot_make");  // "You can't make that trade."
+        }
+
         public void requestedTradeReset(SOCPlayer playerToReset)
         {
             final int pn = (playerToReset != null) ? playerToReset.getPlayerNumber() : -1;

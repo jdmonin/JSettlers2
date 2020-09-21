@@ -1019,7 +1019,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Throwable e)
@@ -1089,9 +1089,9 @@ public class SOCGameMessageHandler
                     handler.endGameTurn(ga, pl, true);
                 }
                 else
-                    srv.messageToPlayer(c, gname, pl.getPlayerNumber(), "You can't end your turn yet.");
+                    srv.messageToPlayer(c, gname, pl.getPlayerNumber(), /*I*/"You can't end your turn yet."/*18N*/ );
             } else {
-                srv.messageToPlayer(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, "It's not your turn.");
+                srv.messageToPlayerKeyed(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -1197,7 +1197,7 @@ public class SOCGameMessageHandler
                         replyDecline = true;  // client will print a text message, no need to send one
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");
+                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");
                     replyDecline = true;
                 }
             }
@@ -1417,7 +1417,13 @@ public class SOCGameMessageHandler
                     srv.gameList.releaseMonitorForGame(gaName);
                 }
             } else {
-                srv.messageToPlayer(c, gaName, acceptingNumber, /*I*/"You can't make that trade."/*18N*/ );
+                if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                    srv.messageToPlayer
+                        (c, gaName, acceptingNumber, new SOCAcceptOffer
+                            (gaName, SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE, offeringNumber));
+                else
+                    srv.messageToPlayerKeyed
+                        (c, gaName, acceptingNumber, "reply.common.trade.cannot_make");  // "You can't make that trade."
             }
         }
         catch (Exception e)
@@ -1454,14 +1460,30 @@ public class SOCGameMessageHandler
                     ga.makeBankTrade(give, get);
                     handler.reportBankTrade(ga, give, get);
                 } else {
-                    srv.messageToPlayer(c, gaName, ga.getCurrentPlayerNumber(), "You can't make that trade.");
+                    final int pn = ga.getCurrentPlayerNumber();
+                    if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                        srv.messageToPlayer(c, gaName, pn,
+                            new SOCBankTrade
+                                (gaName, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET,
+                                 SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE));
+                    else
+                        srv.messageToPlayerKeyed
+                            (c, gaName, pn, "reply.common.trade.cannot_make");  // "You can't make that trade."
+
                     SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
                         D.ebugPrintlnINFO("ILLEGAL BANK TRADE: " + c.getData()
                           + ": give " + give + ", get " + get);
                 }
             } else {
-                srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "It's not your turn.");
+                if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                    srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                        new SOCBankTrade
+                            (gaName, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET,
+                             SOCBankTrade.PN_REPLY_NOT_YOUR_TURN));
+                else
+                    srv.messageToPlayerKeyed
+                        (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -1532,7 +1554,7 @@ public class SOCGameMessageHandler
             } else {
                 if (ga.maxPlayers <= 4)
                 {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");  // "It's not your turn."
+                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
                     sendDenyReply = true;
                 } else {
                     // 6-player board: Special Building Phase
@@ -1936,7 +1958,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -2279,7 +2301,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -2646,8 +2668,7 @@ public class SOCGameMessageHandler
 
                 if (ga.maxPlayers <= 4)
                 {
-                    final String denyText = /*I*/"It's not your turn."/*18N*/ ;
-                    srv.messageToPlayer(c, gaName, pn, denyText);
+                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
                 } else {
                     // 6-player board: Special Building Phase
                     try
@@ -2882,7 +2903,7 @@ public class SOCGameMessageHandler
 
                 }
             } else {
-                denyTextKey = "reply.not.your.turn";  // "It's not your turn."
+                denyTextKey = "base.reply.not.your.turn";  // "It's not your turn."
             }
 
             if (denyPlayCardNow || (denyTextKey != null))
@@ -2963,7 +2984,7 @@ public class SOCGameMessageHandler
                             // "That is not a legal Year of Plenty pick."
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");  // "It's not your turn."
+                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
                 }
             } else {
                 // Message is Gold Hex picks
@@ -3172,7 +3193,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)

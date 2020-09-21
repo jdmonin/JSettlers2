@@ -149,6 +149,8 @@ import java.util.Vector;
  */
 public class SOCRobotBrain extends Thread
 {
+    // Tuning parameters:
+
     /**
      * Bot pause speed-up factor when {@link SOCGame#isBotsOnly} in {@link #pause(int)}.
      * Default 0.25 (use 25% of normal pause time: 4x speed-up).
@@ -165,6 +167,8 @@ public class SOCRobotBrain extends Thread
      * @since 1.1.00
      */
     public static int MAX_DENIED_BUILDING_PER_TURN = 3;
+
+    // Timing constants:
 
     /**
      * When a trade has been offered to humans (and maybe also to bots),
@@ -585,7 +589,8 @@ public class SOCRobotBrain extends Thread
     private boolean waitingForTurnMain;
 
     /**
-     * true when we're waiting for the results of a trade
+     * True when we're waiting for the results of our requested bank trade.
+     * @see #waitingForTradeResponse
      */
     protected boolean waitingForTradeMsg;
 
@@ -603,8 +608,11 @@ public class SOCRobotBrain extends Thread
     protected boolean moveRobberOnSeven;
 
     /**
-     * True if we're waiting for a response to our trade message.
+     * True if we're waiting for a player response to our offered trade message.
      * Max wait time is {@link #tradeResponseTimeoutSec}.
+     * @see #makeOffer(SOCPossiblePiece)
+     * @see #doneTrading
+     * @see #waitingForTradeMsg
      */
     protected boolean waitingForTradeResponse;
 
@@ -637,6 +645,8 @@ public class SOCRobotBrain extends Thread
 
     /**
      * true if we're done trading
+     * @see #makeOffer(SOCPossiblePiece)
+     * @see #waitingForTradeResponse
      */
     protected boolean doneTrading;
 
@@ -1482,11 +1492,16 @@ public class SOCRobotBrain extends Thread
                         {
                             final int acceptingPN = ((SOCAcceptOffer) mes).getAcceptingNumber();
 
-                            if ((ourPlayerNumber == (((SOCAcceptOffer) mes).getOfferingNumber()))
-                                || (ourPlayerNumber == acceptingPN))
+                            if ((ourPlayerNumber == acceptingPN)
+                                || (ourPlayerNumber == (((SOCAcceptOffer) mes).getOfferingNumber())))
                             {
                                 handleTradeResponse(acceptingPN, true);
                             }
+                            else if (acceptingPN < 0)
+                            {
+                                clearTradingFlags(false, false);
+                            }
+
                         }
                         break;
 
@@ -1681,13 +1696,16 @@ public class SOCRobotBrain extends Thread
                         planAndPlaceInvItem();  // choose and send a placement location
                     }
 
-                    if (waitingForTradeMsg && (mesType == SOCMessage.BANKTRADE)
-                        && (((SOCBankTrade) mes).getPlayerNumber() == ourPlayerNumber))
+                    if (waitingForTradeMsg && (mesType == SOCMessage.BANKTRADE))
                     {
-                        //
-                        // This is the bank/port trade confirmation announcement we've been waiting for
-                        //
-                        waitingForTradeMsg = false;
+                        final int pn = ((SOCBankTrade) mes).getPlayerNumber();
+                        final boolean wasAllowed = (pn >= 0);
+
+                        if ((pn == ourPlayerNumber) || ! wasAllowed)
+                            //
+                            // This is the bank/port trade confirmation announcement we've been waiting for
+                            //
+                            clearTradingFlags(true, wasAllowed);
                     }
 
                     if (waitingForDevCard && (mesType == SOCMessage.SIMPLEACTION)
@@ -2362,11 +2380,13 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Stop waiting for responses to a trade offer.
-     * Remember other players' responses,
+     * Stop waiting for responses to a trade offer, no one has accepted it.
+     * Remember other players' responses or non-responses,
      * Call {@link SOCRobotClient#clearOffer(SOCGame) client.clearOffer},
      * clear {@link #waitingForTradeResponse} and {@link #counter}.
      * Call {@link SOCRobotNegotiator#recordResourcesFromNoResponse(SOCTradeOffer)}.
+     * @see #clearTradingFlags(boolean, boolean)
+     * @see #handleTradeResponse(int, boolean)
      * @since 1.1.09
      */
     protected void tradeStopWaitingClearOffer()
@@ -3217,16 +3237,20 @@ public class SOCRobotBrain extends Thread
     /**
      * Note that a player has replied to our offer, or we've accepted another player's offer.
      * Determine whether to keep waiting for responses, and update negotiator appropriately.
+     * If {@code accepted}, also clears {@link #waitingForTradeResponse}
+     * by calling {@link #clearTradingFlags(boolean, boolean)}.
+     *
      * @param playerNum  Player number: The other player accepting or rejecting our offer,
      *     or {@link #ourPlayerNumber} if called for accepting another player's offer
      * @param accepted  True if offer was accepted, false if rejected
+     * @see #tradeStopWaitingClearOffer()
      * @since 2.4.10
      */
     protected void handleTradeResponse(final int playerNum, final boolean accepted)
     {
         if (accepted)
         {
-            waitingForTradeResponse = false;
+            clearTradingFlags(false, true);
 
             return;
         }
@@ -5062,11 +5086,24 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Clears all flags waiting for a player trade message.
+     * Clears all flags waiting for a bank or player trade message.
+     * {@link #waitingForTradeResponse}, {@link #waitingForTradeMsg},
+     * any flags added in a third-party robot brain.
+     *
+     * @param isBankTrade  True if was bank/port trade, not player trade
+     * @param wasAllowed  True if trade was successfully offered or completed,
+     *     false if server sent a message disallowing it
+     * @see #tradeStopWaitingClearOffer()
+     * @see #handleTradeResponse(int, boolean)
+     * @since 2.4.10
      */
-    public void clearTradingFlags(String text)
+    public void clearTradingFlags(final boolean isBankTrade, final boolean wasAllowed)
     {
+        // This method clears both fields regardless of isBankTrade,
+        // but third-party bots might override it and use that parameter
+
         waitingForTradeMsg = false;
+        waitingForTradeResponse = false;
     }
 
     /**

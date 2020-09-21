@@ -309,9 +309,19 @@ public interface PlayerClientListener
     void playerTradeAccepted(SOCPlayer offerer, SOCPlayer acceptor);
 
     /**
+     * Server has rejected client player's attempt to trade with the bank or accept a player's offer.
+     * @param offeringPN  Player number offering the disallowed trade, or -1 if bank trade
+     * @param isNotTurn  True if was disallowed because this trade can be done only during client player's turn
+     * @since 2.4.10
+     */
+    void playerTradeDisallowed(int offeringPN, boolean isNotTurn);
+
+    /**
+     * Clear any visible trade messages/responses.
      * @param playerToReset May be {@code null} to clear all seats
      */
     void requestedTradeReset(SOCPlayer playerToReset);
+
     void requestedSpecialBuild(SOCPlayer player);
 
     /**

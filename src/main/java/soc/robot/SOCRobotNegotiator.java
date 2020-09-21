@@ -2608,7 +2608,8 @@ public class SOCRobotNegotiator
     }
 
     /**
-     * This is called when players haven't responded to our offer, so we assume they are not selling and that they don't want anything else
+     * This is called when players haven't responded to our offer,
+     * so we assume they are not selling and don't want anything else.
      * Marks the resources we offered as not selling and marks that the player doesn't want a different offer for that resource
      * @param ourCurrentOffer the offer we made and not received an answer to
      * @since 2.4.10

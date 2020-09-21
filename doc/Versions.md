@@ -16,8 +16,9 @@ JARs for recent JSettlers versions can be downloaded from
 ## `2.4.10` (build JM20200xxx)
 - Currently being developed
 - Network/Message traffic:
-	- Report robbery using `SOCReportRobbery` instead of text, if clients new enough:
-	  More efficient, easier for third-party bots to consistently parse
+	- For efficiency and third-party bots' parsing, use data messages instead of text when clients are new enough:
+		- Report robbery with `SOCReportRobbery`
+		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code

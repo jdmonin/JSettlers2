@@ -24,9 +24,12 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that the player is retracting an offer.
+ * This message means that the player is retracting an offer,
+ * or offer was accepted and server is clearing that offer from client displays
+ * (if so, is sent after {@link SOCAcceptOffer}).
+ * Also announced by server at end of each turn: All players clear their offers.
  *<P>
- * Version 1.1.09: If <tt>playerNumber</tt> is -1, all players are clearing all offers (usually at end of turn).
+ * v1.1.09 and newer: If {@code playerNumber} is -1, all players are clearing all offers.
  * This is allowed only from server to client.
  *
  * @author Robert S. Thomas

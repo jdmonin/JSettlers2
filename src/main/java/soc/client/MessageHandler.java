@@ -2108,7 +2108,11 @@ import soc.util.Version;
         if (pcl == null)
             return;
 
-        pcl.playerBankTrade(ga.getPlayer(mes.getPlayerNumber()), mes.getGiveSet(), mes.getGetSet());
+        final int pn = mes.getPlayerNumber();
+        if (pn >= 0)
+            pcl.playerBankTrade(ga.getPlayer(pn), mes.getGiveSet(), mes.getGetSet());
+        else
+            pcl.playerTradeDisallowed(-1, (pn == SOCBankTrade.PN_REPLY_NOT_YOUR_TURN));
     }
 
     /**
@@ -2183,8 +2187,11 @@ import soc.util.Version;
         if (pcl == null)
             return;
 
-        pcl.playerTradeAccepted
-            (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
+        final int offeringPN = mes.getOfferingNumber(), acceptingPN = mes.getAcceptingNumber();
+        if (acceptingPN >= 0)
+            pcl.playerTradeAccepted(ga.getPlayer(offeringPN), ga.getPlayer(acceptingPN));
+        else
+            pcl.playerTradeDisallowed(offeringPN, false);
     }
 
     /**

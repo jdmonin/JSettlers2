@@ -346,6 +346,7 @@ public class TestToCmdToStringParse
     private static final Object[][] TOCMD_TOSTRING_COMPARES =
     {
         {new SOCAcceptOffer("ga", 2, 3), "1039|ga,2,3", "SOCAcceptOffer:game=ga|accepting=2|offering=3"},
+        {new SOCAcceptOffer("ga", -2, 3), "1039|ga,-2,3", "SOCAcceptOffer:game=ga|accepting=-2|offering=3"},
         // TODO? SOCAdminPing
         {new SOCAdminReset(), "1065", "SOCAdminReset:"},
         // TODO SOCAuthRequest
@@ -353,6 +354,12 @@ public class TestToCmdToStringParse
             new SOCBankTrade("ga", new SOCResourceSet(0, 0, 2, 0, 0, 0), new SOCResourceSet(1, 0, 0, 0, 0, 0), 3),
             "1040|ga,0,0,2,0,0,1,0,0,0,0,3",
             "SOCBankTrade:game=ga|give=clay=0|ore=0|sheep=2|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3"
+        },
+        {
+            new SOCBankTrade("ga", new SOCResourceSet(), SOCResourceSet.EMPTY_SET, SOCBankTrade.PN_REPLY_NOT_YOUR_TURN),
+                // tests server's disallow reply using both of the likely SOCResourceSet param forms
+            "1040|ga,0,0,0,0,0,0,0,0,0,0,-3",
+            "SOCBankTrade:game=ga|give=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=-3"
         },
         {new SOCBCastTextMsg("msg text"), "1062|msg text", "SOCBCastTextMsg:text=msg text"},
         {
