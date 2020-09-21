@@ -5062,6 +5062,14 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Clears all flags waiting for a player trade message.
+     */
+    public void clearTradingFlags(String text)
+    {
+        waitingForTradeMsg = false;
+    }
+
+    /**
      * Handle the tracking of changing resources.
      * Third-party bots can override this to
      * allow them to determine how accurately this is tracked
