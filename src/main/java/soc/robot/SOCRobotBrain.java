@@ -125,7 +125,7 @@ import java.util.Vector;
  * be used to inject random delays in incoming messages.
  *<P>
  * To keep the game moving, the server may force an inactive bot to end its turn;
- * see {@link soc.server.SOCForceEndTurnThread}.
+ * see {@link soc.server . SOCForceEndTurnThread}.
  *
  *<H3>AI/Robot development:</H3>
  *
@@ -4595,7 +4595,7 @@ public class SOCRobotBrain extends Thread
      * Place planned initial settlement after first one.
      * @param initSettlement  Second or third settlement's node coordinate,
      *   from {@link OpeningBuildStrategy#planSecondSettlement()} or
-     *   from {@link OpeningBuildStrategy#planThirdSettlement()};
+     *   from {@link OpeningBuildStrategy # planThirdSettlement()};
      *   should not be -1
      * @see #placeFirstSettlement(int)
      */
@@ -4966,6 +4966,18 @@ public class SOCRobotBrain extends Thread
 
             if (offeredTo[ourPlayerNumber])
             {
+                // pause a bit if this was offered to at least one human player.
+                for (int i = 0; i < offeredTo.length; i++)
+                {
+                    if (offeredTo[ i ] && !game.getPlayer( i ).isRobot())
+                    {
+                        // offered to at least one human player; wait for the human brain to catch up
+                        // TODO: figure out how to interrupt the Thread.sleep once all humans have responded
+                        //  to the trade offer it it's faster than the pause time.
+                        pause( robotParameters.getPauseForHumansSec() * 1000);
+                        break;      // one wait for all humans is enough
+                    }
+                }
                 response = negotiator.considerOffer2(offer, ourPlayerNumber);
             }
         }
