@@ -824,8 +824,8 @@ public class TestToCmdToStringParse
         {new SOCTurn("ga", 3, SOCGame.ROLL_OR_CARD), "1026|ga,3,15", "SOCTurn:game=ga|playerNumber=3|gameState=15"},
         {
             new SOCUpdateRobotParams(new soc.util.SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 0, 1)),
-            "1071|120,35,0.13,1.0,1.0,3.0,1.0,0,1",
-            "SOCUpdateRobotParams:mgl=120|me=35|ebf=0.13|af=1.0|laf=1.0|dcm=3.0|tm=1.0|st=0|tf=1"
+            "1071|120,35,0.13,1.0,1.0,3.0,1.0,0,1,8",
+            "SOCUpdateRobotParams:mgl=120|me=35|ebf=0.13|af=1.0|laf=1.0|dcm=3.0|tm=1.0|st=0|tf=1|ph=8"
         },
         {
             new SOCVersion(2410, "2.4.10", "JM20200801", ";6pl;sb;", "en_US"),
