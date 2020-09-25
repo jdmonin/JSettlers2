@@ -42,7 +42,8 @@ import java.util.Vector;
  * Used by {@link SOCRobotDM#planStuff(int)} and other tactical planning methods.
  *<P>
  * Robot typically uses factory methods like {@link SOCRobotBrain#getEstimator(SOCPlayerNumbers)}
- * and {@link SOCRobotDM#getEstimator(SOCPlayerNumbers)} instead of directly instantiating this class.
+ * and {@link SOCBuildingSpeedEstimateFactory#getEstimator(SOCPlayerNumbers)}
+ * instead of directly instantiating this class.
  */
 public class SOCBuildingSpeedEstimate
 {
@@ -121,7 +122,7 @@ public class SOCBuildingSpeedEstimate
      *        a 5-element array containing
      *        {@link SOCResourceConstants#CLAY},
      *        {@link SOCResourceConstants#WHEAT}, etc,
-     *        where the resource in [0] has the highest rolls per resource.
+     *        where the resource type constant in [0] has the highest rolls per resource.
      * @since 2.0.00
      */
     public static final int[] getRollsForResourcesSorted(final SOCPlayer pl)

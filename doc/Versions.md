@@ -26,6 +26,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
 	- Enhanced server's recordGameEvent framework for more detailed game recording
 	- More accessible robot-related methods and data classes
+	- For third-party bots, added more granular override points like
+	  `endTurnActions`, `handleTradeResponse`, `planAndDoActionForPLAY1`, `SOCBuildingSpeedEstimateFactory`
 	- Made some data classes Serializable
 	- Save/load games:
 	    - SavedGameModel:
@@ -66,7 +68,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
 	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- Game window:
-	    - Hand Panel: Shorten unused space above trading squares
+	    - Hand Panel: Shrink unused space above trading squares
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields

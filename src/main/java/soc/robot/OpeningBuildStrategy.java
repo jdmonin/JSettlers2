@@ -51,6 +51,12 @@ public class OpeningBuildStrategy {
     /** Our {@link SOCRobotBrain}'s player */
     protected final SOCPlayer ourPlayerData;
 
+    /**
+     * Our {@link SOCBuildingSpeedEstimate} factory, from {@link #ourPlayerData}'s brain passed into constructor.
+     * @since 2.4.10
+     */
+    protected final SOCBuildingSpeedEstimateFactory bseFactory;
+
     /** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
     protected transient D log = new D();
@@ -82,16 +88,21 @@ public class OpeningBuildStrategy {
     protected int[] resourceEstimates;
 
     /**
-     * Create an OpeningBuildStrategy for a {@link SOCRobotBrain}'s player.
+     * Create an OpeningBuildStrategy for a {@link SOCRobotBrain}'s or {@link SOCRobotDM}'s player.
      * @param ga  Our game
-     * @param pl  Our player data in <tt>ga</tt>
+     * @param pl  Our player data in {@code ga}
+     * @param br  Robot brain for {@code pl} if available, or null
      */
-    public OpeningBuildStrategy(SOCGame ga, SOCPlayer pl)
+    public OpeningBuildStrategy(SOCGame ga, SOCPlayer pl, SOCRobotBrain br)
     {
         if (pl == null)
             throw new IllegalArgumentException();
+
         game = ga;
         ourPlayerData = pl;
+        bseFactory = (br != null)
+            ? br.getEstimatorFactory()
+            : new SOCBuildingSpeedEstimateFactory(null);
     }
 
     /**
@@ -124,7 +135,7 @@ public class OpeningBuildStrategy {
         int probTotal;
         int bestProbTotal;
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
+        SOCBuildingSpeedEstimate estimate = bseFactory.getEstimator();
         final int[] prob = SOCNumberProbabilities.INT_VALUES;
 
         bestProbTotal = 0;
@@ -400,7 +411,7 @@ public class OpeningBuildStrategy {
         final SOCBoard board = game.getBoard();
         SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
+        SOCBuildingSpeedEstimate estimate = bseFactory.getEstimator();
         int probTotal;
         int bestProbTotal;
         final int[] prob = SOCNumberProbabilities.INT_VALUES;

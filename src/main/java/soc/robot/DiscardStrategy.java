@@ -135,7 +135,7 @@ public class DiscardStrategy
 
             //log.debug("our numbers="+ourPlayerData.getNumbers());
             final int[] resourceOrder
-                = SOCBuildingSpeedEstimate.getRollsForResourcesSorted(ourPlayerData);
+                = brain.getEstimatorFactory().getRollsForResourcesSorted(ourPlayerData);
 
             /**
              * pick the discards

@@ -147,6 +147,14 @@ public class SOCRobotDM
    */
   protected final OpeningBuildStrategy openingBuildStrategy;
 
+  /**
+   * Our {@link SOCBuildingSpeedEstimate} factory.
+   * Is set during construction, from {@link SOCRobotBrain#createEstimatorFactory()} if available.
+   * @see #getEstimatorFactory()
+   * @since 2.4.10
+   */
+  protected SOCBuildingSpeedEstimateFactory bseFactory;
+
   /** The game we're playing in */
   protected final SOCGame game;
 
@@ -206,6 +214,7 @@ public class SOCRobotDM
     ourPlayerNumber = ourPlayerData.getPlayerNumber();
     buildingPlan = brain.getBuildingPlan();
     openingBuildStrategy = brain.openingBuildStrategy;
+    bseFactory = brain.getEstimatorFactory();
     game = brain.getGame();
 
     resourceChoices = new SOCResourceSet();
@@ -233,7 +242,7 @@ public class SOCRobotDM
    *     in case DM needs to call {@link OpeningBuildStrategy#estimateResourceRarity()}
    * @param pt   the player trackers, same format as {@link SOCRobotBrain#getPlayerTrackers()}
    * @param opt  our player tracker
-   * @param opd  our player data
+   * @param opd  our player data; also calls {@link SOCPlayer#getGame()} here
    * @param bp   our building plan
    */
   public SOCRobotDM
@@ -250,8 +259,9 @@ public class SOCRobotDM
     ourPlayerData = opd;
     ourPlayerNumber = opd.getPlayerNumber();
     buildingPlan = bp;
+    bseFactory = new SOCBuildingSpeedEstimateFactory(null);
     game = ourPlayerData.getGame();
-    openingBuildStrategy = (obs != null) ? obs : new OpeningBuildStrategy(game, opd);
+    openingBuildStrategy = (obs != null) ? obs : new OpeningBuildStrategy(game, opd, null);
 
     maxGameLength = params.getMaxGameLength();
     maxETA = params.getMaxETA();
@@ -3318,7 +3328,7 @@ public class SOCRobotDM
                   // Choose based on our least-frequent dice rolls.
 
                   final int[] resourceOrder =
-                      SOCBuildingSpeedEstimate.getRollsForResourcesSorted(ourPlayerData);
+                      bseFactory.getRollsForResourcesSorted(ourPlayerData);
 
                   int curRsrc = 0;
                   while (numMore > 0)
@@ -3340,9 +3350,10 @@ public class SOCRobotDM
   }
 
   /**
-   * Estimator factory for when a player's dice numbers are known.
+   * Estimator factory method for when a player's dice numbers are known.
    * Calls {@link SOCRobotBrain#getEstimator(SOCPlayerNumbers)} if DM has non-null {@link #brain} field.
-   * If brain not available (simulation situations, etc), constructs a new Estimate.
+   * If brain not available (simulation situations, etc), constructs a new Estimate with
+   * {@link #getEstimatorFactory()}.{@link SOCBuildingSpeedEstimateFactory#getEstimator(SOCPlayerNumbers) getEstimator(numbers)}.
    *<P>
    * This factory may be overridden by third-party bot DMs. However, it's
    * also not unreasonable to expect that simulation of opponent planning
@@ -3359,13 +3370,14 @@ public class SOCRobotDM
       if (brain != null)
           return brain.getEstimator(numbers);
       else
-          return new SOCBuildingSpeedEstimate(numbers);
+          return bseFactory.getEstimator(numbers);
   }
 
   /**
-   * Estimator factory for when a player's dice numbers are unknown or don't matter yet.
+   * Estimator factory method for when a player's dice numbers are unknown or don't matter yet.
    * Calls {@link SOCRobotBrain#getEstimator()} if DM has non-null {@link #brain} field.
-   * If brain not available (simulation situations, etc), constructs a new Estimate.
+   * If brain not available (simulation situations, etc), constructs a new Estimate with
+   * {@link #getEstimatorFactory()}.{@link SOCBuildingSpeedEstimateFactory#getEstimator() getEstimator()}.
    *<P>
    * This factory may be overridden by third-party bot DMs. However, it's
    * also not unreasonable to expect that simulation of opponent planning
@@ -3381,7 +3393,20 @@ public class SOCRobotDM
       if (brain != null)
           return brain.getEstimator();
       else
-          return new SOCBuildingSpeedEstimate();
+          return bseFactory.getEstimator();
+  }
+
+  /**
+   * Get this decision maker's {@link SOCBuildingSpeedEstimate} factory.
+   * Is set in constructor, from our brain or otherwise.
+   *
+   * @return This decision maker's factory
+   * @see #getEstimator(SOCPlayerNumbers)
+   * @since 2.4.10
+   */
+  public SOCBuildingSpeedEstimateFactory getEstimatorFactory()
+  {
+      return bseFactory;
   }
 
 }
