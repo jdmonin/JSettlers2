@@ -31,8 +31,8 @@ JARs for recent JSettlers versions can be downloaded from
 	- Made some data classes Serializable
 	- Save/load games:
 	    - SavedGameModel:
-	        - PlayerInfo: add fields for number of Discovery, Monopoly, Road Building cards played;
-	          add list of dev cards played
+	        - PlayerInfo: add fields for number of Discovery, Monopoly, Road Building cards played,
+	          list of dev cards played; TradeOffer add timestamp
 	        - MODEL_VERSION still 2400; earlier server versions will ignore these added fields while loading a savegame
 	        - GLAS field made non-static so unit tests can safely run in parallel for quicker builds
 	- Unit tests and extraTests against running server for core game actions and message sequences

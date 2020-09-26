@@ -3314,7 +3314,8 @@ public class SOCRobotBrain extends Thread
     protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
         SOCTradeOffer offer = mes.getOffer();
-        game.getPlayer(offer.getFrom()).setCurrentOffer(offer);
+        final SOCPlayer offeredFromPlayer = game.getPlayer(offer.getFrom());
+        offeredFromPlayer.setCurrentOffer(offer);
 
         if ((offer.getFrom() == ourPlayerNumber))
         {
@@ -3363,12 +3364,39 @@ public class SOCRobotBrain extends Thread
         if (ourResponseToOffer < 0)
             return;  // <--- Early return: SOCRobotNegotiator.IGNORE_OFFER ---
 
+        // Before pausing, note current offer and turn.
+        // If that game data changes during the pause, we'll need to reconsider the current offer.
+        // While brain thread is paused, robot client's message thread is still running
+        // and will update game data if conditions change.
+
+        final long offeredAt = offeredFromPlayer.getCurrentOfferTime();
+        final int currentPN = game.getCurrentPlayerNumber();
+
         int delayLength = Math.abs(rand.nextInt() % 500) + 3500;
-        if (gameIs6Player && ! waitingForTradeResponse)
+        if (pauseFaster && ! waitingForTradeResponse)
         {
-            delayLength *= 2;  // usually, pause is half-length in 6-player
+            delayLength *= 2;  // pre-scale, since pauses are usually shortened in 6-player
         }
         pause(delayLength);
+
+        // See if trade conditions still apply after pause;
+        // reconsider if needed
+
+        if (currentPN != game.getCurrentPlayerNumber())
+        {
+            return;  // <--- new turn; will react to newly queued messages to reset brain fields for new turn ---
+        }
+
+        if (offeredAt != offeredFromPlayer.getCurrentOfferTime())
+        {
+            offer = offeredFromPlayer.getCurrentOffer();
+            if ((offer == null) || ! offer.getTo()[ourPlayerNumber])
+            {
+                return;  // <--- nothing offered to us now ---
+            }
+
+            ourResponseToOffer = considerOffer(offer);
+        }
 
         switch (ourResponseToOffer)
         {
