@@ -231,6 +231,13 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_BOTS_COOKIE = "jsettlers.bots.cookie";
 
     /**
+     * Integer property <tt>jsettlers.bot.human.pause</tt> to pause a robot for the specified number of seconds
+     * before considering a trade when humans are in a game. Default is 8 seconds
+     * @since 2.4.11
+     */
+     public static final String PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE = "jsettlers.bot.human.pause";
+
+    /**
      * Boolean property <tt>jsettlers.bots.showcookie</tt> to print the
      * {@link #PROP_JSETTLERS_BOTS_COOKIE robot connect cookie} to System.err during server startup.
      * (The default is N, the cookie is not printed.)<P>
@@ -626,6 +633,7 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_SETTINGS, "If set to \"write\", save DB settings properties values to the settings table and exit",
         SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP, "If set, full path or relative path to db setup sql script; will run and exit",
         SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, "Flag: If set, server will upgrade the DB schema to latest version and exit (if 1 or Y)",
+        PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE, "When playing with humans, robots will wait this many seconds before considering a trade offer",
     };
 
     // JVM/System properties for testing
@@ -1672,6 +1680,7 @@ public class SOCServer extends Server
                 throw new IllegalArgumentException
                     ("Error: Property out of range (0 to 100): " + PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT);
         }
+        SOCRobotBrain.BOTS_PAUSE_FOR_HUMAN_TRADE = getConfigIntProperty( PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE, 8 );
 
         if (validate_config_mode)
         {

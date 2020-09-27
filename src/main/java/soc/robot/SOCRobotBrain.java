@@ -171,10 +171,19 @@ public class SOCRobotBrain extends Thread
     // Timing constants:
 
     /**
+     * When a trade has been offered to humans (and maybe also to bots), pause
+     * for this many seconds before accepting an offer to give humans a chance
+     * to compete against fast processors.
+     *
+     * @since 2.4.10
+     */
+    public static int BOTS_PAUSE_FOR_HUMAN_TRADE = 8;
+
+    /**
      * When a trade has been offered to humans (and maybe also to bots),
      * maximum wait in seconds for responses: {@link #tradeResponseTimeoutSec}.
      * Longer than {@link #TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY}.
-     *<P>
+     *<br/>
      * Before v2.3.00 this was 100 seconds, which felt glacially slow
      * compared to the quick pace of most bot activity.
      *
@@ -3408,14 +3417,29 @@ public class SOCRobotBrain extends Thread
         switch (ourResponseToOffer)
         {
         case SOCRobotNegotiator.ACCEPT_OFFER:
-            client.acceptOffer(game, offer.getFrom());
+        {
+            // shouldn't need to check validity of offer because if invalid the response would not be ACCEPT_OFFER
+            boolean[] offeredTo = offer.getTo();
+            // pause a bit if this was offered to at least one human player.
+            for (int i = 0; i < offeredTo.length; i++)
+            {
+                if (offeredTo[i] && !game.getPlayer( i ).isRobot())
+                {
+                    // offered to at least one human player; wait for the human brain to catch up
+                    // TODO: figure out how to interrupt the Thread.sleep once all humans have responded
+                    //  to the trade offer if it's faster than the pause time.
+                    pause( BOTS_PAUSE_FOR_HUMAN_TRADE * 1000 );
+                    break;      // one wait for all humans is enough
+                }
+            }
 
+            client.acceptOffer( game, offer.getFrom() );
             ///
             /// clear our building plan, so that we replan
             ///
             resetBuildingPlan();
-            negotiator.setTargetPiece(ourPlayerNumber, null);
-
+            negotiator.setTargetPiece( ourPlayerNumber, null );
+        }
             break;
 
         case SOCRobotNegotiator.REJECT_OFFER:
@@ -5039,7 +5063,6 @@ public class SOCRobotBrain extends Thread
                 response = negotiator.considerOffer2(offer, ourPlayerNumber);
             }
         }
-
         return response;
     }
 
