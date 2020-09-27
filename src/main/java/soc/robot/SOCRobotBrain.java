@@ -317,7 +317,7 @@ public class SOCRobotBrain extends Thread
     protected SOCPlayingPiece whatWeWantToBuild;
 
     /**
-     * This is our current building plan, a stack of {@link SOCPossiblePiece}.
+     * This is our current building plan.
      *<P>
      * Cleared at the start of each player's turn, and a few other places
      * if certain conditions arise, by calling {@link #resetBuildingPlan()}.
@@ -326,9 +326,12 @@ public class SOCRobotBrain extends Thread
      * {@link #negotiator}'s target piece.
      *<P>
      * {@link SOCRobotDM#buildingPlan} is the same Stack.
+     *<P>
+     * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+     *
      * @see #whatWeWantToBuild
      */
-    protected final Stack<SOCPossiblePiece> buildingPlan;
+    protected final SOCBuildPlanStack buildingPlan;
 
     /**
      * This is what we tried building this turn,
@@ -381,7 +384,7 @@ public class SOCRobotBrain extends Thread
      * {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
      * is set when {@link #buildingPlan} is updated.
      * @see #tradeToTarget2(SOCResourceSet)
-     * @see #makeOffer(SOCPossiblePiece)
+     * @see #makeOffer(SOCBuildPlan)
      * @see #considerOffer(SOCTradeOffer)
      * @see #tradeStopWaitingClearOffer()
      */
@@ -617,7 +620,7 @@ public class SOCRobotBrain extends Thread
     /**
      * True if we're waiting for a player response to our offered trade message.
      * Max wait time is {@link #tradeResponseTimeoutSec}.
-     * @see #makeOffer(SOCPossiblePiece)
+     * @see #makeOffer(SOCBuildPlan)
      * @see #doneTrading
      * @see #waitingForTradeMsg
      */
@@ -652,7 +655,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * true if we're done trading
-     * @see #makeOffer(SOCPossiblePiece)
+     * @see #makeOffer(SOCBuildPlan)
      * @see #waitingForTradeResponse
      */
     protected boolean doneTrading;
@@ -825,7 +828,7 @@ public class SOCRobotBrain extends Thread
             offerRejections[i] = false;
         }
 
-        buildingPlan = new Stack<SOCPossiblePiece>();
+        buildingPlan = new SOCBuildPlanStack();
         pinger = new SOCRobotPinger(gameEventQ, game.getName(), client.getNickname() + "-" + game.getName());
         dRecorder = new DebugRecorder[2];
         dRecorder[0] = new DebugRecorder();
@@ -930,10 +933,14 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * @return the building plan, a stack of {@link SOCPossiblePiece}
+     * Get the current building plan.
+     *<P>
+     * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+     *
+     * @return the building plan
      * @see #resetBuildingPlan()
      */
-    public Stack<SOCPossiblePiece> getBuildingPlan()
+    public SOCBuildPlanStack getBuildingPlan()
     {
         return buildingPlan;
     }
@@ -2792,7 +2799,7 @@ public class SOCRobotBrain extends Thread
      * {@link SOCDevCardConstants#MONO Monopoly} or
      * {@link SOCDevCardConstants#DISC Discovery} development cards,
      * then trades with the bank ({@link #tradeToTarget2(SOCResourceSet)})
-     * or with other players ({@link #makeOffer(SOCPossiblePiece)}).
+     * or with other players ({@link #makeOffer(SOCBuildPlan)}).
      *<P>
      * Call when these conditions are all true:
      * <UL>
@@ -2965,7 +2972,7 @@ public class SOCRobotBrain extends Thread
 
                     if (robotParameters.getTradeFlag() == 1)
                     {
-                        makeOffer(targetPiece);
+                        makeOffer(buildingPlan);
                         // makeOffer will set waitingForTradeResponse or doneTrading.
                     }
                 }
@@ -4728,7 +4735,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * do some trading -- this method is obsolete and not called.
-     * Instead see {@link #makeOffer(SOCPossiblePiece)}, {@link #considerOffer(SOCTradeOffer)},
+     * Instead see {@link #makeOffer(SOCBuildPlan)}, {@link #considerOffer(SOCTradeOffer)},
      * etc, and the javadoc for {@link #negotiator}.
      */
     protected void tradeStuff()
@@ -5038,17 +5045,19 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Make a trade offer to another player, or decide to make no offer.
-     * Calls {@link SOCRobotNegotiator#makeOffer(SOCPossiblePiece)}.
+     * Calls {@link SOCRobotNegotiator#makeOffer(SOCBuildPlan)}.
      * Will set either {@link #waitingForTradeResponse} or {@link #doneTrading},
      * and update {@link #ourPlayerData}.{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) setCurrentOffer()},
+     *<P>
+     * Before v2.4.10 this method took a {@link SOCPossiblePiece}, not a {@link SOCBuildPlan}.
      *
-     * @param target  the resources that we want
+     * @param buildPlan  our current build plan
      * @return true if we made an offer
      */
-    protected boolean makeOffer(SOCPossiblePiece target)
+    protected boolean makeOffer(SOCBuildPlan buildPlan)
     {
         boolean result = false;
-        SOCTradeOffer offer = negotiator.makeOffer(target);
+        SOCTradeOffer offer = negotiator.makeOffer(buildPlan);
         ourPlayerData.setCurrentOffer(offer);
         negotiator.resetWantsAnotherOffer();
 

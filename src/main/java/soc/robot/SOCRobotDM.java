@@ -132,13 +132,15 @@ public class SOCRobotDM
   protected final int ourPlayerNumber;
 
   /**
-   * {@link #ourPlayerData}'s building plan; a stack of {@link SOCPossiblePiece}.
+   * {@link #ourPlayerData}'s building plan.
    * Same Stack as {@link SOCRobotBrain#getBuildingPlan()}.
    * May include {@link SOCPossibleCard} to be bought.
    * Filled each turn by {@link #planStuff(int)}.
    * Emptied by {@link SOCRobotBrain}'s calls to {@link SOCRobotBrain#resetBuildingPlan()}.
+   *<P>
+   * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
    */
-  protected final Stack<SOCPossiblePiece> buildingPlan;
+  protected final SOCBuildPlanStack buildingPlan;
 
   /**
    * Strategy to plan and build initial settlements and roads.
@@ -251,7 +253,7 @@ public class SOCRobotDM
        SOCPlayerTracker[] pt,
        SOCPlayerTracker opt,
        SOCPlayer opd,
-       Stack<SOCPossiblePiece> bp)
+       SOCBuildPlanStack bp)
   {
     brain = null;
     playerTrackers = pt;

@@ -20,19 +20,18 @@
 package soc.robot.sample3p;
 
 import java.util.Random;
-import java.util.Stack;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.robot.DiscardStrategy;
-import soc.robot.SOCPossiblePiece;
+import soc.robot.SOCBuildPlanStack;
 import soc.robot.SOCRobotBrain;
 
 /**
  * Trivial sample discard strategy: Not recommended for actual use!
- * For details see {@link #discard(int, Stack)}.
+ * For details see {@link #discard(int, SOCBuildPlanStack)}.
  * @since 2.2.00
  */
 public class SampleDiscardStrategy extends DiscardStrategy
@@ -55,13 +54,13 @@ public class SampleDiscardStrategy extends DiscardStrategy
      * Discard clay if in hand. Otherwise use standard strategy.
      *
      * @param numDiscards  Required number of discards
-     * @param buildingPlan  Brain's current building plan
+     * @param buildingPlan  Brain's current building plan; may be empty
      * @return  Resources to discard, which should be a subset of
      *     {@code ourPlayerData}.{@link SOCPlayer#getResources() getResources()}
      */
     @Override
     public SOCResourceSet discard
-        (final int numDiscards, Stack<SOCPossiblePiece> buildingPlan)
+        (final int numDiscards, SOCBuildPlanStack buildingPlan)
     {
         SOCResourceSet currRes = ourPlayerData.getResources().copy();
 

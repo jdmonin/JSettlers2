@@ -44,7 +44,7 @@ public interface SOCBuildPlan
     public boolean isEmpty();
 
     /**
-     * Get the <em>i</em>th planned build item.
+     * Get the <em>i</em>th planned build item, without removing it from the plan.
      * This is typically called with an index of 0 (the first piece, equivalent to a peek),
      * however it is called with an index of 1 during the play of a Road Building card.
      *<P>
@@ -58,6 +58,7 @@ public interface SOCBuildPlan
      * @param pieceNum  Piece number within plan, where 0 is the first to be built.
      *     Range is 0 to {@link #getPlanDepth()} - 1.
      * @return  Piece within plan
+     * @see #advancePlan()
      */
     public SOCPossiblePiece getPlannedPiece(int pieceNum);
 
@@ -70,8 +71,10 @@ public interface SOCBuildPlan
 
     /**
      * Step forward in the plan.  Equivalent to a pop in the stack implementation.
+     * @return the piece at index 0 in the plan
+     * @see #getPlannedPiece(int)
      */
-    public void advancePlan();
+    public SOCPossiblePiece advancePlan();
 
     /**
      * Calculate the total resources needed to build all pieces in this plan.

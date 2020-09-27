@@ -56,9 +56,9 @@ public class SOCBuildPlanStack extends Stack<SOCPossiblePiece>
     /**
      * NB: This does not check for a safe operation
      */
-    public void advancePlan()
+    public SOCPossiblePiece advancePlan()
     {
-        pop();
+        return pop();
     }
 
     public SOCResourceSet getTotalResourcesForBuildPlan()

@@ -22,6 +22,7 @@ JARs for recent JSettlers versions can be downloaded from
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
+	    - Encapsulate robot's build stack as SOCBuildPlan
 	    - soc.message methods to parse human-readable toString logging format: parseMsgStr, stripAttribNames
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
 	- Enhanced server's recordGameEvent framework for more detailed game recording
