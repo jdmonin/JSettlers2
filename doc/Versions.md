@@ -15,6 +15,10 @@ JARs for recent JSettlers versions can be downloaded from
 
 ## `2.4.10` (build JM20200xxx)
 - Currently being developed
+- Gameplay:
+	- When a trade is offered to bots and humans, bots wait longer before responding.
+	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
+	  (thank you Lee Passey)
 - Network/Message traffic:
 	- For efficiency and third-party bots' parsing, use data messages instead of text when clients are new enough:
 		- Report robbery with `SOCReportRobbery`

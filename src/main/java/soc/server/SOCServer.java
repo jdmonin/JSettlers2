@@ -232,8 +232,9 @@ public class SOCServer extends Server
 
     /**
      * Integer property <tt>jsettlers.bot.human.pause</tt> to pause a robot for the specified number of seconds
-     * before considering a trade when humans are in a game. Default is 8 seconds
-     * @since 2.4.11
+     * before considering a trade that's also offered to humans. Default is 8 seconds.
+     * Sets {@link SOCRobotBrain#BOTS_PAUSE_FOR_HUMAN_TRADE}.
+     * @since 2.4.10
      */
      public static final String PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE = "jsettlers.bot.human.pause";
 
@@ -615,6 +616,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_COOKIE,             "Robot cookie value (default is random generated each startup)",
         PROP_JSETTLERS_BOTS_SHOWCOOKIE,         "Flag to show the robot cookie value at startup",
         PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT, "Pause at percent of normal pause time (0 to 100) for robot-only games (default 25)",
+        PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE, "In games with humans, robots wait this many seconds before answering a trade offer (default 8)",
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
         PROP_JSETTLERS_BOTS_START3P,            "Third-party bot client classes to start up with server",
         PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
@@ -633,7 +635,6 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_SETTINGS, "If set to \"write\", save DB settings properties values to the settings table and exit",
         SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP, "If set, full path or relative path to db setup sql script; will run and exit",
         SOCDBHelper.PROP_JSETTLERS_DB_UPGRADE__SCHEMA, "Flag: If set, server will upgrade the DB schema to latest version and exit (if 1 or Y)",
-        PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE, "When playing with humans, robots will wait this many seconds before considering a trade offer",
     };
 
     // JVM/System properties for testing

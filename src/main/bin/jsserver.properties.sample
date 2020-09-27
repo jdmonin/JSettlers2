@@ -300,7 +300,6 @@
 # to allow for slow human brains to compete more effectively for trades
 # jsettlers.bot.human.pause=8
 
-
 # Enable SAVEGAME/LOADGAME debug commands and set the directory in which to
 # store savegame files. If set, but isn't an existing directory, server will
 # warn at startup. Ignored unless jsettlers.allow.debug is set.
