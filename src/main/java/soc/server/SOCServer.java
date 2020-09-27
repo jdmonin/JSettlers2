@@ -1680,6 +1680,7 @@ public class SOCServer extends Server
                 throw new IllegalArgumentException
                     ("Error: Property out of range (0 to 100): " + PROP_JSETTLERS_BOTS_FAST__PAUSE__PERCENT);
         }
+        SOCRobotBrain.BOTS_PAUSE_FOR_HUMAN_TRADE = getConfigIntProperty( PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE, 8 );
 
         if (validate_config_mode)
         {
@@ -2574,7 +2575,6 @@ public class SOCServer extends Server
                 params = SOCServer.ROBOT_PARAMS_SMARTER;  // uses SOCRobotDM.SMART_STRATEGY
             else  // startsWith("droid ")
                 params = SOCServer.ROBOT_PARAMS_DEFAULT;  // uses SOCRobotDM.FAST_STRATEGY
-            params.setPauseForHumansSec( getConfigIntProperty( PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE, 8 ));
         }
 
         return params;

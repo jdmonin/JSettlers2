@@ -22,7 +22,6 @@ package soc.message;
 
 import soc.util.SOCRobotParameters;
 
-import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 
@@ -69,8 +68,7 @@ public class SOCUpdateRobotParams extends SOCMessage
         return UPDATEROBOTPARAMS + sep + params.getMaxGameLength() + sep2 + params.getMaxETA()
             + sep2 + params.getETABonusFactor() + sep2 + params.getAdversarialFactor()
             + sep2 + params.getLeaderAdversarialFactor() + sep2 + params.getDevCardMultiplier()
-            + sep2 + params.getThreatMultiplier() + sep2 + params.getStrategyType() + sep2 + params.getTradeFlag()
-            + sep2 + params.getPauseForHumansSec();
+            + sep2 + params.getThreatMultiplier() + sep2 + params.getStrategyType() + sep2 + params.getTradeFlag();
     }
 
     /**
@@ -90,7 +88,6 @@ public class SOCUpdateRobotParams extends SOCMessage
         float tm;  // threatMultiplier
         int st;    // strategyType
         int tf;    // trade flag
-        int pauseForHumanConsideration = 8; // wait this long for humans before considering a trade
 
         StringTokenizer stok = new StringTokenizer(s, sep2);
 
@@ -105,19 +102,13 @@ public class SOCUpdateRobotParams extends SOCMessage
             tm = (Float.valueOf(stok.nextToken())).floatValue();
             st = Integer.parseInt(stok.nextToken());
             tf = Integer.parseInt(stok.nextToken());
-            try
-            {
-                pauseForHumanConsideration = Integer.parseInt( stok.nextToken() );
-            }
-            catch( NoSuchElementException ignore ) {};
         }
         catch (Exception e)
         {
             return null;
         }
-        SOCRobotParameters params = new SOCRobotParameters(mgl, me, ebf, af, laf, dcm, tm, st, tf);
-        params.setPauseForHumansSec( pauseForHumanConsideration );
-        return new SOCUpdateRobotParams( params );
+
+        return new SOCUpdateRobotParams(new SOCRobotParameters(mgl, me, ebf, af, laf, dcm, tm, st, tf));
     }
 
     /**

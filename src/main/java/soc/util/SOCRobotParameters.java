@@ -53,7 +53,6 @@ public class SOCRobotParameters implements Serializable
     protected float threatMultiplier;
     protected int strategyType; // SOCRobotDM.FAST_STRATEGY or SMART_STRATEGY
     protected int tradeFlag;
-    protected int pauseForHumansSec = 8;
 
     /**
      * constructor
@@ -98,13 +97,6 @@ public class SOCRobotParameters implements Serializable
         threatMultiplier = params.getThreatMultiplier();
         strategyType = params.getStrategyType();
         tradeFlag = params.getTradeFlag();
-        pauseForHumansSec = params.getPauseForHumansSec();
-    }
-
-    //  -- SETTERS  --
-    public void setPauseForHumansSec( int pauseForHumansSec )
-    {
-        this.pauseForHumansSec = pauseForHumansSec;
     }
 
     /**
@@ -138,13 +130,6 @@ public class SOCRobotParameters implements Serializable
         // NEW_OPTION : If your option affects RobotParameters, look for it here.
 
         return params;
-    }
-
-    // -- GETTERS --
-
-    public int getPauseForHumansSec()
-    {
-        return pauseForHumansSec;
     }
 
     /**
@@ -243,9 +228,7 @@ public class SOCRobotParameters implements Serializable
             && (devCardMultiplier == params.devCardMultiplier)
             && (threatMultiplier == params.threatMultiplier)
             && (strategyType == params.strategyType)
-            && (tradeFlag == params.tradeFlag)
-            && (pauseForHumansSec == params.pauseForHumansSec)
-            ;
+            && (tradeFlag == params.tradeFlag);
     }
 
     /**
@@ -258,7 +241,7 @@ public class SOCRobotParameters implements Serializable
                    "|ebf=" + etaBonusFactor + "|af=" + adversarialFactor +
                    "|laf=" + leaderAdversarialFactor + "|dcm=" + devCardMultiplier +
                    "|tm=" + threatMultiplier + "|st=" + strategyType +
-                   "|tf=" + tradeFlag + "|ph=" + pauseForHumansSec;
+                   "|tf=" + tradeFlag;
 
         return s;
     }
