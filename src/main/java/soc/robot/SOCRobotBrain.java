@@ -396,6 +396,13 @@ public class SOCRobotBrain extends Thread
      */
     protected SOCRobotNegotiator negotiator;
 
+    /**
+     * Our {@link SOCBuildingSpeedEstimate} factory.
+     * @see #getEstimatorFactory()
+     * @since 2.4.10
+     */
+    protected SOCBuildingSpeedEstimateFactory bseFactory;
+
     // If any new expect or waitingFor fields are added,
     // please update debugPrintBrainStatus() and the
     // run() loop at "if (mesType == SOCMessage.TURN)".
@@ -786,6 +793,7 @@ public class SOCRobotBrain extends Thread
         turnEventsPrev = new Vector<SOCMessage>();
         alive = true;
         counter = 0;
+
         expectSTART1A = true;
         expectSTART1B = false;
         expectSTART2A = false;
@@ -808,6 +816,7 @@ public class SOCRobotBrain extends Thread
         expectMOVEROBBER = false;
         expectWAITING_FOR_DISCOVERY = false;
         expectWAITING_FOR_MONOPOLY = false;
+
         ourTurn = false;
         oldGameState = game.getGameState();
         waitingForGameState = false;
@@ -1078,6 +1087,7 @@ public class SOCRobotBrain extends Thread
      *<UL>
      * <LI> {@link #decisionMaker}: calls {@link #createDM()}
      * <LI> {@link #negotiator}: calls {@link #createNegotiator()}
+     * <LI> {@link #bseFactory}: calls {@link #createEstimatorFactory()}
      * <LI> {@link #discardStrategy}
      * <LI> {@link #monopolyStrategy}
      * <LI> {@link #openingBuildStrategy}
@@ -1092,9 +1102,10 @@ public class SOCRobotBrain extends Thread
     {
         decisionMaker = createDM();
         negotiator = createNegotiator();
+        bseFactory = createEstimatorFactory();
         discardStrategy = new DiscardStrategy(game, ourPlayerData, this, rand);
-        monopolyStrategy = new MonopolyStrategy(game, ourPlayerData);
-        openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData);
+        monopolyStrategy = new MonopolyStrategy(game, ourPlayerData, this);
+        openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData, this);
         robberStrategy = new RobberStrategy(game, ourPlayerData, this, rand);
     }
 
@@ -3312,7 +3323,8 @@ public class SOCRobotBrain extends Thread
     protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
         SOCTradeOffer offer = mes.getOffer();
-        game.getPlayer(offer.getFrom()).setCurrentOffer(offer);
+        final SOCPlayer offeredFromPlayer = game.getPlayer(offer.getFrom());
+        offeredFromPlayer.setCurrentOffer(offer);
 
         if ((offer.getFrom() == ourPlayerNumber))
         {
@@ -3361,12 +3373,39 @@ public class SOCRobotBrain extends Thread
         if (ourResponseToOffer < 0)
             return;  // <--- Early return: SOCRobotNegotiator.IGNORE_OFFER ---
 
+        // Before pausing, note current offer and turn.
+        // If that game data changes during the pause, we'll need to reconsider the current offer.
+        // While brain thread is paused, robot client's message thread is still running
+        // and will update game data if conditions change.
+
+        final long offeredAt = offeredFromPlayer.getCurrentOfferTime();
+        final int currentPN = game.getCurrentPlayerNumber();
+
         int delayLength = Math.abs(rand.nextInt() % 500) + 3500;
-        if (gameIs6Player && ! waitingForTradeResponse)
+        if (pauseFaster && ! waitingForTradeResponse)
         {
-            delayLength *= 2;  // usually, pause is half-length in 6-player
+            delayLength *= 2;  // pre-scale, since pauses are usually shortened in 6-player
         }
         pause(delayLength);
+
+        // See if trade conditions still apply after pause;
+        // reconsider if needed
+
+        if (currentPN != game.getCurrentPlayerNumber())
+        {
+            return;  // <--- new turn; will react to newly queued messages to reset brain fields for new turn ---
+        }
+
+        if (offeredAt != offeredFromPlayer.getCurrentOfferTime())
+        {
+            offer = offeredFromPlayer.getCurrentOffer();
+            if ((offer == null) || ! offer.getTo()[ourPlayerNumber])
+            {
+                return;  // <--- nothing offered to us now ---
+            }
+
+            ourResponseToOffer = considerOffer(offer);
+        }
 
         switch (ourResponseToOffer)
         {
@@ -5157,6 +5196,7 @@ public class SOCRobotBrain extends Thread
      *
      * @return a DecisionMaker based on this brain
      * @see #recreateDM()
+     * @see #setStrategyFields()
      * @since 2.4.10
      */
     protected SOCRobotDM createDM()
@@ -5175,16 +5215,32 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Creates and return a Negotiator based on this brain.
+     * Creates and returns a Negotiator based on this brain.
      *<P>
      * Third-party bots may override this factory method.
      *
      * @return a Negotiator based on this brain
+     * @see #setStrategyFields()
      * @since 2.4.10
      */
     protected SOCRobotNegotiator createNegotiator()
     {
         return new SOCRobotNegotiator(this);
+    }
+
+    /**
+     * Creates and returns a {@link SOCBuildingSpeedEstimate} factory.
+     *<P>
+     * Third-party bots may override this factory factory method.
+     *
+     * @return a factory for this brain
+     * @see #setStrategyFields()
+     * @see #getEstimatorFactory()
+     * @since 2.4.10
+     */
+    protected SOCBuildingSpeedEstimateFactory createEstimatorFactory()
+    {
+        return new SOCBuildingSpeedEstimateFactory(this);
     }
 
     /**
@@ -5230,7 +5286,8 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Estimator factory for when a player's dice numbers are known.
+     * Estimator factory convenience method for when a player's dice numbers are known.
+     * Calls this brain's {@link SOCBuildingSpeedEstimateFactory#getEstimator(SOCPlayerNumbers)}.
      * @param numbers the current resources in hand of the player we are estimating for,
      *     in same format passed into {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate(SOCPlayerNumbers)}
      * @return an estimate of time to build something, based on {@code numbers}
@@ -5239,11 +5296,12 @@ public class SOCRobotBrain extends Thread
      */
     public SOCBuildingSpeedEstimate getEstimator(SOCPlayerNumbers numbers)
     {
-        return new SOCBuildingSpeedEstimate(numbers);
+        return bseFactory.getEstimator(numbers);
     }
 
     /**
-     * Estimator factory for when a player's dice numbers are unknown or don't matter yet.
+     * Estimator factory convenience method for when a player's dice numbers are unknown or don't matter yet.
+     * Calls this brain's {@link SOCBuildingSpeedEstimateFactory#getEstimator()}.
      * @return an estimate of time to build something, which doesn't consider player's dice numbers yet;
      *     see {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate()} javadoc
      * @see #getEstimator(SOCPlayerNumbers)
@@ -5251,7 +5309,20 @@ public class SOCRobotBrain extends Thread
      */
     public SOCBuildingSpeedEstimate getEstimator()
     {
-        return new SOCBuildingSpeedEstimate();
+        return bseFactory.getEstimator();
+    }
+
+    /**
+     * Get this brain's {@link SOCBuildingSpeedEstimate} factory.
+     * Is typically set from {@link #createEstimatorFactory()} during construction.
+     *
+     * @return This brain's factory
+     * @see #getEstimator(SOCPlayerNumbers)
+     * @since 2.4.10
+     */
+    public SOCBuildingSpeedEstimateFactory getEstimatorFactory()
+    {
+        return bseFactory;
     }
 
     /**

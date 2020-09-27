@@ -84,9 +84,11 @@ import java.util.Vector;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
+    /** Last field change was v2.4.10 (2410) */
+    private static final long serialVersionUID = 2410L;
+
     /**
      * Number of {@link SOCRoad}s a player can build (15).
      * @see #getNumPieces(int)
@@ -534,8 +536,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * this is the current trade offer that this player is making, or null if none
+     * @see #currentOfferTimeMillis
      */
     private SOCTradeOffer currentOffer;
+
+    /**
+     * time when {@link #currentOffer} was last updated; see {@link #getCurrentOfferTime()}.
+     * @since 2.4.10
+     */
+    private long currentOfferTimeMillis;
 
     /**
      * this is true if the player played a development card this turn
@@ -2659,6 +2668,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return this player's latest offer, or null if none
+     * @see #getCurrentOfferTime()
      */
     public SOCTradeOffer getCurrentOffer()
     {
@@ -2667,6 +2677,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set or clear the current offer made by this player.
+     * Also updates {@link #getCurrentOfferTime()}.
      *
      * @param offer   the offer, or {@code null} to clear.
      *     Doesn't validate that {@link SOCTradeOffer#getFrom() offer.getFrom()}
@@ -2675,6 +2686,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public void setCurrentOffer(final SOCTradeOffer offer)
     {
         currentOffer = offer;
+        currentOfferTimeMillis = System.currentTimeMillis();
+    }
+
+    /**
+     * Get the time at which this player's current offer was made or cleared:
+     * Time of last call to {@link #setCurrentOffer(SOCTradeOffer)}
+     * with any offer or {@code null}, in same format as {@link System#currentTimeMillis()}.
+     * @return  time of most recent call to {@code setCurrentOffer(..)},
+     *     or 0 if never called during game
+     * @see #getCurrentOffer()
+     * @since 2.4.10
+     */
+    public long getCurrentOfferTime()
+    {
+        return currentOfferTimeMillis;
     }
 
     /**

@@ -176,11 +176,15 @@ public class SOCPlayerTracker
     /**
      * Constructor.
      *
-     * @param pl  the player being tracked
-     * @param br  the robot brain using this tracker
+     * @param pl  the player being tracked; not null
+     * @param br  the robot brain using this tracker; not null
      */
     public SOCPlayerTracker(SOCPlayer pl, SOCRobotBrain br)
+        throws IllegalArgumentException
     {
+        if ((pl == null) || (br == null))
+            throw new IllegalArgumentException("null pl or br");
+
         inUse = false;
         brain = br;
         player = pl;
@@ -1495,7 +1499,8 @@ public class SOCPlayerTracker
         /**
          * add a new possible city
          */
-        possibleCities.put(settlementCoords, new SOCPossibleCity(player, settlement.getCoordinates()));
+        possibleCities.put
+            (settlementCoords, new SOCPossibleCity(player, settlement.getCoordinates(), brain.getEstimatorFactory()));
 
         /**
          * see if the new settlement was a possible settlement in
@@ -2823,6 +2828,7 @@ public class SOCPlayerTracker
             SOCPlayer lrPlayer = game.getPlayerWithLongestRoad();
 
             final SOCBoard board = game.getBoard();
+            final SOCBuildingSpeedEstimateFactory bsef = brain.getEstimatorFactory();
 
             if (D.ebugOn)
             {
@@ -3458,7 +3464,7 @@ public class SOCPlayerTracker
 
                         if (citySpotsLeft == 0)
                         {
-                            chosenCity[0] = new SOCPossibleCity(player, chosenSet[0].getCoordinates());
+                            chosenCity[0] = new SOCPossibleCity(player, chosenSet[0].getCoordinates(), bsef);
                         }
 
                         ///
@@ -3599,8 +3605,10 @@ public class SOCPlayerTracker
                         Integer chosenSet1Int = Integer.valueOf(chosenSet[1].getCoordinates());
                         posSetsCopy.remove(chosenSet0Int);
                         posSetsCopy.remove(chosenSet1Int);
-                        posCitiesCopy.put(chosenSet0Int, new SOCPossibleCity(player, chosenSet[0].getCoordinates()));
-                        posCitiesCopy.put(chosenSet1Int, new SOCPossibleCity(player, chosenSet[1].getCoordinates()));
+                        posCitiesCopy.put
+                            (chosenSet0Int, new SOCPossibleCity(player, chosenSet[0].getCoordinates(), bsef));
+                        posCitiesCopy.put
+                            (chosenSet1Int, new SOCPossibleCity(player, chosenSet[1].getCoordinates(), bsef));
 
                         //
                         // remove possible settlements that are conflicts
@@ -3664,7 +3672,8 @@ public class SOCPlayerTracker
 
                         if (chosenSet[0].getCoordinates() != chosenCity[0].getCoordinates())
                         {
-                            posCitiesCopy.put(chosenSet0Int, new SOCPossibleCity(player, chosenSet[0].getCoordinates()));
+                            posCitiesCopy.put
+                                (chosenSet0Int, new SOCPossibleCity(player, chosenSet[0].getCoordinates(), bsef));
                         }
 
                         posCitiesCopy.remove(Integer.valueOf(chosenCity[0].getCoordinates()));

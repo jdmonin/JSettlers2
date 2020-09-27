@@ -930,7 +930,9 @@ public class SOCRobotNegotiator
      * @param getSet             the set of resources we're receiving
      * @param estimate           a SOCBuildingSpeedEstimate for our player
      */
-    protected int getETAToTargetResources(SOCPlayer player, SOCResourceSet targetResources, SOCResourceSet giveSet, SOCResourceSet getSet, SOCBuildingSpeedEstimate estimate)
+    protected int getETAToTargetResources
+        (SOCPlayer player, SOCResourceSet targetResources, SOCResourceSet giveSet, SOCResourceSet getSet,
+         SOCBuildingSpeedEstimate estimate)
     {
         SOCResourceSet ourResourcesCopy = player.getResources().copy();
         D.ebugPrintlnINFO("*** giveSet = " + giveSet);

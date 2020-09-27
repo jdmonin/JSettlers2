@@ -154,6 +154,7 @@ public class SavedGameModel
      *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
      *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}
      * <LI> Adds per-player list of dev cards played: {@link PlayerInfo#playedDevCards}
+     * <LI> Adds {@link TradeOffer#offeredAtDurationMillis}
      * <LI> Earlier server versions will ignore these added fields while loading a savegame
      *</UL>
      */
@@ -847,7 +848,7 @@ public class SavedGameModel
 
         /**
          * Current trade offer from this player to others, or {@code null} if none.
-         * @see SOCPlayer#getCurrentOffer()
+         * From {@link SOCPlayer#getCurrentOffer()}.
          * @since 2.4.00
          */
         public TradeOffer currentTradeOffer;
@@ -983,7 +984,8 @@ public class SavedGameModel
 
                 SOCTradeOffer curr = pl.getCurrentOffer();
                 if (curr != null)
-                    currentTradeOffer = new TradeOffer(curr);
+                    currentTradeOffer = new TradeOffer
+                        (curr, pl.getCurrentOfferTime() - ga.getStartTime().getTime());
             }
 
             int n;
@@ -1327,7 +1329,8 @@ public class SavedGameModel
     }
 
     /**
-     * A player's current trade offer info, from relevant fields of {@link SOCTradeOffer}.
+     * A player's current trade offer info, from relevant fields of {@link SOCTradeOffer}
+     * and player's {@link SOCPlayer#getCurrentOfferTime()}.
      * @since 2.4.00
      */
     static class TradeOffer
@@ -1341,12 +1344,21 @@ public class SavedGameModel
          */
         public boolean[] offeredTo;
 
-        public TradeOffer(final SOCTradeOffer offer)
+        /**
+         * Time at which this offer was made, as number of milliseconds from start of game,
+         * based on {@link SOCPlayer#getCurrentOfferTime()}.
+         * This field is currently saved but not loaded.
+         * @since 2.4.10
+         */
+        public long offeredAtDurationMillis;
+
+        public TradeOffer(final SOCTradeOffer offer, final long offeredAtDurationMillis)
             throws NullPointerException
         {
             give = new KnownResourceSet(offer.getGiveSet());
             receive = new KnownResourceSet(offer.getGetSet());
             offeredTo = offer.getTo();
+            this.offeredAtDurationMillis = offeredAtDurationMillis;
         }
 
         /**
