@@ -1631,7 +1631,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get the time at which this game was created.
      * Used only at server.
-     *P>
+     *<P>
      * To overwrite this time, call {@link #setTimeSinceCreated(int)}.
      *
      * @return the start time for this game, or null if not active when created
@@ -5487,7 +5487,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         // resources, to be shuffled and chosen from;
         // discards from fromHand, or possible new picks.
-        Vector<Integer> tempHand = new Vector<Integer>(16);
+        ArrayList<Integer> tempHand = new ArrayList<>();
 
         if (isDiscard)
         {
@@ -5504,7 +5504,7 @@ public class SOCGame implements Serializable, Cloneable
                 for (int i = fromHand.getAmount(rsrcType);
                         i != 0; i--)
                 {
-                    tempHand.addElement(Integer.valueOf(rsrcType));
+                    tempHand.add(Integer.valueOf(rsrcType));
                     // System.err.println("rsrcType="+rsrcType);
                 }
             }
@@ -5523,7 +5523,7 @@ public class SOCGame implements Serializable, Cloneable
             // Next, add resources with that amount, and then increase
             // lowestNum until we've found at least numToPick resources.
             int toAdd = numToPick;
-            Vector<Integer> alreadyPicked = new Vector<Integer>();
+            ArrayList<Integer> alreadyPicked = new ArrayList<>();
             do
             {
                 for (int rsrcType = SOCResourceConstants.CLAY;
@@ -5532,20 +5532,21 @@ public class SOCGame implements Serializable, Cloneable
                     final int num = fromHand.getAmount(rsrcType);
                     if (num == lowestNum)
                     {
-                        tempHand.addElement(Integer.valueOf(rsrcType));
+                        tempHand.add(Integer.valueOf(rsrcType));
                         --toAdd;  // might go below 0, that's okay: we'll shuffle.
                     }
                     else if (num < lowestNum)
                     {
                         // Already added in previous iterations.
                         // Add more of this type only if we need more.
-                        alreadyPicked.addElement(Integer.valueOf(rsrcType));
+                        alreadyPicked.add(Integer.valueOf(rsrcType));
                     }
                 }
 
                 if (toAdd > 0)
                 {
                     ++lowestNum;
+
                     if (! alreadyPicked.isEmpty())
                     {
                         toAdd -= alreadyPicked.size();
@@ -5567,8 +5568,8 @@ public class SOCGame implements Serializable, Cloneable
             int idx = Math.abs(rand.nextInt() % tempHand.size());
 
             // System.err.println("idx="+idx);
-            picks.add(1, tempHand.elementAt(idx).intValue());
-            tempHand.removeElementAt(idx);
+            picks.add(1, tempHand.get(idx).intValue());
+            tempHand.remove(idx);
         }
     }
 
@@ -6847,6 +6848,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param hex  the coordinates of the hex; not checked for validity
      * @param collectAdjacentPieces  optional set to use to return all players' settlements and cities
      *     adjacent to {@code hex}, or {@code null}
+     * @see #getPlayersShipsOnHex(int)
      */
     public List<SOCPlayer> getPlayersOnHex(final int hex, final Set<SOCPlayingPiece> collectAdjacentPieces)
     {
@@ -6908,15 +6910,17 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @param hex  the coordinates of the hex
-     * @return a list of {@link SOCPlayer players} touching a hex
-     *   with ships, or an empty Vector if none
+     * Get the list of players who have ships on the edges of this hex.
      *
+     * @param hex  the coordinates of the hex; not checked for validity
+     * @return a list of {@link SOCPlayer}s touching a hex
+     *   with ships, or an empty list if none
+     * @see #getPlayersOnHex(int, Set)
      * @since 2.0.00
      */
-    public Vector<SOCPlayer> getPlayersShipsOnHex(final int hex)
+    public List<SOCPlayer> getPlayersShipsOnHex(final int hex)
     {
-        Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
+        ArrayList<SOCPlayer> playerList = new ArrayList<>(3);
 
         final int[] edges = ((SOCBoardLarge) board).getAdjacentEdgesToHex_arr(hex);
 
@@ -6944,7 +6948,7 @@ public class SOCGame implements Serializable, Cloneable
             }
 
             if (touching)
-                playerList.addElement(players[i]);
+                playerList.add(players[i]);
         }
 
         return playerList;
