@@ -4033,6 +4033,8 @@ public class SOCServer extends Server
 
     /**
      * Send a message to a player or other game member.
+     *<P>
+     * Will not record as an "event".
      *
      * @param c   the player connection
      * @param mes the message to send
@@ -4071,6 +4073,8 @@ public class SOCServer extends Server
     /**
      * Send a {@link SOCGameServerText} or {@link SOCGameTextMsg} game text message to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, txt));
+     *<P>
+     * Will not record as an "event".
      *
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
@@ -4123,6 +4127,8 @@ public class SOCServer extends Server
      * Send a localized {@link SOCGameServerText} game text message to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
      * {@link Connection#getLocalized(String) c.getLocalized(key)}));
+     *<P>
+     * Will not record as an "event".
      *
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
@@ -4137,8 +4143,10 @@ public class SOCServer extends Server
      */
     public final void messageToPlayerKeyed(Connection c, final String gaName, final String key)
     {
-        if (c != null)
-            messageToPlayer(c, gaName, PN_NON_EVENT, c.getLocalized(key));
+        if (c == null)
+            return;
+
+        messageToPlayer(c, gaName, PN_NON_EVENT, c.getLocalized(key));
     }
 
     /**
@@ -4159,8 +4167,7 @@ public class SOCServer extends Server
      */
     public final void messageToPlayerKeyed(Connection c, final String gameName, final int eventPN, final String key)
     {
-        if (c != null)
-            messageToPlayer(c, gameName, eventPN, c.getLocalized(key));
+        messageToPlayerKeyed(c, gameName, eventPN, key, (Object[]) null);
     }
 
     /**
@@ -4170,6 +4177,8 @@ public class SOCServer extends Server
      *<P>
      * The localized message text must be formatted as in {@link MessageFormat}:
      * Placeholders for {@code args} are <tt>{0}</tt> etc, single-quotes must be repeated: {@code ''}.
+     *<P>
+     * Will not record as an "event".
      *
      * @param c   the player connection; if their version is 2.0.00 or newer,
      *            they will be sent {@link SOCGameServerText}, otherwise {@link SOCGameTextMsg}.
@@ -4187,8 +4196,10 @@ public class SOCServer extends Server
     public final void messageToPlayerKeyed
         (Connection c, final String gaName, final String key, final Object ... args)
     {
-        if (c != null)
-            messageToPlayer(c, gaName, PN_NON_EVENT, c.getLocalized(key, args));
+        if (c == null)
+            return;
+
+        messageToPlayer(c, gaName, PN_NON_EVENT, c.getLocalized(key, args));
     }
 
     /**
@@ -4213,10 +4224,25 @@ public class SOCServer extends Server
      * @since 2.4.10
      */
     public final void messageToPlayerKeyed
-        (Connection c, final String gaName, final int eventPN, final String key, final Object ... args)
+        (Connection c, final String gaName, int eventPN, final String key, final Object ... args)
     {
-        if (c != null)
-            messageToPlayer(c, gaName, eventPN, c.getLocalized(key, args));
+        if (c == null)
+            return;
+
+        if ((eventPN != PN_NON_EVENT) && recordGameEventsIsActive()
+            && ! "en_US".equals(c.getI18NLocale()))
+        {
+            // make sure event is recorded in en_US for consistency
+
+            SOCStringManager mgr = SOCStringManager.getFallbackServerManagerForClient();
+            recordGameEventTo(gaName, eventPN, new SOCGameServerText
+                (gaName, (args != null) ? mgr.get(key, args) : mgr.get(key)));
+
+            eventPN = PN_NON_EVENT;  // so messageToPlayer won't also record it
+        }
+
+        messageToPlayer
+            (c, gaName, eventPN, (args != null) ? c.getLocalized(key, args) : c.getLocalized(key));
     }
 
     /**
@@ -4243,10 +4269,23 @@ public class SOCServer extends Server
      * @see #messageToPlayerKeyed(Connection, String, int, String)
      */
     public final void messageToPlayerKeyedSpecial
-        (Connection c, final SOCGame ga, final int eventPN, final String key, final Object ... args)
+        (Connection c, final SOCGame ga, int eventPN, final String key, final Object ... args)
     {
-        if (c != null)
-            messageToPlayer(c, ga.getName(), eventPN, c.getLocalizedSpecial(ga, key, args));
+        if (c == null)
+            return;
+
+        if ((eventPN != PN_NON_EVENT) && recordGameEventsIsActive()
+            && ! "en_US".equals(c.getI18NLocale()))
+        {
+            // make sure event is recorded in en_US for consistency
+
+            recordGameEventTo(ga.getName(), eventPN, new SOCGameServerText
+                (ga.getName(), SOCStringManager.getFallbackServerManagerForClient().getSpecial(ga, key, args)));
+
+            eventPN = PN_NON_EVENT;  // so messageToPlayer won't also record it
+        }
+
+        messageToPlayer(c, ga.getName(), eventPN, c.getLocalizedSpecial(ga, key, args));
     }
 
     /**
@@ -9352,6 +9391,7 @@ public class SOCServer extends Server
      * For a sample implementation, see unit test helper {@code soctest.server.RecordingTesterServer}.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
+     * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
      *<P>
      * Before v2.0.00, {@link event} parameter was a String from {@link SOCMessage#toCmd()}.
      *
@@ -9387,6 +9427,7 @@ public class SOCServer extends Server
      * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
+     * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
      *
      * @param gameName   the game name
      * @param event      the event data
@@ -9406,6 +9447,7 @@ public class SOCServer extends Server
      * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
+     * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
      *
      * @param gameName   the game name
      * @param excludedPN Player number excluded from audience of this event; if &lt; 0, event is for all game members.
@@ -9425,6 +9467,7 @@ public class SOCServer extends Server
      * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
+     * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
      *
      * @param gameName   the game name
      * @param excludedPN Player numbers excluded from audience of this event; if {@code null} or empty, event is for all.

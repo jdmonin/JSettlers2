@@ -42,11 +42,18 @@ import soc.util.Version;
  * Debug Traffic flag is set, which makes unit test logs larger but is helpful when troubleshooting.
  * Unlike parent class, this client connects and authenticates as a "human" player, not a bot,
  * to see same messages a human would be shown.
+ * To help set a known test environment, always uses locale {@code "en_US"} unless constructor says otherwise.
+ *
  * @since 2.4.10
  */
 public class DisplaylessTesterClient
     extends SOCDisplaylessPlayerClient
 {
+
+    /**
+     * Locale sent in {@link #init()}, or {@code null} for {@code "en_US"}
+     */
+    protected String localeStr;
 
     /**
      * Track server's games and options like SOCPlayerClient does,
@@ -66,12 +73,15 @@ public class DisplaylessTesterClient
     /**
      * Constructor for a displayless client which will connect to a local server.
      * Does not actually connect here: Call {@link #init()} when ready.
+     *
+     * @param localeStr  Locale to test with, or {@code null} to use {@code "en_US"}
      */
-    public DisplaylessTesterClient(final String stringport, final String nickname)
+    public DisplaylessTesterClient(final String stringport, final String nickname, final String localeStr)
     {
         super(new ServerConnectInfo(stringport, null), false);
 
         this.nickname = nickname;
+        this.localeStr = localeStr;
         debugTraffic = true;
     }
 
@@ -105,7 +115,8 @@ public class DisplaylessTesterClient
 
             put(new SOCVersion
                 (Version.versionNumber(), Version.version(), Version.buildnum(),
-                 buildClientFeats().getEncodedList(), "en_US").toCmd());
+                 buildClientFeats().getEncodedList(),
+                 (localeStr != null) ? localeStr : "en_US").toCmd());
             put(new SOCAuthRequest
                 (SOCAuthRequest.ROLE_GAME_PLAYER, nickname, "",
                  SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, "-").toCmd());

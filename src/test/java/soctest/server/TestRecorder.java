@@ -42,6 +42,7 @@ import soc.game.SOCGameOption;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
@@ -49,6 +50,7 @@ import soc.game.SOCTradeOffer;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCGameServerText;
+import soc.server.SOCClientData;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
@@ -212,7 +214,7 @@ public class TestRecorder
             ("some bots are connected; actual nConn=" + nConn, nConn >= RecordingTesterServer.NUM_STARTROBOTS);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME);
+            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, null);
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -250,13 +252,16 @@ public class TestRecorder
         if (server == null)
             throw new IllegalArgumentException("server");
 
+        // similar code is in testBasics_SendToClientWithLocale;
+        // if you change one, consider changing the other
+
         // unique client nickname, in case tests run in parallel
         final String CLIENT_NAME = "testLoadgame";
 
         assertNotNull(server);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME);
+            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, null);
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -289,6 +294,104 @@ public class TestRecorder
 
         // leave game
         tcli.destroy();
+    }
+
+    /**
+     * Load a game, join a client with locale {@code "es"}, test the server's recording of messages sent to that client.
+     * For consistency, server should always record game logs as if client locale is {@code "en_US"}.
+     *
+     * @throws IOException if problem occurs during {@link TestLoadgame#load(String, SOCServer)}
+     */
+    @Test
+    public void testBasics_SendToClientWithLocale()
+        throws IOException
+    {
+        // code is based on testBasics_Loadgame;
+        // if you change one, consider changing the other
+
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME = "testCliLocale";
+
+        assertNotNull(srv);
+
+        DisplaylessTesterClient tcli = new DisplaylessTesterClient
+            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, "es");
+        tcli.init();
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
+
+        SavedGameModel sgm = TestLoadgame.load("classic-botturn.game.json", srv);
+        assertNotNull(sgm);
+        assertEquals("classic", sgm.gameName);
+        assertEquals("debug", sgm.playerSeats[3].name);
+        sgm.playerSeats[3].name = CLIENT_NAME;
+
+        Connection tcliConn = srv.getConnection(CLIENT_NAME);
+        assertNotNull(tcliConn);
+        String loadedName = srv.createAndJoinReloadedGame(sgm, tcliConn, null);
+        assertNotNull("reloaded game name", loadedName);
+
+        // wait to join in client's thread
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertTrue("debug cli member of reloaded game?", srv.getGameList().isMember(tcliConn, loadedName));
+
+        final SOCGame ga = srv.getGame(loadedName);
+        assertNotNull("game object at server", ga);
+        final int PN = 3;
+        assertEquals(1, ga.getCurrentPlayerNumber());
+        final SOCPlayer cliPl = ga.getPlayer(PN);
+        assertEquals(CLIENT_NAME, cliPl.getName());
+
+        SOCClientData scd = srv.getClientData(CLIENT_NAME);
+        assertNotNull(scd);
+        assertEquals("es", scd.localeStr);
+
+        final Vector<QueueEntry> records = srv.records.get(loadedName);
+        assertNotNull("record queue for game", records);
+
+        // directly call messageToPlayerKeyed methods being tested
+        records.clear();
+        srv.messageToPlayerKeyed
+            (tcliConn, loadedName, PN, "base.reply.not.your.turn");
+        srv.messageToPlayerKeyed
+            (tcliConn, loadedName, SOCServer.PN_NON_EVENT, "reply.addtime.practice.never");
+        srv.messageToPlayerKeyed
+            (tcliConn, loadedName, PN, "action.built.stlmt", "xyz");
+        srv.messageToPlayerKeyedSpecial
+            (tcliConn, ga, PN, "robber.common.you.stole.resource.from", -1, SOCResourceConstants.SHEEP, "xyz");
+
+        // compare results to fallback en_US text
+        final SOCStringManager strings = SOCStringManager.getFallbackServerManagerForClient();
+        StringBuilder compares = compareRecordsToExpected
+            (records, new String[][]
+                {
+                    {"p3:SOCGameServerText:", "text="
+                        + strings.get("base.reply.not.your.turn")},
+                    // no record here for PN_NON_EVENT call
+                    {"p3:SOCGameServerText:", "text="
+                        + strings.get("action.built.stlmt", "xyz")},
+                    {"p3:SOCGameServerText:", "text="
+                        + strings.getSpecial
+                            (ga, "robber.common.you.stole.resource.from", -1, SOCResourceConstants.SHEEP, "xyz")}
+                });
+
+        // TODO test client: Add flag field to record messages,
+        //      make sure that actual client receives text localized to es not en_US
+        //      For now, can verify by searching test's System.out for SOCGameServerText
+
+        // leave game
+        tcli.destroy();
+
+        if (compares != null)
+        {
+            compares.insert(0, "testBasics_SendToClientWithLocale: Message mismatch: ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
     }
 
     /**
@@ -413,7 +516,7 @@ public class TestRecorder
         }
 
         final DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, clientName);
+            (RecordingTesterServer.STRINGPORT_NAME, clientName, null);
         tcli.init();
         assertEquals(clientName, tcli.getNickname());
 
@@ -425,7 +528,7 @@ public class TestRecorder
         if (client2Name != null)
         {
             tcli2 = new DisplaylessTesterClient
-                (RecordingTesterServer.STRINGPORT_NAME, client2Name);
+                (RecordingTesterServer.STRINGPORT_NAME, client2Name, null);
             tcli2.init();
             assertEquals(client2Name, tcli2.getNickname());
 
