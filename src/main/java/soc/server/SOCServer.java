@@ -3010,8 +3010,10 @@ public class SOCServer extends Server
         if ((gVers <= cversMin) && (gaOpts == null))
         {
             // All clients can join it, and no game options: use simplest message
-            broadcast(new SOCNewGame(gaName));
 
+            final SOCNewGame msg = new SOCNewGame(gaName);
+            broadcast(msg);
+            recordGameEvent(gaName, msg);
         } else {
             // Send messages, based on clients' versions/features
             // and whether there are game options.
@@ -3103,8 +3105,10 @@ public class SOCServer extends Server
                 && (cliLimited == null))
             {
                 // All cli can understand msg with version/options included
-                broadcast
-                    (new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2));
+
+                final SOCNewGameWithOptions msg = new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2);
+                broadcast(msg);
+                recordGameEvent(gaName, msg);
             } else {
                 // Only some can understand msg with version/options included;
                 // send at most 1 message to each connected client, split by client version.
@@ -3124,6 +3128,8 @@ public class SOCServer extends Server
                         (newGame, gaOpts, gVers, gVersMinGameOptsNoChange,
                          unnamedConns, cliLimited, msgCacheForVersion, cannotJoinMsg);
                 }
+                if (recordGameEventsIsActive())
+                    recordGameEvent(gaName, new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2));
             }
         }
     }
@@ -3647,6 +3653,9 @@ public class SOCServer extends Server
      * Destroy a game and then broadcast its deletion, including lock handling.
      * Calls {@link SOCGameList#takeMonitor()}, {@link #destroyGame(String)},
      * {@link SOCGameList#releaseMonitor()}, and {@link #broadcast(SOCMessage) broadcast}({@link SOCDeleteGame}).
+     * Doesn't call {@link #recordGameEvent(String, SOCMessage)} for deletion broadcast:
+     * Any recording for the game was probably closed by destroyGame.
+     *
      * @param gaName  Game name to destroy
      * @param descForStackTrace  Activity description in case of exception thrown from destroyGame;
      *     will debug-print a mesasge "Exception in " + desc, followed by a stack trace.
@@ -9384,7 +9393,7 @@ public class SOCServer extends Server
      * These recorded "events" aren't related to {@link SOCGameEvent}.
      *<P>
      * This method is seldom called directly. Most places call methods like
-     * {@link #messageToGame(String, boolean, SOCMessage)} with parameters to ask for recording.
+     * {@link #messageToGame(String, boolean, SOCMessage)} with parameters to request recording.
      *<P>
      * This stub can be overridden.
      * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
@@ -9417,11 +9426,12 @@ public class SOCServer extends Server
     }
 
     /**
-     * Record non-broadcast events that happen during the game and are sent to one player or observer in that game.
+     * Record events that happen during the game and are sent to one player or observer in that game
+     * instead of announced to all members.
      * These recorded "events" aren't related to {@link SOCGameEvent} or {@link SOCPlayerEvent}.
      *<P>
      * This method is seldom called directly. Most places call methods like
-     * {@link #messageToPlayer(Connection, String, int, SOCMessage)} with parameters to ask for recording.
+     * {@link #messageToPlayer(Connection, String, int, SOCMessage)} with parameters to request recording.
      *<P>
      * This stub can be overridden.
      * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
