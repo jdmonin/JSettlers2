@@ -1220,6 +1220,7 @@ public class SOCGameMessageHandler
 
     /**
      * handle "make offer" message.
+     * Calls {@link SOCGameHandler#sendTradeOffer(SOCPlayer, Connection)}.
      *
      * @param c  the connection that sent the message
      * @param mes  the message
@@ -1238,14 +1239,41 @@ public class SOCGameMessageHandler
             return;  // <---- Early return: No Trading ----
         }
 
-        ga.takeMonitor();
+        final SOCTradeOffer offer = mes.getOffer();
+        final SOCPlayer player = ga.getPlayer(c.getData());
+        if (player == null)
+            return;
 
         try
         {
-            SOCTradeOffer offer = mes.getOffer();
-            SOCPlayer player = ga.getPlayer(c.getData());
-            if (player == null)
-                return;
+            ga.takeMonitor();
+
+            // Check offer contents as a fallback to client checks:
+            SOCResourceSet giveSet = offer.getGiveSet();
+            boolean canOffer = player.getResources().contains(giveSet);
+            final int cpn = ga.getCurrentPlayerNumber();
+            if (canOffer && (cpn != player.getPlayerNumber()))
+            {
+                boolean[] to = offer.getTo();
+                for (int pn = 0; pn < to.length; ++pn)
+                    if (to[pn] && (pn != cpn))
+                    {
+                        canOffer = false;
+                        break;
+                    }
+            }
+
+            if (! canOffer)
+            {
+                SOCMessage msg = (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                    ? new SOCMakeOffer(gaName, new SOCTradeOffer
+                        (gaName, SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE,
+                         new boolean[ga.maxPlayers], SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET))
+                    : new SOCGameServerText(gaName, "You can't make that offer.");  // i18n OK: is fallback only
+                srv.messageToPlayer(c, gaName, player.getPlayerNumber(), msg);
+
+                return;  // <---- Early return: Can't offer that ----
+            }
 
             /**
              * remake the offer with data that we know is accurate,
@@ -1253,7 +1281,7 @@ public class SOCGameMessageHandler
              * set and announce the offer, including text message similar to bank/port trade.
              */
             final SOCTradeOffer remadeOffer = new SOCTradeOffer
-                (gaName, player.getPlayerNumber(), offer.getTo(), offer.getGiveSet(), offer.getGetSet());
+                (gaName, player.getPlayerNumber(), offer.getTo(), giveSet, offer.getGetSet());
             player.setCurrentOffer(remadeOffer);
 
             handler.sendTradeOffer(player, null);

@@ -27,6 +27,7 @@ import java.util.Arrays;
 
 /**
  * This class represents a trade offer in Settlers of Catan
+ * and/or is part of a network message about trades.
  */
 @SuppressWarnings("serial")
 public class SOCTradeOffer implements Serializable, Cloneable
@@ -35,7 +36,9 @@ public class SOCTradeOffer implements Serializable, Cloneable
     final SOCResourceSet give;
     final SOCResourceSet get;
 
-    /** Player number making this offer */
+    /**
+     * Player number making this offer, or a value &lt; 0 See {@link #getFrom()}.
+     */
     final int from;
 
     /**
@@ -57,9 +60,9 @@ public class SOCTradeOffer implements Serializable, Cloneable
      * @param  game  the name of the game in which this offer was made
      * @param  from  the number of the player making the offer
      * @param  to    a boolean array with the set of player numbers this offer is made to;
-     *               see {@link #getTo()} for details.
-     * @param  give  the set of resources being given (offered) by the {@code from} player
-     * @param  get   the set of resources being asked for
+     *               see {@link #getTo()} for details. Not null.
+     * @param  give  the set of resources being given (offered) by the {@code from} player; not null
+     * @param  get   the set of resources being asked for; not null
      */
     public SOCTradeOffer(String game, int from, boolean[] to, SOCResourceSet give, SOCResourceSet get)
     {
@@ -96,6 +99,9 @@ public class SOCTradeOffer implements Serializable, Cloneable
     }
 
     /**
+     * Player number making this offer.
+     * In v2.4.10 and higher, can be &lt; 0 to convey situations/conditions if sent as part of a network message,
+     * such as a server's reply to client that their trade offer is not allowed.
      * @return the number of the player that made the offer
      */
     public int getFrom()

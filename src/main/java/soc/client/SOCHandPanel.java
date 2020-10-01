@@ -1848,7 +1848,7 @@ import javax.swing.UIManager;
             // doesn't have the resources to accept the offer. So, we "borrow"
             // a localized message that's meant for a related task.
 
-            playerInterface.print("*** " + strings.get("trade.msg.cant.offer"));
+            playerInterface.print("*** " + strings.get("trade.msg.cant.offer.dont_have"));
                 // "You can't offer what you don't have."
             return;
         }
@@ -1916,7 +1916,7 @@ import javax.swing.UIManager;
 
         if (! cliPlayer.getResources().contains(giveSet))
         {
-            playerInterface.print("*** " + strings.get("trade.msg.cant.offer"));
+            playerInterface.print("*** " + strings.get("trade.msg.cant.offer.dont_have"));
                 // "You can't offer what you don't have."
         }
         else if ((giveSet.getKnownTotal() == 0) || (getSet.getKnownTotal() == 0))

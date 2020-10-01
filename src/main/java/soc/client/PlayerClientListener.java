@@ -277,9 +277,14 @@ public interface PlayerClientListener
      * or updated the resources of their already-displayed offer.
      * Show its details in their part of the game interface.
      * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
-     * @param offerer  Player with a new trade offer
+     *<P>
+     * Also called when server says our requested trade offer wasn't allowed:
+     * {@code offerer} will be {@code null}, {@code fromPN} will be &lt; 0.
+     *
+     * @param offerer  Player with a new trade offer, or {@code null} if {@code fromPN} &lt; 0
+     * @param fromPN  {@code offerer}'s player number, or "not allowed" code value &lt; 0 from network message
      */
-    void requestedTrade(SOCPlayer offerer);
+    void requestedTrade(SOCPlayer offerer, int fromPN);
 
     /**
      * Clear any trade offer to other players, and reset all trade resource square values to 0.

@@ -67,7 +67,7 @@ public class SOCBankTrade extends SOCMessage
     /**
      * Server's reply reason code that the requesting client can't make this trade now
      * for whatever reason. Usually because they don't have the right resources to give.
-     * Also used by {@link SOCAcceptOffer}.
+     * Also used by {@link SOCMakeOffer} and {@link SOCAcceptOffer}.
      * For a more specific reason, see {@link #PN_REPLY_NOT_YOUR_TURN}.
      * Requires minimum version {@link #VERSION_FOR_REPLY_REASONS}.
      * @since 2.4.10

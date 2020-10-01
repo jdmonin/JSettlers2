@@ -2127,11 +2127,18 @@ import soc.util.Version;
             return;
 
         SOCTradeOffer offer = mes.getOffer();
-        SOCPlayer from = ga.getPlayer(offer.getFrom());
-        from.setCurrentOffer(offer);
+        final int fromPN = offer.getFrom();
+        SOCPlayer from;
+        if (fromPN >= 0)
+        {
+            from = ga.getPlayer(fromPN);
+            from.setCurrentOffer(offer);
+        } else {
+            from = null;
+        }
 
         PlayerClientListener pcl = client.getClientListener(gaName);
-        pcl.requestedTrade(from);
+        pcl.requestedTrade(from, fromPN);
     }
 
     /**

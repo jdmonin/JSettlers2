@@ -3320,20 +3320,27 @@ public class SOCRobotBrain extends Thread
     /**
      * Handle a MAKEOFFER for this game.
      * if another player makes an offer, that's the
-     * same as a rejection, but still wants to deal.
+     * same as a rejection from them, but still wants to deal.
      * Call {@link #considerOffer(SOCTradeOffer)}, and if
      * we accept, clear our {@link #buildingPlan} so we'll replan it.
-     * Ignore our own MAKEOFFERs echoed from server.
+     * Ignore our own MAKEOFFERs echoed from server
+     * and "not allowed" replies from server ({@link SOCTradeOffer#getFrom()} &lt; 0).
      * Call {@link SOCRobotNegotiator#recordResourcesFromOffer(SOCTradeOffer)}.
      * @since 1.1.08
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
         SOCTradeOffer offer = mes.getOffer();
-        final SOCPlayer offeredFromPlayer = game.getPlayer(offer.getFrom());
+        final int fromPN = offer.getFrom();
+        if (fromPN < 0)
+        {
+            return;  // <---- Ignore "not allowed" from server ----
+        }
+
+        final SOCPlayer offeredFromPlayer = game.getPlayer(fromPN);
         offeredFromPlayer.setCurrentOffer(offer);
 
-        if ((offer.getFrom() == ourPlayerNumber))
+        if (fromPN == ourPlayerNumber)
         {
             return;  // <---- Ignore our own offers ----
         }
@@ -3342,7 +3349,7 @@ public class SOCRobotBrain extends Thread
 
         if (waitingForTradeResponse)
         {
-            offerRejections[offer.getFrom()] = true;
+            offerRejections[fromPN] = true;
 
             boolean everyoneRejected = true;
             D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
@@ -3437,7 +3444,7 @@ public class SOCRobotBrain extends Thread
                     }
                 }
 
-                client.acceptOffer(game, offer.getFrom());
+                client.acceptOffer(game, fromPN);
 
                 ///
                 /// clear our building plan, so that we replan

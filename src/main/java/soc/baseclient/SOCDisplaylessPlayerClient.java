@@ -2169,7 +2169,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * handle the "make offer" message
+     * handle the "make offer" message.
+     * Ignore "not allowed" replies from server ({@link SOCTradeOffer#getFrom()} &lt; 0).
      * @param mes  the message
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
@@ -2179,7 +2180,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         SOCTradeOffer offer = mes.getOffer();
-        ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
+        int fromPN = offer.getFrom();
+        if (fromPN >= 0)
+            ga.getPlayer(fromPN).setCurrentOffer(offer);
     }
 
     /**

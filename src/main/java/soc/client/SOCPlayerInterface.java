@@ -47,6 +47,7 @@ import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCPlayerElement.PEType;
+import soc.message.SOCBankTrade;     // for reply code constant
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
 import soc.util.SOCStringManager;
@@ -4904,12 +4905,17 @@ public class SOCPlayerInterface extends Frame
             pi.printTradeResources(player, give, get, false, null);
         }
 
-        public void requestedTrade(SOCPlayer offerer)
+        public void requestedTrade(final SOCPlayer offerer, final int fromPN)
         {
-            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
-            final SOCTradeOffer offer = offerer.getCurrentOffer();
-            if (offer != null)
-                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
+            if (offerer != null)
+            {
+                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
+                final SOCTradeOffer offer = offerer.getCurrentOffer();
+                if (offer != null)
+                    pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
+            } else if (fromPN <= SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE) {
+                pi.printKeyed("trade.msg.cant.make.offer");  // "You can't make that offer."
+            }
         }
 
         public void requestedTradeClear(final SOCPlayer offerer, final boolean isBankTrade)

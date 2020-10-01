@@ -613,6 +613,13 @@ public class TestToCmdToStringParse
             "SOCMakeOffer:game=ga|offer=game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"
         },
         {
+            new SOCMakeOffer("ga", new SOCTradeOffer
+                ("ga", -2, new boolean[]{false,  false, false, false},
+                 SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET)),
+            "1041|ga,-2,false,false,false,false,0,0,0,0,0,0,0,0,0,0",
+            "SOCMakeOffer:game=ga|offer=game=ga|from=-2|to=false,false,false,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0"
+        },
+        {
             new SOCMovePiece("ga", 1, SOCPlayingPiece.SHIP, 3078, 3846),
             "1093|ga,1,3,3078,3846",
             "SOCMovePiece:game=ga|pn=1|pieceType=3|fromCoord=3078|toCoord=3846"
