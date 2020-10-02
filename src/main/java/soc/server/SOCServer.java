@@ -916,6 +916,16 @@ public class SOCServer extends Server
     private String utilityModeMessage;
 
     /**
+     * Database helper; non-null after construction, which calls {@link #initSocServer(String, String)},
+     * even if no DB is configured. Call {@link SOCDBHelper#isInitialized()} to see if actually connected.
+     *<P>
+     * Before v2.4.10, {@link SOCDBHelper} methods were static and this field wasn't needed.
+     *
+     * @since 2.4.10
+     */
+    protected SOCDBHelper db;
+
+    /**
      * Active optional server features, if any; see {@link SOCFeatureSet} constants for currently defined features.
      * Features are activated through the command line or {@link #props}.
      * @since 1.1.19
@@ -1619,7 +1629,7 @@ public class SOCServer extends Server
             (PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
 
         /**
-         * If true, connect to DB (like validate_config_mode does) but start no threads.
+         * If true, will connect to DB (like validate_config_mode does) but start no threads.
          * Will run the requested tests and exit.
          */
         final boolean test_mode_with_db = getConfigBoolProperty(PROP_JSETTLERS_TEST_DB, false);
@@ -1843,7 +1853,7 @@ public class SOCServer extends Server
         final boolean accountsRequired = getConfigBoolProperty(PROP_JSETTLERS_ACCOUNTS_REQUIRED, false);
 
         /**
-         * Try to connect to the DB, if any. Runs SOCDBHelper.initialize(..),
+         * Try to connect to the DB, if any. Always sets db field. Runs SOCDBHelper.initialize(..),
          * will handle some Utility Mode properties like PROP_JSETTLERS_DB_SETTINGS if present.
          * Checks schema version, runs upgrade if wants_upg_schema.
          */
@@ -1859,7 +1869,7 @@ public class SOCServer extends Server
             return;  // <--- don't continue startup if Utility Mode ---
         }
 
-        if (SOCDBHelper.isInitialized())
+        if (db.isInitialized())
         {
             if (accountsRequired)
                 System.err.println("User database accounts are required for all players.");
@@ -1879,10 +1889,10 @@ public class SOCServer extends Server
                             // Before disconnect, do a final check for unexpected DB settings changes
                             try
                             {
-                                SOCDBHelper.checkSettings(true, false);
+                                db.checkSettings(true, false);
                             } catch (Exception x) {}
 
-                            SOCDBHelper.cleanup(true);
+                            db.cleanup(true);
                         }
                         catch (SQLException x) { }
                     }
@@ -1979,9 +1989,9 @@ public class SOCServer extends Server
             System.err.println("* Config Validation Mode: No problems found.");
         }
 
-        if (test_mode_with_db && SOCDBHelper.isInitialized())
+        if (test_mode_with_db && db.isInitialized())
         {
-            SOCDBHelper.testDBHelper();  // failures/errors throw SQLException for our caller to catch
+            db.testDBHelper();  // failures/errors throw SQLException for our caller to catch
         }
 
         if (! (test_mode_with_db || validate_config_mode))
@@ -1991,8 +2001,8 @@ public class SOCServer extends Server
                 System.err.print(" Listening on port " + port);
             System.err.println();
 
-            if (SOCDBHelper.isInitialized() && SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
-                SOCDBHelper.startSchemaUpgradeBGTasks();  // includes 5-second sleep before conversions begin
+            if (db.isInitialized() && db.doesSchemaUpgradeNeedBGTasks())
+                db.startSchemaUpgradeBGTasks();  // includes 5-second sleep before conversions begin
         }
 
         System.err.println();
@@ -2000,7 +2010,8 @@ public class SOCServer extends Server
 
     /**
      * Try to connect to the DB, if any, as part of {@link #initSocServer(String, String)}.
-     * Runs {@link SOCDBHelper#initialize(String, String, Properties) SOCDBHelper.initialize(..)},
+     * Always sets DB field to a new {@link SOCDBHelper}, even if no DB is in use.
+     * Runs {@link SOCDBHelper#initialize(String, String, Properties) db.initialize(..)},
      * will handle some Utility Mode properties like
      * {@link SOCDBHelper#PROP_JSETTLERS_DB_SETTINGS PROP_JSETTLERS_DB_SETTINGS} if present.
      * Checks schema version, runs upgrade if {@code wants_upg_schema}.
@@ -2026,7 +2037,9 @@ public class SOCServer extends Server
 
         try
         {
-            SOCDBHelper.initialize(dbUserName, dbPassword, props);
+            db = new SOCDBHelper();
+
+            db.initialize(dbUserName, dbPassword, props);
             if (dbUserName == null)
                 return;
 
@@ -2046,16 +2059,16 @@ public class SOCServer extends Server
             initSocServer_dbParamFields(wants_upg_schema);
 
             // check schema version, upgrade if requested:
-            if (! SOCDBHelper.isSchemaLatestVersion())
+            if (! db.isSchemaLatestVersion())
             {
                 if (wants_upg_schema)
                 {
                     try
                     {
-                        SOCDBHelper.upgradeSchema(databaseUserAdmins);
+                        db.upgradeSchema(databaseUserAdmins);
 
                         String msg = "DB schema upgrade was successful";
-                        if (SOCDBHelper.doesSchemaUpgradeNeedBGTasks())
+                        if (db.doesSchemaUpgradeNeedBGTasks())
                             msg += "; some upgrade tasks will complete in the background during normal server operation";
                         utilityModeMessage = msg;
 
@@ -2175,7 +2188,7 @@ public class SOCServer extends Server
 
             try
             {
-                SOCDBHelper.cleanup(true);
+                db.cleanup(true);
             }
             catch (SQLException x) { }
 
@@ -2204,7 +2217,7 @@ public class SOCServer extends Server
         // No errors; continue normal startup.
 
         if (db_test_bcrypt_mode)
-            SOCDBHelper.testBCryptSpeed();
+            db.testBCryptSpeed();
     }
 
     /**
@@ -2236,7 +2249,7 @@ public class SOCServer extends Server
             if (! hasUtilityModeProp)
                 System.err.println("User database Open Registration is active, anyone can create accounts.");
         } else {
-            if (SOCDBHelper.countUsers() == 0)
+            if (db.countUsers() == 0)
                 acctsNotOpenRegButNoUsers = true;
         }
 
@@ -2251,7 +2264,7 @@ public class SOCServer extends Server
             } else if (features.isActive(SOCFeatureSet.SERVER_OPEN_REG)) {
                 errmsg = "* Cannot use Open Registration with User Account Admins List.";
             } else {
-                final boolean downcase = (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
+                final boolean downcase = (db.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200);
                 databaseUserAdmins = new HashSet<String>();
 
                 for (String adm : userAdmins.split(SOCMessage.sep2))  // split on "," - sep2 will never be in a username
@@ -2563,7 +2576,7 @@ public class SOCServer extends Server
         SOCRobotParameters params = null;
         try
         {
-            params = SOCDBHelper.retrieveRobotParams(botName);
+            params = db.retrieveRobotParams(botName);
             if ((params != null) && D.ebugIsEnabled())
                 D.ebugPrintlnINFO("*** Robot Parameters for " + botName + " = " + params);
         } catch (SQLException sqle) {
@@ -6444,7 +6457,7 @@ public class SOCServer extends Server
         /// now continue with shutdown
         try
         {
-            SOCDBHelper.cleanup(true);
+            db.cleanup(true);
         }
         catch (SQLException x) { }
 
@@ -6630,7 +6643,7 @@ public class SOCServer extends Server
         {
             final String msgUserName = msgUser;
             final boolean takingOver = isTakingOver;
-            SOCDBHelper.authenticateUserPassword
+            db.authenticateUserPassword
                 (msgUser, msgPass, new SOCDBHelper.AuthPasswordRunnable()
                 {
                     public void authResult(final String dbUserName, final boolean hadDelay)
@@ -6750,7 +6763,7 @@ public class SOCServer extends Server
             return false;
 
         // Check if uname's on the user admins list; this check is also in createAccount.
-        if (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200)
+        if (db.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200)
             uname = uname.toLowerCase(Locale.US);
 
         return databaseUserAdmins.contains(uname);
@@ -8692,7 +8705,7 @@ public class SOCServer extends Server
     {
         final int cliVers = c.getVersion();
 
-        if (! SOCDBHelper.isInitialized())
+        if (! db.isInitialized())
         {
             // Send same SV_ status code as previous versions (before 1.1.19) which didn't check db.isInitialized
             // but instead fell through and sent "Account not created due to error."
@@ -8754,7 +8767,7 @@ public class SOCServer extends Server
             int count;
             try
             {
-                count = SOCDBHelper.countUsers();
+                count = db.countUsers();
             }
             catch (SQLException e)
             {
@@ -8811,7 +8824,7 @@ public class SOCServer extends Server
         if (databaseUserAdmins != null)
         {
             String chkName = (isDBCountedEmpty) ? userName : requester;
-            if ((chkName != null) && (SOCDBHelper.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200))
+            if ((chkName != null) && (db.getSchemaVersion() >= SOCDBHelper.SCHEMA_VERSION_1200))
                 chkName = chkName.toLowerCase(Locale.US);
 
             if ((chkName == null) || ! databaseUserAdmins.contains(chkName))
@@ -8843,7 +8856,7 @@ public class SOCServer extends Server
         //
         try
         {
-            final String dbUserName = SOCDBHelper.getUser(userName);
+            final String dbUserName = db.getUser(userName);
             if (dbUserName != null)
             {
                 c.put(SOCStatusMessage.buildForVersion
@@ -8875,7 +8888,7 @@ public class SOCServer extends Server
 
         try
         {
-            success = SOCDBHelper.createAccount(userName, c.host(), pw, em, currentTime.getTime());
+            success = db.createAccount(userName, c.host(), pw, em, currentTime.getTime());
         }
         catch (IllegalArgumentException e)
         {
@@ -9352,7 +9365,7 @@ public class SOCServer extends Server
      */
     protected void storeGameScores(SOCGame ga)
     {
-        if ((ga == null) || ! SOCDBHelper.isInitialized())
+        if ((ga == null) || ! db.isInitialized())
             return;
 
         //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
@@ -9362,7 +9375,7 @@ public class SOCServer extends Server
 
         try
         {
-            SOCDBHelper.saveGameScores
+            db.saveGameScores
                 (ga, ga.getDurationSeconds(),
                  ! getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false));
         }
@@ -10472,7 +10485,7 @@ public class SOCServer extends Server
     {
         utilityModeMessage = null;
 
-        if (! SOCDBHelper.isInitialized())
+        if (! db.isInitialized())
         {
             System.err.println("--pw-reset requires database connection properties.");
             return;
@@ -10481,7 +10494,7 @@ public class SOCServer extends Server
         String dbUname = null;
         try
         {
-            dbUname = SOCDBHelper.getUser(uname);
+            dbUname = db.getUser(uname);
             if (dbUname == null)
             {
                 System.err.println("pw-reset user " + uname + " not found in database.");
@@ -10544,11 +10557,11 @@ public class SOCServer extends Server
 
         try
         {
-            SOCDBHelper.updateUserPassword(dbUname, pw1.toString());
+            db.updateUserPassword(dbUname, pw1.toString());
             clearBuffer(pw1);
             utilityModeMessage = "The password was changed";
         } catch (IllegalArgumentException e) {
-            System.err.println("Password was too long, max length is " + SOCDBHelper.getMaxPasswordLength());
+            System.err.println("Password was too long, max length is " + db.getMaxPasswordLength());
         } catch (SQLException e) {
             System.err.println("Error while resetting password: " + e.getMessage());
         }

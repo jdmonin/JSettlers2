@@ -436,7 +436,7 @@ public class SOCServerMessageHandler
                 // no role-specific problems: complete the authentication
                 try
                 {
-                    c.setData(SOCDBHelper.getUser(mesUser));  // case-insensitive db search on mesUser
+                    c.setData(srv.db.getUser(mesUser));  // case-insensitive db search on mesUser
                     srv.nameConnection(c, false);
                 } catch (SQLException e) {
                     // unlikely, we've just queried db in authOrRejectClientUser
@@ -1392,14 +1392,14 @@ public class SOCServerMessageHandler
     {
         final String gaName = ga.getName();
 
-        if (! SOCDBHelper.isInitialized())
+        if (! srv.db.isInitialized())
         {
             srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "Not using a database.");
             return;
         }
 
         srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "Database settings:");
-        Iterator<String> it = SOCDBHelper.getSettingsFormatted(srv).iterator();
+        Iterator<String> it = srv.db.getSettingsFormatted(srv).iterator();
         while (it.hasNext())
             srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "> " + it.next() + ": " + it.next());
     }

@@ -29,6 +29,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Encapsulate robot's build stack as SOCBuildPlan
 	    - soc.message methods to parse human-readable toString logging format: parseMsgStr, stripAttribNames
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
+	    - SOCDBHelper is no longer a static/unextendable singleton
 	- Enhanced server's recordGameEvent framework for more detailed game recording
 	- More accessible robot-related methods and data classes
 	- For third-party bots, added more granular override points like
