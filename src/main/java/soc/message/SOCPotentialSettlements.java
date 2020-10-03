@@ -633,7 +633,7 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}
-     * to give to {@link #toCmd()}. Converts field values from their human-readable forms.
+     * to pass to {@link #parseDataStr(String)}. Converts field values from their human-readable forms.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @since 2.4.10

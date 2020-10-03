@@ -165,7 +165,7 @@ public class SOCChannelMembers extends SOCMessage
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
      * returning message parameters as a comma-delimited list for
-     * {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * {@link SOCMessage#parseMsgStr(String)} to pass to {@link #parseDataStr(String)}.
      * Handles square brackets around list of members.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Member list for {@link #parseDataStr(String)}, or {@code null} if params are malformed

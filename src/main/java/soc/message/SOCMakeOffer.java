@@ -196,10 +196,9 @@ public class SOCMakeOffer extends SOCMessage
     // Special handling:
     // 1) There is a bizarre "offer=game=gameName" in the second position
     // 2) Give and get are specified as give=clay=x|ore=y...
-    //  When we strip attrip names, we get a meaningless second entry, which we can skip, and due to manner of parsing, clay is inserted before give and get sets.
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @since 2.4.10

@@ -335,7 +335,8 @@ public class SOCDevCardAction extends SOCMessage
 
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}
+     * to pass to {@link #parseDataStr(String)}.
      * Undoes mapping of action constant integers -> strings ({@code "ADD_NEW"} etc).
      * In multi-card form, removes array brackets: {@code ,[5, 4]} -> {@code ,5,4}.
      * @param messageTypeName  Message type: v1.x {@code "SOCDevCard"} or current {@code "SOCDevCardAction"}.

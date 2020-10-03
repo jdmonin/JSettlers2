@@ -668,6 +668,8 @@ public class TestToCmdToStringParse
         },
         {new SOCPotentialSettlements("ga", 2, new ArrayList<Integer>()), "1057|ga,2", "SOCPotentialSettlements:game=ga|playerNum=2|list=(empty)"},
         {new SOCPotentialSettlements("ga", 3, new ArrayList<Integer>(Arrays.asList(0xc04, 0xe05, 0x60a))), "1057|ga,3,3076,3589,1546", "SOCPotentialSettlements:game=ga|playerNum=3|list=c04 e05 60a "},
+        // same as above, but no trailing space in toString's list:
+        {new SOCPotentialSettlements("ga", 3, new ArrayList<Integer>(Arrays.asList(0xc04, 0xe05, 0x60a))), "1057|ga,3,3076,3589,1546", "SOCPotentialSettlements:game=ga|playerNum=3|list=c04 e05 60a", OPT_PARSE_ONLY},
         // v2.x forms: For easier comparison, these tests all have 1 node in each land area set instead of many
         {
             // 1 player's info, non-null psNodes, no LSE
