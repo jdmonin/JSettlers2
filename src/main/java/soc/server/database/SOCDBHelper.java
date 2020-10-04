@@ -492,6 +492,7 @@ public class SOCDBHelper
      * True if we successfully completed {@link #initialize(String, String, Properties)}
      * without throwing an exception.
      * Set false in {@link #cleanup(boolean)}.
+     * @see #isInitialized()
      */
     private boolean initialized = false;
 
@@ -3611,54 +3612,58 @@ public class SOCDBHelper
 
     /**
      * Close out and shut down the database connection.
+     * Any {@link SQLException}s while doing so are caught here.
      * @param isForShutdown  If true, set <tt>connection = null</tt>
      *          so we won't try to reconnect later.
      */
-    public void cleanup(final boolean isForShutdown) throws SQLException
+    public void cleanup(final boolean isForShutdown)
     {
-        if (checkConnection())
+        try
         {
-            try
-            {
-                createAccountCommand.close();
-                userPasswordQuery.close();
-                hostQuery.close();
-                lastloginUpdate.close();
-                saveGameCommand.close();
-                if (saveGamePlayerCommand != null)
-                    saveGamePlayerCommand.close();
-                robotParamsQuery.close();
-                userCountQuery.close();
-                userExistsQuery.close();
-                if (userIncrWonCommand != null)
-                    userIncrWonCommand.close();
-                if (userIncrLostCommand != null)
-                    userIncrLostCommand.close();
-            }
-            catch (Throwable thr)
-            {
-                ; /* ignore failures in query closes */
-            }
+            if (! checkConnection())
+                return;
+        }
+        catch (SQLException e) {}
 
-            if (isForShutdown && (schemaUpgBGTasksThread != null) && schemaUpgBGTasksThread.isAlive())
-                schemaUpgBGTasksThread.doShutdown = true;
+        try
+        {
+            createAccountCommand.close();
+            userPasswordQuery.close();
+            hostQuery.close();
+            lastloginUpdate.close();
+            saveGameCommand.close();
+            if (saveGamePlayerCommand != null)
+                saveGamePlayerCommand.close();
+            robotParamsQuery.close();
+            userCountQuery.close();
+            userExistsQuery.close();
+            if (userIncrWonCommand != null)
+                userIncrWonCommand.close();
+            if (userIncrLostCommand != null)
+                userIncrLostCommand.close();
+        }
+        catch (Throwable thr)
+        {
+            ; /* ignore failures in query closes */
+        }
 
-            initialized = false;
-            try
-            {
-                connection.close();
-                if (isForShutdown)
-                    connection = null;
-            }
-            catch (SQLException sqlE)
-            {
-                errorCondition = true;
-                if (isForShutdown)
-                    connection = null;
+        if (isForShutdown && (schemaUpgBGTasksThread != null) && schemaUpgBGTasksThread.isAlive())
+            schemaUpgBGTasksThread.doShutdown = true;
 
-                sqlE.printStackTrace();
-                throw sqlE;
-            }
+        initialized = false;
+        try
+        {
+            connection.close();
+            if (isForShutdown)
+                connection = null;
+        }
+        catch (SQLException sqlE)
+        {
+            errorCondition = true;
+            if (isForShutdown)
+                connection = null;
+
+            sqlE.printStackTrace();
         }
     }
 

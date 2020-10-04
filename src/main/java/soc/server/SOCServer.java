@@ -1884,17 +1884,14 @@ public class SOCServer extends Server
                     public void run() {
                         System.err.println("\n--\n-- shutdown; disconnecting from db --\n--\n");
                         System.err.flush();
+
+                        // Before disconnect, do a final check for unexpected DB settings changes
                         try
                         {
-                            // Before disconnect, do a final check for unexpected DB settings changes
-                            try
-                            {
-                                db.checkSettings(true, false);
-                            } catch (Exception x) {}
+                            db.checkSettings(true, false);
+                        } catch (Exception x) {}
 
-                            db.cleanup(true);
-                        }
-                        catch (SQLException x) { }
+                        db.cleanup(true);
                     }
                 });
             } catch (Throwable th)
@@ -2186,11 +2183,7 @@ public class SOCServer extends Server
                 cause = cause.getCause();
             }
 
-            try
-            {
-                db.cleanup(true);
-            }
-            catch (SQLException x) { }
+            db.cleanup(true);
 
             SQLException sqle = new SQLException("Error running DB setup script");
             sqle.initCause(iox);
@@ -6455,11 +6448,7 @@ public class SOCServer extends Server
         }
 
         /// now continue with shutdown
-        try
-        {
-            db.cleanup(true);
-        }
-        catch (SQLException x) { }
+        db.cleanup(true);
 
         super.stopServer();
 
