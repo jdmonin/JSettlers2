@@ -66,6 +66,17 @@ import java.util.StringTokenizer;
  * The server receives messages in
  * {@link soc.server.SOCMessageDispatcher#dispatch(SOCMessage, soc.server.genericServer.Connection)}.
  *
+ *<H3>Human-readable format:</H3>
+ * For debugging purposes, {@link #toString()} should include all fields sent over the network
+ * in a human-readable form. That's also a useful format if messages are being written to a log
+ * that someone might want to read and interpret later. For documentation, we recommend including the current
+ * {@link soc.util.Version#versionNumber()} or a {@link SOCVersion} message near the start of such a log.
+ *<P>
+ * Starting in v2.4.10, the {@code toString()} form must be parsable back into {@code SOCMessage}
+ * through {@link #parseMsgStr(String)}. This "round-trip" parsing is useful for third-party projects
+ * which wrote human-readable message logs and want to interpret or replay them later.
+ * See that method's javadoc for details.
+ *
  *<H3>To create and add a new message type:</H3>
  *<UL>
  * <LI> Decide on the message type name.
@@ -104,6 +115,9 @@ import java.util.StringTokenizer;
  *      <P>
  *      If the message is player-state related, you might also want to add
  *      it in your game type's <tt>soc.server.GameHandler.sitDown_sendPrivateInfo()</tt>.
+ * <LI> If the {@link #toString()} form has fields that can't be automatically parsed by {@link #parseMsgStr(String)},
+ *      such as hex values or int constant strings, write a {@code stripAttribNames(..)} method to help: See
+ *      {@code parseMsgStr(..)} javadocs for details.
  * <LI> Add it to unit test {@code soctest.message.TestToCmdToStringParse}'s {@code TOCMD_TOSTRING_COMPARES} array
  *</UL>
  *
@@ -127,11 +141,9 @@ import java.util.StringTokenizer;
  *<H3>Renaming a message or improving its {@link #toString()} form:</H3>
  * For debugging purposes, it's sometimes useful to make the output of {@link #toString()} more meaningful:
  * Translating enum integers like {@code pieceType} to their strings, etc.
- * Starting in v2.4.10, the {@code toString()} form must be parsable back into {@code SOCMessage}
- * through {@link #parseMsgStr(String)}.
  *<P>
  * In versions after 2.4.10: If you must make an incompatible change to a message's toString form,
- * and a previous version's {@code parseMsgStr} wouldn't be able to parse that new form,
+ * and a previous version's {@link #parseMsgStr(String)} wouldn't be able to parse that new form,
  * rename the message class and make sure the old name can still be parsed with its old format
  * (see {@link #MESSAGE_RENAME_MAP}, write a static {@code stripAttribNames(messageTypeName, messageStrParams)}, etc.)
  * Don't change the message {@link #getType()} constant's numeric value.
@@ -1081,12 +1093,18 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Strips parameter/attribute names from values to get the format expected by
      * message types' {@code parseDataStr(..)}, calls that.
      *<P>
+     * If {@code toString()} format has fields that can't be automatically parsed here,
+     * such as hex values or int constant strings, message class should have a static {@code stripAttribNames(String)}
+     * method to do so. See {@link SOCPutPiece#stripAttribNames(String)}
+     * and {@link SOCVersion#stripAttribNames(String)} for simple examples.
+     *<P>
      * Message types which have been renamed and noted in {@link #MESSAGE_RENAME_MAP},
      * and the old name used an incompatibly different toString format,
      * should declare a static {@code stripAttribNames(String messageTypeName, String messageStrParams)} method
      * to know whether to parse using the old or new format.
      *<P>
-     * Uses reflection to call the message type's static stripAttribNames and parseDataStr methods
+     * Uses reflection to call the message type's static {@code stripAttribNames(String)}
+     * and {@code parseDataStr(String or List<String>)} methods
      * if available, otherwise {@link SOCMessage#stripAttribNames(String)}.
      * @param messageStr  Message as delimited string from {@link #toString()}; not null
      * @return parsed message if successful, throws exception otherwise
