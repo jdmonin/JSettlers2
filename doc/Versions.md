@@ -64,6 +64,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Robot clients no longer ignore game option info sync messages
 	    - SGH.calcGameClientFeaturesRequired checks each gameopt for features
 - Server:
+	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
