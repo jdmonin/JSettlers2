@@ -460,8 +460,9 @@ ideas.
 - Show # VP when choosing where to sit, if game is in progress
 - Refactor: `new Date().getTime()` -> `System.currentTimeMillis()`
 - Occasionally the board does not re-scale at game reset
-- Docs: State diagram for `SOCGame` states, or sequence of important message flows
+- Docs: State diagram for `SOCGame` states, or important message sequences
   (log into server, create/join game, roll dice, etc)
+    - Or point docs to src/extraTest/java/soctest/server/TestActionsMessages.java which has many important message sequences
 - Docs: `PlayerClientListener` interface has some methods without javadocs: Add by checking `SOCPlayerInterface.ClientBridge` implementation
 - Java 7 cleanup: Use diamond operator where possible
   - Example: change  

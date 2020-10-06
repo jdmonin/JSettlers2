@@ -2494,8 +2494,6 @@ public class SOCServerMessageHandler
          */
         final int pn = mes.getPlayerNumber();
         final int gameState = ga.getGameState();
-        final boolean isLoadingState =
-            (gameState == SOCGame.LOADING) || (gameState == SOCGame.LOADING_RESUMING);
 
         ga.takeMonitor();
 
@@ -2518,6 +2516,8 @@ public class SOCServerMessageHandler
                  * if loading a savegame: allow taking over current player,
                  * and taking over a saved non-bot seat if not claimed by a current game member
                  */
+                final boolean isLoadingState =
+                    (gameState == SOCGame.LOADING) || (gameState == SOCGame.LOADING_RESUMING);
                 boolean isloadingBot =
                     isLoadingState && ((SOCClientData) c.getAppData()).isRobot;
                 final boolean canTakeOverPlayer =
