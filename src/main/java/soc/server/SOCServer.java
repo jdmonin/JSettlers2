@@ -3664,7 +3664,8 @@ public class SOCServer extends Server
      *
      * @param gaName  Game name to destroy
      * @param descForStackTrace  Activity description in case of exception thrown from destroyGame;
-     *     will debug-print a mesasge "Exception in " + desc, followed by a stack trace.
+     *     will debug-print a message "Exception in " + desc, followed by a stack trace.
+     *     If {@code null}, will use {@code "destroyGame"}.
      * @since 2.0.00
      */
     public void destroyGameAndBroadcast(final String gaName, final String descForStackTrace)
@@ -3677,7 +3678,8 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintStackTrace(e, "Exception in " + descForStackTrace);
+            D.ebugPrintStackTrace
+                (e, "Exception in " + ((descForStackTrace != null) ? descForStackTrace : "destroyGame"));
         }
         finally
         {

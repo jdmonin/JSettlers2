@@ -315,6 +315,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -430,6 +431,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         if (comparesBuyCard != null)
@@ -768,6 +770,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -1093,6 +1096,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -1286,6 +1290,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
         tcli2.destroy();
 
@@ -1427,6 +1432,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -1584,6 +1590,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli1.destroy();
         tcli2.destroy();
 
@@ -1659,6 +1666,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli1.destroy();
         tcli2.destroy();
 
@@ -1792,6 +1800,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli1.destroy();
         tcli2.destroy();
 
@@ -1912,6 +1921,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
         if (tcli2 != null)
             tcli2.destroy();

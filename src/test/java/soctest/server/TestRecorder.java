@@ -293,6 +293,7 @@ public class TestRecorder
         assertEquals(CLIENT_NAME, cliPl.getName());
 
         // leave game
+        server.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
     }
 
@@ -384,6 +385,7 @@ public class TestRecorder
         //      For now, can verify by searching test's System.out for SOCGameServerText
 
         // leave game
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         if (compares != null)
@@ -748,6 +750,7 @@ public class TestRecorder
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -994,6 +997,7 @@ public class TestRecorder
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli1.destroy();
         tcli2.destroy();
 
