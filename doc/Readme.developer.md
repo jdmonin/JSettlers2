@@ -485,7 +485,8 @@ ideas.
   - Medium-level example: Add a board-geometry unit test to `soctest.game.TestBoardLayouts`
     to check all scenarios' layouts against the "Layout placement rules for special situations"
     mentioned in `SOCBoardAtServer` class javadocs
-  - Could add a test flag or method to server to load a saved game from JSON to test specific situations
+  - To set up specific test situations, could load a saved game from JSON
+    by calling SOCServer.createAndJoinReloadedGame or a method like TestRecorder.connectLoadJoinResumeGame
 - Possibly: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
@@ -593,6 +594,9 @@ https://mvnrepository.com/artifact/com.google.code.gson/gson/2.8.6 .
 If using Eclipse, also add GSON to the project's build path -> Libraries -> Add External JAR
 
 If you're not using this feature, JSettlers doesn't require or use the GSON jar.
+
+If you want to write code which loads saved games, see `SOCServer.createAndJoinReloadedGame`
+and/or `TestRecorder.connectLoadJoinResumeGame`.
 
 
 ## Game rules, Game Options

@@ -43,6 +43,7 @@ import java.util.StringTokenizer;
  * asked to sit from {@link SOCBotJoinGameRequest BOTJOINGAMEREQUEST}.
  * In order for the robot to be certain it has all details about a game,
  * bots should take no action before receiving this message.
+ * Once this is received, they should send their {@link SOCSitDown} request.
  *<P>
  * When forming a new game, clients will be sent the sequence as described above, and
  * then will each choose a position and sit down. Any client can then send {@link SOCStartGame}

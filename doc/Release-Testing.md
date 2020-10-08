@@ -494,6 +494,34 @@ When preparing to release a new version, testing should include:
         - Dialog should show "localized" DEBUGBOOL game option. Scenario dropdown should show all scenarios with localized text
         - Cancel out of New Game dialog
         - Quit clients and server
+- Third-party Game Option negotiation
+    - Test when only client knows a 3P game opt:
+        - Start a client with JVM parameter `-Djsettlers.debug.client.gameopt3p=xyz`
+        - Click Practice button; in Practice Game dialog, should see and set checkbox for game option "Client test 3p option XYZ"
+        - Start the practice game
+        - In game window, click "Options" button; game opt XYZ should be set
+        - Start a server without that `gameopt3p` param
+        - Connect from that client
+        - Click New Game button; New Game dialog shouldn't have game opt "Client test 3p option XYZ"
+        - Quit that client and server
+    - Test when client and server both know it:
+        - Start a server with JVM param `-Djsettlers.debug.server.gameopt3p=xyz`
+        - Start a client with JVM param `-Djsettlers.debug.client.gameopt3p=xyz`
+        - Connect from that client
+        - Click New Game; in dialog, should see and set checkbox for "Server test 3p option XYZ"
+        - Start game
+        - In game window, click "Options" button; game opt XYZ should be set
+        - Start another client with same JVM param `-Djsettlers.debug.client.gameopt3p=xyz`
+        - Connect
+        - Double-click and join game, take over for a robot
+        - In game window, click "Options" button; game opt XYZ should be set
+    - Test when only server knows it:
+        - Start another client without that `gameopt3p` param
+        - Connect
+        - In list of games, the game with option XYZ should show "(cannot join)"
+        - Double-click game, popup should show message "Cannot join"
+        - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.XYZ"
+    - Quit all clients and server
 - i18n/Localization
     - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `src/main/resources/resources/strings/server/toClient_es.properties`:  
 
