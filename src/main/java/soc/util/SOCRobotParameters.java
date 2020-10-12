@@ -22,10 +22,9 @@
 package soc.util;
 
 import java.io.Serializable;
-import java.util.Map;
 
-import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 
 
 /**
@@ -108,7 +107,7 @@ public class SOCRobotParameters implements Serializable
      * @param gameOpts The game's {@link SOCGameOption}s, or null
      * @return This object, or a copy with updated parameters.
      */
-    public SOCRobotParameters copyIfOptionChanged(Map<String, SOCGameOption> gameOpts)
+    public SOCRobotParameters copyIfOptionChanged(SOCGameOptionSet gameOpts)
     {
         if (gameOpts == null)
             return this;
@@ -116,7 +115,7 @@ public class SOCRobotParameters implements Serializable
         boolean copied = false;
         SOCRobotParameters params = this;
 
-        if (SOCGame.isGameOptionSet(gameOpts, "NT")
+        if ((gameOpts != null) && gameOpts.isOptionSet("NT")
             && (1 == params.tradeFlag))
         {
             if (! copied)

@@ -34,6 +34,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -62,6 +63,8 @@ import static org.junit.Assert.*;
  */
 public class TestToCmdToStringParse
 {
+    private static SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
+
     /**
      * Round-trip parsing tests on messages listed in {@link #TOCMD_TOSTRING_COMPARES}.
      * Message forms which need more detailed tests are in {@link #testMiscMessageForms()} instead.
@@ -372,10 +375,32 @@ public class TestToCmdToStringParse
             "SOCBoardLayout:game=ga|hexLayout={ 50 6 65 6 6 5 3 4 10 8 2 3 1 0 6 6 1 1 4 3 4 11 8 2 5 5 2 6 6 5 3 4 100 19 6 101 6 }|numberLayout={ -1 -1 -1 -1 -1 1 4 0 -1 -1 5 2 6 -1 -1 -1 7 3 8 7 3 -1 -1 6 4 1 5 -1 -1 9 8 2 -1 -1 -1 -1 -1 }|robberHex=0x9b"
         },
         // TODO SOCBoardLayout2
-        {new SOCBotJoinGameRequest("ga", 3, null), "1023|ga,3,-", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=null"},
-        {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=PL=6"},
+        {
+            new SOCBotJoinGameRequest("ga", 3, (SOCGameOptionSet) null),
+            "1023|ga,3,-",
+            "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=-",
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("opts"))
+        },
+        {
+            new SOCBotJoinGameRequest("ga", 3, "PL=2,RD=t"),
+            "1023|ga,3,PL=2,RD=t",
+            "SOCBotJoinGameRequest:game=ga|playerNumber=3|opts=PL=2,RD=t",
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("opts"))
+        },
+        {
+            new SOCBotJoinGameRequest("ga", 2, SOCGameOption.parseOptionsToSet("PL=5", knownOpts)),
+            "1023|ga,2,PL=5",
+            "SOCBotJoinGameRequest:game=ga|playerNumber=2|opts=PL=5",
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("opts"))
+        },
             // v1.x was SOCJoinGameRequest:
-        {new SOCBotJoinGameRequest("ga", 3, SOCGameOption.parseOptionsToMap("PL=6")), "1023|ga,3,PL=6", "SOCJoinGameRequest:game=ga|playerNumber=3|opts=PL=6", OPT_PARSE_ONLY},
+        {
+            new SOCBotJoinGameRequest("ga", 1, SOCGameOption.parseOptionsToSet("PL=6", knownOpts)),
+            "1023|ga,1,PL=6",
+            "SOCJoinGameRequest:game=ga|playerNumber=1|opts=PL=6",
+            OPT_PARSE_ONLY,
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("opts"))
+        },
         {new SOCBuildRequest("ga", SOCPlayingPiece.CITY), "1043|ga,2", "SOCBuildRequest:game=ga|pieceType=2"},
         {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyDevCardRequest:game=ga"},
             // v1.x was SOCBuyCardRequest:
@@ -628,9 +653,9 @@ public class TestToCmdToStringParse
         {new SOCNewChannel("ch name"), "1001|ch name", "SOCNewChannel:channel=ch name"},
         {new SOCNewGame("ga"), "1016|ga", "SOCNewGame:game=ga"},
         {
-            new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToMap("BC=t4,RD=f,N7=t7,PL=4"), -1, 0),
-            "1079|ga,-1,BC=t4,RD=f,N7=t7,PL=4",
-            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,N7=t7,PL=4"
+            new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToSet("BC=t4,RD=f", knownOpts), -1, 0),
+            "1079|ga,-1,BC=t4,RD=f",
+            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f"
         },
         {
             new SOCNewGameWithOptionsRequest("uname", "", "-", "newgame", "N7=t7,PL=4"),

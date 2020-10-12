@@ -35,7 +35,7 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  *<P>
  * Special Items are unrelated to {@link SOCInventoryItem}s.
  *<P>
- * Example use: The Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+ * Example use: The Wonders chosen by players in the {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario.
  *<P>
  * Special Items are per-game and/or per-player.  In {@link SOCGame} and {@link SOCPlayer}
  * they're accessed by an item type key.  For compatibility among scenarios and expansions,
@@ -78,7 +78,7 @@ import soc.message.SOCMessage;  // strictly for isSingleLineAndSafe
  *
  *<H5>Current scenarios and {@code typeKey}s:</H5>
  *
- *<H6>{@link SOCGameOption#K_SC_WOND _SC_WOND} - Wonders</H6>
+ *<H6>{@link SOCGameOptionSet#K_SC_WOND _SC_WOND} - Wonders</H6>
  *
  *  In this scenario, the game has a list of unique "Wonders", indexed 1 to {@link SOCGame#maxPlayers} + 1.
  *  (The 6-player game includes another copy of the first two wonders.)
@@ -120,13 +120,13 @@ public class SOCSpecialItem
     // SC_WOND: Wonders
 
     /**
-     * To win the game in {@link SOCGameOption#K_SC_WOND _SC_WOND}, player can build this many
+     * To win the game in {@link SOCGameOptionSet#K_SC_WOND _SC_WOND}, player can build this many
      * levels (4) of their Wonder.
      */
     public static final int SC_WOND_WIN_LEVEL = 4;
 
     /**
-     * Requirements for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+     * Requirements for the Wonders in the {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario.
      * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
      * Used by {@link #makeKnownItem(String, int)}.
      *<P>
@@ -136,7 +136,7 @@ public class SOCSpecialItem
     private static final String[] REQ_SC_WOND = { null, "2C", "S@N2", "C@P,5L", "S@N1", "C,6V", "2C", "S@N2" };
 
     /**
-     * Costs for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+     * Costs for the Wonders in the {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario.
      * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
      * Each 5-element array is { clay, ore, sheep, wheat, wood }. Used by {@link #makeKnownItem(String, int)}.
      */
@@ -154,7 +154,7 @@ public class SOCSpecialItem
     };
 
     /**
-     * {@link #sv} string keys for the Wonders in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+     * {@link #sv} string keys for the Wonders in the {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario.
      * {@code sv} is used in this scenario to identify the wonder with a localized name.
      * Index 0 unused.  The 6-player game includes another copy of the first two wonders.
      * Used by {@link #makeKnownItem(String, int)}.
@@ -215,7 +215,7 @@ public class SOCSpecialItem
      *<P>
      * Currently known {@code typeKey}s:
      *<UL>
-     *<LI> {@link SOCGameOption#K_SC_WOND _SC_WOND}: Wonders
+     *<LI> {@link SOCGameOptionSet#K_SC_WOND _SC_WOND}: Wonders
      *</UL>
      * If {@code typeKey} is unknown, the item will be created with {@code null} cost and requirements,
      * equivalent to calling {@link #SOCSpecialItem(SOCPlayer, int, SOCResourceSet, String) new SOCSpecialItem}
@@ -236,7 +236,7 @@ public class SOCSpecialItem
         final int itemLevel;    // initial level
         final int startingCostPiecetype;  // piece type required for level 1, or -1
 
-        if (typeKey.equals(SOCGameOption.K_SC_WOND))
+        if (typeKey.equals(SOCGameOptionSet.K_SC_WOND))
         {
             typeReqs = REQ_SC_WOND;
             typeSV = SV_SC_WOND;
@@ -291,7 +291,7 @@ public class SOCSpecialItem
      * this method checks {@link #getStartingCostPiecetype()}: If any, player must have at least
      * 1 available piece of that type, which is used up by the start of building.
      *<P>
-     * Currently only {@link SOCGameOption#K_SC_WOND _SC_WOND} is recognized as a {@code typeKey} here.
+     * Currently only {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} is recognized as a {@code typeKey} here.
      * To see which scenario and option {@code typeKey}s use this method, and scenario-specific usage details,
      * see the {@link SOCSpecialItem} class javadoc.
      *<P>
@@ -321,7 +321,7 @@ public class SOCSpecialItem
             || ((ga.getGameState() != SOCGame.PLAY1) && (ga.getGameState() != SOCGame.SPECIAL_BUILDING)))
             throw new IllegalStateException();
 
-        if (! SOCGameOption.K_SC_WOND.equals(typeKey))
+        if (! SOCGameOptionSet.K_SC_WOND.equals(typeKey))
             throw new IllegalStateException("unknown typeKey: " + typeKey);
 
         // _SC_WOND
@@ -530,7 +530,7 @@ public class SOCSpecialItem
      * Get the current string value, if any, of this special item.
      * This is an optional field whose meaning is specific to the item type (typeKey):
      *<UL>
-     * <LI> {@link SOCGameOption#K_SC_WOND _SC_WOND}:
+     * <LI> {@link SOCGameOptionSet#K_SC_WOND _SC_WOND}:
      *     At client, localized i18n string key is {@code "game.specitem.sc_wond." + item.getStringValue()}
      *</UL>
      *

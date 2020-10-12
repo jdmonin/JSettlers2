@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
 
 package soc.game;
 
-import java.util.Map;
 
 /**
  * The classic (non-sea) board layout for the 6-player extension.
@@ -143,7 +142,7 @@ public class SOCBoard6p extends SOCBoard
 
     /**
      * Possible number paths for 6-player board.
-     * {@link #makeNewBoard(Map)} randomly chooses one path (one 1-dimensional array)
+     * {@link #makeNewBoard(SOCGameOptionSet)} randomly chooses one path (one 1-dimensional array)
      * to be used as <tt>numPath[]</tt> in
      * {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      */
@@ -183,7 +182,7 @@ public class SOCBoard6p extends SOCBoard
         }
     };
 
-    public SOCBoard6p(final Map<String, SOCGameOption> gameOpts)
+    public SOCBoard6p(final SOCGameOptionSet gameOpts)
         throws IllegalArgumentException
     {
         super(gameOpts, 6, BOARD_ENCODING_6PLAYER);

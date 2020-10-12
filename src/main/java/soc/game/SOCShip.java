@@ -34,7 +34,7 @@ package soc.game;
  * That replacement won't copy the old ship's {@link SOCPlayingPiece#specialVP} or
  * {@link SOCPlayingPiece#specialVPEvent}, but the player keeps those {@code specialVP}.
  *<P>
- * In scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+ * In scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},
  * {@code SOCShip} has no "isWarship" field: Ships are converted to warships in the
  * chronological order they're placed; see {@link SOCGame#isShipWarship(SOCShip)}.
  *

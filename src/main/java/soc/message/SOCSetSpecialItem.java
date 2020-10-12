@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;  // for javadocs only
-import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCSpecialItem;  // for javadocs only
 
@@ -33,7 +33,7 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * per-player Special Item lists. The same Special Item object instance may be in both lists.
  * Special Items' status and details are currently "public" and known to all players, not hidden like VP dev cards.
  *<P>
- * Is sent for the Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+ * Is sent for the Wonders chosen by players in the {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario.
  *<P>
  * This message conveys which object is affected ({@link #typeKey}, {@link #gameItemIndex}, {@link #playerItemIndex})
  * and the object data fields ({@link #playerNumber}, {@link #coord}, {@link #level}, {@link #sv}).

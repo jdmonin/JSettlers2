@@ -20,6 +20,7 @@
 package soc.util;
 
 import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 
 /**
  * Set of optional server features or client features that are currently active.
@@ -136,7 +137,7 @@ public class SOCFeatureSet
      *<P>
      * If client doesn't have this feature, server also assumes it doesn't support
      * any scenario-related {@link SOCGameOption}s (the options starting with {@code _SC_*},
-     * like {@link SOCGameOption#K_SC_3IP _SC_3IP}).
+     * like {@link SOCGameOptionSet#K_SC_3IP _SC_3IP}).
      *<P>
      * Should not be newer (larger) than the client's reported version.
      * If this value is newer than the client version, it will be reduced

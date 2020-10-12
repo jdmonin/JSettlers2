@@ -27,6 +27,7 @@ import soc.game.SOCCity;
 import soc.game.SOCDevCard;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -128,14 +129,14 @@ import javax.swing.SwingConstants;
 
     private ColorSquare vpToWin;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
 
-    /** For game scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the
+    /** For game scenario {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}, the
      *  amount of cloth left in the board's "general supply". Null otherwise.
      *  @since 2.0.00
      */
     private ColorSquare cloth;
     private JLabel clothLab;
 
-    /** For game scenario {@link SOCGameOption#K_SC_WOND _SC_WOND}, the
+    /** For game scenario {@link SOCGameOptionSet#K_SC_WOND _SC_WOND}, the
      *  "Wonders" button that brings up a dialog with info and Build buttons. Null otherwise.
      *  @see #clickWondersButton()
      *  @since 2.0.00
@@ -345,7 +346,7 @@ import javax.swing.SwingConstants;
             shipBut.setActionCommand(SHIP);
             shipBut.addActionListener(this);
 
-            if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+            if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
             {
                 // General Supply cloth count. Initial amount will be sent from server soon.
                 // (joingame if already started, or startgame as part of board layout)
@@ -360,7 +361,7 @@ import javax.swing.SwingConstants;
                 add(cloth);
                 cloth.setToolTipText(TTIP_CLOTH_TEXT);
             }
-            else if (ga.isGameOptionSet(SOCGameOption.K_SC_WOND))
+            else if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
             {
                 wondersBut = new JButton(strings.get("build.specitem._SC_WOND"));  // "Wonders..."
                 wondersBut.setToolTipText(strings.get("build.specitem._SC_WOND.tip"));  // "Build or get info about the Wonders"
@@ -973,9 +974,9 @@ import javax.swing.SwingConstants;
     }
 
     /**
-     * For game scenario {@link SOCGameOption#K_SC_WOND _SC_WOND},
+     * For game scenario {@link SOCGameOptionSet#K_SC_WOND _SC_WOND},
      * show the Wonders dialog, as is done when the Wonders button is clicked.
-     * @throws IllegalStateException if this game doesn't have {@link SOCGameOption#K_SC_WOND}
+     * @throws IllegalStateException if this game doesn't have {@link SOCGameOptionSet#K_SC_WOND}
      *     and so doesn't have the Wonders button
      * @since 2.0.00
      */
@@ -985,7 +986,7 @@ import javax.swing.SwingConstants;
         if (wondersBut == null)
             throw new IllegalStateException("game not SC_WOND");
 
-        final SOCSpecialItemDialog dia = new SOCSpecialItemDialog(pi, SOCGameOption.K_SC_WOND);
+        final SOCSpecialItemDialog dia = new SOCSpecialItemDialog(pi, SOCGameOptionSet.K_SC_WOND);
         dia.setNonBlockingDialogDismissListener(pi);
         pi.nbdForEvent = dia;
         dia.pack();
@@ -1140,7 +1141,7 @@ import javax.swing.SwingConstants;
 
     /**
      * The board's general supply of cloth remaining has changed.
-     * Update the display.  Used for scenario {@link SOCGameOption#K_SC_CLVI}.
+     * Update the display. Used for scenario {@link SOCGameOptionSet#K_SC_CLVI}.
      * @since 2.0.00
      */
     public void updateClothCount()

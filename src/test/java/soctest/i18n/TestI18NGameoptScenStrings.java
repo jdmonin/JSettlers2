@@ -35,6 +35,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCScenario;
 import soc.message.SOCLocalizedStrings;
 import soc.message.SOCMessage;
@@ -56,8 +57,8 @@ public class TestI18NGameoptScenStrings
     /** Shared StringManager for all tests to read from */
     private static SOCStringManager sm;
 
-    /** For all tests to read from, {@link SOCGameOption#getAllKnownOptions()} */
-    private static Map<String, SOCGameOption> allOpts;
+    /** For all tests to read from, {@link SOCGameOptionSet#getAllKnownOptions()} */
+    private static SOCGameOptionSet allOpts;
 
     /** For all tests to read from, {@link SOCScenario#getAllKnownScenarios()} */
     private static Map<String, SOCScenario> allScens;
@@ -66,7 +67,7 @@ public class TestI18NGameoptScenStrings
     public static void loadStrings()
     {
         sm = SOCStringManager.getServerManagerForClient(new Locale("en_US"));
-        allOpts = SOCGameOption.getAllKnownOptions();
+        allOpts = SOCGameOptionSet.getAllKnownOptions();
         allScens = SOCScenario.getAllKnownScenarios();
     }
 
@@ -82,7 +83,7 @@ public class TestI18NGameoptScenStrings
 
         final TreeSet<String> mismatchKeys = new TreeSet<>(),  // use TreeSet for sorted results
                               missingKeys  = new TreeSet<>();
-        for (final SOCGameOption opt : allOpts.values())
+        for (final SOCGameOption opt : allOpts)
         {
             // "Hidden" gameopts starting with "_" don't need to be in sm, nor do third-party or
             // temporary DEBUG options, but if present there the description strings do need to match.
@@ -202,7 +203,7 @@ public class TestI18NGameoptScenStrings
         final ArrayList<String> optsStr = new ArrayList<>(),
                                 scenStr = new ArrayList<>();
 
-        for (final SOCGameOption opt : allOpts.values())
+        for (final SOCGameOption opt : allOpts)
         {
             // "Hidden" gameopts starting with "_" don't need to be localized,
             // but if present there the description strings do need to be OK.

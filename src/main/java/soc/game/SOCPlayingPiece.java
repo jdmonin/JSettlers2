@@ -65,7 +65,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * Types of playing pieces: {@link SOCFortress Fortress}.
      * Used only when {@link SOCGame#hasSeaBoard} and scenario
-     * option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      * Requires client and server version 2.0.00 or newer.
      * New fortresses cannot be built after the game starts.
      * @since 2.0.00

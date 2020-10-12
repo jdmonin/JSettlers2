@@ -31,7 +31,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -139,7 +139,7 @@ import java.util.Vector;
  * <LI> For a trivial example see {@link soc.robot.sample3p.Sample3PBrain}
  * <LI> For more complicated extensions, extend strategy classes and/or {@link SOCRobotDM},
  *      and override {@link #setStrategyFields()} and any other factory methods needed.
- * <LI> Game option {@link SOCGameOption#K__EXT_BOT}, which can be set at server startup using the command line
+ * <LI> Game option {@link SOCGameOptionSet#K__EXT_BOT}, which can be set at server startup using the command line
  *      or {@code jsserver.properties} file, can be used to send custom data or config from server to third-party bots
  *</UL>
  * For other methods/stubs/callbacks which can be extended, browse this package for {@code protected} methods.
@@ -479,7 +479,7 @@ public class SOCRobotBrain extends Thread
      * True if we're expecting the PLACING_ROBBER state.
      * {@link #playKnightCard()} sets this field and {@link #waitingForGameState}.
      *<P>
-     * In scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}, this flag is also used when we've just played
+     * In scenario {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI}, this flag is also used when we've just played
      * a "Convert to Warship" card (Knight/Soldier card) and we're waiting for the
      * server response.  The response won't be a GAMESTATE(PLACING_SOLDIER) message,
      * it will either be PLAYERLEMENT(GAIN, SCENARIO_WARSHIP_COUNT) or DEVCARDACTION(CANNOT_PLAY).
@@ -582,7 +582,7 @@ public class SOCRobotBrain extends Thread
      * an "expect" flag ({@link #expectPLACING_ROBBER}, {@link #expectWAITING_FOR_DISCOVERY}, etc).
      *<P>
      * <b>Special case:</b><br>
-     * In scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}, this flag is also set when we've just played
+     * In scenario {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI}, this flag is also set when we've just played
      * a "Convert to Warship" card (Knight/Soldier card), although the server won't
      * respond with a GAMESTATE message; see {@link #expectPLACING_ROBBER} javadoc.
      *
@@ -653,7 +653,7 @@ public class SOCRobotBrain extends Thread
     protected String waitingForPickSpecialItem;
 
     /**
-     * True if we're in a {@link SOCGameOption#K_SC_PIRI _SC_PIRI} game
+     * True if we're in a {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} game
      * and waiting for server response to a {@link SOCSimpleRequest}
      * to attack a pirate fortress.
      */
@@ -1904,7 +1904,7 @@ public class SOCRobotBrain extends Thread
 
                             if (((SOCDiceResult) mes).getResult() == 7)
                             {
-                                final boolean robWithoutRobber = game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                                final boolean robWithoutRobber = game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
                                     // In scenario SC_PIRI there's no robber to be moved. Instead,
                                     // current player will be prompted soon to choose a player to rob on 7
 
@@ -1948,7 +1948,7 @@ public class SOCRobotBrain extends Thread
                                 waitingForGameState = true;
                                 if (game.isInitialPlacement())
                                 {
-                                    if (game.isGameOptionSet(SOCGameOption.K_SC_3IP))
+                                    if (game.isGameOptionSet(SOCGameOptionSet.K_SC_3IP))
                                         expectSTART3B = true;
                                     else
                                         expectSTART2B = true;
@@ -1965,7 +1965,7 @@ public class SOCRobotBrain extends Thread
 
                         if ((game.getCurrentDice() == 7) && ourTurn)
                         {
-                            if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                            if (! game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
                                 expectPLACING_ROBBER = true;
                             else
                                 expectPLAY1 = true;
@@ -2190,11 +2190,11 @@ public class SOCRobotBrain extends Thread
      * Look for and take any scenario-specific final actions before ending the turn.
      * Is called before {@link #endTurnActions()}.
      *<P>
-     * For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} will check if we've reached the fortress
+     * For example, {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} will check if we've reached the fortress
      * and have 5 or more warships, and if so will attack the fortress.  Doing so ends the turn, so
      * we don't try to attack before end of turn.
      *<P>
-     * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} can play a gift port from our inventory to place for
+     * {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI} can play a gift port from our inventory to place for
      * better bank trades.
      *<P>
      * <B>NOTE:</B> For now this method assumes it's called only in the {@code SC_FTRI} or {@code SC_PIRI} scenario.
@@ -2208,7 +2208,7 @@ public class SOCRobotBrain extends Thread
     {
         // NOTE: for now this method assumes it's called only in the SC_FTRI or SC_PIRI scenario
 
-        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             // SC_FTRI
 
@@ -2335,8 +2335,8 @@ public class SOCRobotBrain extends Thread
         {
             // Any last things for turn from game's scenario?
             boolean scenActionTaken = false;
-            if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
-                || game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI)
+                || game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             {
                 // possibly attack pirate fortress
                 // or place a gift port for better bank trades
@@ -2459,7 +2459,7 @@ public class SOCRobotBrain extends Thread
 
         final boolean canGrowArmy;
 
-        if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if (game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             // Convert ship to warship:
             // Play whenever we have one and someone else has resources
@@ -2724,7 +2724,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Play a Knight card.
-     * In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, play a "Convert to Warship" card.
+     * In scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}, play a "Convert to Warship" card.
      * Sets {@link #expectPLACING_ROBBER}, {@link #waitingForGameState}.
      * Calls {@link SOCRobotClient#playDevCard(SOCGame, int) client.playDevCard}({@link SOCDevCardConstants#KNIGHT KNIGHT}).
      *<P>
@@ -2773,7 +2773,7 @@ public class SOCRobotBrain extends Thread
                  */
                 if (ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.KNIGHT)
                     && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT)
-                    && (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))  // scenario has no robber; wait until after roll
+                    && (! game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))  // scenario has no robber; wait until after roll
                     && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
                 {
                     playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
@@ -3045,7 +3045,7 @@ public class SOCRobotBrain extends Thread
         if (itm == null)
             return;  // in case of bugs; shouldn't happen in a consistent game
 
-        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             planAndPlaceInvItemPlacement_SC_FTRI(itm);
         } else {
@@ -3060,7 +3060,7 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * For scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, try to plan a location and
+     * For scenario {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}, try to plan a location and
      * send placement request command(s) for a "gift" trade port on the player's turn.
      *<P>
      * Calls {@link SOCPlayer#getPortMovePotentialLocations(boolean)}; this method is safe to call
@@ -3644,7 +3644,7 @@ public class SOCRobotBrain extends Thread
             && (coord == ourPlayerData.getLastRoadCoord()))
         {
             expectPUTPIECE_FROM_START2B = false;
-            if (! game.isGameOptionSet(SOCGameOption.K_SC_3IP))
+            if (! game.isGameOptionSet(SOCGameOptionSet.K_SC_3IP))
                 expectROLL_OR_CARD = true;    // wait for regular game play to start; other players might still place first
             else
                 expectSTART3A = true;

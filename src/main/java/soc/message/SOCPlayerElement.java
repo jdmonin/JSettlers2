@@ -23,7 +23,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;    // for javadocs only
-import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants; // for javadocs only
@@ -122,7 +122,7 @@ public class SOCPlayerElement extends SOCMessage
          * For some loops which send resource types + unknown, this constant's {@link #getValue()} is 6
          * (5 known resource types + 1), same numeric value as {@link SOCResourceConstants#UNKNOWN}.
          *<P>
-         * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO} is set:
+         * Before sending this from server, check if game option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO} is set:
          * May want to send as known resource type instead.
          *<P>
          * Not to be confused with {@link #UNKNOWN_TYPE}.

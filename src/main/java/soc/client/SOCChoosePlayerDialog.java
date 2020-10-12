@@ -21,7 +21,7 @@
 package soc.client;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;  // only for javadocs
+import soc.game.SOCGameOptionSet;  // only for javadocs
 import soc.game.SOCPlayer;
 import soc.message.SOCChoosePlayer;
 
@@ -101,7 +101,7 @@ import javax.swing.SwingConstants;
      * <tr><td>players[1]</td><td>player_res_lbl[1]</td></tr>
      * <tr><td>...</td><td>...</td></tr>
      * </table>
-     * This occurs with the {@link SOCGameOption#K_SC_PIRI SC_PIRI} scenario, which allows
+     * This occurs with the {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI} scenario, which allows
      * robbing any player with resources or declining to rob.
      *
      * @param pi  PlayerInterface that owns this dialog

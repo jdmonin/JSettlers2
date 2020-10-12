@@ -115,9 +115,9 @@ public class SOCScenario
      *   minimum version is >= those options' minimum versions; this won't be validated at runtime.
      *<LI> If your scenario requires new {@link SOCGameOption}s to change the rules or game behavior,
      *   create and test those; scenario game options all start with "_SC_".
-     *   See {@link SOCGameOption#initAllOptions()} for details.
+     *   See {@link SOCGameOptionSet#getAllKnownOptions()} for details.
      *   If the new scenario has a new game option just for itself, instead of a reusable one like
-     *   {@link SOCGameOption#K_SC_SANY _SC_SANY}, the option name is "_" + scenario name:
+     *   {@link SOCGameOptionSet#K_SC_SANY _SC_SANY}, the option name is "_" + scenario name:
      *   {@code "_SC_PIRI"} for scenario {@link #K_SC_PIRI SC_PIRI}.
      *<LI> If your scenario has special winning conditions, see {@link SOCGame#checkForWinner()}.
      *<LI> Rarely, a scenario changes the pirate or robber behavior.  If the new scenario does this,
@@ -167,7 +167,7 @@ public class SOCScenario
      * be done without a very good reason.  That said, the server is authoritative on scenarios.
      * If a scenario isn't in its known list ({@link #initAllScenarios()}), the client won't be
      * allowed to ask for it.  Any obsolete scenario should be kept around as commented-out code.
-     * See {@link SOCGameOption#initAllOptions()} for things to think about when removing
+     * See {@link SOCGameOptionSet#getAllKnownOptions()} for things to think about when removing
      * game options used only in the obsolete scenario.
      *
      * @return a fresh copy of the "known" scenarios, with their hardcoded default values
@@ -250,7 +250,7 @@ public class SOCScenario
         // Uncomment to test scenario sync/negotiation between server and client versions.
         // Update the version numbers to current and current + 1.
         // Assumptions for testing:
-        //   - Client and server are both current version (v2.0.00 is 2000 here)
+        //   - Client and server are both current version (if current is v2.0.00, use 2000 here)
         //   - For testing, client or server version has been temporarily set to current + 1 (2001)
         // i18n/localization test reminder: resources/strings/server/toClient_*.properties:
         //   gamescen.SC_TSTNC.n = test-localizedname SC_TSTNC ...
@@ -300,7 +300,7 @@ public class SOCScenario
      * Scenario key {@code SC_FOG} for Fog Islands.
      * When a hex has been revealed from behind fog,
      * {@link SOCGameEvent#SGE_FOG_HEX_REVEALED} is fired.
-     * Main option is {@link SOCGameOption#K_SC_FOG}.
+     * Main option is {@link SOCGameOptionSet#K_SC_FOG}.
      */
     public static final String K_SC_FOG = "SC_FOG";
 
@@ -313,7 +313,7 @@ public class SOCScenario
     /**
      * Scenario key {@code SC_CLVI} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
-     * Main option is {@link SOCGameOption#K_SC_CLVI}.
+     * Main option is {@link SOCGameOptionSet#K_SC_CLVI}.
      *<P>
      * Game ends immediately if fewer than 4 villages still have cloth ({@link #SC_CLVI_VILLAGES_CLOTH_REMAINING_MIN}):
      * Winner is player with most VP, or most cloth if tied.
@@ -335,7 +335,7 @@ public class SOCScenario
 
     /**
      * Scenario key {@code SC_PIRI} for Pirate Islands and {@link SOCFortress Fortresses}.
-     * Main option is {@link SOCGameOption#K_SC_PIRI}.
+     * Main option is {@link SOCGameOptionSet#K_SC_PIRI}.
      *<P>
      * A pirate fleet circulates on a predefined path, stealing resources from weak players with
      * adjacent settlements/cities until the player upgrades their ships to warships.  To win,
@@ -357,7 +357,7 @@ public class SOCScenario
 
     /**
      * Scenario key {@code SC_FTRI} for the Forgotten Tribe.
-     * Main option is {@link SOCGameOption#K_SC_FTRI "_SC_FTRI"}.
+     * Main option is {@link SOCGameOptionSet#K_SC_FTRI "_SC_FTRI"}.
      *<P>
      * Far areas of the board have small habitations of a "forgotten tribe" of settlers.
      * When players reach them (with a ship adjacent to various edge coordinates),
@@ -380,7 +380,7 @@ public class SOCScenario
 
     /**
      * Scenario key {@code SC_WOND} for Wonders.
-     * Main option is {@link SOCGameOption#K_SC_WOND "_SC_WOND"}.
+     * Main option is {@link SOCGameOptionSet#K_SC_WOND "_SC_WOND"}.
      * The pirate ship is not used in this scenario.
      *<P>
      * Players choose a unique Wonder and can build all 4 of its levels.
@@ -405,7 +405,7 @@ public class SOCScenario
      * and {@code N3} become legal locations for settlements after initial placement.
      *<P>
      * The Wonders are stored as per-game Special Items: There are (1 + {@link SOCGame#maxPlayers}) wonders available,
-     * held in game Special Item indexes 1 - <em>n</em>, with type key {@link SOCGameOption#K_SC_WOND},
+     * held in game Special Item indexes 1 - <em>n</em>, with type key {@link SOCGameOptionSet#K_SC_WOND},
      * initialized in {@link SOCGame#updateAtBoardLayout()}.  When a player starts to build a Wonder, a reference
      * to its {@link SOCSpecialItem} is placed into index 0 of their Special Items:
      * {@link SOCPlayer#setSpecialItem(String, int, SOCSpecialItem) pl.setSpecialItem("_SC_WOND", 0, item)}.
@@ -558,6 +558,7 @@ public class SOCScenario
      * @return a deep copy of all known scenario objects
      * @see #getAllKnownScenarioKeynames()
      * @see #addKnownScenario(SOCScenario)
+     * @see SOCGameOptionSet#getAllKnownOptions()
      */
     public static Map<String, SOCScenario> getAllKnownScenarios()
     {
@@ -846,7 +847,7 @@ public class SOCScenario
      * Detailed text for the scenario description and special rules, or null.  Shown as a reminder at start of a game.
      * Must not contain network delimiter character {@link SOCMessage#sep_char}; {@link SOCMessage#sep2_char} is okay.
      * Must pass {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(String, true)}.
-     * Don't include the description of any scenario game option, such as {@link SOCGameOption#K_SC_SANY};
+     * Don't include the description of any scenario game option, such as {@link SOCGameOptionSet#K_SC_SANY};
      * those will be taken from {@link SOCVersionedItem#getDesc() SOCGameOption.desc} and shown in the reminder message.
      *<P>
      * To update this field use {@link #setDesc(String, String)}.

@@ -40,7 +40,7 @@ import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
@@ -319,7 +319,7 @@ public class SOCRobotDM
    * it's the 6-player board's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
    * Both strategies also call
    * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean) scenarioGameStrategyPlan(..)}
-   * if the game has an applicable scenario such as {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+   * if the game has an applicable scenario such as {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
    *<P>
    * Some details:
    *<UL>
@@ -696,7 +696,7 @@ public class SOCRobotDM
           ///
           D.ebugPrintlnINFO("We have longest road");
       }
-      else if (! game.isGameOptionSet(SOCGameOption.K_SC_0RVP))
+      else if (! game.isGameOptionSet(SOCGameOptionSet.K_SC_0RVP))
       {
           if (lrPlayer == null)
           {
@@ -839,8 +839,8 @@ public class SOCRobotDM
           }
       }
 
-      if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI)
-          || game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+      if (game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI)
+          || game.isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
       {
           if (scenarioGameStrategyPlan
                   (bestETA, -1f, false, (choice == LA_CHOICE), ourBSE, 0, forSpecialBuildingPhase))
@@ -1216,7 +1216,7 @@ public class SOCRobotDM
    * path connecting a graph of nodes, and returns which roads or how many roads
    * would need to be built to take longest road.
    *<P>
-   * Do not call if {@link SOCGameOption#K_SC_0RVP} is set, because
+   * Do not call if {@link SOCGameOptionSet#K_SC_0RVP} is set, because
    * this method needs {@link SOCPlayer#getLRPaths()} which will be empty.
    *<P>
    * Combined implementation for use by SOCRobotDM and {@link SOCPlayerTracker}.
@@ -1978,8 +1978,8 @@ public class SOCRobotDM
       }
     }
 
-    if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI)
-        || game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+    if (game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI)
+        || game.isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
     {
         if (scenarioGameStrategyPlan
             (pickScore, devCardScore, true, (pick == SOCPlayingPiece.MAXPLUSONE),
@@ -2017,8 +2017,8 @@ public class SOCRobotDM
   }
 
   /**
-   * For some game scenarios (currently {@link SOCGameOption#K_SC_PIRI _SC_PIRI} and
-   * {@link SOCGameOption#K_SC_WOND _SC_WOND}), evaluate and plan any special move.
+   * For some game scenarios (currently {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} and
+   * {@link SOCGameOptionSet#K_SC_WOND _SC_WOND}), evaluate and plan any special move.
    * If the scenario-specific move would score higher than the currently picked building plan
    * from {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}, push those scenario-specific
    * moves onto {@link #buildingPlan}.
@@ -2048,11 +2048,11 @@ public class SOCRobotDM
        final boolean forSpecialBuildingPhase)
       throws IllegalArgumentException
   {
-      if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+      if (game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
           return scenarioGameStrategyPlan_SC_PIRI
               (bestScoreOrETA, cardScoreOrETA, isScoreNotETA, bestPlanIsDevCard, ourBSE,
                leadersCurrentWGETA, forSpecialBuildingPhase);
-      else if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+      else if (game.isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
           return scenarioGameStrategyPlan_SC_WOND
               (bestScoreOrETA, cardScoreOrETA, isScoreNotETA, bestPlanIsDevCard, ourBSE,
                leadersCurrentWGETA, forSpecialBuildingPhase);
@@ -2062,7 +2062,7 @@ public class SOCRobotDM
 
   /**
    * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean) scenarioGameStrategyPlan(..)}
-   * for {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.  See that method for parameter meanings and other info.
+   * for {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.  See that method for parameter meanings and other info.
    * @since 2.0.00
    */
   private final boolean scenarioGameStrategyPlan_SC_PIRI
@@ -2320,7 +2320,7 @@ public class SOCRobotDM
 
   /**
    * {@link #scenarioGameStrategyPlan(float, float, boolean, boolean, SOCBuildingSpeedEstimate, int, boolean) scenarioGameStrategyPlan(..)}
-   * for {@link SOCGameOption#K_SC_WOND _SC_WOND}.  See that method for parameter meanings and other info.
+   * for {@link SOCGameOptionSet#K_SC_WOND _SC_WOND}.  See that method for parameter meanings and other info.
    * @since 2.0.00
    */
   private final boolean scenarioGameStrategyPlan_SC_WOND
@@ -2346,7 +2346,7 @@ public class SOCRobotDM
     // Once building it, calc score/BSE to add a level when possible if another player's wonder level is close,
     // until we have 2 more levels than any other player.
 
-    SOCSpecialItem bestWond = ourPlayerData.getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+    SOCSpecialItem bestWond = ourPlayerData.getSpecialItem(SOCGameOptionSet.K_SC_WOND, 0);
     int bestETA;
     float bestWondScoreOrETA;
     int gi = -1;  // wonder's "game index" in Special Item interface
@@ -2381,7 +2381,7 @@ public class SOCRobotDM
         final int numWonders = 1 + game.maxPlayers;
         for (int i = 0; i < numWonders; ++i)
         {
-            SOCSpecialItem wond = game.getSpecialItem(SOCGameOption.K_SC_WOND, i+1);
+            SOCSpecialItem wond = game.getSpecialItem(SOCGameOptionSet.K_SC_WOND, i+1);
 
             if (wond.getPlayer() != null)
                 continue;  // already claimed
@@ -2440,7 +2440,7 @@ public class SOCRobotDM
 
     // System.err.println("L2297 -> add to buildingPlan: gi=" + gi);
     buildingPlan.add(new SOCPossiblePickSpecialItem
-        (ourPlayerData, SOCGameOption.K_SC_WOND, gi, 0, bestETA, bestWond.getCost()));
+        (ourPlayerData, SOCGameOptionSet.K_SC_WOND, gi, 0, bestETA, bestWond.getCost()));
 
     return true;
   }

@@ -30,6 +30,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -136,6 +137,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected final ServerConnectInfo serverConnectInfo;
 
     /**
+     * This client's set of Known Options.
+     * Initialized from {@link SOCGameOptionSet#getAllKnownOptions()}, updated by
+     * {@link SOCGameOptionInfo} messages.
+     * @see #allOptsReceived
+     * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
+     * @since 2.4.10
+     */
+    protected SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
+
+    /**
      * Since server and built-in robots are the same version,
      * this client doesn't need {@link SOCGameOption} synchronization messages.
      * Server still sends them in some conditions, such as when gameopts are limited by client features
@@ -144,6 +155,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * By default assumes true, there's no pending info to receive, because is same version as server.
      * If a gameopt sync message is sent, will set false until the "end of list" marker message is sent.
      *
+     * @see #knownOpts
      * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
      * @since 2.4.10
      */
@@ -1087,20 +1099,20 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         gotPassword = true;
 
-        final Map<String, SOCGameOption> opts;
+        final SOCGameOptionSet opts;
         final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
         if ((bh != 0) || (bw != 0))
         {
             // Encode board size to pass through game constructor.
-            opts = new HashMap<String, SOCGameOption>();
-            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            opts = new SOCGameOptionSet();
+            SOCGameOption opt = knownOpts.getKnownOption("_BHW", true);
             opt.setIntValue((bh << 8) | bw);
-            opts.put("_BHW", opt);
+            opts.put(opt);
         } else {
             opts = null;
         }
 
-        final SOCGame ga = new SOCGame(mes.getGame(), opts);
+        final SOCGame ga = new SOCGame(mes.getGame(), opts, knownOpts);
         ga.isPractice = isPractice;
         ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
         games.put(mes.getGame(), ga);
@@ -2499,22 +2511,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * process the "game option info" message
-     * by calling {@link ServerGametypeInfo#receiveInfo(SOCGameOptionInfo)}.
+     * by calling {@link SOCGameOptionSet#addKnownOption(SOCGameOption)}.
      * If all are now received, sets {@link #allOptsReceived} flag.
+     * @param optInfo Info message for this {@link SOCGameOption}
      * @since 2.4.10
      */
-    protected void handleGAMEOPTIONINFO(final SOCGameOptionInfo gi)
+    protected void handleGAMEOPTIONINFO(final SOCGameOptionInfo optInfo)
     {
-        SOCGameOption oinfo = gi.getOptionInfo();
+        final SOCGameOption opt = optInfo.getOptionInfo();
 
-        if ((oinfo.key.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
+        if ((opt.key.equals("-")) && (opt.optType == SOCGameOption.OTYPE_UNKNOWN))
         {
             allOptsReceived = true;
         } else {
             if (allOptsReceived)
                 allOptsReceived = false;
 
-            SOCGameOption.addKnownOption(oinfo);
+            knownOpts.addKnownOption(opt);
         }
     }
 
@@ -2702,13 +2715,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final int coord = mes.getParam2();
         final int pv = mes.getParam3();
 
-        if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
         {
             SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(coord);
             if (vi != null)
                 vi.setCloth(pv);
         }
-        else if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        else if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             SOCFortress fort = ga.getFortress(coord);
             if (fort != null)

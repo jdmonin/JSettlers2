@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ package soctest.game;
 import java.util.List;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCSpecialItem.Requirement;
 
@@ -45,13 +45,13 @@ public class TestSpecialItem
 
         for (int i = 1; i <= SOCGame.MAXPLAYERS + 1; ++i)
         {
-            itm = SOCSpecialItem.makeKnownItem(SOCGameOption.K_SC_WOND, i);
+            itm = SOCSpecialItem.makeKnownItem(SOCGameOptionSet.K_SC_WOND, i);
             assertNotNull(itm);
             assertNotNull(itm.getCost());
             assertNotNull(itm.req);
         }
         // past end of defined item indexes:
-        itm = SOCSpecialItem.makeKnownItem(SOCGameOption.K_SC_WOND, SOCGame.MAXPLAYERS + 2);
+        itm = SOCSpecialItem.makeKnownItem(SOCGameOptionSet.K_SC_WOND, SOCGame.MAXPLAYERS + 2);
         assertNotNull(itm);
         assertNull(itm.getCost());
         assertNull(itm.req);

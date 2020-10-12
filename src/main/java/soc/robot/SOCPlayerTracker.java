@@ -31,7 +31,7 @@ import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
@@ -864,7 +864,7 @@ public class SOCPlayerTracker
         //
         // in scenario _SC_PIRI, update the closest ship to our fortress
         //
-        if ((rs instanceof SOCShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if ((rs instanceof SOCShip) && game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             updateScenario_SC_PIRI_closestShipToFortress((SOCShip) rs, true);
     }
 
@@ -983,7 +983,7 @@ public class SOCPlayerTracker
             ArrayList<SOCPossibleRoad> roadsToExpand = new ArrayList<SOCPossibleRoad>();
 
             // ships in _SC_PIRI never expand east
-            final boolean isShipInSC_PIRI = (! isRoadNotShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+            final boolean isShipInSC_PIRI = (! isRoadNotShip) && game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
 
             //D.ebugPrintln("$$$ checking roads adjacent to "+Integer.toHexString(targetRoad.getCoordinates()));
             //
@@ -2417,7 +2417,7 @@ public class SOCPlayerTracker
 
     /**
      * Calculate the longest road ETA.
-     * Always 500 or more if {@link SOCGameOption#K_SC_0RVP} is set.
+     * Always 500 or more if {@link SOCGameOptionSet#K_SC_0RVP} is set.
      * Updates fields for {@link #getLongestRoadETA()} and {@link #getRoadsToGo()}.
      * @see #recalculateAllETAs()
      */
@@ -2446,7 +2446,7 @@ public class SOCPlayerTracker
             longestRoadETA = 0;
             roadsToGo = 0;
         }
-        else if (! game.isGameOptionSet(SOCGameOption.K_SC_0RVP))
+        else if (! game.isGameOptionSet(SOCGameOptionSet.K_SC_0RVP))
         {
             if (lrPlayer == null)
             {
@@ -2484,7 +2484,7 @@ public class SOCPlayerTracker
      * path in a graph of nodes and returns how many roads would
      * need to be built to take longest road.
      *<P>
-     * Do not call if {@link SOCGameOption#K_SC_0RVP} is set.
+     * Do not call if {@link SOCGameOptionSet#K_SC_0RVP} is set.
      *
      * @param startNode     the path endpoint, such as from
      *            {@link SOCPlayer#getLRPaths()}.(i){@link SOCLRPathData#getBeginning() .getBeginning()}

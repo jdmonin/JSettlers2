@@ -22,6 +22,7 @@ package soc.server.database;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.server.SOCServer;  // solely for javadocs, ROBOT_PARAMS_*, and getSettingsFormatted callback
 import soc.util.IntPair;
@@ -2012,8 +2013,10 @@ public class SOCDBHelper
 
                 final String gaName = ga.getName();
                 final long startTimeMillis = ga.getStartTime().getTime();
-                final Map<String, SOCGameOption> opts = ga.getGameOptions();
-                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false, true);
+                final SOCGameOptionSet opts = ga.getGameOptions();
+                final String optsStr = (opts == null)
+                    ? null
+                    : SOCGameOption.packOptionsToString(opts.getAll(), false, true);
 
                 if (schemaVersion >= SCHEMA_VERSION_2000)
                 {

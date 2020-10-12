@@ -26,7 +26,6 @@ package soc.client;
 import java.awt.EventQueue;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +38,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -757,10 +757,10 @@ import soc.util.Version;
         final boolean withTokenI18n =
             (client.cliLocale != null) && (isPractice || (client.sVersion >= SOCStringManager.VERSION_FOR_I18N))
             && ! ("en".equals(client.cliLocale.getLanguage()) && "US".equals(client.cliLocale.getCountry()));
-        Map<String, SOCGameOption> opts3p =
+        SOCGameOptionSet opts3p =
             ((client.sVersion >= cliVersion) && ! isPractice)
-            ? SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0)
-            : null;   // sVersion < cliVersion, so SOCGameOption.optionsNewerThanVersion will find any 3rd-party opts
+            ? client.tcpServGameOpts.knownOpts.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0)
+            : null;   // sVersion < cliVersion, so SOCGameOptionSet.optionsNewerThanVersion will find any 3rd-party opts
 
         if ( ((! isPractice) && (client.sVersion > cliVersion))
              || ((isPractice || sameVersion) && (withTokenI18n || (opts3p != null))) )
@@ -794,15 +794,20 @@ import soc.util.Version;
                 // (and any 3rd-party options).
                 // Ask it what it knows about them.
 
+                SOCGameOptionSet knownOpts = client.tcpServGameOpts.knownOpts;
+                if (knownOpts == null)
+                {
+                    knownOpts = SOCGameOptionSet.getAllKnownOptions();
+                    client.tcpServGameOpts.knownOpts = knownOpts;
+                }
+
                 List<SOCGameOption> tooNewOpts =
-                    SOCGameOption.optionsNewerThanVersion(client.sVersion, false, false, null);
+                    knownOpts.optionsNewerThanVersion(client.sVersion, false, false);
 
                 if ((tooNewOpts != null) && (client.sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
                 {
                     // Server is older than 2.0.00; we can't send it any long option names.
                     // Remove them from our set of options usable for games on that server.
-                    if (client.tcpServGameOpts.optionSet == null)
-                        client.tcpServGameOpts.optionSet = SOCGameOption.getAllKnownOptions();
 
                     Iterator<SOCGameOption> opi = tooNewOpts.iterator();
                     while (opi.hasNext())
@@ -811,7 +816,7 @@ import soc.util.Version;
                         //TODO i18n how to?
                         if ((op.key.length() > 3) || op.key.contains("_"))
                         {
-                            client.tcpServGameOpts.optionSet.remove(op.key);
+                            knownOpts.remove(op.key);
                             opi.remove();
                         }
                     }
@@ -835,16 +840,16 @@ import soc.util.Version;
                 // because that's our version (it runs from our own JAR file).
 
                 client.tcpServGameOpts.noMoreOptions(true);
-                client.tcpServGameOpts.optionSet = null;
+                client.tcpServGameOpts.knownOpts = null;
             }
         } else {
             // client.sVersion == cliVersion, so we have same info/code as server for getAllKnownOptions, scenarios, etc
             // and found nothing else to ask about (i18n, 3rd-party gameopts).
 
-            // For practice games, optionSet may already be initialized, so check vs null.
+            // For practice games, knownOpts may already be initialized, so check vs null.
             ServerGametypeInfo opts = (isPractice ? client.practiceServGameOpts : client.tcpServGameOpts);
-            if (opts.optionSet == null)
-                opts.optionSet = SOCGameOption.getAllKnownOptions();
+            if (opts.knownOpts == null)
+                opts.knownOpts = SOCGameOptionSet.getAllKnownOptions();
             opts.noMoreOptions(isPractice);  // defaults not known unless it's practice
 
             if (! (withTokenI18n || isPractice))
@@ -944,8 +949,8 @@ import soc.util.Version;
                     optNames.add(st.nextToken());
 
                 StringBuffer opts = new StringBuffer();
-                final Map<String, SOCGameOption> knowns =
-                    (isPractice) ? client.practiceServGameOpts.optionSet : client.tcpServGameOpts.optionSet;
+                final SOCGameOptionSet knowns =
+                    (isPractice) ? client.practiceServGameOpts.knownOpts : client.tcpServGameOpts.knownOpts;
                 for (String oname : optNames)
                 {
                     opts.append('\n');
@@ -1141,7 +1146,7 @@ import soc.util.Version;
         if (! isPractice)  // practiceServer's gameoption data is set up in handleVERSION
         {
             if (client.serverGames == null)
-                client.serverGames = new SOCGameList();
+                client.serverGames = new SOCGameList(client.tcpServGameOpts.knownOpts);
             client.serverGames.addGames(gameNames, Version.versionNumber());
 
             // No more game-option info will be received,
@@ -1177,13 +1182,15 @@ import soc.util.Version;
     {
         client.gotPassword = true;
 
+        final SOCGameOptionSet knownOpts =
+            ((isPractice) ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts;
         final String gaName = mes.getGame();
-        Map<String, SOCGameOption> gameOpts;
+        SOCGameOptionSet gameOpts;
         if (isPractice)
         {
             gameOpts = client.getNet().practiceServer.getGameOptions(gaName);
             if (gameOpts != null)
-                gameOpts = new HashMap<String,SOCGameOption>(gameOpts);  // changes here shouldn't change practiceServ's copy
+                gameOpts = new SOCGameOptionSet(gameOpts, false); // so _BHW change here won't change practiceServ's copy
         } else {
             if (client.serverGames != null)
                 gameOpts = client.serverGames.parseGameOptions(gaName);
@@ -1196,16 +1203,16 @@ import soc.util.Version;
         {
             // Encode board size to pass through game constructor.
             // gameOpts won't be null, because bh, bw are from SOCBoardLarge which requires a gameopt to use.
-            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            SOCGameOption opt = knownOpts.getKnownOption("_BHW", true);
             if (opt == null)
                 throw new IllegalStateException("Internal error: Game opt _BHW not known");
             opt.setIntValue((bh << 8) | bw);
             if (gameOpts == null)
-                gameOpts = new HashMap<String,SOCGameOption>();  // unlikely: no-opts board has 0 height,width in message
-            gameOpts.put("_BHW", opt);
+                gameOpts = new SOCGameOptionSet();  // unlikely: no-opts board has 0 height,width in message
+            gameOpts.put(opt);
         }
 
-        SOCGame ga = new SOCGame(gaName, gameOpts);
+        SOCGame ga = new SOCGame(gaName, gameOpts, knownOpts);
         if (ga != null)
         {
             ga.isPractice = isPractice;
@@ -2488,18 +2495,18 @@ import soc.util.Version;
      */
     private void handleGAMEOPTIONGETDEFAULTS(SOCGameOptionGetDefaults mes, final boolean isPractice)
     {
-        ServerGametypeInfo opts;
+        ServerGametypeInfo servOpts;
         if (isPractice)
-            opts = client.practiceServGameOpts;
+            servOpts = client.practiceServGameOpts;
         else
-            opts = client.tcpServGameOpts;
+            servOpts = client.tcpServGameOpts;
 
         final List<String> unknowns;
-        synchronized(opts)
+        synchronized(servOpts)
         {
             // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
-            unknowns = opts.receiveDefaults
-                (SOCGameOption.parseOptionsToMap((mes.getOpts())));
+            unknowns = servOpts.receiveDefaults
+                (SOCGameOption.parseOptionsToMap(mes.getOpts(), servOpts.knownOpts));
         }
 
         if (unknowns != null)
@@ -2509,8 +2516,8 @@ import soc.util.Version;
 
             gms.put(new SOCGameOptionGetInfos(unknowns, client.wantsI18nStrings(isPractice), false).toCmd(), isPractice);
         } else {
-            opts.newGameWaitingForOpts = false;
-            client.getMainDisplay().optionsReceived(opts, isPractice);
+            servOpts.newGameWaitingForOpts = false;
+            client.getMainDisplay().optionsReceived(servOpts, isPractice);
         }
     }
 
@@ -2581,7 +2588,8 @@ import soc.util.Version;
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
         // This is recognized and removed in mes.getGameList.
 
-        final SOCGameList msgGames = mes.getGameList();
+        final SOCGameList msgGames = mes.getGameList
+            ((isPractice ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts);
         if (msgGames == null)
             return;
 
@@ -2624,6 +2632,8 @@ import soc.util.Version;
      */
     private void handleLOCALIZEDSTRINGS(final SOCLocalizedStrings mes, final boolean isPractice)
     {
+        final SOCGameOptionSet knownOpts =
+            ((isPractice) ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts;
         final List<String> strs = mes.getParams();
         final String type = strs.get(0);
 
@@ -2632,7 +2642,7 @@ import soc.util.Version;
             final int L = strs.size();
             for (int i = 1; i < L; i += 2)
             {
-                SOCGameOption opt = SOCGameOption.getOption(strs.get(i), false);
+                SOCGameOption opt = knownOpts.getKnownOption(strs.get(i), false);
                 if (opt != null)
                 {
                     final String desc = strs.get(i + 1);
@@ -2902,7 +2912,7 @@ import soc.util.Version;
         final int pv = mes.getParam3();
         SOCPlayingPiece updatePiece = null;  // if not null, call pcl.pieceValueUpdated
 
-        if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
         {
             SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(coord);
             if (vi != null)
@@ -2911,7 +2921,7 @@ import soc.util.Version;
                 updatePiece = vi;
             }
         }
-        else if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        else if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             SOCFortress fort = ga.getFortress(coord);
             if (fort != null)

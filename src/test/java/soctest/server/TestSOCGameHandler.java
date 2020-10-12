@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@ package soctest.server;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCScenario;
 import soc.server.SOCGameHandler;
 import soc.util.SOCFeatureSet;
@@ -42,6 +43,8 @@ public class TestSOCGameHandler
     @Test
     public void testCalcGameClientFeaturesRequired()
     {
+        final SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
+
         /**
          * Game opts and expected resulting client features.
          * When one client feature is expected, will test with String.equals.
@@ -65,7 +68,8 @@ public class TestSOCGameHandler
         {
             final String gameopts = pair[0], featsStr = pair[1];
 
-            final SOCGame ga = new SOCGame("testname", SOCGameOption.parseOptionsToMap(gameopts));
+            final SOCGame ga = new SOCGame
+                ("testname", SOCGameOption.parseOptionsToSet(gameopts, knownOpts), knownOpts);
             sgh.calcGameClientFeaturesRequired(ga);
             final SOCFeatureSet cliFeats = ga.getClientFeaturesRequired();
             if (featsStr == null)

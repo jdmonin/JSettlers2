@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCGameOptionVersionException;
 import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
@@ -594,7 +595,7 @@ public class SOCServerMessageHandler
      * process the "game option get defaults" message.
      * User has clicked the "New Game" button for the first time, client needs {@link SOCGameOption} values.
      * Responds to client by sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
-     * All of server's known options are sent, except empty string-valued options.
+     * All of server's Known Options are sent, except empty string-valued options.
      * Depending on client version, server's response may include option names that
      * the client is too old to use; the client is able to ignore them.
      * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
@@ -615,7 +616,7 @@ public class SOCServerMessageHandler
 
         final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
         c.put(new SOCGameOptionGetDefaults
-              (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
+              (SOCGameOption.packKnownOptionsToString(srv.knownOpts, true, hideLongNameOpts)));
     }
 
     /**
@@ -670,7 +671,7 @@ public class SOCServerMessageHandler
             // Gather all game opts we have that we could possibly localize;
             // this list will be narrowed down soon
             optsToLocal = new HashMap<>();
-            for (final SOCGameOption opt : SOCGameOption.optionsForVersion(cliVers, null))
+            for (final SOCGameOption opt : srv.knownOpts.optionsForVersion(cliVers))
                 optsToLocal.put(opt.key, opt);
         } else {
             optsToLocal = null;
@@ -682,7 +683,7 @@ public class SOCServerMessageHandler
         {
             for (String okey : mes.optionKeys)
             {
-                SOCGameOption opt = SOCGameOption.getOption(okey, false);
+                SOCGameOption opt = srv.knownOpts.getKnownOption(okey, false);
 
                 if ((opt == null) || (opt.minVersion > cliVers))  // don't use dynamic opt.getMinVersion(Map) here
                     opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
@@ -696,7 +697,7 @@ public class SOCServerMessageHandler
         {
             // received "-" or "?CHANGES", so look for newer options (cli is older than us).
 
-            List<SOCGameOption> newerOpts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
+            List<SOCGameOption> newerOpts = srv.knownOpts.optionsNewerThanVersion(cliVers, false, true);
             if (newerOpts != null)
                 for (SOCGameOption opt : newerOpts)
                     opts.put(opt.key, opt);
@@ -722,22 +723,22 @@ public class SOCServerMessageHandler
         // Unsupported 3rd-party opts aren't sent unless client asked about them by key.
 
         final Map<String, SOCGameOption> unsupportedOpts =
-            (hasLimitedFeats) ? SOCGameOption.optionsNotSupported(scd.feats) : null;
+            (hasLimitedFeats) ? srv.knownOpts.optionsNotSupported(scd.feats) : null;
         if (unsupportedOpts != null)
             opts.putAll(unsupportedOpts);
 
         final Map<String, SOCGameOption> trimmedOpts =
-            (hasLimitedFeats) ? SOCGameOption.optionsTrimmedForSupport(scd.feats) : null;
+            (hasLimitedFeats) ? srv.knownOpts.optionsTrimmedForSupport(scd.feats) : null;
         if (trimmedOpts != null)
             opts.putAll(trimmedOpts);
 
-        final Map<String, SOCGameOption> opts3p = SOCGameOption.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0);
+        final SOCGameOptionSet opts3p = srv.knownOpts.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0);
         if (opts3p != null)
         {
             final SOCFeatureSet cliFeats = scd.feats;
             final List<String> requestedKeys = mes.optionKeys;
 
-            for (SOCGameOption opt : opts3p.values())
+            for (SOCGameOption opt : opts3p)
             {
                 final String ofeat = opt.getClientFeature();
                 if (ofeat == null)
@@ -2295,7 +2296,7 @@ public class SOCServerMessageHandler
     /**
      * process the "new game with options request" message.
      * For messages sent, and other details,
-     * see {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)}.
+     * see {@link SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)}.
      * <P>
      * Because this message is sent only by clients newer than 1.1.06, we definitely know that
      * the client has already sent its version information.
@@ -2309,8 +2310,10 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
+        final Map<String, SOCGameOption> optsMap = mes.getOptions(srv.knownOpts);
         srv.createOrJoinGameIfUserOK
-            (c, mes.getNickname(), mes.getPassword(), mes.getGame(), mes.getOptions());
+            (c, mes.getNickname(), mes.getPassword(), mes.getGame(),
+             (optsMap != null) ? new SOCGameOptionSet(optsMap) : null);
     }
 
     /**

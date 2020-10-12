@@ -39,7 +39,7 @@ public class TestBoardLarge
 {
 
     /**
-     * Test a few common constants and default {@link SOCBoardLarge#getBoardSize(java.util.Map) getBoardSize(null)}.
+     * Test a few common constants and default {@link SOCBoardLarge#getBoardSize(soc.game.SOCGameOptionSet) getBoardSize(null)}.
      * @since 2.4.00
      */
     @Test

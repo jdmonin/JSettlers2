@@ -68,7 +68,7 @@ public class SOCClientData
      * {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) new SOCFeatureSet(true, false)}.
      * @see #hasLimitedFeats
      * @see #scenVersion
-     * @see soc.game.SOCGameOption#optionsNotSupported(SOCFeatureSet)
+     * @see soc.game.SOCGameOptionSet#optionsNotSupported(SOCFeatureSet)
      * @since 2.0.00
      */
     public SOCFeatureSet feats;

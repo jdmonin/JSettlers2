@@ -32,13 +32,12 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.Map;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.baseclient.ServerConnectInfo;
 import soc.disableDebug.D;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.message.SOCChannels;
 import soc.message.SOCGames;
 import soc.message.SOCJoinGame;
@@ -57,7 +56,7 @@ import soc.util.Version;
 /**
  * Helper object to encapsulate and deal with {@link SOCPlayerClient}'s network connectivity.
  *<P>
- * Local practice server (if any) is started in {@link #startPracticeGame(String, Map)}.
+ * Local practice server (if any) is started in {@link #startPracticeGame(String, SOCGameOptionSet)}.
  * Local tcp server (if any) is started in {@link #initLocalServer(int)}.
  *<br>
  * Messages from server to client are received in either {@link NetReadTask} or {@link LocalStringReaderTask},
@@ -253,7 +252,7 @@ import soc.util.Version;
      *         starting the practice server or client
      * @since 1.1.00
      */
-    public boolean startPracticeGame(final String practiceGameName, final Map<String, SOCGameOption> gameOpts)
+    public boolean startPracticeGame(final String practiceGameName, final SOCGameOptionSet gameOpts)
     {
         if (practiceServer == null)
         {
@@ -304,7 +303,7 @@ import soc.util.Version;
             putPractice(SOCJoinGame.toCmd(client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName));
         else
             putPractice(SOCNewGameWithOptionsRequest.toCmd
-                (client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts));
+                (client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts.getAll()));
 
         return true;
     }

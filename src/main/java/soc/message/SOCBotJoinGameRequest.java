@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 
 
 /**
@@ -46,7 +47,7 @@ import soc.game.SOCGameOption;
 public class SOCBotJoinGameRequest extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+    private static final long serialVersionUID = 2410L;  // last structural change v2.4.10
 
     /**
      * Name of game
@@ -59,24 +60,54 @@ public class SOCBotJoinGameRequest extends SOCMessage
     private int playerNumber;
 
     /**
-     * {@link SOCGameOption Game options}, or null
+     * Packed game options if any, as created by
+     * {@link SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)}.
+     * Won't be null, even if opts is null, due to {@code packOptionsToString(..)} format.
+     * @since 2.4.10
+     */
+    private String optsStr;
+
+    /**
+     * Parsed game options, if any.
+     * May be null if {@link #getOptions(SOCGameOptionSet)} hasn't been called, or if optsStr is {@code "-"}
      * @since 1.1.07
      */
     private Map<String,SOCGameOption> opts = null;
 
     /**
-     * Create a BotJoinGameRequest message.
+     * Create a BotJoinGameRequest message with a set of {@link SOCGameOption}s.
      *
      * @param ga  name of game
      * @param pn  the seat number
-     * @param opts {@link SOCGameOption game options}, or null
+     * @param opts  game's {@link SOCGameOption}s, or null
+     * @see #SOCBotJoinGameRequest(String, int, String)
      */
-    public SOCBotJoinGameRequest(String ga, int pn, Map<String,SOCGameOption> opts)
+    public SOCBotJoinGameRequest(String ga, int pn, SOCGameOptionSet opts)
     {
         messageType = BOTJOINGAMEREQUEST;
         game = ga;
         playerNumber = pn;
-        this.opts = opts;
+        Map<String, SOCGameOption> optsMap = (opts != null) ? opts.getAll() : null;
+        this.opts = optsMap;
+        optsStr = SOCGameOption.packOptionsToString(optsMap, false, false);
+    }
+
+    /**
+     * Create a BotJoinGameRequest message with a packed string of game options.
+     *
+     * @param ga  name of game
+     * @param pn  the seat number
+     * @param optsStr {@link SOCGameOption game options}, or null
+     * @see #SOCBotJoinGameRequest(String, int, SOCGameOptionSet)
+     * @since 2.4.10
+     */
+    public SOCBotJoinGameRequest(String ga, int pn, final String optsStr)
+    {
+        messageType = BOTJOINGAMEREQUEST;
+        game = ga;
+        playerNumber = pn;
+        opts = null;
+        this.optsStr = optsStr;
     }
 
     /**
@@ -96,11 +127,19 @@ public class SOCBotJoinGameRequest extends SOCMessage
     }
 
     /**
+     * Get the parsed {@link SOCGameOption}s, if any.
+     * @param knownOpts  all Known Options
      * @return game options, or null
+     * @throws IllegalArgumentException if {@link SOCGameOption#parseOptionsToMap(String, SOCGameOptionSet)}
+     *     can't parse optsStr field
      * @since 1.1.07
      */
-    public Map<String,SOCGameOption> getOptions()
+    public Map<String,SOCGameOption> getOptions(final SOCGameOptionSet knownOpts)
+        throws IllegalArgumentException
     {
+        if (opts == null)
+            opts = SOCGameOption.parseOptionsToMap(optsStr, knownOpts);
+
         return opts;
     }
 
@@ -112,8 +151,7 @@ public class SOCBotJoinGameRequest extends SOCMessage
     @Override
     public String toCmd()
     {
-        return BOTJOINGAMEREQUEST + sep + game + sep2 + playerNumber + sep2
-            + SOCGameOption.packOptionsToString(opts, false, false);
+        return BOTJOINGAMEREQUEST + sep + game + sep2 + playerNumber + sep2 + optsStr;
     }
 
     /**
@@ -135,14 +173,15 @@ public class SOCBotJoinGameRequest extends SOCMessage
             ga = st.nextToken();
             pn = Integer.parseInt(st.nextToken());
             optstr = st.nextToken(sep);  // NOT sep2: options may contain ","
+            if ((! optstr.isEmpty()) && (optstr.charAt(0) == sep2_char))
+                optstr = optstr.substring(1);  // discard ',' between pn and optstr
         }
         catch (Exception e)
         {
             return null;
         }
 
-        Map<String,SOCGameOption> opts = SOCGameOption.parseOptionsToMap(optstr);
-        return new SOCBotJoinGameRequest(ga, pn, opts);
+        return new SOCBotJoinGameRequest(ga, pn, optstr);
     }
 
     /**
@@ -154,11 +193,8 @@ public class SOCBotJoinGameRequest extends SOCMessage
     @Override
     public String toString()
     {
-        String s = "SOCBotJoinGameRequest:game=" + game + "|playerNumber=" + playerNumber;
-        if (opts != null)
-            s += "|opts=" + SOCGameOption.packOptionsToString(opts, false, false);
-        else
-            s += "|opts=null";
+        String s = "SOCBotJoinGameRequest:game=" + game + "|playerNumber=" + playerNumber + "|opts=" + optsStr;
         return s;
     }
+
 }

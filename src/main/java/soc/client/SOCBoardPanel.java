@@ -27,7 +27,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -579,7 +579,7 @@ import javax.swing.JComponent;
 
     /**
      * Pirate Path dotted-line color, which varies by hex Graphics Set, for
-     * scenario gameopt {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * scenario gameopt {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      * Currently-used index is {@link #hexesGraphicsSetIndex}.
      * Same indexes as {@link #HEX_GRAPHICS_SET_SUBDIRS}; see that javadoc for details.
      * @see #HEX_GRAPHICS_SET_BORDER_WATER_COLORS
@@ -714,7 +714,7 @@ import javax.swing.JComponent;
     private final static int PLACE_PIRATE = 18;
 
     /**
-     * In scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} game state {@link SOCGame#PLACING_INV_ITEM},
+     * In scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI} game state {@link SOCGame#PLACING_INV_ITEM},
      * boardpanel mode to place a port next to player's coastal settlement/city.
      * @since 2.0.00
      */
@@ -1592,7 +1592,7 @@ import javax.swing.JComponent;
 
     /**
      * During {@link #MOVE_SHIP} mode, true if the ship being moved
-     * is a warship in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * is a warship in scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      * @see #moveShip_fromEdge
      * @since 2.0.00
      */
@@ -4576,7 +4576,7 @@ import javax.swing.JComponent;
         /**
          * draw the roads and ships
          */
-        if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if (! game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             for (SOCRoutePiece rs : board.getRoadsAndShips())
             {
@@ -4769,7 +4769,7 @@ import javax.swing.JComponent;
     }
 
     /**
-     * Scenario game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: In board mode {@link #SC_FTRI_PLACE_PORT},
+     * Scenario game option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}: In board mode {@link #SC_FTRI_PLACE_PORT},
      * draw the possible coastal edges where the port can be placed, and if the {@link #hilight} cursor is at
      * such an edge, draw the port semi-transparently and a solid hilight line at the edge.
      * @since 2.0.00
@@ -4837,7 +4837,7 @@ import javax.swing.JComponent;
      * {@link SOCBoardLarge#FOG_HEX fog hex} reveal, for example),
      * call {@link #flushBoardLayoutAndRepaint()} to clear the buffered copy.
      *<P>
-     * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI},
+     * For scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI},
      * <tt>drawBoardEmpty</tt> draws the board's {@link SOCVillage}s.
      *<P>
      * If {@link #panelMarginX} or {@link #panelMarginY} != 0, do not translate {@code g}
@@ -5059,7 +5059,7 @@ import javax.swing.JComponent;
             }
 
             // For scenario _SC_WOND, draw special nodes (layout parts N1, N2, N3)
-            if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+            if (game.isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
             {
                 drawBoardEmpty_specialNodes(g, "N1", new Color(180, 90, 40));   // brown
                 drawBoardEmpty_specialNodes(g, "N2", new Color(120, 40, 120));  // violet
@@ -5086,7 +5086,7 @@ import javax.swing.JComponent;
     }
 
     /**
-     * For the {@link SOCGameOption#K_SC_PIRI _SC_PIRI} game scenario on {@link SOCBoardLarge},
+     * For the {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} game scenario on {@link SOCBoardLarge},
      * draw the path that the pirate fleet takes around the board.
      * @param ppath  Path of hex coordinates
      */
@@ -5126,7 +5126,7 @@ import javax.swing.JComponent;
     }
 
     /**
-     * For the {@link SOCGameOption#K_SC_FTRI _SC_FTRI} game scenario on {@link SOCBoardLarge},
+     * For the {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI} game scenario on {@link SOCBoardLarge},
      * draw markers at all Special Edges for the players to reach and be rewarded.
      *<P>
      * Each marker's color will be determined by its edge's type, such as {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD}.
@@ -5719,7 +5719,7 @@ import javax.swing.JComponent;
      * update the type of interaction mode, and trigger a repaint.
      * Also calls {@link #updateHoverTipToMode()} and
      * (for 6-player board's Special Building Phase) updates top-center text.
-     * For {@link soc.game.SOCGameOption#initAllOptions() Game Option "N7"},
+     * For {@link soc.game.SOCGameOptionSet#getAllKnownOptions() Game Option "N7"},
      * updates the top-center countdown of rounds from {@link SOCGame#getRoundCount()}.
      * For the {@link SOCGame#debugFreePlacement Free Placement debug mode},
      * indicates that in the top center.
@@ -5737,7 +5737,7 @@ import javax.swing.JComponent;
 
                 if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
                 {
-                    if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                    if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
                     {
                         mode = SC_FTRI_PLACE_PORT;
                         repaint();
@@ -5811,7 +5811,7 @@ import javax.swing.JComponent;
                     break;
 
                 case SOCGame.PLACING_INV_ITEM:
-                    if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                    if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
                     {
                         mode = SC_FTRI_PLACE_PORT;
                         repaint();
@@ -6772,7 +6772,7 @@ import javax.swing.JComponent;
                     }
                     else if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                     {
-                        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
+                        if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI)
                             && ((SOCBoardLarge) board).canRemovePort(hilight))
                         {
                             java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
@@ -6830,7 +6830,7 @@ import javax.swing.JComponent;
                 case PLACE_SHIP:
                     if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                     {
-                        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
+                        if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI)
                             && ((SOCBoardLarge) board).canRemovePort(hilight))
                         {
                             java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hilight, false, -1));
@@ -7193,7 +7193,7 @@ import javax.swing.JComponent;
      * Note that if {@code moveShip_toEdge} != 0, then {@link SOCGame#canMoveShip(int, int, int) SOCGame.canMoveShip}
      * ({@link #playerNumber}, {@link #moveShip_fromEdge}, {@link #moveShip_toEdge}) has probably already been called.
      *<P>
-     * In scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, checks if a gift port would be claimed by
+     * In scenario {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}, checks if a gift port would be claimed by
      * placing a ship there.  If so, confirms with the user first with {@link ConfirmPlaceShipDialog}.
      * @since 2.0.00
      * @see BoardPopupMenu#tryMoveShipFromHere()
@@ -7207,7 +7207,7 @@ import javax.swing.JComponent;
             if (game.canMoveShip(playerNumber, moveShip_fromEdge, moveShip_toEdge) != null)
             {
                 if (game.isGameOptionSet
-                    (SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(moveShip_toEdge))
+                    (SOCGameOptionSet.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(moveShip_toEdge))
                 {
                     java.awt.EventQueue.invokeLater
                         (new ConfirmPlaceShipDialog(moveShip_toEdge, false, moveShip_fromEdge));
@@ -7887,7 +7887,7 @@ import javax.swing.JComponent;
         private boolean hoverIsShipMovable;
 
         /**
-         * Is hover a warship owned by our player, for scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}?
+         * Is hover a warship owned by our player, for scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}?
          * If true, {@link #hoverShipID} is also set.
          * @since 2.0.00
          */
@@ -8326,7 +8326,7 @@ import javax.swing.JComponent;
                     hoverSettlementID = 0;
 
                     // Villages for Cloth trade scenario
-                    if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+                    if (game.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
                     {
                         SOCVillage vi = ((SOCBoardLarge) board).getVillageAtNode(id);
                         if (vi != null)
@@ -8425,7 +8425,7 @@ import javax.swing.JComponent;
                     // Check special nodes in sea board scenarios.
                     //     Currently hardcoded to _SC_WOND only; if other scenarios use node lists, code
                     //     here must be generalized to check for added layout part "N1" and game option "SC".
-                    if ((! hoverTextSet) && game.hasSeaBoard && game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+                    if ((! hoverTextSet) && game.hasSeaBoard && game.isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
                     {
                         // Check node lists "N1"-"N3" for this node coordinate. If found, use node list's name string
                         int i;
@@ -8618,7 +8618,7 @@ import javax.swing.JComponent;
                 } else {
                     String portText = strings.get(portDescAtNode(nodePortCoord), nodePortType);
 
-                    if (isLargeBoard && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                    if (isLargeBoard && game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
                     {
                         // Scenario _SC_FTRI: If this port can be reached and moved
                         // ("gift from the forgotten tribe"), mention that in portText.
@@ -9229,7 +9229,7 @@ import javax.swing.JComponent;
 
       /** Custom show method for hovering at a pirate fortress ({@link SOCFortress}),
        *  giving the options to attack if it's our player's;
-       *  for scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+       *  for scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
        *
        * @param x   Mouse x-position
        * @param y   Mouse y-position
@@ -9299,7 +9299,8 @@ import javax.swing.JComponent;
                   tryMoveShipToEdge();
               else if (isShipMovable)
                   tryMoveShipFromHere();
-              else if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI) && ((SOCBoardLarge) board).canRemovePort(hoverShipID))
+              else if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI)
+                       && ((SOCBoardLarge) board).canRemovePort(hoverShipID))
                   java.awt.EventQueue.invokeLater(new ConfirmPlaceShipDialog(hoverShipID, true, -1));
               else
                   tryBuild(SOCPlayingPiece.SHIP);
@@ -9422,7 +9423,7 @@ import javax.swing.JComponent;
 
       /**
        * Confirm with the user that they want to atack the pirate fortress and end their turn,
-       * in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.  If confirmed, will call
+       * in scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.  If confirmed, will call
        * {@link #tryAttackPirateFortress()}.
        * @since 2.0.00
        */
@@ -9437,7 +9438,7 @@ import javax.swing.JComponent;
 
       /**
        * Send request to server to attack our player's pirate fortress,
-       * in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+       * in scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
        * @since 2.0.00
        */
       public void tryAttackPirateFortress()
@@ -9836,7 +9837,7 @@ import javax.swing.JComponent;
     }  // nested class ConfirmAttackPirateFortressDialog
 
     /**
-     * For scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, modal dialog to confirm placing a ship
+     * For scenario {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}, modal dialog to confirm placing a ship
      * at an edge with a "gift" trade port.  Player will need to pick up this port, and may need to
      * immediately place it elsewhere on the board.
      *<P>

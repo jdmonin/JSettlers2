@@ -176,7 +176,8 @@ hides them during game setup.  If you want to show them:
 - In the Nickname field, type: `debug`
 - Click Practice or New Game
 
-The values you set may still be overridden by the server in SOCGameOption.adjustOptionsToKnown.
+The values you set may still be overridden by the server
+in SOCGameOptionSet.adjustOptionsToKnown.
 
 If you're testing and need the client to create a game no one else can join,
 find and uncomment the `DEBUGNOJOIN` option in `soc.game.SOCGameOption`
@@ -200,7 +201,7 @@ The placed pieces accumulate victory points for their players as normal, and
 Longest Road is tracked.  If a player gets 10 VP total, the game will be over
 when their turn arrives; your own player would win the game immediately.
 
-To exit Free Placement mode, either click "Done" (which will end your turn)
+To exit Free Placement mode, either click "Done" to end your turn
 or type this debug command:
 
 	*FREEPLACE* 0
@@ -494,9 +495,8 @@ ideas.
 - Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
 - Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(SOCResourceSet),
   subtract(SOCResourceSet) with playing piece `COST` constants
-- Refactor `SOCGameOption`:
-  - Static methods to check and change values within a set
-  - Create SOCGameOptionAtServer for methods used only there, like static optionsNotSupported and optionsTrimmedForSupport
+- Refactor `SOCGameOptionSet`:
+  Create SOCGameOptionSetAtServer for methods used only there, like optionsNotSupported and optionsTrimmedForSupport
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
@@ -602,19 +602,19 @@ and/or `TestRecorder.connectLoadJoinResumeGame`.
 ## Game rules, Game Options
 
 Game rules and actions are controlled through Game Options (class
-`SOCGameOption`; see SOCGameOptions.initAllOptions javadoc for a list).
+`SOCGameOption`; see SOCGameOptionSet.getAllKnownOptions javadoc for a list).
 Options have types (bool, enum, etc) and flags for their properties
 ("hidden internal option", "drop if not set", etc). All scenario-related
 game option keynames start with `_SC_` and provide special rules/behaviors
 for the scenario.
 
 If you're developing a change to the game rules or behavior, see
-SOCGameOption.initAllOptions javadoc for how to add a Game Option.
+SOCGameOptionSet.getAllKnownOptions javadoc for how to add a Game Option.
 
 For quick tests or prototyping, including third-party bots/AI development,
 there are a few predefined but unused game options available:
 `_EXT_BOT`, `_EXT_CLI`, and `_EXT_GAM`. For more info, search this file for
-those names or see initAllOptions javadoc.
+those names or see getAllKnownOptions.
 
 ### Inactive/activated Game Options:
 

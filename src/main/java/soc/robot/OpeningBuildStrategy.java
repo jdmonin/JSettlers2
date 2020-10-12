@@ -599,7 +599,7 @@ public class OpeningBuildStrategy {
         SOCPlayer dummy = new SOCPlayer(ourPlayerData.getPlayerNumber(), game);
 
         if ((game.getGameState() == SOCGame.START1B)
-            || (game.isGameOptionSet(SOCGameOption.K_SC_3IP) && (game.getGameState() == SOCGame.START2B)))
+            || (game.isGameOptionSet(SOCGameOptionSet.K_SC_3IP) && (game.getGameState() == SOCGame.START2B)))
         {
             /**
              * do a look ahead so we don't build toward a place

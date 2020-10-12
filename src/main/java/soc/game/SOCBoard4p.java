@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@
 
 package soc.game;
 
-import java.util.Map;
 
 /**
  * The classic 4-player board with 19 land hexes, surrounded by a ring of
@@ -138,7 +137,7 @@ public class SOCBoard4p extends SOCBoard
 
     /**
      * Possible number paths for 4-player original board.
-     * {@link #makeNewBoard(Map)} randomly chooses one path (one 1-dimensional array)
+     * {@link #makeNewBoard(SOCGameOptionSet)} randomly chooses one path (one 1-dimensional array)
      * to be used as <tt>numPath[]</tt> in
      * {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      */
@@ -184,7 +183,7 @@ public class SOCBoard4p extends SOCBoard
         }
     };
 
-    public SOCBoard4p(final Map<String, SOCGameOption> gameOpts)
+    public SOCBoard4p(final SOCGameOptionSet gameOpts)
     {
         super(gameOpts, 4, BOARD_ENCODING_ORIGINAL);
 

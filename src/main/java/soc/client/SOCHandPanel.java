@@ -25,7 +25,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -423,7 +423,7 @@ import javax.swing.UIManager;
     protected SquaresPanel sqPanel;
 
     /**
-     * Cloth count, for scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}; null otherwise.
+     * Cloth count, for scenario {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}; null otherwise.
      * Appears in same area as {@link #wonderLab}.
      * @since 2.0.00
      */
@@ -431,7 +431,7 @@ import javax.swing.UIManager;
     protected JLabel clothLab;
 
     /**
-     * Wonder Level label, for scenario {@link SOCGameOption#K_SC_WOND _SC_WOND}; null otherwise.
+     * Wonder Level label, for scenario {@link SOCGameOptionSet#K_SC_WOND _SC_WOND}; null otherwise.
      * Blank ("") if player has no current wonder level.
      * Appears in same areas as {@link #clothLab} and {@link #clothSq};
      * doLayout's topFaceAreaHeight calc assumes that area's on same row as svpLab.
@@ -935,7 +935,7 @@ import javax.swing.UIManager;
             // shipSq, shipLab already null
         }
 
-        if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        if (game.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
         {
             clothLab = new JLabel(strings.get("hpan.cloth"));  // No trailing space (room for wider colorsquares at left)
             clothLab.setFont(DIALOG_PLAIN_10);
@@ -944,7 +944,7 @@ import javax.swing.UIManager;
             add(clothSq);
             clothSq.setToolTipText(strings.get("hpan.cloth.amounttraded"));  // "Amount of cloth traded from villages"
         }
-        else if (game.isGameOptionSet(SOCGameOption.K_SC_WOND))
+        else if (game.isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
         {
             wonderLab = new JLabel("");  // Blank at wonder level 0; other levels' text set by updateValue(WonderLevel)
             wonderLab.setFont(DIALOG_PLAIN_10);  // same font as larmyLab, lroadLab
@@ -1614,7 +1614,7 @@ import javax.swing.UIManager;
      *<P>
      * Inventory items are almost always {@link SOCDevCard}s.
      * Some scenarios may place other items in the player's inventory,
-     * such as a "gift" port being moved in {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * such as a "gift" port being moved in {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      * If one of these is chosen, this method calls {@link #clickPlayInventorySpecialItem(SOCInventoryItem)}.
      *<P>
      * Called from actionPerformed()
@@ -1744,7 +1744,7 @@ import javax.swing.UIManager;
             {
                 cardTypeToPlay = SOCDevCardConstants.KNIGHT;
             }
-            else if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            else if (game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             {
                 playerInterface.printKeyed("hpan.devcards.warship.cannotnow");
                     // "You cannot convert a ship to a warship right now."
@@ -3703,7 +3703,7 @@ import javax.swing.UIManager;
 
     /**
      * This player is playing or placing a special {@link SOCInventoryItem}, such as a gift
-     * trade port in scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.  Set a flag that
+     * trade port in scenario {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.  Set a flag that
      * indicates if this play or placement can be canceled (returned to player's inventory).
      *<P>
      * Should be called only for our own client player, not other players.
@@ -3865,7 +3865,7 @@ import javax.swing.UIManager;
         case WonderLevel:
             if (wonderLab != null)
             {
-                SOCSpecialItem pWond = player.getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+                SOCSpecialItem pWond = player.getSpecialItem(SOCGameOptionSet.K_SC_WOND, 0);
                 final int pLevel = (pWond != null) ? pWond.getLevel() : 0;
                 if (pLevel == 0)
                 {

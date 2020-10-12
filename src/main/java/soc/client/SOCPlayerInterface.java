@@ -31,7 +31,7 @@ import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameEvent;
 import soc.game.SOCGameEventListener;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -246,7 +246,7 @@ public class SOCPlayerInterface extends Frame
     private final boolean is6player;
 
     /**
-     * Is this game using developer Game Option {@link SOCGameOption#K_PLAY_FO PLAY_FO}?
+     * Is this game using developer Game Option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO}?
      * If so, all {@link SOCHandPanel}s will show dev cards/inventory details
      * ({@link #isGameObservableVP}) and each resource type amount (brick, ore, ...).
      * @since 2.4.10
@@ -254,7 +254,7 @@ public class SOCPlayerInterface extends Frame
     protected final boolean isGameFullyObservable;
 
     /**
-     * Is this game using developer Game Option {@link SOCGameOption#K_PLAY_VPO PLAY_VPO}
+     * Is this game using developer Game Option {@link SOCGameOptionSet#K_PLAY_VPO PLAY_VPO}
      * or {@link #isGameFullyObservable}? If so, all {@link SOCHandPanel}s will show dev cards/inventory details.
      * @since 2.4.10
      */
@@ -834,8 +834,8 @@ public class SOCPlayerInterface extends Frame
         game = ga;
         game.setGameEventListener(this);
         is6player = (game.maxPlayers > 4);
-        isGameFullyObservable = game.isGameOptionSet(SOCGameOption.K_PLAY_FO);
-        isGameObservableVP = isGameFullyObservable || game.isGameOptionSet(SOCGameOption.K_PLAY_VPO);
+        isGameFullyObservable = game.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO);
+        isGameObservableVP = isGameFullyObservable || game.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO);
 
         knowsGameState = (game.getGameState() != 0);
         this.layoutVS = layoutVS;
@@ -3032,7 +3032,9 @@ public class SOCPlayerInterface extends Frame
      */
     public void showScenarioInfoDialog()
     {
-        NewGameOptionsFrame.showScenarioInfoDialog(game, getMainDisplay(), this);
+        NewGameOptionsFrame.showScenarioInfoDialog
+            (game, ((game.isPractice) ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts,
+             getMainDisplay(), this);
     }
 
     /**
@@ -3121,7 +3123,7 @@ public class SOCPlayerInterface extends Frame
     public void updateAtNewBoard()
     {
         boardPanel.flushBoardLayoutAndRepaint();
-        if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        if (game.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
             buildingPanel.updateClothCount();
     }
 
@@ -3178,7 +3180,7 @@ public class SOCPlayerInterface extends Frame
         }
 
         if ((gs == SOCGame.PLACING_INV_ITEM) && clientIsCurrentPlayer()
-            && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+            && game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             printKeyed("game.invitem.sc_ftri.prompt");
                 // "You have received this trade port as a gift."
@@ -3244,7 +3246,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Handle updates after pieces have changed on the board.
-     * For example, when scenario {@link SOCGameOption#K_SC_PIRI}
+     * For example, when scenario {@link SOCGameOptionSet#K_SC_PIRI}
      * converts players' ships to warships, changes the strength
      * of a pirate fortress, etc.
      *<P>
@@ -4729,7 +4731,7 @@ public class SOCPlayerInterface extends Frame
 
         public void invItemPlayRejected(final int type, final int reasonCode)
         {
-            if ((reasonCode == 4) && pi.getGame().isGameOptionSet(SOCGameOption.K_SC_FTRI))
+            if ((reasonCode == 4) && pi.getGame().isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
                 pi.printKeyed("game.invitem.sc_ftri.need.coastal");  // * "Requires a coastal settlement not adjacent to an existing port."
             else
                 pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
@@ -4742,7 +4744,7 @@ public class SOCPlayerInterface extends Frame
             if ((pl == null) && isPick)
                 return;  // <--- Early return: So far, every pick implemented is player-specific ---
 
-            if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+            if (! typeKey.equals(SOCGameOptionSet.K_SC_WOND))
                 return;  // <--- Early return: So far, the only known typeKey is _SC_WOND ---
 
             if (isPick)
@@ -4778,7 +4780,7 @@ public class SOCPlayerInterface extends Frame
             if (pl == null)
                 return;  // <--- Early return: So far, everything implemented is player-specific ---
 
-            if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+            if (! typeKey.equals(SOCGameOptionSet.K_SC_WOND))
                 return;  // <--- Early return: So far, the only known typeKey is _SC_WOND ---
 
             final SOCHandPanel hp = pi.getPlayerHandPanel(pl.getPlayerNumber());

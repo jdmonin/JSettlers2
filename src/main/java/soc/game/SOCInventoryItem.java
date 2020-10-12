@@ -30,7 +30,7 @@ import soc.util.SOCStringManager;
  * 1 Development Card per turn. The player can play a Dev Card on the same turn as an item.
  *<P>
  * To see if a player can currently play an inventory item, use {@link SOCGame#canPlayInventoryItem(int, int)}.
- * Inventory items' lifecycle and play rules differ by scenario. In {@link SOCGameOption#K_SC_FTRI SC_FTRI}
+ * Inventory items' lifecycle and play rules differ by scenario. In {@link SOCGameOptionSet#K_SC_FTRI SC_FTRI}
  * for example, the items are "gift" trade ports which can be played immediately (cannot cancel during placement)
  * or if nowhere to place, saved for placement later (that placement can be canceled).
  *<P>
@@ -38,7 +38,7 @@ import soc.util.SOCStringManager;
  *
  *<H3>The scenario-specific inventory items:</H3>
  *<UL>
- * <LI> {@link SOCGameOption#K_SC_FTRI SC_FTRI}: Trade ports received as gifts,
+ * <LI> {@link SOCGameOptionSet#K_SC_FTRI SC_FTRI}: Trade ports received as gifts,
  *      to be played and placed immediately if possible, or saved for later.
  *</UL>
  * For details on how a specific item is used, see its javadocs at {@link SOCGame#canPlayInventoryItem(int, int)}
@@ -48,7 +48,7 @@ import soc.util.SOCStringManager;
  *<UL>
  * <LI> Decide how and when the new kind of item will be played
  * <LI> Decide which scenario {@link SOCGameOption} will use the new kind of item
- *      (like {@link SOCGameOption#K_SC_FTRI}): All code and javadoc updates will check for
+ *      (like {@link SOCGameOptionSet#K_SC_FTRI}): All code and javadoc updates will check for
  *      or mention that game option. Update its javadoc to mention {@link SOCInventoryItem}
  * <LI> For user-visible item names, make and localize i18n key(s) and pass them into your constructor.
  *      Possibly update (or for a new subclass, override) {@link #getItemName(SOCGame, boolean, SOCStringManager)};
@@ -146,7 +146,7 @@ public class SOCInventoryItem
      *<P>
      * Currently recognizes and calls:
      *<UL>
-     * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade port:
+     * <LI> {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}: Trade port:
      *      {@link SOCBoard#getPortDescForType(int, boolean) SOCBoard.getPortDescForType(-type, withArticle)}
      *</UL>
      *<P>
@@ -166,7 +166,7 @@ public class SOCInventoryItem
         (final SOCGame ga, final int type, final boolean isPlayable, final boolean isKept,
          final boolean isVP, final boolean canCancel)
     {
-        if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             // items in this scenario are always trade ports
             return new SOCInventoryItem
@@ -188,7 +188,7 @@ public class SOCInventoryItem
      */
     public final static boolean isPlayForPlacement(final SOCGame ga, final int type)
     {
-        if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
             return true;
 
         // Fallback:
@@ -290,7 +290,7 @@ public class SOCInventoryItem
      * If you need something more dynamic, override this in your subclass.
      *
      * @param game  Game data, or {@code null}; some game options might change an item name.
-     *               For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
+     *               For example, {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
      * @param strings  StringManager to get i18n localized text
      * @return  The localized item name, formatted per {@code withArticle}

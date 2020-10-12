@@ -34,7 +34,7 @@ import soc.game.SOCBoard;  // for javadocs only
  * <LI> Param 2: Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)} <br>
  * <LI> Param 3: Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
  *</UL>
- * Used with game option/scenario {@link soc.game.SOCGameOption#K_SC_FOG SOCGameOption.K_SC_FOG}.
+ * Used with game option/scenario {@link soc.game.SOCGameOptionSet#K_SC_FOG SOCGameOptionSet.K_SC_FOG}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00

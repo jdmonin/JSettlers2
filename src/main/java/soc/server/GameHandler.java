@@ -20,6 +20,7 @@
 package soc.server;
 
 import soc.game.SOCGame;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.message.SOCGameState;
 import soc.message.SOCMessageForGame;
@@ -116,7 +117,7 @@ public abstract class GameHandler
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
      * Unless {@code isRejoinOrLoadgame}, announce {@link SOCJoinGame} client join event to other players.
      *<P>
-     * Assumes {@link SOCServer#connectToGame(Connection, String, java.util.Map, SOCGame)} was already called.
+     * Assumes {@link SOCServer#connectToGame(Connection, String, SOCGameOptionSet, SOCGame)} was already called.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * First message sent to connecting client is JOINGAMEAUTH, unless isReset.
      *<P>
@@ -139,7 +140,7 @@ public abstract class GameHandler
      *          is defunct/frozen because of a network problem. Also true when a human player joins a
      *          game being reloaded and has the same nickname as a player there.
      *          If {@code isRejoinOrLoadgame}, sends {@code c} their hand's private info for game in progress.
-     * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, java.util.Map)
+     * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)
      * @since 1.1.00
      */
     public abstract void joinGame

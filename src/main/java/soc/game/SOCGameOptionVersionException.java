@@ -26,7 +26,7 @@ import java.util.Map;        // for javadocs only
 /**
  * This exception indicates game option(s) too new for a client.
  * @see SOCVersionedItem#itemsMinimumVersion(Map)
- * @see SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)
+ * @see SOCGameOptionSet#optionsNewerThanVersion(int, boolean, boolean)
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.07
@@ -43,7 +43,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
 
     /**
      * The {@link SOCGameOption}(s) which are too new, as passed to constructor; may be {@code null}.
-     * Typically from {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}.
+     * Typically from {@link SOCGameOptionSet#optionsNewerThanVersion(int, boolean, boolean)}.
      */
     public final List<SOCGameOption> problemOptionsTooNew;
 
@@ -51,7 +51,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
      * @param optVers Minimum client version required by game options
      * @param cliVers Requesting client's version
      * @param optsValuesTooNew The {@link SOCGameOption}(s) which are too new,
-     *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Map)}
+     *     as returned by {@link SOCGameOptionSet#optionsNewerThanVersion(int, boolean, boolean)}
      */
     public SOCGameOptionVersionException(final int optVers, final int cliVers, final List<SOCGameOption> optsValuesTooNew)
     {

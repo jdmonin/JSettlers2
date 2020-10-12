@@ -24,6 +24,7 @@ package soc.message;
 import java.util.Map;
 import java.util.StringTokenizer;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 
 /**
  * This message from client is a request to create a new game with options;
@@ -57,10 +58,17 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
-    /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)} format. */
+    /**
+     * Packed game options if any, as created by
+     * {@link SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)}.
+     * Won't be null, even if opts is null, due to {@code packOptionsToString(..)} format.
+     */
     private String optsStr;
 
-    /** may be null */
+    /**
+     * Parsed game options, if any.
+     * May be null if {@link #getOptions(SOCGameOptionSet)} hasn't been called, or if optsStr is {@code "-"}
+     */
     private Map<String, SOCGameOption> opts;
 
     /**
@@ -72,23 +80,30 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      *     or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
+     *    {@link SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)}.
      */
     public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, String optstr)
     {
         super(nn, pw, hn, ga);
         messageType = NEWGAMEWITHOPTIONSREQUEST;
         optsStr = optstr;
-        opts = SOCGameOption.parseOptionsToMap(optstr);
+        opts = null;
     }
 
     /**
-     * @return the game options (map of {@link SOCGameOption}), or null;
-     *   does not parse optsStr.
+     * Get the parsed {@link SOCGameOption}s, if any.
+     * @param knownOpts  all Known Options
+     * @return the game options, or null
+     * @throws IllegalArgumentException if {@link SOCGameOption#parseOptionsToMap(String, SOCGameOptionSet)}
+     *     can't parse optsStr field
      */
-    public Map<String, SOCGameOption> getOptions()
+    public Map<String, SOCGameOption> getOptions(final SOCGameOptionSet knownOpts)
+        throws IllegalArgumentException
     {
-       return opts;
+        if (opts == null)
+            opts = SOCGameOption.parseOptionsToMap(optsStr, knownOpts);
+
+        return opts;
     }
 
     /**

@@ -28,6 +28,7 @@ import java.util.Map;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -205,7 +206,7 @@ import soc.message.SOCStartGame;
     /**
      * The player wants to send a simple request to the server, such as
      * {@link SOCSimpleRequest#SC_PIRI_FORT_ATTACK} to attack their
-     * pirate fortress in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * pirate fortress in scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      *<P>
      * Using network message request types within the client breaks abstraction,
      * but prevents having a lot of very similar methods for simple requests.
@@ -223,7 +224,7 @@ import soc.message.SOCStartGame;
     /**
      * The player wants to send a simple request to the server, such as
      * {@link SOCSimpleRequest#SC_PIRI_FORT_ATTACK} to attack their
-     * pirate fortress in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * pirate fortress in scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},
      * with optional {@code value1} and {@code value2} parameters.
      *<P>
      * Using network message request types within the client breaks abstraction,

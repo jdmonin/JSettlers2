@@ -23,13 +23,12 @@ package soctest.server;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.baseclient.ServerConnectInfo;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.message.*;
 import soc.server.genericServer.StringServerSocket;
 import soc.util.SOCFeatureSet;
@@ -65,7 +64,7 @@ public class DisplaylessTesterClient
      *   or {@link MessageHandler#handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions, boolean) handleNEWGAMEWITHOPTIONS}
      *   is called.
      */
-    protected SOCGameList serverGames = new SOCGameList();
+    protected SOCGameList serverGames = new SOCGameList(knownOpts);
 
     /** Treat inbound messages through this client's {@link SOCDisplaylessPlayerClient#run()} method. */
     protected Thread treaterThread;
@@ -180,7 +179,7 @@ public class DisplaylessTesterClient
     @Override
     protected void handleGAMESWITHOPTIONS(final SOCGamesWithOptions mes)
     {
-        serverGames.addGames(mes.getGameList(), Version.versionNumber());
+        serverGames.addGames(mes.getGameList(knownOpts), Version.versionNumber());
     }
 
     @Override
@@ -216,21 +215,20 @@ public class DisplaylessTesterClient
         gotPassword = true;
 
         String gameName = mes.getGame();
-
-        Map<String, SOCGameOption> opts = serverGames.parseGameOptions(gameName);
+        SOCGameOptionSet opts = serverGames.parseGameOptions(gameName);
 
         final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
         if ((bh != 0) || (bw != 0))
         {
             // Encode board size to pass through game constructor
             if (opts == null)
-                opts = new HashMap<String,SOCGameOption>();
-            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+                opts = new SOCGameOptionSet();
+            SOCGameOption opt = knownOpts.getKnownOption("_BHW", true);
             opt.setIntValue((bh << 8) | bw);
-            opts.put("_BHW", opt);
+            opts.put(opt);
         }
 
-        final SOCGame ga = new SOCGame(gameName, opts);
+        final SOCGame ga = new SOCGame(gameName, opts, knownOpts);
         ga.isPractice = isPractice;
         ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
         games.put(gameName, ga);

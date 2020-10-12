@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ package soc.game;
 
 /**
  * A fortress playing piece, used on the large sea board ({@link SOCBoardLarge}) with some scenarios.
- * Fortresses are in a game only if scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} is set.
+ * Fortresses are in a game only if scenario game option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} is set.
  *<P>
  * A player "owns" one fortress, but doesn't control it until after they have conquered the pirates
  * there and its {@link #getStrength()} is 0.  At that time it becomes a {@link SOCSettlement}.

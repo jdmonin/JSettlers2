@@ -23,8 +23,6 @@ package soctest.server.savegame;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -37,6 +35,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGame.SeatLockState;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
@@ -78,7 +77,7 @@ public class TestSavegame
     public void testSaveInitialPlacement()
         throws IOException
     {
-        final SOCGame ga = new SOCGame("basic", null);
+        final SOCGame ga = new SOCGame("basic", null, null);
         ga.addPlayer("p0", 0);
         ga.addPlayer("third", 3);
 
@@ -92,12 +91,12 @@ public class TestSavegame
     public void testSaveUnsupportedScenario()
         throws IOException
     {
-        final Map<String, SOCGameOption> opts = new HashMap<>();
-        SOCGameOption opt = SOCGameOption.getOption("SC", true);
+        final SOCGameOptionSet opts = new SOCGameOptionSet();
+        SOCGameOption opt = srv.knownOpts.getKnownOption("SC", true);
         opt.setStringValue(SOCScenario.K_SC_PIRI);
-        opts.put("SC", opt);
-        SOCGameOption.adjustOptionsToKnown(opts, null, true);  // add SC's scenario game opts
-        final SOCGame ga = new SOCGame("scen", opts);
+        opts.put(opt);
+        opts.adjustOptionsToKnown(srv.knownOpts, true);  // apply SC's scenario game opts
+        final SOCGame ga = new SOCGame("scen", opts, srv.knownOpts);
 
         UnsupportedSGMOperationException checkResult = null;
         try
@@ -118,7 +117,7 @@ public class TestSavegame
     public void testBasicSaveLoad()
         throws IOException
     {
-        final SOCGame gaSave = new SOCGame("basic", null);
+        final SOCGame gaSave = new SOCGame("basic", null, null);
         gaSave.addPlayer("p0", 0);
         gaSave.addPlayer("third", 3);
         assertFalse(gaSave.isSeatVacant(0));
@@ -167,7 +166,7 @@ public class TestSavegame
         throws IOException
     {
         final String GAME_NAME = "trades";
-        final SOCGame gaSave = new SOCGame(GAME_NAME, null);
+        final SOCGame gaSave = new SOCGame(GAME_NAME, null, null);
         gaSave.addPlayer("p0", 0);
         gaSave.addPlayer("third", 3);
 

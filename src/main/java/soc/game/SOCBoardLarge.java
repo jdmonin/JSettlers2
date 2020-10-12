@@ -45,12 +45,13 @@ import soc.util.IntPair;
  *<P>
  * To generate a new game's board layout, use subclass {@link soc.server.SOCBoardAtServer}.
  * Game boards are initially all water.  The layout contents are set up later by calling
- * {@code SOCBoardAtServer.makeNewBoard(Map)} when the game is about to begin,
+ * {@code SOCBoardAtServer.makeNewBoard(SOCGameOptionSet)} when the game is about to begin,
  * then sent to the clients over the network.  The client calls methods such as {@link #setLandHexLayout(int[])},
  * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
  * {@link #setLegalSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
- * See {@code SOCBoardAtServer}'s class javadoc, and its {@code makeNewBoard(Map)} javadoc, for more details on layout creation.
+ * See {@code SOCBoardAtServer}'s class javadoc, and its {@code makeNewBoard(SOCGameOptionSet)} javadoc,
+ * for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
@@ -258,11 +259,11 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed.
-     * Used with some scenarios (see {@link SOCGameOption#K_SC_FOG}).
+     * Used with some scenarios (see {@link SOCGameOptionSet#K_SC_FOG}).
      * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only at the server during
-     * {@link #makeNewBoard(Map)} before the board layout is finished and sent to the client.
+     * {@link #makeNewBoard(SOCGameOptionSet)} before the board layout is finished and sent to the client.
      *<P>
      * The numeric value (8) for <tt>FOG_HEX</tt> is the same as
      * the v1/v2 encoding's {@link SOCBoard#CLAY_PORT_HEX}, but the
@@ -552,7 +553,7 @@ public class SOCBoardLarge extends SOCBoard
      * Used by {@link #initPlayerLegalShips()}.
      * Updated in {@link #revealFogHiddenHex(int, int, int)} for {@link SOCBoard#WATER_HEX WATER_HEX}.
      *<P>
-     * With scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the legal edges vary per player
+     * With scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}, the legal edges vary per player
      * and are based on {@code SOCBoardAtServer.PIR_ISL_SEA_EDGES}, so {@code legalShipEdges}
      * is empty.
      *
@@ -640,15 +641,15 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * This board layout's number of ports;
-     * 0 if {@link #makeNewBoard(Map)} hasn't been called yet.
+     * 0 if {@link #makeNewBoard(SOCGameOptionSet)} hasn't been called yet.
      * Port types, edges and facings are all stored in {@link SOCBoard#portsLayout}.
      */
     protected int portsCount;
 
     /**
-     * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Map)}.
+     * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(SOCGameOptionSet)}.
      * Once the pirate is placed on the board it can't be removed (cannot become 0 again),
-     * except in scenario {@link SOCGameOption#K_SC_PIRI} when the pirate fleet is defeated
+     * except in scenario {@link SOCGameOptionSet#K_SC_PIRI} when the pirate fleet is defeated
      * (see {@link soc.server.SOCBoardAtServer#movePirateHexAlongPath(int)}).
      */
     protected int pirateHex;
@@ -666,13 +667,14 @@ public class SOCBoardLarge extends SOCBoard
      * for how the board is filled when the game begins.
      * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be default 4, or 6 from SOCGameOption "PL" &gt; 4 or "PLB"
-     * @param boardHeightWidth  Board's height and width. Caller can use convenience method {@link #getBoardSize(Map)}
-     *     to either get default size ({@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE})
+     * @param boardHeightWidth  Board's height and width. Caller can use convenience method
+     *     {@link #getBoardSize(SOCGameOptionSet)} to either get default size
+     *     ({@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE})
      *     or extract from {@link SOCGameOption} "_BHW".
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
     public SOCBoardLarge
-        (final Map<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
+        (final SOCGameOptionSet gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
         super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
@@ -724,9 +726,9 @@ public class SOCBoardLarge extends SOCBoard
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be default 4, or 6 from game option "PL" &gt; 4 or "PLB".
      * @return a new IntPair(height, width)
-     * @see soc.server.SOCBoardAtServer#getBoardSize(Map, int)
+     * @see soc.server.SOCBoardAtServer#getBoardSize(SOCGameOptionSet, int)
      */
-    public static IntPair getBoardSize(final Map<String, SOCGameOption> gameOpts)
+    public static IntPair getBoardSize(final SOCGameOptionSet gameOpts)
     {
         SOCGameOption bhwOpt = null;
         if (gameOpts != null)
@@ -761,7 +763,7 @@ public class SOCBoardLarge extends SOCBoard
      * @throws UnsupportedOperationException if called at client
      */
     @Override
-    public void makeNewBoard(final Map<String, SOCGameOption> opts)
+    public void makeNewBoard(final SOCGameOptionSet opts)
         throws UnsupportedOperationException
     {
         throw new UnsupportedOperationException("Use SOCBoardAtServer instead");
@@ -1262,7 +1264,7 @@ public class SOCBoardLarge extends SOCBoard
      *         <P>
      *         A board's {@code "VS"} is determined at its creation using only the scenario/options and player count,
      *         and doesn't vary based on the specific layout details randomly generated later
-     *         at {@link SOCGame#startGame()}. See {@link soc.server.SOCBoardAtServer#getBoardShift(Map)}.
+     *         at {@link SOCGame#startGame()}. See {@link soc.server.SOCBoardAtServer#getBoardShift(SOCGameOptionSet)}.
      *</UL>
      * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
      * edges may change.  The server announces each change with a
@@ -1271,7 +1273,8 @@ public class SOCBoardLarge extends SOCBoard
      *<H3>Adding a Layout Part:</H3>
      *
      * If you add a Layout Part, add it to this javadoc; {@link soc.message.SOCBoardLayout2} class javadoc
-     * and its {@code KNOWN_KEYS}. Add it to the board layout in {@link soc.server.SOCBoardAtServer#makeNewBoard(Map)}.
+     * and its {@code KNOWN_KEYS}. Add it to the board layout
+     * in {@link soc.server.SOCBoardAtServer#makeNewBoard(SOCGameOptionSet)}.
      * Check its value in relevant methods of the board, server, and client classes like {@link soc.client.SOCBoardPanel}.
      * Consider search the code for a similar part, to see where else to add.
      *<P>
@@ -1359,7 +1362,7 @@ public class SOCBoardLarge extends SOCBoard
      * when the player claims such an item.  It's declared here in SOCBoardLarge instead of
      * {@code SOCBoardAtServer} so that game methods can call it without importing the server-side class.
      *<P>
-     * In {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, each item is a {@link SOCDevCardConstants} card type.
+     * In {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}, each item is a {@link SOCDevCardConstants} card type.
      *
      * @return The next item from the stack, or {@code null} if empty or unused
      * @throws UnsupportedOperationException if called at client
@@ -1371,7 +1374,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
      * Port's facing direction is calculated by checking {@code edge}'s adjacent hexes for land and water;
      * if a hex is off the edge of the board, it's considered water.
      *<P>
@@ -1430,7 +1433,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * For game scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},
      * move the pirate fleet's position along its path.
      *<P>
      * This is called at server, but not at client; client instead calls {@link #setPirateHex(int, boolean)}.
@@ -1449,7 +1452,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Set where the pirate is, or take the pirate off the board.
      *<P>
-     * For scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the
+     * For scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}, the
      * server should call {@link #movePirateHexAlongPath(int)}
      * instead of directly calling this method.
      *<P>
@@ -1568,7 +1571,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Given a hex coordinate / hex number, return the (dice-roll) number on that hex.
      * Water, desert, and fog hexes have 0 for their dice numbers. So do land hexes without dice numbers,
-     * as seen in some scenario layouts like {@link SOCGameOption#K_SC_FTRI SC_FTRI}.
+     * as seen in some scenario layouts like {@link SOCGameOptionSet#K_SC_FTRI SC_FTRI}.
      *
      * @param hex  the coordinates for a hex, or -1 if invalid
      *
@@ -1922,7 +1925,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get the village and cloth layout, for sending from server to client
-     * for scenario game option {@link SOCGameOption#K_SC_CLVI}.
+     * for scenario game option {@link SOCGameOptionSet#K_SC_CLVI}.
      *<P>
      * Index 0 is the board's "general supply" cloth count {@link #getCloth()}.
      * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
@@ -1954,7 +1957,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * For {@link #makeNewBoard(Map)}, with the {@link SOCGameOption#K_SC_CLVI Cloth Village} scenario,
+     * For {@link #makeNewBoard(SOCGameOptionSet)}, with the {@link SOCGameOptionSet#K_SC_CLVI Cloth Village} scenario,
      * create {@link SOCVillage}s at these node locations.  Adds to {@link #villages}.
      * Also set the board's "general supply" of cloth ({@link #setCloth(int)}).
      * @param villageNodesAndDice  Starting cloth count and each village's node coordinate and dice number,
@@ -1982,7 +1985,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Get the {@link SOCVillage}s on the board, for scenario game option {@link SOCGameOption#K_SC_CLVI}.
+     * Get the {@link SOCVillage}s on the board, for scenario game option {@link SOCGameOptionSet#K_SC_CLVI}.
      * Treat the returned data as read-only.
      * @return  villages, or null
      * @see #getVillageAtNode(int)
@@ -2250,7 +2253,7 @@ public class SOCBoardLarge extends SOCBoard
      * Contains 3 int elements per land hex:
      * Coordinate, Hex type (resource, as in {@link #SHEEP_HEX}), Dice Number (0 for desert, fog, water).
      * 0 is also the Dice Number for land hexes without dice numbers, as seen in some scenario layouts
-     * like {@link SOCGameOption#K_SC_FTRI SC_FTRI}.
+     * like {@link SOCGameOptionSet#K_SC_FTRI SC_FTRI}.
      * @return the layout, or null if no land hexes.
      * @see #setLandHexLayout(int[])
      */
@@ -2282,7 +2285,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * After calling this, please call
      * {@link SOCGame#setPlayersLandHexCoordinates() game.setPlayersLandHexCoordinates()}.
-     * After {@link #makeNewBoard(Map)} calculates the potential/legal settlements,
+     * After {@link #makeNewBoard(SOCGameOptionSet)} calculates the potential/legal settlements,
      * call each player's {@link SOCPlayer#setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}.
      * @param  lh  the layout, or null if no land hexes, built by server's call to {@link #getLandHexLayout()}
      */
@@ -2338,7 +2341,7 @@ public class SOCBoardLarge extends SOCBoard
      * Get the starting land area, if multiple "land areas" are used
      * and the players must start the game in a certain land area.
      *<P>
-     * This is enforced during {@link #makeNewBoard(Map)}, by using
+     * This is enforced during {@link #makeNewBoard(SOCGameOptionSet)}, by using
      * that land area for the only initial potential/legal settlement locations.
      *
      * @return the starting land area number; also its index in
@@ -2385,7 +2388,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Get the legal settlement nodes, after {@link #makeNewBoard(Map)}.
+     * Get the legal settlement nodes, after {@link #makeNewBoard(SOCGameOptionSet)}.
      * For use mainly by SOCGame at server, and SOCPlayer at client when joining a game.
      *<P>
      * At the client, this returns an empty set if
@@ -2428,7 +2431,7 @@ public class SOCBoardLarge extends SOCBoard
      * See {@link SOCPlayer#setRestrictedLegalShips(int[])}
      * and {@link soc.server.SOCBoardAtServer#getLegalSeaEdges(SOCGame) SOCBoardAtServer.getLegalSeaEdges(SOCGame)}.
      *<P>
-     * Server doesn't need to call this method, because {@code SOCBoardAtServer.makeNewBoard(Map)}
+     * Server doesn't need to call this method, because {@code SOCBoardAtServer.makeNewBoard(SOCGameOptionSet)}
      * sets the contents of the same data structures.
      *
      * @param psNodes  If {@code lan} == null, the set of potential settlement node coordinates as {@link Integer}s;
@@ -2483,7 +2486,7 @@ public class SOCBoardLarge extends SOCBoard
      * Create and initialize a {@link SOCPlayer}'s legalRoads set.
      *<P>
      * Because the v3 board layout varies:
-     * At the server, call this after {@link #makeNewBoard(Map)}.
+     * At the server, call this after {@link #makeNewBoard(SOCGameOptionSet)}.
      * At the client, call this after {@link #setLegalSettlements(Collection, int, HashSet[])}.
      *
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
@@ -2501,7 +2504,7 @@ public class SOCBoardLarge extends SOCBoard
      * Contains all 6 edges of each water hex.
      *<P>
      * Because the v3 board layout varies:
-     * At the server, call this after {@link #makeNewBoard(Map)}.
+     * At the server, call this after {@link #makeNewBoard(SOCGameOptionSet)}.
      * At the client, call this after {@link #setLegalSettlements(Collection, int, HashSet[])}.
      *
      * @return the set of legal edge coordinates for ships, as a new Set of {@link Integer}s
@@ -3987,12 +3990,12 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
      * can a "gift" port at this edge be removed for placement elsewhere?
      *<P>
      * A port can't be removed from a Land Area where the player can place settlements.
      * So, must be in no land area (LA == 0), or in {@link #getPlayerExcludedLandAreas()}.
-     * Does not check whether {@link SOCGameOption#K_SC_FTRI} is set.
+     * Does not check whether {@link SOCGameOptionSet#K_SC_FTRI} is set.
      *
      * @param edge  Port's edge coordinate
      * @return  True if that edge has a port which can be removed
@@ -4042,7 +4045,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
      * remove a "gift" port at this edge for placement elsewhere.
      *<P>
      * Assumes {@link #canRemovePort(int)} has already been called to validate.

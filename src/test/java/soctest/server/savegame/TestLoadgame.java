@@ -26,7 +26,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
@@ -35,6 +34,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGame.SeatLockState;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -309,7 +309,7 @@ public class TestLoadgame
         assertEquals("gamestate", SOCGame.LOADING, ga.getGameState());
         assertEquals("BC=t4,N7=t7,PL=4,RD=f", sgm.gameOptions);
         {
-            final Map<String, SOCGameOption> opts = ga.getGameOptions();
+            final SOCGameOptionSet opts = ga.getGameOptions();
             assertEquals(4, opts.size());
 
             SOCGameOption opt = opts.get("BC");

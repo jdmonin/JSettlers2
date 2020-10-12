@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCInventory;   // for javadocs only
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -614,13 +614,13 @@ public interface PlayerClientListener
          */
         GoldGains,
 
-        /** Number of Warships built, in {@link SOCGameOption#K_SC_PIRI _SC_PIRI} scenario */
+        /** Number of Warships built, in {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} scenario */
         Warship,
 
-        /** Cloth Count update, in {@link SOCGameOption#K_SC_CLVI _SC_CLVI} scenario */
+        /** Cloth Count update, in {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} scenario */
         Cloth,
 
-        /** Wonder build level, in {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario */
+        /** Wonder build level, in {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario */
         WonderLevel,
 
         VictoryPoints,

@@ -36,7 +36,7 @@ import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
@@ -422,7 +422,7 @@ public class SOCGameMessageHandler
                 /** if true but noPlayersGained, will change announcement wording from "No player gets anything". */
                 boolean someoneWonFreeRsrc = false;
 
-                if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
                 {
                     // pirate moves on every roll
                     srv.messageToGame(gn, true, new SOCMoveRobber
@@ -450,7 +450,7 @@ public class SOCGameMessageHandler
                             } else {
                                 // use same resource-loss messages sent in handleDISCARD
 
-                                if (ga.isGameOptionSet(SOCGameOption.K_PLAY_FO))
+                                if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
                                 {
                                     // fully observable: announce to everyone
                                     handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, null);
@@ -766,7 +766,7 @@ public class SOCGameMessageHandler
                 // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
 
                 final int numRes = res.getTotal();
-                if (ga.isGameOptionSet(SOCGameOption.K_PLAY_FO))
+                if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
                 {
                     // fully observable: announce to everyone
                     handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, null);
@@ -2613,7 +2613,8 @@ public class SOCGameMessageHandler
                     if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                     {
                         final int ctypeToOthers =
-                            (ga.isGameOptionSet(SOCGameOption.K_PLAY_FO) || ga.isGameOptionSet(SOCGameOption.K_PLAY_VPO))
+                            (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO)
+                             || ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO))
                             ? card
                             : SOCDevCardConstants.UNKNOWN;
 
@@ -2758,7 +2759,7 @@ public class SOCGameMessageHandler
                 {
                 case SOCDevCardConstants.KNIGHT:
                     {
-                    final boolean isWarshipConvert = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                    final boolean isWarshipConvert = ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
 
                     if (ga.canPlayKnight(pn))
                     {

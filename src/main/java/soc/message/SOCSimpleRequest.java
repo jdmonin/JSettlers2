@@ -22,7 +22,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;  // for javadocs only
-import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 
 /**
  * This generic message handles a simple request from a client player in a game,
@@ -85,7 +85,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      * {@code value1} = number of resources the client must pick.
      * Client should respond with {@link SOCPickResources}.
      *<P>
-     * Also used in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}
+     * Also used in scenario {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI}
      * when player wins a free resource for defeating the
      * pirate fleet attack during a dice roll.
      *<P>
@@ -95,7 +95,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     public static final int PROMPT_PICK_RESOURCES = 1;
 
     /**
-     * The current player wants to attack their pirate fortress (scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
+     * The current player wants to attack their pirate fortress (scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}).
      * Value1 and value2 are unused.  If client can attack, server responds with
      * {@link SOCSimpleAction#SC_PIRI_FORT_ATTACK_RESULT} and related messages (see that type's javadoc).
      * Otherwise, server responds with the standard SOCSimpleRequest denial:
@@ -110,7 +110,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     /**
      * The current player wants to place a trade port they've been given.
      * This typically happens at some point after {@link SOCSimpleAction#TRADE_PORT_REMOVED}
-     * in scenario {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * in scenario {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      *<P>
      * In state {@link SOCGame#PLACING_INV_ITEM}, player sends this with an edge coordinate where
      * they want to place the port. {@code value1} = the edge coordinate, value2 is unused.

@@ -23,14 +23,14 @@ package soc.message;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 
-import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 
 
 /**
  * This message from server to a client prompts that player to choose another
  * player to steal from.  The client responds with {@link SOCChoosePlayer}.
  *<P>
- * In some game scenarios like {@link SOCGameOption#K_SC_PIRI SC_PIRI},
+ * In some game scenarios like {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI},
  * the player might have the option to not steal from anyone: Message will
  * have its {@link #canChooseNone()} flag set.
  * If the player makes that choice, their response to server is {@link SOCChoosePlayer}

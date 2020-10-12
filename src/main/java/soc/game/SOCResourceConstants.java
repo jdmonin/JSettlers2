@@ -61,7 +61,7 @@ public class SOCResourceConstants
      * for per-resource-type arrays that contain {@link #CLAY} through {@link #WOOD}
      * but don't contain {@code UNKNOWN}.
      *<P>
-     * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO} is set:
+     * Before sending this from server, check if game option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO} is set:
      * May want to send as known resource type instead.
      *<P>
      * Same numeric value as {@link #GOLD_LOCAL}.
@@ -83,7 +83,7 @@ public class SOCResourceConstants
     /**
      * Some code, internal to the <tt>soc.game</tt> or <tt>soc.server</tt> packages,
      * uses this value (7) to represent stolen cloth ({@link SOCPlayer#getCloth()})
-     * for scenario game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     * for scenario game option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}.
      *<P>
      * Cloth is not a resource, and <tt>CLOTH_STOLEN_LOCAL</tt> should not be sent
      * over the network or used for anything except internally reporting stolen cloth.

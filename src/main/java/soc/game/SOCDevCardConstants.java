@@ -78,8 +78,8 @@ public interface SOCDevCardConstants
      * Dev card of unknown type, for reporting to other players.
      * Lower than {@link #MIN_KNOWN}.
      *<P>
-     * Before sending this from server, check if game option {@link SOCGameOption#K_PLAY_FO PLAY_FO}
-     * or {@link SOCGameOption#K_PLAY_VPO PLAY_VPO} is set.
+     * Before sending this from server, check if game option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO}
+     * or {@link SOCGameOptionSet#K_PLAY_VPO PLAY_VPO} is set.
      */
     public static final int UNKNOWN = 0;
 

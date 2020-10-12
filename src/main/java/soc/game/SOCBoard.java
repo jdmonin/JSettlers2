@@ -28,18 +28,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 
 /**
  * This is a representation of the board in Settlers of Catan.
- * Board initialization is done in {@link #makeNewBoard(Map)}; that method
+ * Board initialization is done in {@link #makeNewBoard(SOCGameOptionSet)}; that method
  * has some internal comments on structures, coordinates, layout and values.
  *<P>
  * Because some game variants may need different board layouts or features,
  * you will need a subclass of SOCBoard like {@link SOCBoardLarge}: Use
- * {@link SOCBoard.BoardFactory#createBoard(Map, boolean, int)}
+ * {@link SOCBoard.BoardFactory#createBoard(SOCGameOptionSet, boolean, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
@@ -501,7 +500,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * Port information; varies by board layout encoding format.
-     * Initialized in {@link #makeNewBoard(Map)} if not <tt>null</tt>.
+     * Initialized in {@link #makeNewBoard(SOCGameOptionSet)} if not <tt>null</tt>.
      *<UL>
      *<LI> v1: Not used in the original board, these are part of {@link #hexLayout} instead,
      *         and this field is <tt>null</tt>.
@@ -593,7 +592,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * translate node ID (node coordinate) to a port's type ({@link #MISC_PORT} to {@link #WOOD_PORT}).
-     * Initialized in {@link #makeNewBoard(Map)}.
+     * Initialized in {@link #makeNewBoard(SOCGameOptionSet)}.
      * Key = node coordinate as Integer; value = port type as Integer.
      * If the node ID isn't present, that coordinate isn't a valid port on the board.
      * @see #ports
@@ -630,7 +629,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     private final static int[] NODE_2_AWAY = { -9, 0x02, 0x22, 0x20, -0x02, -0x22, -0x20 };
 
     /**
-     * the hex coordinate that the robber is in, or -1; placed on desert in {@link #makeNewBoard(Map)}.
+     * the hex coordinate that the robber is in, or -1; placed on desert in {@link #makeNewBoard(SOCGameOptionSet)}.
      * Once the robber is placed on the board, it cannot be removed (cannot become -1 again).
      */
     private int robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
@@ -738,14 +737,14 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * Create a new Settlers of Catan Board, with the v1 or v2 encoding.
      * (For the v3 encoding, instead use a {@link SOCBoardLarge} constructor.)
-     * @param gameOpts  if game has options, map of {@link SOCGameOption}; otherwise null.
+     * @param gameOpts  Game's {@link SOCGameOption}s, if any; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
      * @param boardEncodingFmt  A format constant in the currently valid range:
      *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
-     * @see BoardFactory#createBoard(Map, boolean, int)
+     * @see BoardFactory#createBoard(SOCGameOptionSet, boolean, int)
      */
-    protected SOCBoard(Map<String, SOCGameOption> gameOpts, final int maxPlayers, final int boardEncodingFmt)
+    protected SOCBoard(SOCGameOptionSet gameOpts, final int maxPlayers, final int boardEncodingFmt)
         throws IllegalArgumentException
     {
         this(boardEncodingFmt, MAX_LAND_HEX);
@@ -867,7 +866,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *          the same as passed to constructor, and thus give the same size and layout
      *          (same {@link #getBoardEncodingFormat()}).
      */
-    public void makeNewBoard(final Map<String, SOCGameOption> opts)
+    public void makeNewBoard(final SOCGameOptionSet opts)
     {
         final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
@@ -915,12 +914,13 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * For {@link #makeNewBoard(Map)}, place the land hexes, number, and robber,
+     * For {@link #makeNewBoard(SOCGameOptionSet)}, place the land hexes, number, and robber,
      * after shuffling landHex[].
      * Sets robberHex, contents of hexLayout[] and numberLayout[].
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
-     * Called from {@link #makeNewBoard(Map)} at server only; client has its board layout sent from the server.
+     * Called from {@link #makeNewBoard(SOCGameOptionSet)} at server only;
+     * client has its board layout sent from the server.
      *<P>
      * This method does not clear out {@link #hexLayout} or {@link #numberLayout}
      * before it starts placement.  Since hexLayout's land hex coordinates are hardcoded within
@@ -1326,7 +1326,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * <b>Note:</b> If your board is board layout v3 ({@link SOCBoardLarge}):
      * Because the v3 board layout varies:
-     * At the server, call this after {@link #makeNewBoard(Map)}.
+     * At the server, call this after {@link #makeNewBoard(SOCGameOptionSet)}.
      * At the client, call this after {@link SOCBoardLarge#setLegalSettlements(java.util.Collection, int, HashSet[])}.
      * See override {@link SOCBoardLarge#initPlayerLegalRoads()}.
      *
@@ -1407,7 +1407,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * to <tt>player.potentialSettlements</tt>.
      *<P>
      * For v3 ({@link SOCBoardLarge}), the potentials may be only a subset of
-     * <tt>legalSettlements</tt>; after {@link #makeNewBoard(Map)}, call
+     * <tt>legalSettlements</tt>; after {@link #makeNewBoard(SOCGameOptionSet)}, call
      * {@link SOCBoardLarge#getLegalSettlements()} instead of this method.
      *<P>
      * Previously part of {@link SOCPlayer}, but moved here in version 1.1.12
@@ -1724,10 +1724,10 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * Get the number of ports on this board.  The original and 6-player
      * board layouts each have a constant number of ports.  The v3 layout
      * ({@link #BOARD_ENCODING_LARGE}) has a varying amount of ports,
-     * set during {@link #makeNewBoard(Map)}.
+     * set during {@link #makeNewBoard(SOCGameOptionSet)}.
      *
      * @return the number of ports on this board; might be 0 if
-     *   {@link #makeNewBoard(Map)} hasn't been called yet.
+     *   {@link #makeNewBoard(SOCGameOptionSet)} hasn't been called yet.
      * @since 2.0.00
      */
     public abstract int getPortsCount();
@@ -2084,7 +2084,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *       Can specify non-default board size with game option {@code "_BHW"}.
      *</UL>
      * @return board coordinate-encoding format, from the list above
-     * @see SOCBoard.BoardFactory#createBoard(Map, boolean, int)
+     * @see SOCBoard.BoardFactory#createBoard(SOCGameOptionSet, boolean, int)
      * @since 1.1.06
      */
     public int getBoardEncodingFormat()
@@ -3314,7 +3314,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         SOCBoard createBoard
-            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            (final SOCGameOptionSet gameOpts, final boolean largeBoard, final int maxPlayers)
             throws IllegalArgumentException;
 
     }  // nested class BoardFactory
@@ -3338,7 +3338,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         public static SOCBoard staticCreateBoard
-            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            (final SOCGameOptionSet gameOpts, final boolean largeBoard, final int maxPlayers)
             throws IllegalArgumentException
         {
             if (! largeBoard)
@@ -3364,7 +3364,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
          */
         public SOCBoard createBoard
-            (final Map<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            (final SOCGameOptionSet gameOpts, final boolean largeBoard, final int maxPlayers)
             throws IllegalArgumentException
         {
             return staticCreateBoard(gameOpts, largeBoard, maxPlayers);

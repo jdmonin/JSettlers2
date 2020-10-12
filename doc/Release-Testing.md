@@ -77,7 +77,7 @@ When preparing to release a new version, testing should include:
       - Join one as observer; pause should be shorter than normal games
       - View Game Info of each; should be a mix of 4- and 6-player, classic and sea board
 - New features in previous 2 versions from [Versions.md](Versions.md)
-- Each available game option
+- Each available Game Option
     - For house rule game opt "6-player board: Can Special Build only if 5 or 6 players in game",  
       also test latest server version against client v2.2.00 or older:
         - Client can create a game with this option, 4 players, on 6-player board
@@ -352,7 +352,7 @@ When preparing to release a new version, testing should include:
          - Again have each client player note the current legals/potentials, leave and reconnect
            during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
-    - Versions to test against: **1.1.06** (before Game Options); **1.1.11** (has 6-player option and client bugfixes);
+    - Versions to test against: **1.1.06** (before Game Options); **1.1.11** (has client bugfixes, 6-player board);
       **1.2.01** (newest 1.x, before Scenarios/sea boards); **2.0.00** (many message format changes, i18n)
     - New client, old server
         - If server is >= 1.1.09 but older than 1.1.19, add property at end of command line: `-Djsettlers.startrobots=5`
@@ -432,11 +432,12 @@ When preparing to release a new version, testing should include:
       `-Djsettlers.debug.traffic=Y -Djsettlers.locale=en_US`  
       Message traffic will be shown in the terminal/client output.
     - Test client newer than server:
-        - Build server JAR as usual, make temp copy of it, and start the temp copy (has the actual current version number)
+        - Build server JAR as usual, make temp copy of it, and start the temp copy (which has the actual current version number)
         - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v+1 back-compat" and `SC_TSTNO` "New: v+1 only"  
           Update their version parameters to current versionnum and current + 1. Example:  
-          `("SC_TSTNC", 2000, 2001, ...)`
-        - In `SOCGameOption.initAllOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
+          `("SC_TSTNC", 2000, 2001, ...)`  
+          `("SC_TSTNO", 2001, 2001, ...)`
+        - In `SOCGameOptionSet.getAllKnownOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
           Update its version parameters to current versionnum and current + 1. Example:  
           `("DEBUGBOOL", 2000, 2001, false, ...)`
         - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2000 -> 2001, 2.0.00 -> 2.0.01
@@ -448,7 +449,7 @@ When preparing to release a new version, testing should include:
           - Client's `SOCGameOptionGetInfos` for DEBUGBOOL
           - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
         - Click "New Game"
-        - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
+        - In message traffic, should see a `SOCScenarioInfo` with `lastModVers=MARKER_KEY_UNKNOWN` for each of the 2 new scenarios, + 1 more to end the list of Infos
         - The "new" items are unknown at server: New Game dialog shouldn't have DEBUGBOOL,
           its Scenario dropdown shouldn't have the 2 test scenarios
         - Quit client and server
@@ -459,10 +460,10 @@ When preparing to release a new version, testing should include:
           `gamescen.SC_TSTNC.n = test-localizedname-es`  
         - Build server JAR and start a server from it (has the "new" version number);  
           use `gradle assemble` here to skip the usual unit tests
-        - Reset `version.info`, `toClient_es.properties`, `SOCGameOption.initAllOptions()`,
+        - Reset `version.info`, `toClient_es.properties`, `SOCGameOptionSet.getAllKnownOptions()`,
           and `SOCScenario.initAllScenarios()` to their actual versions (2001 -> 2000, re-comment, etc)
         - Build and launch client (at actual version)
-        - Connect to server
+        - Connect to "newer" server
         - Message traffic should include:
           - Client's generic `SOCGameOptionGetInfos` asking if any changes
           - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
@@ -477,7 +478,7 @@ When preparing to release a new version, testing should include:
         - Quit & re-launch 2nd client, connect to server
         - Join that game
         - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's scenario
-        - Within game, second client's "Game Info" dialog should show scenario info
+        - Within game, second client's "Options" dialog should show scenario info
         - Quit 2nd client. Keep server and 1st client running
     - Test i18n (server still newer than client):
         - Launch another client, with a locale: `-Djsettlers.debug.traffic=Y -Djsettlers.locale=es`
@@ -635,7 +636,7 @@ When preparing to release a new version, testing should include:
         - Start that game (with the two human players)
         - After initial placement, have one player leave
         - Server should tell game it can't find a robot
-    - SOCGameOption negotiation when connecting client has limited features:
+    - Game Option negotiation when connecting client has limited features:
         - Start a standard server using its jar (not the IDE)
         - Start a client, limited by using vm property `-Djsettlers.debug.client.features=;6pl;` and connect
 	  - Click New Game; dialog shouldn't show scenarios or sea board game options,
@@ -651,8 +652,9 @@ When preparing to release a new version, testing should include:
           - During initial placement, exit the client
         - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2400 -> 2401, 2.4.00 -> 2.4.01
         - Repeat those 2 client tests with client at that "new" version; should behave the same as above
-        - Repeat those 2 client tests with previous release's client jar; should behave the same as above
-        - Exit server and reset `version.info` to the actual versions (2401 -> 2400, etc)
+        - Reset `version.info` to the actual versions (2401 -> 2400, etc)
+        - Repeat those 2 client tests with previous release's client jar (2.3.00); should behave the same as above
+        - Exit server
 - Saving and loading games at server
     - Basics
         - Start server with debug user enabled, but not savegame feature: command-line arg `-Djsettlers.allow.debug=Y`
@@ -723,7 +725,7 @@ When preparing to release a new version, testing should include:
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
     - Start client w/ no args, start client with host & port on command line
-    - Game option defaults
+    - Game option default values
         - On command line: `-oVP=t11 -oN7=t5 -oRD=y`
         - In `jsserver.properties`:
 

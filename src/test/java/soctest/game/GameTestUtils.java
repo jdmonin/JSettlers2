@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,10 +20,9 @@
 
 package soctest.game;
 
-import java.util.Map;
-
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.server.SOCBoardAtServer;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
@@ -39,14 +38,14 @@ public abstract class GameTestUtils
     /**
      * Create a game with the given player count, with optional scenario and options.
      * Parses options, asserts options != {@code null} and that no problems were found by
-     * {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}.
-     * Calls {@link SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)}.
+     * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}.
+     * Calls {@link SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, soc.server.GameHandler)}.
      * Asserts created game != {@code null}.
      *<P>
      * Next steps for caller to use this game:
      *<UL>
      * <LI> Call {@link SOCGame#addPlayer(String, int)} for at least one player seat number
-     * <LI> Call {@link SOCGame#startGame()}, which will also call {@link SOCBoardAtServer#makeNewBoard(Map)}
+     * <LI> Call {@link SOCGame#startGame()}, which will also call {@link SOCBoardAtServer#makeNewBoard(SOCGameOptionSet)}
      * <LI> Call {@link SOCBoardAtServer#startGame_scenarioSetup(SOCGame)}
      * <LI> Test as needed.
      * <LI> When done, call {@link SOCGameListAtServer#deleteGame(String) gl.deleteGame(ga.getName())}
@@ -64,16 +63,17 @@ public abstract class GameTestUtils
         (final int pl, final String scName, final String otherOpts, String gaName,
         final SOCGameListAtServer gl, final SOCGameHandler sgh)
     {
+        final SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
         if (gaName == null)
             gaName = "testGame";
 
         final String optsStr =
             ("PL=" + pl + ((scName != null) ? ",SC=" + scName : "")
              + ((otherOpts != null) ? "," + otherOpts : ""));
-        final Map<String, SOCGameOption> gaOpts = SOCGameOption.parseOptionsToMap(optsStr);
+        final SOCGameOptionSet gaOpts = SOCGameOption.parseOptionsToSet(optsStr, knownOpts);
         assertNotNull("Unexpected problems with scenario option string: " + optsStr, gaOpts);
         assertNull("Unexpected problems with scenario options",
-            SOCGameOption.adjustOptionsToKnown(gaOpts, null, true));
+            gaOpts.adjustOptionsToKnown(knownOpts, true));
                 // this same pre-check is done by TestScenarioOpts.testAllScenarios()
 
         gl.createGame(gaName, "test", "en_US", gaOpts, sgh);

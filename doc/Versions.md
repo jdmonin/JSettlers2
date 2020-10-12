@@ -61,6 +61,7 @@ JARs for recent JSettlers versions can be downloaded from
 	      which might not be known by all currently connected clients/servers at the same version
 	        - When connecting, client must ask server if it knows about all such gameopts, regardless of version
 	        - Associated with a given client feature; server looks for feature when a client connects
+	    - Refactored option maps to SOCGameOptionSet
 	    - Robot clients no longer ignore game option info sync messages
 	    - SGH.calcGameClientFeaturesRequired checks each gameopt for features
 - Server:

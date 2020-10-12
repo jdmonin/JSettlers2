@@ -133,7 +133,8 @@ public class SavedGameModel
      *      Can still read them as ints if needed. Pieces also omit writing specialVP field unless != 0,
      *      {@link SOCShip} omits isClosed field unless true.
      * <LI> Simple scenario support: Can save and load scenarios which have only a board layout and
-     *      optionally game option {@link SOCGameOption#K_SC_SANY _SC_SANY} or {@link SOCGameOption#K_SC_SEAC _SC_SEAC},
+     *      optionally game option {@link SOCGameOptionSet#K_SC_SANY _SC_SANY}
+     *      or {@link SOCGameOptionSet#K_SC_SEAC _SC_SEAC},
      *      no other scenario game opts (option names starting with "_SC_").
      *      Sets PlayerElements {@link PEType#SCENARIO_SVP SCENARIO_SVP},
      *      {@link PEType#SCENARIO_SVP_LANDAREAS_BITMASK SCENARIO_SVP_LANDAREAS_BITMASK}.
@@ -334,7 +335,7 @@ public class SavedGameModel
      *     ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text
      *     like "a unique resource type": Put a try-catch around your attempt to localize that key.
      *     Optional localization params are {@link UnsupportedSGMOperationException#param1} and {@code param2}.
-     * @see #checkCanLoad()
+     * @see #checkCanLoad(SOCGameOptionSet)
      */
     public static void checkCanSave(final SOCGame ga)
         throws UnsupportedSGMOperationException
@@ -361,14 +362,14 @@ public class SavedGameModel
      * @return {@code null} if no problems, or the name of the first-seen unsupported option
      * @since 2.4.00
      */
-    private static String checkUnsupportedScenOpts(final Map<String, SOCGameOption> opts)
+    private static String checkUnsupportedScenOpts(final SOCGameOptionSet opts)
     {
         if (opts == null)
             return null;
 
         for (final String okey : opts.keySet())
             if (okey.startsWith("_SC_")
-                && ! (okey.equals(SOCGameOption.K_SC_SEAC) || okey.equals(SOCGameOption.K_SC_SANY)))
+                && ! (okey.equals(SOCGameOptionSet.K_SC_SEAC) || okey.equals(SOCGameOptionSet.K_SC_SANY)))
                 return okey;
 
         return null;
@@ -428,9 +429,9 @@ public class SavedGameModel
 
         // save data fields:
         gameName = ga.getName();
-        final Map<String, SOCGameOption> opts = ga.getGameOptions();
+        final SOCGameOptionSet opts = ga.getGameOptions();
         if (opts != null)
-            gameOptions = SOCGameOption.packOptionsToString(opts, false, true);
+            gameOptions = SOCGameOption.packOptionsToString(opts.getAll(), false, true);
         gameDurationSeconds = ga.getDurationSeconds();
         gameState = ga.getGameState();
         oldGameState = ga.getOldGameState();
@@ -555,6 +556,7 @@ public class SavedGameModel
      * add fields or logic to support saving/loading more features; for example, certain scenarios but not all.
      * The older version isn't able to load that saved game.
      *
+     * @param knownOpts All Known Options, to parse game's {@link SOCGameOptionSet}; not null
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
      *     is newer than the current {@link SavedGameModel#MODEL_VERSION}
      *     and important fields might not be in our version of the model.
@@ -566,12 +568,12 @@ public class SavedGameModel
      *     but its {@link SOCGameOptionVersionException#gameOptsVersion} will be {@code gameMinVersion}
      * @throws UnsupportedSGMOperationException if game has an option or feature not yet supported
      *     by {@link #createLoadedGame(SOCServer)}. {@link Throwable#getMessage()} will name the unsupported option/feature
-     *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String)}.
+     *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String, SOCGameOptionSet)}.
      *     In that case, {@link Throwable#getMessage()} will contain that method's IllegalArgumentException message
      *     and {@link Throwable#getCause()} will not be null.
      *     Optional localization params are {@link UnsupportedSGMOperationException#param1} and {@code param2}.
      */
-    public void checkCanLoad()
+    public void checkCanLoad(final SOCGameOptionSet knownOpts)
         throws NoSuchElementException, SOCGameOptionVersionException, UnsupportedSGMOperationException
     {
         if (modelVersion > MODEL_VERSION)
@@ -584,10 +586,10 @@ public class SavedGameModel
         if ((gameOptions == null) || gameOptions.isEmpty())
             return;
 
-        Map<String, SOCGameOption> opts;
+        SOCGameOptionSet opts;
         try
         {
-            opts = SOCGameOption.parseOptionsToMap(gameOptions);
+            opts = SOCGameOption.parseOptionsToSet(gameOptions, knownOpts);
         } catch (IllegalArgumentException e) {
             throw new UnsupportedSGMOperationException
                 ("Problem opt in gameOptions: " + e.getMessage(), e);
@@ -615,9 +617,11 @@ public class SavedGameModel
 
     /**
      * Try to create the {@link SOCGame} and its objects based on data loaded into this SGM.
-     * Calls {@link #checkCanLoad()}. If successful (no exception thrown), game state will be {@link SOCGame#LOADING}.
+     * Calls {@link #checkCanLoad(SOCGameOptionSet)}.
+     * If successful (no exception thrown), game state will be {@link SOCGame#LOADING}.
+     *<P>
      * Doesn't add to game list {@link #glas} or check whether game name is already taken, because
-     * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
+     * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)}
      * is better able to do so and can rename the loaded game if needed to avoid name collisions.
      *<P>
      * Examines game and player data. Might set {@link #warnHasHumanPlayerWithBotName},
@@ -630,12 +634,12 @@ public class SavedGameModel
      * @throws IllegalStateException if this method's already been called
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
      *     is newer than the current {@link SavedGameModel#MODEL_VERSION};
-     *     see {@link #checkCanLoad()} for details
+     *     see {@link #checkCanLoad(SOCGameOptionSet)} for details
      * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
      *     is newer than the server's {@link Version#versionNumber()};
-     *     see {@link #checkCanLoad()} for details
+     *     see {@link #checkCanLoad(SOCGameOptionSet)} for details
      * @throws UnsupportedSGMOperationException if loaded game model has an option or feature not yet supported
-     *     by {@code createLoadedGame()}; see {@link #checkCanLoad()} for details
+     *     by {@code createLoadedGame()}; see {@link #checkCanLoad(SOCGameOptionSet)} for details
      * @throws IllegalArgumentException if there's a problem while creating the loaded game.
      *     {@link Throwable#getCause()} will have the exception thrown by the SOCGame/SOCPlayer method responsible.
      *     Catch subclass {@code SOCGameOptionVersionException} before this one.
@@ -650,11 +654,12 @@ public class SavedGameModel
 
         glas = srv.getGameList();
 
-        checkCanLoad();
+        checkCanLoad(srv.knownOpts);
 
         try
         {
-            final SOCGame ga = new SOCGame(gameName, SOCGameOption.parseOptionsToMap(gameOptions));
+            final SOCGame ga = new SOCGame
+                (gameName, SOCGameOption.parseOptionsToSet(gameOptions, srv.knownOpts), srv.knownOpts);
             ga.initAtServer();
             ga.setGameState(SOCGame.LOADING);
             if (ga.maxPlayers != playerSeats.length)
@@ -1528,7 +1533,8 @@ public class SavedGameModel
     }
 
     /**
-     * Details of why {@link SavedGameModel#checkCanSave(SOCGame)} or {@link SavedGameModel#checkCanLoad()}
+     * Details of why {@link SavedGameModel#checkCanSave(SOCGame)}
+     * or {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)}
      * or constructor can't save a game or load a model.
      * {@link Throwable#getMessage()} will name the unsupported option/feature,
      * ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text

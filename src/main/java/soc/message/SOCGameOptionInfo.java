@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCScenario;   // for javadocs only
 import soc.game.SOCVersionedItem;
 
@@ -37,6 +38,8 @@ import soc.game.SOCVersionedItem;
  * This message is for clients to find out about options which were
  * introduced in versions newer than the client's version, but which
  * may be applicable to their version or all versions.
+ * Client should have a {@link SOCGameOptionSet} to hold its "Known Options",
+ * initialized from {@link SOCGameOptionSet#getAllKnownOptions()} and updated by this message.
  *<P>
  * If the server doesn't know this option, the returned option type is
  * {@link SOCGameOption#OTYPE_UNKNOWN}.
