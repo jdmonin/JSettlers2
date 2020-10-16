@@ -166,7 +166,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
     public void clearWaitingReplyFrom(final int pn)
         throws IllegalArgumentException
     {
-        if ((pn < 0) && (pn >= SOCGame.MAXPLAYERS))
+        if ((pn < 0) || (pn >= SOCGame.MAXPLAYERS))
             throw new IllegalArgumentException("pn: " + pn);
 
         if (pn < waitingReply.length)
