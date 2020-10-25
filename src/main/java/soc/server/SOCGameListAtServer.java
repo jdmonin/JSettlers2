@@ -465,7 +465,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed (added in 2.0.00)
      * @param gaOpts  if game has options, its {@link SOCGameOption}s; otherwise null.
      *                Must already be validated, by calling
-     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *                with <tt>doServerPreadjust</tt> true.
      *                That call is also needed to add any {@code "SC"} options into {@code gaOpts}.
      * @param handler  game type handler for this game; not null

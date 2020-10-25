@@ -95,7 +95,8 @@ public class TestSavegame
         SOCGameOption opt = srv.knownOpts.getKnownOption("SC", true);
         opt.setStringValue(SOCScenario.K_SC_PIRI);
         opts.put(opt);
-        opts.adjustOptionsToKnown(srv.knownOpts, true);  // apply SC's scenario game opts
+        opts.adjustOptionsToKnown(srv.knownOpts, true, null);  // apply SC's scenario game opts
+        assertTrue(opts.containsKey(SOCGameOptionSet.K_SC_PIRI));
         final SOCGame ga = new SOCGame("scen", opts, srv.knownOpts);
 
         UnsupportedSGMOperationException checkResult = null;

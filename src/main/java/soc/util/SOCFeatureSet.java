@@ -283,6 +283,7 @@ public class SOCFeatureSet
      * @throws IllegalArgumentException if {@code featureName} is null or ""
      *     or contains '=' or ';' ({@link #SEP_CHAR})
      * @see #add(String, int)
+     * @see #remove(String)
      */
     public void add(final String featureName)
         throws IllegalArgumentException
@@ -305,6 +306,7 @@ public class SOCFeatureSet
      * @throws IllegalArgumentException if {@code featureName} is null or ""
      *     or contains '=' or ';' ({@link #SEP_CHAR})
      * @see #add(String)
+     * @see #remove(String)
      * @since 2.0.00
      */
     public void add(final String featureName, final int val)
@@ -318,6 +320,64 @@ public class SOCFeatureSet
             featureList = SEP_CHAR + featureName + "=" + val + SEP_CHAR;
         else
             featureList = featureList.concat(featureName + "=" + val + SEP_CHAR);
+    }
+
+    /**
+     * Remove this feature if set contains it. Does nothing otherwise.
+     * @param featureName  A defined feature name, such as {@link #SERVER_ACCOUNTS}
+     *     or {@link #CLIENT_SCENARIO_VERSION}
+     * @throws IllegalArgumentException if {@code featureName} is null or ""
+     * @since 2.4.10
+     */
+    public void remove(final String featureName)
+        throws IllegalArgumentException
+    {
+        if ((featureName == null) || (featureName.length() == 0))
+            throw new IllegalArgumentException("featureName: " + featureName);
+
+        if (featureList == null)
+            return;
+
+        final int L = featureName.length(), LTotal = featureList.length();
+        int i = 0;
+        while ((i > -1) && (i < LTotal))
+        {
+            i = featureList.indexOf(SEP_CHAR + featureName, i);
+            if (i == -1)
+                return;
+
+            int iNext = i + L + 1;  // index of char after featureName
+            if (iNext < LTotal)
+            {
+                int ch = featureList.charAt(iNext);
+                if (ch == '=')
+                {
+                    // name matched; also remove =value
+                    iNext = featureList.indexOf(SEP_CHAR, iNext + 1);
+                }
+                else if (ch != SEP_CHAR)
+                {
+                    // matched a different feature whose name starts with featureName
+                    i = iNext;
+                    continue;
+                }
+
+                ++iNext;  // just after SEP_CHAR
+
+                if ((i == 0) && (iNext == LTotal))
+                    featureList = null;
+                else
+                    featureList = featureList.substring(0, i + 1)
+                        + (((iNext > 0) && (iNext < LTotal)) ? featureList.substring(iNext) : "");
+
+                return;
+            } else {
+                // featureList malformed: missing final SEP_CHAR
+                featureList = featureList.substring(0, i);
+
+                return;
+            }
+        }
     }
 
     /**

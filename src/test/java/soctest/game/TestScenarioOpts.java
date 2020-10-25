@@ -120,7 +120,7 @@ public class TestScenarioOpts
                 // This same pre-check is done by TestBoardLayouts.testSingleLayout(..)
                 if (parsedOpts != null)
                 {
-                    sb = parsedOpts.adjustOptionsToKnown(knownOpts, true);
+                    sb = parsedOpts.adjustOptionsToKnown(knownOpts, true, null);
                     if (null != sb)
                     {
                         badScens.add(sc.key + ": Bad game options found by SGOSet.adjustOptionsToKnown: " + sb);

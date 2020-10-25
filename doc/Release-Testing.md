@@ -655,6 +655,26 @@ When preparing to release a new version, testing should include:
         - Reset `version.info` to the actual versions (2401 -> 2400, etc)
         - Repeat those 2 client tests with previous release's client jar (2.3.00); should behave the same as above
         - Exit server
+    - Game Option negotiation when server is limiting game types:
+        - Test once with each combination of the 2 server properties:
+            - `-Djsettlers.game.disallow.6player=Y`
+            - `-Djsettlers.game.disallow.sea_board=Y`
+            - `-Djsettlers.game.disallow.6player=Y -Djsettlers.game.disallow.sea_board=Y`
+        - Start server with property being tested
+        - Connect a client (any version)
+        - Client's console (traffic debug trace) should show GameOptionInfo messages for game options related to the disallowed game type
+        - In New Game dialog, shouldn't see game options related to the disallowed game type
+            - `6player`: Use 6-player Board; Max Players 5 or 6
+            - `sea_board`: Use sea Board; Scenario
+        - Create and start playing a game, past initial placement
+        - Connect another client (any version)
+        - Game info for the game in progress should show correct options
+        - Should be able to join and take over for a bot
+        - Play at least 1 full turn
+        - Optional: Connect with a client which has limited features
+            - Start and connect with a client using a vm property value like `-Djsettlers.debug.client.features=;6pl;` (6-player but not sea board) or `=;sb;` (sea board but not 6-player)
+            - In New Game dialog, shouldn't see game options related to the disallowed game type or missing client feature(s)
+        - Exit clients and server
 - Saving and loading games at server
     - Basics
         - Start server with debug user enabled, but not savegame feature: command-line arg `-Djsettlers.allow.debug=Y`

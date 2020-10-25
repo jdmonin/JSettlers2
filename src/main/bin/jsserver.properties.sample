@@ -67,6 +67,12 @@
 # (For more about Inactive Options, see "Game rules, Game Options" section of /doc/Readme.developer.md)
 # jsettlers.gameopts.activate=PLAY_VPO,OTHEROPT
 
+# Flag to disallow 6-player games, for third-party bot development.
+# jsettlers.game.disallow.6player=N
+
+# Flag to disallow use of the sea board and scenarios, for third-party bot development.
+# jsettlers.game.disallow.sea_board=N
+
 # Server Config Validation:
 # (This flag is equivalent to command line option -t or --test-config.)
 # Flag to validate any server properties given in jsserver.properties or on
@@ -281,9 +287,9 @@
 # - Is on the server's CLASSPATH
 # - Has a constructor which takes the same args as soc.robot.SOCRobotClient's
 #   and soc.robot.sample3p.Sample3PClient's: (ServerConnectInfo, String, String)
-# Third-party bots don't need to extend SOCRobotClient, but the current server code
-# only knows how to start such subclasses. So, non-subclassed bots will need to be
-# started and connected manually.
+# Third-party bots in general don't have to extend SOCRobotClient, but the
+# current server code only knows how to start such subclasses. So,
+# non-subclassed bots will need to be started and connected manually.
 # (See also jsettlers.bots.botgames.wait_sec)
 # This example starts 3 of bot X, 1 of bot Y, 5 of bot Z:
 # jsettlers.bots.start3p=3,com.example.BotXClient,org.example.BotYClient,5,net.example.BotZClient

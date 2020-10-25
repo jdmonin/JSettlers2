@@ -38,7 +38,7 @@ public abstract class GameTestUtils
     /**
      * Create a game with the given player count, with optional scenario and options.
      * Parses options, asserts options != {@code null} and that no problems were found by
-     * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}.
+     * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, soc.util.SOCFeatureSet)}.
      * Calls {@link SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, soc.server.GameHandler)}.
      * Asserts created game != {@code null}.
      *<P>
@@ -73,7 +73,7 @@ public abstract class GameTestUtils
         final SOCGameOptionSet gaOpts = SOCGameOption.parseOptionsToSet(optsStr, knownOpts);
         assertNotNull("Unexpected problems with scenario option string: " + optsStr, gaOpts);
         assertNull("Unexpected problems with scenario options",
-            gaOpts.adjustOptionsToKnown(knownOpts, true));
+            gaOpts.adjustOptionsToKnown(knownOpts, true, null));
                 // this same pre-check is done by TestScenarioOpts.testAllScenarios()
 
         gl.createGame(gaName, "test", "en_US", gaOpts, sgh);

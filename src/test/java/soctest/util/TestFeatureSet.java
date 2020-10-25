@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -155,6 +155,87 @@ public class TestFeatureSet
 
         fs = new SOCFeatureSet(false, true);  // should ignore 2nd param
         assertNull(fs.getEncodedList());
+    }
+
+    /**
+     * Test {@link SOCFeatureSet#remove(String)}.
+     * @since 2.4.10
+     */
+    @Test
+    public void testRemove()
+    {
+        // remove from empty:
+
+        SOCFeatureSet fs = new SOCFeatureSet("");
+        assertNull(fs.getEncodedList());
+        fs.remove("xyz");
+        assertNull(fs.getEncodedList());
+
+        // remove sole item:
+
+        fs = new SOCFeatureSet(";xyz;");
+        assertNotNull(fs.getEncodedList());
+        fs.remove("xyz");
+        assertNull(fs.getEncodedList());
+
+        fs = new SOCFeatureSet(";xyz=7;");
+        assertNotNull(fs.getEncodedList());
+        fs.remove("xyz");
+        assertNull(fs.getEncodedList());
+
+        String[][] TESTS =
+        {
+            // format: { listBefore, featToRemove, listAfterRemoval }
+
+            // remove when not present:
+            { ";abc;", "xyz", ";abc;" },
+            { ";xyzw;", "xyz", ";xyzw;" },  // xyzw starts with "xyz" but is different feat
+
+            // remove from start of list:
+            { ";abc;def;", "abc", ";def;" },
+            { ";abc=7;def;", "abc", ";def;" },
+
+            // from end of list:
+            { ";abc;def;", "def", ";abc;" },
+            { ";abc=7;def=5;", "def", ";abc=7;" },
+
+            // from middle:
+            { ";abc;def;xyz;", "def", ";abc;xyz;" },
+            { ";abc=7;def=4;xyz;", "def", ";abc=7;xyz;" },
+
+            // ignore other feat if it appears first
+            { ";xyzw;xyz;def;", "xyz", ";xyzw;def;" },
+            { ";xyzw=7;xyz=4;def;", "xyz", ";xyzw=7;def;" },
+        };
+
+        for (String[] TEST : TESTS)
+        {
+            fs = new SOCFeatureSet(TEST[0]);
+            assertEquals(TEST[0], fs.getEncodedList());
+            fs.remove(TEST[1]);
+            assertEquals(TEST[2], fs.getEncodedList());
+        }
+
+        // bad arguments:
+
+        boolean notThrown = false;
+        try
+        {
+            fs.remove(null);
+            notThrown = true;
+        }
+        catch (IllegalArgumentException e) {}
+        if (notThrown)
+            fail("remove(null): expected IllegalArgumentException");
+
+        try
+        {
+            fs.remove("");
+            notThrown = true;
+        }
+        catch (IllegalArgumentException e) {}
+        if (notThrown)
+            fail("remove(\"\"): expected IllegalArgumentException");
     }
 
     @Test

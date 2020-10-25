@@ -76,7 +76,7 @@ import soc.util.Version;
  * name keys with '_' or longer than 3 characters can't be sent to older clients.
  * Options starting with '_' are meant to be set by the server during game creation,
  * not requested by the client. They're set during
- * {@link SOCGameOptionSet#adjustOptionsToKnown(Map, boolean) SOCGameOptionSet.adjustOptionsToKnown(getAllKnownOptions(), true)}.
+ * {@link SOCGameOptionSet#adjustOptionsToKnown(Map, boolean, SOCFeatureSet) SOCGameOptionSet.adjustOptionsToKnown(getAllKnownOptions(), true, cliFeats)}.
  *<P>
  * For the same reason, option string values (and enum choices) must not contain
  * certain characters or span more than 1 line; this is checked by calling
@@ -162,7 +162,7 @@ public class SOCGameOption
      * {@link #defaultIntValue} for {@link #OTYPE_INT} or {@link #OTYPE_ENUM})
      *<P>
      * Only recommended for seldom-used options.
-     * The removal is done in {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}.
+     * The removal is done in {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}.
      * Once this flag is set for an option, it should not be un-set if the
      * option is changed in a later version.
      *<P>
@@ -1782,7 +1782,7 @@ public class SOCGameOption
      * Called from <tt>NewGameOptionsFrame</tt>.
      *<P>
      * For <em>server-side</em> consistency adjustment of values before creating games,
-     * add code to {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     * add code to {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      * that's equivalent to your ChangeListener.
      *
      * @see SOCGameOption#addChangeListener(ChangeListener)

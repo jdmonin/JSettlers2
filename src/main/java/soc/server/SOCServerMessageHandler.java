@@ -720,15 +720,23 @@ public class SOCServerMessageHandler
 
         // If any known opts which require client features limited/not supported by this client,
         // add them to opts so unknowns will be sent as OTYPE_UNKNOWN.
+        // Overwrites any which happened to already be in opts (unknown or otherwise).
+        // See also SOCGameOptionSet.adjustOptionsToKnown which has very similar code for limited client feats.
+
         // Unsupported 3rd-party opts aren't sent unless client asked about them by key.
 
+        SOCFeatureSet limitedCliFeats = srv.checkLimitClientFeaturesForServerDisallows(scd.feats);
+        if ((limitedCliFeats == null) && hasLimitedFeats)
+            limitedCliFeats = scd.feats;
+
         final Map<String, SOCGameOption> unsupportedOpts =
-            (hasLimitedFeats) ? srv.knownOpts.optionsNotSupported(scd.feats) : null;
+            (limitedCliFeats != null) ? srv.knownOpts.optionsNotSupported(limitedCliFeats) : null;
         if (unsupportedOpts != null)
-            opts.putAll(unsupportedOpts);
+            for (SOCGameOption opt : unsupportedOpts.values())
+                opts.put(opt.key, new SOCGameOption(opt.key));  // OTYPE_UNKNOWN
 
         final Map<String, SOCGameOption> trimmedOpts =
-            (hasLimitedFeats) ? srv.knownOpts.optionsTrimmedForSupport(scd.feats) : null;
+            (limitedCliFeats != null) ? srv.knownOpts.optionsTrimmedForSupport(limitedCliFeats) : null;
         if (trimmedOpts != null)
             opts.putAll(trimmedOpts);
 

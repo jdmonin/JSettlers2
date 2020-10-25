@@ -1347,13 +1347,13 @@ public class SOCGame implements Serializable, Cloneable
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param op game's {@link SOCGameOption}s if any; otherwise null.
      *           Will validate options and include optional scenario's {@link SOCScenario#scOpts} by calling
-     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
      *           {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      *           <P>
      *           When creating a game at the server, {@code op} must already be validated by calling
-     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *           with <tt>doServerPreadjust</tt> true.
      *           That call is also needed to add any game options from scenario ({@code "SC"}) if present.
      * @param knownOpts  All Known Options, for {@code op} validation and adding options from scenario if present;
@@ -1394,7 +1394,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param isActive  true if this is an active game, false for inactive
      * @param op if game has options, its set of {@link SOCGameOption}s; otherwise null.
      *           Will validate options and include optional scenario's {@link SOCScenario#scOpts} by calling
-     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
      *           {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
@@ -1402,7 +1402,7 @@ public class SOCGame implements Serializable, Cloneable
      *           New game will use {@code op}, not make a copy of {@code op}.
      *           <P>
      *           When creating a game at the server, {@code op} must already be validated by calling
-     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *           with <tt>doServerPreadjust</tt> true.
      *           That call is also needed to add any game options from scenario ({@code "SC"}) if present.
      * @param knownOpts  All Known Options, for {@code op} validation and adding options from scenario if present;
@@ -1430,7 +1430,7 @@ public class SOCGame implements Serializable, Cloneable
                 throw new IllegalArgumentException("knownOpts");
 
             // apply options from scenario, if any:
-            final StringBuilder optProblems = op.adjustOptionsToKnown(knownOpts, false);
+            final StringBuilder optProblems = op.adjustOptionsToKnown(knownOpts, false, null);
             if (optProblems != null)
                 throw new IllegalArgumentException("op: unknown option(s): " + optProblems);
 

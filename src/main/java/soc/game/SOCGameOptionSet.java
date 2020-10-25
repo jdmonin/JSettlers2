@@ -54,7 +54,7 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  *<UL>
  * <LI> {@link #optionsForVersion(int)}
  * <LI> {@link #optionsNewerThanVersion(int, boolean, boolean)}
- * <LI> {@link #adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+ * <LI> {@link #adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
  * <LI> {@link SOCGameOption#packKnownOptionsToString(SOCGameOptionSet, boolean, boolean)}
  * <LI> {@link SOCGameOption#parseOptionsToSet(String, SOCGameOptionSet)}
  * <LI> {@link SOCGameOption#getMaxIntValueForVersion(String, int)}
@@ -1279,7 +1279,8 @@ public class SOCGameOptionSet
      * <LI> check if client can create game with a specific set of option values: <tt>checkValues</tt> == true,
      *     call on game's proposed Set of game opts instead of Known Opts.
      *    <BR>
-     *     Before calling this method, server should call {@link #adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *     Before calling this method, server should call
+     *     {@link #adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *     to help validate option values.
      *</UL>
      * See <tt>checkValues</tt> for method's behavior in each mode.
@@ -1313,7 +1314,7 @@ public class SOCGameOptionSet
      *     If true, any returned items are in this Set but too new for client {@code vers}:
      *     Game creation should be rejected.
      *     Does not check {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} in this mode; use
-     *     {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)} for that check.
+     *     {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)} for that check.
      * @param trimEnums  For enum-type options where minVersion changes based on current value,
      *     should we remove too-new values from the returned option info?
      *     This lets us send only the permitted values to an older client.
@@ -1383,7 +1384,7 @@ public class SOCGameOptionSet
      *     If true, any returned items are from this Set but too new for client {@code vers}:
      *     Game creation should be rejected.
      *     Does not check {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} in this mode; use
-     *     {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)} for that check.
+     *     {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)} for that check.
      * @param trimEnums  For enum-type options where minVersion changes based on current value,
      *     should we remove too-new values from the returned option info?
      *     This lets us send only the permitted values to an older client.
@@ -1537,20 +1538,25 @@ public class SOCGameOptionSet
      *     pre-adjust any values for consistency.
      *     This is a server-side equivalent to the client-side {@link SOCGameOption.ChangeListener}s.
      *     (Added in 1.1.13)
+     * @param limitedCliFeats For {@link doServerPreadjust}, client's set of features if limited compared to
+     *     the standard client; null if client doesn't have limited feats.
+     *     See {@link soc.server.SOCClientData#hasLimitedFeats} for details.
      * @return <tt>null</tt> if all are known; or, a human-readable problem description if:
      *     <UL>
      *       <LI> any option in this set not a Known Option
      *            or is inactive (has {@link SOCGameOption#FLAG_INACTIVE_HIDDEN})
      *       <LI> or an opt's type differs from that in knownOpts
-     *       <LI> or an opt's {@link #lastModVersion} differs from in knownOpts
-     *       <LI> set has option {@code "SC"} but its scenario name isn't known
+     *       <LI> or an opt's {@link SOCGameOption#lastModVersion} differs from in knownOpts
+     *       <LI> or an opt requires a {@link SOCGameOption#getClientFeature()} which the client doesn't have
+     *            (checked only if {@code limitedCliFeats} != null and {@code doServerPreadjust})
+     *       <LI> set has option {@code "SC"} but its scenario keyname isn't known
      *            by {@link SOCScenario#getScenario(String)}
      *     </UL>
      * @throws IllegalArgumentException if {@code knownOpts} is null
      * @since 1.1.07
      */
     public StringBuilder adjustOptionsToKnown
-        (final SOCGameOptionSet knownOpts, final boolean doServerPreadjust)
+        (final SOCGameOptionSet knownOpts, final boolean doServerPreadjust, final SOCFeatureSet limitedCliFeats)
         throws IllegalArgumentException
     {
         if (knownOpts == null)
@@ -1738,6 +1744,32 @@ public class SOCGameOptionSet
             }
         }
 
+        if (doServerPreadjust && allKnown && (limitedCliFeats != null))
+        {
+            // See also SOCServerMessageHandler.handleGAMEOPTIONGETINFOS which has
+            // very similar code for limited client feats.
+
+            final Map<String, SOCGameOption> unsupportedOpts = optionsNotSupported(limitedCliFeats);
+
+            if (unsupportedOpts != null)
+            {
+                allKnown = false;
+                for (String okey : unsupportedOpts.keySet())
+                {
+                    if (optProblems.length() > 0)
+                        optProblems.append(", ");
+                    optProblems.append(okey);
+                }
+                optProblems.append(": requires missing feature(s). ");
+            } else {
+                final Map<String, SOCGameOption> trimmedOpts = optionsTrimmedForSupport(limitedCliFeats);
+
+                if (trimmedOpts != null)
+                    for (SOCGameOption opt : trimmedOpts.values())
+                        options.put(opt.key, opt);
+            }
+        }
+
         if (allKnown)
             return null;
         else
@@ -1745,9 +1777,12 @@ public class SOCGameOptionSet
     }
 
     /**
-     * In a set of Known Options, do any require client features
+     * In a set of options or Known Options, do any require client features
      * not supported by a limited client's {@link SOCFeatureSet}?
      * Checks each option having a {@link #getClientFeature()}.
+     *<P>
+     * Doesn't check integer value of features like {@code sc} ({@link SOCFeatureSet#getValue(String, int)}):
+     * Use {@link SOCGame#checkClientFeatures(SOCFeatureSet, boolean)} for that.
      *
      * @param cliFeats  Client's limited subset of optional features,
      *     from {@link soc.server.SOCClientData#feats}, or {@code null} or empty set if no features
@@ -1778,7 +1813,7 @@ public class SOCGameOptionSet
     }
 
     /**
-     * In a set of Known Options, do any require changes for a limited client's {@link SOCFeatureSet}?
+     * In a set of options or Known Options, do any require changes for a limited client's {@link SOCFeatureSet}?
      * For example, clients without {@link SOCFeatureSet#CLIENT_6_PLAYERS} limit "max players" to 4.
      *<P>
      * Assumes client is new enough that its version wouldn't also cause trimming of those same options' values

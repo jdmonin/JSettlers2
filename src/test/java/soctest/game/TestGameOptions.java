@@ -32,6 +32,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCVersionedItem;
+import soc.util.SOCFeatureSet;
 import soc.util.Version;
 
 /**
@@ -96,7 +97,7 @@ public class TestGameOptions
     /**
      * Test that when the client sends a new-game request whose opts contains {@code "VP"} with boolean part false,
      * that {@code "VP"} will be removed from the set of options by
-     * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean) newOpts.adjustOptionsToKnown(knownOpts, true)}.
+     * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) newOpts.adjustOptionsToKnown(knownOpts, true, null)}.
      */
     @Test
     public void testServerRemovesFalseVP()
@@ -110,7 +111,7 @@ public class TestGameOptions
 
         // should remove VP when false and not present at "server" with a default
         newOpts.put(optVP);
-        StringBuilder sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true);
+        StringBuilder sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
         assertNull(sb);
         assertFalse(newOpts.containsKey("VP"));
 
@@ -122,14 +123,14 @@ public class TestGameOptions
             testFewKnownOpts.put(srvVP);
         }
         newOpts.put(optVP);
-        sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true);
+        sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
         assertNull(sb);
         assertFalse(newOpts.containsKey("VP"));
 
         // shouldn't remove if VP is true
         optVP.setBoolValue(true);
         newOpts.put(optVP);
-        sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true);
+        sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
         assertNull(sb);
         assertTrue(newOpts.containsKey("VP"));
     }
@@ -190,7 +191,7 @@ public class TestGameOptions
         final SOCGameOption opt = knowns.getKnownOption("_TESTF", true);
         opt.setIntValue(0x2211);
         newGameOpts.put(opt);
-        newGameOpts.adjustOptionsToKnown(knowns, true);
+        newGameOpts.adjustOptionsToKnown(knowns, true, null);
         assertNull(newGameOpts.get("_TESTF"));
 
         // cleanup
@@ -202,7 +203,7 @@ public class TestGameOptions
      * Inactive/activated gameopts: Test {@link SOCGameOptionSet#activate(String)},
      * {@link SOCGameOptionSet#optionsWithFlag(int, int)}.
      * Test {@link SOCGameOptionSet#optionsForVersion(int)} and
-     * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean) gameOpts.adjustOptionsToKnown(knownOpts, doServerPreadjust=true)}
+     * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) gameOpts.adjustOptionsToKnown(knownOpts, doServerPreadjust=true, limitedCliFeats)}
      * checks for {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}. Uses game options
      * {@link SOCGameOptionSet#K_PLAY_FO "PLAY_FO"}, {@link SOCGameOptionSet#K_PLAY_VPO "PLAY_VPO"}.
      * @since 2.4.10
@@ -289,7 +290,7 @@ public class TestGameOptions
 
         SOCGameOptionSet newGameReqOpts = new SOCGameOptionSet();
         newGameReqOpts.put(optPlayVPO);
-        StringBuilder optProblems = newGameReqOpts.adjustOptionsToKnown(knowns, true);
+        StringBuilder optProblems = newGameReqOpts.adjustOptionsToKnown(knowns, true, null);
         assertNotNull(optProblems);
         assertTrue(optProblems.toString().contains("PLAY_VPO: inactive"));
 
@@ -368,7 +369,7 @@ public class TestGameOptions
         }
 
         newGameReqOpts.put(activated);
-        optProblems = newGameReqOpts.adjustOptionsToKnown(knowns, true);
+        optProblems = newGameReqOpts.adjustOptionsToKnown(knowns, true, null);
         assertNull(optProblems);
 
         // cleanup
@@ -550,6 +551,227 @@ public class TestGameOptions
         assertNull(knowns.getKnownOption("T3P", false));
 
         // TODO server-side tests too: call w/ (cliVers, false, true, null) etc
+    }
+
+    /**
+     * Test {@link SOCGameOptionSet#optionsNotSupported(soc.util.SOCFeatureSet)}.
+     * @see #testOptionsTrimmedForSupport()
+     * @since 2.4.10
+     */
+    @Test
+    public void testOptionsNotSupported()
+    {
+        // build a set of game opts which don't require any client features
+        SOCGameOptionSet opts = new SOCGameOptionSet();
+        for (String okey : new String[]{"RD", "N7C", "NT"})
+        {
+            SOCGameOption opt = knownOpts.getKnownOption(okey, true);
+            assertNotNull(opt);
+            assertNull(opt.getClientFeature());
+            assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
+            opt.setBoolValue(true);
+            opts.add(opt);
+        }
+        // that set's fine even with no cli feats
+        assertNull(opts.optionsNotSupported(null));
+        assertNull(opts.optionsNotSupported(new SOCFeatureSet(";;")));
+        // and fine with standard feats
+        assertNull(opts.optionsNotSupported(new SOCFeatureSet(true, false)));
+
+        // build a set of game opts for Sea Board
+        opts = new SOCGameOptionSet();
+        SOCGameOption opt = knownOpts.getKnownOption("SBL", true);
+        assertNotNull(opt);
+        opt.setBoolValue(true);
+        opts.add(opt);
+        opt = knownOpts.getKnownOption("PL", true);
+        assertNotNull(opt);
+        opt.setIntValue(3);
+        opts.add(opt);
+
+        // mostly-standard client feats
+        assertNull(opts.optionsNotSupported(new SOCFeatureSet(";6pl;sb;")));
+
+        // empty feat set
+        Map<String, SOCGameOption> nsOpts = opts.optionsNotSupported(null);
+        assertNotNull(nsOpts);
+        assertEquals(nsOpts.size(), 1);
+        assertTrue(nsOpts.containsKey("SBL"));
+
+        // empty feat set
+        nsOpts = opts.optionsNotSupported(new SOCFeatureSet(""));
+        assertNotNull(nsOpts);
+        assertEquals(nsOpts.size(), 1);
+        assertTrue(nsOpts.containsKey("SBL"));
+
+        // sea board but not 6pl
+        assertNull(opts.optionsNotSupported(new SOCFeatureSet(";sb;")));
+
+        // 6pl but not sea board
+        nsOpts = opts.optionsNotSupported(new SOCFeatureSet(";6pl;"));
+        assertNotNull(nsOpts);
+        assertEquals(nsOpts.size(), 1);
+        assertTrue(nsOpts.containsKey("SBL"));
+
+        // build a set of opts for 6-player game
+        opts.get("PL").setIntValue(5);
+        opts.remove("SBL");
+        opt = knownOpts.getKnownOption("PLB", true);
+        opt.setBoolValue(true);
+        opts.add(opt);
+
+        // standard v1.x.xx client feats
+        assertNull(opts.optionsNotSupported(new SOCFeatureSet(true, false)));
+        // 6-player board
+        assertNull(opts.optionsNotSupported(new SOCFeatureSet(";6pl;")));
+        // sea board
+        nsOpts = opts.optionsNotSupported(new SOCFeatureSet(";sb;"));
+        assertNotNull(nsOpts);
+        assertEquals(nsOpts.size(), 1);
+        assertTrue(nsOpts.containsKey("PLB"));
+
+        // set of opts for sea 6-player game
+        opt = knownOpts.getKnownOption("SBL", true);
+        assertNotNull(opt);
+        assertEquals("sb", opt.getClientFeature());
+        opt.setBoolValue(true);
+        opts.add(opt);
+        opt = knownOpts.getKnownOption(SOCGameOptionSet.K_SC_CLVI, true);
+        assertNotNull(opt);
+        assertEquals(SOCFeatureSet.CLIENT_SCENARIO_VERSION, opt.getClientFeature());
+        opt.setBoolValue(true);
+        opts.add(opt);
+
+        // is fine with standard v2.x.xx client feats
+        assertNull(opts.optionsNotSupported(new SOCFeatureSet(";6pl;sb;sc=2200;")));
+        // sea board but not scenarios
+        nsOpts = opts.optionsNotSupported(new SOCFeatureSet(";6pl;sb;"));
+        assertNotNull(nsOpts);
+        assertEquals(nsOpts.size(), 1);
+        assertTrue(nsOpts.containsKey(SOCGameOptionSet.K_SC_CLVI));
+        // only 6pl
+        nsOpts = opts.optionsNotSupported(new SOCFeatureSet(";6pl;"));
+        assertNotNull(nsOpts);
+        assertEquals(nsOpts.size(), 2);
+        assertTrue(nsOpts.containsKey("SBL"));
+        assertTrue(nsOpts.containsKey(SOCGameOptionSet.K_SC_CLVI));
+        // neither sea nor 6pl
+        nsOpts = opts.optionsNotSupported(new SOCFeatureSet(""));
+        assertNotNull(nsOpts);
+        assertEquals(nsOpts.size(), 3);
+        assertTrue(nsOpts.containsKey("PLB"));
+        assertTrue(nsOpts.containsKey("SBL"));
+        assertTrue(nsOpts.containsKey(SOCGameOptionSet.K_SC_CLVI));
+    }
+
+    /**
+     * Test {@link SOCGameOptionSet#optionsTrimmedForSupport(soc.util.SOCFeatureSet)}.
+     * @see #testOptionsNotSupported()
+     * @since 2.4.10
+     */
+    @Test
+    public void testOptionsTrimmedForSupport()
+    {
+        // empty option set is fine, even with empty feature set
+        SOCGameOptionSet opts = new SOCGameOptionSet();
+        assertNull(opts.optionsTrimmedForSupport(null));
+        assertNull(opts.optionsTrimmedForSupport(new SOCFeatureSet(";;")));
+        assertNull(opts.optionsTrimmedForSupport(new SOCFeatureSet(";;")));
+
+        // build a set of game opts which don't require any client features
+        for (String okey : new String[]{"RD", "N7C", "NT"})
+        {
+            SOCGameOption opt = knownOpts.getKnownOption(okey, true);
+            assertNotNull(opt);
+            assertNull(opt.getClientFeature());
+            assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
+            opt.setBoolValue(true);
+            opts.add(opt);
+        }
+        // that set's fine even with no cli feats
+        assertNull(opts.optionsTrimmedForSupport(null));
+        assertNull(opts.optionsTrimmedForSupport(new SOCFeatureSet(";;")));
+        // and fine with standard feats
+        assertNull(opts.optionsTrimmedForSupport(new SOCFeatureSet(true, false)));
+
+        // build a set of opts for 6-player game
+        opts = new SOCGameOptionSet();
+        SOCGameOption optPL = knownOpts.getKnownOption("PL", true);
+        assertNotNull(optPL);
+        optPL.setIntValue(5);
+        opts.add(optPL);
+
+        // is fine with standard v2.x.xx client feats
+        assertNull(opts.optionsTrimmedForSupport(new SOCFeatureSet(";6pl;sb;sc=2200;")));
+        // standard v1.x.xx client feats
+        assertNull(opts.optionsTrimmedForSupport(new SOCFeatureSet(true, false)));
+
+        // client feats without 6-player support: PL is trimmed to 4, not rejected
+        assertEquals(5, opts.get("PL").getIntValue());
+        Map<String, SOCGameOption> tsOpts = opts.optionsTrimmedForSupport(new SOCFeatureSet(";sb;"));
+        assertNotNull(tsOpts);
+        assertEquals(tsOpts.size(), 1);
+        optPL = tsOpts.get("PL");
+        assertNotNull(optPL);
+        assertEquals(4, optPL.getIntValue());
+        // empty client feats
+        optPL.setIntValue(5);
+        opts.put(optPL);
+        tsOpts = opts.optionsTrimmedForSupport(new SOCFeatureSet(""));
+        assertNotNull(tsOpts);
+        assertEquals(tsOpts.size(), 1);
+        optPL = tsOpts.get("PL");
+        assertNotNull(optPL);
+        assertEquals(4, optPL.getIntValue());
+        // null client feats
+        optPL.setIntValue(5);
+        opts.put(optPL);
+        tsOpts = opts.optionsTrimmedForSupport(null);
+        assertNotNull(tsOpts);
+        assertEquals(tsOpts.size(), 1);
+        optPL = tsOpts.get("PL");
+        assertNotNull(optPL);
+        assertEquals(4, optPL.getIntValue());
+    }
+
+    /**
+     * Test {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
+     * with doServerPreadjust=true and limited client {@link SOCFeatureSet}.
+     *<P>
+     * Relies on related tests covered in {@link #testOptionsNotSupported()} and
+     * {@link #testOptionsTrimmedForSupport()}, since
+     * {@code SOCGameOptionSet.adjustOptionsToKnown(..)} calls the methods tested there.
+     * @since 2.4.10
+     */
+    @Test
+    public void testAdjustOptionsToKnown_doServerPreadjust_limitedCliFeats()
+    {
+        // game opts for a 6-player game
+        SOCGameOptionSet opts = new SOCGameOptionSet();
+        SOCGameOption opt = knownOpts.getKnownOption("PLB", true);
+        assertNotNull(opt);
+        assertEquals(SOCFeatureSet.CLIENT_6_PLAYERS, opt.getClientFeature());
+        opt.setBoolValue(true);
+        opts.add(opt);
+        SOCGameOption optPL = knownOpts.getKnownOption("PL", true);
+        assertNotNull(optPL);
+        assertNull(optPL.getClientFeature());
+        optPL.setIntValue(5);
+        opts.add(optPL);
+
+        // client has no features
+        StringBuilder optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(""));
+        assertNotNull(optProblems);
+        assertTrue(optProblems.toString().contains("PLB: requires missing feature"));
+
+        // client has some features, but not 6-player
+        optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";sb;sc=2410;"));
+        assertNotNull(optProblems);
+        assertTrue(optProblems.toString().contains("PLB: requires missing feature"));
+
+        // client has that feature
+        optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";6pl;"));
+        assertNull(optProblems);
     }
 
     /**

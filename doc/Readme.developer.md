@@ -796,6 +796,13 @@ be set at the server command line with
 and then read in the bot's brain class. For an example see
 `Sample3PBrain.setOurPlayerData()`.
 
+If human players will be creating games, but your bots don't support the sea
+board/scenarios or 6-player games, you can disallow those game types at the
+server with one or both of these flag properties:
+
+- `-Djsettlers.game.disallow.6player=Y`
+- `-Djsettlers.game.disallow.sea_board=Y`
+
 ### Running robot-only games
 
 For bot testing and statistics, you can have the server run some robot-only

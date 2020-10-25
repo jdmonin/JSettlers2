@@ -274,7 +274,7 @@ public class SOCServer extends Server
      * <LI> Has a constructor which takes the same args as soc.robot.SOCRobotClient's
      *      and soc.robot.sample3p.Sample3PClient's: ({@link ServerConnectInfo}, String, String)
      *</UL>
-     * Third-party bots don't need to extend SOCRobotClient, but the current server code
+     * Third-party bots in general don't have to extend SOCRobotClient, but the current server code
      * only knows how to start such subclasses. So, non-subclassed bots will need to be
      * started and connected manually.
      *<P>
@@ -539,6 +539,23 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_GAMEOPTS_ACTIVATE = "jsettlers.gameopts.activate";
 
     /**
+     * Boolean property {@code jsettlers.game.disallow.6player} to disallow 6-player games:
+     * Only 4 or fewer players allowed. Also disallows use of the 6-player board.
+     * May be useful for third-party bot development.
+     * @see #checkLimitClientFeaturesForServerDisallows(SOCFeatureSet)
+     * @since 2.4.10
+     */
+    public static final String PROP_JSETTLERS_GAME_DISALLOW_6PLAYER = "jsettlers.game.disallow.6player";
+
+    /**
+     * Boolean property {@code jsettlers.game.disallow.sea_board} to disallow use of the sea board and scenarios.
+     * May be useful for third-party bot development.
+     * @see #checkLimitClientFeaturesForServerDisallows(SOCFeatureSet)
+     * @since 2.4.10
+     */
+    public static final String PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD = "jsettlers.game.disallow.sea_board";
+
+    /**
      * Property {@code jsettlers.savegame.dir} to enable SAVEGAME/LOADGAME debug commands
      * and set the directory in which to store savegame files.
      *<P>
@@ -606,6 +623,8 @@ public class SOCServer extends Server
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
         PROP_JSETTLERS_GAMEOPT_PREFIX + "*",    "Game option defaults, case-insensitive: jsettlers.gameopt.RD=y",
         PROP_JSETTLERS_GAMEOPTS_ACTIVATE,       "If set, activate these inactive game options (comma-separated list)",
+        PROP_JSETTLERS_GAME_DISALLOW_6PLAYER,   "Flag to disallow 6-player games",
+        PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD, "Flag to disallow sea board and scenarios",
         // I18n.PROP_JSETTLERS_LOCALE,             "Locale override from the default, such as es or en_US, for console output",
             // -- not used yet at server
         PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL,     "Run this many robot-only games, a few at a time (default 0); allow bot-only games",
@@ -2771,7 +2790,7 @@ public class SOCServer extends Server
      *             {@link #createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)} for that.
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
      *                Must already be validated, by calling
-     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *                with <tt>doServerPreadjust</tt> true.
      * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
      *          Should not be in server's gameList yet.
@@ -2936,7 +2955,7 @@ public class SOCServer extends Server
      * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
      *                Ignored if {@code loadedGame != null}.
      *                Must already be validated, by calling
-     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *                with <tt>doServerPreadjust</tt> true.
      * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
      *             Should not be in server's gameList yet.
@@ -6829,6 +6848,45 @@ public class SOCServer extends Server
     }
 
     /**
+     * For client's game option info negotiation, check whether server props disallow
+     * the 6-player board or sea board, and if so, copy {@code cliFeats} and remove related features from the copy.
+     *<UL>
+     * <LI> {@link #PROP_JSETTLERS_GAME_DISALLOW_6PLAYER}: {@link SOCFeatureSet#CLIENT_6_PLAYERS}
+     * <LI> {@link #PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD}: {@link SOCFeatureSet#CLIENT_SEA_BOARD},
+     *      {@link SOCFeatureSet#CLIENT_SCENARIO_VERSION}
+     *</UL>
+     * Checked when client syncs game option info during initial connect,
+     * and again when they request creation of a game with options.
+     *
+     * @param cliFeats Client features, from {@link SOCClientData#feats}
+     * @return More-limited copy of client features if either board type is disallowed, {@code null} otherwise.
+     *     If needs to copy {@code cliFeats} but it's null, will return a new empty feature set.
+     * @see SOCClientData#hasLimitedFeats
+     * @since 2.4.10
+     */
+    protected SOCFeatureSet checkLimitClientFeaturesForServerDisallows(SOCFeatureSet cliFeats)
+    {
+        final boolean disallow6pl = getConfigBoolProperty(PROP_JSETTLERS_GAME_DISALLOW_6PLAYER, false),
+            disallowSeaBoard = getConfigBoolProperty(PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD, false);
+        if (! (disallow6pl || disallowSeaBoard))
+            return null;
+
+        if (cliFeats == null)
+            return new SOCFeatureSet((String) null);  // cliFeats has nothing to remove
+
+        cliFeats = new SOCFeatureSet(cliFeats);
+        if (disallow6pl)
+            cliFeats.remove(SOCFeatureSet.CLIENT_6_PLAYERS);
+        if (disallowSeaBoard)
+        {
+            cliFeats.remove(SOCFeatureSet.CLIENT_SEA_BOARD);
+            cliFeats.remove(SOCFeatureSet.CLIENT_SCENARIO_VERSION);
+        }
+
+        return cliFeats;
+    }
+
+    /**
      * Localize the standard "Welcome to Java Settlers of Catan!" text,
      * or return the custom welcome text from {@link #PROP_JSETTLERS_ADMIN_WELCOME}
      * if set.
@@ -7008,14 +7066,18 @@ public class SOCServer extends Server
         }
 
         // Unless client is older, check now for unsupported/limited/activated SGOs
+        // and send their info, because client may not send a SOCGameOptionGetInfos request
         if (cvers >= Version.versionNumber())
         {
             boolean hadAny = false;
+            SOCFeatureSet cliLimitedFeats = checkLimitClientFeaturesForServerDisallows(scd.feats);
+            if ((cliLimitedFeats == null) && hasLimitedFeats)
+                cliLimitedFeats = scd.feats;
             Map<String, SOCGameOption> unsupportedOpts = null, trimmedOpts = null;
 
-            if (hasLimitedFeats)
+            if (cliLimitedFeats != null)
             {
-                unsupportedOpts = knownOpts.optionsNotSupported(scd.feats);
+                unsupportedOpts = knownOpts.optionsNotSupported(cliLimitedFeats);
                 if (unsupportedOpts != null)
                 {
                     for (String okey : unsupportedOpts.keySet())
@@ -7023,7 +7085,7 @@ public class SOCServer extends Server
                     hadAny = true;
                 }
 
-                trimmedOpts = knownOpts.optionsTrimmedForSupport(scd.feats);
+                trimmedOpts = knownOpts.optionsTrimmedForSupport(cliLimitedFeats);
                 if (trimmedOpts != null)
                 {
                     for (SOCGameOption opt : trimmedOpts.values())
@@ -7319,7 +7381,7 @@ public class SOCServer extends Server
      *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
      *      - if any are too new for client's version, resp with
      *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_VALUE_TOONEW SV_NEWGAME_OPTION_VALUE_TOONEW}) <br>
-     *      Comparison is done by {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}.
+     *      Comparison is done by {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}.
      *  <LI> if ok: create new game with params;
      *      socgame will calc game's minCliVersion,
      *      and this method will check that against cli's version.
@@ -7344,7 +7406,7 @@ public class SOCServer extends Server
      * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game;
      *                  if not null, will not join an existing game.
      *                  Will validate and adjust by calling
-     *                  {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean)}
+     *                  {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *                  with <tt>doServerPreadjust</tt> true.
      *
      * @since 1.1.07
@@ -7420,6 +7482,7 @@ public class SOCServer extends Server
     {
         final boolean isTakingOver = (0 != (authResult & AUTH_OR_REJECT__TAKING_OVER));
         final boolean sendErrorViaStatus = ((loadedGame == null) || (connGaName == null));
+        final SOCClientData scd = (SOCClientData) c.getAppData();
 
         String gameName;  // game name to check
         if (loadedGame != null)
@@ -7463,7 +7526,7 @@ public class SOCServer extends Server
             if (((strSocketName == null) || ! strSocketName.equals(PRACTICE_STRINGPORT))
                 && (loadedGame == null)
                 && (CLIENT_MAX_CREATE_GAMES >= 0)
-                && (CLIENT_MAX_CREATE_GAMES <= ((SOCClientData) c.getAppData()).getCurrentCreatedGames()))
+                && (CLIENT_MAX_CREATE_GAMES <= scd.getCurrentCreatedGames()))
             {
                 c.put(SOCStatusMessage.buildForVersion
                        (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
@@ -7524,9 +7587,15 @@ public class SOCServer extends Server
 
             // Make sure all requested options are known and active.
             // If has game opt "SC" for scenarios, also adds that scenario's options into gameOpts.
-            // If has game opt "VP" but boolean part is false, use server default instead.
+            // If has game opt "VP" but boolean part is false, uses server default (knownOpts) instead.
+            // If any of new game's opts require client features limited/not supported by this client,
+            // clips or rejects them.
 
-            final StringBuilder optProblems = gameOpts.adjustOptionsToKnown(knownOpts, true);
+            SOCFeatureSet limitedCliFeats = checkLimitClientFeaturesForServerDisallows(scd.feats);
+            if ((limitedCliFeats == null) && scd.hasLimitedFeats)
+                limitedCliFeats = scd.feats;
+
+            final StringBuilder optProblems = gameOpts.adjustOptionsToKnown(knownOpts, true, limitedCliFeats);
             if (optProblems != null)
             {
                 final String txt = "Unknown game option(s) were requested, cannot create this game. " + optProblems;
