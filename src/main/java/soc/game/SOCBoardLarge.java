@@ -2768,7 +2768,7 @@ public class SOCBoardLarge extends SOCBoard
     public int getAdjacentHexToEdge(final int edgeCoord, final int facing)
         throws IllegalArgumentException
     {
-        if ((facing < 1) && (facing > 6))
+        if ((facing < 1) || (facing > 6))
             throw new IllegalArgumentException();
         int r = (edgeCoord >> 8),
             c = (edgeCoord & 0xFF);
@@ -3010,7 +3010,7 @@ public class SOCBoardLarge extends SOCBoard
     public int getAdjacentNodeToEdge(final int edgeCoord, final int facing)
         throws IllegalArgumentException
     {
-        if ((facing < 1) && (facing > 6))
+        if ((facing < 1) || (facing > 6))
             throw new IllegalArgumentException("facing out of range");
         int r = (edgeCoord >> 8),
             c = (edgeCoord & 0xFF);
