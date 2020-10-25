@@ -74,13 +74,18 @@ public class DisplaylessTesterClient
      * Does not actually connect here: Call {@link #init()} when ready.
      *
      * @param localeStr  Locale to test with, or {@code null} to use {@code "en_US"}
+     * @param knownOpts  Known Options, or {@code null} to use defaults from {@link SOCDisplaylessPlayerClient}
      */
-    public DisplaylessTesterClient(final String stringport, final String nickname, final String localeStr)
+    public DisplaylessTesterClient
+        (final String stringport, final String nickname, final String localeStr, final SOCGameOptionSet knownOpts)
     {
         super(new ServerConnectInfo(stringport, null), false);
 
         this.nickname = nickname;
         this.localeStr = localeStr;
+        if (knownOpts != null)
+            this.knownOpts = knownOpts;
+
         debugTraffic = true;
     }
 

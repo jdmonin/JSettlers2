@@ -25,13 +25,14 @@ import java.lang.reflect.Constructor;
 import java.util.Hashtable;
 
 import soc.baseclient.ServerConnectInfo;
+import soc.game.SOCGameOptionSet;
 import soc.robot.SOCRobotClient;
 
 /**
  * Each local robot in the {@link SOCServer} gets its own client thread.
  * Equivalent to main thread used in {@link SOCRobotClient} when connected
  * over the TCP network. Create by calling convenience method
- * {@link #createAndStartRobotClientThread(String, ServerConnectInfo, Constructor)}.
+ * {@link #createAndStartRobotClientThread(String, ServerConnectInfo, SOCGameOptionSet, Constructor)}.
  *<P>
  * This class was originally SOCPlayerClient.SOCPlayerLocalRobotRunner,
  * then moved in 1.1.09 to SOCServer.SOCPlayerLocalRobotRunner.
@@ -74,12 +75,14 @@ import soc.robot.SOCRobotClient;
 
     /**
      * Create and start a robot client within a {@link SOCLocalRobotClient} thread.
+     * Optionally give it a copy of {@link SOCServer#knownOpts} or other Known Options.
      * After creating it, {@link Thread#yield() yield} the current thread (from caller)
      * and then sleep 75 milliseconds, to give the robot time to start itself up.
      * The {@link SOCLocalRobotClient}'s {@code run()} will add the {@link SOCRobotClient} to {@link #robotClients}.
      *
      * @param rname  Name of robot
      * @param sci  Server connect info (TCP or local) with {@code robotCookie}; not {@code null}
+     * @param Set of Known Options to deep-copy for robot client, or {@code null} to use defaults
      * @param cliConstruc3p  For a third-party bot client, its constructor with same parameters and
      *     behavior as {@link SOCRobotClient#SOCRobotClient(ServerConnectInfo, String, String)};
      *     {@code null} for built-in bots
@@ -92,7 +95,8 @@ import soc.robot.SOCRobotClient;
      * @throws ReflectiveOperationException if there's a problem instantiating from a non-null {@link cliConstruc3p}
      */
     public static void createAndStartRobotClientThread
-        (final String rname, final ServerConnectInfo sci, final Constructor<? extends SOCRobotClient> cliConstruc3p)
+        (final String rname, final ServerConnectInfo sci, final SOCGameOptionSet knownOpts,
+         final Constructor<? extends SOCRobotClient> cliConstruc3p)
         throws ClassNotFoundException, IllegalArgumentException, LinkageError, ReflectiveOperationException
     {
         final SOCRobotClient rcli =
@@ -100,6 +104,8 @@ import soc.robot.SOCRobotClient;
             ? new SOCRobotClient(sci, rname, "pw")
             : cliConstruc3p.newInstance(sci, rname, "pw");
 
+        if (knownOpts != null)
+            rcli.knownOpts = new SOCGameOptionSet(knownOpts, true);
         rcli.printedInitialWelcome = true;  // don't clutter the server console
 
         Thread rth = new Thread(new SOCLocalRobotClient(rcli));

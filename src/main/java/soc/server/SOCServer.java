@@ -938,6 +938,8 @@ public class SOCServer extends Server
      * All the Known Game Options at this server, copied early from {@link #startupKnownOpts} using field initializer.
      *<P>
      * Before v2.4.10, {@link SOCGameOption} relied on an internal static map and this field wasn't needed.
+     *
+     * @see #activateKnownOption(String)
      * @since 2.4.10
      */
     public final SOCGameOptionSet knownOpts = new SOCGameOptionSet(startupKnownOpts, true);
@@ -3536,7 +3538,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numFast; ++i)
             {
                 String rname = "droid " + (i+1);
-                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci, null);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci, knownOpts, null);
                     // to ratelimit, create includes Thread.yield() and sleep(75 ms) on caller's thread
             }
 
@@ -3547,7 +3549,7 @@ public class SOCServer extends Server
             for (int i = 0; i < numSmart; ++i)
             {
                 String rname = "robot " + (i+1+numFast);
-                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci, null);
+                SOCLocalRobotClient.createAndStartRobotClientThread(rname, sci, knownOpts, null);
             }
 
             // Now, any third-party bots starting up with server.
@@ -3558,7 +3560,7 @@ public class SOCServer extends Server
                 {
                     ++i;
                     curr3pBotClass = con.getDeclaringClass().getName();
-                    SOCLocalRobotClient.createAndStartRobotClientThread("extrabot " + i, sci, con);
+                    SOCLocalRobotClient.createAndStartRobotClientThread("extrabot " + i, sci, knownOpts, con);
                 }
             }
         }
@@ -3760,11 +3762,60 @@ public class SOCServer extends Server
      *
      * @param gm Game name
      * @return the game options, or null if the game doesn't exist or has no options
+     * @see #activateKnownOption(String)
      * @since 1.1.07
      */
     public SOCGameOptionSet getGameOptions(String gm)
     {
         return gameList.getGameOptions(gm);
+    }
+
+    /**
+     * Activate an inactive {@link SOCGameOption} in server's Known Options
+     * and announce its updated {@link SOCGameOptionInfo} to all connected clients.
+     * May be useful during testing with bots; not expected to be used in typical production.
+     *
+     * @param optKey The inactive Known Option's {@link SOCVersionedItem#key key}
+     * @return true if option was found and activated, or was already active; false if not found
+     * @throws IllegalArgumentException if Known Option {@code optKey}
+     *     has neither {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} nor {@link SOCGameOption#FLAG_ACTIVATED}
+     * @see #getGameOptions(String)
+     * @since 2.4.10
+     */
+    public boolean activateKnownOption(final String optKey)
+        throws IllegalArgumentException
+    {
+        SOCGameOption opt = knownOpts.get(optKey);
+        if (opt == null)
+            return false;
+        if (opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
+            return true;
+
+        knownOpts.activate(optKey);
+        opt = knownOpts.get(optKey);
+
+        final int minVers = opt.minVersion;
+        final String optFeat = opt.getClientFeature();
+        for (final Connection c : conns.values())
+        {
+            final int cliVers = c.getVersion();
+            final SOCClientData scd = (SOCClientData) c.getAppData();
+            final boolean isSupported = ((cliVers >= minVers)
+                && ((optFeat == null) || ((scd != null) && scd.feats.isActive(optFeat))));
+            c.put(new SOCGameOptionInfo
+                ((isSupported) ? opt : new SOCGameOption(opt.key), cliVers, null));
+        }
+        for (final Connection c : unnamedConns)
+        {
+            final int cliVers = c.getVersion();
+            final SOCClientData scd = (SOCClientData) c.getAppData();
+            final boolean isSupported = ((cliVers >= minVers)
+                && ((optFeat == null) || ((scd != null) && scd.feats.isActive(optFeat))));
+            c.put(new SOCGameOptionInfo
+                ((isSupported) ? opt : new SOCGameOption(opt.key), cliVers, null));
+        }
+
+        return true;
     }
 
     /**

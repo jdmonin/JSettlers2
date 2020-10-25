@@ -214,7 +214,7 @@ public class TestRecorder
             ("some bots are connected; actual nConn=" + nConn, nConn >= RecordingTesterServer.NUM_STARTROBOTS);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, null);
+            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -261,7 +261,7 @@ public class TestRecorder
         assertNotNull(server);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, null);
+            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -316,7 +316,7 @@ public class TestRecorder
         assertNotNull(srv);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, "es");
+            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, "es", null);
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -498,27 +498,36 @@ public class TestRecorder
 
         assertNotNull(server);
 
+        SOCGameOptionSet clientKnownOpts = null;
         final SOCGameOption observabilityOpt;
         if (observabilityMode > 0)
         {
             final String key = (observabilityMode == 1) ? SOCGameOptionSet.K_PLAY_VPO : SOCGameOptionSet.K_PLAY_FO;
             SOCGameOption opt = server.knownOpts.getKnownOption(key, true);
-            assertNotNull("found option " + key, opt);
+            assertNotNull("server found option " + key, opt);
             if (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
             {
-                server.knownOpts.activate(key);
+                assertTrue
+                    ("server.activateKnownOption(" + key + ") success",
+                     server.activateKnownOption(key));
                 opt = server.knownOpts.getKnownOption(key, true);
-                assertNotNull("found option " + key, opt);
+                assertNotNull("server found option " + key, opt);
+                assertTrue(opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
             }
 
-            assertTrue("option activated: " + key, opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+            clientKnownOpts = SOCGameOptionSet.getAllKnownOptions();
+            clientKnownOpts.activate(key);
+
+            assertTrue("option activated at server: " + key, opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+            assertTrue
+                ("option activated at client: " + key, clientKnownOpts.get(key).hasFlag(SOCGameOption.FLAG_ACTIVATED));
             observabilityOpt = opt;
         } else {
             observabilityOpt = null;
         }
 
         final DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, clientName, null);
+            (RecordingTesterServer.STRINGPORT_NAME, clientName, null, clientKnownOpts);
         tcli.init();
         assertEquals(clientName, tcli.getNickname());
 
@@ -530,7 +539,7 @@ public class TestRecorder
         if (client2Name != null)
         {
             tcli2 = new DisplaylessTesterClient
-                (RecordingTesterServer.STRINGPORT_NAME, client2Name, null);
+                (RecordingTesterServer.STRINGPORT_NAME, client2Name, null, clientKnownOpts);
             tcli2.init();
             assertEquals(client2Name, tcli2.getNickname());
 

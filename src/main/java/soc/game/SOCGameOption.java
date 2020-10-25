@@ -1144,15 +1144,12 @@ public class SOCGameOption
      *       <LI> All other optTypes: int value or string value, as appropriate
      *     </UL>
      *
-     * @throws ClassCastException if {@code omap} contains anything other
-     *         than {@code SOCGameOption}s
      * @see #parseOptionNameValue(String, boolean, SOCGameOptionSet)
      * @see #parseOptionNameValue(String, String, boolean, SOCGameOptionSet)
      * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
         (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final boolean sortByKey)
-        throws ClassCastException
     {
         return packOptionsToString(omap, hideEmptyStringOpts, sortByKey, -2);
     }
@@ -1176,13 +1173,10 @@ public class SOCGameOption
      *               for use with clients older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
      * @return string of name-value pairs, or "-" for an empty or null omap;
      *         see {@link #packOptionsToString(Map, boolean, boolean)} javadoc for details.
-     * @throws ClassCastException if {@code omap} contains anything other
-     *         than {@code SOCGameOption}s
      * @see #packValue(StringBuilder)
      */
     public static String packOptionsToString
         (final Map<String, SOCGameOption> omap, boolean hideEmptyStringOpts, final boolean sortByKey, final int cliVers)
-        throws ClassCastException
     {
         if ((omap == null) || omap.size() == 0)
             return "-";
@@ -1218,6 +1212,8 @@ public class SOCGameOption
                     continue;  // <-- Skip this one --
             if ((cliVers == -3) && ((op.key.length() > 3) || op.key.contains("_")))
                 continue;  // <-- Skip this one -- (VERSION_FOR_LONGER_OPTNAMES)
+            if (op.hasFlag(FLAG_INACTIVE_HIDDEN))
+                continue;
 
             if (hadAny)
                 sb.append(SOCMessage.sep2_char);

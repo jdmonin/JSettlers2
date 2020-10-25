@@ -144,7 +144,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
      * @since 2.4.10
      */
-    protected SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
+    public SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
 
     /**
      * Since server and built-in robots are the same version,
