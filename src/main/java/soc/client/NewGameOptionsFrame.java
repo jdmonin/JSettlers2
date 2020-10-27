@@ -1070,7 +1070,14 @@ import soc.util.Version;
             (bp, gbl, gbc, SOCPlayerClient.PREF_HEX_GRAPHICS_SET,
              strings.get("game.options.hex.classic.all"),  // "Hex graphics: Use Classic theme (All games)"
              true, false,
-             bval, 0, null);
+             bval, 0,
+                new PrefCheckboxListener()
+                {
+                    public void stateChanged(boolean check)
+                    {
+                        localPrefs.put(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, check );
+                    }
+                });
 
         initInterface_Pref1
             (bp, gbl, gbc, null,
