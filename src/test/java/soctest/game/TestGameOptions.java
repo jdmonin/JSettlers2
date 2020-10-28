@@ -78,7 +78,7 @@ public class TestGameOptions
     /**
      * Test that contents of {@link SOCGameOptionSet#getAllKnownOptions()} are consistent internally.
      *<UL>
-     * <LI> Key must not start with {@code "3"} or {@code "_3"} unless option has {@link SOCGameOption#FLAG_3RD_PARTY}
+     * <LI> Key must not have {@code '3'} as second character unless option has {@link SOCGameOption#FLAG_3RD_PARTY}
      *</UL>
      */
     @Test
@@ -87,9 +87,9 @@ public class TestGameOptions
         for (SOCGameOption opt : knownOpts)
         {
             final String okey = opt.key;
-            boolean named3p = okey.startsWith("3") || okey.startsWith("_3");
+            boolean named3p = (okey.length() >= 2) && (okey.charAt(1) == '3');
             assertEquals
-                ("key " + okey + " starts with 3 only if FLAG_3RD_PARTY",
+                ("key " + okey + " second char is '3' only if FLAG_3RD_PARTY",
                  named3p, opt.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
         }
     }
@@ -519,7 +519,7 @@ public class TestGameOptions
             if (! testMap.containsKey(optKey))
                 fail("missing expected key: " + optKey);
 
-        // client-side test FLAG-3RD_PARTY
+        // client-side test FLAG_3RD_PARTY
         opt3PKnown = new SOCGameOption
             ("T3P", -1, 1107, 0, 0, 0xFFFF, SOCGameOption.FLAG_3RD_PARTY, "For unit test");
         opt3PKnown.setClientFeature("com.example.js.test3p");

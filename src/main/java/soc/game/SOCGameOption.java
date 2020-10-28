@@ -115,6 +115,17 @@ import soc.util.Version;
  *<P>
  * Added in 2.4.10, also compatible with earlier clients. Example: {@link #K_PLAY_VPO "PLAY_VPO"}.
  *
+ *<H3>Third-Party Options</H3>
+ *
+ * "Third-party" game options can be defined by any 3rd-party client, server, bot, or JSettlers fork,
+ * and might not be known by all currently connected clients/servers at the same version.
+ * These are defined as having {@link #FLAG_3RD_PARTY} to avoid problems while syncing game option info
+ * when clients connect to servers. To use such an option, the client and server must both be
+ * from the same third-party source and have its definition. See {@link #FLAG_3RD_PARTY} javadoc for details.
+ *<P>
+ * Added in 2.4.10, not compatible with earlier clients because they won't have such an option's definition
+ * or its required client feature.
+ *
  *<H3>Version negotiation</H3>
  *
  * Game options were introduced in 1.1.07; check server, client versions against
@@ -220,14 +231,20 @@ public class SOCGameOption
      * a 3rd-party client, server, bot, or JSettlers fork, which might not be known by all
      * currently connected clients/servers at the same version.
      *<UL>
-     * <LI> Each such game opt should require an accompanying client feature name, so a server
+     * <LI> Each such game opt requires an accompanying client feature name, so a server
      *      which knows about the opt can easily tell if a client knows it
      * <LI> A client which knows 3rd-party game opts should ask server about all of them
      *      during game option info sync, to see whether server knows them.
      *      (Client call to {@link SOCGameOptionSet#optionsNewerThanVersion(int, boolean, boolean)} handles this.)
      * <LI> The client feature name can be as long as needed, and named using the same
      *      "reverse DNS" convention as java package names
-     * <LI> The game option name key should start with {@code "3"} or {@code "_3"}
+     * <LI> The game option name key should use {@code '3'} as the second character of
+     *      their name key: {@code "_3"}, {@code "T3"}, etc. This avoids a naming conflict,
+     *      since built-in options will never have {@code '3'} in that position
+     * <LI> Unless the server and client both know the third-party option and its client feature
+     *      in their {@link SOCGameOptionSet#getAllKnownOptions()} methods,
+     *      it will be ignored/unknown during the game option info synchronization/negotiation
+     *      process done when the client connects
      *</UL>
      *
      * @since 2.4.10
@@ -899,6 +916,8 @@ public class SOCGameOption
     /**
      * If this game option requires one, its client feature from {@link SOCFeatureSet}.
      * Not set or used at client, or sent over network as part of game option info sync.
+     *<P>
+     * Third-party options should always have a client feature; see {@link #FLAG_3RD_PARTY}.
      *
      * @return the client feature required to use this game option,
      *     like {@link SOCFeatureSet#CLIENT_SEA_BOARD}, or null if none

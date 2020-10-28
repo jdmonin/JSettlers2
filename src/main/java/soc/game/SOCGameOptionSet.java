@@ -332,8 +332,9 @@ public class SOCGameOptionSet
      *   by using the {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} flag.
      *   <P>
      *   If you're forking JSettlers or developing a third-party client, server, or bot,
-     *   any game options you add should start their name with {@code "3"} or {@code "_3"}.
-     *   Use {@link SOCGameOption#FLAG_3RD_PARTY} when defining your options; see its javadoc for details.
+     *   any game options you add should use {@code '3'} as the second character of
+     *   their name key: {@code "_3"}, {@code "T3"}, etc.
+     *   Use {@link SOCGameOption#FLAG_3RD_PARTY} when specifying your options; see its javadoc for details.
      *   <P>
      *   If your option supports a {@link SOCScenario}, its name should
      *   start with "_SC_" and it should have a constant name field here
