@@ -8062,7 +8062,7 @@ public class SOCServer extends Server
             }
 
             SOCGame newGame = createGameAndBroadcast
-                (null, gaName, opts, null, Version.versionNumber(),
+                (null, gaName, opts, null, SOCVersionedItem.itemsMinimumVersion(opts.getAll()),
                  true, hasGameListMonitor);
 
             if (newGame != null)
