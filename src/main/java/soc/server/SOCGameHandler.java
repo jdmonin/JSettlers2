@@ -139,8 +139,8 @@ public class SOCGameHandler extends GameHandler
     /**
      * To clean up during automated tests, should robot-only games be destroyed as soon as they're over?
      * Checks {@link SOCGame#isBotsOnly}.
-     * True by default. Added in v2.4.10; previous versions always removed such games.
-     * @since 2.4.10
+     * True by default. Added in v2.4.50; previous versions always removed such games.
+     * @since 2.4.50
      */
     public static boolean DESTROY_BOT_ONLY_GAMES_WHEN_OVER = true;
 
@@ -1967,7 +1967,7 @@ public class SOCGameHandler extends GameHandler
      *     Each message's action will be {@link SOCDevCardAction#ADD_NEW} or {@link SOCDevCardAction#ADD_OLD}
      *     depending on its item's age.
      *     List is empty, not null, if player's inventory is empty.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private List<SOCMessage> sitDown_gatherInventoryContents
         (final String gaName, final SOCPlayer pl, final int cliVers)

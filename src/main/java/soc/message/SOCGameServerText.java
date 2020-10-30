@@ -63,7 +63,7 @@ public class SOCGameServerText extends SOCMessage
      *<P>
      * {@link SOCGameTextMsg} overrides {@code sep2} instead.
      *<P>
-     * Before v2.4.10, this was private and named {@code unlikely_char1}.
+     * Before v2.4.50, this was private and named {@code unlikely_char1}.
      */
     public static final String UNLIKELY_CHAR1 = Character.toString( (char) 1 );
 
@@ -159,7 +159,7 @@ public class SOCGameServerText extends SOCMessage
      * Changes separator after game to the {@link #UNLIKELY_CHAR1} expected by {@link #parseDataStr(String)}.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String messageStrParams)
     {

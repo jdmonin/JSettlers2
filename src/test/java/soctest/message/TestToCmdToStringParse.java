@@ -59,7 +59,7 @@ import static org.junit.Assert.*;
  * <LI> {@link SOCMessage#stripAttribsToList(String)}
  *</UL>
  * @see TestTemplatesAbstracts
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class TestToCmdToStringParse
 {
@@ -862,9 +862,9 @@ public class TestToCmdToStringParse
             "SOCUpdateRobotParams:mgl=120|me=35|ebf=0.13|af=1.0|laf=1.0|dcm=3.0|tm=1.0|st=0|tf=1"
         },
         {
-            new SOCVersion(2410, "2.4.10", "JM20200801", ";6pl;sb;", "en_US"),
-            "9998|2410,2.4.10,JM20200801,;6pl;sb;,en_US",
-            "SOCVersion:2410|str=2.4.10|verBuild=JM20200801|feats=;6pl;sb;|cliLocale=en_US"
+            new SOCVersion(2450, "2.4.50", "JM20200801", ";6pl;sb;", "en_US"),
+            "9998|2450,2.4.50,JM20200801,;6pl;sb;,en_US",
+            "SOCVersion:2450|str=2.4.50|verBuild=JM20200801|feats=;6pl;sb;|cliLocale=en_US"
         },
         {
             new SOCVersion(1118, "1.1.18", "OV20130402", null, null),

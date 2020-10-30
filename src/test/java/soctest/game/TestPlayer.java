@@ -133,7 +133,7 @@ public class TestPlayer
     /**
      * Test {@link SOCPlayer#updateDevCardsPlayed(int)}, {@link SOCPlayer#getDevCardsPlayed()},
      * and related stats fields ({@link SOCPlayer#numDISCCards} etc).
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Test
     public void testDevCardStats()

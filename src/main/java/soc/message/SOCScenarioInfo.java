@@ -130,7 +130,7 @@ import soc.util.SOCFeatureSet;  // for javadocs only
 public class SOCScenarioInfo extends SOCMessageTemplateMs
     implements SOCMessageFromUnauthClient
 {
-    private static final long serialVersionUID = 2410L;
+    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
 
     /**
      * If an older client is asking for any changed/new scenarios,
@@ -171,7 +171,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
     /**
      * Rendered {@link #MARKER_KEY_UNKNOWN} for known value in {@link #toString()}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private static final String STR_MARKER_KEY_UNKNOWN = Integer.toString(MARKER_KEY_UNKNOWN);
 
@@ -184,7 +184,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      * or if this message is from client to server.
      * When {@code null}, see field {@link #scKey} for scenario name.
      *<P>
-     * Before v2.4.10, this field was {@code sc}.
+     * Before v2.4.50, this field was {@code sc}.
      */
     private SOCScenario scen;
 
@@ -462,7 +462,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
     /**
      * Field names for {@link #toString()} when {@link #isFromServer}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private final String[] FIELD_NAMES = {"key", "minVers", "lastModVers", "opts", "title", "desc"};
 
@@ -476,7 +476,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
      *    No field labeling or change to contents is done here; field "labels" are generic {@code "p="}.
      *</UL>
      * @return a human readable form of the message
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Override
     public String toString()

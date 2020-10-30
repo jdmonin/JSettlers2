@@ -718,7 +718,7 @@ import javax.swing.UIManager;
 
     /**
      * Cached result for {@link #doLayout()} for width of resource labels.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private int doLayout_resourceLabelsWidth;
 

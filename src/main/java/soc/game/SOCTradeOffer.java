@@ -100,7 +100,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
 
     /**
      * Player number making this offer.
-     * In v2.4.10 and higher, can be &lt; 0 to convey situations/conditions if sent as part of a network message,
+     * In v2.4.50 and higher, can be &lt; 0 to convey situations/conditions if sent as part of a network message,
      * such as a server's reply to client that their trade offer is not allowed.
      * @return the number of the player that made the offer
      */
@@ -215,7 +215,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
      * @return true if {@code o} is a {@link SOCTradeOffer}
      *     with the same To, From, Give and Get field contents.
      *     Ignores {@link #getGame()} field.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Override
     public boolean equals(Object o)
@@ -238,7 +238,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
     /**
      * @return a hashCode for this trade offer based on field contents,
      *     ignoring {@link #getGame()} because {@link #equals(Object)} does
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Override
     public int hashCode()

@@ -13,7 +13,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.4.10` (build JM20200xxx)
+## `2.4.50` (build JM20201xxx)
 - Currently being developed
 - Gameplay:
 	- When a trade is offered to bots and humans, bots wait longer before responding.

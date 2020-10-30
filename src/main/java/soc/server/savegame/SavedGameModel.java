@@ -147,7 +147,7 @@ public class SavedGameModel
      *      and renamed using {@link #rand} if needed
      *</UL>
      *
-     *<H4>Changed in 2.4.10:</H4>
+     *<H4>Changed in 2.4.50:</H4>
      *<UL>
      * <LI> Model version is still 2400
      * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
@@ -899,7 +899,7 @@ public class SavedGameModel
          * @see #oldDevCards
          * @see #newDevCards
          * @see SavedGameModel#devCardDeck
-         * @since 2.4.10
+         * @since 2.4.50
          */
         @JsonAdapter(DevCardEnumListAdapter.class)
         public ArrayList<Integer> playedDevCards;
@@ -1353,7 +1353,7 @@ public class SavedGameModel
          * Time at which this offer was made, as number of milliseconds from start of game,
          * based on {@link SOCPlayer#getCurrentOfferTime()}.
          * This field is currently saved but not loaded.
-         * @since 2.4.10
+         * @since 2.4.50
          */
         public long offeredAtDurationMillis;
 

@@ -1,8 +1,8 @@
 # Project info file included into JARs; see soc.util.Version, build.gradle
 #
 # version under development
-project.version=2.4.10
-project.versionnum=2410
+project.version=2.4.50
+project.versionnum=2450
 # maximum recent version number to not warn during new game creation;
 # should be a version released more than a year ago.
 project.versionnumMaxNoWarn=2000

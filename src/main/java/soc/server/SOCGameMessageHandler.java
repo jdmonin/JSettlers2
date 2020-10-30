@@ -1400,7 +1400,7 @@ public class SOCGameMessageHandler
      * @param offeringNumber  Player number offering the trade
      * @param acceptingNumber  Player number accepting the trade
      * @param c  accepting player client's connection, if need to reply that trade is not possible
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private void executeTrade
         (final SOCGame ga, final int offeringNumber, final int acceptingNumber, final Connection c)

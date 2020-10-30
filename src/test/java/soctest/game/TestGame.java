@@ -44,7 +44,7 @@ public class TestGame
 
     /**
      * Client-side tests for {@link SOCGame#hasRolledSeven()}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Test
     public void testRolled7_client()

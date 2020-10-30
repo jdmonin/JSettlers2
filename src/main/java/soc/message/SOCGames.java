@@ -87,7 +87,7 @@ public class SOCGames extends SOCMessage
      * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *     if a client can't join a game, it should be a String prefixed with
      *     {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}. Any {@link SOCGame#getGameOptions()} will be ignored.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public SOCGames(final List<?> ga)
     {

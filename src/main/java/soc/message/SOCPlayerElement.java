@@ -63,7 +63,7 @@ import soc.game.SOCResourceConstants; // for javadocs only
  * several {@code SOCPlayerElement} and {@link SOCGameServerText}s:
  *<UL>
  * <LI> {@link SOCDiceResultResources}: v2.0.00 and newer
- * <LI> {@link SOCReportRobbery}: v2.4.10 and newer
+ * <LI> {@link SOCReportRobbery}: v2.4.50 and newer
  *</UL>
  *
  * @author Robert S Thomas
@@ -238,7 +238,7 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numDISCCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.10
+         * @since 2.4.50
          */
         NUM_PLAYED_DEV_CARD_DISC(22),
 
@@ -246,7 +246,7 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numMONOCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.10
+         * @since 2.4.50
          */
         NUM_PLAYED_DEV_CARD_MONO(23),
 
@@ -254,7 +254,7 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numRBCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.10
+         * @since 2.4.50
          */
         NUM_PLAYED_DEV_CARD_ROADS(24),
 
@@ -764,7 +764,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * Action string map from action constants ({@link #GAIN}, etc) for {@link #toString()}
      * and {@link #stripAttribNames(String)}. Offset is 100.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final String[] ACTION_STRINGS = {"SET", "GAIN", "LOSE"};
         // if you add to this array:
@@ -777,7 +777,7 @@ public class SOCPlayerElement extends SOCMessage
      * Undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String messageStrParams)
     {

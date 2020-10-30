@@ -240,7 +240,7 @@ public class SOCVersion extends SOCMessage
      * Handles various null/empty fields.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String messageStrParams)
     {
@@ -274,7 +274,7 @@ public class SOCVersion extends SOCMessage
      * Null fields are rendered as {@code "=(null)"}, which is unambiguous because of the restricted format of
      * those fields; the string {@code "(null)"} wouldn't be valid contents.
      *<P>
-     * Before v2.4.10, fields were comma-separated; that version changed to use standard {@code '|'} separator.
+     * Before v2.4.50, fields were comma-separated; that version changed to use standard {@code '|'} separator.
      * @return a human readable form of the message
      */
     public String toString()
