@@ -23,6 +23,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- For efficiency and third-party bots' parsing, use data messages instead of text when clients are new enough:
 		- Report robbery with `SOCReportRobbery`
 		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
+	- When Monopoly card played, server announces amount gained instead of player's total amount of that resource
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
