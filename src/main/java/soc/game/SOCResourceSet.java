@@ -127,7 +127,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @return true if set is completely empty, including its amount of unknown resources
      * @see #getTotal()
      * @see #clear()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean isEmpty()
     {

@@ -51,7 +51,7 @@ import soc.game.SOCResourceSet;
      * Width of this panel, in unscaled pixels: 5 columns of {@link ColorSquareLarger}s,
      * which share 1 pixel overlap for squares' shared border.
      *<P>
-     * Before v2.4.10 this field was {@code WIDTH}.
+     * Before v2.4.50 this field was {@code WIDTH}.
      *
      * @since 2.0.00
      */
@@ -61,7 +61,7 @@ import soc.game.SOCResourceSet;
      * Height of this panel, in unscaled pixels: 2 lines of {@link ColorSquareLarger}s,
      * which share 1 pixel overlap for squares' shared border.
      *<P>
-     * Before v2.4.10 this field was {@code HEIGHT}.
+     * Before v2.4.50 this field was {@code HEIGHT}.
      *
      * @since 1.1.08
      */

@@ -53,7 +53,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     /**
      * Constructor from a set of game names/objects; used at server side.
      *<P>
-     * Before v2.4.10 this was a static {@code toCmd(..)} method.
+     * Before v2.4.50 this was a static {@code toCmd(..)} method.
      *
      * @param ga  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *            if a client can't join a game, it should be a String prefixed with
@@ -61,7 +61,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      * @return    the command string
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public SOCGamesWithOptions(List<?> ga, final int cliVers)
     {

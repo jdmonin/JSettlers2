@@ -31,7 +31,7 @@ import java.util.StringTokenizer;
  * This message gives the resources that a player has chosen to discard;
  * client's response to server's {@link SOCDiscardRequest}.
  *<P>
- * If the resource total isn't correct, server v2.4.10 and newer will
+ * If the resource total isn't correct, server v2.4.50 and newer will
  * resend {@code SOCDiscardRequest} with the required resource count.
  *<P>
  * If this is the right total amount to discard, server will respond to player
@@ -180,7 +180,7 @@ public class SOCDiscard extends SOCMessage
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String message)
     {

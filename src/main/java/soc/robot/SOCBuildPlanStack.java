@@ -32,13 +32,12 @@ import soc.game.SOCResourceSet;
  * to a wrapper if we ever change SOCBuildPlan to an abstract class instead of an interface.
  *
  * @author kho30
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class SOCBuildPlanStack extends Stack<SOCPossiblePiece>
     implements SOCBuildPlan, Serializable
 {
-    /** Last structural change was v2.4.10 */
-    private static final long serialVersionUID = 2410L;
+    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
 
     /**
      * NB: This does not check for a legal index

@@ -72,7 +72,7 @@ import java.util.StringTokenizer;
  * that someone might want to read and interpret later. For documentation, we recommend including the current
  * {@link soc.util.Version#versionNumber()} or a {@link SOCVersion} message near the start of such a log.
  *<P>
- * Starting in v2.4.10, the {@code toString()} form must be parsable back into {@code SOCMessage}
+ * Starting in v2.4.50, the {@code toString()} form must be parsable back into {@code SOCMessage}
  * through {@link #parseMsgStr(String)}. This "round-trip" parsing is useful for third-party projects
  * which wrote human-readable message logs and want to interpret or replay them later.
  * See that method's javadoc for details.
@@ -142,7 +142,7 @@ import java.util.StringTokenizer;
  * For debugging purposes, it's sometimes useful to make the output of {@link #toString()} more meaningful:
  * Translating enum integers like {@code pieceType} to their strings, etc.
  *<P>
- * In versions after 2.4.10: If you must make an incompatible change to a message's toString form,
+ * In versions after 2.4.50: If you must make an incompatible change to a message's toString form,
  * and a previous version's {@link #parseMsgStr(String)} wouldn't be able to parse that new form,
  * rename the message class and make sure the old name can still be parsed with its old format
  * (see {@link #MESSAGE_RENAME_MAP}, write a static {@code stripAttribNames(messageTypeName, messageStrParams)}, etc.)
@@ -448,9 +448,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /**
      * {@link SOCReportRobbery} - Info from server about a robbery's perpetrator, victim, and what was stolen.
-     * @since 2.4.10
+     * @since 2.4.50
      */
-    public static final int REPORTROBBERY = 1102;  // Report Robbery, 20200915, v2.4.10
+    public static final int REPORTROBBERY = 1102;  // Report Robbery, 20200915, v2.4.50
 
 
     /////////////////////////////////////////
@@ -490,7 +490,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /**
      * Main {@link #sep SEP} separator, in regexp form for splits and replacements.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final String sepRE = "\\|";
 
@@ -1038,7 +1038,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
                 return SOCScenarioInfo.parseDataStr(multiData, data);
 
-            case REPORTROBBERY:        // Report Robbery, 20200915, v2.4.10
+            case REPORTROBBERY:        // Report Robbery, 20200915, v2.4.50
                 return SOCReportRobbery.parseDataStr(data);
 
             // gametype-specific messages:
@@ -1065,7 +1065,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Key is old name of message type, value is new name (SOCMessage subclass).
      * See {@code parseMsgStr(..)} javadoc for more details, including expected
      * static {@code stripAttribNames(messageTypeName, messageStrParams)} method.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static Map<String, String> MESSAGE_RENAME_MAP = new HashMap<>();
     static
@@ -1113,7 +1113,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @throws ParseException if message class name not parsed or class not found,
      *     reflection error (method not static, etc), or if message's
      *     {@link #stripAttribNames(String)} or {@link #parseMsgStr(String)} threw an exception
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static SOCMessage parseMsgStr(final String messageStr)
         throws ParseException, InputMismatchException
@@ -1275,7 +1275,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @return Message parameters without attribute names, or {@code null} if params are malformed.
      *     If {@code messageStrParams} is "", returns "".
      * @see #stripAttribsToList(String)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String messageStrParams)
     {
@@ -1300,7 +1300,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *     If {@code messageStrParams} is "", returns a list with "" as its sole element.
      *     The returned List might not support optional methods like {@link List#add(int, Object)}.
      * @see #stripAttribNames(String)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static List<String> stripAttribsToList(String messageStrParams)
     {

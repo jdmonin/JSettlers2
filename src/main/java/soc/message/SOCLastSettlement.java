@@ -152,7 +152,7 @@ public class SOCLastSettlement extends SOCMessage
      * Converts settlement coordinate to decimal from hexadecimal format.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String messageStrParams)
     {

@@ -173,7 +173,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     /**
      * Client-side request constructor, for a single string key.
      *<P>
-     * Before v2.4.10, a static {@code toCmd(..)} method was called by the client.
+     * Before v2.4.50, a static {@code toCmd(..)} method was called by the client.
      *
      * @param type  String type such as {@link #TYPE_SCENARIO};
      *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -187,7 +187,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * @throws IllegalArgumentException  If {@code type} or (if not empty) {@code str} fails
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @throws NullPointerException if {@code str} is null
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public SOCLocalizedStrings(final String type, final int flags, String str)
         throws IllegalArgumentException, NullPointerException

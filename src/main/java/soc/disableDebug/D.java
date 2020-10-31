@@ -33,25 +33,25 @@ public class D
 {
     /**
      * Print out everything
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int INFO = 0;
 
     /**
      * Print out warnings or above
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int WARNING = 1;
 
     /**
      * Print out errors or fatals
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int ERROR = 2;
 
     /**
      * Print out fatals only. NOTE: despite the name, fatals are exceptions that may or may not cause the application to crash
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int FATAL = 3;
 
@@ -62,7 +62,7 @@ public class D
      * The debug level, one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
      * Default set to WARNING.
      * Doesn't affect anything as debug is off
-     * @since 2.4.10
+     * @since 2.4.50
      */
     static private int level = WARNING;
 
@@ -70,7 +70,7 @@ public class D
      * Changes the debug level to one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
      * The default is WARNING.
      * @throws IllegalArgumentException if level not in range {@code INFO} - {@code FATAL}
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static void setLevel(int l)
         throws IllegalArgumentException
@@ -84,7 +84,7 @@ public class D
     /**
      * Get the current debug level (one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL})
      * @return the current debug level
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static int ebug_level()
     {
@@ -115,13 +115,13 @@ public class D
      * DOCUMENT ME!
      *
      * @param text DOCUMENT ME!
-     * @deprecated Use {@link #ebugPrintlnINFO(String)} added in v2.4.10
+     * @deprecated Use {@link #ebugPrintlnINFO(String)} added in v2.4.50
      */
     public static final void ebugPrintln(String text) {}
 
     /**
      * DOCUMENT ME!
-     * @deprecated Use {@link #ebugPrintlnINFO()} added in v2.4.10
+     * @deprecated Use {@link #ebugPrintlnINFO()} added in v2.4.50
      */
     public static final void ebugPrintln() {}
 
@@ -136,13 +136,13 @@ public class D
      * Does nothing as debug is off
      *
      * @param text DOCUMENT ME!
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final void ebugPrintlnINFO(String prefix, String text) {}
 
     /**
      * Does nothing as debug is off
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final void ebugPrintlnINFO() {}
 
@@ -160,7 +160,7 @@ public class D
      * @param ex Exception or other Throwable
      * @param prefixMsg Message for {@link #ebugPrintlnINFO(String)} above the exception,
      *                  or null
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final void ebugFATAL(Throwable ex, String prefixMsg) {}
 
@@ -168,7 +168,7 @@ public class D
      * DOCUMENT ME!
      *
      * @param text DOCUMENT ME!
-     * @deprecated Use {@link #ebugPrintINFO(String)} added in v2.4.10
+     * @deprecated Use {@link #ebugPrintINFO(String)} added in v2.4.50
      */
     public static final void ebugPrint(String text) {}
 
@@ -176,7 +176,7 @@ public class D
      * DOCUMENT ME!
      *
      * @param text DOCUMENT ME!
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final void ebugPrintINFO(String text) {}
 
@@ -190,28 +190,28 @@ public class D
     /**
      * Does nothing as debug is off
      * @param text Text to debug-print
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final void ebugWARNING(String text) { }
 
     /**
      * Does nothing as debug is off
      * @param text Text to debug-print
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final void ebugWARNING(String prefix, String text) { }
 
     /**
      * Does nothing as debug is off
      * @param text Text to debug-print
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final void ebugERROR(String text) { }
 
     /**
      * Does nothing as debug is off
      * @param text Text to debug-print
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final void ebugERROR(String prefix, String text) { }
 

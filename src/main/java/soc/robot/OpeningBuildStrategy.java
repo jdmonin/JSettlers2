@@ -53,7 +53,7 @@ public class OpeningBuildStrategy {
 
     /**
      * Our {@link SOCBuildingSpeedEstimate} factory, from {@link #ourPlayerData}'s brain passed into constructor.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected final SOCBuildingSpeedEstimateFactory bseFactory;
 

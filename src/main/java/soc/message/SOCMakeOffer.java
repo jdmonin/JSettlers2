@@ -37,7 +37,7 @@ import java.util.StringTokenizer;
  *<BR>
  * Or, server is replying to client that this trade is disallowed: {@link #getOffer()}.{@code getFrom()}
  * is {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}.
- * Clients older than v2.4.10 don't recognize {@code PN_REPLY_CANNOT_MAKE_TRADE}, so server
+ * Clients older than v2.4.50 don't recognize {@code PN_REPLY_CANNOT_MAKE_TRADE}, so server
  * sends those clients a {@link SOCGameServerText} instead.
  *
  * @author Robert S. Thomas
@@ -201,7 +201,7 @@ public class SOCMakeOffer extends SOCMessage
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String message)
     {

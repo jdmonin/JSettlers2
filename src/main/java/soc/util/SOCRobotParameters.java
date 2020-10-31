@@ -211,7 +211,7 @@ public class SOCRobotParameters implements Serializable
      * @return true if {@code other} is a {@link SOCRobotParameters} having the same values
      *     for all fields listed in constructor
      * @see Object#equals(Object)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean equals(Object o)
     {

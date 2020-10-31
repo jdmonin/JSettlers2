@@ -1400,7 +1400,7 @@ public class SOCGameMessageHandler
      * @param offeringNumber  Player number offering the trade
      * @param acceptingNumber  Player number accepting the trade
      * @param c  accepting player client's connection, if need to reply that trade is not possible
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private void executeTrade
         (final SOCGame ga, final int offeringNumber, final int acceptingNumber, final Connection c)
@@ -3134,7 +3134,9 @@ public class SOCGameMessageHandler
                 if (ga.canDoMonopolyAction())
                 {
                     final int rsrc = mes.getResourceType();
+
                     final int[] monoPicks = ga.doMonopolyAction(rsrc);
+
                     final boolean[] isVictim = new boolean[ga.maxPlayers];
                     final int cpn = ga.getCurrentPlayerNumber();
                     final String monoPlayerName = c.getData();
@@ -3183,12 +3185,16 @@ public class SOCGameMessageHandler
                      * set isNews flag for each victim player's count
                      */
                     for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        if ((pn == cpn) || isVictim[pn])
+                        if (isVictim[pn])
                             // sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
                             srv.messageToGameWithMon
                                 (gaName, true, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.SET,
-                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), (pn != cpn)));
+                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), true));
+                    srv.messageToGameWithMon
+                        (gaName, true, new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.GAIN,
+                             rsrc, monoTotal, false));
 
                     srv.gameList.releaseMonitorForGame(gaName);
 

@@ -61,7 +61,7 @@ public class SOCChannelMembers extends SOCMessage
      * @param ch  the new channel name
      * @param ml  the list of members (String or {@link Connection})
      * @return    the command string
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public SOCChannelMembers(String ch, List<?> ml)
     {
@@ -170,7 +170,7 @@ public class SOCChannelMembers extends SOCMessage
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Member list for {@link #parseDataStr(String)}, or {@code null} if params are malformed
      * @see #stripAttribNamesToMemberList(String, String)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String messageStrParams)
     {

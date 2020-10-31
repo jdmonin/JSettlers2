@@ -42,7 +42,7 @@ import java.util.StringTokenizer;
  *<P>
  * The server disallows any unacceptable trade by sending the client a
  * {@code SOCBankTrade} with a reason code &lt; 0 like {@link #PN_REPLY_NOT_YOUR_TURN}.
- * Servers before v2.4.10 ({@link #VERSION_FOR_REPLY_REASONS}) disallowed by
+ * Servers before v2.4.50 ({@link #VERSION_FOR_REPLY_REASONS}) disallowed by
  * sending an explanatory {@link SOCGameServerText}.
  *<P>
  * To undo a bank trade in version 1.1.13 or higher, the player's client can
@@ -58,11 +58,10 @@ public class SOCBankTrade extends SOCMessage
 
     /**
      * Minimum server and client version number which uses reply/disallow reason codes
-     * ({@link #PN_REPLY_CANNOT_MAKE_TRADE}, etc), which are always &lt; 0:
-     * 2410 for v2.4.10.
-     * @since 2.4.10
+     * ({@link #PN_REPLY_CANNOT_MAKE_TRADE}, etc), which are always &lt; 0: 2450 for v2.4.50.
+     * @since 2.4.50
      */
-    public static final int VERSION_FOR_REPLY_REASONS = 2410;
+    public static final int VERSION_FOR_REPLY_REASONS = 2450;
 
     /**
      * Server's reply reason code that the requesting client can't make this trade now
@@ -70,7 +69,7 @@ public class SOCBankTrade extends SOCMessage
      * Also used by {@link SOCMakeOffer} and {@link SOCAcceptOffer}.
      * For a more specific reason, see {@link #PN_REPLY_NOT_YOUR_TURN}.
      * Requires minimum version {@link #VERSION_FOR_REPLY_REASONS}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int PN_REPLY_CANNOT_MAKE_TRADE = -2;
 
@@ -79,7 +78,7 @@ public class SOCBankTrade extends SOCMessage
      * because it isn't their turn.
      * Requires minimum version {@link #VERSION_FOR_REPLY_REASONS}.
      * @see #PN_REPLY_CANNOT_MAKE_TRADE
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int PN_REPLY_NOT_YOUR_TURN = -3;
 
@@ -164,7 +163,7 @@ public class SOCBankTrade extends SOCMessage
      * {@link #PN_REPLY_CANNOT_MAKE_TRADE} or {@link #PN_REPLY_NOT_YOUR_TURN}.
      * In a message from client, get -1 because this field isn't set.
      * Versions older than 2.0.00 ignore this field.
-     * Versions older than 2.4.10 don't recognize reply reason codes (&lt; -1).
+     * Versions older than 2.4.50 don't recognize reply reason codes (&lt; -1).
      * @return the player number or negative reason code (message from server),
      *     or -1 if not set (message from client).
      */
@@ -255,7 +254,7 @@ public class SOCBankTrade extends SOCMessage
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String message)
     {

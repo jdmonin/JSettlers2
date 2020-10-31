@@ -327,7 +327,7 @@ public class SOCFeatureSet
      * @param featureName  A defined feature name, such as {@link #SERVER_ACCOUNTS}
      *     or {@link #CLIENT_SCENARIO_VERSION}
      * @throws IllegalArgumentException if {@code featureName} is null or ""
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public void remove(final String featureName)
         throws IllegalArgumentException

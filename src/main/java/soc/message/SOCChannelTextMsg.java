@@ -40,7 +40,7 @@ public class SOCChannelTextMsg extends SOCMessage
      * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}.
      * Same separator as in {@link SOCGameTextMsg}.
      *<P>
-     * Before v2.4.10 this field was named {@code sep2}.
+     * Before v2.4.50 this field was named {@code sep2}.
      */
     private static String sep2_alt = "" + (char) 0;
 
@@ -153,7 +153,7 @@ public class SOCChannelTextMsg extends SOCMessage
      * returning message parameters as a list formatted for {@link SOCMessage#parseMsgStr(String)}.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String messageStrParams)
     {

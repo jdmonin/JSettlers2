@@ -36,7 +36,7 @@ import soc.server.SOCServer;
  *<P>
  * Works with {@link DisplaylessTesterClient}.
  *
- * @since 2.4.10
+ * @since 2.4.50
  */
 @SuppressWarnings("serial")
 public class RecordingTesterServer

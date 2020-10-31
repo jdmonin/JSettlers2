@@ -208,7 +208,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      *     Can be longer or shorter than {@code params}: Extra entries are ignored,
      *     uses {@code "p="} after end of a too-short list.
      * @return a human readable form of the message and parameters
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected String toString(final List<String> params, final String[] fieldNames)
     {

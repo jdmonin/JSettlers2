@@ -34,8 +34,8 @@ import soc.game.SOCPlayerNumbers;
  */
 public class SOCPossibleCity extends SOCPossiblePiece
 {
-    /** Last structural change v2.4.10 (2410) */
-    private static final long serialVersionUID = 2410L;
+    /** Last structural change v2.4.50 (2450) */
+    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
 
     /**
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
@@ -45,7 +45,7 @@ public class SOCPossibleCity extends SOCPossiblePiece
 
     /**
      * Our {@link SOCBuildingSpeedEstimate} factory.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected SOCBuildingSpeedEstimateFactory bseFactory;
 

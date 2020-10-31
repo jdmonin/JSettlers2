@@ -159,7 +159,7 @@ public class TestFeatureSet
 
     /**
      * Test {@link SOCFeatureSet#remove(String)}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Test
     public void testRemove()

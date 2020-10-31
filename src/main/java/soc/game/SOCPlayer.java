@@ -85,8 +85,8 @@ import java.util.Vector;
  */
 public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
-    /** Last field change was v2.4.10 (2410) */
-    private static final long serialVersionUID = 2410L;
+    /** Last field change was v2.4.50 (2450) */
+    private static final long serialVersionUID = 2450L;
 
     /**
      * Number of {@link SOCRoad}s a player can build (15).
@@ -293,7 +293,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Development cards played this game by this player, or null if none, at server:
      * See {@link #getDevCardsPlayed()} for details.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private List<Integer> devCardsPlayed;
 
@@ -301,7 +301,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * How many Road Building cards ({@link SOCDevCardConstants#ROADS}) this player has played.
      * @see #getDevCardsPlayed()
      * @see #updateDevCardsPlayed(int)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public int numRBCards = 0;
 
@@ -309,7 +309,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * How many Discovery/Year of Plenty cards ({@link SOCDevCardConstants#DISC}) this player has played.
      * @see #getDevCardsPlayed()
      * @see #updateDevCardsPlayed(int)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public int numDISCCards = 0;
 
@@ -317,7 +317,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * How many Monopoly cards ({@link SOCDevCardConstants#MONO}) this player has played.
      * @see #getDevCardsPlayed()
      * @see #updateDevCardsPlayed(int)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public int numMONOCards = 0;
 
@@ -541,7 +541,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * time when {@link #currentOffer} was last updated; see {@link #getCurrentOfferTime()}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private long currentOfferTimeMillis;
 
@@ -1053,7 +1053,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see SOCGame#playKnight()
      * @see SOCGame#playMonopoly()
      * @see SOCGame#playRoadBuilding()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public synchronized void updateDevCardsPlayed(final int ctype)
     {
@@ -1087,7 +1087,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * At client, may be incomplete or null: Updated during game play, but not sent from server as client joins mid-game.
      *
      * @return copy of list of dev cards played, or {@code null} if none
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public List<Integer> getDevCardsPlayed()
     {
@@ -2695,7 +2695,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return  time of most recent call to {@code setCurrentOffer(..)},
      *     or 0 if never called during game
      * @see #getCurrentOffer()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public long getCurrentOfferTime()
     {
@@ -4408,7 +4408,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return The player's set of legal-settlement node coordinates; please treat as read-only.
      *     Not {@code null} unless {@link #destroyPlayer()} has been called.
      * @see #getPotentialSettlements()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public Set<Integer> getLegalSettlements()
     {
@@ -4807,7 +4807,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Does this player have at least 2 potential roads (useful for Road Building),
      * or have 1 current potential plus another that becomes potential after placement there?
      * @return true if player has 2 such roads
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean hasTwoPotentialRoads()
     {
@@ -5236,7 +5236,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see #hasSettlementAtNode(int)
      * @see #hasCityAtNode(int)
      * @see #getSettlementOrCityAtNode(int)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean hasSettlementOrCityAtNode(final int node)
     {
@@ -5248,7 +5248,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param node  the board node coordinate to check
      * @return true if we have a settlement at {@code node}
      * @see #hasSettlementOrCityAtNode(int)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean hasSettlementAtNode(final int node)
     {
@@ -5264,7 +5264,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param node  the board node coordinate to check
      * @return true if we have a city at {@code node}
      * @see #hasSettlementOrCityAtNode(int)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean hasCityAtNode(final int node)
     {
@@ -5280,7 +5280,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param edge  the board edge coordinate to check
      * @return true if we have a road or ship at {@code edge}
      * @see #getRoadOrShip(int)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean hasRoadOrShipAtEdge(final int edge)
     {

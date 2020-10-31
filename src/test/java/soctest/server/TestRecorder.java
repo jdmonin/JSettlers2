@@ -71,7 +71,7 @@ import soctest.server.savegame.TestLoadgame;
  * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
  * and {@link #compareRecordsToExpected(List, String[][])} which other test classes can use.
  *
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class TestRecorder
 {

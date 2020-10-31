@@ -173,7 +173,7 @@ public class SOCRobotBrain extends Thread
      * for this many seconds before accepting an offer to give humans a chance
      * to compete against fast bot decisions.
      *
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static int BOTS_PAUSE_FOR_HUMAN_TRADE = 8;
 
@@ -336,7 +336,7 @@ public class SOCRobotBrain extends Thread
      *<P>
      * {@link SOCRobotDM#buildingPlan} is the same Stack.
      *<P>
-     * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+     * Before v2.4.50 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
      *
      * @see #whatWeWantToBuild
      */
@@ -402,7 +402,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Our {@link SOCBuildingSpeedEstimate} factory.
      * @see #getEstimatorFactory()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected SOCBuildingSpeedEstimateFactory bseFactory;
 
@@ -603,7 +603,7 @@ public class SOCRobotBrain extends Thread
      * not yet {@link SOCGame#PLAY1}. When this flag is true and state becomes {@code PLAY1},
      * brain will set it false and call {@link #startTurnMainActions()}.
      * @see #waitingForOurTurn
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private boolean waitingForTurnMain;
 
@@ -944,7 +944,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Get the current building plan.
      *<P>
-     * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+     * Before v2.4.50 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
      *
      * @return the building plan
      * @see #resetBuildingPlan()
@@ -958,7 +958,7 @@ public class SOCRobotBrain extends Thread
      * clears the stack describing the current building plan.
      * @see #getBuildingPlan()
      * @see #resetFieldsAtEndTurn()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public void resetBuildingPlan()
     {
@@ -2263,7 +2263,7 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Third-party bots may instead choose to override this entire method.
      *
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected void planAndDoActionForPLAY1()
     {
@@ -2376,7 +2376,7 @@ public class SOCRobotBrain extends Thread
      * Calls {@link SOCGame#setCurrentDice(int)}.
      * Third-party bots can override if needed; if so, be sure to call {@code super.handleDICERESULT(..)}.
      * @param mes  Dice result info message
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected void handleDICERESULT(SOCDiceResult mes)
     {
@@ -2394,7 +2394,7 @@ public class SOCRobotBrain extends Thread
      * to report the gain/loss of resources.
      *
      * @param newHex  New hex coordinate of robber if &gt; 0, pirate if &lt;= 0 (invert before using)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected void robberMoved(final int newHex)
     {
@@ -3271,7 +3271,7 @@ public class SOCRobotBrain extends Thread
      *     or {@link #ourPlayerNumber} if called for accepting another player's offer
      * @param accepted  True if offer was accepted, false if rejected
      * @see #tradeStopWaitingClearOffer()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected void handleTradeResponse(final int playerNum, final boolean accepted)
     {
@@ -5085,7 +5085,7 @@ public class SOCRobotBrain extends Thread
      * Will set either {@link #waitingForTradeResponse} or {@link #doneTrading},
      * and update {@link #ourPlayerData}.{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) setCurrentOffer()},
      *<P>
-     * Before v2.4.10 this method took a {@link SOCPossiblePiece}, not a {@link SOCBuildPlan}.
+     * Before v2.4.50 this method took a {@link SOCPossiblePiece}, not a {@link SOCBuildPlan}.
      *
      * @param buildPlan  our current build plan
      * @return true if we made an offer
@@ -5179,7 +5179,7 @@ public class SOCRobotBrain extends Thread
      *     false if server sent a message disallowing it
      * @see #tradeStopWaitingClearOffer()
      * @see #handleTradeResponse(int, boolean)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public void clearTradingFlags(final boolean isBankTrade, final boolean wasAllowed)
     {
@@ -5201,7 +5201,7 @@ public class SOCRobotBrain extends Thread
      * @param player  Player to update
      * @param resourceType  Type of resource, like {@link SOCResourceConstants#CLAY}
      * @param amount  The new value to set, or the delta to gain/lose
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected void handleResources(int action, SOCPlayer player, int resourceType, int amount)
     {
@@ -5219,7 +5219,7 @@ public class SOCRobotBrain extends Thread
      * @return a DecisionMaker based on this brain
      * @see #recreateDM()
      * @see #setStrategyFields()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected SOCRobotDM createDM()
     {
@@ -5229,7 +5229,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Recreates our decision maker, by calling {@link #createDM()} and setting the field
      * returned by {@link #getDecisionMaker()}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public void recreateDM()
     {
@@ -5243,7 +5243,7 @@ public class SOCRobotBrain extends Thread
      *
      * @return a Negotiator based on this brain
      * @see #setStrategyFields()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected SOCRobotNegotiator createNegotiator()
     {
@@ -5258,7 +5258,7 @@ public class SOCRobotBrain extends Thread
      * @return a factory for this brain
      * @see #setStrategyFields()
      * @see #getEstimatorFactory()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected SOCBuildingSpeedEstimateFactory createEstimatorFactory()
     {
@@ -5272,7 +5272,7 @@ public class SOCRobotBrain extends Thread
      * Default behaviour: No special actions. Third-party bots may override this stub.
      *
      * @see #endTurnActions()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected void startTurnMainActions()
     {
@@ -5290,7 +5290,7 @@ public class SOCRobotBrain extends Thread
      *
      * @return true if can end turn, false otherwise
      * @see #startTurnMainActions()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected boolean endTurnActions()
     {
@@ -5301,7 +5301,7 @@ public class SOCRobotBrain extends Thread
      * Inform the brain of the final game result at end of game.
      * Third-party bots can override this stub to do any work needed.
      * @param message Game stats info message
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected void handleGAMESTATS(SOCGameStats message)
     {
@@ -5314,7 +5314,7 @@ public class SOCRobotBrain extends Thread
      *     in same format passed into {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate(SOCPlayerNumbers)}
      * @return an estimate of time to build something, based on {@code numbers}
      * @see #getEstimator()
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public SOCBuildingSpeedEstimate getEstimator(SOCPlayerNumbers numbers)
     {
@@ -5327,7 +5327,7 @@ public class SOCRobotBrain extends Thread
      * @return an estimate of time to build something, which doesn't consider player's dice numbers yet;
      *     see {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate()} javadoc
      * @see #getEstimator(SOCPlayerNumbers)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public SOCBuildingSpeedEstimate getEstimator()
     {
@@ -5340,7 +5340,7 @@ public class SOCRobotBrain extends Thread
      *
      * @return This brain's factory
      * @see #getEstimator(SOCPlayerNumbers)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public SOCBuildingSpeedEstimateFactory getEstimatorFactory()
     {

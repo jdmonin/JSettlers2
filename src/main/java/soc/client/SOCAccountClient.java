@@ -179,7 +179,7 @@ public class SOCAccountClient extends Applet
 
     protected String host;
     protected int port;
-    /** Network socket. Before v2.4.10 this field was {@code s}. */
+    /** Network socket. Before v2.4.50 this field was {@code s}. */
     protected Socket sock;
     protected DataInputStream in;
     protected DataOutputStream out;

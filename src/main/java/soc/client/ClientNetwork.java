@@ -123,7 +123,7 @@ import soc.util.Version;
 
     /**
      * Network socket.
-     * Before v2.4.10 this field was {@code s}.
+     * Before v2.4.50 this field was {@code s}.
      */
     Socket sock;
     DataInputStream in;

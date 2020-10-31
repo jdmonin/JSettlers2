@@ -249,14 +249,14 @@ public class SOCPlayerInterface extends Frame
      * Is this game using developer Game Option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO}?
      * If so, all {@link SOCHandPanel}s will show dev cards/inventory details
      * ({@link #isGameObservableVP}) and each resource type amount (brick, ore, ...).
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected final boolean isGameFullyObservable;
 
     /**
      * Is this game using developer Game Option {@link SOCGameOptionSet#K_PLAY_VPO PLAY_VPO}
      * or {@link #isGameFullyObservable}? If so, all {@link SOCHandPanel}s will show dev cards/inventory details.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected final boolean isGameObservableVP;
 
@@ -2913,7 +2913,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Clear contents of the chat input text ("please wait" during setup, etc).
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public void clearChatTextInput()
     {
@@ -3050,7 +3050,7 @@ public class SOCPlayerInterface extends Frame
      * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
      * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
      * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public void reportRobbery
         (final int perpPN, final int victimPN, final int resType, final PEType peType,

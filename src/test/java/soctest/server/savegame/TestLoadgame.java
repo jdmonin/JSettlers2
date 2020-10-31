@@ -608,7 +608,7 @@ public class TestLoadgame
 
     /**
      * Test loading a game with Dev Card stats elements for {@link SOCPlayer#numRBCards} etc.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Test
     public void testLoadPlayerElementStats()
