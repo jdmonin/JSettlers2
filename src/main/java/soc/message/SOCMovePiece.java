@@ -173,7 +173,7 @@ public class SOCMovePiece extends SOCMessageTemplate4i
      * Build a human-readable form of the message, with this class's field names
      * instead of generic names from {@link SOCMessageTemplate4i}.
      * @return a human readable form of the message
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Override
     public String toString()

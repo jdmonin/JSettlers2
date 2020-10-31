@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
 /**
  * A few tests for template/abstract message types like {@link SOCMessageTemplateMs}
  * which aren't part of the main list tested in {@link TestToCmdToStringParse}.
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class TestTemplatesAbstracts
 {

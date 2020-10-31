@@ -60,7 +60,15 @@ public class TestSOCGameHandler
                 { "SC=" + SOCScenario.K_SC_4ISL, ';' + SOCFeatureSet.CLIENT_SCENARIO_VERSION + "=2000;" },
                 { "SC=_NONEXISTENT_", ';' + SOCFeatureSet.CLIENT_SCENARIO_VERSION + "=" + Integer.MAX_VALUE + ";" },
                 { "SBL=t,PL=5", ';' + SOCFeatureSet.CLIENT_SEA_BOARD + ';' + SOCFeatureSet.CLIENT_6_PLAYERS + ';' },
+                { "_3P=7", ";com.example.js.t3p;" },
             };
+
+        // test FLAG_3RD_PARTY and its feature
+        SOCGameOption opt3PKnown = new SOCGameOption
+            ("_3P", 2000, 2450, 0, 0, 0xFFFF, SOCGameOption.FLAG_3RD_PARTY, "For unit test");
+        opt3PKnown.setClientFeature("com.example.js.t3p");
+        assertTrue(opt3PKnown.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
+        knownOpts.addKnownOption(opt3PKnown);
 
         final SOCGameHandler sgh = new SOCGameHandler(null);  // null SOCServer is OK for this test, not in general
 

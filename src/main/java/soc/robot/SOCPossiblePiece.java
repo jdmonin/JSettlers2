@@ -49,8 +49,7 @@ import java.util.List;
  */
 public abstract class SOCPossiblePiece implements Serializable
 {
-    /** Last structural change v2.4.10 (2410) */
-    private static final long serialVersionUID = 2410L;
+    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
 
     /**
      * Type constant for a possible road. Same value as {@link SOCPlayingPiece#ROAD}.

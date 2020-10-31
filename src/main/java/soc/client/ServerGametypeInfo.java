@@ -116,7 +116,7 @@ import soc.message.SOCNewGameWithOptions;
      * May contain {@link SOCGameOption#OTYPE_UNKNOWN} opts sent from server
      * as part of gameopt info synchronization.
      *<P>
-     * Before v2.4.10 this field was {@code optionSet}.
+     * Before v2.4.50 this field was {@code optionSet}.
      * @see #newGameOpts
      */
     public SOCGameOptionSet knownOpts = null;
@@ -128,7 +128,7 @@ import soc.message.SOCNewGameWithOptions;
      *<P>
      * {@code NewGameOptionsFrame} may remove any {@link SOCGameOption#OTYPE_UNKNOWN} options
      * from this set, but they will remain in {@code knownOpts}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public SOCGameOptionSet newGameOpts = null;
 

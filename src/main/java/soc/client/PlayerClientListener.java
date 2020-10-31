@@ -257,7 +257,7 @@ public interface PlayerClientListener
      * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
      * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
      * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
-     * @since 2.4.10
+     * @since 2.4.50
      */
     void reportRobbery
         (final int perpPN, final int victimPN, final int resType, final PEType peType,
@@ -317,7 +317,7 @@ public interface PlayerClientListener
      * Server has rejected client player's attempt to trade with the bank or accept a player's offer.
      * @param offeringPN  Player number offering the disallowed trade, or -1 if bank trade
      * @param isNotTurn  True if was disallowed because this trade can be done only during client player's turn
-     * @since 2.4.10
+     * @since 2.4.50
      */
     void playerTradeDisallowed(int offeringPN, boolean isNotTurn);
 

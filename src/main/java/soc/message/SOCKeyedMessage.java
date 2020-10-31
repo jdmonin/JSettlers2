@@ -38,7 +38,7 @@ public interface SOCKeyedMessage
     /**
      * Construct a localized copy of this message to be sent to clients.
      *<P>
-     * Before v2.4.10 this method was {@code String toCmd(localizedText)}.
+     * Before v2.4.50 this method was {@code String toCmd(localizedText)}.
      *
      * @param localizedText  Text field contents localized by the server, from {@link #getKey()} and the
      *     client's locale, or {@code null} if {@code getKey() == null}

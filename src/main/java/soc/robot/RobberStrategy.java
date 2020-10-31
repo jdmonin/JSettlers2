@@ -157,7 +157,7 @@ public class RobberStrategy
     *
     * @param robberHex the current location of the robber
     * @return a valid player number
-    * @since 2.4.10
+    * @since 2.4.50
     */
    public int selectPlayerToThwart(int robberHex)
    {
@@ -223,7 +223,7 @@ public class RobberStrategy
     * @param victimNum the targeted player
     * @return a valid hex coordinate
     * @see #selectPlayerToThwart(int)
-    * @since 2.4.10
+    * @since 2.4.50
     */
    public int selectRobberHex(int prevRobberHex, int victimNum)
    {

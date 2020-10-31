@@ -126,7 +126,7 @@ public class SOCResetBoardVote extends SOCMessageTemplate2i
      * instead of generic names from {@link SOCMessageTemplate2i}.
      * {@code vote} field shows 1 for yes, 0 for no.
      * @return a human readable form of the message
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Override
     public String toString()

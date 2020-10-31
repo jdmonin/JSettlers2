@@ -32,21 +32,21 @@ import soc.message.SOCPlayerElement.PEType;
  * Its audience can be the perpetrator or victim (specifics about what was stolen),
  * or the rest of the game (unknown resource), or announced to the entire game (cloth in Cloth Trade scenario).
  *<P>
- * Clients older than v2.4.10 ({@link #MIN_VERSION}) are instead sent a sequence of
+ * Clients older than v2.4.50 ({@link #MIN_VERSION}) are instead sent a sequence of
  * {@link SOCPlayerElement} and {@link SOCGameServerText} messages.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class SOCReportRobbery extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 2410L;  // last structural change v2.4.10
+    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
 
     /**
-     * Version number (2.4.10) where this message type was introduced.
+     * Version number (2.4.50) where this message type was introduced.
      */
-    public static final int MIN_VERSION = 2410;
+    public static final int MIN_VERSION = 2450;
 
     /**
      * Name of the game
@@ -168,8 +168,8 @@ public class SOCReportRobbery extends SOCMessage
 
     /**
      * Minimum version where this message type is used.
-     * Introduced in v2.4.10 ({@link #MIN_VERSION}).
-     * @return Version number, 2410 for JSettlers 2.4.10
+     * Introduced in v2.4.50 ({@link #MIN_VERSION}).
+     * @return Version number, 2450 for JSettlers 2.4.50
      */
     @Override
     public final int getMinimumVersion() { return MIN_VERSION; }

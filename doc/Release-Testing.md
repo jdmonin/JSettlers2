@@ -405,12 +405,12 @@ When preparing to release a new version, testing should include:
             - Join with 1.x client
                 - Should see marked seat as unlocked, locked as locked
                 - Should be able to take over bot by sitting at "marked" seat
-        - When testing new server with client 2.4.10 or newer, and older client:
+        - When testing new server with client 2.4.50 or newer, and older client:
             - Give Soldier dev cards to client players:  
               `dev: 9 #2` etc
             - Test robbery, with each client as victim, robber, observer
             - All clients in game should see expected results in player hand panels and game text area
-            - Clients v2.4.10 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+            - Clients v2.4.50 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
 - Server robustness: Bot disconnect/reconnect during game start
     - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
     - Connect and start a 6-player game

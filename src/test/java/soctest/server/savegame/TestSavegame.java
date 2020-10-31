@@ -228,7 +228,7 @@ public class TestSavegame
      * Test whether player dev-card stats fields like {@link SOCPlayer#numRBCards} are properly added into SGM;
      * doesn't need to actually save the file.
      * @throws IOException
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Test
     public void testSGM_playerDevCardStats()

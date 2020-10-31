@@ -92,7 +92,7 @@ public class SOCGameList
 
     /**
      * All Known Options for the server hosting these games.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     protected final SOCGameOptionSet knownOpts;
 

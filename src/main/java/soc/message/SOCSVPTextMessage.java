@@ -71,7 +71,7 @@ public class SOCSVPTextMessage extends SOCMessage
     /**
      * True if this message's {@link #desc} is localized text (for a specific client/locale),
      * false if it's an I18N string key (for server, to be localized to a game's member clients).
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public final boolean isLocalized;
 

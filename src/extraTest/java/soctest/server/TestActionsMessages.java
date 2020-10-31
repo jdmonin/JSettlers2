@@ -59,7 +59,7 @@ import soctest.server.savegame.TestLoadgame;
 /**
  * Extra testing to cover all core game actions and their messages, as recorded by {@link RecordingTesterServer}.
  * Expands coverage past the basic unit tests done by {@link TestRecorder}.
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class TestActionsMessages
 {
@@ -515,7 +515,7 @@ public class TestActionsMessages
                 {"all:SOCSimpleAction:", "|pn=3|actType=3|v1=3|v2=3"},
                 {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y"},
                 {"all:SOCPlayerElement:", "|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=3|amount=6"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=3"},
                 (othersAsRobot ? null : new String[]{"p1:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 1 sheep."}),
                 (othersAsRobot ? null : new String[]{"p2:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 2 sheep."}),
                 {"all:SOCGameState:", "|state=20"}

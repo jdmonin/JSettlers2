@@ -25,10 +25,10 @@ import soc.game.SOCResourceSet;
 /**
  * Encapsulation for building plans. Implemented as {@link SOCBuildPlanStack} or otherwise.
  *<P>
- * Before v2.4.10, Building Plans were represented as {@code Stack<SOCPossiblePiece>}.
+ * Before v2.4.50, Building Plans were represented as {@code Stack<SOCPossiblePiece>}.
  *
  * @author kho30
- * @since 2.4.10
+ * @since 2.4.50
  */
 public interface SOCBuildPlan
 {

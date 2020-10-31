@@ -139,8 +139,8 @@ public class SOCGameHandler extends GameHandler
     /**
      * To clean up during automated tests, should robot-only games be destroyed as soon as they're over?
      * Checks {@link SOCGame#isBotsOnly}.
-     * True by default. Added in v2.4.10; previous versions always removed such games.
-     * @since 2.4.10
+     * True by default. Added in v2.4.50; previous versions always removed such games.
+     * @since 2.4.50
      */
     public static boolean DESTROY_BOT_ONLY_GAMES_WHEN_OVER = true;
 
@@ -1967,7 +1967,7 @@ public class SOCGameHandler extends GameHandler
      *     Each message's action will be {@link SOCDevCardAction#ADD_NEW} or {@link SOCDevCardAction#ADD_OLD}
      *     depending on its item's age.
      *     List is empty, not null, if player's inventory is empty.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private List<SOCMessage> sitDown_gatherInventoryContents
         (final String gaName, final SOCPlayer pl, final int cliVers)
@@ -2739,57 +2739,62 @@ public class SOCGameHandler extends GameHandler
 
         ///
         /// send a message saying what VP cards each player has;
+        /// skip if game is Observable, its clients already have that info and shouldn't get it twice.
         /// before v2.0.00 this was sent as text messages after GameStats, not data messages before it
         ///
-        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        if (! (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO) || ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO)))
         {
-            final SOCPlayer pl = ga.getPlayer(pn);
-
-            if (hasOnlyBotPlayers && ! (ga.isSeatVacant(pn) || pl.isRobot()))
-                hasOnlyBotPlayers = false;
-
-            final List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
-            if (vpCards.isEmpty())
-                continue;
-
-            if ((ga.clientVersionHighest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) || (joiningConn != null))
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
-                List<Integer> vpCardsITypes = new ArrayList<Integer>();
-                for (SOCInventoryItem i : vpCards)
-                    vpCardsITypes.add(Integer.valueOf(i.itype));
-                final SOCDevCardAction dcaMsg = new SOCDevCardAction(gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes);
+                final SOCPlayer pl = ga.getPlayer(pn);
 
-                if (joiningConn != null)
+                if (hasOnlyBotPlayers && ! (ga.isSeatVacant(pn) || pl.isRobot()))
+                    hasOnlyBotPlayers = false;
+
+                final List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
+                if (vpCards.isEmpty())
+                    continue;
+
+                if ((ga.clientVersionHighest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) || (joiningConn != null))
                 {
-                    if (joiningConn.getVersion() >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
-                        srv.messageToPlayer(joiningConn, gname, SOCServer.PN_OBSERVER, dcaMsg);
-                    // else:
-                    //    Server v1.x never sent these to a client joining a game after it ends;
-                    //    don't send them to a 1.x client
-                } else if (ga.clientVersionLowest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) {
-                    // clients are all 2.0 or newer
-                    srv.messageToGame(gname, true, dcaMsg);
+                    List<Integer> vpCardsITypes = new ArrayList<Integer>();
+                    for (SOCInventoryItem i : vpCards)
+                        vpCardsITypes.add(Integer.valueOf(i.itype));
+                    final SOCDevCardAction dcaMsg = new SOCDevCardAction
+                        (gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes);
+
+                    if (joiningConn != null)
+                    {
+                        if (joiningConn.getVersion() >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
+                            srv.messageToPlayer(joiningConn, gname, SOCServer.PN_OBSERVER, dcaMsg);
+                        // else:
+                        //    Server v1.x never sent these to a client joining a game after it ends;
+                        //    don't send them to a 1.x client
+                    } else if (ga.clientVersionLowest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) {
+                        // clients are all 2.0 or newer
+                        srv.messageToGame(gname, true, dcaMsg);
+                    } else {
+                        // mixed versions:
+                        // v2.0.00 and newer clients will announce this with localized text;
+                        // older clients need it sent from the server.
+                        final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                            (ga, "{0} has {1,dcards}.", pl.getName(), vpCards);
+                                // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
+                                // I18N OK: Pre-2.0.00 clients always use english
+                        srv.messageToGameForVersions(ga, 0, SOCDevCardAction.VERSION_FOR_MULTIPLE - 1,
+                            new SOCGameTextMsg(gname, SOCServer.SERVERNAME, txt), true);
+                        srv.messageToGameForVersions(ga, SOCDevCardAction.VERSION_FOR_MULTIPLE, Integer.MAX_VALUE,
+                            dcaMsg, true);
+                        srv.recordGameEvent(gname, dcaMsg);
+                    }
                 } else {
-                    // mixed versions:
-                    // v2.0.00 and newer clients will announce this with localized text;
-                    // older clients need it sent from the server.
-                    final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
-                        (ga, "{0} has {1,dcards}.", pl.getName(), vpCards);
-                            // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
-                            // I18N OK: Pre-2.0.00 clients always use english
-                    srv.messageToGameForVersions(ga, 0, SOCDevCardAction.VERSION_FOR_MULTIPLE - 1,
-                        new SOCGameTextMsg(gname, SOCServer.SERVERNAME, txt), true);
-                    srv.messageToGameForVersions(ga, SOCDevCardAction.VERSION_FOR_MULTIPLE, Integer.MAX_VALUE,
-                        dcaMsg, true);
-                    srv.recordGameEvent(gname, dcaMsg);
+                    // clients are all v1.x, and there's no joiningConn
+                    srv.messageToGame
+                        (gname, true, SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                            (ga, "{0} has {1,dcards}.", pl.getName(), vpCards));
+                                // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
+                                // I18N OK: Pre-2.0.00 clients always use english
                 }
-            } else {
-                // clients are all v1.x, and there's no joiningConn
-                srv.messageToGame
-                    (gname, true, SOCStringManager.getFallbackServerManagerForClient().formatSpecial
-                        (ga, "{0} has {1,dcards}.", pl.getName(), vpCards));
-                            // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
-                            // I18N OK: Pre-2.0.00 clients always use english
             }
         }
 

@@ -120,7 +120,7 @@ import java.util.concurrent.Executors;
  * transaction's SQL commands. See those methods' javadocs for details.
  *
  *<H3>Class history:</H3>
- * Before v2.4.10, {@code SOCDBHelper} methods were static. That version changed to non-static
+ * Before v2.4.50, {@code SOCDBHelper} methods were static. That version changed to non-static
  * so any third-party developers could extend or change DB functionality.
  *
  * @author Robert S. Thomas

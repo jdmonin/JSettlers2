@@ -48,7 +48,7 @@ public class TestResourceSet
 
     /**
      * Tests for {@link SOCResourceSet#isEmpty()}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Test
     public void isEmpty()
@@ -244,7 +244,7 @@ public class TestResourceSet
 
     /**
      * Test {@link SOCResourceSet#getAmounts(boolean)}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Test
     public void testGetAmounts()
@@ -276,7 +276,7 @@ public class TestResourceSet
 
     /**
      * Test {@link SOCResourceSet#hashCode()}
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Test
     public void testHashCode()

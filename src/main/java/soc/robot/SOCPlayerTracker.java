@@ -256,7 +256,7 @@ public class SOCPlayerTracker
     /**
      * Recalculate all ETAs: Calls {@link #recalcLargestArmyETA()},
      * {@link #recalcLongestRoadETA()}, {@link #recalcWinGameETA()}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public void recalculateAllETAs()
     {

@@ -324,7 +324,7 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * Handles elemNum=value pairs, undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static List<String> stripAttribsToList(String messageStrParams)
     {

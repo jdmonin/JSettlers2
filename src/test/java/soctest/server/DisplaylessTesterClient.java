@@ -43,7 +43,7 @@ import soc.util.Version;
  * to see same messages a human would be shown.
  * To help set a known test environment, always uses locale {@code "en_US"} unless constructor says otherwise.
  *
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class DisplaylessTesterClient
     extends SOCDisplaylessPlayerClient

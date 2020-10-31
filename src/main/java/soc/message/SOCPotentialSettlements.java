@@ -636,7 +636,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * to pass to {@link #parseDataStr(String)}. Converts field values from their human-readable forms.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static String stripAttribNames(String messageStrParams)
     {

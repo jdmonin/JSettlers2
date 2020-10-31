@@ -138,14 +138,14 @@ public class SOCRobotDM
    * Filled each turn by {@link #planStuff(int)}.
    * Emptied by {@link SOCRobotBrain}'s calls to {@link SOCRobotBrain#resetBuildingPlan()}.
    *<P>
-   * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+   * Before v2.4.50 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
    */
   protected final SOCBuildPlanStack buildingPlan;
 
   /**
    * Strategy to plan and build initial settlements and roads.
    * Used here for {@link OpeningBuildStrategy#estimateResourceRarity()}.
-   * @since 2.4.10
+   * @since 2.4.50
    */
   protected final OpeningBuildStrategy openingBuildStrategy;
 
@@ -153,7 +153,7 @@ public class SOCRobotDM
    * Our {@link SOCBuildingSpeedEstimate} factory.
    * Is set during construction, from {@link SOCRobotBrain#createEstimatorFactory()} if available.
    * @see #getEstimatorFactory()
-   * @since 2.4.10
+   * @since 2.4.50
    */
   protected SOCBuildingSpeedEstimateFactory bseFactory;
 
@@ -164,7 +164,7 @@ public class SOCRobotDM
    * these are the two resources that we want
    * when we play a discovery dev card
    *<P>
-   * Before v2.4.10, this field was {@code SOCRobotBrain.resourceChoices}
+   * Before v2.4.50, this field was {@code SOCRobotBrain.resourceChoices}
    */
   protected SOCResourceSet resourceChoices;
 
@@ -3073,7 +3073,7 @@ public class SOCRobotDM
    * Called during game state {@link SOCGame#PLAY1} when we have at least 1 {@link SOCDevCardConstants#KNIGHT}
    * available to play, and haven't already played a dev card this turn.
    * @return  true if knight should be played now, not kept for when it's needed later
-   * @since 2.4.10
+   * @since 2.4.50
    */
   public boolean shouldPlayKnightForLA()
   {
@@ -3111,7 +3111,7 @@ public class SOCRobotDM
    * Caller may want to check if {@link #buildingPlan} is empty, and
    * call {@link SOCRobotBrain#planBuilding()} if so, before calling this method.
    *<P>
-   * Before v2.4.10, this method was in {@code SOCRobotBrain}.
+   * Before v2.4.50, this method was in {@code SOCRobotBrain}.
    *
    * @param numChoose  Number of resources to pick
    * @return  the chosen resource picks
@@ -3167,7 +3167,7 @@ public class SOCRobotDM
    * longest to acquire, then add to {@link #resourceChoices}.
    * Looks at our player's current resources.
    *<P>
-   * Before v2.4.10, this method was in {@code SOCRobotBrain}.
+   * Before v2.4.50, this method was in {@code SOCRobotBrain}.
    *
    * @param targetResources  Resources needed to build our next planned piece,
    *             from {@link SOCPossiblePiece#getResourcesToBuild()}
@@ -3239,7 +3239,7 @@ public class SOCRobotDM
    * If returns true, has called {@link #chooseFreeResources(SOCResourceSet, int, boolean)}
    * and has set {@link #resourceChoices}.
    *<P>
-   * Before v2.4.10, this method was in {@code SOCRobotBrain}.
+   * Before v2.4.50, this method was in {@code SOCRobotBrain}.
    *
    * @param targetResources  Resources needed to build our next planned piece,
    *             from {@link SOCPossiblePiece#getResourcesToBuild()}
@@ -3365,7 +3365,7 @@ public class SOCRobotDM
    *     in same format passed into {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate(SOCPlayerNumbers)}
    * @return  Estimator based on {@code numbers}
    * @see #getEstimator()
-   * @since 2.4.10
+   * @since 2.4.50
    */
   protected SOCBuildingSpeedEstimate getEstimator(SOCPlayerNumbers numbers)
   {
@@ -3388,7 +3388,7 @@ public class SOCRobotDM
    * @return  Estimator which doesn't consider player's dice numbers yet;
    *     see {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate()} javadoc
    * @see #getEstimator(SOCPlayerNumbers)
-   * @since 2.4.10
+   * @since 2.4.50
    */
   protected SOCBuildingSpeedEstimate getEstimator()
   {
@@ -3404,7 +3404,7 @@ public class SOCRobotDM
    *
    * @return This decision maker's factory
    * @see #getEstimator(SOCPlayerNumbers)
-   * @since 2.4.10
+   * @since 2.4.50
    */
   public SOCBuildingSpeedEstimateFactory getEstimatorFactory()
   {

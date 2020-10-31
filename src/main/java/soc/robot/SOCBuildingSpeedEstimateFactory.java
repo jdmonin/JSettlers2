@@ -33,7 +33,7 @@ import soc.game.SOCResourceConstants;
  * This basic factory always constructs a basic {@link SOCBuildingSpeedEstimate}.
  * Third-party bots can override as needed, along with {@link SOCRobotBrain#createEstimatorFactory()}.
  *
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class SOCBuildingSpeedEstimateFactory
 {

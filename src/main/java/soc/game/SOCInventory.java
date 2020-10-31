@@ -380,7 +380,7 @@ public class SOCInventory implements Cloneable, Serializable
      * @see #addDevCard(int, int, int)
      * @see #addItem(SOCInventoryItem)
      * @see #SOCInventory(SOCInventory)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public void add(final SOCInventory inv)
         throws CloneNotSupportedException

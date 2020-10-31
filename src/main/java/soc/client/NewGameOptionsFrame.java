@@ -187,7 +187,7 @@ import soc.util.Version;
      * This game's server's Known Options, from {@link ServerGametypeInfo#knownOpts}.
      * When NGOF is being shown to create the first new game / practice game, {@code knownOpts}
      * is copied to {@link ServerGametypeInfo#newGameOpts} to be {@link #opts} here.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private final SOCGameOptionSet knownOpts;
 

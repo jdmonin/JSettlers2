@@ -43,7 +43,7 @@ import soc.util.Version;
  * Also handles packing/parsing sets of options to/from Strings.
  *<P>
  * Many static methods expect the caller to pass in their set of Known Options.
- * Before v2.4.10 this class used a static shared copy of those known options, which caused problems when server
+ * Before v2.4.50 this class used a static shared copy of those known options, which caused problems when server
  * and robot clients both want to change their "known options" in different ways.
  *<P>
  * For information about adding or changing game options in a
@@ -113,7 +113,18 @@ import soc.util.Version;
  * The server's owner can choose to {@link SOCGameOptionSet#activate(String)} the option during server startup,
  * making it visible and available for games.
  *<P>
- * Added in 2.4.10, also compatible with earlier clients. Example: {@link #K_PLAY_VPO "PLAY_VPO"}.
+ * Added in 2.4.50, also compatible with earlier clients. Example: {@link #K_PLAY_VPO "PLAY_VPO"}.
+ *
+ *<H3>Third-Party Options</H3>
+ *
+ * "Third-party" game options can be defined by any 3rd-party client, server, bot, or JSettlers fork,
+ * and might not be known by all currently connected clients/servers at the same version.
+ * These are defined as having {@link #FLAG_3RD_PARTY} to avoid problems while syncing game option info
+ * when clients connect to servers. To use such an option, the client and server must both be
+ * from the same third-party source and have its definition. See {@link #FLAG_3RD_PARTY} javadoc for details.
+ *<P>
+ * Added in 2.4.50, not compatible with earlier clients because they won't have such an option's definition
+ * or its required client feature.
  *
  *<H3>Version negotiation</H3>
  *
@@ -200,7 +211,7 @@ public class SOCGameOption
      * If an inactive Known Option is activated during server startup by calling
      * {@link SOCGameOptionSet#activate(String)}, it loses this flag and gains {@link #FLAG_ACTIVATED}.
      *
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int FLAG_INACTIVE_HIDDEN = 0x04;  // NEW_OPTION - decide if this applies to your option
 
@@ -211,7 +222,7 @@ public class SOCGameOption
      * as long as their version &gt;= its {@link SOCVersionedItem#minVersion minVersion}.
      *
      * @see SOCGameOptionSet#optionsWithFlag(int, int)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int FLAG_ACTIVATED = 0x08;
 
@@ -220,17 +231,23 @@ public class SOCGameOption
      * a 3rd-party client, server, bot, or JSettlers fork, which might not be known by all
      * currently connected clients/servers at the same version.
      *<UL>
-     * <LI> Each such game opt should require an accompanying client feature name, so a server
+     * <LI> Each such game opt requires an accompanying client feature name, so a server
      *      which knows about the opt can easily tell if a client knows it
      * <LI> A client which knows 3rd-party game opts should ask server about all of them
      *      during game option info sync, to see whether server knows them.
      *      (Client call to {@link SOCGameOptionSet#optionsNewerThanVersion(int, boolean, boolean)} handles this.)
      * <LI> The client feature name can be as long as needed, and named using the same
      *      "reverse DNS" convention as java package names
-     * <LI> The game option name key should start with {@code "3"} or {@code "_3"}
+     * <LI> The game option name key should use {@code '3'} as the second character of
+     *      their name key: {@code "_3"}, {@code "T3"}, etc. This avoids a naming conflict,
+     *      since built-in options will never have {@code '3'} in that position
+     * <LI> Unless the server and client both know the third-party option and its client feature
+     *      in their {@link SOCGameOptionSet#getAllKnownOptions()} methods,
+     *      it will be ignored/unknown during the game option info synchronization/negotiation
+     *      process done when the client connects
      *</UL>
      *
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static final int FLAG_3RD_PARTY = 0x10;
 
@@ -732,7 +749,7 @@ public class SOCGameOption
      * Copy constructor to change {@link #optFlags} value.
      * @param opt  Option to copy
      * @param newFlags  New value for {@link #optFlags}
-     * @since 2.4.10
+     * @since 2.4.50
      * @throws IllegalArgumentException if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set
      */
     /*package*/ SOCGameOption(final int newFlags, final SOCGameOption opt)
@@ -791,7 +808,7 @@ public class SOCGameOption
      * For copy constructors, copy miscellanous fields into the new object from the previous one.
      * Handles fields which aren't individual parameters of the common constructor: {@link #clientFeat}.
      * @param copyFrom  Option object to copy fields from
-     * @since 2.4.10
+     * @since 2.4.50
      */
     private void copyMiscFields(final SOCGameOption copyFrom)
     {
@@ -808,7 +825,7 @@ public class SOCGameOption
      *</UL>
      *
      * @return true if any value field is set
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean hasValue()
     {
@@ -899,6 +916,8 @@ public class SOCGameOption
     /**
      * If this game option requires one, its client feature from {@link SOCFeatureSet}.
      * Not set or used at client, or sent over network as part of game option info sync.
+     *<P>
+     * Third-party options should always have a client feature; see {@link #FLAG_3RD_PARTY}.
      *
      * @return the client feature required to use this game option,
      *     like {@link SOCFeatureSet#CLIENT_SEA_BOARD}, or null if none
@@ -1349,7 +1368,7 @@ public class SOCGameOption
      * @see #parseOptionNameValue(String, String, boolean, SOCGameOptionSet)
      * @throws IllegalArgumentException if any game option keyname in {@code ostr} is unknown
      *     and not a valid alphanumeric keyname by the rules listed at {@link #SOCGameOption(String)}
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public static SOCGameOptionSet parseOptionsToSet(final String ostr, final SOCGameOptionSet knownOpts)
     {
@@ -1743,7 +1762,7 @@ public class SOCGameOption
      *     {@link #getIntValue()}, and {@link #getStringValue()} as this option.
      * @see Object#equals(Object)
      * @see #compareTo(Object)
-     * @since 2.4.10
+     * @since 2.4.50
      */
     public boolean equals(final Object other)
     {
@@ -1760,7 +1779,7 @@ public class SOCGameOption
 
     /**
      * Call {@link Object#clone()}; added here for access by {@link SOCGameOptionSet}.
-     * @since 2.4.10
+     * @since 2.4.50
      */
     @Override
     protected Object clone()

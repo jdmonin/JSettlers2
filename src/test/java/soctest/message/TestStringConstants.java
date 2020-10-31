@@ -29,7 +29,7 @@ import static org.junit.Assert.*;
 
 /**
  * A few tests for string constants seen in message classes like {@link SOCDevCardAction}.
- * @since 2.4.10
+ * @since 2.4.50
  */
 public class TestStringConstants
 {
