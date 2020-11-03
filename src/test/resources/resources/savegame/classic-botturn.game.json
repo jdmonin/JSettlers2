@@ -4,6 +4,7 @@
   "gameMinVersion": -1,
   "gameName": "classic",
   "comments": "Early in typical 3-player Classic game; currently a bot's turn. Player inventories have same dev cards as modelversion-2300.",
+  "author": "Jeremy D Monin  2020",
   "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df",
   "gameDurationSeconds": 49,
   "gameState": 20,
