@@ -78,6 +78,7 @@ JARs for recent JSettlers versions can be downloaded from
 	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- Game window:
 	    - Hand Panel: Shrink unused space above trading squares
+	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields
