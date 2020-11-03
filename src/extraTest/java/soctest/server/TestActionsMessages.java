@@ -1692,10 +1692,8 @@ public class TestActionsMessages
 
         testOne_6pAskSpecialBuild(false, false);
         testOne_6pAskSpecialBuild(false, true);
-
-        // TODO server won't let clientAsRobot set up game properly
-        // testOne_6pAskSpecialBuild(true, false);
-        // testOne_6pAskSpecialBuild(true, true);
+        testOne_6pAskSpecialBuild(true, false);
+        testOne_6pAskSpecialBuild(true, true);
     }
 
     private void testOne_6pAskSpecialBuild
