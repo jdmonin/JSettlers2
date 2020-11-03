@@ -4,6 +4,7 @@
   "gameMinVersion": -1,
   "gameName": "tradeoffers",
   "comments": "Current player (pn 0) and another (pn 2) are making trade offers",
+  "author": "Jeremy D Monin  2020",
   "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d4,RD\u003df",
   "gameDurationSeconds": 224,
   "gameState": 20,

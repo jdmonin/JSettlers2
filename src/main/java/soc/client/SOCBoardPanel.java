@@ -6486,40 +6486,23 @@ import javax.swing.JComponent;
                 /**** Code for finding an edge; see also PLACE_ROAD, PLACE_SHIP ********/
                 edgeNum = 0;
 
-                if ((ptrOldX != x) || (ptrOldY != y))
+                if ((ptrOldX != x) || (ptrOldY != y) || (hilight == 0))
                 {
                     ptrOldX = x;
                     ptrOldY = y;
                     edgeNum = findEdge(xb, yb, false);
-                }
 
-                if (edgeNum != 0)
-                {
-                    final boolean edgeNeg1;
-                    if (edgeNum == -1)
-                    {
-                        edgeNum = 0;
-                        edgeNeg1 = true;
-                    } else {
-                        edgeNeg1 = false;
-                    }
-                    if (! game.canPlacePort(player, edgeNum))
-                    {
+                    if ((edgeNum > 0) && ! game.canPlacePort(player, edgeNum))
                         edgeNum = 0;  // not valid for placement
-                    } else {
-                        if (edgeNeg1)
-                            edgeNum = -1;
-                    }
-                }
 
-                if (edgeNum != hilight)
-                {
-                    hilight = edgeNum;
+                    final boolean changed = (hilight != edgeNum);
+                    if (changed)
+                        hilight = edgeNum;
                     if (debugShowCoordsTooltip)
                     {
                         String blank = (edgeNum != 0) ? "" : null;    // "" shows tip, null hides it.
                         hoverTip.setHoverText(blank, edgeNum, x, y);  // also repaints
-                    } else {
+                    } else if (changed) {
                         repaint();
                     }
                 }

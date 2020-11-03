@@ -2463,7 +2463,7 @@ public class SOCServerMessageHandler
          * make sure this player isn't already sitting
          */
         boolean canSit = true;
-        boolean gameIsFull = false, gameAlreadyStarted = false;
+        boolean gameIsFull = false, gameAlreadyStarted = false, sentBotDismiss = false;
 
         /*
            for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
@@ -2558,6 +2558,7 @@ public class SOCServerMessageHandler
 
                     if ((robotCon != null) && gameList.isMember(robotCon, gaName))
                     {
+                        sentBotDismiss = true;
                         srv.messageToPlayer(robotCon, gaName, pn,
                             new SOCRobotDismiss(gaName));
 
@@ -2639,9 +2640,9 @@ public class SOCServerMessageHandler
             } else if (gameIsFull) {
                 srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_OBSERVER, "member.sit.game.full");
                     // "This game is full; you cannot sit down."
-            } else {
+            } else if (! sentBotDismiss) {
                 srv.messageToPlayer
-                    (c, null, SOCServer.PN_NON_EVENT,
+                    (c, gaName, SOCServer.PN_NON_EVENT,
                      "This seat is claimed by another game member, choose another.");
                          // I18N OK: client shouldn't ask to take that seat
             }
