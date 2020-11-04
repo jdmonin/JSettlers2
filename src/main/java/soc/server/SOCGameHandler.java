@@ -3341,7 +3341,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * Check whether game's Longest Road/Longest Route player has changed, announce to game if so: Sends
      * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER})
-     * or (if older clients) {@link SOCLongestRoad}.
+     * or (for v1.x clients) {@link SOCLongestRoad}.
      * @param ga  Game to check
      * @param prevLongestRoadPlayer  Previous {@link SOCGame#getPlayerWithLongestRoad()}, might be null,
      *     from before the game action which might have changed it

@@ -8400,6 +8400,8 @@ public class SOCGame implements Serializable, Cloneable
      * larger than 2
      *<P>
      * For consistency, recalculates this field only if {@link #isAtServer}; does nothing at client.
+     * Before version 2.4.00 ({@link #VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}),
+     * Largest Army was calculated at both client and server.
      */
     public void updateLargestArmy()
     {
@@ -8450,6 +8452,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * For consistency, recalculates {@link #getPlayerWithLongestRoad()} only if {@link #isAtServer};
      * client only calls each player's {@code calcLongestRoad2}.
+     * Before version 2.4.00 ({@link #VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}),
+     * Longest Road was fully calculated at both client and server.
      *<P>
      * if there is a tie, the last player to have LR keeps it.
      * if two or more players are tied for LR and none of them

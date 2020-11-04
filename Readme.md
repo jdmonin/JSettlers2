@@ -322,8 +322,8 @@ a debug user.)
 #### Details:
 
 If you want to maintain user accounts or save scores of all completed games,
-you will need to set up a MariaDB, MySQL, SQLite, or PostgreSQL database. This database
-is optional. If you will use a non-SQLite database, be sure to start
+all of which is optional, you will need to set up a MariaDB, MySQL, PostgreSQL,
+or SQLite database. If you will be using a non-SQLite database, be sure to start
 the database server software before installing JSettlers. For DB setup details
 see the "Database Setup" section of [doc/Database.md](doc/Database.md)
 (available online at https://github.com/jdmonin/JSettlers2/blob/master/doc/Database.md).
