@@ -453,7 +453,9 @@ public class SOCGameOptionSet
      * If an option isn't in its Known Options set (from when it called this {@code getAllKnownOptions()} method),
      * the client won't be allowed to ask for it.  Any obsolete options should be kept around as commented-out code.
      *
-     * @return a fresh copy of the "known" options, with their hardcoded default values
+     * @return a fresh copy of the "known" options, with their hardcoded default values.
+     *     Includes all defined options, including those with {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}
+     *     or {@link SOCGameOption#FLAG_3RD_PARTY}.
      * @see #getKnownOption(String, boolean)
      * @see #addKnownOption(SOCGameOption)
      * @see SOCScenario#getAllKnownScenarios()

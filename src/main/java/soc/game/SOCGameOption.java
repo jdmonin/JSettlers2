@@ -1153,6 +1153,7 @@ public class SOCGameOption
      *            (using {@link String#compareTo(String)}) to make the returned string stable and canonical
      * @return string of name-value pairs, or "-" for an empty or null {@code omap};
      *     any gameoptions of {@link #OTYPE_UNKNOWN} will not be part of the string.
+     *     Also skips any option which has {@link #FLAG_INACTIVE_HIDDEN}.
      *     <P>
      *     Format: k1=t,k2=f,k3=10,k4=t7,k5=f7. <BR>
      *     Pair separator is the ordinary comma character {@link SOCMessage#sep2_char}.
