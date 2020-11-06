@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.MissingResourceException;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
@@ -73,6 +74,19 @@ public class TestLoadgame
         throws Exception
     {
         srv = new SOCServer("dummy", 0, null, null);
+
+        // - create the inactive game option used in bad-gameopt-inactive.game.json
+        //   and testLoadInactiveGameopt, and no other unit test methods in this class
+        //   (same as TestGameOptions.testFlagInactiveActivate)
+        final SOCGameOptionSet knowns = srv.knownOpts;
+        final SOCGameOption newKnown2 = new SOCGameOption
+            ("_TESTACT", 2000, 2000, 0, 0, 0xFFFF, SOCGameOption.FLAG_INACTIVE_HIDDEN,
+             "For unit test");
+        assertNull(knowns.getKnownOption("_TESTACT", false));
+        knowns.addKnownOption(newKnown2);
+        assertNotNull(knowns.getKnownOption("_TESTACT", false));
+        assertTrue(newKnown2.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertFalse(newKnown2.hasFlag(SOCGameOption.FLAG_ACTIVATED));
     }
 
     /**
@@ -369,9 +383,9 @@ public class TestLoadgame
      * If any non-vacant player hasn't joined the game before {@link SavedGameModel#resumePlay(boolean)},
      * should throw an exception
      */
-    @Test(expected=java.util.MissingResourceException.class)
+    @Test(expected=MissingResourceException.class)
     public void testNeedPlayers()
-        throws IOException
+        throws IOException, MissingResourceException
     {
         final SavedGameModel sgm = load("classic-botturn.game.json", srv);
         sgm.resumePlay(true);
@@ -868,7 +882,7 @@ public class TestLoadgame
     }
 
     /** Test loading a not-yet-supported scenario: {@code bad-scen-unsupported.game.json} */
-    @Test(expected=SavedGameModel.UnsupportedSGMOperationException.class)
+    @Test
     public void testLoadUnsupportedScenFOG()
         throws IOException
     {
@@ -880,8 +894,72 @@ public class TestLoadgame
         } catch (SavedGameModel.UnsupportedSGMOperationException e) {
             assertEquals("SC_FOG", e.param1);
             assertEquals("_SC_FOG", e.param2);
-            throw e;
         }
+    }
+
+    /** Test loading an unknown {@link SOCGameOption}: {@code bad-gameopt-unknown.game.json} */
+    @Test
+    public void testLoadUnknownGameopt()
+        throws IOException
+    {
+        assertNull(srv.knownOpts.getKnownOption("_NOEXIST", false));
+
+        try
+        {
+            final SavedGameModel sgm = load("bad-gameopt-unknown.game.json", srv);
+            // should throw exception before here
+            assertEquals("game name", "hopefully-unreached-code", sgm.gameName);
+        } catch (IllegalArgumentException e) {
+            final String msg = e.getMessage();
+            assertTrue
+                ("IllegalArgExcep message text should contain: \"unknown option(s): _NOEXIST: unknown\" but was: " + msg,
+                 msg.contains("unknown option(s): _NOEXIST: unknown"));
+        }
+    }
+
+    /** Test loading an inactive {@link SOCGameOption}: {@code bad-gameopt-inactive.game.json} */
+    @Test
+    public void testLoadInactiveGameopt()
+        throws IOException
+    {
+        SOCGameOption knownOpt = srv.knownOpts.getKnownOption("_TESTACT", false);
+        assertNotNull(knownOpt);
+        assertTrue(knownOpt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertFalse(knownOpt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+
+        try
+        {
+            final SavedGameModel sgm = load("bad-gameopt-inactive.game.json", srv);
+            // should throw exception before here
+            assertEquals("game name", "hopefully-unreached-code", sgm.gameName);
+        } catch (IllegalArgumentException e) {
+            final String msg = e.getMessage();
+            assertTrue
+                ("IllegalArgExcep message text should contain: \"unknown option(s): _TESTACT: inactive\" but was: " + msg,
+                 msg.contains("unknown option(s): _TESTACT: inactive"));
+        }
+
+        // activate the inactive game opt and try again; this is safe to do because
+        // only this test method uses _TESTACT
+        srv.knownOpts.activate("_TESTACT");
+        knownOpt = srv.knownOpts.getKnownOption("_TESTACT", false);
+        assertNotNull(knownOpt);
+        assertFalse(knownOpt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertTrue(knownOpt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+
+        final SavedGameModel sgm = load("bad-gameopt-inactive.game.json", srv);
+        // should no longer throw exception before here
+        assertEquals("game name", "bad-gameopt-inactive", sgm.gameName);
+        SOCGame ga = sgm.getGame();
+        assertNotNull(ga);
+        // should have active SGO _TESTACT == 777
+        SOCGameOption loadedOpt = ga.getGameOptions().get("_TESTACT");
+        assertNotNull("loaded game obj should have _TESTACT gameopt", loadedOpt);
+        assertEquals(777, loadedOpt.getIntValue());
+        assertFalse(loadedOpt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+        assertTrue(loadedOpt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        // and test another way to access its value
+        assertEquals(777, ga.getGameOptionIntValue("_TESTACT", 0, false));
     }
 
 }
