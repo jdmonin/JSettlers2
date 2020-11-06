@@ -3089,7 +3089,7 @@ public class SOCPlayerInterface extends Frame
         (final int perpPN, final int victimPN, final int resType, final PEType peType,
          final boolean isGainLose, final int amount, final int victimAmount)
     {
-        // These texts are also sent from SOCGameHandler.reportRobbery to older clients;
+        // These texts are also sent from server SOCGameHandler.reportRobbery to clients older than v2.4.50;
         // if you change the logic or text, make sure it's updated in both places
 
         final String peName = (perpPN >= 0) ? game.getPlayer(perpPN).getName() : null,
@@ -3100,7 +3100,13 @@ public class SOCPlayerInterface extends Frame
             if ((resType == SOCResourceConstants.UNKNOWN) || (clientHandPlayerNum < 0)
                 || ((clientHandPlayerNum != perpPN) && (clientHandPlayerNum != victimPN)))
             {
-                printKeyed("robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+                if (isGameFullyObservable)
+                    printKeyedSpecial
+                        ("robber.stole.resource.from.play_fo",  // "{0} stole {2,rsrcs} from {1}."
+                         peName, viName, (amount != 1) ? amount : -1, resType);
+                else
+                    printKeyed
+                        ("robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
             } else {
                 if (perpPN == clientHandPlayerNum)
                     printKeyedSpecial

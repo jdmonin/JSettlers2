@@ -3010,7 +3010,7 @@ public class SOCGameHandler extends GameHandler
         /**
          * send the game data messages
          * and the text messages if needed.
-         * these texts are also printed in SOCPlayerInterface.reportRobbery in recent clients;
+         * these texts are also printed in SOCPlayerInterface.reportRobbery in client v2.4.50 and newer;
          * if you change the logic or text, make sure it's updated in both places
          */
 
@@ -3019,6 +3019,15 @@ public class SOCGameHandler extends GameHandler
             srv.messageToGameForVersions(ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, gainLoseRsrc, true);
             srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, gainRsrc, true);
             srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, loseRsrc, true);
+
+            if (peCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+                srv.messageToPlayerKeyedSpecial
+                    (peCon, ga, SOCServer.PN_NON_EVENT,
+                     "robber.common.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
+            if (viCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+                srv.messageToPlayerKeyedSpecial
+                    (viCon, ga, SOCServer.PN_NON_EVENT,
+                     "robber.common.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
         } else {
             if (peCon.getVersion() < SOCReportRobbery.MIN_VERSION)
             {
@@ -3047,12 +3056,15 @@ public class SOCGameHandler extends GameHandler
             srv.messageToGameForVersionsExcept
                 (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, sendNotTo, gainLoseUnknown, true);
 
-            gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN_RESOURCE, 1);
-            loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, 1);
-            srv.messageToGameForVersionsExcept
-                (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, gainUnknown, true);
-            srv.messageToGameForVersionsExcept
-                (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, loseUnknown, true);
+            if (ga.clientVersionLowest < SOCReportRobbery.MIN_VERSION)
+            {
+                gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN_RESOURCE, 1);
+                loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, 1);
+                srv.messageToGameForVersionsExcept
+                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, gainUnknown, true);
+                srv.messageToGameForVersionsExcept
+                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, loseUnknown, true);
+            }
         }
 
         srv.messageToGameForVersionsKeyedExcept
