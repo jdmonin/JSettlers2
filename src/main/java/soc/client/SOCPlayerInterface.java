@@ -46,6 +46,7 @@ import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
+import soc.message.SOCMessage;
 import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCBankTrade;     // for reply code constant
 import soc.message.SOCSimpleAction;  // for action type constants
@@ -67,6 +68,7 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.TextArea;
 import java.awt.TextComponent;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
@@ -1984,6 +1986,9 @@ public class SOCPlayerInterface extends Frame
             String s = textInput.getText().trim();
             String sOverflow = null;
 
+            if (! checkTextCharactersOrPopup(s, mainDisplay, this))
+                return;
+
             if (s.length() > 100)
             {
                 // wrap long line at a word if possible
@@ -2077,6 +2082,34 @@ public class SOCPlayerInterface extends Frame
                 textInput.setCaretPosition(sOverflow.length());
             }
         }
+    }
+
+    /**
+     * Check characters in {@code txt} to see if they're allowed within a message to the server.
+     * If not, show a modal {@link NotifyDialog} to let the user know what can't be sent.
+     * Currently disallows only {@code '|'}, the message field delimiter ({@link SOCMessage#sep_char}).
+     *
+     * @param txt  Text to check; may be "" but not null
+     * @param md       Player client's main display. Not null, required by NotifyDialog if shown
+     * @param parent   Current game's player interface or channel window,
+     *                 or another Frame or Dialog for our parent window,
+     *                 or null to look for client's main Frame/Dialog as parent,
+     *                 for NotifyDialog if shown
+     * @return true if OK to send, false if a dialog was shown
+     * @since 2.4.50
+     */
+    public static boolean checkTextCharactersOrPopup
+        (final String txt, final MainDisplay md, final Window parent)
+    {
+        if (txt.indexOf(SOCMessage.sep_char) != -1)
+        {
+            NotifyDialog.createAndShow
+                (md, parent, strings.get("interface.chat.text.no_pipe_symbol"), null, true);
+                    // "Chat text can't contain the '|' symbol."
+            return false;
+        }
+
+        return true;
     }
 
     /**

@@ -79,6 +79,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Game window:
 	    - Hand Panel: Shrink unused space above trading squares
 	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
+	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields
