@@ -627,6 +627,12 @@ config property:
 Activated Options are then handled like any regular game option.
 For more details, see the SOCGameOption.activate javadoc.
 
+### Third-Party Game Options:
+
+"Third-party" options can be defined by any 3rd-party client, bot, or server JSettlers fork,
+as a way to add features or flags but remain backwards-compatible with standard JSettlers.
+For more details, see the SOCGameOption.FLAG_3RD_PARTY javadoc.
+
 
 ## Developing with a database (JDBC)
 

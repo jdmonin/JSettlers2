@@ -1,0 +1,311 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2450,
+  "gameMinVersion": 2000,
+  "gameName": "bad-gameopt-inactive",
+  "comments": "Same game as classic-botturn, but edited to add inactive game opt _TESTACT created by TestLoadgame.setup()",
+  "author": "Jeremy D Monin  2020",
+  "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df,_TESTACT\u003d777",
+  "gameDurationSeconds": 49,
+  "gameState": 20,
+  "currentDice": 9,
+  "elements": {
+    "LARGEST_ARMY_PLAYER": -1,
+    "FIRST_PLAYER": 1,
+    "CURRENT_PLAYER": 1,
+    "ROUND_COUNT": 2,
+    "LONGEST_ROAD_PLAYER": -1
+  },
+  "devCardDeck": [
+    "CHAPEL",
+    "DISC",
+    "ROADS",
+    "KNIGHT",
+    "KNIGHT"
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "boardInfo": {
+    "layout1": {
+      "game": "bad-gameopt-inactive",
+      "hexLayout": [
+        50,
+        6,
+        65,
+        6,
+        6,
+        5,
+        3,
+        4,
+        10,
+        8,
+        2,
+        3,
+        1,
+        0,
+        6,
+        6,
+        1,
+        1,
+        4,
+        3,
+        4,
+        11,
+        8,
+        2,
+        5,
+        5,
+        2,
+        6,
+        6,
+        5,
+        3,
+        4,
+        100,
+        19,
+        6,
+        101,
+        6
+      ],
+      "numberLayout": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        4,
+        0,
+        -1,
+        -1,
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        7,
+        3,
+        8,
+        7,
+        3,
+        -1,
+        -1,
+        6,
+        4,
+        1,
+        5,
+        -1,
+        -1,
+        9,
+        8,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "robberHex": 155,
+      "messageType": 1014
+    },
+    "playerPotentials": [
+      {
+        "game": "bad-gameopt-inactive",
+        "playerNumber": 0,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "bad-gameopt-inactive",
+        "playerNumber": 1,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "bad-gameopt-inactive",
+        "playerNumber": 2,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "bad-gameopt-inactive",
+        "playerNumber": 3,
+        "psNodes": [
+          82
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeats": [
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "ROADS": 15,
+        "CITIES": 4,
+        "SETTLEMENTS": 5,
+        "NUMKNIGHTS": 0
+      },
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "robot 4",
+      "isSeatVacant": false,
+      "totalVP": 3,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 1,
+        "sheep": 0,
+        "wheat": 2,
+        "wood": 0
+      },
+      "elements": {
+        "ROADS": 13,
+        "CITIES": 3,
+        "SETTLEMENTS": 4,
+        "NUMKNIGHTS": 0
+      },
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "ROAD",
+          "coord": 186
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 201
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 184
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 186
+        }
+      ]
+    },
+    {
+      "name": "robot 2",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 2,
+        "ore": 2,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "ROADS": 13,
+        "CITIES": 4,
+        "SETTLEMENTS": 3,
+        "NUMKNIGHTS": 0
+      },
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 118
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 102
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 69
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 68
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 1,
+        "ore": 3,
+        "sheep": 1,
+        "wheat": 0,
+        "wood": 1
+      },
+      "elements": {
+        "ROADS": 12,
+        "CITIES": 4,
+        "SETTLEMENTS": 3,
+        "NUMKNIGHTS": 0
+      },
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 105
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 105
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 116
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 99
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 82
+        }
+      ]
+    }
+  ]
+}
