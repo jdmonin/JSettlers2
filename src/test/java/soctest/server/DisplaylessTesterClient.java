@@ -190,28 +190,28 @@ public class DisplaylessTesterClient
     @Override
     protected void handleNEWGAME(final SOCNewGame mes)
     {
-        String gameName = mes.getGame();
+        String gaName = mes.getGame();
         boolean canJoin = true;
-        boolean hasUnjoinMarker = (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+        boolean hasUnjoinMarker = (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE);
         if (hasUnjoinMarker)
         {
-            gameName = gameName.substring(1);
+            gaName = gaName.substring(1);
             canJoin = false;
         }
-        serverGames.addGame(gameName, null, ! canJoin);
+        serverGames.addGame(gaName, null, ! canJoin);
     }
 
     @Override
     protected void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes)
     {
-        String gameName = mes.getGame();
+        String gaName = mes.getGame();
         boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
-        if (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+        if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
         {
-            gameName = gameName.substring(1);
+            gaName = gaName.substring(1);
             canJoin = false;
         }
-        serverGames.addGame(gameName, mes.getOptionsString(), ! canJoin);
+        serverGames.addGame(gaName, mes.getOptionsString(), ! canJoin);
     }
 
     @Override
@@ -219,8 +219,8 @@ public class DisplaylessTesterClient
     {
         gotPassword = true;
 
-        String gameName = mes.getGame();
-        SOCGameOptionSet opts = serverGames.parseGameOptions(gameName);
+        String gaName = mes.getGame();
+        SOCGameOptionSet opts = serverGames.parseGameOptions(gaName);
 
         final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
         if ((bh != 0) || (bw != 0))
@@ -233,11 +233,10 @@ public class DisplaylessTesterClient
             opts.put(opt);
         }
 
-        final SOCGame ga = new SOCGame(gameName, opts, knownOpts);
+        final SOCGame ga = new SOCGame(gaName, opts, knownOpts);
         ga.isPractice = isPractice;
         ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
-        games.put(gameName, ga);
+        games.put(gaName, ga);
     }
-
 
 }

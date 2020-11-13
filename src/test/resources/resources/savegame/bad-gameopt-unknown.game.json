@@ -1,11 +1,11 @@
 {
   "modelVersion": 2400,
-  "savedByVersion": 2400,
+  "savedByVersion": 2450,
   "gameMinVersion": -1,
-  "gameName": "bad-field-contents",
-  "comments": "Same game as classic-botturn, but edited with bad data in some fields: multiple elements, playerSeatLocks, devCardDeck, player 1 oldDevCards and elements",
+  "gameName": "bad-gameopt-unknown",
+  "comments": "Same game as classic-botturn, but edited to add unknown game opt _NOEXIST",
   "author": "Jeremy D Monin  2020",
-  "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df",
+  "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df,_NOEXIST\u003dt",
   "gameDurationSeconds": 49,
   "gameState": 20,
   "currentDice": 9,
@@ -14,15 +14,13 @@
     "FIRST_PLAYER": 1,
     "CURRENT_PLAYER": 1,
     "ROUND_COUNT": 2,
-    "ABC_NOT_DEFINED": 44,
-    "XYZ_NOT_DEFINED": 33,
     "LONGEST_ROAD_PLAYER": -1
   },
   "devCardDeck": [
     "CHAPEL",
     "DISC",
     "ROADS",
-    "NOT_A_DEFINED_CARD_NAME",
+    "KNIGHT",
     "KNIGHT"
   ],
   "placingRobberForKnightCard": false,
@@ -31,7 +29,7 @@
   "movedShipThisTurn": false,
   "boardInfo": {
     "layout1": {
-      "game": "bad-field-contents",
+      "game": "bad-gameopt-unknown",
       "hexLayout": [
         50,
         6,
@@ -115,7 +113,7 @@
     },
     "playerPotentials": [
       {
-        "game": "bad-field-contents",
+        "game": "bad-gameopt-unknown",
         "playerNumber": 0,
         "psNodes": [],
         "psNodesFromAll": false,
@@ -124,7 +122,7 @@
         "messageType": 1057
       },
       {
-        "game": "bad-field-contents",
+        "game": "bad-gameopt-unknown",
         "playerNumber": 1,
         "psNodes": [],
         "psNodesFromAll": false,
@@ -133,7 +131,7 @@
         "messageType": 1057
       },
       {
-        "game": "bad-field-contents",
+        "game": "bad-gameopt-unknown",
         "playerNumber": 2,
         "psNodes": [],
         "psNodesFromAll": false,
@@ -142,7 +140,7 @@
         "messageType": 1057
       },
       {
-        "game": "bad-field-contents",
+        "game": "bad-gameopt-unknown",
         "playerNumber": 3,
         "psNodes": [
           82
@@ -154,12 +152,6 @@
       }
     ]
   },
-  "playerSeatLocks": [
-    "INVALID_SEATLOCK_STATE",
-    "CLEAR_ON_RESET",
-    "LOCKED",
-    "UNLOCKED"
-  ],
   "playerSeats": [
     {
       "isSeatVacant": true,
@@ -204,17 +196,9 @@
         "ROADS": 13,
         "CITIES": 3,
         "SETTLEMENTS": 4,
-        "UNDEF_1": 44,
-        "UNDEF_2": 33,
         "NUMKNIGHTS": 0
       },
-      "oldDevCards": [
-        "DISC",
-        "NOT_A_DEFINED_NAME",
-        42000,
-        "42001",
-        "ROADS"
-      ],
+      "oldDevCards": [],
       "newDevCards": [],
       "pieces": [
         {

@@ -58,8 +58,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - New inactive options, to show or help debug gameplay details:
 	        - `PLAY_VPO`: Show all players' VP/dev card info
 	        - `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
-	    - "Third-Party Options" concept: Gameopts defined by a 3rd-party client, server, bot, or JSettlers fork,
-	      which might not be known by all currently connected clients/servers at the same version
+	    - "Third-Party Options" concept: Gameopts defined by a 3rd-party client, bot, or server JSettlers fork,
+	      as a way to add features or flags but remain backwards-compatible with standard JSettlers.
 	        - When connecting, client must ask server if it knows about all such gameopts, regardless of version
 	        - Associated with a given client feature; server looks for feature when a client connects
 	    - Refactored option maps to SOCGameOptionSet
@@ -78,6 +78,8 @@ JARs for recent JSettlers versions can be downloaded from
 	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- Game window:
 	    - Hand Panel: Shrink unused space above trading squares
+	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
+	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields

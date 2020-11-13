@@ -117,8 +117,9 @@ import soc.util.Version;
  *
  *<H3>Third-Party Options</H3>
  *
- * "Third-party" game options can be defined by any 3rd-party client, server, bot, or JSettlers fork,
- * and might not be known by all currently connected clients/servers at the same version.
+ * "Third-party" game options can be defined by any 3rd-party client, bot, or server JSettlers fork,
+ * as a way to add features or flags but remain backwards-compatible with standard JSettlers;
+ * such game opts might not be known by all currently connected clients/servers at the same version.
  * These are defined as having {@link #FLAG_3RD_PARTY} to avoid problems while syncing game option info
  * when clients connect to servers. To use such an option, the client and server must both be
  * from the same third-party source and have its definition. See {@link #FLAG_3RD_PARTY} javadoc for details.
@@ -228,7 +229,8 @@ public class SOCGameOption
 
     /**
      * {@link #optFlags} bitfield constant for a "third-party" game option defined by
-     * a 3rd-party client, server, bot, or JSettlers fork, which might not be known by all
+     * a 3rd-party client, bot, or server JSettlers fork, as a way to add features or flags
+     * but remain backwards-compatible with standard JSettlers; this game option might not be known by all
      * currently connected clients/servers at the same version.
      *<UL>
      * <LI> Each such game opt requires an accompanying client feature name, so a server
@@ -1151,6 +1153,7 @@ public class SOCGameOption
      *            (using {@link String#compareTo(String)}) to make the returned string stable and canonical
      * @return string of name-value pairs, or "-" for an empty or null {@code omap};
      *     any gameoptions of {@link #OTYPE_UNKNOWN} will not be part of the string.
+     *     Also skips any option which has {@link #FLAG_INACTIVE_HIDDEN}.
      *     <P>
      *     Format: k1=t,k2=f,k3=10,k4=t7,k5=f7. <BR>
      *     Pair separator is the ordinary comma character {@link SOCMessage#sep2_char}.
