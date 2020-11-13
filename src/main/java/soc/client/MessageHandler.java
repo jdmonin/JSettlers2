@@ -1002,7 +1002,8 @@ import soc.util.Version;
         case SOCStatusMessage.SV_SERVER_SHUTDOWN:
         {
             handleBCASTTEXTMSG(statusText);
-            client.getNet().disconnect();
+            client.getNet().ex = new RuntimeException(statusText);
+            client.shutdownFromNetwork();
         }
         break;
 
