@@ -170,6 +170,7 @@ import soc.util.Version;
 
     /**
      * Contains this game's {@link SOCGameOption}s, or null if none.
+     * (This can occur if server is very old, or uses a third-party option which the client does not have.)
      * Unknowns (OTYPE_UNKNOWN) and inactives (SGO.FLAG_INACTIVE_HIDDEN) are removed in
      * {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints) initInterface_Options(..)}.
      *<P>
@@ -184,7 +185,7 @@ import soc.util.Version;
     private final SOCGameOptionSet opts;
 
     /**
-     * This game's server's Known Options, from {@link ServerGametypeInfo#knownOpts}.
+     * This game's server's Known Options, from {@link ServerGametypeInfo#knownOpts}, or null if server is very old.
      * When NGOF is being shown to create the first new game / practice game, {@code knownOpts}
      * is copied to {@link ServerGametypeInfo#newGameOpts} to be {@link #opts} here.
      * @since 2.4.50
@@ -535,7 +536,7 @@ import soc.util.Version;
      * If not read-only, clear {@link SOCGameOption#userChanged} flag for
      * each option in {@link #opts}.
      *<P>
-     * If options are null, put a label with "This server version does not support game options" (localized).
+     * If options are null, put a label with "This game does not use options" (localized).
      *<P>
      * Sets up local preferences for the client by calling
      * {@link #initInterface_UserPrefs(JPanel, GridBagLayout, GridBagConstraints)}.
@@ -549,7 +550,10 @@ import soc.util.Version;
 
         if (opts == null)
         {
-            L = new JLabel(strings.get("game.options.not"));  // "This server version does not support game options."
+            L = new JLabel(strings.get
+                    ((knownOpts != null)
+                     ? "game.options.none"     // "This game does not use options."
+                     : "game.options.not" ));  // "This server version does not support game options."
             if (! isOSHighContrast)
                 L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             gbc.gridwidth = GridBagConstraints.REMAINDER;

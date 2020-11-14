@@ -520,6 +520,7 @@ When preparing to release a new version, testing should include:
         - Start another client without that `gameopt3p` param
         - Connect
         - In list of games, the game with option XYZ should show "(cannot join)"
+        - Click "Game Info"; popup should show "This game does not use options"
         - Double-click game, popup should show message "Cannot join"
         - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.XYZ"
     - Quit all clients and server
