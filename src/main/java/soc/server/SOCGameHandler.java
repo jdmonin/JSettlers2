@@ -813,17 +813,17 @@ public class SOCGameHandler extends GameHandler
                     reportRsrcGainGold(ga, cp, cpn, resGainLoss, true, false);
                 } else {
                     // Send SOCPlayerElement messages
-                    reportRsrcGainLoss(gaName, resGainLoss, false, false, cpn, -1, null);
+                    reportRsrcGainLoss(ga, resGainLoss, false, false, cpn, -1, null);
                 }
             } else {
                 int totalRes = resGainLoss.getTotal();
                 if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
                 {
-                    reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, null);
+                    reportRsrcGainLoss(ga, resGainLoss, true, true, cpn, -1, null);
                 } else {
                     Connection c = srv.getConnection(plName);
                     if ((c != null) && c.isConnected())
-                        reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, c);
+                        reportRsrcGainLoss(ga, resGainLoss, true, true, cpn, -1, c);
                     srv.messageToGameExcept
                         (gaName, c, cpn, new SOCPlayerElement
                             (gaName, cpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, totalRes, true),
@@ -2930,7 +2930,7 @@ public class SOCGameHandler extends GameHandler
 
             final int peAmt = pe.getCloth(), viAmt = vi.getCloth();
             final SOCReportRobbery rrMsg = new SOCReportRobbery
-                (gaName, pePN, viPN, PEType.SCENARIO_CLOTH_COUNT, false, peAmt, viAmt);
+                (gaName, pePN, viPN, PEType.SCENARIO_CLOTH_COUNT, false, peAmt, viAmt, 0);
 
             if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
             {
@@ -2959,10 +2959,10 @@ public class SOCGameHandler extends GameHandler
 
         final boolean isFullyObservable = ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO);
 
-        final SOCReportRobbery gainLoseRsrc = new SOCReportRobbery(gaName, pePN, viPN, rsrc, true, 1, 0),
+        final SOCReportRobbery gainLoseRsrc = new SOCReportRobbery(gaName, pePN, viPN, rsrc, true, 1, 0, 0),
             gainLoseUnknown = (isFullyObservable)
                 ? null
-                : new SOCReportRobbery(gaName, pePN, viPN, SOCResourceConstants.UNKNOWN, true, 1, 0);
+                : new SOCReportRobbery(gaName, pePN, viPN, SOCResourceConstants.UNKNOWN, true, 1, 0, 0);
 
         Connection peCon = srv.getConnection(peName);
         Connection viCon = srv.getConnection(viName);
@@ -3158,8 +3158,8 @@ public class SOCGameHandler extends GameHandler
         final SOCResourceSet giveSet = offer.getGiveSet(),
                              getSet  = offer.getGetSet();
 
-        reportRsrcGainLoss(gaName, giveSet, true, false, offering, accepting, null);
-        reportRsrcGainLoss(gaName, getSet, false, false, offering, accepting, null);
+        reportRsrcGainLoss(ga, giveSet, true, false, offering, accepting, null);
+        reportRsrcGainLoss(ga, getSet, false, false, offering, accepting, null);
         if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
         {
             // v2.0.00 and newer clients will announce this with localized text from
@@ -3189,8 +3189,8 @@ public class SOCGameHandler extends GameHandler
         final String gaName = ga.getName();
         final int    cpn    = ga.getCurrentPlayerNumber();
 
-        reportRsrcGainLoss(gaName, give, true, false, cpn, -1, null);
-        reportRsrcGainLoss(gaName, get, false, false, cpn, -1, null);
+        reportRsrcGainLoss(ga, give, true, false, cpn, -1, null);
+        reportRsrcGainLoss(ga, get, false, false, cpn, -1, null);
 
         SOCBankTrade bt = null;
         if (ga.clientVersionHighest >= SOCStringManager.VERSION_FOR_I18N)
@@ -3253,7 +3253,7 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Takes and releases the gameList monitor for this game.
      *
-     * @param gaName  Game name
+     * @param ga  Game whose members will be sent these messages. Before v2.4.50 this was {@code gaName}.
      * @param resourceSet    Resource set (from a roll, or the "give" or "get" side of a trade).
      *                Resource type {@link SOCResourceConstants#UNKNOWN UNKNOWN} or
      *                {@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL} is ignored.
@@ -3271,6 +3271,7 @@ public class SOCGameHandler extends GameHandler
      *                there instead of sending to all players in game.  Because trades are public, there is no
      *                such parameter for tradingPlayer.
      *
+     * @see #reportRsrcGainLossForVersions(SOCGame, ResourceSet, boolean, boolean, int, int, Connection, int)
      * @see #reportTrade(SOCGame, int, int)
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
      * @see #reportRsrcGainGold(SOCGame, SOCPlayer, int, SOCResourceSet, boolean, boolean)
@@ -3280,9 +3281,57 @@ public class SOCGameHandler extends GameHandler
      * @since 1.1.00
      */
     void reportRsrcGainLoss
-        (final String gaName, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
+        (final SOCGame ga, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
          final int mainPlayer, final int tradingPlayer, Connection playerConn)
     {
+        reportRsrcGainLossForVersions
+            (ga, resourceSet, isLoss, isNews, mainPlayer, tradingPlayer, playerConn, 0);
+    }
+
+    /**
+     * Report the resources gained/lost by a player, and optionally (for trading)
+     * lost/gained by a second player, to older client version connections in a game.
+     * Useful for backwards compatibility after introducing newer message types like {@link SOCReportRobbery}.
+     * Sends PLAYERELEMENT messages, either to entire game, or to player only.
+     *<P>
+     * Used to report the resources gained from a roll, discard, or discovery (year-of-plenty) pick.
+     * Also used to report the "give" or "get" half of a resource trade.
+     *<P>
+     * Messages sent by this method aren't treated as recordable "events"
+     * because they probably aren't using the latest-version message sequence.
+     * For such events, caller should call {@link SOCServer#recordGameEvent(String, SOCMessage)} or similar methods
+     * with the latest-version sequence.
+     *<P>
+     * Takes and releases the gameList monitor for this game.
+     *
+     * @param ga  Game whose members will be sent these messages
+     * @param resourceSet  Resource set (from a roll, or the "give" or "get" side of a trade).
+     *                Resource type {@link SOCResourceConstants#UNKNOWN UNKNOWN} or
+     *                {@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL} is ignored.
+     *                Only positive resource amounts are sent (negative is ignored).
+     * @param isLoss  If true, "give" ({@link SOCPlayerElement#LOSE}), otherwise "get" ({@link SOCPlayerElement#GAIN})
+     * @param isNews  Is this element change notably good or an unexpected bad change or loss?
+     *                Sets the {@link SOCPlayerElement#isNews()} flag in messages sent by this method.
+     *                If there are multiple resource types, flag is set only for the first type sent
+     *                to avoid several alert sounds at client.
+     * @param mainPlayer  Player number "giving" if isLose==true, otherwise "getting".
+     *                For each nonzero resource involved, PLAYERELEMENT messages will be sent about this player.
+     * @param tradingPlayer  Player number on other side of trade, or -1 if no second player is involved.
+     *                If not -1, PLAYERELEMENT messages will also be sent about this player.
+     * @param playerConn  Null to announce to the entire game, or {@code mainPlayer}'s connection to send messages
+     *                there instead of sending to all players in game.  Because trades are public, there is no
+     *                such parameter for tradingPlayer.
+     * @param vmax  Maximum client version to send to.
+     *                Same format as {@link Version#versionNumber()} and {@link Connection#getVersion()}.
+     *
+     * @see #reportRsrcGainLoss(SOCGame, ResourceSet, boolean, boolean, int, int, Connection)
+     * @since 2.4.50
+     */
+    void reportRsrcGainLossForVersions
+        (final SOCGame ga, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
+         final int mainPlayer, final int tradingPlayer, Connection playerConn, final int vmax)
+    {
+        final String gaName = ga.getName();
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
         final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for pnB
 
@@ -3297,16 +3346,27 @@ public class SOCGameHandler extends GameHandler
                 continue;
 
             if (playerConn != null)
-                srv.messageToPlayer
-                    (playerConn, gaName, mainPlayer,
-                     new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
-            else
-                srv.messageToGameWithMon
-                    (gaName, true, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
+            {
+                if ((vmax == 0) || (playerConn.getVersion() <= vmax))
+                    srv.messageToPlayer
+                        (playerConn, gaName, ((vmax == 0) ? mainPlayer : SOCServer.PN_NON_EVENT),
+                         new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
+            } else {
+                final SOCMessage elemMsg = new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews);
+                if (vmax == 0)
+                    srv.messageToGameWithMon(gaName, true, elemMsg);
+                else
+                    srv.messageToGameForVersions(ga, -1, vmax, elemMsg, false);
+            }
 
             if (tradingPlayer != -1)
-                srv.messageToGameWithMon
-                    (gaName, true, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews));
+            {
+                final SOCMessage elemMsg = new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews);
+                if (vmax == 0)
+                    srv.messageToGameWithMon(gaName, true, elemMsg);
+                else
+                    srv.messageToGameForVersions(ga, -1, vmax, elemMsg, false);
+            }
 
             if (isNews)
                 isNews = false;  // if sending several here, only the first needs isNews attention flag
@@ -3342,7 +3402,7 @@ public class SOCGameHandler extends GameHandler
         final String gn = ga.getName();
 
         // Send SOCPlayerElement messages
-        reportRsrcGainLoss(gn, rsrcs, false, isNews, pn, -1, null);
+        reportRsrcGainLoss(ga, rsrcs, false, isNews, pn, -1, null);
         srv.messageToGameKeyedSpecial(ga, true, true,
             ((includeGoldHexText) ? "action.picked.rsrcs.goldhex" : "action.picked.rsrcs"),
             player.getName(), rsrcs);
@@ -4236,10 +4296,10 @@ public class SOCGameHandler extends GameHandler
         {
             if (cg.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
             {
-                reportRsrcGainLoss(gaName, rset, true, true, pn, -1, null);
+                reportRsrcGainLoss(cg, rset, true, true, pn, -1, null);
             } else {
                 if ((c != null) && c.isConnected())
-                    reportRsrcGainLoss(gaName, rset, true, true, pn, -1, c);
+                    reportRsrcGainLoss(cg, rset, true, true, pn, -1, c);
 
                 srv.messageToGameExcept
                     (gaName, c, pn, new SOCPlayerElement

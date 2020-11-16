@@ -2131,6 +2131,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Handle the "report robbery" message.
      * Updates game data by calling {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
      * or {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
+     * Does nothing if {@link SOCReportRobbery#isGainLose mes.isGainLose} but
+     * {@link SOCReportRobbery#amount mes.amount} == 0 and {@link SOCReportRobbery#resSet} is null.
      *<P>
      * This method is public static for access by {@code SOCPlayerClient} and robot client classes.
      *
@@ -2143,7 +2145,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        final int perpPN = mes.perpPN, victimPN = mes.victimPN;
+        final int perpPN = mes.perpPN, victimPN = mes.victimPN, amount = mes.amount;
+        final SOCResourceSet resSet = mes.resSet;
+        if (mes.isGainLose && (amount == 0) && (resSet == null))
+            return;
+
         final SOCPlayer perp = (perpPN >= 0) ? ga.getPlayer(perpPN) : null,
             victim = (victimPN >= 0) ? ga.getPlayer(victimPN) : null;
 
@@ -2153,14 +2159,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (mes.isGainLose)
             {
                 if (perp != null)
-                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.GAIN, peType, mes.amount, null);
+                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.GAIN, peType, amount, null);
                 if (victim != null)
-                    handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.LOSE, peType, mes.amount, null);
+                    handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.LOSE, peType, amount, null);
             } else {
                 if (perp != null)
-                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.SET, peType, mes.amount, null);
+                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.SET, peType, amount, null);
                 if (victim != null)
                     handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.SET, peType, mes.victimAmount, null);
+            }
+        } else if (resSet != null) {
+            // note: when using resSet, isGainLose is always true
+            for (int rtype = SOCResourceConstants.MIN; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            {
+                final int amt = resSet.getAmount(rtype);
+                if (amt == 0)
+                    continue;
+
+                if (perp != null)
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.GAIN, rtype, amt);
+                if (victim != null)
+                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.LOSE, rtype, amt);
             }
         } else {
             final int resType = mes.resType;
@@ -2168,12 +2187,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (mes.isGainLose)
             {
                 if (perp != null)
-                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.GAIN, resType, mes.amount);
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.GAIN, resType, amount);
                 if (victim != null)
-                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.LOSE, resType, mes.amount);
+                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.LOSE, resType, amount);
             } else {
                 if (perp != null)
-                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.SET, resType, mes.amount);
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.SET, resType, amount);
                 if (victim != null)
                     handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.SET, resType, mes.victimAmount);
             }

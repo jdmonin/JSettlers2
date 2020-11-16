@@ -4781,7 +4781,6 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
-     * @param isEvent
      * @since 2.4.50
      */
     public void messageToGameKeyed(SOCGame ga, final boolean isEvent, final boolean takeMon, final String key)
@@ -4949,6 +4948,7 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int[], boolean, List, String, Object...)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameForVersionsKeyedExcept(SOCGame, int, int, boolean, List, boolean, String, Object...)
      * @since 2.0.00
      */
     public final void messageToGameKeyedSpecialExcept
@@ -5578,6 +5578,7 @@ public class SOCServer extends Server
      *            (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      * @see #messageToGameForVersionsExcept(SOCGame, int, int, Connection, SOCMessage, boolean)
      * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, boolean, String, Object...)

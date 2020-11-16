@@ -3074,20 +3074,23 @@ public class SOCPlayerInterface extends Frame
      * A robbery has just occurred; show details.
      * Is called after game data has been updated.
      *
-     * @param perpPN  Perpetrator's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param perpPN  Perpetrator's player number, or -1 if none
+     *     (used by {@code SC_PIRI} scenario, future use by other scenarios/expansions)
      * @param victimPN  Victim's player number, or -1 if none (for future use by scenarios/expansions)
      * @param resType  Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
-     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code peType != null}.
+     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code resSet != null} or {@code peType != null}.
+     * @param resSet  Resource set being stolen, if not using {@code resType} or {@code peType}
      * @param peType  PlayerElement type such as {@link PEType#SCENARIO_CLOTH_COUNT},
-     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} instead).
+     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} or {@code resSet} instead).
      * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
      * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
      * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
+     * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
      * @since 2.4.50
      */
     public void reportRobbery
-        (final int perpPN, final int victimPN, final int resType, final PEType peType,
-         final boolean isGainLose, final int amount, final int victimAmount)
+        (final int perpPN, final int victimPN, final int resType, SOCResourceSet resSet, final PEType peType,
+         final boolean isGainLose, final int amount, final int victimAmount, final int extraValue)
     {
         // These texts are also sent from server SOCGameHandler.reportRobbery to clients older than v2.4.50;
         // if you change the logic or text, make sure it's updated in both places
@@ -3095,7 +3098,44 @@ public class SOCPlayerInterface extends Frame
         final String peName = (perpPN >= 0) ? game.getPlayer(perpPN).getName() : null,
             viName = (victimPN >= 0) ? game.getPlayer(victimPN).getName() : null;
 
-        if (peType == null)
+        if ((perpPN == -1) && game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
+        {
+            // Pirate Fleet attack results
+
+            if (victimPN < 0)
+                return;  // unlikely
+
+            if ((amount > 0) || (resSet != null))
+            {
+                if (victimPN == clientHandPlayerNum)
+                {
+                    if (resSet == null)
+                    {
+                        resSet = new SOCResourceSet();
+                        resSet.add(amount, resType);
+                    }
+                    printKeyedSpecial
+                        ("action.rolled.sc_piri.you.lost.rsrcs.to.fleet", resSet, extraValue);
+                        // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})"
+                    playSound(SOUND_RSRC_LOST);
+                } else {
+                    printKeyed
+                        ("action.rolled.sc_piri.player.lost.rsrcs.to.fleet",
+                         viName, (resSet != null) ? resSet.getTotal() : amount, extraValue);
+                        // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
+                        // "Joe lost 3 resources to pirate fleet attack (strength 3)."
+                }
+            }
+            else if ((amount == 0) && (resType == SOCResourceConstants.UNKNOWN))
+            {
+                printKeyed
+                    ("action.rolled.sc_piri.player.won.pick.free", viName, extraValue);
+                    // "{0} won against the pirate fleet (strength {1,number}) and will pick a free resource"
+            }
+
+            hands[victimPN].updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+        }
+        else if (peType == null)
         {
             if ((resType == SOCResourceConstants.UNKNOWN) || (clientHandPlayerNum < 0)
                 || ((clientHandPlayerNum != perpPN) && (clientHandPlayerNum != victimPN)))
@@ -4934,10 +4974,10 @@ public class SOCPlayerInterface extends Frame
         }
 
         public void reportRobbery
-            (final int perpPN, final int victimPN, final int resType, final PEType peType,
-             final boolean isGainLose, final int amount, final int victimAmount)
+            (final int perpPN, final int victimPN, final int resType, final SOCResourceSet resSet, final PEType peType,
+             final boolean isGainLose, final int amount, final int victimAmount, final int extraValue)
         {
-            pi.reportRobbery(perpPN, victimPN, resType, peType, isGainLose, amount, victimAmount);
+            pi.reportRobbery(perpPN, victimPN, resType, resSet, peType, isGainLose, amount, victimAmount, extraValue);
         }
 
         public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)

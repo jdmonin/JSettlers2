@@ -2098,7 +2098,8 @@ import soc.util.Version;
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl != null)
             pcl.reportRobbery
-                (mes.perpPN, mes.victimPN, mes.resType, mes.peType, mes.isGainLose, mes.amount, mes.victimAmount);
+                (mes.perpPN, mes.victimPN, mes.resType, mes.resSet, mes.peType,
+                 mes.isGainLose, mes.amount, mes.victimAmount, mes.extraValue);
     }
 
     /**

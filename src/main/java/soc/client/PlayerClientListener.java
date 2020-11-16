@@ -248,20 +248,23 @@ public interface PlayerClientListener
     /**
      * A robbery has just occurred; show details. Is called after game data has been updated.
      *
-     * @param perpPN  Perpetrator's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param perpPN  Perpetrator's player number, or -1 if none
+     *     (used by {@code SC_PIRI} scenario, future use by other scenarios/expansions)
      * @param victimPN  Victim's player number, or -1 if none (for future use by scenarios/expansions)
      * @param resType  Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
-     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code peType != null}.
+     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code resSet != null} or {@code peType != null}.
+     * @param resSet  Resource set being stolen, if not using {@code resType} or {@code peType}
      * @param peType  PlayerElement type such as {@link PEType#SCENARIO_CLOTH_COUNT},
-     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} instead).
+     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} or {@code resSet} instead).
      * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
      * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
      * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
+     * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
      * @since 2.4.50
      */
     void reportRobbery
-        (final int perpPN, final int victimPN, final int resType, final PEType peType,
-         final boolean isGainLose, final int amount, final int victimAmount);
+        (final int perpPN, final int victimPN, final int resType, final SOCResourceSet resSet, final PEType peType,
+         final boolean isGainLose, final int amount, final int victimAmount, final int extraValue);
 
     /**
      * This player has just made a successful trade with the bank or a port.
