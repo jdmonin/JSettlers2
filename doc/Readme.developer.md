@@ -60,20 +60,26 @@ and Robert S Thomas' dissertation.
 
 ### Board layouts and coordinates
 
+Pieces are placed at edges, nodes, or hexes.
+
+To show piece coordinates in the board's tooltips, in the game window chat box type: `=*= showcoords`  
+To no longer show those coordinates, type: `=*= hidecoords`
+
 For more information about the board coordinates, see javadocs in `soc.game.SOCBoard`
 and `soc.game.SOCBoardLarge` (or dissertation appendix A), and these diagrams:
 
 **Sea boards:**  
+Rectilinear grid of rows and columns. A vertical edge's coordinate is its center.
+A diagonal edge's coordinate value is taken from its left-end node.  
 ![hexcoord-sea.png](/doc/hexcoord-sea.png)
 
 **4-player classic:**  
+Diagonal axes for rows and columns.  
 ![hexcoord.gif](/doc/hexcoord.gif)
 
 **6-player classic:**  
+Same coordinates as 4-player classic. Trading ports' hexes are off the edge of the grid.  
 ![hexcoord-6player.gif](/doc/hexcoord-6player.gif)
-
-To show piece coordinates in the board's tooltips, in the game window chat box type: `=*= showcoords`  
-To no longer show those coordinates, type: `=*= hidecoords`
 
 ### Development
 
