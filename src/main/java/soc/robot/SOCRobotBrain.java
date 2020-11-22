@@ -2890,7 +2890,7 @@ public class SOCRobotBrain extends Thread
                         waitingForGameState = true;
                         counter = 0;
                         expectPLACING_FREE_ROAD1 = true;
-                        buildingPlan.advancePlan();
+                        buildingPlan.advancePlan();  // consume topPiece
 
                         //D.ebugPrintln("!! PLAYING ROAD BUILDING CARD");
                         client.playDevCard(game, SOCDevCardConstants.ROADS);
@@ -3661,8 +3661,8 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Have the client ask to build our top planned piece
-     * (calls {@link #buildingPlan}{@link Stack#pop() .pop()}),
      * unless we've already been told by the server to not build it.
+     * Calls {@link #buildingPlan}.{@link SOCBuildPlan#advancePlan() advancePlan()}.
      * Sets {@link #whatWeWantToBuild}, {@link #waitingForDevCard},
      * or {@link #waitingForPickSpecialItem}.
      * Called from {@link #buildOrGetResourceByTradeOrCard()}.

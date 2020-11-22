@@ -20,6 +20,8 @@
  **/
 package soc.robot;
 
+import java.util.NoSuchElementException;
+
 import soc.game.SOCResourceSet;
 
 /**
@@ -51,6 +53,7 @@ public interface SOCBuildPlan
      * Note: This may be unsafe - assumes an appropriate size of build plan.  Could easily add a check for size in the
      * function call, but it's probably easier to debug for now with bad calls throwing exceptions, rather than
      * returning nulls that may be harder to figure out if they create funny behavior later.
+     * JSettlers building plans used to be {@code Stack}, which throws an exception rather than returning null.
      *<P>
      * In future, non-linear build plans should be discussed as to how to implement this. For example if we
      * traverse a tree-like structure, so separate functions would need to be added to switch between branches.
@@ -58,9 +61,11 @@ public interface SOCBuildPlan
      * @param pieceNum  Piece number within plan, where 0 is the first to be built.
      *     Range is 0 to {@link #getPlanDepth()} - 1.
      * @return  Piece within plan
+     * @throws IndexOutOfBoundsException if {@code pieceNum} is out of range
      * @see #advancePlan()
      */
-    public SOCPossiblePiece getPlannedPiece(int pieceNum);
+    public SOCPossiblePiece getPlannedPiece(int pieceNum)
+        throws IndexOutOfBoundsException;
 
     /**
      * Return the depth of the plan: The number of pieces to be built. Non-linear plans to be discussed in future.
@@ -72,9 +77,11 @@ public interface SOCBuildPlan
     /**
      * Step forward in the plan.  Equivalent to a pop in the stack implementation.
      * @return the piece at index 0 in the plan
+     * @throws NoSuchElementException if {@link #isEmpty()}
      * @see #getPlannedPiece(int)
      */
-    public SOCPossiblePiece advancePlan();
+    public SOCPossiblePiece advancePlan()
+        throws NoSuchElementException;
 
     /**
      * Calculate the total resources needed to build all pieces in this plan.

@@ -1039,7 +1039,7 @@ public class SOCRobotNegotiator
                 return response;
             }
 
-            receiverTargetPiece = receiverBuildingPlan.peek();
+            receiverTargetPiece = receiverBuildingPlan.getPlannedPiece(0);
             targetPieces[receiverNum] = receiverTargetPiece;
         }
 
@@ -1072,7 +1072,7 @@ public class SOCRobotNegotiator
                 return response;
             }
 
-            senderTargetPiece = senderBuildingPlan.peek();
+            senderTargetPiece = senderBuildingPlan.getPlannedPiece(0);
             targetPieces[senderNum] = senderTargetPiece;
         }
 
@@ -1586,7 +1586,7 @@ public class SOCRobotNegotiator
                 return counterOffer;
             }
 
-            targetPiece = ourBuildingPlan.peek();
+            targetPiece = ourBuildingPlan.getPlannedPiece(0);
             targetPieces[ourPlayerNumber] = targetPiece;
         }
 

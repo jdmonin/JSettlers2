@@ -3313,7 +3313,7 @@ public class SOCRobotDM
                   if (buildingItem == 1)
                   {
                       // validate direction of stack growth for buildingPlan
-                      stackTopIs0 = (0 == buildingPlan.indexOf(buildingPlan.peek()));
+                      stackTopIs0 = (0 == buildingPlan.indexOf(buildingPlan.getPlannedPiece(0)));
                   }
 
                   int i = (stackTopIs0) ? buildingItem : (bpSize - buildingItem) - 1;

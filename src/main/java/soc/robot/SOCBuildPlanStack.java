@@ -21,7 +21,9 @@
 package soc.robot;
 
 import java.io.Serializable;
+import java.util.EmptyStackException;
 import java.util.Enumeration;
+import java.util.NoSuchElementException;
 import java.util.Stack;
 import soc.game.SOCResourceSet;
 
@@ -43,8 +45,10 @@ public class SOCBuildPlanStack extends Stack<SOCPossiblePiece>
      * NB: This does not check for a legal index
      */
     public SOCPossiblePiece getPlannedPiece(int pieceNum)
+        throws IndexOutOfBoundsException
     {
         return super.get(elementCount - 1 - pieceNum);
+            // throws subclass ArrayIndexOutOfBoundsException
     }
 
     public int getPlanDepth()
@@ -56,8 +60,14 @@ public class SOCBuildPlanStack extends Stack<SOCPossiblePiece>
      * NB: This does not check for a safe operation
      */
     public SOCPossiblePiece advancePlan()
+        throws NoSuchElementException
     {
-        return pop();
+        try
+        {
+            return pop();
+        } catch (EmptyStackException e) {
+            throw new NoSuchElementException(e.getMessage());
+        }
     }
 
     public SOCResourceSet getTotalResourcesForBuildPlan()
