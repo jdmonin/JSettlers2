@@ -1797,7 +1797,7 @@ public class SOCRobotBrain extends Thread
                                 {
                                     // If we have the resources right now, ask to Special Build
 
-                                    final SOCPossiblePiece targetPiece = buildingPlan.peek();
+                                    final SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
                                     final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
                                         // may be null
 
@@ -2605,7 +2605,7 @@ public class SOCRobotBrain extends Thread
                 counter = 0;
                 expectPLAY1 = true;
 
-                SOCPossiblePiece posPiece = buildingPlan.pop();
+                SOCPossiblePiece posPiece = buildingPlan.advancePlan();
 
                 if (posPiece.getType() == SOCPossiblePiece.ROAD)
                     whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
@@ -2863,12 +2863,12 @@ public class SOCRobotBrain extends Thread
             && (rejectedPlayDevCardType != SOCDevCardConstants.ROADS))
         {
             //D.ebugPrintln("** Checking for Road Building Plan **");
-            SOCPossiblePiece topPiece = buildingPlan.pop();
+            SOCPossiblePiece topPiece = buildingPlan.getPlannedPiece(0);
 
             //D.ebugPrintln("$ POPPED "+topPiece);
-            if ((topPiece != null) && (topPiece instanceof SOCPossibleRoad))
+            if ((topPiece != null) && (topPiece instanceof SOCPossibleRoad) && (buildingPlan.getPlanDepth() > 1))
             {
-                SOCPossiblePiece secondPiece = (buildingPlan.isEmpty()) ? null : buildingPlan.peek();
+                SOCPossiblePiece secondPiece = buildingPlan.getPlannedPiece(1);
 
                 //D.ebugPrintln("secondPiece="+secondPiece);
                 if ((secondPiece != null) && (secondPiece instanceof SOCPossibleRoad))
@@ -2890,6 +2890,7 @@ public class SOCRobotBrain extends Thread
                         waitingForGameState = true;
                         counter = 0;
                         expectPLACING_FREE_ROAD1 = true;
+                        buildingPlan.advancePlan();
 
                         //D.ebugPrintln("!! PLAYING ROAD BUILDING CARD");
                         client.playDevCard(game, SOCDevCardConstants.ROADS);
@@ -2900,16 +2901,6 @@ public class SOCRobotBrain extends Thread
                         // cancel sets whatWeWantToBuild = null;
                     }
                 }
-                else
-                {
-                    //D.ebugPrintln("$ PUSHING "+topPiece);
-                    buildingPlan.push(topPiece);
-                }
-            }
-            else
-            {
-                //D.ebugPrintln("$ PUSHING "+topPiece);
-                buildingPlan.push(topPiece);
             }
         }
 
@@ -2921,7 +2912,7 @@ public class SOCRobotBrain extends Thread
         ///
         /// figure out what resources we need
         ///
-        SOCPossiblePiece targetPiece = buildingPlan.peek();
+        SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
         SOCResourceSet targetResources = targetPiece.getResourcesToBuild();  // may be null
 
         //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
@@ -3693,7 +3684,7 @@ public class SOCRobotBrain extends Thread
      */
     protected void buildRequestPlannedPiece()
     {
-        final SOCPossiblePiece targetPiece = buildingPlan.pop();
+        final SOCPossiblePiece targetPiece = buildingPlan.advancePlan();
         D.ebugPrintlnINFO("$ POPPED " + targetPiece);
         lastMove = targetPiece;
         currentDRecorder = (currentDRecorder + 1) % 2;
@@ -3820,7 +3811,7 @@ public class SOCRobotBrain extends Thread
 
         if (! buildingPlan.empty())
         {
-            lastTarget = buildingPlan.peek();
+            lastTarget = buildingPlan.getPlannedPiece(0);
             negotiator.setTargetPiece(ourPlayerNumber, lastTarget);
         }
     }
@@ -4060,7 +4051,7 @@ public class SOCRobotBrain extends Thread
             && (action != SOCPlayerElement.GAIN)
             && ! buildingPlan.isEmpty())
         {
-            final SOCPossiblePiece targetPiece = buildingPlan.peek();
+            final SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
             final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();  // may be null
 
             if (! ourPlayerData.getResources().contains(targetResources))
