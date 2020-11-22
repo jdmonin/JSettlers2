@@ -136,7 +136,8 @@ public class TestGameOptions
     }
 
     /**
-     * Test adding a new known option and removing it.
+     * Test adding a new known option, updating it, removing it:
+     * {@link SOCGameOptionSet#addKnownOption(SOCGameOption)}.
      */
     @Test
     public void testAddKnownOption()
@@ -162,6 +163,26 @@ public class TestGameOptions
         assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
         assertEquals(2000, opt.minVersion);
         assertEquals(2000, opt.lastModVersion);
+
+        // any ChangeListener ref should be copied by addKnownOption
+        final SOCGameOption.ChangeListener cl = new SOCGameOption.ChangeListener()
+        {
+            public void valueChanged
+                (SOCGameOption op, Object oldValue, Object newValue,
+                 SOCGameOptionSet curr, SOCGameOptionSet known)
+            {}
+        };
+        newKnown.addChangeListener(cl);
+        assertTrue(newKnown.getChangeListener() == cl);
+
+        final SOCGameOption newKnown2 = new SOCGameOption
+            ("_TESTF", 2000, 2000, false, 0, "Changed for unit test");
+        hadNoOld = knowns.addKnownOption(newKnown2);
+        assertFalse(hadNoOld);
+
+        opt = knowns.getKnownOption("_TESTF", false);
+        assertTrue(newKnown2 == opt);
+        assertTrue("SGOSet.addKnownOption should copy ChangeListener ref", newKnown2.getChangeListener() == cl);
 
         // cleanup/remove known opt, by adding unknown opt
         hadNoOld = knowns.addKnownOption(new SOCGameOption("_TESTF"));
