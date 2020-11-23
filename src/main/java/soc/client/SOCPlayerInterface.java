@@ -4492,17 +4492,19 @@ public class SOCPlayerInterface extends Frame
                 {
                     hpan.updateValue(utype);
 
-                    // Because client player's available resources have changed,
-                    // update any trade offers currently showing (show or hide Accept button)
                     if (isClientPlayer)
+                    {
+                        // Because client player's available resources have changed,
+                        // update any trade offers currently showing (show or hide Accept button)
                         pi.updateAtClientPlayerResources();
 
-                    // If good or bad news from unexpectedly gained or lost
-                    // resources or pieces, let the player know
-                    if (isGoodNews)
-                        pi.playSound(SOUND_RSRC_GAINED_FREE);
-                    else if (isBadNews)
-                        pi.playSound(SOUND_RSRC_LOST);
+                        // If good or bad news from unexpectedly gained or lost
+                        // resources or pieces, let the player know
+                        if (isGoodNews)
+                            pi.playSound(SOUND_RSRC_GAINED_FREE);
+                        else if (isBadNews)
+                            pi.playSound(SOUND_RSRC_LOST);
+                    }
                 } else {
                     hpan.updateValue(PlayerClientListener.UpdateType.Resources);
                 }
