@@ -83,8 +83,8 @@ Same coordinates as 4-player classic. Trading ports' hexes are off the edge of t
 
 ### Development
 
-Coding is done in Java 7, but should compile cleanly in newer JDKs.
-(v2.0 and 2.1 used java 6 for backwards compatibility; 1.2 used java 5.)
+Coding is done in Java 7 for client compatibility, but should compile cleanly
+in newer JDKs. (v2.0 and 2.1 used java 6 for compatibility; 1.2 used java 5.)
 The build system is gradle 5.6 or higher (which requires java 8);
 the newest tested version is gradle 6.4. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
@@ -464,7 +464,6 @@ from easier to more difficult. You can also search the source for TODO for
 ideas.
 
 - Visual reminder to player when they've made a trade offer
-- Show # VP when choosing where to sit, if game is in progress
 - Refactor: `new Date().getTime()` -> `System.currentTimeMillis()`
 - Occasionally the board does not re-scale at game reset
 - Docs: State diagram for `SOCGame` states, or important message sequences
@@ -509,7 +508,7 @@ ideas.
 - Customize bot names (txt file or startup property) in SOCServer.setupLocalRobots
 - Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
   message into brainQ, but only update game fields/methods, into
-  SOCDisplayless if possible.
+  SOCDisplaylessPlayerClient if possible.
 - Refactor `SOCDisplaylessPlayerClient` like SOCPlayerClient: Move handler methods into
   a class like MessageHandler, and sender methods into a class like GameMessageSender.
   Watch for method calls from the `soc.robot` and `soc.client` packages.
@@ -549,7 +548,8 @@ ideas.
   bots, currently active/total games from `*STATS*` cmd, client versions, any
   errors, etc
 - Per-game thread/message queue at server (use SOCMessageForGame.getGame)
-- HTML5 client (see v3 branch for protobuf/JSON over websockets)
+- HTML5 client (see v3 branch for protobuf/JSON over websockets and preliminary
+  observer-only start on that work)
 - Cities & Knights support
     - UI mock-ups
     - state change / network message plans
@@ -681,8 +681,8 @@ use strings.get or strings.getSpecial with parameter placeholders such as {0}.
 `messageToGameKeyed`, etc.). The client strings live in
 `soc/client/strings/data*.properties`.  An example commit is 68c3972.
 The server strings live in `soc/server/strings/*.properties`.  An example
-commit is 3e062b7. See the comments at the top of any *.properties file for
-format details.
+commit is 3e062b7. See the comments at the top of
+strings/server/toClient.properties for format details.
 
 If an i18n string lookup's english text isn't obvious from the key, add it as a
 comment to make searching the source for strings easier:

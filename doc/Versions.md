@@ -26,6 +26,7 @@ JARs for recent JSettlers versions can be downloaded from
 		- Report robbery with `SOCReportRobbery`
 		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
 	- When Monopoly card played, server announces amount gained instead of player's total amount of that resource
+	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
@@ -71,8 +72,6 @@ JARs for recent JSettlers versions can be downloaded from
 	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
-- Network/Message traffic:
-	- If client's discard has incorrect total, server re-sends SOCDiscardRequest which includes required total
 - Client:
 	- New Game dialog:
 	    - Sort game option descriptions case-insensitively, in case of acronyms
