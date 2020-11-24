@@ -512,10 +512,14 @@ When preparing to release a new version, testing should include:
         - Click New Game; in dialog, should see and set checkbox for "Server test 3p option XYZ"
         - Start game
         - In game window, click "Options" button; game opt XYZ should be set
-        - Start another client with same JVM param `-Djsettlers.debug.client.gameopt3p=xyz`
+        - Under your IDE's debugger, start another client with same JVM param `-Djsettlers.debug.client.gameopt3p=xyz`
         - Connect
         - Double-click and join game, take over for a robot
         - In game window, click "Options" button; game opt XYZ should be set
+        - In your IDE, pause the debugged client to simulate network connection loss
+        - Start a new client using same JVM param as paused one, and connect as that same username
+        - Double-click game name: Should allow rejoin after appropriate number of seconds
+        - To clean up, terminate the paused debugged client
     - Test when only server knows it:
         - Start another client without that `gameopt3p` param
         - Connect
@@ -767,6 +771,8 @@ When preparing to release a new version, testing should include:
 
 ## Database setup and Account Admins list
 
+### Tests with no DB
+
 - SOCAccountClient with a server not using a DB:
     - To launch SOCAccountClient, use: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
     - At connect, should see a message like "This server does not use accounts"
@@ -791,7 +797,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Server prop to require accounts (`jsettlers.accounts.required=Y`):  
   Should not allow login as nonexistent user with no password
 - Server prop for games saved in DB (`jsettlers.db.save.games=Y`):  
-  Play a complete game, check for results there: `select * from games;`
+  Play a complete game, check for results there: `select * from games2;`
 - Test creating as old schema (before v2.0.00 or 1.2.00) and upgrading
     - Get the old schema SQL files you'll need from the git repo by using an earlier release tag
       - Files to test upgrade from schema v1.2.00:

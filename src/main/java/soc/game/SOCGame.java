@@ -4158,8 +4158,11 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case PLACING_ROAD:
+            // fall through
         case PLACING_SETTLEMENT:
+            // fall through
         case PLACING_CITY:
+            // fall through
         case PLACING_SHIP:
             if (needToPickFromGold)
             {

@@ -86,7 +86,7 @@ Your database system's JDBC drivers can be downloaded at these locations:
 - MariaDB: https://downloads.mariadb.org/ -> Connector/J
 - MySQL:   https://www.mysql.com/products/connector/
 - PostgreSQL:  https://jdbc.postgresql.org/download.html
-- SQLite:  https://bitbucket.org/xerial/sqlite-jdbc/downloads/
+- SQLite:  https://github.com/xerial/sqlite-jdbc/releases -> assets -> sqlite-jdbc-3.xx.y.jar
 
 In some cases, adding to the classpath won't work because of JVM restrictions
 about JAR files.  If you find that's the case, place the JDBC jar in the same

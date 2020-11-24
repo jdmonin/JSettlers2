@@ -5002,6 +5002,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                         && (settlementAtNodeCoord == null))
                                     {
                                         continue;  // Requires settlement/city to connect road to ship
+                                            // (if settlementAtNodeCoord not null, its ownership was already checked)
                                     }
                                 }
                             } else {
