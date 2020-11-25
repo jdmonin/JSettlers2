@@ -165,6 +165,8 @@ public class SOCRobotDM
    * when we play a discovery dev card
    *<P>
    * Before v2.4.50, this field was {@code SOCRobotBrain.resourceChoices}
+   *
+   * @see #getResourceChoices()
    */
   protected SOCResourceSet resourceChoices;
 
@@ -3104,6 +3106,21 @@ public class SOCRobotDM
   }
 
   /**
+   * Get the resources we want to request when we play a discovery dev card.
+   * Third-party bots might sometimes want to change the contents of this set.
+   *
+   * @return This DM's resource set to request for a Discovery dev card;
+   *     never null, but may be empty
+   * @see #chooseFreeResources(SOCResourceSet, int, boolean)
+   * @see #pickFreeResources(int)
+   * @since 2.4.50
+   */
+  public SOCResourceSet getResourceChoices()
+  {
+      return resourceChoices;
+  }
+
+  /**
    * Respond to server's request to pick resources to gain from the Gold Hex.
    * Use {@link #buildingPlan} or, if that's empty (like during initial placement),
    * pick what's rare from {@link OpeningBuildStrategy#estimateResourceRarity()}.
@@ -3114,7 +3131,7 @@ public class SOCRobotDM
    * Before v2.4.50, this method was in {@code SOCRobotBrain}.
    *
    * @param numChoose  Number of resources to pick
-   * @return  the chosen resource picks
+   * @return  the chosen resource picks; also sets {@link #getResourceChoices()} to the returned set
    * @since 2.0.00
    */
   protected SOCResourceSet pickFreeResources(int numChoose)
@@ -3180,6 +3197,8 @@ public class SOCRobotDM
    *             from our current resources + less than <tt>numChoose</tt> more.
    *             Examine {@link #resourceChoices}{@link SOCResourceSet#getTotal() .getTotal()}
    *             to see how many were chosen.
+   * @see #chooseFreeResourcesIfNeeded(SOCResourceSet, int, boolean)
+   * @see #getResourceChoices()
    */
   protected boolean chooseFreeResources
       (final SOCResourceSet targetResources, final int numChoose, final boolean clearResChoices)
