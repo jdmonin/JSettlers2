@@ -19,6 +19,7 @@
 - Coding Style
 - Release Testing
 - JSettlers on Github
+- Related Projects
 
 
 
@@ -734,6 +735,9 @@ agents, so there's some instrumentation for the bots but it's not entirely
 documented.  For a technical overview of how the bots plan their actions, start
 at the SOCRobotBrain class javadoc.
 
+See the "Related Projects" section near the end of this document for
+some third-party robot AI examples.
+
 ### Testing/Debugging
 
 When testing with the robots, you may need to send them resources or commands
@@ -1097,3 +1101,35 @@ can be found at https://github.com/jdmonin/JSettlers1
 or https://sourceforge.net/projects/jsettlers/ .
 That JSettlers1 repo also includes jsettlers-1-1-branch which has
 Jeremy Monin's first JSettlers releases 1.1.00 through 1.1.06.
+
+
+## Related Projects
+
+JSettlers was originally started to explore AI agents, and these projects
+have used its code as a base for similar work.
+
+### STAC
+
+The Strategic Conversation Project (STAC) is an extensive multi-year effort
+to study negotiations, game theory, strategic decision making, and agents,
+including human-AI interactions in games. As part of their work, they ran
+tournaments of humans and bots using modified JSettlers and recorded that
+gameplay for study.
+
+STAC forked JSettlers and added several bot types, UI for partial trades
+and "fully observable" open-hand games, a way to record a game's actions to
+logs or a database for playback later, some bot API refactoring, and other
+miscellaneous work. Some of STAC's features and APIs have been
+adapted upstream as part of JSettlers v2.4.50.
+
+Website: https://www.irit.fr/STAC/about.html  
+Github: https://github.com/ruflab/StacSettlers  
+Previous github: https://github.com/sorinMD/StacSettlers
+
+### Settlers of Botan
+
+Instead of changing any JSettlers code, this undergraduate project's
+third-party bot uses JSettlers as a library and extends/overrides the
+robot classes with some new implementations and algorithms.
+
+https://github.com/sambattalio/settlers_of_botan

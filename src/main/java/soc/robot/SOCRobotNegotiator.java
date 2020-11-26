@@ -2242,6 +2242,10 @@ public class SOCRobotNegotiator
     /**
      * Decide what bank/port trade to request, if any,
      * based on which resources we want and {@code ourResources}.
+     *<P>
+     * Other forms of {@code getOfferToBank(..)} call this one;
+     * this is the one to override if a third-party bot wants to
+     * customize {@code getOfferToBank} behavior.
      *
      * @return the offer that we'll make to the bank/ports,
      *     or {@code null} if {@code ourResources} already contains all needed {@code targetResources}

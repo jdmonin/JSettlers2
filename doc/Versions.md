@@ -28,12 +28,13 @@ JARs for recent JSettlers versions can be downloaded from
 	- When Monopoly card played, server announces amount gained instead of player's total amount of that resource
 	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 - For developers:
-	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
+	- Upstreamed and reintegrated from STAC Project fork https://github.com/ruflab/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
-	    - Encapsulate robot's build stack as SOCBuildPlan
+	    - Misc bot API refactoring; encapsulate robot's build stack as SOCBuildPlan
 	    - soc.message methods to parse human-readable toString logging format: parseMsgStr, stripAttribNames
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
 	    - SOCDBHelper is no longer a static/unextendable singleton
+	    - Many thanks to Morgan Giraud for collaboration on this work
 	- Enhanced server's recordGameEvent framework for more detailed game recording
 	- More accessible robot-related methods and data classes
 	- For third-party bots, added more granular override points like
@@ -58,7 +59,7 @@ JARs for recent JSettlers versions can be downloaded from
 	        - To avoid clutter, normally hidden and not sent to connecting clients
 	        - Activate in server config if needed: `jsettlers.gameopts.activate=PLAY_VPO,OTHEROPT`
 	        - For details see [Readme.developer.md](Readme.developer.md) section "Game rules, Game Options"
-	    - New inactive options, to show or help debug gameplay details:
+	    - New inactive options, to show or help debug gameplay details, from STAC concepts:
 	        - `PLAY_VPO`: Show all players' VP/dev card info
 	        - `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
 	    - "Third-Party Options" concept: Gameopts defined by a 3rd-party client, bot, or server JSettlers fork,
