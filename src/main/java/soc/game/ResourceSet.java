@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -68,7 +68,8 @@ public interface ResourceSet
      * Does this set contain all resources of another set?
      * @param other  the subset to test against; can be {@code null} for an empty resource subset
      * @return true if this contains at least the resource amounts in {@code other}
-     *     for each known resource type and {@link SOCResourceConstants#UNKNOWN}
+     *     for each known resource type and {@link SOCResourceConstants#UNKNOWN}.
+     *     True if {@code other} is null or empty.
      * @see #contains(int)
      */
     boolean contains(ResourceSet other);

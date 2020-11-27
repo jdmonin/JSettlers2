@@ -2249,7 +2249,8 @@ public class SOCRobotNegotiator
      *
      * @return the offer that we'll make to the bank/ports,
      *     or {@code null} if {@code ourResources} already contains all needed {@code targetResources}
-     * @param targetResources  what resources we want; not null
+     *     or {@code targetResources} is null or empty
+     * @param targetResources  what resources we want; can be null or empty
      * @param ourResources     the resources we have; not null
      * @see #getOfferToBank(SOCBuildPlan, SOCResourceSet)
      */

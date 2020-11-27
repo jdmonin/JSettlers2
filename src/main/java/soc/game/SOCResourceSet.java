@@ -407,7 +407,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Are set A's resources each greater than or equal to set B's?
-     * @return true if each resource type in set A is >= each resource type in set B
+     * @return true if each resource type in set A is >= each resource type in set B.
+     *      True if {@code b} is null or empty.
      *
      * @param a   set A, cannot be {@code null}
      * @param b   set B, can be {@code null} for an empty resource set
@@ -540,7 +541,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @param other resource set to test against, of length 5 (clay, ore, sheep, wheat, wood) or 6 (with unknown),
      *    or {@code null} for an empty resource subset.
      * @return true if this set contains at least the resource amounts in {@code other}
-     *     for each of its resource types
+     *     for each of its resource types. True if {@code other} is null or empty.
      * @throws IllegalArgumentException if a non-null {@code other}'s length is not 5 or 6
      */
     public boolean contains(final int[] other)
