@@ -2510,7 +2510,9 @@ public class SOCRobotNegotiator
      *<P>
      * Calls {@link #getOfferToBank(SOCResourceSet, SOCResourceSet)}.
      *
-     * @param buildPlan  what we want to build; may be {@code null} or empty
+     * @param buildPlan  what we want to build; may be {@code null} or empty.
+     *     Will call {@link SOCBuildPlan#getFirstPieceResources()}
+     *     unless a third-party bot overrides this method.
      * @param ourResources   the resources we have, from {@link SOCPlayer#getResources()}; not {@code null}
      * @return the offer that we'll make to the bank/ports, or {@code null} if none needed or {@code buildPlan} is empty
      * @since 2.4.50
@@ -2520,8 +2522,7 @@ public class SOCRobotNegotiator
         if ((buildPlan == null) || buildPlan.isEmpty())
             return null;
 
-        SOCPossiblePiece targetPiece = buildPlan.getPlannedPiece(0);
-        return getOfferToBank(targetPiece.getResourcesToBuild(), ourResources);
+        return getOfferToBank(buildPlan.getFirstPieceResources(), ourResources);
     }
 
     /**

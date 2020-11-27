@@ -70,6 +70,13 @@ public class SOCBuildPlanStack extends Stack<SOCPossiblePiece>
         }
     }
 
+    public SOCResourceSet getFirstPieceResources()
+    {
+        final SOCResourceSet rs = (isEmpty()) ? null : getPlannedPiece(0).getResourcesToBuild();
+
+        return (rs != null) ? rs : SOCResourceSet.EMPTY_SET;
+    }
+
     public SOCResourceSet getTotalResourcesForBuildPlan()
     {
         SOCResourceSet rs = new SOCResourceSet();

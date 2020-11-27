@@ -85,6 +85,13 @@ public interface SOCBuildPlan
         throws NoSuchElementException;
 
     /**
+     * Get the resources needed to build the first piece in this plan.
+     * @return {@link #getPlannedPiece(int) getPlannedPiece(0)}{@link SOCPossiblePiece#getResourcesToBuild() .getResourcesToBuild()},
+     *     or {@link SOCResourceSet#EMPTY_SET} if that's null or if {@link #isEmpty()}
+     */
+    public SOCResourceSet getFirstPieceResources();
+
+    /**
      * Calculate the total resources needed to build all pieces in this plan.
      * @return Total resources, from each piece's {@link SOCPossiblePiece#getResourcesToBuild()}
      */

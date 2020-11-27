@@ -5016,7 +5016,7 @@ public class SOCRobotBrain extends Thread
      * Before v2.4.50 this method was {@code tradeToTarget2(SOCResourceSet)}.
      *
      * @param buildPlan  Build plan to look for resources to build. {@code getOfferToBank(..)}
-     *     will typically look at its first piece's {@link SOCPossiblePiece#getResourcesToBuild()} to determine
+     *     will typically call {@link SOCBuildPlan#getFirstPieceResources()} to determine
      *     the resources we want. Can be {@code null} or an empty plan (returns false).
      * @return true if we sent a request to trade, false if
      *     we already have the resources or if we don't have
@@ -5024,7 +5024,8 @@ public class SOCRobotBrain extends Thread
      */
     protected boolean tradeWithBank(SOCBuildPlan buildPlan)
     {
-        if ((buildPlan == null) || buildPlan.isEmpty())
+        if ((buildPlan == null) || buildPlan.isEmpty()
+            || ourPlayerData.getResources().contains(buildPlan.getFirstPieceResources()))
             return false;
 
         SOCTradeOffer bankTrade = negotiator.getOfferToBank(buildPlan, ourPlayerData.getResources());
