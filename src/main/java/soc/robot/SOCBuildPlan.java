@@ -25,7 +25,8 @@ import java.util.NoSuchElementException;
 import soc.game.SOCResourceSet;
 
 /**
- * Encapsulation for building plans. Implemented as {@link SOCBuildPlanStack} or otherwise.
+ * Encapsulation for building plans of {@link SOCPossiblePiece}s.
+ * Typically implemented as {@link SOCBuildPlanStack}; a third-party bot might have a different implementation.
  *<P>
  * Before v2.4.50, Building Plans were represented as {@code Stack<SOCPossiblePiece>}.
  *

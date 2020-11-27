@@ -392,7 +392,7 @@ public class SOCRobotBrain extends Thread
      * The data and code that determines how we negotiate.
      * {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
      * is set when {@link #buildingPlan} is updated.
-     * @see #tradeToTarget2(SOCResourceSet)
+     * @see #tradeWithBank(SOCBuildPlan)
      * @see #makeOffer(SOCBuildPlan)
      * @see #considerOffer(SOCTradeOffer)
      * @see #tradeStopWaitingClearOffer()
@@ -2807,7 +2807,7 @@ public class SOCRobotBrain extends Thread
      * the {@link SOCDevCardConstants#ROADS Road Building} or
      * {@link SOCDevCardConstants#MONO Monopoly} or
      * {@link SOCDevCardConstants#DISC Discovery} development cards,
-     * then trades with the bank ({@link #tradeToTarget2(SOCResourceSet)})
+     * then trades with the bank ({@link #tradeWithBank(SOCBuildPlan)})
      * or with other players ({@link #makeOffer(SOCBuildPlan)}).
      *<P>
      * Call when these conditions are all true:
@@ -2982,7 +2982,7 @@ public class SOCRobotBrain extends Thread
                     /**
                      * trade with the bank/ports
                      */
-                    if (tradeToTarget2(targetResources))
+                    if (tradeWithBank(buildingPlan))
                     {
                         counter = 0;
                         waitingForTradeMsg = true;
@@ -5011,20 +5011,23 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Make bank trades or port trades to get the target resources, if possible.
+     * Calls {@link SOCRobotNegotiator#getOfferToBank(SOCBuildPlan, SOCResourceSet)}.
+     *<P>
+     * Before v2.4.50 this method was {@code tradeToTarget2(SOCResourceSet)}.
      *
-     * @param targetResources  the resources that we want, can be {@code null} for an empty set (method returns false)
+     * @param buildPlan  Build plan to look for resources to build. {@code getOfferToBank(..)}
+     *     will typically look at its first piece's {@link SOCPossiblePiece#getResourcesToBuild()} to determine
+     *     the resources we want. Can be {@code null} or an empty plan (returns false).
      * @return true if we sent a request to trade, false if
      *     we already have the resources or if we don't have
-     *     enough to trade in for <tt>targetResources</tt>.
+     *     enough to trade in for {@code buildPlan}'s required resources.
      */
-    protected boolean tradeToTarget2(SOCResourceSet targetResources)
+    protected boolean tradeWithBank(SOCBuildPlan buildPlan)
     {
-        if ((targetResources == null) || ourPlayerData.getResources().contains(targetResources))
-        {
+        if ((buildPlan == null) || buildPlan.isEmpty())
             return false;
-        }
 
-        SOCTradeOffer bankTrade = negotiator.getOfferToBank(targetResources, ourPlayerData.getResources());
+        SOCTradeOffer bankTrade = negotiator.getOfferToBank(buildPlan, ourPlayerData.getResources());
 
         if ((bankTrade != null) && (ourPlayerData.getResources().contains(bankTrade.getGiveSet())))
         {
