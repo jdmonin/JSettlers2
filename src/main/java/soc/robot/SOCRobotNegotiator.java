@@ -287,10 +287,9 @@ public class SOCRobotNegotiator
      *<P>
      * Before v2.4.50 this method took a {@link SOCPossiblePiece} instead of a {@link SOCBuildPlan}.
      *
-     * @param targetPiece  the piece that we want to build, or {@code null}
+     * @param buildPlan  our build plan, or {@code null}
      * @return the offer we want to make, or {@code null} for no offer
-     * @see #getOfferToBank(SOCResourceSet)
-     * @see #makeOffer(SOCBuildPlan)
+     * @see #getOfferToBank(SOCBuildPlan, SOCResourceSet)
      */
     public SOCTradeOffer makeOffer(SOCBuildPlan buildPlan)
     {

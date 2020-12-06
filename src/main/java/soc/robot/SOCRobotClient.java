@@ -882,6 +882,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Server will reply with {@link SOCJoinGameAuth JOINGAMEAUTH}.
      *<P>
      * Board resets are handled similarly.
+     *<P>
+     * In v1.x this method was {@code handleJOINGAMEREQUEST}.
+     *
      * @param mes  the message
      *
      * @see #handleRESETBOARDAUTH(SOCResetBoardAuth)

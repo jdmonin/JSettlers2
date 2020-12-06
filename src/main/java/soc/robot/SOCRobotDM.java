@@ -2447,8 +2447,7 @@ public class SOCRobotDM
     return true;
   }
 
-
-/**
+  /**
    * Score possible settlements for for the smart game strategy ({@link #SMART_STRATEGY}),
    * from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}
    * into {@link #threatenedSettlements} and {@link #goodSettlements};
