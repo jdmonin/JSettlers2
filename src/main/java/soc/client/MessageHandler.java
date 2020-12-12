@@ -2163,13 +2163,13 @@ import soc.util.Version;
         final int pn = mes.getPlayerNumber();
         SOCPlayer player = null;
         if (pn != -1)
+        {
             player = ga.getPlayer(pn);
-
-        if (pn != -1)
-            ga.getPlayer(pn).setCurrentOffer(null);
-        else
+            player.setCurrentOffer(null);
+        } else {
             for (int i = 0; i < ga.maxPlayers; ++i)
                 ga.getPlayer(i).setCurrentOffer(null);
+        }
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.requestedTradeClear(player, false);
