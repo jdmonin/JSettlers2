@@ -691,6 +691,7 @@ public class SOCPlayerTracker
         //
         final SOCBoard board = game.getBoard();
         Collection<Integer> adjNodeEnum = board.getAdjacentNodesToEdge(rs.getCoordinates());
+        final SOCBuildingSpeedEstimateFactory bsef = brain.getEstimatorFactory();
 
         for (Integer adjNode : adjNodeEnum)
         {
@@ -718,7 +719,7 @@ public class SOCPlayerTracker
                     // else, add new possible settlement
                     //
                     //D.ebugPrintln("$$$ adding new possible settlement at "+Integer.toHexString(adjNode.intValue()));
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), null);
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), null, bsef);
                     newPosSet.setNumberOfNecessaryRoads(0);
                     possibleSettlements.put(adjNode, newPosSet);
                     updateSettlementConflicts(newPosSet, trackers);
@@ -922,6 +923,7 @@ public class SOCPlayerTracker
         //
         //D.ebugPrintln("$$$ checking for possible settlements");
         //
+        final SOCBuildingSpeedEstimateFactory bsef = brain.getEstimatorFactory();
         for (Integer adjNode : board.getAdjacentNodesToEdge(tgtRoadEdge))
         {
             if (dummy.canPlaceSettlement(adjNode.intValue()))
@@ -964,7 +966,7 @@ public class SOCPlayerTracker
                     List<SOCPossibleRoad> nr = new ArrayList<SOCPossibleRoad>();
                     nr.add(targetRoad);
 
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(pl, adjNode.intValue(), nr);
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(pl, adjNode.intValue(), nr, bsef);
                     newPosSet.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
                     possibleSettlements.put(adjNode, newPosSet);
                     targetRoad.addNewPossibility(newPosSet);

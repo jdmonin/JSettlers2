@@ -28,6 +28,10 @@ import soc.game.SOCPlayerNumbers;
 
 /**
  * This is a possible city that we can build
+ *<P>
+ * If serializing and deserializing this piece, remember the Player and {@link SOCBuildingSpeedEstimate}
+ * fields will be null when deserialized:
+ * Call {@link SOCPossiblePiece#setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} to set them.
  *
  * @author Robert S Thomas
  *
@@ -44,26 +48,20 @@ public class SOCPossibleCity extends SOCPossiblePiece
     protected int[] speedup = { 0, 0, 0, 0, 0 };
 
     /**
-     * Our {@link SOCBuildingSpeedEstimate} factory.
-     * @since 2.4.50
-     */
-    protected SOCBuildingSpeedEstimateFactory bseFactory;
-
-    /**
      * constructor
      *
      * @param pl  the owner; not null
      * @param co  coordinates; not validated
-     * @param bseFactory  factory to use for {@link SOCBuildingSpeedEstimate} calls; not null
+     * @param bseFactory  factory to use for {@link SOCBuildingSpeedEstimate}
+     *     in {@link #updateSpeedup()} calls; not null
      */
     public SOCPossibleCity(SOCPlayer pl, int co, SOCBuildingSpeedEstimateFactory bseFactory)
     {
-        super(SOCPossiblePiece.CITY, pl, co);
+        super(SOCPossiblePiece.CITY, pl, co, bseFactory);
 
         eta = 0;
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
-        this.bseFactory = bseFactory;
 
         updateSpeedup();
     }
@@ -78,12 +76,11 @@ public class SOCPossibleCity extends SOCPossiblePiece
     public SOCPossibleCity(SOCPossibleCity pc)
     {
         //D.ebugPrintln(">>>> Copying possible city: "+pc);
-        super(SOCPossiblePiece.CITY, pc.getPlayer(), pc.getCoordinates());
+        super(SOCPossiblePiece.CITY, pc.getPlayer(), pc.getCoordinates(), pc.bseFactory);
 
         eta = pc.getETA();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
-        bseFactory = pc.bseFactory;
 
         int[] pcSpeedup = pc.getSpeedup();
         for (int buildingType = SOCBuildingSpeedEstimate.MIN;
