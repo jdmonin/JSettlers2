@@ -1515,16 +1515,15 @@ public class SOCRobotBrain extends Thread
                         {
                             final int acceptingPN = ((SOCAcceptOffer) mes).getAcceptingNumber();
 
-                            if ((ourPlayerNumber == acceptingPN)
-                                || (ourPlayerNumber == (((SOCAcceptOffer) mes).getOfferingNumber())))
-                            {
-                                handleTradeResponse(acceptingPN, true);
-                            }
-                            else if (acceptingPN < 0)
+                            if (acceptingPN < 0)
                             {
                                 clearTradingFlags(false, false);
                             }
-
+                            else if ((ourPlayerNumber == acceptingPN)
+                                     || (ourPlayerNumber == (((SOCAcceptOffer) mes).getOfferingNumber())))
+                            {
+                                handleTradeResponse(acceptingPN, true);
+                            }
                         }
                         break;
 

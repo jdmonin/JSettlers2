@@ -40,7 +40,7 @@ import java.util.StringTokenizer;
  *<P>
  * The server disallows any unacceptable trade by sending the client a
  * {@code SOCAcceptOffer} with reason code {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}
- * in the {@link #getAcceptingNumber()} field.
+ * in the {@link #getAcceptingNumber()} field and their own player number in {@link #getOfferingNumber()}.
  * Servers before v2.4.50 ({@link SOCBankTrade#VERSION_FOR_REPLY_REASONS}) disallowed by
  * sending an explanatory {@link SOCGameServerText}.
  *
