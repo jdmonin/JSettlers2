@@ -94,8 +94,14 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * {@code value2}: The monopolized resource type,
      *     such as {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      *<P>
-     * Will be followed by a {@link SOCPlayerElement} for each player to {@code SET} their new amount of
-     * that resource type, which for any victim also has the {@link SOCPlayerElement#isNews()} flag set.
+     * Is preceded by each affected player's {@link SOCPlayerElement}({@code GAIN}, <em>amount</em>) or ({@code SET}, 0)
+     * for that resource type, which for any victim also has the {@link SOCPlayerElement#isNews()} flag set.
+     *<P>
+     * In v2.0.00 - 2.4.00 those {@code SOCPlayerElement}s weren't sent until after
+     * SOCSimpleAction(RSRC_TYPE_MONOPOLIZED). v2.4.50 and newer send them before the action message
+     * (as v1.x did before sending current player "You monopolized..." text)
+     * so client's game data is updated by the time it sees RSRC_TYPE_MONOPOLIZED.
+     *
      * @since 2.0.00
      */
     public static final int RSRC_TYPE_MONOPOLIZED = 3;

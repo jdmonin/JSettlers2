@@ -25,7 +25,10 @@ JARs for recent JSettlers versions can be downloaded from
 	- For efficiency and third-party bots' parsing, use data messages instead of text when clients are new enough:
 		- Report robbery with `SOCReportRobbery`
 		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
-	- When Monopoly card played, server announces amount gained instead of player's total amount of that resource
+	- When Monopoly card played:
+		- Server announces amount gained instead of player's total amount of that resource
+		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)
+		  so client's game data's is updated by the time it sees that action message
 	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/ruflab/StacSettlers :

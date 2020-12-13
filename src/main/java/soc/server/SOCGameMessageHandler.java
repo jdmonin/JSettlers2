@@ -1444,7 +1444,8 @@ public class SOCGameMessageHandler
     /**
      * Check and complete a player trade accepted by both sides, and announce it with messages to the game.
      * Calls {@link SOCGame#canMakeTrade(int, int)}, {@link SOCGame#makeTrade(int, int)},
-     * {@link SOCGameHandler#reportTrade(SOCGame, int, int)}.
+     * {@link SOCGameHandler#reportTrade(SOCGame, int, int)}, then clears all trade offers
+     * by announcing {@link SOCClearOffer}.
      *<P>
      * <B>Note:</B> Calling this method assumes the players have either accepted and/or made a counter-offer,
      * and that the offer-initiating player's {@link SOCPlayer#getCurrentOffer()} is set to the trade to be executed.
@@ -1468,12 +1469,6 @@ public class SOCGameMessageHandler
             {
                 ga.makeTrade(offeringNumber, acceptingNumber);
                 handler.reportTrade(ga, offeringNumber, acceptingNumber);
-
-                /**
-                 * announce the accepted offer to game; won't re-send mes from client
-                 * because its acceptingNumber isn't required or sanitized
-                 */
-                srv.messageToGame(gaName, true, new SOCAcceptOffer(gaName, acceptingNumber, offeringNumber));
 
                 /**
                  * clear all offers
@@ -3206,6 +3201,22 @@ public class SOCGameMessageHandler
 
                     srv.gameList.takeMonitorForGame(gaName);
 
+                    /**
+                     * Send each affected player's resource counts for the monopolized resource;
+                     * set isNews flag for each victim player's count.
+                     * Sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY.
+                     */
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        if (isVictim[pn])
+                            srv.messageToGameWithMon
+                                (gaName, true, new SOCPlayerElement
+                                    (gaName, pn, SOCPlayerElement.SET,
+                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), true));
+                    srv.messageToGameWithMon
+                        (gaName, true, new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.GAIN,
+                             rsrc, monoTotal, false));
+
                     final SOCSimpleAction actMsg = new SOCSimpleAction
                         (gaName, cpn,
                          SOCSimpleAction.RSRC_TYPE_MONOPOLIZED, monoTotal, rsrc);
@@ -3232,22 +3243,6 @@ public class SOCGameMessageHandler
                         srv.messageToGameForVersions(ga, -1, SOCStringManager.VERSION_FOR_I18N - 1,
                             new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, monoTxt), false);
                     }
-
-                    /**
-                     * send each affected player's resource counts for the monopolized resource;
-                     * set isNews flag for each victim player's count
-                     */
-                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        if (isVictim[pn])
-                            // sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
-                            srv.messageToGameWithMon
-                                (gaName, true, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.SET,
-                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), true));
-                    srv.messageToGameWithMon
-                        (gaName, true, new SOCPlayerElement
-                            (gaName, cpn, SOCPlayerElement.GAIN,
-                             rsrc, monoTotal, false));
 
                     srv.gameList.releaseMonitorForGame(gaName);
 

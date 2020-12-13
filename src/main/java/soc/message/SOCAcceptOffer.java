@@ -31,18 +31,21 @@ import java.util.StringTokenizer;
  *<UL>
  * <LI> Client message to server is in response to a {@link SOCMakeOffer} announced earlier this turn
  *      with client as an offered-to player.
- * <LI> Server's response (announced to game) is {@link SOCPlayerElement}s, {@link SOCGameServerText},
- *      {@code AcceptOffer}, then {@link SOCClearOffer}s.
+ * <LI> Server's response (announced to game) is {@link SOCPlayerElement}s, {@code SOCAcceptOffer},
+ *      {@link SOCGameServerText} to v1.x clients, then {@link SOCClearOffer}s.
  *</UL>
- *<P>
- * Before v2.0.00 the server announced the {@code SOCClearOffer}s before {@code SOCAcceptOffer}. The old
- * non-robot clients ignored that {@code SOCAcceptOffer}, so changing the order has no effect on them.
  *<P>
  * The server disallows any unacceptable trade by sending the client a
  * {@code SOCAcceptOffer} with reason code {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}
  * in the {@link #getAcceptingNumber()} field and their own player number in {@link #getOfferingNumber()}.
  * Servers before v2.4.50 ({@link SOCBankTrade#VERSION_FOR_REPLY_REASONS}) disallowed by
  * sending an explanatory {@link SOCGameServerText}.
+ *<P>
+ * Only v1.x clients are sent {@code SOCGameServerText}.
+ * Before v2.4.50 the server announced {@code SOCGameServerText} before {@code SOCAcceptOffer}, instead of after.
+ *<P>
+ * Before v2.0.00 the server announced the {@code SOCClearOffer}s before {@code SOCAcceptOffer}. The old
+ * non-robot clients ignored that {@code SOCAcceptOffer}, so changing the order has no effect on them.
  *
  * @author Robert S. Thomas
  * @see SOCRejectOffer

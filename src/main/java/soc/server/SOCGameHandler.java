@@ -3142,7 +3142,7 @@ public class SOCGameHandler extends GameHandler
      * Also announces the trade to pre-v2.0.00 clients with a {@link SOCGameTextMsg}
      * ("Joe gave 1 sheep for 1 wood from Lily.").
      *<P>
-     * Caller must also report trade player numbers by sending a {@link SOCAcceptOffer}
+     * Also reports trade player numbers by sending a {@link SOCAcceptOffer}
      * message to the game after calling this method. In v2.0.00 and newer clients,
      * that message announces the trade instead of {@link SOCGameTextMsg}.
      *
@@ -3160,6 +3160,9 @@ public class SOCGameHandler extends GameHandler
 
         reportRsrcGainLoss(ga, giveSet, true, false, offering, accepting, null);
         reportRsrcGainLoss(ga, getSet, false, false, offering, accepting, null);
+
+        srv.messageToGame(gaName, true, new SOCAcceptOffer(gaName, accepting, offering));
+
         if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
         {
             // v2.0.00 and newer clients will announce this with localized text from
@@ -3331,6 +3334,9 @@ public class SOCGameHandler extends GameHandler
         (final SOCGame ga, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
          final int mainPlayer, final int tradingPlayer, Connection playerConn, final int vmax)
     {
+        // Note: For benefit of external callers, javadoc says this method doesn't record any events.
+        // reportRsrcGainLoss internally calls this with vmax = 0, for which this method does record events.
+
         final String gaName = ga.getName();
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
         final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for pnB
