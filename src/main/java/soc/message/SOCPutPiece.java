@@ -43,8 +43,8 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * {@link SOCGameServerText} and, if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link SOCGameState} and then a {@link SOCCancelBuildRequest}.
  *<BR>
- * If PutPiece leads to Longest Route player changing, server sends that
- * after {@code SOCPlayerElement}s before {@code SOCGameState}:
+ * If PutPiece leads to the Longest Route player changing, server v2.4.00 and newer announces that
+ * between the {@code SOCPlayerElement}s and {@code SOCGameState}:
  * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER}).
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
