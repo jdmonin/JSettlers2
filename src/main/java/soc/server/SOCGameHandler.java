@@ -77,6 +77,7 @@ import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
+import soc.message.SOCPickResources;
 import soc.message.SOCPieceValue;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPlayerElement.PEType;
@@ -3383,9 +3384,11 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Report to game members what a player picked from the gold hex.
-     * Sends {@link SOCPlayerElement} for resources and to reset the
-     * {@link PEType#NUM_PICK_GOLD_HEX_RESOURCES} counter.
-     * Also sends text "playername has picked ___ from the gold hex.".
+     * Announces resource info and reason for pick using {@link SOCPickResources}
+     * or (for older clients) {@link SOCPlayerElement} and
+     * "playername has picked ___ " or "playername has picked ___ from the gold hex." text,
+     * then {@link SOCPlayerElement} to reset the
+     * {@link PEType#NUM_PICK_GOLD_HEX_RESOURCES} counter: See {@link SOCPickResources} javadoc for details.
      *<P>
      * Messages sent by this method are always treated as "events":
      * Indirectly calls {@link SOCServer#recordGameEvent(String, SOCMessage)} or similar methods.
@@ -3398,22 +3401,41 @@ public class SOCGameHandler extends GameHandler
      *                Sets the {@link SOCPlayerElement#isNews()} flag in messages sent by this method.
      *                If there are multiple resource types, flag is set only for the first type sent
      *                to avoid several alert sounds at client.
-     * @param includeGoldHexText  If true, text ends with "from the gold hex." after the resource name.
+     * @param includeGoldHexText  If true, sent text ends with "from the gold hex." after the resource name,
+     *     or sends {@link SOCPickResources#REASON_GOLD_HEX} reason code. If false,
+     *     sends {@link SOCPickResources#REASON_GENERIC} instead.
      * @since 2.0.00
      */
     void reportRsrcGainGold
         (final SOCGame ga, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs,
          final boolean isNews, final boolean includeGoldHexText)
     {
-        final String gn = ga.getName();
+        final String gaName = ga.getName();
 
-        // Send SOCPlayerElement messages
-        reportRsrcGainLoss(ga, rsrcs, false, isNews, pn, -1, null);
-        srv.messageToGameKeyedSpecial(ga, true, true,
-            ((includeGoldHexText) ? "action.picked.rsrcs.goldhex" : "action.picked.rsrcs"),
-            player.getName(), rsrcs);
-        srv.messageToGame(gn, true, new SOCPlayerElement
-            (gn, pn, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+        final SOCPickResources picked = new SOCPickResources
+            (gaName, rsrcs, pn,
+             (includeGoldHexText) ? SOCPickResources.REASON_GOLD_HEX : SOCPickResources.REASON_GENERIC);
+
+        if (ga.clientVersionLowest >= SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE)
+        {
+            srv.messageToGame(gaName, true, picked);
+        } else {
+            srv.recordGameEvent(gaName, picked);
+
+            srv.messageToGameForVersions
+                (ga, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE, Integer.MAX_VALUE, picked, true);
+
+            // Send SOCPlayerElement messages
+            reportRsrcGainLossForVersions
+                (ga, rsrcs, false, isNews, pn, -1, null, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE - 1);
+            srv.messageToGameForVersionsKeyed
+                (ga, 0, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE - 1, true, true,
+                 ((includeGoldHexText) ? "action.picked.rsrcs.goldhex" : "action.picked.rsrcs"),
+                 player.getName(), rsrcs);
+        }
+
+        srv.messageToGame(gaName, true, new SOCPlayerElement
+            (gaName, pn, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, 0));
     }
 
     /**

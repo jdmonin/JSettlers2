@@ -406,11 +406,24 @@ When preparing to release a new version, testing should include:
                 - Should see marked seat as unlocked, locked as locked
                 - Should be able to take over bot by sitting at "marked" seat
         - When testing new server with client 2.4.50 or newer, and older client:
-            - Give Soldier dev cards to client players:  
-              `dev: 9 #2` etc
-            - Test robbery, with each client as victim, robber, observer
-            - All clients in game should see expected results in player hand panels and game text area
-            - Clients v2.4.50 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+            - All clients in game (players and observers) should see expected results in player hand panels and game text area for:
+                - Soldier dev card
+                    - Give Soldier cards to client players:  
+                      `dev: 9 #2` etc
+                    - Test robbery, with each client as victim, robber, observer
+                    - Clients v2.4.50 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+                - Discovery/Year of Plenty dev card
+                    - Give Discovery cards to client players:  
+                      `dev: 2 #2` etc
+                    - Play Discovery, with each client as player, observer
+                    - Clients v2.4.50 or newer are sent `SOCPickResources` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+                - Gold Hex resource pick
+                    - Make a new game with New Shores scenario
+                    - Reset the board until island's gold hex dice number is reasonably frequent
+                    - During initial placement, put two players near gold hex
+                    - For two players, build ships and a settlement on that gold hex by using debug command `*FREEPLACE* 1`
+                    - When gold hex dice number is rolled, pick free resources
+                    - Clients are sent same message sequence as for Discovery/Year of Plenty detailed above
 - Server robustness: Bot disconnect/reconnect during game start
     - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
     - Connect and start a 6-player game

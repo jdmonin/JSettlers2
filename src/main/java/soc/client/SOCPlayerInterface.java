@@ -49,6 +49,7 @@ import soc.game.SOCVillage;
 import soc.message.SOCMessage;
 import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCBankTrade;     // for reply code constant
+import soc.message.SOCPickResources;  // for reason code constants
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
 import soc.util.SOCStringManager;
@@ -4404,6 +4405,33 @@ public class SOCPlayerInterface extends Frame
         {
             SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
             hpan.updateValue(PlayerClientListener.UpdateType.Resources);
+        }
+
+        public void playerPickedResources
+            (final SOCPlayer player, final SOCResourceSet resSet, final int reasonCode)
+        {
+            final String key;
+            switch (reasonCode)
+            {
+            case SOCPickResources.REASON_GENERIC:
+                key = "action.picked.rsrcs";  // "{0} has picked {1,rsrcs}."
+                break;
+
+            case SOCPickResources.REASON_DISCOVERY:
+                key = "action.card.discov.received";  // "{0} received {1,rsrcs} from the bank."
+                break;
+
+            case SOCPickResources.REASON_GOLD_HEX:
+                key = "action.picked.rsrcs.goldhex";  // "{0} has picked {1,rsrcs} from the gold hex."
+                break;
+
+            default:
+                return;
+            }
+
+            pi.printKeyedSpecial(key, player.getName(), resSet);
+            pi.getPlayerHandPanel(player.getPlayerNumber())
+                .updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
         }
 
         public void playerElementUpdated

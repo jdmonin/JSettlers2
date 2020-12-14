@@ -22,8 +22,9 @@ JARs for recent JSettlers versions can be downloaded from
 - I18N:
 	- Added French translation (thank you Lee Passey)
 - Network/Message traffic:
-	- For efficiency and third-party bots' parsing, use data messages instead of text when clients are new enough:
+	- For efficiency and third-party bots' parsing, server sends data messages instead of text when clients are this version or newer:
 		- Report robbery with `SOCReportRobbery`
+		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
 		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource

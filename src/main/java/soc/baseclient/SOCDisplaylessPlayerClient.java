@@ -913,7 +913,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.REPORTROBBERY:
                 handleREPORTROBBERY
-                    ((SOCReportRobbery) mes, games.get(((SOCReportRobbery) mes).getGame()));
+                    ((SOCReportRobbery) mes, games.get(((SOCMessageForGame) mes).getGame()));
+                break;
+
+            /**
+             * Player has Picked Resources.
+             * Added 2020-12-14 for v2.4.50.
+             */
+            case SOCMessage.PICKRESOURCES:
+                handlePICKRESOURCES
+                    ((SOCPickResources) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
             }
         }
@@ -2318,6 +2327,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
         handlePLAYERELEMENT_simple
             (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
              PEType.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
+    }
+
+    /**
+     * Handle the "Player has Picked Resources" message by updating player resource data.
+     * @param mes  the message
+     * @param ga  Game to update
+     * @return  True if updated, false if player number not found
+     * @since 2.4.50
+     */
+    public static boolean handlePICKRESOURCES
+        (final SOCPickResources mes, final SOCGame ga)
+    {
+        final SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
+        if (pl == null)
+            return false;
+
+        pl.getResources().add(mes.getResources());
+
+        return true;
     }
 
     /**

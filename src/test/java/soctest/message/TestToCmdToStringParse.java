@@ -666,6 +666,12 @@ public class TestToCmdToStringParse
             // TODO +stripAttribNames
         },
         {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0)), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
+        {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0), 0, SOCPickResources.REASON_DISCOVERY),
+            "1052|ga,0,1,0,0,1,0,2", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0|pn=0|reason=2"},
+        {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0), 5, 0),
+            "1052|ga,0,1,0,0,1,5,0", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0|pn=5|reason=0"},
+        {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0), 5, SOCPickResources.REASON_GOLD_HEX),
+            "1052|ga,0,1,0,0,1,5,3", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0|pn=5|reason=3"},
         {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
             // v1.x was SOCDiscoveryPick:
         {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCDiscoveryPick:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0", OPT_PARSE_ONLY},

@@ -36,6 +36,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;  // for javadocs only
 import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
+import soc.message.SOCPickResources;  // for reason codes in javadocs
 import soc.message.SOCPlayerElement.PEType;
 
 /**
@@ -204,6 +205,19 @@ public interface PlayerClientListener
      * @param player  The player
      */
     void playerResourcesUpdated(SOCPlayer player);
+
+    /**
+     * A player has chosen their two free Discovery/Year of Plenty resources,
+     * or free Gold Hex resources. Is called after client's game data has been updated.
+     * Should indicate that the trade has happened as if sent a {@code SOCGameServerText} about it,
+     * unless {@code reasonCode} is 0.
+     * @param player  The player; not null
+     * @param resSet  Resources chosen; not null
+     * @param reasonCode  Reason code from {@link SOCPickResources}, such as
+     *     {@link SOCPickResources#REASON_DISCOVERY} or {@link SOCPickResources#REASON_GOLD_HEX}, or 0
+     * @since 2.4.50
+     */
+    void playerPickedResources(SOCPlayer player, SOCResourceSet resSet, int reasonCode);
 
     /**
      * A player's game stats, such as resource totals received from dice rolls, should be displayed.

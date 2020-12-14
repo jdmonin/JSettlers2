@@ -3051,10 +3051,24 @@ public class SOCGameMessageHandler
                     {
                         ga.doDiscoveryAction(rsrcs);
 
-                        handler.reportRsrcGainLoss(ga, rsrcs, false, false, pn, -1, null);
-                        srv.messageToGameKeyedSpecial
-                            (ga, true, true, "action.card.discov.received", player.getName(), rsrcs);
-                            // "{0} received {1,rsrcs} from the bank."
+                        final SOCPickResources picked = new SOCPickResources
+                            (gaName, rsrcs, pn, SOCPickResources.REASON_DISCOVERY);
+                        if (ga.clientVersionLowest >= SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE)
+                        {
+                            srv.messageToGame(gaName, true, picked);
+                        } else {
+                            srv.recordGameEvent(gaName, picked);
+
+                            srv.messageToGameForVersions
+                                (ga, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE, Integer.MAX_VALUE, picked, true);
+
+                            handler.reportRsrcGainLossForVersions
+                                (ga, rsrcs, false, true, pn, -1, null, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE - 1);
+                            srv.messageToGameForVersionsKeyed
+                                (ga, 0, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE - 1, true, true,
+                                 "action.card.discov.received", player.getName(), rsrcs);
+                                     // "{0} received {1,rsrcs} from the bank."
+                        }
                         handler.sendGameState(ga);
                     } else {
                         srv.messageToPlayerKeyed(c, gaName, pn, "action.card.discov.notlegal");
