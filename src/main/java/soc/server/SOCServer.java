@@ -3550,7 +3550,6 @@ public class SOCServer extends Server
             ? new ServerConnectInfo(strSocketName, robotCookie)
             : new ServerConnectInfo("localhost", port, robotCookie);
 
-        String curr3pBotClass = null;  // for context when reporting third-party bot instantiation errors
         try
         {
             // Make some faster ones first.
@@ -3574,28 +3573,34 @@ public class SOCServer extends Server
             // Now, any third-party bots starting up with server.
             if (robots3pCliConstrucs != null)
             {
-                int i = 0;
-                for (final Constructor<? extends SOCRobotClient> con : robots3pCliConstrucs)
+                String curr3pBotClass = null;
+
+                try
                 {
-                    ++i;
-                    curr3pBotClass = con.getDeclaringClass().getName();
-                    SOCLocalRobotClient.createAndStartRobotClientThread("extrabot " + i, sci, knownOpts, con);
+                    int i = 0;
+                    for (final Constructor<? extends SOCRobotClient> con : robots3pCliConstrucs)
+                    {
+                        ++i;
+                        curr3pBotClass = con.getDeclaringClass().getName();
+                        SOCLocalRobotClient.createAndStartRobotClientThread("extrabot " + i, sci, knownOpts, con);
+                    }
+                } catch (Exception e) {
+                    System.err.println("*** Can't start third-party bot " + curr3pBotClass + ": " + e);
+                    if ((e instanceof ReflectiveOperationException) && (e.getCause() instanceof Exception))
+                    {
+                        e = (Exception) e.getCause();
+                        System.err.println("    caused by " + e);
+                    }
+                    e.printStackTrace();
+
+                    return false;
                 }
             }
         }
         catch (Exception e)
         {
-            if (curr3pBotClass != null)
-            {
-                System.err.println("*** Can't start third-party bot " + curr3pBotClass + ": " + e);
-                if ((e instanceof ReflectiveOperationException) && (e.getCause() instanceof Exception))
-                {
-                    e = (Exception) e.getCause();
-                    System.err.println("    caused by " + e);
-                }
-                e.printStackTrace();
-            }
-            //TODO: log
+            System.err.println("*** setupLocalRobots: Can't start bot: " + e);
+            //TODO: log?
             return false;
         }
         catch (LinkageError e)
