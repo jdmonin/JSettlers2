@@ -2819,10 +2819,18 @@ import soc.util.Version;
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;
 
+        case SOCSimpleAction.DICE_RESULTS_FULLY_SENT:
+            // game data updates are sent in preceding messages, can ignore this one
+            break;
+
         default:
             // ignore unknown types
-            System.err.println
-                ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
+            {
+                final int mesPN = mes.getPlayerNumber();
+                if ((mesPN >= 0) && (mesPN == pcl.getClientPlayerNumber()))
+                    System.err.println
+                        ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
+            }
         }
     }
 

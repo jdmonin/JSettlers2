@@ -334,15 +334,22 @@ public class SOCGameListAtServer extends SOCGameList
                 }
             }
 
+            final SOCClientData scd = (SOCClientData) conn.getAppData();
+
             if (! ga.hasMultiLocales)
             {
                 final String gaLocale = ga.getOwnerLocale();
                 if (gaLocale != null)
                 {
-                    final SOCClientData scd = (SOCClientData) conn.getAppData();
                     if ((scd != null) && (scd.localeStr != null) && ! gaLocale.equals(scd.localeStr))
                         ga.hasMultiLocales = true;  // client's locale differs from other game members'
                 }
+            }
+
+            if ((scd != null) && (scd.feats != null)
+                && scd.feats.isActive(SOCFeatureSet.CLIENT_REQUESTS_DICE_RESULTS_FULLY_SENT))
+            {
+                ga.clientRequestsDiceResultsFullySent = true;
             }
         }
     }

@@ -415,7 +415,7 @@ public class SOCGameMessageHandler
                     srv.messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
                         new SOCGameTextMsg
                             (gn, SOCGameTextMsg.SERVERNAME,
-                             plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
+                             plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N OK: v1.x always english
                         true);
                 }
                 handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
@@ -769,6 +769,10 @@ public class SOCGameMessageHandler
                         }
                     }
                 }
+
+                if (ga.clientRequestsDiceResultsFullySent)
+                    srv.messageToGame(gn, true, new SOCSimpleAction
+                        (gn, -1, SOCSimpleAction.DICE_RESULTS_FULLY_SENT));
             }
             else
             {

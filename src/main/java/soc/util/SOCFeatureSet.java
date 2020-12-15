@@ -19,6 +19,7 @@
  **/
 package soc.util;
 
+import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCGameOption;  // for javadocs only
 import soc.game.SOCGameOptionSet;  // for javadocs only
 
@@ -145,6 +146,20 @@ public class SOCFeatureSet
      * @since 2.0.00
      */
     public static final String CLIENT_SCENARIO_VERSION = "sc";
+
+    /**
+     * Client feature flag for asking server to send the "end of dice result info" marker
+     * {@link soc.message.SOCSimpleAction}
+     * ({@link soc.message.SOCSimpleAction#DICE_RESULTS_FULLY_SENT DICE_RESULTS_FULLY_SENT})
+     * in games this client has joined, by setting config flag {@link SOCGame#clientRequestsDiceResultsFullySent}.
+     * See that SOCSimpleAction javadoc for more details.
+     *<P>
+     * Since this flag is rarely used, its name constant is descriptive (and unlikely to
+     * conflict later with something else) instead of short.
+     *
+     * @since 2.4.50
+     */
+    public static final String CLIENT_REQUESTS_DICE_RESULTS_FULLY_SENT = "req_dice_res_fully_sent";
 
     /**
      * Separator character ';' between features in {@link #featureList}.

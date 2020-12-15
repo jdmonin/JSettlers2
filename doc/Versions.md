@@ -22,7 +22,7 @@ JARs for recent JSettlers versions can be downloaded from
 - I18N:
 	- Added French translation (thank you Lee Passey)
 - Network/Message traffic:
-	- For efficiency and third-party bots' parsing, server sends data messages instead of text when clients are this version or newer:
+	- For efficiency and third-party bots' understanding, server sends data messages instead of text when clients are this version or newer:
 		- Report robbery with `SOCReportRobbery`
 		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
 		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
@@ -31,6 +31,8 @@ JARs for recent JSettlers versions can be downloaded from
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)
 		  so client's game data's is updated by the time it sees that action message
 	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
+	- For third-party clients/bots, client can ask server to announce SOCSimpleAction(DICE_RESULTS_FULLY_SENT)
+	  after each dice roll's result messages
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/ruflab/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code

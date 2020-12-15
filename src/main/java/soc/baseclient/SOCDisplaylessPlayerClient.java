@@ -2668,6 +2668,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         // Catch these before default case, so 'unknown type' won't be printed
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
+        case SOCSimpleAction.DICE_RESULTS_FULLY_SENT:
         case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
         case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
             // game data updates are sent in preceding or following messages, can ignore this one
@@ -2677,8 +2678,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
             // ignore unknown types
             // Since the bots and server are almost always the same version, this
             // shouldn't often occur: print for debugging.
-            System.err.println
-                ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
+            if (mes.getPlayerNumber() >= 0)
+                System.err.println
+                    ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
         }
     }
 

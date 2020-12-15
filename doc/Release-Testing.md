@@ -619,7 +619,7 @@ When preparing to release a new version, testing should include:
         - Second pair of limited clients' game list should show that game as "(cannot join)"
         - In one of the second pair, double-click that game in game list; should show a popup "Client is incompatible with features of this game".  
           Double-click game again; should try to join, then show a popup with server's reply naming the missing required feature: `6pl`
-    - For reconnecting disconnected clients:
+    - When reconnecting disconnected clients:
         - Start a server without any options
         - Start a standard client under your IDE's debugger, connect to server
         - Create & start 3 games (against bots):
@@ -693,6 +693,17 @@ When preparing to release a new version, testing should include:
             - Start and connect with a client using a vm property value like `-Djsettlers.debug.client.features=;6pl;` (6-player but not sea board) or `=;sb;` (sea board but not 6-player)
             - In New Game dialog, shouldn't see game options related to the disallowed game type or missing client feature(s)
         - Exit clients and server
+    - Features for client/bot development:
+        - Client feature to have server announce SOCSimpleAction(DICE_RESULTS_FULLY_SENT)
+          after each dice roll's result messages
+            - Start server as usual
+            - Start and connect with standard client
+            - Create and start playing a game, past initial placement
+            - Start and connect with a client using vm property value  
+              `-Djsettlers.debug.client.features=;req_dice_res_fully_sent;`
+            - Join that game as observer
+            - When dice are rolled, message sequence from server should now end with:  
+              SOCSimpleAction:game=_gamename_|pn=-1|actType=5|v1=0|v2=0
 - Saving and loading games at server
     - Basics
         - Start server with debug user enabled, but not savegame feature: command-line arg `-Djsettlers.allow.debug=Y`
