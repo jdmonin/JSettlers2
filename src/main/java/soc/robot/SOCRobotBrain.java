@@ -4916,7 +4916,7 @@ public class SOCRobotBrain extends Thread
      * any flags added in a third-party robot brain.
      *
      * @param isBankTrade  True if was bank/port trade, not player trade
-     * @param wasAllowed  True if trade was successfully offered or completed,
+     * @param wasAllowed  True if trade was successfully offered, completed, or rejected;
      *     false if server sent a message disallowing it
      * @see #tradeStopWaitingClearOffer()
      * @see #handleTradeResponse(int, boolean)
