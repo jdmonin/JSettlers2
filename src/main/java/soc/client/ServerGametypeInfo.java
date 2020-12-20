@@ -84,7 +84,7 @@ import soc.message.SOCNewGameWithOptions;
  * @author jdmonin
  * @since 1.1.07
  */
-/*package*/ class ServerGametypeInfo
+public class ServerGametypeInfo
 {
     /**
      * If true, we know all options on this server,

@@ -970,6 +970,15 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * @return the OBS
+     * @since 2.4.50
+     */
+    public OpeningBuildStrategy getOpeningBuildStrategy()
+    {
+        return openingBuildStrategy;
+    }
+
+    /**
      * turns the debug recorders on
      * @see #getDRecorder()
      * @see #turnOffDRecorder()

@@ -4646,7 +4646,7 @@ public class SOCGame implements Serializable, Cloneable
             devCardDeck[20] = SOCDevCardConstants.CAP;
             devCardDeck[21] = SOCDevCardConstants.MARKET;
             devCardDeck[22] = SOCDevCardConstants.UNIV;
-            devCardDeck[23] = SOCDevCardConstants.TEMP;
+            devCardDeck[23] = SOCDevCardConstants.TEMPLE;
             devCardDeck[24] = SOCDevCardConstants.CHAPEL;
         } else {
             // _SC_PIRI: VP cards become Knight cards, or omit if < 4 players

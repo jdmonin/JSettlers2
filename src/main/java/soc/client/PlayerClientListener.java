@@ -68,7 +68,14 @@ import soc.message.SOCPlayerElement.PEType;
 public interface PlayerClientListener
 {
     /**
-     * Get the client's player number if playing in a game.
+     * Get the game shown in this UI. This reference changes if board is reset.
+     * @return game; not null
+     * @since 2.4.50
+     */
+    SOCGame getGame();
+
+    /**
+     * Get the client's player number if client is a player in a game.
      * @return Client player's {@link SOCPlayer#getPlayerNumber()} if playing, or -1 if observing or not yet seated
      */
     int getClientPlayerNumber();
@@ -344,6 +351,21 @@ public interface PlayerClientListener
      */
     void requestedTradeReset(SOCPlayer playerToReset);
 
+    /**
+     * Clear a player's current offer.
+     * If player is client, clear the numbers in the resource "offer" squares,
+     * and disable the "offer" and "clear" buttons (since no resources are selected).
+     * Otherwise just hide the last-displayed offer.
+     *
+     * @param player  Player to clear, or {@code null} for all players
+     * @param updateSendCheckboxes If true, and player is client, update the
+     *    selection checkboxes for which opponents are sent the offer.
+     *    If it's currently that client player's turn, check all boxes where the seat isn't empty.
+     *    Otherwise, check only the box for the opponent whose turn it is.
+     * @since 2.4.50
+     */
+    void clearTradeOffer(SOCPlayer player, boolean updateSendCheckboxes);
+
     void requestedSpecialBuild(SOCPlayer player);
 
     /**
@@ -476,6 +498,12 @@ public interface PlayerClientListener
      * @see MainDisplay#chatMessageBroadcast(String)
      */
     void messageBroadcast(String message);
+
+    /**
+     * Print a line of text in the game text area, like {@link SOCPlayerInterface#print(String)}.
+     * @since 2.4.50
+     */
+    void printText(String txt);
 
     /**
      * A game text message was received from server, or a chat message from another player.

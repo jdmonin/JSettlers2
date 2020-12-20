@@ -294,7 +294,7 @@ public class SOCServerMessageHandler
 
         /**
          * Game option messages. For the best writeup of these messages' interaction with
-         * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
+         * the client, see {@link soc.client.ServerGametypeInfo}'s javadoc.
          * Added 2009-06-01 for v1.1.07.
          */
 

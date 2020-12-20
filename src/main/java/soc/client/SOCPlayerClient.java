@@ -431,6 +431,8 @@ public class SOCPlayerClient
 
     /**
      * Map from game-name to the listener for that game.
+     * @see #getClientListeners()
+     * @see #getClientListener(String)
      */
     private final Map<String, PlayerClientListener> clientListeners = new HashMap<String, PlayerClientListener>();
 

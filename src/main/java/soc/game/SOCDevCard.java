@@ -162,7 +162,9 @@ public class SOCDevCard
      * call {@link #getCardTypeName(int, SOCGame, boolean, SOCStringManager)} instead.
      *<P>
      * The names are generally the same as those in {@code SOCDevCardConstants} as of v2.4.00.
-     * {@link SOCDevCardConstants#TEMP} is returned as {@code "TEMPLE"} so it won't possibly be viewed as "TEMPORARY".
+     * {@link SOCDevCardConstants#TEMPLE} has always been returned from here as {@code "TEMPLE"},
+     * although before v2.4.50 it was declared in the code as {@code SOCDevCardConstants.TEMP},
+     * so it won't possibly be viewed as "TEMPORARY".
      *
      * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *     or {@link SOCDevCardConstants#ROADS}

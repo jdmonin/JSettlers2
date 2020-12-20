@@ -205,45 +205,27 @@ public class SOCRobotDM
 
 
   /**
-   * constructor
+   * Constructor for setting DM fields from a robot brain.
    *
    * @param br  the robot brain
    */
   public SOCRobotDM(SOCRobotBrain br)
   {
-    brain = br;
-    playerTrackers = brain.getPlayerTrackers();
-    ourPlayerTracker = brain.getOurPlayerTracker();
-    ourPlayerData = brain.getOurPlayerData();
-    ourPlayerNumber = ourPlayerData.getPlayerNumber();
-    buildingPlan = brain.getBuildingPlan();
-    openingBuildStrategy = brain.openingBuildStrategy;
-    bseFactory = brain.getEstimatorFactory();
-    game = brain.getGame();
+    this(br.getRobotParameters(), br.getOpeningBuildStrategy(), br.getEstimatorFactory(),
+        br.getPlayerTrackers(), br.getOurPlayerTracker(), br.getOurPlayerData(), br.getBuildingPlan());
 
-    resourceChoices = new SOCResourceSet();
-    resourceChoices.add(2, SOCResourceConstants.CLAY);
-    threatenedRoads = new ArrayList<SOCPossibleRoad>();
-    goodRoads = new ArrayList<SOCPossibleRoad>();
-    threatenedSettlements = new ArrayList<SOCPossibleSettlement>();
-    goodSettlements = new ArrayList<SOCPossibleSettlement>();
-    SOCRobotParameters params = brain.getRobotParameters();
-    maxGameLength = params.getMaxGameLength();
-    maxETA = params.getMaxETA();
-    etaBonusFactor = params.getETABonusFactor();
-    adversarialFactor = params.getAdversarialFactor();
-    leaderAdversarialFactor = params.getLeaderAdversarialFactor();
-    devCardMultiplier = params.getDevCardMultiplier();
-    threatMultiplier = params.getThreatMultiplier();
+    brain = br;
   }
 
 
   /**
-   * Constructor to use if you don't want to use a brain.
+   * Constructor for specifying DM fields instead of using a Brain.
    *
    * @param params  the robot parameters
    * @param obs  a robot brain's current {@link OpeningBuildStrategy}, or {@code null} to create one here,
    *     in case DM needs to call {@link OpeningBuildStrategy#estimateResourceRarity()}
+   * @param bsef  the BSE factory to use, or {@code null} to create a
+   *     new <tt>{@link SOCBuildingSpeedEstimateFactory}(null)</tt>
    * @param pt   the player trackers, same format as {@link SOCRobotBrain#getPlayerTrackers()}
    * @param opt  our player tracker
    * @param opd  our player data; also calls {@link SOCPlayer#getGame()} here
@@ -252,6 +234,7 @@ public class SOCRobotDM
   public SOCRobotDM
       (SOCRobotParameters params,
        OpeningBuildStrategy obs,
+       SOCBuildingSpeedEstimateFactory bsef,
        SOCPlayerTracker[] pt,
        SOCPlayerTracker opt,
        SOCPlayer opd,
@@ -263,7 +246,7 @@ public class SOCRobotDM
     ourPlayerData = opd;
     ourPlayerNumber = opd.getPlayerNumber();
     buildingPlan = bp;
-    bseFactory = new SOCBuildingSpeedEstimateFactory(null);
+    bseFactory = (bsef != null) ? bsef : new SOCBuildingSpeedEstimateFactory(null);
     game = ourPlayerData.getGame();
     openingBuildStrategy = (obs != null) ? obs : new OpeningBuildStrategy(game, opd, null);
 

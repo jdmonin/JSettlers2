@@ -47,7 +47,7 @@ public class TestDevCard
         assertEquals(4, SOCDevCardConstants.CAP);
         assertEquals(5, SOCDevCardConstants.MARKET);
         assertEquals(6, SOCDevCardConstants.UNIV);
-        assertEquals(7, SOCDevCardConstants.TEMP);
+        assertEquals(7, SOCDevCardConstants.TEMPLE);  // was .TEMP before v2.4.50
         assertEquals(8, SOCDevCardConstants.CHAPEL);
         assertEquals(9, SOCDevCardConstants.KNIGHT);
         assertEquals(1 + SOCDevCardConstants.KNIGHT, SOCDevCardConstants.MAXPLUSONE);

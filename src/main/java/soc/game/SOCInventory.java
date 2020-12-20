@@ -219,6 +219,7 @@ public class SOCInventory implements Cloneable, Serializable
      * @return  the number of new + of old cards/items of this type
      * @see #getAmount(int, int)
      * @see #getAmountByState(int, int)
+     * @see #getByState(int)
      * @since 2.0.00
      */
     public int getAmount(final int ctype)
@@ -301,6 +302,7 @@ public class SOCInventory implements Cloneable, Serializable
      * @return the total number of development cards and special items
      * @see #getNumUnplayed()
      * @see #getNumVPItems()
+     * @see #getByState(int)
      */
     public int getTotal()
     {

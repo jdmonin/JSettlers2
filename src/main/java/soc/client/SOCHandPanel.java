@@ -3177,6 +3177,7 @@ import javax.swing.UIManager;
     public void rejectOfferAtClient()
     {
         messageSender.rejectOffer(game);
+
         messagePanel.setText(null);
         messagePanel.setVisible(false);
         offerPanel.setVisible(false);

@@ -232,6 +232,42 @@ public abstract class GameHandler
     public abstract void endTurnIfInactive(final SOCGame ga, final long currentTimeMillis);
 
     /**
+     * A bot is unresponsive, or a human player has left the game.
+     * End this player's turn cleanly, or force-end if needed.
+     *<P>
+     * Can be called for a player still in the game, or for a player
+     * who has left ({@link SOCGame#removePlayer(String, boolean)} has been called).
+     * Can be called for a player who isn't current player; in that case
+     * it takes action if the game was waiting for the player (picking random
+     * resources for discard or gold-hex picks) but won't end the current turn.
+     *<P>
+     * If they were placing an initial road, also cancels that road's
+     * initial settlement.
+     *<P>
+     * <b>Locks:</b> Must not have ga.takeMonitor() when calling this method.
+     * May or may not have <tt>gameList.takeMonitorForGame(ga)</tt>;
+     * use <tt>hasMonitorFromGameList</tt> to indicate.
+     *<P>
+     * Before v2.4.50, this method was only in {@link SOCGameHandler}.
+     *
+     * @param ga   The game to end turn if called for current player, or to otherwise stop waiting for a player
+     * @param plNumber  player.getNumber; may or may not be current player
+     * @param plName    player.getName
+     * @param plConn    player's client connection
+     * @param hasMonitorFromGameList  if false, have not yet called
+     *          {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)};
+     *          if false, this method will take this monitor at its start,
+     *          and release it before returning.
+     * @return true if the turn was ended and game is still active;
+     *          false if we find that all players have left and
+     *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
+     * @since 2.4.50
+     */
+    public abstract boolean endGameTurnOrForce
+        (SOCGame ga, final int plNumber, final String plName, Connection plConn,
+         final boolean hasMonitorFromGameList);
+
+    /**
      * This member (player or observer) has left the game.
      * Check the game and clean up, forcing end of current turn if necessary.
      * Call {@link SOCGame#removePlayer(String, boolean)}.

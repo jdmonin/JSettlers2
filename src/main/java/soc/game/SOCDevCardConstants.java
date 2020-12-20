@@ -115,8 +115,13 @@ public interface SOCDevCardConstants
     /** university VP card */
     public static final int UNIV = 6;
 
-    /** temple, library VP card */
-    public static final int TEMP = 7;
+    /**
+     * Temple, library VP card.
+     *<P>
+     * Before v2.4.50 this constant was {@code TEMP},
+     * which could be misinterpreted as "temporary" at a glance.
+     */
+    public static final int TEMPLE = 7;
 
     /** tower, chapel VP card.
      *<P>

@@ -82,7 +82,7 @@ public class SOCBuildingSpeedEstimateFactory
      *        {@link SOCResourceConstants#WHEAT}, etc,
      *        where the resource type constant in [0] has the highest rolls per resource.
      */
-    public final int[] getRollsForResourcesSorted(final SOCPlayer pl)
+    public int[] getRollsForResourcesSorted(final SOCPlayer pl)
     {
         return SOCBuildingSpeedEstimate.getRollsForResourcesSorted(pl);
     }

@@ -101,10 +101,11 @@ import soc.message.SOCStartGame;
      *
      * @param s  the message command, formatted by a {@code soc.message} class's {@code toCmd()}
      * @param isPractice  Send to the practice server, not tcp network?
-     *                {@link ClientNetwork#localTCPServer} is considered "network" here.
-     *                Use <tt>isPractice</tt> only with {@link ClientNetwork#practiceServer}.
+     *      {@link ClientNetwork#localTCPServer} is considered "network" here.
+     *      Use {@code isPractice} only with {@link ClientNetwork#practiceServer}.
      * @return true if the message was sent, false if not
      * @throws IllegalArgumentException if {@code s} is {@code null}
+     * @see #put(SOCMessage, boolean)
      */
     synchronized boolean put(String s, final boolean isPractice)
         throws IllegalArgumentException
@@ -116,6 +117,31 @@ import soc.message.SOCStartGame;
             return net.putPractice(s);
         else
             return net.putNet(s);
+    }
+
+    /**
+     * Send a message to the net or practice server by calling {@link ClientNetwork} methods.
+     * This is a convenience method, instead of calling {@code new SomeMessage(...).toCmd()}
+     * for message types which don't have a static {@code toCmd(...)} method.
+     * Because the player can be in both network games and practice games,
+     * uses {@code isPractice} to route to the appropriate client-server connection.
+     *
+     * @param m  the message to send, by calling its {@link SOCMessage#toCmd()}.
+     * @param isPractice  Send to the practice server, not tcp network?
+     *      {@link ClientNetwork#localTCPServer} is considered "network" here.
+     *      Use {@code isPractice} only with {@link ClientNetwork#practiceServer}.
+     * @return true if the message was sent, false if not
+     * @throws IllegalArgumentException if {@code m} is {@code null}
+     * @see #put(String, boolean)
+     * @since 2.4.50
+     */
+    synchronized boolean put(SOCMessage msg, final boolean isPractice)
+        throws IllegalArgumentException
+    {
+        if (msg == null)
+            throw new IllegalArgumentException("null");
+
+        return put(msg.toCmd(), isPractice);
     }
 
     /**

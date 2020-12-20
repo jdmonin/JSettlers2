@@ -3736,7 +3736,8 @@ public class SOCServer extends Server
 
     /**
      * This server's game list. Treat as read-only.
-     * Useful for membership checks like {@link SOCGameListAtServer#isMember(String, String)}.
+     * Useful for membership checks like {@link SOCGameListAtServer#isMember(String, String)}
+     * and operations like {@link SOCGameList#takeMonitorForGame(String)}.
      * @since 2.4.50
      */
     public SOCGameListAtServer getGameList()
@@ -6767,6 +6768,7 @@ public class SOCServer extends Server
      * That method also ensures this method and {@code authCallback} run in the Treater thread; see
      * {@link Server#inQueue inQueue}.{@link InboundMessageQueue#isCurrentThreadTreater() isCurrentThreadTreater()}.
      *
+     * @param authUsername  User name as authenticated (or from user if has no DB/no auth), or null if auth failed
      * @param hadDelay  If true, this callback has been delayed by {@code BCrypt} calculations;
      *     otherwise it's an immediate callback (user not found, password didn't use BCrypt hashing)
      * @since 1.2.00

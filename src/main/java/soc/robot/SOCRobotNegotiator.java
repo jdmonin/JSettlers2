@@ -1021,7 +1021,7 @@ public class SOCRobotNegotiator
         {
             SOCBuildPlanStack receiverBuildingPlan = new SOCBuildPlanStack();
             simulator = new SOCRobotDM
-                (brain.getRobotParameters(), brain.openingBuildStrategy,
+                (brain.getRobotParameters(), brain.openingBuildStrategy, brain.getEstimatorFactory(),
                  playerTrackers, receiverPlayerTracker, receiverPlayerData, receiverBuildingPlan);
 
             if (receiverNum == ourPlayerNumber)
@@ -1054,7 +1054,7 @@ public class SOCRobotNegotiator
         {
             SOCBuildPlanStack senderBuildingPlan = new SOCBuildPlanStack();
             simulator = new SOCRobotDM
-                (brain.getRobotParameters(), brain.openingBuildStrategy,
+                (brain.getRobotParameters(), brain.openingBuildStrategy, brain.getEstimatorFactory(),
                  playerTrackers, senderPlayerTracker, senderPlayerData, senderBuildingPlan);
 
             if (senderNum == ourPlayerNumber)
@@ -1575,7 +1575,7 @@ public class SOCRobotNegotiator
                 SOCRobotDM simulator;
                 D.ebugPrintlnINFO("**** our building plan is empty ****");
                 simulator = new SOCRobotDM
-                    (brain.getRobotParameters(), brain.openingBuildStrategy,
+                    (brain.getRobotParameters(), brain.openingBuildStrategy, brain.getEstimatorFactory(),
                      playerTrackers, ourPlayerTracker, ourPlayerData, ourBuildingPlan);
                 simulator.planStuff(strategyType);
             }
