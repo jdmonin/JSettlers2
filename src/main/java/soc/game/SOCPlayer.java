@@ -2458,6 +2458,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's total VP: Buildings, longest/largest bonus, Special VP, VP cards/items.
+     * At client, for other players is same as {@link #getPublicVP()} until VP cards/items are revealed.
+     *
      * @return the actual number of victory points ({@link #getPublicVP()} + VP cards/items),
      *     or "final" VP if {@link #forceFinalVP(int)} was called
      * @see #getPublicVP()

@@ -114,10 +114,12 @@ public class SOCBuildingSpeedEstimate
 
     /**
      * Estimate the rolls for this player to obtain each resource.
-     * Will construct a <tt>SOCBuildingSpeedEstimate</tt>
+     * Will construct a {@link SOCBuildingSpeedEstimate}
      * from {@link SOCPlayer#getNumbers() pl.getNumbers()},
      * and call {@link #getRollsPerResource()}.
      * @param pl  Player to check numbers
+     * @param bsef  Factory to construct BSE, or {@code null} to
+     *     make a base {@code SOCBuildingSpeedEstimate(pl.getNumbers())}
      * @return  Resource order, sorted by rolls per resource descending;
      *        a 5-element array containing
      *        {@link SOCResourceConstants#CLAY},
@@ -125,9 +127,14 @@ public class SOCBuildingSpeedEstimate
      *        where the resource type constant in [0] has the highest rolls per resource.
      * @since 2.0.00
      */
-    public static final int[] getRollsForResourcesSorted(final SOCPlayer pl)
+    public static final int[] getRollsForResourcesSorted
+        (final SOCPlayer pl, final SOCBuildingSpeedEstimateFactory bsef)
     {
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(pl.getNumbers());
+        final SOCPlayerNumbers nums = pl.getNumbers();
+        SOCBuildingSpeedEstimate estimate =
+            (bsef != null)
+            ? bsef.getEstimator(nums)
+            : new SOCBuildingSpeedEstimate(nums);
         final int[] rollsPerResource = estimate.getRollsPerResource();
         int[] resourceOrder =
         {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,8 +22,8 @@ package soc.robot;
 
 
 /**
- * This is a list of probabilities for how often
- * each dice number comes up.
+ * This is a precalculated list of probabilities for how often
+ * each dice number comes up as the total when rolling.
  */
 public interface SOCNumberProbabilities
 {

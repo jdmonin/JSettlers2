@@ -842,8 +842,9 @@ public class SOCPlayerInterface extends Frame
 
         knowsGameState = (game.getGameState() != 0);
         this.layoutVS = layoutVS;
-        clientListener = new ClientBridge(this);
         gameStats = new SOCGameStatistics(game);
+        clientListener = createClientListenerBridge();
+
         gameIsStarting = false;
         clientHand = null;
         clientHandPlayerNum = -1;
@@ -1062,6 +1063,18 @@ public class SOCPlayerInterface extends Frame
          * Then, if the game has any scenario description, it will be shown once in a popup
          * via showScenarioInfoDialog().
          */
+    }
+
+    /**
+     * Factory method to create a new {@link ClientBridge}.
+     * Third-party clients can use this to extend SOCPlayerInterface.
+     * Is called during early part of construction, so most PI fields won't be initialized yet.
+     * @return a new {@link ClientBridge} for this PlayerInterface
+     * @since 2.4.50
+     */
+    protected ClientBridge createClientListenerBridge()
+    {
+        return new ClientBridge(this);
     }
 
     /**
@@ -4271,12 +4284,14 @@ public class SOCPlayerInterface extends Frame
     //========================================================
 
     /**
-     * Client Bridge to translate interface to SOCPlayerInterface methods.
+     * Client Bridge to translate PCL interface to SOCPlayerInterface methods.
+     * Added to PI during construction by {@link SOCPlayerInterface#createClientListenerBridge()} factory method.
      * For most methods here, {@link PlayerClientListener} will have their javadoc.
+     *
      * @author paulbilnoski
      * @since 2.0.00
      */
-    private static class ClientBridge implements PlayerClientListener
+    protected static class ClientBridge implements PlayerClientListener
     {
         final SOCPlayerInterface pi;
 
@@ -4480,6 +4495,10 @@ public class SOCPlayerInterface extends Frame
 
             case Unknown:
                 hpan.updateValue(PlayerClientListener.UpdateType.Resources);
+                break;
+
+            case VictoryPoints:
+                hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
                 break;
 
             case SpecialVictoryPoints:

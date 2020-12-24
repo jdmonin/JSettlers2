@@ -3021,7 +3021,7 @@ public class SOCServer extends Server
         catch (Exception e)
         {
             if ((e instanceof NoSuchElementException) && (loadedGame != null))
-                throw e;
+                throw (NoSuchElementException) e;
             else
                 D.ebugPrintStackTrace(e, "Exception in createGameAndBroadcast");
         }

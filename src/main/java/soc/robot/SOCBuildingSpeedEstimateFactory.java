@@ -71,9 +71,9 @@ public class SOCBuildingSpeedEstimateFactory
     }
 
     /**
-     * Estimate the rolls for this player to obtain each resource.
-     * Default implementation calls {@link SOCBuildingSpeedEstimate#getRollsForResourcesSorted(SOCPlayer)}
-     * which will construct and use a {@link SOCBuildingSpeedEstimate}
+     * Estimate the rolls for this player to obtain each resource. Default implementation calls
+     * {@link SOCBuildingSpeedEstimate#getRollsForResourcesSorted(SOCPlayer, SOCBuildingSpeedEstimateFactory)}
+     * which uses this factory to construct and use a {@link SOCBuildingSpeedEstimate}
      * from {@link SOCPlayer#getNumbers() pl.getNumbers()}.
      * @param pl  Player to check numbers
      * @return  Resource order, sorted by rolls per resource descending;
@@ -84,7 +84,7 @@ public class SOCBuildingSpeedEstimateFactory
      */
     public int[] getRollsForResourcesSorted(final SOCPlayer pl)
     {
-        return SOCBuildingSpeedEstimate.getRollsForResourcesSorted(pl);
+        return SOCBuildingSpeedEstimate.getRollsForResourcesSorted(pl, this);
     }
 
 }

@@ -173,6 +173,7 @@ public interface PlayerClientListener
      * @param player  The player
      * @param addedPlayable  True if the update added a dev card or item that's playable now
      *     ({@link SOCInventory#OLD}, not {@link SOCInventory#NEW NEW})
+     * @see UpdateType#DevCards
      */
     void playerDevCardsUpdated(SOCPlayer player, final boolean addedPlayable);
 
@@ -668,9 +669,18 @@ public interface PlayerClientListener
         /** Wonder build level, in {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario */
         WonderLevel,
 
+        /** Victory Points, from {@link SOCPlayer#getTotalVP()} **/
         VictoryPoints,
+
         SpecialVictoryPoints,
+
+        /**
+         * Total count of development cards/items, from player's {@link SOCInventory#getTotal()}.
+         * Doesn't update the inventory item list if that's shown:
+         * Call {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)} if needed.
+         */
         DevCards,
+
         LongestRoad,
         LargestArmy
     }
