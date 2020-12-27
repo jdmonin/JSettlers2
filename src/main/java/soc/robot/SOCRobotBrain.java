@@ -705,14 +705,6 @@ public class SOCRobotBrain extends Thread
     protected int lastStartingPieceCoord;
 
     /**
-     * During START1B and START2B states, coordinate of the potential settlement node
-     * towards which we're building, as calculated by {@link OpeningBuildStrategy#planInitRoad()}.
-     * Used to avoid repeats in {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}.
-     * @since 1.1.09
-     */
-    protected int lastStartingRoadTowardsNode;
-
-    /**
      * Strategy to choose discards.
      * @since 2.2.00
      */
@@ -4581,8 +4573,11 @@ public class SOCRobotBrain extends Thread
      * build there. Since we treat it like another player's new placement, we
      * can remove any of our planned pieces depending on this one.
      *<P>
+     * Calls {@link #resetBuildingPlan()}.
      * Also calls {@link SOCPlayer#clearPotentialSettlement(int)},
      * clearPotentialRoad, or clearPotentialCity.
+     * During Initial Placement states &lt;= {@link SOCGame#START3B},
+     * calls {@link OpeningBuildStrategy#cancelWrongPiecePlacement(SOCPlayingPiece)}.
      *
      * @param cancelPiece Type and coordinates of the piece to cancel; null is allowed but not very useful.
      * @since 1.1.00
@@ -4602,11 +4597,6 @@ public class SOCRobotBrain extends Thread
                     ourPlayerData.clearPotentialRoad(coord);
                 else
                     ourPlayerData.clearPotentialShip(coord);
-                if (game.getGameState() <= SOCGame.START3B)
-                {
-                    // needed for placeInitRoad() calculations
-                    ourPlayerData.clearPotentialSettlement(lastStartingRoadTowardsNode);
-                }
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
@@ -4619,6 +4609,9 @@ public class SOCRobotBrain extends Thread
                 ourPlayerData.clearPotentialCity(coord);
                 break;
             }
+
+            if (game.getGameState() <= SOCGame.START3B)
+                openingBuildStrategy.cancelWrongPiecePlacement(cancelPiece);
         }
 
         whatWeWantToBuild = null;
@@ -4727,10 +4720,9 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Road choice is based on the best nearby potential settlements, and doesn't
      * directly check {@link SOCPlayer#isPotentialRoad(int) ourPlayerData.isPotentialRoad(edgeCoord)}.
-     * If the server rejects our road choice, then {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
-     * will need to know which settlement node we were aiming for,
-     * and call {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}.
-     * The {@link #lastStartingRoadTowardsNode} field holds this coordinate.
+     * If the server rejects our road choice, bot will call {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
+     * which will call {@link OpeningBuildStrategy#cancelWrongPiecePlacement(SOCPlayingPiece)}
+     * in case the OBS wants to take action like clearing the potential settlement node we were aiming for.
      */
     protected void planAndPlaceInitRoad()
     {
@@ -4743,7 +4735,6 @@ public class SOCRobotBrain extends Thread
 
         //D.ebugPrintln("Trying to build a road at "+Integer.toHexString(roadEdge));
         lastStartingPieceCoord = roadEdge;
-        lastStartingRoadTowardsNode = openingBuildStrategy.getPlannedInitRoadDestinationNode();
         client.putPiece(game, new SOCRoad(ourPlayerData, roadEdge, null));
         pause(1000);
     }

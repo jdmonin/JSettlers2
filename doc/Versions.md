@@ -44,7 +44,8 @@ JARs for recent JSettlers versions can be downloaded from
 	- Enhanced server's recordGameEvent framework for more detailed game recording
 	- More accessible robot-related methods and data classes
 	- For third-party bots, added more granular override points like
-	  `endTurnActions`, `handleTradeResponse`, `planAndDoActionForPLAY1`, `SOCBuildingSpeedEstimateFactory`
+	  `endTurnActions`, `handleTradeResponse`, `planAndDoActionForPLAY1`, `SOCBuildingSpeedEstimateFactory`,
+	  `OpeningBuildStrategy.cancelWrongPiecePlacement`
 	- Made some data classes Serializable
 	- Save/load games:
 	    - SavedGameModel:
