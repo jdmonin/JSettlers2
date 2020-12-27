@@ -497,7 +497,7 @@ public class SOCPlayerInterface extends Frame
      * Set by {@link SOCHandPanel}'s removePlayer() and addPlayer() methods
      * by calling {@link #setClientHand(SOCHandPanel)}.
      * @see #clientHandPlayerNum
-     * @see #clientIsCurrentPlayer()
+     * @see #isClientCurrentPlayer()
      * @see #bankTradeWasFromTradePanel
      * @since 1.1.00
      */
@@ -507,7 +507,7 @@ public class SOCPlayerInterface extends Frame
      * Player ID of {@link #clientHand}, or -1.
      * Set by {@link SOCHandPanel}'s removePlayer() and addPlayer() methods
      * by calling {@link #setClientHand(SOCHandPanel)}.
-     * @see #clientIsCurrentPlayer()
+     * @see #isClientCurrentPlayer()
      * @since 1.1.00
      */
     private int clientHandPlayerNum;  // the field for this in some other packages is called ourPN or ourPlayerNumber
@@ -1868,7 +1868,7 @@ public class SOCPlayerInterface extends Frame
     /** The client player's SOCHandPanel interface, if active in a game.
      *
      * @return our player's hand interface, or null if not in a game.
-     * @see #clientIsCurrentPlayer()
+     * @see #isClientCurrentPlayer()
      * @see #isClientPlayer(SOCPlayer)
      * @see #getClientPlayer()
      * @see #getClientPlayerNumber()
@@ -1904,11 +1904,14 @@ public class SOCPlayerInterface extends Frame
     /**
      * Is the client player active in this game, and the current player?
      * Assertion: If this returns true, {@link #getClientHand()} will return non-null.
+     *<P>
+     * Before v2.4.50 this method was {@code clientIsCurrentPlayer()}.
+     *
      * @see #getClientPlayerNumber()
      * @see #isClientPlayer(SOCPlayer)
      * @since 1.1.00
      */
-    public final boolean clientIsCurrentPlayer()
+    public final boolean isClientCurrentPlayer()
     {
         if (clientHand == null)
             return false;
@@ -1948,7 +1951,7 @@ public class SOCPlayerInterface extends Frame
      * Set by {@link #setClientHand(SOCHandPanel)}.
      *
      * @return client's player ID, or -1 if not seated
-     * @see #clientIsCurrentPlayer()
+     * @see #isClientCurrentPlayer()
      * @see #getClientPlayer()
      * @see #getClientHand()
      * @see #getClientNickname()
@@ -2895,7 +2898,7 @@ public class SOCPlayerInterface extends Frame
 
         // play Begin Turn sound here, not updateAtRollPrompt() which
         // isn't called for first player during initial placement
-        if (clientIsCurrentPlayer())
+        if (isClientCurrentPlayer())
             playSound(SOUND_BEGIN_TURN);
     }
 
@@ -2919,7 +2922,7 @@ public class SOCPlayerInterface extends Frame
         }
         // else, server has just sent the prompt text and we've printed it
 
-        if (clientIsCurrentPlayer() && ! clientListener.isNonBlockingDialogVisible())
+        if (isClientCurrentPlayer() && ! clientListener.isNonBlockingDialogVisible())
             getClientHand().autoRollOrPromptPlayer();
     }
 
@@ -3273,7 +3276,7 @@ public class SOCPlayerInterface extends Frame
                 boardPanel.popupFireBuildingRequest();
         }
 
-        if ((gs == SOCGame.PLACING_INV_ITEM) && clientIsCurrentPlayer()
+        if ((gs == SOCGame.PLACING_INV_ITEM) && isClientCurrentPlayer()
             && game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             printKeyed("game.invitem.sc_ftri.prompt");
@@ -4314,6 +4317,11 @@ public class SOCPlayerInterface extends Frame
             return pi.getClientPlayerNumber();
         }
 
+        public boolean isClientCurrentPlayer()
+        {
+            return pi.isClientCurrentPlayer();
+        }
+
         /**
          * Show a dice roll result.
          * Call this after updating game state with the roll result.
@@ -4972,7 +4980,7 @@ public class SOCPlayerInterface extends Frame
                 resDesc2 = null;
             }
 
-            if ((resultShipsLost == 0) || pi.clientIsCurrentPlayer())
+            if ((resultShipsLost == 0) || pi.isClientCurrentPlayer())
             {
                 // alert sound if client player lost ships
                 if (resultShipsLost > 0)

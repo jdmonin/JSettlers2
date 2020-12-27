@@ -4041,7 +4041,7 @@ import javax.swing.UIManager;
      * this player can roll again, but they cannot.
      * To guard against this, use {@link #isClientAndCurrentlyCanRoll()} instead.
      *
-     * @see SOCPlayerInterface#clientIsCurrentPlayer()
+     * @see SOCPlayerInterface#isClientCurrentPlayer()
      * @since 1.1.00
      */
     public boolean isClientAndCurrentPlayer()
@@ -4955,7 +4955,7 @@ import javax.swing.UIManager;
             throws IllegalStateException
         {
             super(hp, strings.get("board.trade.trade.port"));  // "Trade Port"
-            if (! hp.getPlayerInterface().clientIsCurrentPlayer())
+            if (! hp.getPlayerInterface().isClientCurrentPlayer())
                 throw new IllegalStateException("Not current player");
             init(typeFrom, hp.game, null, hp.resourceTradeCost[typeFrom], forThree1);
         }

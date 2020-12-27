@@ -71,14 +71,23 @@ public interface PlayerClientListener
      * Get the game shown in this UI. This reference changes if board is reset.
      * @return game; not null
      * @since 2.4.50
+     * @see #getClientPlayerNumber()
      */
     SOCGame getGame();
 
     /**
      * Get the client's player number if client is a player in a game.
      * @return Client player's {@link SOCPlayer#getPlayerNumber()} if playing, or -1 if observing or not yet seated
+     * @see #isClientCurrentPlayer()
      */
     int getClientPlayerNumber();
+
+    /**
+     * Is the client player active in this game, and the current player?
+     * @see #getClientPlayerNumber()
+     * @since 2.4.50
+     */
+    boolean isClientCurrentPlayer();
 
     /**
      * Receive a notification that the current player has rolled the dice.
