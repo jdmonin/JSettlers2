@@ -317,9 +317,9 @@ Before building, make sure you have the Java Development Kit (JDK) version 8 or 
 If you only want to run the client or server, you can use either JDK 7 or higher,
 or version 7 or 8 of the smaller Java Runtime (JRE).
 
-Extra tests in the build want python 2.7 or later for unittest discovery.
+Extra tests in the build want python 2.7 or 3 for unittest discovery.
 Java unit tests and extraTests use JUnit 4, which is downloaded by `build.gradle`.
-Other scripts, like `bin/sql/template/render.py`, use python 2.6 or later.
+Other scripts like `bin/sql/template/render.py` use python 3, or 2.6 or later.
 
 If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
@@ -397,7 +397,7 @@ server configuration arguments, and create these Java application configs:
         arguments: localhost 8880 robot2 r2 cook
 
 For automated functional testing, the project also includes the script
-`src/extraTest/python/server/test_startup_params.py`; run and update this script if
+`src/extraTest/python/server/test_startup_params.py`; run and update that script if
 you are developing anything related to game options or jsettlers properties.
 
 
