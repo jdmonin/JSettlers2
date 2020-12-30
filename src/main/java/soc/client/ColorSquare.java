@@ -37,8 +37,9 @@ import javax.swing.JComponent;
 /**
  * This is a square box with a background color and
  * possibly a number, checkmark, or text in it.  This box can be
- * interactive, or non-interactive.  The possible
- * colors of the box correspond to resources in SoC.
+ * interactive, or non-interactive.
+ * If a "resource" background color from {@link #RESOURCE_COLORS} is used,
+ * will automatically have a tooltip with that resource type (sheep, wood, etc).
  *<P>
  * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels,
  * unless you call a constructor with size parameters. Using

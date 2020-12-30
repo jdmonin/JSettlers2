@@ -327,7 +327,7 @@ public class SOCRobotBrain extends Thread
      * Cleared at the start of each player's turn, and a few other places
      * if certain conditions arise, by calling {@link #resetBuildingPlan()}.
      * Set in {@link #planBuilding()}.
-     * When making a {@link #buildingPlan}, be sure to also set
+     * When adding to a {@link #buildingPlan}, be sure to also set
      * {@link #negotiator}'s target piece.
      *<P>
      * {@link SOCRobotDM#buildingPlan} is the same Stack.

@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -60,7 +60,7 @@ public class DebugRecorder
 
     /**
      * Turn the recorder on. This is an overall switch.
-     * To start recording information on a specific item or topic, call {@link #startRecording(Object)}.
+     * To start recording information on a specific item or topic, must then call {@link #startRecording(Object)}.
      * @see #turnOff()
      */
     public void turnOn()
@@ -74,7 +74,8 @@ public class DebugRecorder
     }
 
     /**
-     * turn the overall recorder off
+     * Turn the overall recorder off.
+     * Also clears the item/topic previously set with {@link #startRecording(Object)}.
      * @see #turnOn()
      */
     public void turnOff()
@@ -95,7 +96,8 @@ public class DebugRecorder
     }
 
     /**
-     * Start recording the current plan information
+     * Start recording the current plan information.
+     * Must call {@link #turnOn()} first.
      *
      * @param key  the item or topic key to use to index this recording
      * @see #stopRecording()

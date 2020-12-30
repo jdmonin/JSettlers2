@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Buffer of recently said things in a game's chat window.
+ * Ring buffer of recently said things in a game's chat window.
  * Used for sending a recap to newly joining users.
  * {@link SOCGameListAtServer} links a game by name to its buffer.
  *<P>
@@ -92,7 +92,7 @@ public final class SOCChatRecentBuffer
     }
 
     /**
-     * Add a new entry to the buffer.
+     * Add a new entry to the ring buffer.
      * If there would be more than {@link #BUFFER_SIZE} entries, the oldest is dropped.
      *
      * @param nickname Username saying text; not {@code null}

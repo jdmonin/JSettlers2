@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,8 +52,7 @@ public class SOCGameStats extends SOCMessage
     private String game;
 
     /**
-     * The scores; always indexed 0 to {@link soc.game.SOCGame#maxPlayers} - 1,
-     *   regardless of number of players in the game.
+     * Player scores; see {@link #getScores()}.
      */
     private int[] scores;
 
@@ -88,7 +87,9 @@ public class SOCGameStats extends SOCMessage
     }
 
     /**
-     * @return the scores
+     * @return the player scores; always indexed 0 to {@link soc.game.SOCGame#maxPlayers} - 1,
+     *   regardless of number of players seated in the game.
+     *   Vacant seats have a score of 0.
      */
     public int[] getScores()
     {

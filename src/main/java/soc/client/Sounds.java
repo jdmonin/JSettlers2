@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2014 Réal Gagnon <real@rgagnon.com>
  * (genTone method, which has a BSD-like license: "There is no restriction to use
  *  individual How-To in a development (compiled/source) but a mention is appreciated.")
@@ -28,7 +28,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 /**
- * Utility class for creating and playing basic sounds
+ * Utility class for creating and playing basic synthesized sounds
  * with the {@code javax.sound.sampled} package.
  *
  *<H3>Usage:</H3>
