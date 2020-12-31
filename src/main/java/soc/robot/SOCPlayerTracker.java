@@ -1446,7 +1446,7 @@ public class SOCPlayerTracker
      *
      * @param settlement Location of our bad settlement
      *
-     * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @see SOCRobotBrain#cancelWrongPiecePlacement(soc.message.SOCCancelBuildRequest)
      * @since 1.1.00
      */
     public void cancelWrongSettlement(SOCSettlement settlement)
@@ -2023,7 +2023,7 @@ public class SOCPlayerTracker
      *
      * @param city Location of our bad city
      *
-     * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @see SOCRobotBrain#cancelWrongPiecePlacement(soc.message.SOCCancelBuildRequest)
      * @since 1.1.00
      */
     public void cancelWrongCity(SOCCity city)

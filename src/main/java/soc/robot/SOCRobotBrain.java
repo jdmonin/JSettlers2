@@ -1039,6 +1039,9 @@ public class SOCRobotBrain extends Thread
      * Initializes our game and {@link #ourPlayerData}, {@link SOCPlayerTracker}s, etc.
      * Calls {@link #setStrategyFields()} to set {@link SOCRobotDM}, {@link SOCRobotNegotiator},
      * {@link RobberStrategy}, and other strategy fields,
+     *<P>
+     * If you override this method, either call {@code super.setOurPlayerData()}
+     * or be sure to set all those fields.
      */
     public void setOurPlayerData()
     {
@@ -2254,10 +2257,14 @@ public class SOCRobotBrain extends Thread
      * <LI> {@link #planBuilding()}
      * <LI> {@link #buildOrGetResourceByTradeOrCard()}
      * <LI> {@link #considerScenarioTurnFinalActions()}
+     * <LI> {@link #endTurnActions()}
      *</UL>
      * If nothing to do, will call {@link #resetFieldsAtEndTurn()} and {@link SOCRobotClient#endTurn(SOCGame)}.
      *<P>
      * Third-party bots may instead choose to override this entire method.
+     * If doing so, remember to account for the strategy/decision methods listed above.
+     *<P>
+     * Before v2.4.50 this code was in the main {@code #run()} loop.
      *
      * @since 2.4.50
      */
@@ -2806,7 +2813,8 @@ public class SOCRobotBrain extends Thread
      * then trades with the bank ({@link #tradeWithBank(SOCBuildPlan)})
      * or with other players ({@link #makeOffer(SOCBuildPlan)}).
      *<P>
-     * Call when these conditions are all true:
+     * Is called by {@link #planAndDoActionForPLAY1()}.
+     * Call only if these conditions are all true:
      * <UL>
      *<LI> {@link #ourTurn}
      *<LI> {@link #planBuilding()} already called
