@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -278,17 +278,24 @@ public class SOCPlayerClient
 
     /**
      * Helper object to deal with network connectivity.
+     * Calls {@link #messageHandler} to dispatch inbound message traffic.
+     * @see #gameMessageSender
      * @since 2.0.00
      */
     private ClientNetwork net;
 
     /**
-     * Helper object to receive incoming network traffic from the server.
+     * Helper object to dispatch incoming messages from the server.
+     * Called by {@link ClientNetwork} when it receives network traffic.
+     * Must call {@link MessageHandler#init(SOCPlayerClient)} before usage.
+     * @see #gameMessageSender
      */
     private final MessageHandler messageHandler;
 
     /**
      * Helper object to form and send outgoing network traffic to the server.
+     * @see #messageHandler
+     * @see #net
      * @since 2.0.00
      */
     private final GameMessageSender gameMessageSender;
@@ -471,6 +478,22 @@ public class SOCPlayerClient
      */
     public SOCPlayerClient()
     {
+        this(new MessageHandler());
+    }
+
+    /**
+     * Create a SOCPlayerClient with the specified {@link MessageHandler}.
+     * See {@link #SOCPlayerClient()} for all other details.
+     * @param mh  MessageHandler to use; not null
+     * @throws IllegalArgumentException if {@code mh} is null
+     * @since 2.4.50
+     */
+    protected SOCPlayerClient(final MessageHandler mh)
+        throws IllegalArgumentException
+    {
+        if (mh == null)
+            throw new IllegalArgumentException("mh");
+
         gotPassword = false;
 
         int id = UserPreferences.getPref(PREF_FACE_ICON, SOCPlayer.FIRST_HUMAN_FACE_ID);
@@ -521,7 +544,7 @@ public class SOCPlayerClient
 
         net = new ClientNetwork(this);
         gameMessageSender = new GameMessageSender(this, clientListeners);
-        messageHandler = new MessageHandler(this);
+        messageHandler = mh;
     }
 
     /**

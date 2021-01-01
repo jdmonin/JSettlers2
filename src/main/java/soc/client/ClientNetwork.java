@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
@@ -61,6 +61,7 @@ import soc.util.Version;
  *<br>
  * Messages from server to client are received in either {@link NetReadTask} or {@link LocalStringReaderTask},
  * which call the client's {@link MessageHandler#handle(SOCMessage, boolean)}.
+ * Those Task threads call {@link MessageHandler#init(SOCPlayerClient)} before starting their run loop.
  *<br>
  * Messages from client to server are formed in {@link GameMessageSender} or other classes,
  * which call back here to send to the server via {@link #putNet(String)} or {@link #putPractice(String)}.
@@ -731,6 +732,7 @@ import soc.util.Version;
             try
             {
                 final MessageHandler handler = client.getMessageHandler();
+                handler.init(client);
 
                 while (net.isConnected())
                 {
@@ -797,6 +799,7 @@ import soc.util.Version;
             try
             {
                 final MessageHandler handler = client.getMessageHandler();
+                handler.init(client);
 
                 while (locl.isConnected())
                 {

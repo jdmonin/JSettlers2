@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2019 Colin Werner
  * Extracted in 2019 from SOCPlayerClient.java, so:
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -69,26 +69,56 @@ import soc.util.Version;
  * @author paulbilnoski
  * @since 2.0.00
  */
-/*package*/ final class MessageHandler
+public class MessageHandler
 {
-    private final SOCPlayerClient client;
-    private final GameMessageSender gms;
+    private SOCPlayerClient client;
+    private GameMessageSender gms;
 
-    MessageHandler(SOCPlayerClient client)
+    /**
+     * Create a MessageHandler.
+     * Must call {@link #init(SOCPlayerClient)} for initial setup before
+     * first call to {@link #handle(SOCMessage, boolean)}.
+     */
+    public MessageHandler()
     {
-        if (client == null)
-            throw new IllegalArgumentException("client is null");
-        this.client = client;
-        gms = client.getGameMessageSender();
+    }
 
+    /**
+     * Initial setup for {@code client} and {@code messageSender} fields.
+     * To allow subclassing, that isn't done in the constructor: The client constructor
+     * would want a MessageHandler, and the MessageHandler constructor would want a client.
+     *
+     * @param cli  Client for this MessageHandler; its {@link SOCPlayerClient#getGameMessageSender()} must not be null
+     * @throw IllegalArgumentException if {@code cli} or its {@code getGameMessageSender()} is null
+     * @since 2.4.50
+     */
+    public void init(final SOCPlayerClient cli)
+        throws IllegalArgumentException
+    {
+        if (cli == null)
+            throw new IllegalArgumentException("client is null");
+
+        this.client = cli;
+        gms = cli.getGameMessageSender();
         if (gms == null)
             throw new IllegalArgumentException("client GameMessageSender is null");
+    }
+
+    /**
+     * Get this MessageHandler's client.
+     * @since 2.4.50
+     */
+    public SOCPlayerClient getClient()
+    {
+        return client;
     }
 
     /**
      * Treat the incoming messages.
      * Messages of unknown type are ignored
      * ({@code mes} will be null from {@link SOCMessage#toMsg(String)}).
+     *<P>
+     * Must call {@link #init(SOCPlayerClient)} for initial setup before first call to {@code handle(..)}.
      *<P>
      * Before v2.0.00 this method was {@code SOCPlayerClient.treat(..)}.
      *
