@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012-2015,2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2015,2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,8 @@ import java.util.Stack;
 /**
  * This is a possible settlement that we can build
  *<P>
- * If serializing and deserializing this piece, remember the Player and {@link SOCBuildingSpeedEstimate}
- * fields will be null when deserialized:
+ * If serializing and deserializing this piece, remember the Player and
+ * {@link SOCBuildingSpeedEstimateFactory} fields will be null when deserialized:
  * Call {@link SOCPossiblePiece#setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} to set them.
  *
  * @author Robert S Thomas

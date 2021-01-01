@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -2124,6 +2124,9 @@ public class SOCRobotBrain extends Thread
      *<P>
      * When state moves from {@link SOCGame#ROLL_OR_CARD} to {@link SOCGame#PLAY1},
      * calls {@link #startTurnMainActions()}.
+     *<P>
+     * If overriding this method, please call {@code super.handleGAMESTATE(newState)}
+     * so game data is updated and {@code startTurnMainActions()} is called when it should be.
      *
      * @param newState  New game state, like {@link SOCGame#ROLL_OR_CARD}; if 0, does nothing
      * @since 2.0.00
@@ -4730,7 +4733,8 @@ public class SOCRobotBrain extends Thread
      * directly check {@link SOCPlayer#isPotentialRoad(int) ourPlayerData.isPotentialRoad(edgeCoord)}.
      * If the server rejects our road choice, bot will call {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
      * which will call {@link OpeningBuildStrategy#cancelWrongPiecePlacement(SOCPlayingPiece)}
-     * in case the OBS wants to take action like clearing the potential settlement node we were aiming for.
+     * in case the OBS wants to take action to prevent re-choosing the same wrong choice again,
+     * like clearing the potential settlement node we were aiming for.
      */
     protected void planAndPlaceInitRoad()
     {
@@ -4763,7 +4767,7 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Make bank trades or port trades to get the target resources, if possible.
+     * Make bank trades or port trades to get the required resources for executing a plan, if possible.
      * Calls {@link SOCRobotNegotiator#getOfferToBank(SOCBuildPlan, SOCResourceSet)}.
      *<P>
      * Before v2.4.50 this method was {@code tradeToTarget2(SOCResourceSet)}.
