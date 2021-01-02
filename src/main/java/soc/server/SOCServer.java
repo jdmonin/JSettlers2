@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -532,8 +532,8 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_GAMEOPT_PREFIX = "jsettlers.gameopt.";
 
     /**
-     * Property {@code jsettlers.gameopts.activate} to activate and use inactive game options;
-     * see {@link SOCGameOptionSet#activate(String)}.
+     * Property {@code jsettlers.gameopts.activate}, a comma-separated list of inactive game options
+     * server will activate for use. See {@link SOCGameOptionSet#activate(String)}.
      * @since 2.4.50
      */
     public static final String PROP_JSETTLERS_GAMEOPTS_ACTIVATE = "jsettlers.gameopts.activate";
@@ -2460,6 +2460,9 @@ public class SOCServer extends Server
      *<P>
      * Once this method completes, server begins its main loop of listening for incoming
      * client connections, and starting a Thread for each one to handle that client's messages.
+     *<P>
+     * If overriding this callback, be sure to call {@code super.serverUp()} either before or after
+     * your own code, depending on when you want robots to be started.
      *
      * @throws IllegalStateException If server was constructed in Utility Mode and shouldn't continue
      *    normal startup; see {@link #hasUtilityModeProperty()} for details.

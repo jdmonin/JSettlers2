@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import soc.game.SOCGameOption;
+import soc.server.SOCServer;  // for javadocs only
 import soc.server.savegame.SavedGameModel;  // for javadocs only
 import soc.util.SOCFeatureSet;
 import soc.util.Version;
@@ -1196,6 +1197,10 @@ public class SOCGameOptionSet
      *<P>
      * To get the list of currently activated options compatible with a certain client version,
      * call {@link #optionsWithFlag(int, int) knownOpts.optionsWithFlag(FLAG_ACTIVATED, cliVersion)}.
+     *<P>
+     * At the server, activate needed options before any clients connect.
+     * Do so by editing/overriding {@link SOCServer#serverUp()} to call this method,
+     * or setting property {@link SOCServer#PROP_JSETTLERS_GAMEOPTS_ACTIVATE}.
      *
      * @param optKey  Known game option's alphanumeric keyname
      * @throws IllegalArgumentException if {@code optKey} isn't a known game option, or if that option
