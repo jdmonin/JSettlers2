@@ -2267,7 +2267,13 @@ public class MessageHandler
 
     /**
      * Handle the "development card action" message, which may have multiple cards.
-     * Updates game data, then calls {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}.
+     * Updates game data by calling {@link #handleDEVCARDACTION(SOCGame, SOCPlayer, boolean, int, int)},
+     * then calls {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}.
+     *<P>
+     * If message is about the player's own cards at end of game when server reveals all VP cards
+     * ({@link SOCDevCardAction#ADD_OLD} in state {@link SOCGame#OVER}),
+     * returns immediately and doesn't call those methods.
+     *
      * @param mes  the message
      */
     protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
@@ -2279,19 +2285,19 @@ public class MessageHandler
         final int pn = mes.getPlayerNumber();
         final SOCPlayer player = ga.getPlayer(pn);
         final PlayerClientListener pcl = client.getClientListener(mes.getGame());
-        final int clientPN = (pcl != null) ? pcl.getClientPlayerNumber() : -2;  // not -1: message may have that
+        final boolean isClientPlayer = (pcl != null) && (pn >= 0) && (pn == pcl.getClientPlayerNumber());
         final int act = mes.getAction();
 
-        if ((pn == clientPN) && (act == SOCDevCardAction.ADD_OLD) && (ga.getGameState() == SOCGame.OVER))
+        if (isClientPlayer && (act == SOCDevCardAction.ADD_OLD) && (ga.getGameState() == SOCGame.OVER))
         {
-            return;  // ignore messages at OVER about our own VP dev cards
+            return;
         }
 
         final List<Integer> ctypes = mes.getCardTypes();
         if (ctypes != null)
         {
             for (final int ctype : ctypes)
-                handleDEVCARDACTION(ga, player, act, ctype);
+                handleDEVCARDACTION(ga, player, isClientPlayer, act, ctype);
         } else {
             int ctype = mes.getCardType();
             if ((! isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
@@ -2301,7 +2307,8 @@ public class MessageHandler
                 else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
                     ctype = SOCDevCardConstants.UNKNOWN;
             }
-            handleDEVCARDACTION(ga, player, act, ctype);
+
+            handleDEVCARDACTION(ga, player, isClientPlayer, act, ctype);
         }
 
         if (pcl != null)
@@ -2312,10 +2319,21 @@ public class MessageHandler
      * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
      * In case this is part of a list of cards, does not call
      * {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}: Caller must do so afterwards.
+     * For {@link SOCDevCardAction#PLAY}, calls {@link SOCPlayer#updateDevCardsPlayed(int)}.
+     *
+     * @param ga  Game being updated
+     * @param player  Player in {@code ga} being updated
+     * @param isClientPlayer  True if {@code player} is our client playing in {@code ga}
+     * @param act  Action being done: {@link SOCDevCardAction#DRAW}, {@link SOCDevCardAction#PLAY PLAY},
+     *     {@link SOCDevCardAction#ADD_OLD ADD_OLD}, or {@link SOCDevCardAction#ADD_NEW ADD_NEW}
+     * @param ctype  Type of development card from {@link SOCDevCardConstants}
+     * @see SOCDisplaylessPlayerClient#handleDEVCARDACTION(SOCGame, SOCPlayer, int, int)
      */
-    private void handleDEVCARDACTION
-        (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
+    protected void handleDEVCARDACTION
+        (final SOCGame ga, final SOCPlayer player, final boolean isClientPlayer, final int act, final int ctype)
     {
+        // if you change this method, consider changing SOCDisplaylessPlayerClient.handleDEVCARDACTION too
+
         switch (act)
         {
         case SOCDevCardAction.DRAW:

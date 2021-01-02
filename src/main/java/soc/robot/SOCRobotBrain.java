@@ -1975,8 +1975,7 @@ public class SOCRobotBrain extends Thread
                         }
 
                         counter = 0;
-                        client.discard(game, discardStrategy.discard
-                            (((SOCDiscardRequest) mes).getNumberOfDiscards(), buildingPlan));
+                        discard(((SOCDiscardRequest) mes).getNumberOfDiscards());
 
                         break;
 
@@ -4754,6 +4753,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Select a new robber location and move the robber there.
      * Calls {@link RobberStrategy#getBestRobberHex()}.
+     * Calls {@link SOCRobotClient#moveRobber(SOCGame, SOCPlayer, int)}.
      *<P>
      * Currently the robot always chooses to move the robber, never the pirate.
      */
@@ -4764,6 +4764,23 @@ public class SOCRobotBrain extends Thread
         D.ebugPrintlnINFO("!!! MOVING ROBBER !!!");
         client.moveRobber(game, ourPlayerData, bestHex);
         pause(2000);
+    }
+
+    /**
+     * Select resources to discard, then ask the server to do so.
+     * Calls {@link DiscardStrategy#discard(int, SOCBuildPlanStack)}.
+     * Calls {@link SOCRobotClient#discard(SOCGame, SOCResourceSet)}.
+     *<P>
+     * This method can be overridden if a bot's discard code needs to do
+     * something outside the scope of the {@link DiscardStrategy} method,
+     * like send messages to the server before or after the discard request.
+     *
+     * @param numDiscards  Number of resources bot's been asked to discard
+     * @since 2.4.50
+     */
+    protected void discard(final int numDiscards)
+    {
+        client.discard(game, discardStrategy.discard(numDiscards, buildingPlan));
     }
 
     /**

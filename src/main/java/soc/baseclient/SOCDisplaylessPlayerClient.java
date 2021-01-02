@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2293,7 +2293,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 ctype = SOCDevCardConstants.UNKNOWN;
         }
 
-        switch (mes.getAction())
+        handleDEVCARDACTION(ga, player, mes.getAction(), ctype);
+    }
+
+    /**
+     * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
+     * For {@link SOCDevCardAction#PLAY}, calls {@link SOCPlayer#updateDevCardsPlayed(int)}.
+     *
+     * @param ga  Game being updated
+     * @param player  Player in {@code ga} being updated
+     * @param act  Action being done: {@link SOCDevCardAction#DRAW}, {@link SOCDevCardAction#PLAY PLAY},
+     *     {@link SOCDevCardAction#ADD_OLD ADD_OLD}, or {@link SOCDevCardAction#ADD_NEW ADD_NEW}
+     * @param ctype  Type of development card from {@link SOCDevCardConstants}
+     * @see soc.client.MessageHandler#handleDEVCARDACTION(SOCGame, SOCPlayer, boolean, int, int)
+     * @since 2.4.50
+     */
+    protected void handleDEVCARDACTION
+        (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
+    {
+        // if you change this method, consider changing MessageHandler.handleDEVCARDACTION too
+
+        switch (act)
         {
         case SOCDevCardAction.DRAW:
             player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
