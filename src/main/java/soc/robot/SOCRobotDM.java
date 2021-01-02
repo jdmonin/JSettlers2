@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -1488,7 +1488,7 @@ public class SOCRobotDM
     boolean goingToPlayRB = false;
     if (! ourPlayerData.hasPlayedDevCard() &&
         ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
-        ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.ROADS) > 0) {
+        ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.ROADS)) {
       goingToPlayRB = true;
     }
     */
@@ -2450,7 +2450,7 @@ public class SOCRobotDM
     boolean goingToPlayRB = false;
     if (! ourPlayerData.hasPlayedDevCard() &&
         ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
-        ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.ROADS) > 0) {
+        ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.ROADS)) {
       goingToPlayRB = true;
     }
     */

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012,2014-2015,2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012,2014-2015,2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -29,8 +29,8 @@ import soc.game.SOCPlayerNumbers;
 /**
  * This is a possible city that we can build
  *<P>
- * If serializing and deserializing this piece, remember the Player and {@link SOCBuildingSpeedEstimate}
- * fields will be null when deserialized:
+ * If serializing and deserializing this piece, remember the Player and
+ * {@link SOCBuildingSpeedEstimateFactory} fields will be null when deserialized:
  * Call {@link SOCPossiblePiece#setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} to set them.
  *
  * @author Robert S Thomas
@@ -38,8 +38,8 @@ import soc.game.SOCPlayerNumbers;
  */
 public class SOCPossibleCity extends SOCPossiblePiece
 {
-    /** Last structural change v2.4.50 (2450) */
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    /** Has been no structural change since added in v1.0.0 (1000) or earlier */
+    private static final long serialVersionUID = 1000L;
 
     /**
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
