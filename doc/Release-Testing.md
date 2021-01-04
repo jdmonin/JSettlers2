@@ -446,9 +446,10 @@ When preparing to release a new version, testing should include:
       Message traffic will be shown in the terminal/client output.
     - Test client newer than server:
         - Build server JAR as usual, make temp copy of it, and start the temp copy (which has the actual current version number)
-        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v+1 back-compat" and `SC_TSTNO` "New: v+1 only"  
+        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v+1 back-compat", `SC_TSTNA` "New: v+1 another back-compat", and `SC_TSTNO` "New: v+1 only"  
           Update their version parameters to current versionnum and current + 1. Example:  
           `("SC_TSTNC", 2400, 2401, ...)`  
+          `("SC_TSTNA", 2400, 2401, ...)`  
           `("SC_TSTNO", 2401, 2401, ...)`
         - In `SOCGameOptionSet.getAllKnownOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
           Update its min-version parameter to current versionnum. Example:  
@@ -458,15 +459,15 @@ When preparing to release a new version, testing should include:
           The built jars' filenames might include current version number; that's not an issue.
         - Launch that client (prints the "new" version number at startup), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
-          Scenario dropdown should include those 2 "new" scenarios
+          Scenario dropdown should include those 3 "new" scenarios
         - Quit and re-launch client, connect to server
         - Message traffic should include:
           - Client's `SOCGameOptionGetInfos` for DEBUGBOOL
           - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
         - Click "New Game"
-        - In message traffic, should see a `SOCScenarioInfo` with `lastModVers=MARKER_KEY_UNKNOWN` for each of the 2 new scenarios, + 1 more to end the list of Infos
+        - In message traffic, should see a `SOCScenarioInfo` with `lastModVers=MARKER_KEY_UNKNOWN` for each of the 3 new scenarios, + 1 more to end the list of Infos
         - The "new" items are unknown at server: New Game dialog shouldn't have DEBUGBOOL,
-          its Scenario dropdown shouldn't have the 2 test scenarios
+          its Scenario dropdown shouldn't have the 3 test scenarios
         - Quit client and server
     - Then, test server newer than client:
         - Temporarily "localize" the test option and scenarios by adding to
@@ -485,8 +486,8 @@ When preparing to release a new version, testing should include:
           - Client's generic `SOCGameOptionGetInfos` asking if any changes
           - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
         - Click "New Game"
-        - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
-        - Dialog should show DEBUGBOOL option. Should see `SC_TSTNC` but not `SC_TSTNO` in Scenario dropdown
+        - In message traffic, should see a `SOCScenarioInfo` for each of the 3 new scenarios, + 1 more to end the list of Infos
+        - Dialog should show DEBUGBOOL option. Should see `SC_TSTNC` and `SC_TSTNA` but not `SC_TSTNO` in Scenario dropdown
         - Start a game using `SC_TSTNC` scenario, begin game play
         - Launch a 2nd client, connect to server
         - Click "Game Info"
@@ -506,8 +507,8 @@ When preparing to release a new version, testing should include:
         - Quit and re-launch that client
         - Connect to server, click "New Game"
         - In message traffic, should see:
-          - a `SOCScenarioInfo` for each of the 2 new scenarios (SC_TSTNC, SC_TSTNO); SC_TSTNC name should be the localized one
-          - `SOCLocalizedStrings:type=S` with all scenario texts except SC_TSTNC, SC_TSTNO
+          - a `SOCScenarioInfo` for each of the 3 new scenarios (SC_TSTNC, SC_TSTNA, SC_TSTNO); SC_TSTNC name should be the localized one
+          - `SOCLocalizedStrings:type=S` with all scenario texts except SC_TSTNC, SC_TSTNA, SC_TSTNO
           - 1 more `SOCScenarioInfo` to end the list of Infos
         - Dialog should show "localized" DEBUGBOOL game option. Scenario dropdown should show all scenarios with localized text
         - Cancel out of New Game dialog

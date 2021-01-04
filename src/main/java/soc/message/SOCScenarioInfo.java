@@ -133,15 +133,6 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
 
     /**
-     * If an older client is asking for any changed/new scenarios,
-     * server responds with set of SCENARIOINFOs. Mark end of this list by sending a
-     * SCENARIOINFO named "-". At client this sets the {@link #noMoreScens} flag
-     * by recognizing that name key ({@link #MARKER_NO_MORE_SCENS}).
-     */
-    public static final SOCScenarioInfo SCENINFO_NO_MORE_SCENS
-        = new SOCScenarioInfo(null, null, null);
-
-    /**
      * {@link #scKey} marker {@code "?"} from client to ask for any new or changed scenarios
      * between the client and server versions. When present, this must be the last item in the parameter list.
      * The server will reply with a sequence of messages with scenario info, and a sequence-ending empty message
@@ -160,8 +151,12 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     public static final String MARKER_SCEN_NAME_LIST = "[";
 
     /**
-     * {@link #scKey} marker {@code "-"} from server to indicate this is the end of the list of SCENARIOINFOs.
-     * @see #SCENINFO_NO_MORE_SCENS
+     * {@link #scKey} marker {@code "-"} from server to indicate this is the end of the list of SCENARIOINFOs:
+     * If an older client is asking for any changed/new scenarios,
+     * server responds with set of SCENARIOINFOs. Mark end of this list by sending a
+     * SCENARIOINFO named "-". At client this sets the {@link #noMoreScens} flag.
+     * Server can call {@link #SOCScenarioInfo(SOCScenario, String, String) SOCScenarioInfo(null, null, null)}
+     * constructor to create such a message.
      */
     public static final String MARKER_NO_MORE_SCENS = "-";
 
@@ -212,7 +207,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
     /**
      * Constructor for server to tell client about a scenario, or mark the end of the list of scenarios.
      *
-     * @param sc  Scenario to send, or {@code null} to send the end-of-list marker {@link #SCENINFO_NO_MORE_SCENS}.
+     * @param sc  Scenario to send, or {@code null} to send the end-of-list marker {@link #MARKER_NO_MORE_SCENS}.
      *     Scenario key isn't checked here for {@link SOCMessage#isSingleLineAndSafe(String)}
      *     because the {@link SOCScenario} constructor already checked it against
      *     more restrictive {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)}.
