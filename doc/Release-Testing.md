@@ -448,13 +448,15 @@ When preparing to release a new version, testing should include:
         - Build server JAR as usual, make temp copy of it, and start the temp copy (which has the actual current version number)
         - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v+1 back-compat" and `SC_TSTNO` "New: v+1 only"  
           Update their version parameters to current versionnum and current + 1. Example:  
-          `("SC_TSTNC", 2000, 2001, ...)`  
-          `("SC_TSTNO", 2001, 2001, ...)`
+          `("SC_TSTNC", 2400, 2401, ...)`  
+          `("SC_TSTNO", 2401, 2401, ...)`
         - In `SOCGameOptionSet.getAllKnownOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
-          Update its version parameters to current versionnum and current + 1. Example:  
-          `("DEBUGBOOL", 2000, 2001, false, ...)`
-        - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2000 -> 2001, 2.0.00 -> 2.0.01
-        - Build and launch client (at that "new" version), don't connect to server
+          Update its min-version parameter to current versionnum. Example:  
+          `("DEBUGBOOL", 2400, Version.versionNumber(), false, ...)`
+        - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2400 -> 2401, 2.4.00 -> 2.4.01
+        - Build client (at that "new" version) using `gradle assemble` to skip the usual unit tests.
+          The built jars' filenames might include current version number; that's not an issue.
+        - Launch that client (prints the "new" version number at startup), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
           Scenario dropdown should include those 2 "new" scenarios
         - Quit and re-launch client, connect to server
@@ -471,10 +473,12 @@ When preparing to release a new version, testing should include:
           `src/main/resources/resources/strings/server/toClient_es.properties`:  
           `gameopt.DEBUGBOOL = test debugbool localized-es`  
           `gamescen.SC_TSTNC.n = test-localizedname-es`  
-        - Build server JAR and start a server from it (has the "new" version number);  
-          use `gradle assemble` here to skip the usual unit tests
+        - Build server jar, using `gradle assemble` to skip the usual unit tests
+        - Start a server from that jar (prints the "new" version number at startup)
         - Reset `version.info`, `toClient_es.properties`, `SOCGameOptionSet.getAllKnownOptions()`,
-          and `SOCScenario.initAllScenarios()` to their actual versions (2001 -> 2000, re-comment, etc)
+          and `SOCScenario.initAllScenarios()` to their actual versions
+          (2401 -> 2400, re-comment options/scenarios, etc).
+          Afterwards, `git status` shouldn't list those files as modified.
         - Build and launch client (at actual version)
         - Connect to "newer" server
         - Message traffic should include:
@@ -495,7 +499,7 @@ When preparing to release a new version, testing should include:
         - Quit 2nd client. Keep server and 1st client running
     - Test i18n (server still newer than client):
         - Launch another client, with a locale: `-Djsettlers.debug.traffic=Y -Djsettlers.locale=es`
-        - In message traffic, should see a `SOCGameOptionInfo` for DEBUGBOOL with "localized" name
+        - Connect to server; in message traffic, should see a `SOCGameOptionInfo` for DEBUGBOOL with "localized" name
         - In that client, click "Game Info"
         - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's SC_TSTNC scenario
         - Game Info dialog should show scenario's info and "localized" name

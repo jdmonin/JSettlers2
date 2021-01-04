@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -134,8 +134,9 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
     /**
      * If an older client is asking for any changed/new scenarios,
-     * server responds with set of SCENARIOINFOs. Mark end of this list with a
-     * SCENARIOINFO named "-". At the client this sets the {@link #noMoreScens} flag.
+     * server responds with set of SCENARIOINFOs. Mark end of this list by sending a
+     * SCENARIOINFO named "-". At client this sets the {@link #noMoreScens} flag
+     * by recognizing that name key ({@link #MARKER_NO_MORE_SCENS}).
      */
     public static final SOCScenarioInfo SCENINFO_NO_MORE_SCENS
         = new SOCScenarioInfo(null, null, null);
@@ -160,6 +161,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
     /**
      * {@link #scKey} marker {@code "-"} from server to indicate this is the end of the list of SCENARIOINFOs.
+     * @see #SCENINFO_NO_MORE_SCENS
      */
     public static final String MARKER_NO_MORE_SCENS = "-";
 
@@ -227,7 +229,7 @@ public class SOCScenarioInfo extends SOCMessageTemplateMs
 
         isFromServer = true;
         isKeyUnknown = false;
-        noMoreScens = (sc != null);
+        noMoreScens = (sc == null);
 
         scen = sc;
         if (sc != null)
