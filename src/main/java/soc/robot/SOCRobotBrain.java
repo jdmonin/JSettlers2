@@ -3264,13 +3264,13 @@ public class SOCRobotBrain extends Thread
      * If {@code accepted}, also clears {@link #waitingForTradeResponse}
      * by calling {@link #clearTradingFlags(boolean, boolean)}.
      *
-     * @param playerNum  Player number: The other player accepting or rejecting our offer,
+     * @param toPlayerNum  Player number: The other player accepting or rejecting our offer,
      *     or {@link #ourPlayerNumber} if called for accepting another player's offer
      * @param accepted  True if offer was accepted, false if rejected
      * @see #tradeStopWaitingClearOffer()
      * @since 2.4.50
      */
-    protected void handleTradeResponse(final int playerNum, final boolean accepted)
+    protected void handleTradeResponse(final int toPlayerNum, final boolean accepted)
     {
         if (accepted)
         {
@@ -3279,7 +3279,7 @@ public class SOCRobotBrain extends Thread
             return;
         }
 
-        offerRejections[playerNum] = true;
+        offerRejections[toPlayerNum] = true;
 
         boolean everyoneRejected = true,
             allHumansRejected = (tradeResponseTimeoutSec > TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY);
