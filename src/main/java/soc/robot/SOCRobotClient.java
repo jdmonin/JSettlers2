@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -748,7 +748,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 handlePutBrainQ((SOCSetSpecialItem) mes);
                 break;
 
-            // These message types are handled entirely by SOCRobotBrain:
+            // These message types are handled entirely by SOCRobotBrain,
+            // which will update game data and do any bot-specific tracking or actions needed:
 
             case SOCMessage.ACCEPTOFFER:
             case SOCMessage.CANCELBUILDREQUEST:  // current player has cancelled an initial settlement
@@ -765,6 +766,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.PLAYERELEMENT:
             case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
             case SOCMessage.REJECTOFFER:
+            case SOCMessage.REPORTROBBERY:  // added 2021-01-05 for v2.4.50
             case SOCMessage.RESOURCECOUNT:
             case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message
             case SOCMessage.TIMINGPING:  // server's 1x/second timing ping

@@ -67,6 +67,7 @@ import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPlayerElements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
+import soc.message.SOCReportRobbery;
 import soc.message.SOCResourceCount;
 import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSimpleAction;
@@ -2409,6 +2410,22 @@ public class SOCRobotBrain extends Thread
             game.getBoard().setRobberHex(newHex, true);
         else
             ((SOCBoardLarge) game.getBoard()).setPirateHex(-newHex, true);
+    }
+
+    /**
+     * Update game data and any bot tracking when a player has been robbed.
+     * Calls {@link SOCDisplaylessPlayerClient#handleREPORTROBBERY(SOCReportRobbery, SOCGame)}.
+     * Third-party bots can override if needed; if so, be sure to call {@code super.handleREPORTROBBERY(..)}.
+     *
+     * @param mes  Robbery report message
+     * @since 2.4.50
+     */
+    protected void handleREPORTROBBERY(SOCReportRobbery mes)
+    {
+        SOCDisplaylessPlayerClient.handleREPORTROBBERY((SOCReportRobbery) mes, game);
+
+        // Basic robot brain doesn't do anything else with this message,
+        // but a third-party bot might want to.
     }
 
     /**
