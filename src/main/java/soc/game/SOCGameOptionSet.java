@@ -749,6 +749,11 @@ public class SOCGameOptionSet
             ("DEBUGSTR", 1107, Version.versionNumber(), 20, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option str"));
         opts.add(new SOCGameOption
             ("DEBUGSTRHIDE", 1107, Version.versionNumber(), 20, true, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option strhide"));
+
+        opts.add(new SOCGameOption
+            ("_3P", 2000, Version.versionNumber(), false, SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED, "Test third-party option"));
+        opts.add(new SOCGameOption
+            ("_3P2", 2000, Version.versionNumber(), false, SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED, "Second test third-party option"));
         */
 
         return opts;
@@ -911,6 +916,7 @@ public class SOCGameOptionSet
     /**
      * For use in {@code for} loops, make and return an iterator;
      * calls {@link Map#values() map.values()}{@link Collection#iterator() .iterator()}.
+     * {@link Iterator#remove()} is supported.
      */
     public Iterator<SOCGameOption> iterator()
     {

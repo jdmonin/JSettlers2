@@ -546,6 +546,10 @@ When preparing to release a new version, testing should include:
         - Double-click game, popup should show message "Cannot join"
         - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.XYZ"
     - Quit all clients and server
+    - Unit tests handle third-party options if added in a fork
+        - In soc.game.SOCGameOptionSet.getAllKnownOptions, temporarily uncomment game opts `"_3P"` and `"_3P2"`
+        - Run unit tests or `gradle build`
+        - All unit tests should still pass (TestGameOptions.testOptionsNewerThanVersion looks for "known" 3rd-party gameopts)
 - i18n/Localization
     - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `src/main/resources/resources/strings/server/toClient_es.properties`:  
 

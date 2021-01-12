@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 package soctest.game;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -76,9 +77,11 @@ public class TestGameOptions
     }
 
     /**
-     * Test that contents of {@link SOCGameOptionSet#getAllKnownOptions()} are consistent internally.
+     * Test that contents of {@link SOCGameOptionSet#getAllKnownOptions()} are consistent internally
+     * and follow naming conventions.
      *<UL>
-     * <LI> Key must not have {@code '3'} as second character unless option has {@link SOCGameOption#FLAG_3RD_PARTY}
+     * <LI> Key must not have {@code '3'} as second character unless option has {@link SOCGameOption#FLAG_3RD_PARTY};
+     *      if option has that flag, it has {@code '3'} there.
      *</UL>
      */
     @Test
@@ -469,14 +472,14 @@ public class TestGameOptions
             List<SOCGameOption> opts = knowns.optionsNewerThanVersion(currVers, false, false);
             if (opts != null)
             {
-                // filter out any activated options (like PLAY_VPO from other unit test)
+                // filter out any activated options (FLAG_3RD_PARTY if present, PLAY_VPO from other unit test)
                 // which are added regardless of version
 
                 ListIterator<SOCGameOption> iter = opts.listIterator();
                 while (iter.hasNext())
                 {
                     SOCGameOption opt = iter.next();
-                    if (opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
+                    if (opt.hasFlag(SOCGameOption.FLAG_ACTIVATED) || opt.hasFlag(SOCGameOption.FLAG_3RD_PARTY))
                         iter.remove();
                 }
                 if (opts.isEmpty())
@@ -498,6 +501,13 @@ public class TestGameOptions
         assertNull(knowns.getKnownOption("T3P", false));
         knowns.addKnownOption(opt3PKnown);
         assertNotNull(knowns.getKnownOption("T3P", false));
+
+        // for purposes of this test, if this copy of JSettlers has been modified to add 3rd-party gameopts,
+        // remove those gameopts
+        Iterator<SOCGameOption> opti = knowns.iterator();
+        while (opti.hasNext())
+            if (opti.next().hasFlag(SOCGameOption.FLAG_3RD_PARTY))
+                opti.remove();
 
         // also add a 3P Known Option that's inactive, so it should be ignored client-side and server-side
         SOCGameOption new3PInact = new SOCGameOption
@@ -523,7 +533,7 @@ public class TestGameOptions
         for (SOCGameOption opt : SOCGameOptionSet.getAllKnownOptions())
         {
             if (((opt.lastModVersion > OLDER_VERSION) || opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
-                && ! opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+                && ! (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN) || opt.hasFlag(SOCGameOption.FLAG_3RD_PARTY)))
                 builtMap.put(opt.key, opt);
         }
         assertTrue("contains SC", builtMap.containsKey("SC"));    // added at v2000
