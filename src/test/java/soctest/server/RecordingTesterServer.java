@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,7 @@ import java.util.Vector;
 import soc.message.SOCMessage;
 import soc.message.SOCServerPing;
 import soc.server.SOCServer;
+import soctest.server.TestRecorder;  // for javadocs only
 
 /**
  * Non-testing class: Server which records game events into {@link #records}
@@ -59,7 +60,10 @@ public class RecordingTesterServer
      * <LI> {@link SOCServer#PROP_JSETTLERS_ALLOW_DEBUG} = "Y"
      * <LI> {@link SOCServer#PROP_JSETTLERS_BOTS_COOKIE} = "tcook"
      * <LI> {@link SOCServer#PROP_JSETTLERS_CONNECTIONS} = 99
-     * <LI> {@link SOCServer#PROP_JSETTLERS_STARTROBOTS} = 5 ({@link #NUM_STARTROBOTS}
+     * <LI> {@link SOCServer#PROP_JSETTLERS_STARTROBOTS} = 5 ({@link #NUM_STARTROBOTS})
+     * <LI> {@link SOCServer#PROP_JSETTLERS_GAME_DISALLOW_6PLAYER} = "N"
+     * <LI> {@link SOCServer#PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD} = "N"
+     *      (because {@link TestRecorder} unit tests use sea board)
      *</UL>
      */
     public static final Properties PROPS = new Properties();
@@ -69,6 +73,8 @@ public class RecordingTesterServer
         PROPS.setProperty(SOCServer.PROP_JSETTLERS_BOTS_COOKIE, "tcook");
         PROPS.setProperty(SOCServer.PROP_JSETTLERS_CONNECTIONS, "99");
         PROPS.setProperty(SOCServer.PROP_JSETTLERS_STARTROBOTS, Integer.toString(NUM_STARTROBOTS));
+        PROPS.setProperty(SOCServer.PROP_JSETTLERS_GAME_DISALLOW_6PLAYER, "N");
+        PROPS.setProperty(SOCServer.PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD, "N");
     }
 
     /**
@@ -131,7 +137,7 @@ public class RecordingTesterServer
      * A recorded entry: Event SOCMessage, audience (all players, 1 player, or specifically excluded player(s)).
      * See {@link #toString()} for human-readable delimited format.
      *<P>
-     * If this class changes, update comprehensive unit test {@link soctest.server.TestRecorder#testQueueEntry()}.
+     * If this class changes, update comprehensive unit test {@link TestRecorder#testQueueEntry()}.
      */
     public static final class QueueEntry
     {
