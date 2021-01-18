@@ -405,7 +405,7 @@ import soc.message.SOCStartGame;
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), 0), ga.isPractice);
+        put(new SOCRejectOffer(ga.getName(), 0), ga.isPractice);
     }
 
     /**

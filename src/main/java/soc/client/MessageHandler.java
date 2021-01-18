@@ -470,7 +470,8 @@ public class MessageHandler
                 break;
 
             /**
-             * a player has rejected an offer
+             * a player has rejected an offer,
+             * or server has rejected our trade-related request.
              */
             case SOCMessage.REJECTOFFER:
                 handleREJECTOFFER((SOCRejectOffer) mes);
@@ -2156,11 +2157,7 @@ public class MessageHandler
         if (pcl == null)
             return;
 
-        final int pn = mes.getPlayerNumber();
-        if (pn >= 0)
-            pcl.playerBankTrade(ga.getPlayer(pn), mes.getGiveSet(), mes.getGetSet());
-        else
-            pcl.playerTradeDisallowed(-1, (pn == SOCBankTrade.PN_REPLY_NOT_YOUR_TURN));
+        pcl.playerBankTrade(ga.getPlayer(mes.getPlayerNumber()), mes.getGiveSet(), mes.getGetSet());
     }
 
     /**
@@ -2176,14 +2173,8 @@ public class MessageHandler
 
         SOCTradeOffer offer = mes.getOffer();
         final int fromPN = offer.getFrom();
-        SOCPlayer from;
-        if (fromPN >= 0)
-        {
-            from = ga.getPlayer(fromPN);
-            from.setCurrentOffer(offer);
-        } else {
-            from = null;
-        }
+        SOCPlayer from = ga.getPlayer(fromPN);
+        from.setCurrentOffer(offer);
 
         PlayerClientListener pcl = client.getClientListener(gaName);
         pcl.requestedTrade(from, fromPN);
@@ -2215,16 +2206,35 @@ public class MessageHandler
     }
 
     /**
-     * handle the "reject offer" message
+     * handle the "reject offer"/"decline trade" message
      * @param mes  the message
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
-        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        final int pn = mes.getPlayerNumber();
+        SOCPlayer player = (pn >= 0) ? ga.getPlayer(pn) : null;
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
-        pcl.requestedTradeRejection(player);
+
+        int rc = mes.getReasonCode();
+        switch (rc)
+        {
+        case 0:
+            pcl.requestedTradeRejection(player);
+            break;
+
+        case SOCRejectOffer.REASON_NOT_YOUR_TURN:
+            pcl.playerTradeDisallowed(-1, false, true);
+            break;
+
+        case SOCRejectOffer.REASON_CANNOT_MAKE_OFFER:
+            pcl.playerTradeDisallowed(pn, true, false);
+            break;
+
+        default:
+            pcl.playerTradeDisallowed(pn, false, false);
+        }
     }
 
     /**
@@ -2242,11 +2252,7 @@ public class MessageHandler
         if (pcl == null)
             return;
 
-        final int offeringPN = mes.getOfferingNumber(), acceptingPN = mes.getAcceptingNumber();
-        if (acceptingPN >= 0)
-            pcl.playerTradeAccepted(ga.getPlayer(offeringPN), ga.getPlayer(acceptingPN));
-        else
-            pcl.playerTradeDisallowed(offeringPN, false);
+        pcl.playerTradeAccepted(ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
     }
 
     /**

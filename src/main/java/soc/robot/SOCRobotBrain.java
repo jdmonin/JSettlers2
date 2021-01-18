@@ -1520,12 +1520,8 @@ public class SOCRobotBrain extends Thread
                         {
                             final int acceptingPN = ((SOCAcceptOffer) mes).getAcceptingNumber();
 
-                            if (acceptingPN < 0)
-                            {
-                                clearTradingFlags(false, false);
-                            }
-                            else if ((ourPlayerNumber == acceptingPN)
-                                     || (ourPlayerNumber == (((SOCAcceptOffer) mes).getOfferingNumber())))
+                            if ((ourPlayerNumber == acceptingPN)
+                                || (ourPlayerNumber == (((SOCAcceptOffer) mes).getOfferingNumber())))
                             {
                                 handleTradeResponse(acceptingPN, true);
                             }
@@ -1726,13 +1722,12 @@ public class SOCRobotBrain extends Thread
                     if (waitingForTradeMsg && (mesType == SOCMessage.BANKTRADE))
                     {
                         final int pn = ((SOCBankTrade) mes).getPlayerNumber();
-                        final boolean wasAllowed = (pn >= 0);
 
-                        if ((pn == ourPlayerNumber) || ! wasAllowed)
+                        if (pn == ourPlayerNumber)
                             //
                             // This is the bank/port trade confirmation announcement we've been waiting for
                             //
-                            clearTradingFlags(true, wasAllowed);
+                            clearTradingFlags(true, true);
                     }
 
                     if (waitingForDevCard && (mesType == SOCMessage.SIMPLEACTION)
@@ -2422,7 +2417,7 @@ public class SOCRobotBrain extends Thread
      */
     protected void handleREPORTROBBERY(SOCReportRobbery mes)
     {
-        SOCDisplaylessPlayerClient.handleREPORTROBBERY((SOCReportRobbery) mes, game);
+        SOCDisplaylessPlayerClient.handleREPORTROBBERY(mes, game);
 
         // Basic robot brain doesn't do anything else with this message,
         // but a third-party bot might want to.
@@ -3337,8 +3332,7 @@ public class SOCRobotBrain extends Thread
      * same as a rejection from them, but still wants to deal.
      * Call {@link #considerOffer(SOCTradeOffer)}, and if
      * we accept, clear our {@link #buildingPlan} so we'll replan it.
-     * Ignore our own MAKEOFFERs echoed from server
-     * and "not allowed" replies from server ({@link SOCTradeOffer#getFrom()} &lt; 0).
+     * Ignore our own MAKEOFFERs echoed from server.
      * Call {@link SOCRobotNegotiator#recordResourcesFromOffer(SOCTradeOffer)}.
      * @since 1.1.08
      */
@@ -3346,11 +3340,6 @@ public class SOCRobotBrain extends Thread
     {
         SOCTradeOffer offer = mes.getOffer();
         final int fromPN = offer.getFrom();
-        if (fromPN < 0)
-        {
-            return;  // <---- Ignore "not allowed" from server ----
-        }
-
         final SOCPlayer offeredFromPlayer = game.getPlayer(fromPN);
         offeredFromPlayer.setCurrentOffer(offer);
 
@@ -3492,7 +3481,17 @@ public class SOCRobotBrain extends Thread
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
-        int rejector = mes.getPlayerNumber();
+        final int rejector = mes.getPlayerNumber(), reasonCode = mes.getReasonCode();
+
+        if ((rejector < 0) || (reasonCode != 0))
+        {
+            if (reasonCode != SOCRejectOffer.REASON_CANNOT_MAKE_OFFER)
+                clearTradingFlags((rejector < 0), false);
+            // else
+                // TODO: recover if needed from server rejection of our trade offer
+
+            return;
+        }
 
         if (waitingForTradeResponse)
         {

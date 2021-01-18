@@ -48,7 +48,6 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCMessage;
 import soc.message.SOCPlayerElement.PEType;
-import soc.message.SOCBankTrade;     // for reply code constant
 import soc.message.SOCPickResources;  // for reason code constants
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
@@ -5056,15 +5055,10 @@ public class SOCPlayerInterface extends Frame
 
         public void requestedTrade(final SOCPlayer offerer, final int fromPN)
         {
-            if (offerer != null)
-            {
-                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
-                final SOCTradeOffer offer = offerer.getCurrentOffer();
-                if (offer != null)
-                    pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
-            } else if (fromPN <= SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE) {
-                pi.printKeyed("trade.msg.cant.make.offer");  // "You can't make that offer."
-            }
+            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
+            final SOCTradeOffer offer = offerer.getCurrentOffer();
+            if (offer != null)
+                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
         }
 
         public void requestedTradeClear(final SOCPlayer offerer, final boolean isBankTrade)
@@ -5091,12 +5085,14 @@ public class SOCPlayerInterface extends Frame
                 pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), false, acceptor);
         }
 
-        public void playerTradeDisallowed(final int offeringPN, final boolean isNotTurn)
+        public void playerTradeDisallowed(final int offeringPN, final boolean isOffer, final boolean isNotTurn)
         {
             pi.printKeyed
                 ((isNotTurn)
                  ? "base.reply.not.your.turn"  // "It's not your turn."
-                 : "reply.common.trade.cannot_make");  // "You can't make that trade."
+                 : ((isOffer)
+                    ? "trade.msg.cant.make.offer"  // "You can't make that offer."
+                    : "reply.common.trade.cannot_make"));  // "You can't make that trade."
         }
 
         public void requestedTradeReset(SOCPlayer playerToReset)

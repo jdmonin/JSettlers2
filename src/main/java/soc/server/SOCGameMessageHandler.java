@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -1322,12 +1322,11 @@ public class SOCGameMessageHandler
 
             if (! canOffer)
             {
-                SOCMessage msg = (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
-                    ? new SOCMakeOffer(gaName, new SOCTradeOffer
-                        (gaName, SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE,
-                         new boolean[ga.maxPlayers], SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET))
+                final int cliPN = player.getPlayerNumber();
+                SOCMessage msg = (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
+                    ? new SOCRejectOffer(gaName, cliPN, SOCRejectOffer.REASON_CANNOT_MAKE_OFFER)
                     : new SOCGameServerText(gaName, "You can't make that offer.");  // i18n OK: is fallback only
-                srv.messageToPlayer(c, gaName, player.getPlayerNumber(), msg);
+                srv.messageToPlayer(c, gaName, cliPN, msg);
 
                 return;  // <---- Early return: Can't offer that ----
             }
@@ -1451,6 +1450,8 @@ public class SOCGameMessageHandler
      * {@link SOCGameHandler#reportTrade(SOCGame, int, int)}, then clears all trade offers
      * by announcing {@link SOCClearOffer}.
      *<P>
+     * If trade cannot be made, will send {@code acceptingNumber}'s client a message explaining that.
+     *<P>
      * <B>Note:</B> Calling this method assumes the players have either accepted and/or made a counter-offer,
      * and that the offer-initiating player's {@link SOCPlayer#getCurrentOffer()} is set to the trade to be executed.
      *
@@ -1497,10 +1498,10 @@ public class SOCGameMessageHandler
                     srv.gameList.releaseMonitorForGame(gaName);
                 }
             } else {
-                if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                if (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
                     srv.messageToPlayer
-                        (c, gaName, acceptingNumber, new SOCAcceptOffer
-                            (gaName, SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE, offeringNumber));
+                        (c, gaName, acceptingNumber, new SOCRejectOffer
+                            (gaName, acceptingNumber, SOCRejectOffer.REASON_CANNOT_MAKE_TRADE));
                 else
                     srv.messageToPlayerKeyed
                         (c, gaName, acceptingNumber, "reply.common.trade.cannot_make");  // "You can't make that trade."
@@ -1541,11 +1542,10 @@ public class SOCGameMessageHandler
                     handler.reportBankTrade(ga, give, get);
                 } else {
                     final int pn = ga.getCurrentPlayerNumber();
-                    if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                    if (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
                         srv.messageToPlayer(c, gaName, pn,
-                            new SOCBankTrade
-                                (gaName, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET,
-                                 SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE));
+                            new SOCRejectOffer
+                                (gaName, -1, SOCRejectOffer.REASON_CANNOT_MAKE_TRADE));
                     else
                         srv.messageToPlayerKeyed
                             (c, gaName, pn, "reply.common.trade.cannot_make");  // "You can't make that trade."
@@ -1556,11 +1556,10 @@ public class SOCGameMessageHandler
                           + ": give " + give + ", get " + get);
                 }
             } else {
-                if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                if (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
                     srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
-                        new SOCBankTrade
-                            (gaName, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET,
-                             SOCBankTrade.PN_REPLY_NOT_YOUR_TURN));
+                        new SOCRejectOffer
+                            (gaName, -1, SOCRejectOffer.REASON_NOT_YOUR_TURN));
                 else
                     srv.messageToPlayerKeyed
                         (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
     final SOCResourceSet get;
 
     /**
-     * Player number making this offer, or a value &lt; 0 See {@link #getFrom()}.
+     * Player number making this offer; see {@link #getFrom()}.
      */
     final int from;
 
@@ -100,8 +100,6 @@ public class SOCTradeOffer implements Serializable, Cloneable
 
     /**
      * Player number making this offer.
-     * In v2.4.50 and higher, can be &lt; 0 to convey situations/conditions if sent as part of a network message,
-     * such as a server's reply to client that their trade offer is not allowed.
      * @return the number of the player that made the offer
      */
     public int getFrom()

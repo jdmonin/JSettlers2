@@ -25,7 +25,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- For efficiency and third-party bots' understanding, server sends data messages instead of text when clients are this version or newer:
 		- Report robbery with `SOCReportRobbery`
 		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
-		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
+		- Reject disallowed trade requests with `SOCRejectOffer` reason codes
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)

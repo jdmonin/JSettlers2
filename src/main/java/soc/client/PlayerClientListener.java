@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -311,12 +311,9 @@ public interface PlayerClientListener
      * or updated the resources of their already-displayed offer.
      * Show its details in their part of the game interface.
      * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
-     *<P>
-     * Also called when server says our requested trade offer wasn't allowed:
-     * {@code offerer} will be {@code null}, {@code fromPN} will be &lt; 0.
      *
-     * @param offerer  Player with a new trade offer, or {@code null} if {@code fromPN} &lt; 0
-     * @param fromPN  {@code offerer}'s player number, or "not allowed" code value &lt; 0 from network message
+     * @param offerer  Player with a new trade offer
+     * @param fromPN  {@code offerer}'s player number
      */
     void requestedTrade(SOCPlayer offerer, int fromPN);
 
@@ -348,12 +345,15 @@ public interface PlayerClientListener
     void playerTradeAccepted(SOCPlayer offerer, SOCPlayer acceptor);
 
     /**
-     * Server has rejected client player's attempt to trade with the bank or accept a player's offer.
-     * @param offeringPN  Player number offering the disallowed trade, or -1 if bank trade
+     * Server has rejected client player's attempt to trade with the bank,
+     * make a trade offer, or accept another player's offer.
+     * @param offeringPN  Player number offering the disallowed trade,
+     *     or -1 if bank trade. Always -1 if {@code isNotTurn}.
+     * @param isOffer  True if server rejected client's proposed trade offer, not their acceptance of an existing offer
      * @param isNotTurn  True if was disallowed because this trade can be done only during client player's turn
      * @since 2.4.50
      */
-    void playerTradeDisallowed(int offeringPN, boolean isNotTurn);
+    void playerTradeDisallowed(int offeringPN, boolean isOffer, boolean isNotTurn);
 
     /**
      * Clear any visible trade messages/responses.

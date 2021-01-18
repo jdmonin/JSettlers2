@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -349,7 +349,6 @@ public class TestToCmdToStringParse
     private static final Object[][] TOCMD_TOSTRING_COMPARES =
     {
         {new SOCAcceptOffer("ga", 2, 3), "1039|ga,2,3", "SOCAcceptOffer:game=ga|accepting=2|offering=3"},
-        {new SOCAcceptOffer("ga", -2, 3), "1039|ga,-2,3", "SOCAcceptOffer:game=ga|accepting=-2|offering=3"},
         // TODO? SOCAdminPing
         {new SOCAdminReset(), "1065", "SOCAdminReset:"},
         // TODO SOCAuthRequest
@@ -357,12 +356,6 @@ public class TestToCmdToStringParse
             new SOCBankTrade("ga", new SOCResourceSet(0, 0, 2, 0, 0, 0), new SOCResourceSet(1, 0, 0, 0, 0, 0), 3),
             "1040|ga,0,0,2,0,0,1,0,0,0,0,3",
             "SOCBankTrade:game=ga|give=clay=0|ore=0|sheep=2|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3"
-        },
-        {
-            new SOCBankTrade("ga", new SOCResourceSet(), SOCResourceSet.EMPTY_SET, SOCBankTrade.PN_REPLY_NOT_YOUR_TURN),
-                // tests server's disallow reply using both of the likely SOCResourceSet param forms
-            "1040|ga,0,0,0,0,0,0,0,0,0,0,-3",
-            "SOCBankTrade:game=ga|give=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=-3"
         },
         {new SOCBCastTextMsg("msg text"), "1062|msg text", "SOCBCastTextMsg:text=msg text"},
         {
@@ -638,13 +631,6 @@ public class TestToCmdToStringParse
             "SOCMakeOffer:game=ga|offer=game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"
         },
         {
-            new SOCMakeOffer("ga", new SOCTradeOffer
-                ("ga", -2, new boolean[]{false,  false, false, false},
-                 SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET)),
-            "1041|ga,-2,false,false,false,false,0,0,0,0,0,0,0,0,0,0",
-            "SOCMakeOffer:game=ga|offer=game=ga|from=-2|to=false,false,false,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0"
-        },
-        {
             new SOCMovePiece("ga", 1, SOCPlayingPiece.SHIP, 3078, 3846),
             "1093|ga,1,3,3078,3846",
             "SOCMovePiece:game=ga|pn=1|pieceType=3|fromCoord=3078|toCoord=3846"
@@ -759,6 +745,7 @@ public class TestToCmdToStringParse
         {new SOCPutPiece("ga", 3, 0, 1034), "1009|ga,3,0,1034", "SOCPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
         {new SOCRejectConnection("reason msg"), "1059|reason msg", "SOCRejectConnection:reason msg"},
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
+        {new SOCRejectOffer("ga", 2, -5), "1037|ga,2,-5", "SOCRejectOffer:game=ga|playerNumber=2|reasonCode=-5"},
         {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|pn=2|pieceType=3|coord=3588"},
         {
             new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.UNKNOWN, true, 1, 0, 0),

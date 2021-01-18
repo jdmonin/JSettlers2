@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -35,10 +35,10 @@ import java.util.StringTokenizer;
  * From server: A validated offer announced to the game. Will be followed immediately by
  * a {@link SOCClearTradeMsg} to clear responses from any previous offer.
  *<BR>
- * Or, server is replying to client that this trade is disallowed: {@link #getOffer()}.{@code getFrom()}
- * is {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}.
- * Clients older than v2.4.50 don't recognize {@code PN_REPLY_CANNOT_MAKE_TRADE}, so server
- * sends those clients a {@link SOCGameServerText} instead.
+ * If this trade offer is disallowed, server replies with a {@link SOCRejectOffer}
+ * with reason {@link SOCRejectOffer#REASON_CANNOT_MAKE_OFFER}.
+ * Clients and servers older than v2.4.50 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
+ * use a {@link SOCGameServerText} to reject such offers.
  *
  * @author Robert S. Thomas
  */
@@ -63,7 +63,7 @@ public class SOCMakeOffer extends SOCMessage
      * @param ga   the name of the game
      * @param of   the offer being made.
      *    From server, this offer's {@link SOCTradeOffer#getFrom()} is the player number
-     *    making the offer, or {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}: See {@link #getOffer()}.
+     *    making the offer: See {@link #getOffer()}.
      *    From client, value of {@code of.getFrom()} is ignored at server.
      */
     public SOCMakeOffer(String ga, SOCTradeOffer of)
@@ -85,8 +85,6 @@ public class SOCMakeOffer extends SOCMessage
      * Get the offer being made.
      * From server, this offer's {@link SOCTradeOffer#getFrom()} is the player number
      * making the offer. From client, value of {@code getFrom()} is ignored at server.
-     * If server is replying to client that this trade is disallowed, {@code getFrom()}
-     * is {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}.
      * @return the offer being made
      */
     public SOCTradeOffer getOffer()

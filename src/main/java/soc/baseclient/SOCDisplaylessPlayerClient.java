@@ -2210,7 +2210,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "make offer" message.
-     * Ignore "not allowed" replies from server ({@link SOCTradeOffer#getFrom()} &lt; 0).
      * @param mes  the message
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
@@ -2220,9 +2219,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         SOCTradeOffer offer = mes.getOffer();
-        int fromPN = offer.getFrom();
-        if (fromPN >= 0)
-            ga.getPlayer(fromPN).setCurrentOffer(offer);
+        ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
     }
 
     /**
@@ -3172,7 +3169,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()));
+        put(new SOCRejectOffer(ga.getName(), 0).toCmd());
     }
 
     /**
@@ -3183,7 +3180,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void acceptOffer(SOCGame ga, int from)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), from));
+        put(SOCAcceptOffer.toCmd(ga.getName(), 0, from));
     }
 
     /**
@@ -3193,7 +3190,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void clearOffer(SOCGame ga)
     {
-        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()));
+        put(SOCClearOffer.toCmd(ga.getName(), 0));
     }
 
     /**
