@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -2225,8 +2225,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Get the resources currently held in the player's hand.
-     * @return the resource set
+     * Get the resources held in the player's hand.
+     * @return reference to the player's resource set; not a read-only copy
+     * @see #getRolledResources()
      */
     public SOCResourceSet getResources()
     {
@@ -2248,6 +2249,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   Index 0 is unused.
      *   In v2.0.00 and newer, index {@link SOCResourceConstants#GOLD_LOCAL} tracks how many
      *   resource picks the player has received from gold hexes.
+     * @see #getRolledResources()
      * @see #addRolledResources(SOCResourceSet)
      * @since 1.1.09
      */
@@ -2287,6 +2289,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param rolled The resources gained by this roll, as determined
      *     by {@link SOCGame#rollDice()}
+     * @see #getRolledResources()
      * @since 1.1.09
      */
     public void addRolledResources(SOCResourceSet rolled)
@@ -2314,6 +2317,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * See {@link SOCGame#rollDice()} for details on what is and isn't included here.
      * @return the resources, if any, gained by this player from the
      *     current turn's {@link SOCGame#rollDice()}.
+     * @see #addRolledResources(SOCResourceSet)
+     * @see #getResources()
      * @since 2.0.00
      */
     public SOCResourceSet getRolledResources()

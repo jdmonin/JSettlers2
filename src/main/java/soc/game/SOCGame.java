@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -7542,6 +7542,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * This method does not validate against game rules, so call
      * {@link #canMakeBankTrade(ResourceSet, ResourceSet)} first.
+     *<P>
+     * Called only at server. Client instead updates {@link SOCPlayer#getResources()} contents.
      *<P>
      * Undo was added in version 1.1.13; if the player's previous action
      * this turn was a bank trade, it can be undone by calling

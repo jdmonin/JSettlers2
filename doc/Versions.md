@@ -26,6 +26,7 @@ JARs for recent JSettlers versions can be downloaded from
 		- Report robbery with `SOCReportRobbery`
 		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
 		- Reject disallowed trade requests with `SOCRejectOffer` reason codes
+	- Bank Trade message has resource info, so server no longer sends redundant `SOCPlayerElement`s
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)
@@ -92,6 +93,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
 	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
+	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields
 	- Renames for consistency:

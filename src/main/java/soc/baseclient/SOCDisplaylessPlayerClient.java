@@ -756,6 +756,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * Update game data for bank trade. Added 2021-01-20 for v2.4.50
+             */
+            case SOCMessage.BANKTRADE:
+                handleBANKTRADE(games, (SOCBankTrade) mes);
+                break;
+
+            /**
              * the current number of development cards
              */
             case SOCMessage.DEVCARDCOUNT:
@@ -1858,31 +1865,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case SOCPlayerElement.LOSE:
-            if (rtype != SOCResourceConstants.UNKNOWN)
-            {
-                int playerAmt = pl.getResources().getAmount(rtype);
-                if (playerAmt >= amount)
-                {
-                    pl.getResources().subtract(amount, rtype);
-                }
-                else
-                {
-                    pl.getResources().subtract(amount - playerAmt, SOCResourceConstants.UNKNOWN);
-                    pl.getResources().setAmount(0, rtype);
-                }
-            }
-            else
-            {
-                SOCResourceSet rs = pl.getResources();
-
-                /**
-                 * first convert player's known resources to unknown resources,
-                 * then remove mes's unknown resources from player
-                 */
-                rs.convertToUnknown();
-                pl.getResources().subtract(amount, SOCResourceConstants.UNKNOWN);
-            }
-
+            /**
+             * If known resource type:
+             *   if amount to remove is greater than player's known amount,
+             *   remove the excess from unknown.
+             * Otherwise (unknown rtype):
+             *   first convert player's known resources to unknown resources,
+             *   then remove mes's unknown resources.
+             */
+            pl.getResources().subtract(amount, rtype, true);
             break;
         }
     }
@@ -2253,6 +2244,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      */
     protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes) {}
+
+    /**
+     * Update a player's resource data from a "bank trade" announcement from the server.
+     *
+     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
+     * @param mes  the message
+     * @return  True if updated, false if game name not found
+     * @since 2.4.50
+     */
+    public static boolean handleBANKTRADE(final Map<String, SOCGame> games, final SOCBankTrade mes)
+    {
+        final SOCGame ga = games.get(mes.getGame());
+        if (ga == null)
+            return false;
+
+        final SOCResourceSet plRes = ga.getPlayer(mes.getPlayerNumber()).getResources();
+        plRes.subtract(mes.getGiveSet(), true);
+        plRes.add(mes.getGetSet());
+
+        return true;
+    }
 
     /**
      * handle the "number of development cards" message

@@ -685,6 +685,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
+             * Update game data for bank trade. Added 2021-01-20 for v2.4.50
+             */
+            case SOCMessage.BANKTRADE:
+                if (super.handleBANKTRADE(games, (SOCBankTrade) mes))
+                    handlePutBrainQ((SOCMessageForGame) mes);
+                break;
+
+            /**
              * the server is requesting that we join a game
              */
             case SOCMessage.BOTJOINGAMEREQUEST:
@@ -759,7 +767,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.DEVCARDACTION:  // either draw, play, or add to hand, or cannot play our requested dev card
             case SOCMessage.DICERESULT:
             case SOCMessage.DISCARDREQUEST:
-            case SOCMessage.BANKTRADE:
             case SOCMessage.MAKEOFFER:
             case SOCMessage.MOVEPIECE:   // move a previously placed ship; will update game data and player trackers
             case SOCMessage.MOVEROBBER:

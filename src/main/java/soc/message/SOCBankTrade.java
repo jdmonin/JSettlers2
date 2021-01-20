@@ -34,12 +34,15 @@ import java.util.StringTokenizer;
  * sent after the {@link SOCPlayerElement} messages which announce the resource changes.
  * Clients older than v2.0.00 ignore this message from server; use {@link SOCStringManager#VERSION_FOR_I18N}.
  *<P>
- * If the client's trade request is acceptable, server responds to entire game with {@link SOCPlayerElement}s:
- * A {@link SOCPlayerElement#LOSE} for each resource type being traded in,
- * then {@link SOCPlayerElement#GAIN} for those given to the player.
- * Clients v2.0.00 or higher are sent a {@code SOCBankTrade} to announce the trade,
- * older clients are sent a {@link SOCGameTextMsg} instead.
- *<P>
+ * If the client's trade request is acceptable, server responds to entire game with:
+ *<UL>
+ * <LI> {@link SOCPlayerElement}s to clients older than v2.4.50 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}):
+ *      A {@link SOCPlayerElement#LOSE} for each resource type being traded in,
+ *      then {@link SOCPlayerElement#GAIN} for those given to the player.
+ * <LI> This {@code SOCBankTrade} to announce the trade details to clients v2.0.00 or higher;
+ *      older clients are sent a {@link SOCGameTextMsg} instead.
+ *</UL>
+ *
  * The server disallows any unacceptable trade by sending the client a
  * {@code SOCRejectOffer} with a reason code like {@link SOCRejectOffer#REASON_NOT_YOUR_TURN}.
  * Servers before v2.4.50 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
@@ -57,6 +60,14 @@ public class SOCBankTrade extends SOCMessage
 {
 
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+
+    /**
+     * Minimum version (2.4.50) where server doesn't accompany this message
+     * with {@link SOCPlayerElement}s, and client uses this message's fields to update
+     * the player's resources.
+     * @since 2.4.50
+     */
+    public static final int VERSION_FOR_SKIP_PLAYERELEMENTS = 2450;
 
     /**
      * Name of game

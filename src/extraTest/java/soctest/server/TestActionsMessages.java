@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1349,8 +1349,6 @@ public class TestActionsMessages
         StringBuilder compares_4_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=4"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=1"},
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=0|wheat=4|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3"}
             });
 
@@ -1367,8 +1365,6 @@ public class TestActionsMessages
         StringBuilder compares_undo_4_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=3|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=4"},
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=4|wood=0|unknown=0|pn=3"}
             });
 
@@ -1403,8 +1399,6 @@ public class TestActionsMessages
         StringBuilder compares_2_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=2"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=1"},
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3"}
             });
 
@@ -1421,8 +1415,6 @@ public class TestActionsMessages
         StringBuilder compares_undo_2_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=3|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=2"},
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|pn=3"}
             });
 

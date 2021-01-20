@@ -298,7 +298,10 @@ public interface PlayerClientListener
          final boolean isGainLose, final int amount, final int victimAmount, final int extraValue);
 
     /**
-     * This player has just made a successful trade with the bank or a port.
+     * This player has just made a successful trade with the bank or a port. Implementation may call
+     * <tt>{@link #playerElementUpdated(SOCPlayer, UpdateType, boolean, boolean) playerElementUpdated}(player,
+     * {@link UpdateType#ResourceTotalAndDetails}, false, false)</tt>.
+     *
      * @param player  Player making the bank/port trade
      * @param give  Resources given by player in trade
      * @param get   Resources received by player in trade
@@ -349,7 +352,7 @@ public interface PlayerClientListener
      * make a trade offer, or accept another player's offer.
      * @param offeringPN  Player number offering the disallowed trade,
      *     or -1 if bank trade. Always -1 if {@code isNotTurn}.
-     * @param isOffer  True if server rejected client's proposed trade offer, not their acceptance of an existing offer
+     * @param isOffer  True if this is about a proposed trade offer, not acceptance of an existing offer
      * @param isNotTurn  True if was disallowed because this trade can be done only during client player's turn
      * @since 2.4.50
      */
@@ -652,6 +655,7 @@ public interface PlayerClientListener
 
         /**
          * Update Total Resource count, and also each box (Clay,Ore,Sheep,Wheat,Wood) if shown.
+         * May update other parts of the window beyond that player's hand: Enable/disable trade offer Accept buttons, etc.
          * @see #Resources
          */
         ResourceTotalAndDetails,

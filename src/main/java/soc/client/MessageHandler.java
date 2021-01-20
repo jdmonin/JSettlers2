@@ -62,7 +62,7 @@ import soc.util.Version;
  * Nested class for processing incoming messages (treating).
  * {@link ClientNetwork}'s reader thread calls
  * {@link #handle(SOCMessage, boolean)} to dispatch messages to their
- * handler methods (such as {@link #handleBANKTRADE(SOCBankTrade)}).
+ * handler methods such as {@link #handleBANKTRADE(SOCBankTrade, boolean)}.
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  *
@@ -452,7 +452,7 @@ public class MessageHandler
              * a player has made a bank/port trade
              */
             case SOCMessage.BANKTRADE:
-                handleBANKTRADE((SOCBankTrade) mes);
+                handleBANKTRADE((SOCBankTrade) mes, isPractice);
                 break;
 
             /**
@@ -471,7 +471,7 @@ public class MessageHandler
 
             /**
              * a player has rejected an offer,
-             * or server has rejected our trade-related request.
+             * or server has disallowed our trade-related request.
              */
             case SOCMessage.REJECTOFFER:
                 handleREJECTOFFER((SOCRejectOffer) mes);
@@ -2145,14 +2145,17 @@ public class MessageHandler
     /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
      * @param mes  the message
+     * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
      * @since 2.0.00
      */
-    protected void handleBANKTRADE(final SOCBankTrade mes)
+    protected void handleBANKTRADE(final SOCBankTrade mes, final boolean isPractice)
     {
+        if (isPractice || (client.sVersion >= SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS))
+            if (! SOCDisplaylessPlayerClient.handleBANKTRADE(client.games, mes))
+                return;
+
         final String gaName = mes.getGame();
-        final SOCGame ga = client.games.get(gaName);
-        if (ga == null)
-            return;
+        final SOCGame ga = client.games.get(gaName);  // non-null because SOCDisplaylessPlayerClient returned true
         PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;
@@ -2206,7 +2209,7 @@ public class MessageHandler
     }
 
     /**
-     * handle the "reject offer"/"decline trade" message
+     * handle the "reject offer"/"disallowed trade" message
      * @param mes  the message
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
@@ -2252,7 +2255,8 @@ public class MessageHandler
         if (pcl == null)
             return;
 
-        pcl.playerTradeAccepted(ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
+        pcl.playerTradeAccepted
+            (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
     }
 
     /**

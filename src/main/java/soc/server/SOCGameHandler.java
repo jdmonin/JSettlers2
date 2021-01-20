@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -3193,8 +3193,13 @@ public class SOCGameHandler extends GameHandler
         final String gaName = ga.getName();
         final int    cpn    = ga.getCurrentPlayerNumber();
 
-        reportRsrcGainLoss(ga, give, true, false, cpn, -1, null);
-        reportRsrcGainLoss(ga, get, false, false, cpn, -1, null);
+        if (ga.clientVersionLowest <= SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS)
+        {
+            reportRsrcGainLossForVersions
+                (ga, give, true, false, cpn, -1, null, SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS - 1);
+            reportRsrcGainLossForVersions
+                (ga, get, false, false, cpn, -1, null, SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS - 1);
+        }
 
         SOCBankTrade bt = null;
         if (ga.clientVersionHighest >= SOCStringManager.VERSION_FOR_I18N)
