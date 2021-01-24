@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -50,21 +50,22 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.MediaTracker;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
-import java.awt.Toolkit;
+import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
-
+import java.awt.image.VolatileImage;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -75,7 +76,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.Timer;
-
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 /**
@@ -1212,7 +1213,7 @@ import javax.swing.JComponent;
      * {@link #hexesMustAlwaysScale} was set true by {@code loadHexesAndImages}
      * if any of these are a larger or nonuniform size.
      *<P>
-     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}.
+     * For indexes, see {@link #loadHexesAndImages(BufferedImage[], String, Class, boolean)}.
      *<P>
      * {@link #scaledPorts} stores the 6 per-facing port overlays from {@link #renderPortImages()}.
      *
@@ -1220,7 +1221,7 @@ import javax.swing.JComponent;
      * @see #rotatHexes
      * @see #hexesGraphicsSetIndex
      */
-    private static Image[] hexes;
+    private static BufferedImage[] hexes;
 
     /**
      * If true, some images in {@link #hexes} are a larger or nonuniform size
@@ -1256,13 +1257,13 @@ import javax.swing.JComponent;
      * {@link #rotatHexesMustAlwaysScale} was set true by {@code loadHexesAndImages}
      * if any of these are a larger or nonuniform size.
      *<P>
-     * For indexes, see {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)}.
+     * For indexes, see {@link #loadHexesAndImages(BufferedImage[], String, Class, boolean)}.
      *
      * @see #hexes
      * @see #hexesGraphicsSetIndex
      * @since 1.1.08
      */
-    private static Image[] rotatHexes;
+    private static BufferedImage[] rotatHexes;
 
     /**
      * If true, some images in {@link #rotatHexes} are a larger or nonuniform size
@@ -1289,7 +1290,7 @@ import javax.swing.JComponent;
      * @see #scaledHexFail
      * @since 1.1.00
      */
-    private Image[] scaledHexes;
+    private BufferedImage[] scaledHexes;
 
     /**
      * Port images - private copy, rotated and/or scaled if necessary.
@@ -1301,7 +1302,7 @@ import javax.swing.JComponent;
      * @see #scaledPortFail
      * @since 1.1.00
      */
-    private Image[] scaledPorts;
+    private BufferedImage[] scaledPorts;
 
     /**
      * When {@link #scaledHexes} was created for this instance, the value of {@link #hexesGraphicsSetIndex}.
@@ -1723,7 +1724,7 @@ import javax.swing.JComponent;
      * offscreen buffer of everything (board, pieces, hovering pieces, tooltip), to prevent flicker.
      * @see #emptyBoardBuffer
      */
-    private Image buffer;
+    private VolatileImage buffer;
 
     /**
      * offscreen buffer of board without any pieces placed, to prevent flicker.
@@ -1732,7 +1733,7 @@ import javax.swing.JComponent;
      * @see #buffer
      * @since 1.1.08
      */
-    private Image emptyBoardBuffer;
+    private VolatileImage emptyBoardBuffer;
 
     /**
      * Modes of interaction; for correlation to game state, see {@link #updateMode()}.
@@ -1761,7 +1762,7 @@ import javax.swing.JComponent;
     /**
      * the player interface that this board is a part of
      */
-    private SOCPlayerInterface playerInterface;
+    private final SOCPlayerInterface playerInterface;
 
     /** Cached colors, for use for robber's "ghost"
      *  (previous position) when moving the robber.
@@ -1781,7 +1782,7 @@ import javax.swing.JComponent;
      * The minimum size needed on-screen is based on the game options and {@code layoutVS}.
      * After construction, call {@link #getMinimumSize()} to read it.
      *
-     * @param pi  the player interface that spawned us
+     * @param pi  the player interface that spawned us; not null
      * @param layoutVS  Optional board layout "visual shift and trim" (Added Layout Part "VS")
      *     to use when setting minimum size of this {@code SOCBoardPanel}, or {@code null}
      */
@@ -1941,7 +1942,7 @@ import javax.swing.JComponent;
 
         // Point to static images, unless we're later resized.
         // Now that we've called loadImages, update isHexesAlwaysScaled.
-        Image[] h;
+        BufferedImage[] h;
         if (isRotated)
         {
             h = rotatHexes;
@@ -1951,8 +1952,8 @@ import javax.swing.JComponent;
             isHexesAlwaysScaled = hexesMustAlwaysScale;
         }
 
-        scaledHexes = new Image[h.length];
-        scaledPorts = new Image[6];
+        scaledHexes = new BufferedImage[h.length];
+        scaledPorts = new BufferedImage[6];
         for (i = h.length - 1; i >= 0; --i)
             scaledHexes[i] = h[i];
         scaledHexesGraphicsSetIndex = hexesGraphicsSetIndex;
@@ -2747,7 +2748,8 @@ import javax.swing.JComponent;
      * Set the board fields to a new size, and rescale graphics if needed.
      * Does not call repaint or setSize.
      * Updates {@link #isScaledOrRotated}, {@link #scaledPanelW}, {@link #panelMarginX}, and other fields.
-     * Calls {@link #renderBorderedHex(Image, Color)} and {@link #renderPortImages()}.
+     * Calls {@link #rescaleCoordinateArrays()}, {@link #renderBorderedHex(Image, Color)},
+     * and {@link #renderPortImages()}.
      *
      * @param newW  New width in pixels, no less than {@link #minSize}.width
      * @param newH  New height in pixels, no less than {@link #minSize}.height
@@ -2851,7 +2853,7 @@ import javax.swing.JComponent;
          * Scale and render images, or point to static arrays.
          * For water hex border color, loops assume SOCBoard.WATER_HEX == index 0 in BC.
          */
-        final Image[] staticHex;  // hex type images
+        final BufferedImage[] staticHex;  // hex type images
         final Color[] BC;  // border colors
         final Color waterBC;  // water border color
         if (isRotated)
@@ -2881,7 +2883,7 @@ import javax.swing.JComponent;
             {
                 if (staticHex[i] != null)
                 {
-                    Image hi = getScaledImageUp(staticHex[i], w, h);
+                    BufferedImage hi = getScaledImageUp(staticHex[i], w, h);
                     if (i < BC.length)
                         hi = renderBorderedHex(hi, (i != 0) ? BC[i] : waterBC);
 
@@ -2916,7 +2918,7 @@ import javax.swing.JComponent;
      * @return a new Image for the bordered hex, or the original {@code hex} if {@code borderColor} was null
      * @since 1.1.20
      */
-    private Image renderBorderedHex(final Image hex, final Color borderColor)
+    private BufferedImage renderBorderedHex(final BufferedImage hex, final Color borderColor)
     {
         if (borderColor == null)
             return hex;
@@ -3215,10 +3217,12 @@ import javax.swing.JComponent;
      * @return  the scaled image
      * @since 1.1.20
      */
-    public static final BufferedImage getScaledImageUp(final Image src, final int w, final int h)
+    public final BufferedImage getScaledImageUp(final Image src, final int w, final int h)
     {
-        BufferedImage bufi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-
+        BufferedImage bufi = playerInterface.getGraphicsConfiguration().createCompatibleImage
+            (w, h, Transparency.BITMASK);
+            // use PI instead of this.getGraphicsConfiguration(),
+            // which is null during early call by PI constructor through initUIElements/rescaleBoard
         Graphics2D g = bufi.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g.drawImage(src, 0, 0, w, h, null);
@@ -3315,14 +3319,26 @@ import javax.swing.JComponent;
     @Override
     public void paintComponent(Graphics g)
     {
-        Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
+        VolatileImage ibuf = buffer;  // Local var in case field becomes null in other thread during paint
         try
         {
-            if (ibuf == null)
+            final GraphicsConfiguration gconf = getGraphicsConfiguration();
+            if (gconf == null)
             {
-                ibuf = this.createImage(scaledPanelW, scaledPanelH);
-                buffer = ibuf;
+                repaint();  // try again soon
+                return;
             }
+
+            do
+            {
+                final int ibufValidStatus = (ibuf == null) ? -1 : ibuf.validate(gconf);
+                if ((ibuf == null) || (ibufValidStatus == VolatileImage.IMAGE_INCOMPATIBLE))
+                {
+                    ibuf = gconf.createCompatibleVolatileImage
+                        (scaledPanelW, scaledPanelH, Transparency.OPAQUE);
+                }
+            } while (ibuf.contentsLost());
+            buffer = ibuf;
 
             // Try-catch: Because of message timing during placement,
             // watch for the board's lists of roads, settlements, ships, etc
@@ -3331,7 +3347,9 @@ import javax.swing.JComponent;
             // in v1.x.xx with older-java piece enumerations.
             try
             {
-                drawBoard(ibuf.getGraphics());  // Do the actual drawing
+                Graphics2D graf2D = ibuf.createGraphics();
+                drawBoard(graf2D);  // Do the actual drawing
+                graf2D.dispose();
             } catch (ConcurrentModificationException cme) {
                 repaint();  // try again soon
                 return;
@@ -3339,7 +3357,6 @@ import javax.swing.JComponent;
 
             if (hoverTip.isVisible())
                 hoverTip.paint(ibuf.getGraphics());
-            ibuf.flush();
             g.drawImage(ibuf, 0, 0, this);
 
         } catch (Throwable th) {
@@ -3479,7 +3496,7 @@ import javax.swing.JComponent;
         // Draw the hex image. For ports, the overlay (circle with arrows) will be drawn on top of this hex.
         final int htypeIdx;
         {
-            final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
+            final BufferedImage[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
             // For the 3:1 port, don't use hexType for image index (hexType 0 is open water);
             // miscPort.gif is at end of hex images array. hexType index works for 2:1 port types.
@@ -4514,26 +4531,34 @@ import javax.swing.JComponent;
     @SuppressWarnings("fallthrough")
     private void drawBoard(Graphics g)
     {
-        Image ebb = emptyBoardBuffer;
+        final GraphicsConfiguration gconf = playerInterface.getGraphicsConfiguration();
+            // use PI instead of this.getGraphicsConfiguration(), which is null early in setup
+        VolatileImage ebb = emptyBoardBuffer;
             // Local copy, in case field becomes null in another thread
             // during drawBoardEmpty or other calls. (this has happened)
 
-        if (scaledMissedImage || ebb == null)
+        do
         {
-            if (ebb == null)
+            final int ebbValidStatus = (ebb == null) ? -1 : ebb.validate(gconf);
+            if (scaledMissedImage || (ebb == null) || (ebbValidStatus != VolatileImage.IMAGE_OK))
             {
-                ebb = createImage(scaledPanelW, scaledPanelH);
-                emptyBoardBuffer = ebb;
+                if ((ebb == null) || (ebbValidStatus == VolatileImage.IMAGE_INCOMPATIBLE))
+                {
+                    ebb = gconf.createCompatibleVolatileImage(scaledPanelW, scaledPanelH, Transparency.OPAQUE);
+                    emptyBoardBuffer = ebb;
+                }
+
+                drawnEmptyAt = System.currentTimeMillis();
+                scaledMissedImage = false;  // drawBoardEmpty, drawHex will set this flag if missed
+                Graphics2D ebbG = ebb.createGraphics();
+                drawBoardEmpty(ebbG);
+                ebbG.dispose();
+
+                if (scaledMissedImage && (scaledAt != 0)
+                    && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))  // eventually give up scaling it
+                    scaledMissedImage = false;
             }
-
-            drawnEmptyAt = System.currentTimeMillis();
-            scaledMissedImage = false;    // drawBoardEmpty, drawHex will set this flag if missed
-            drawBoardEmpty(ebb.getGraphics());
-
-            ebb.flush();
-            if (scaledMissedImage && (scaledAt != 0) && (RESCALE_MAX_RETRY_MS < (drawnEmptyAt - scaledAt)))
-                scaledMissedImage = false;  // eventually give up scaling it
-        }
+        } while (ebb.contentsLost());
 
         // draw ebb from local variable, not emptyBoardBuffer field, to avoid occasional NPE
         g.setPaintMode();
@@ -7533,7 +7558,7 @@ import javax.swing.JComponent;
      * Note: Afterwards, you must call each current instance's {@link #flushBoardLayoutAndRepaint()}.
      *
      * @param c  Any {@link SOCBoardPanel} or other UI component packaged in the same jar,
-     *     to load image resource files with getToolkit and getResource
+     *     to load image resource files with getResource
      * @since 2.0.00
      */
     /* package */ static synchronized void reloadBoardGraphics(final Component c)
@@ -7556,7 +7581,8 @@ import javax.swing.JComponent;
      * May change value of {@link #hexesMustAlwaysScale} and/or {@link #rotatHexesMustAlwaysScale}:
      * If those hexes are loaded, calls {@link #checkNonstandardHexesSize(Image[], boolean)}.
      *
-     * @param c  Our component, to load image resource files with getToolkit and getResource
+     * @param c  Our component, or any class packaged in the same jar,
+     *     to load image resource files with getResource
      * @param wantsRotated  True for the 6-player non-sea board
      *          (v2 encoding {@link SOCBoard#BOARD_ENCODING_6PLAYER}), false otherwise.
      *          The large board (v3 encoding)'s fog-hex and gold-hex images have no rotated version,
@@ -7567,9 +7593,7 @@ import javax.swing.JComponent;
         if ((hexes != null) && ((rotatHexes != null) || ! wantsRotated))
             return;
 
-        Toolkit tk = c.getToolkit();
-        Class<?> clazz = c.getClass();
-
+        final Class<?> clazz = c.getClass();
         int setIdx = UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0);
         if ((setIdx < 0) || (setIdx >= HEX_GRAPHICS_SET_SUBDIRS.length))
             setIdx = 0;
@@ -7579,20 +7603,12 @@ import javax.swing.JComponent;
         {
             hexesGraphicsSetIndex = setIdx;
 
-            MediaTracker tracker = new MediaTracker(c);
-
-            hexes = new Image[10];  // water, desert, 5 resources, gold, fog, 3:1 port
-
-            loadHexesAndImages(hexes, hexSetDirBase, tracker, tk, clazz, false);
+            hexes = new BufferedImage[10];  // water, desert, 5 resources, gold, fog, 3:1 port
 
             try
             {
-                tracker.waitForID(0);
-            }
-            catch (InterruptedException e) {}
-
-            if (tracker.isErrorID(0))
-            {
+                loadHexesAndImages(hexes, hexSetDirBase, clazz, false);
+            } catch (IOException e) {
                 System.out.println("Error loading board images");
             }
 
@@ -7601,19 +7617,12 @@ import javax.swing.JComponent;
 
         if (wantsRotated && (rotatHexes == null))
         {
-            MediaTracker tracker = new MediaTracker(c);
-
-            rotatHexes = new Image[8];  // only 8, not 10: large board (gold,fog) is not rotated
-            loadHexesAndImages(rotatHexes, hexSetDirBase + "/rotat", tracker, tk, clazz, true);
+            rotatHexes = new BufferedImage[8];  // only 8, not 10: large board (gold,fog) is not rotated
 
             try
             {
-                tracker.waitForID(0);
-            }
-            catch (InterruptedException e) {}
-
-            if (tracker.isErrorID(0))
-            {
+                loadHexesAndImages(rotatHexes, hexSetDirBase + "/rotat", clazz, true);
+            } catch (IOException e) {
                 System.out.println("Error loading rotated board images");
             }
 
@@ -7623,49 +7632,50 @@ import javax.swing.JComponent;
 
     /**
      * Load hex and other related images from either normal, or rotated, resource location.
+     * Calls blocking {@link ImageIO#read(java.net.URL)}.
+     * Returned images are {@link BufferedImage} for performance.
+     *<P>
+     * Before v2.4.50, this method loaded asynchronously instead of blocking.
      *<P>
      * Before v1.1.20, this method was called {@code loadHexesPortsImages(..)}.
      *
      * @param newHexes Array to store hex images and 3:1 port image into; {@link #hexes} or {@link #rotatHexes}
      * @param imageDir Location for {@link Class#getResource(String)}: normal or rotated, under {@link #IMAGEDIR}
      *     including subdirectory from {@link #HEX_GRAPHICS_SET_SUBDIRS}
-     * @param tracker Track image loading progress here
-     * @param tk   Toolkit to load image from resource
-     * @param clazz  Class for getResource
+     * @param clazz  Our component, or any class packaged in the same jar,
+     *     to load image resource files with getResource
      * @param wantsRotated  True for rotated, false otherwise;
      *             some hex types (goldHex, fogHex) aren't available in rotated versions,
      *             because their board layout is never rotated.
      *             This parameter isn't about whether the current board is rotated,
      *             but about whether this image directory's contents are rotated.
+     * @throws IOException if an image can't be read
      * @see #renderPortImages()
      * @since 1.1.08
      */
     private static final void loadHexesAndImages
-        (Image[] newHexes, String imageDir,
-         MediaTracker tracker, Toolkit tk, Class<?> clazz,
+        (final BufferedImage[] newHexes, final String imageDir, final Class<?> clazz,
          final boolean wantsRotated)
+        throws IOException
     {
         final int numHexImage;
 
-        newHexes[0] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
-        newHexes[1] = tk.getImage(clazz.getResource(imageDir + "/clayHex.gif"));
-        newHexes[2] = tk.getImage(clazz.getResource(imageDir + "/oreHex.gif"));
-        newHexes[3] = tk.getImage(clazz.getResource(imageDir + "/sheepHex.gif"));
-        newHexes[4] = tk.getImage(clazz.getResource(imageDir + "/wheatHex.gif"));
-        newHexes[5] = tk.getImage(clazz.getResource(imageDir + "/woodHex.gif"));
-        newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/desertHex.gif"));
+        newHexes[0] = ImageIO.read(clazz.getResource(imageDir + "/waterHex.gif"));
+        newHexes[1] = ImageIO.read(clazz.getResource(imageDir + "/clayHex.gif"));
+        newHexes[2] = ImageIO.read(clazz.getResource(imageDir + "/oreHex.gif"));
+        newHexes[3] = ImageIO.read(clazz.getResource(imageDir + "/sheepHex.gif"));
+        newHexes[4] = ImageIO.read(clazz.getResource(imageDir + "/wheatHex.gif"));
+        newHexes[5] = ImageIO.read(clazz.getResource(imageDir + "/woodHex.gif"));
+        newHexes[6] = ImageIO.read(clazz.getResource(imageDir + "/desertHex.gif"));
         if (wantsRotated)
         {
             numHexImage = 8;
         } else {
             numHexImage = 10;
-            newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/goldHex.gif"));
-            newHexes[8] = tk.getImage(clazz.getResource(imageDir + "/fogHex.gif"));
+            newHexes[7] = ImageIO.read(clazz.getResource(imageDir + "/goldHex.gif"));
+            newHexes[8] = ImageIO.read(clazz.getResource(imageDir + "/fogHex.gif"));
         }
-        newHexes[numHexImage - 1] = tk.getImage(clazz.getResource(imageDir + "/miscPort.gif"));
-
-        for (int i = 0; i < numHexImage; i++)
-            tracker.addImage(newHexes[i], 0);
+        newHexes[numHexImage - 1] = ImageIO.read(clazz.getResource(imageDir + "/miscPort.gif"));
     }
 
     /**
@@ -7674,7 +7684,7 @@ import javax.swing.JComponent;
      * When rotated, swap those constants for standard width x height.
      *
      * @param loaded  Hex images loaded by
-     *     {@link #loadHexesAndImages(Image[], String, MediaTracker, Toolkit, Class, boolean)},
+     *     {@link #loadHexesAndImages(BufferedImage[], String, Class, boolean)},
      *     with same indexes as {@link #hexes} or {@link #rotatHexes}
      * @param isRotated  True if these images are rotated, and should be checked against
      *     size {@code HEXHEIGHT} x {@code HEXWIDTH}

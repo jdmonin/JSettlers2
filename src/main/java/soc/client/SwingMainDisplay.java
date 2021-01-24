@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -106,6 +106,8 @@ import soc.util.Version;
  *</UL>
  * Individual games are shown using {@link SOCPlayerInterface}
  * and channels use {@link ChannelFrame}.
+ *<P>
+ * Should be added directly to a {@link JFrame} or other {@link Frame}, not a subcontainer.
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  * Also converted from AWT to Swing in v2.0.00.

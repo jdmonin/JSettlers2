@@ -89,6 +89,7 @@ JARs for recent JSettlers versions can be downloaded from
 	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- Game window:
 	    - Hand Panel: Shrink unused space above trading squares
+	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
 	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
 	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
 	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
