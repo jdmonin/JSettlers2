@@ -24,7 +24,7 @@ of this Readme.
 
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at https://github.com/jdmonin/JSettlers2/ and
-at http://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
+https://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
 and pull requests can be posted at the github page.
 
 \- The JSettlers Development Team
@@ -77,15 +77,17 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 
 ## Requirements
 
-To play JSettlers you will need either the Java Development Kit (JDK)
-version 7 or higher, or version 7 or 8 of the smaller Java Runtime (JRE).
+To play JSettlers you will need either Java Runtime (JRE) version 7 or 8
+from https://java.com/download/ , or the Java Development Kit (JDK)
+version 7 or higher from https://jdk.java.net/ .
+
 Then download JSettlers-full.jar from either
-https://github.com/jdmonin/JSettlers2/releases or http://nand.net/jsettlers/
+https://github.com/jdmonin/JSettlers2/releases or https://nand.net/jsettlers/
 and run it.
 
 To host a JSettlers server, use any server OS and hosting provider you like.
 To also provide a download for the full Jar, you will need any http server
-such as Apache's httpd (available from http://httpd.apache.org).
+such as Apache's httpd (available from https://httpd.apache.org).
 
 The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
@@ -414,7 +416,7 @@ section "Security, Admin Users, Admin Commands" of [doc/Database.md](doc/Databas
 
 JSettlers is an open-source project licensed under the GPL. The project
 source code is hosted at https://github.com/jdmonin/JSettlers2/ and
-the project website is http://nand.net/jsettlers/devel/ .  Questions,
+the project website is https://nand.net/jsettlers/devel/ .  Questions,
 bugs, patches, and pull requests can be posted at the github page.
 
 For more information on building or developing JSettlers, see
@@ -429,7 +431,7 @@ See individual source files for the GPL version and other details.
 
 BCrypt.java is licensed under the "new BSD" license, and is copyright
 (C) 2006 Damien Miller; see BCrypt.java for details.  jBCrypt-0.4.tar.gz
-retrieved 2017-05-27 from http://www.mindrot.org/projects/jBCrypt/
+retrieved 2017-05-27 from https://www.mindrot.org/projects/jBCrypt/
 and some constants, javadocs, throws declarations added by Jeremy D Monin.
 
 org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
@@ -446,7 +448,7 @@ The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
 classic/goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che,
-available at http://www.flickr.com/photos/rosemania/5431942688/ , of
+available at https://www.flickr.com/photos/rosemania/5431942688/ , of
 ancient Greek coins.
 
 The pastel hex images were created and contributed by qubodup, (C) 2019,
