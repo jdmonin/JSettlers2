@@ -333,6 +333,14 @@ build variables you may want to change locally. These can be changed by
 creating a `build.properties` file, or from the gradle command line by passing
 a `-Dname=value` parameter.
 
+The basic build command/task is:  
+`gradle build`  
+If the build fails with this error:
+`A problem occurred starting process 'command 'python''`  
+then make sure you can run the `python` command.
+If your computer has `python3` instead, update the ext.python_command
+declaration in `build.gradle`.
+
 There are several gradle build tasks. Here are the main ones:
 
 - `build`: create project jar files; also runs unit tests

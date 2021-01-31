@@ -8,7 +8,6 @@ apply plugin: 'idea'
 buildscript {
     repositories {
         mavenCentral()
-        maven { url "http://google-diff-match-patch.googlecode.com/svn/trunk/maven" }
     }
 }
 
