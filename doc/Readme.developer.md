@@ -508,6 +508,10 @@ ideas.
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
+    - Maybe standardize resource type names and other terms to those in 5th Edition:
+        - Resources: brick, lumber, grain, ore, wool (no ambiguous "W")
+        - Tile types: hills, forest, fields, mountains, pasture, desert
+        - Dev cards: knight, progress (road building, year of plenty, monopoly), VP (market, library, chapel, university, great hall)
 - Customize bot names (txt file or startup property) in SOCServer.setupLocalRobots
 - Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
   message into brainQ, but only update game fields/methods, into
@@ -515,6 +519,10 @@ ideas.
 - Refactor `SOCDisplaylessPlayerClient` like SOCPlayerClient: Move handler methods into
   a class like MessageHandler, and sender methods into a class like GameMessageSender.
   Watch for method calls from the `soc.robot` and `soc.client` packages.
+- Client: Save and reload practice games
+    - Use same json format as `*SAVEGAME*`, `*LOADGAME*` debug commands mentioned in "Saving and loading games at server" section
+    - File dialog for save/load
+    - May require a change to how client jar is built/packaged, to include gson jar; also check licensing for redistribution
 - House rules and game options
     - Client: Remember last game's options from previous launch (github issue #28)
         - Or, "game template"
@@ -561,6 +569,7 @@ ideas.
   errors, etc
 - Per-game thread/message queue at server (use SOCMessageForGame.getGame)
 - New game/modding/scenarios: Optional simple map file format for board layout and game options (suggested in github issue #46 by kotc)
+    - Maybe have a converter to this format from `*SAVEGAME*` json format
 - HTML5 client (see v3 branch for protobuf/JSON over websockets and preliminary
   observer-only start on that work)
 - Cities & Knights support

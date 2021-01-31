@@ -201,11 +201,11 @@ JARs for recent JSettlers versions can be downloaded from
 	  - `*BOTLIST*` no longer invites all bots to join admin user's game
 	  - `*DBSETTINGS*` also shows whether game results are saved in DB
 - For developers:
-	- Can save/load games using local files and debug commands
+	- Can save/load games with local json files and debug commands
 	  - This is work in progress: Currently works with classic and sea board games, but no scenarios
 	  - Server config must designate a directory
 	  - Optional GSON jar must be on classpath or same dir as server
-	  - For details see [Readme.developer.md](Readme.developer.md): Search text for `*SAVEGAME*`
+	  - For details see [Readme.developer.md](Readme.developer.md): Search for `*SAVEGAME*`
 	- Bugfix: Free Placement debug mode with Forgotten Tribe scenario:
 	  - Handle Gift Port pickup and placement for current player, decline it for other players
 	  - Use new ship's player, not current player, for SVP and dev card gifts
