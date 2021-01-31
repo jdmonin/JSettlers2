@@ -488,6 +488,8 @@ ideas.
   - Capture any exceptions thrown by bots during those games
   - If any exceptions thrown, System.exit(1)
 - Add more sound effects
+- Client: Call frame.setIconImage instead of using default java icon
+  - Thanks to tiehfood for this suggestion (github issue #84)
 - Add more functional and unit tests, in `src/extraTest/` and `src/test/` directories
   - Medium-level example: Add a board-geometry unit test to `soctest.game.TestBoardLayouts`
     to check all scenarios' layouts against the "Layout placement rules for special situations"
@@ -513,7 +515,15 @@ ideas.
 - Refactor `SOCDisplaylessPlayerClient` like SOCPlayerClient: Move handler methods into
   a class like MessageHandler, and sender methods into a class like GameMessageSender.
   Watch for method calls from the `soc.robot` and `soc.client` packages.
-- Track a limited supply of resource cards
+- House rules and game options
+    - Client: Remember last game's options from previous launch (github issue #28)
+        - Or, "game template"
+        - Maybe: Save Settings/Load Settings button
+        - Client already remembers some settings persistently, like Sound and Player Icon: See soc.client.UserPreferences
+    - Client: New game: Random options and scenario for variety (issue #29)
+    - Optional max time limit for player turns (issue #68)
+    - Thanks to kotc and dannythunder for these suggestions
+- Track a limited supply of resource cards at the bank
     - Currently unlimited
     - Official game rules have a supply limit. Paraphrasing 5th edition rules:
         - During resource production (dice roll), check the remaining supply
@@ -528,7 +538,8 @@ ideas.
     - Show remaining supply in Statistics popup and `*STATS*` debug command
     - Game window is probably too cluttered already to always show remaining supply;
       any way to cleanly do so would be a bonus
-    - Add a house rule to `SOCGameOption` for unlimited resources
+    - Be backwards-compatible: Add a house rule to `SOCGameOptionSet` for limited or unlimited resources
+    - Thanks to Ruud Poutsma and balping (github issue #85) for requesting this feature
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
 - Bots on sea boards: Help bots decide when it makes sense to move a ship (versus build another)
@@ -549,6 +560,7 @@ ideas.
   bots, currently active/total games from `*STATS*` cmd, client versions, any
   errors, etc
 - Per-game thread/message queue at server (use SOCMessageForGame.getGame)
+- New game/modding/scenarios: Optional simple map file format for board layout and game options (suggested in github issue #46 by kotc)
 - HTML5 client (see v3 branch for protobuf/JSON over websockets and preliminary
   observer-only start on that work)
 - Cities & Knights support
