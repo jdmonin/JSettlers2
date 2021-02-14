@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -523,6 +523,25 @@ import soc.util.Version;
     }
 
     /**
+     * We were connected to a TCP server (remote, or the one we started) but something broke the connection.
+     * Show an error message and the initial 3 buttons, as if we've just started the client up.
+     *
+     * @param errText  Error message to show
+     * @since 2.4.50
+     */
+    public void lostServerConnection(final String errText)
+    {
+        // Hide any visible detail fields
+        clickConnCancel();
+        clickRunCancel();
+
+        setTopText(errText);
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        for (JButton b : new JButton[]{connserv, conn_connect, conn_cancel, runserv, run_startserv, run_cancel})
+            b.setEnabled(true);
+    }
+
+    /**
      * Set the line of text displayed at the top of the panel.
      * @param newText  New text to display
      * @since 1.1.16
@@ -681,8 +700,8 @@ import soc.util.Version;
         md.getClient().connect(cserv, cport, conn_user.getText(), conn_pass.getText());
     }
 
-    /** Hide fields used to connect to server. Called by client after a network error. */
-    public void clickConnCancel()
+    /** Hide fields used to connect to server. */
+    private void clickConnCancel()
     {
         panel_conn.setVisible(false);
         connserv.setVisible(true);

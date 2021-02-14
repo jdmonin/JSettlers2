@@ -1022,9 +1022,30 @@ Start with a recently-created database with latest schema/setup scripts.
     - Start a new client and connect as that same username
       - Should allow connect after appropriate number of seconds
       - Player's private info should be correct
-- Leave a practice game idle for hours, then finish it; bots should not time out or leave game
-- Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
-  should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+- Idle games, timeout behaviors:
+    - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
+    - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
+      should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+    - If connection to server is lost or times out, Connect or Practice panel should give you all options
+        - In src/main/java/soc/server/genericServer/NetConnection.java temporarily change `TIMEOUT_VALUE` to `10 * 1000`
+        - Test: Start a Server
+            - Launch client and click "Start a Server", then "Start"
+            - Should start up and connect to that server as usual
+            - Wait 10 seconds
+        - Client should return to its Connect or Practice panel
+            - Should show the 3 buttons for Connect to a Server, Practice, Start a Server
+            - Network trouble message should be shown above the buttons
+            - No input textfields should be visible
+            - Click "Connect to Server"; all buttons should be enabled
+            - Click "Start a Server"; all buttons should be enabled
+        - Start up a server on default port
+        - Test: Connect to a Server
+            - In client, click "Connect to a Server", then "Connect"
+            - Should connect to that server as usual
+            - Wait 10 seconds
+        - Client should return to its Connect or Practice panel
+            - Should be same as for "Test: Start a Server": see that for details
+        - Exit client, stop server; revert NetConnection.java temporary change
 - Practice Games vs Server connection:
     - Launch the player client and start a practice game (past end of initial placement)
     - Connect to a server, change client's nickname from "Player", start or join a game there

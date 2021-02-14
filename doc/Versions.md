@@ -93,6 +93,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
 	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
 	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
+	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
 - Code internals:

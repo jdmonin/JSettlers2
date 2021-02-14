@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2010,2013,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010,2013,2016-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -56,7 +56,8 @@ import java.util.Vector;
 /*package*/ final class NetConnection
     extends Connection implements Runnable, Serializable, Cloneable
 {
-    protected final static int TIMEOUT_VALUE = 3600000; // approx. 1 hour
+    /** Timeout for reading from client is 1 hour, in milliseconds */
+    protected final static int TIMEOUT_VALUE = 60 * 60 * 1000;
 
     DataInputStream in = null;
     DataOutputStream out = null;

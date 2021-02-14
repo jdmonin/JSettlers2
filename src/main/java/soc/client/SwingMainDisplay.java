@@ -2113,15 +2113,13 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             pass.setEditable(true);
 
             cardLayout.show(this, CONNECT_OR_PRACTICE_PANEL);
-            validate();
-            connectOrPracticePane.clickConnCancel();
-            connectOrPracticePane.setTopText(err);
-            connectOrPracticePane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            connectOrPracticePane.lostServerConnection(err);
+            revalidate();
         }
         else
         {
             cardLayout.show(this, MESSAGE_PANEL);
-            validate();
+            revalidate();
             if (canPractice)
             {
                 if (! hasAnyActiveGame(true))
