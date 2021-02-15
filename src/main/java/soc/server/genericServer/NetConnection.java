@@ -56,7 +56,11 @@ import java.util.Vector;
 /*package*/ final class NetConnection
     extends Connection implements Runnable, Serializable, Cloneable
 {
-    /** Timeout for reading from client is 1 hour, in milliseconds */
+    /**
+     * Timeout for reading from client is 1 hour, in milliseconds.
+     *<P>
+     * Should be at least several minutes longer than {@link soc.client.ClientNetwork#PING_LOCAL_SERVER_INTERVAL_MS}.
+     */
     protected final static int TIMEOUT_VALUE = 60 * 60 * 1000;
 
     DataInputStream in = null;

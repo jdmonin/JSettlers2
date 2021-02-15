@@ -566,6 +566,10 @@ public class SOCPlayerClient
      * Connect and give feedback by showing MESSAGE_PANEL.
      * Calls {@link MainDisplay#connect(String, String)} to set username and password,
      * then {@link ClientNetwork#connect(String, int)} to make the connection.
+     *<P>
+     * Note: If {@code chost} is null, {@link ClientNetwork#connect(String, int)}
+     * assumes client has started a local server, so will start a thread to
+     * periodically send it {@link SOCServerPing}s as a keepalive.
      *
      * @param chost Hostname to connect to, or null for localhost
      * @param cport Port number to connect to

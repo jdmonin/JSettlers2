@@ -2776,7 +2776,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         cardLayout.show(this, MESSAGE_PANEL);
 
         // Connect to it
-        net.connect("localhost", tport);  // I18N: no need to localize this hostname
+        net.connect(null, tport);
 
         // Ensure we can't "connect" to another, too
         if (connectOrPracticePane != null)

@@ -1026,6 +1026,8 @@ Start with a recently-created database with latest schema/setup scripts.
     - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
     - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
       should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+    - Client: Click "Start a Server" button, leave it idle for at least 2 hours;
+      should stay up and available, shouldn't time out or give a network error
     - If connection to server is lost or times out, Connect or Practice panel should give you all options
         - In src/main/java/soc/server/genericServer/NetConnection.java temporarily change `TIMEOUT_VALUE` to `10 * 1000`
         - Test: Start a Server

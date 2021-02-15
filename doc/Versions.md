@@ -92,6 +92,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
 	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
 	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
+	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
+	  (thanks kotc for reporting issue #81)
 	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
 	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
