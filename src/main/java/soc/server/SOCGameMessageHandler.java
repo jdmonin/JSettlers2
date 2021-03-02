@@ -776,7 +776,8 @@ public class SOCGameMessageHandler
             }
             else
             {
-                srv.messageToPlayer(c, gn, pl.getPlayerNumber(), "You can't roll right now.");
+                srv.messageToPlayerKeyed
+                    (c, gn, pl.getPlayerNumber(), "reply.rolldice.cannot.now");  // "You can't roll right now."
             }
         }
         catch (Exception e)
@@ -1146,7 +1147,7 @@ public class SOCGameMessageHandler
                     handler.endGameTurn(ga, pl, true);
                 }
                 else
-                    srv.messageToPlayer(c, gname, pl.getPlayerNumber(), /*I*/"You can't end your turn yet."/*18N*/ );
+                    srv.messageToPlayerKeyed(c, gname, pl.getPlayerNumber(), "reply.endturn.cannot");  // "You can't end your turn yet."
             } else {
                 srv.messageToPlayerKeyed(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
