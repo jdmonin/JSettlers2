@@ -2960,8 +2960,8 @@ public class SOCGameHandler extends GameHandler
 
         final boolean isFullyObservable = ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO);
 
-        final SOCReportRobbery gainLoseRsrc = new SOCReportRobbery(gaName, pePN, viPN, rsrc, true, 1, 0, 0),
-            gainLoseUnknown = (isFullyObservable)
+        final SOCReportRobbery reportRobb = new SOCReportRobbery(gaName, pePN, viPN, rsrc, true, 1, 0, 0),
+            reportRobbUnknown = (isFullyObservable)
                 ? null
                 : new SOCReportRobbery(gaName, pePN, viPN, SOCResourceConstants.UNKNOWN, true, 1, 0, 0);
 
@@ -2976,11 +2976,11 @@ public class SOCGameHandler extends GameHandler
         {
             if (isFullyObservable)
             {
-                srv.messageToGame(gaName, true, gainLoseRsrc);
+                srv.messageToGame(gaName, true, reportRobb);
             } else {
-                srv.messageToPlayer(peCon, gaName, pePN, gainLoseRsrc);
-                srv.messageToPlayer(viCon, gaName, viPN, gainLoseRsrc);
-                srv.messageToGameExcept(gaName, sendNotTo, notToPNs, gainLoseUnknown, true);
+                srv.messageToPlayer(peCon, gaName, pePN, reportRobb);
+                srv.messageToPlayer(viCon, gaName, viPN, reportRobb);
+                srv.messageToGameExcept(gaName, sendNotTo, notToPNs, reportRobbUnknown, true);
             }
 
             return;  // <--- early return: no further messages needed here ---
@@ -2992,11 +2992,11 @@ public class SOCGameHandler extends GameHandler
 
         if (isFullyObservable)
         {
-            srv.recordGameEvent(gaName, gainLoseRsrc);
+            srv.recordGameEvent(gaName, reportRobb);
         } else {
-            srv.recordGameEventTo(gaName, pePN, gainLoseRsrc);
-            srv.recordGameEventTo(gaName, viPN, gainLoseRsrc);
-            srv.recordGameEventNotTo(gaName, notToPNs, gainLoseUnknown);
+            srv.recordGameEventTo(gaName, pePN, reportRobb);
+            srv.recordGameEventTo(gaName, viPN, reportRobb);
+            srv.recordGameEventNotTo(gaName, notToPNs, reportRobbUnknown);
         }
 
         SOCPlayerElement gainRsrc = null;
@@ -3017,7 +3017,7 @@ public class SOCGameHandler extends GameHandler
 
         if (isFullyObservable)
         {
-            srv.messageToGameForVersions(ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, gainLoseRsrc, true);
+            srv.messageToGameForVersions(ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, reportRobb, true);
             srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, gainRsrc, true);
             srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, loseRsrc, true);
 
@@ -3038,7 +3038,7 @@ public class SOCGameHandler extends GameHandler
                     (peCon, ga, SOCServer.PN_NON_EVENT,
                      "robber.common.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
             } else {
-                srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, gainLoseRsrc);
+                srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, reportRobb);
             }
 
             if (viCon.getVersion() < SOCReportRobbery.MIN_VERSION)
@@ -3049,13 +3049,13 @@ public class SOCGameHandler extends GameHandler
                     (viCon, ga, SOCServer.PN_NON_EVENT,
                      "robber.common.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
             } else {
-                srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, gainLoseRsrc);
+                srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, reportRobb);
             }
 
             // generic message to all except pe or vi
 
             srv.messageToGameForVersionsExcept
-                (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, sendNotTo, gainLoseUnknown, true);
+                (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, sendNotTo, reportRobbUnknown, true);
 
             if (ga.clientVersionLowest < SOCReportRobbery.MIN_VERSION)
             {
