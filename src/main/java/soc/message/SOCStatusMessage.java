@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -389,19 +389,16 @@ public class SOCStatusMessage extends SOCMessage
      * @param st  the status message text.
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
-     * @return the status message
+     * @return status message, with a status value valid at client's version
      * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVers},
      *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
      *     the exception is thrown to prevent continued server processing as if the fallback was successful.
      * @since 2.4.50
      */
-    public static SOCStatusMessage buildForVersion(int sv, final int cliVers, final String st)
+    public static SOCStatusMessage buildForVersion(final int sv, final int cliVers, final String st)
         throws IllegalArgumentException
     {
-        final int fallSV = sv = statusFallbackForVersion(sv, cliVers);
-        return (fallSV != sv)
-            ? buildForVersion(fallSV, cliVers, st)  // ensure fallback value is valid at client's version
-            : new SOCStatusMessage(sv, st);
+        return new SOCStatusMessage(statusFallbackForVersion(sv, cliVers), st);
     }
 
     /**
@@ -572,7 +569,8 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
-     * Is this status value defined at this version? Check client version and if not, find a compatible status value.
+     * Is this status value defined at this version?
+     * Check client version and if not, find a compatible smaller status value.
      *<P>
      *<H3>Status value fallbacks:</H3>
      * See individual status values' javadocs for details.
@@ -592,7 +590,7 @@ public class SOCStatusMessage extends SOCMessage
      *
      * @param sv  the status value; should be a constant such as {@link #SV_OK}.
      * @param cliVersion Client's version, same format as {@link soc.util.Version#versionNumber()}
-     * @return {@code sv} if valid at {@code cliVersion}, or the most applicable status for that version.
+     * @return {@code sv} if valid at {@code cliVersion}, or the most applicable status {@code < sv} for that version
      * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVersion},
      *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
      *     the exception is thrown to prevent continued server processing as if the fallback was successful.
