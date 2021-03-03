@@ -532,6 +532,8 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static boolean statusValidAtVersion(int statusValue, int cliVersion)
     {
+        // When making changes to this method, please see if unit test TestSOCStatusMessage.testStatusFallback needs updates.
+
         switch (cliVersion)
         {
         case 1106:
@@ -554,6 +556,8 @@ public class SOCStatusMessage extends SOCMessage
                 return (statusValue == 0);
             else if (cliVersion < 1119)  // 1111 - 1118
                 return (statusValue < SV_PW_REQUIRED);
+            else if (cliVersion < 1200)  // 1121 - 1199
+                return (statusValue < SV_OK_SET_NICKNAME);
             else if (cliVersion < 2000)  // 1201 - 1999
                 return (statusValue < SV_OK_DEBUG_MODE_ON);
             else if (cliVersion < 2100)  // 2000 - 2099
@@ -565,6 +569,7 @@ public class SOCStatusMessage extends SOCMessage
                 // (since none has been added yet after 2400)
                 return (statusValue <= SV_MUST_AUTH_FIRST);
             }
+            // TODO perf: check for newest versions (more common) before earlier ones
         }
     }
 
@@ -582,8 +587,6 @@ public class SOCStatusMessage extends SOCMessage
      * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
      *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
      * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
-     * <LI> In case the fallback value is also not recognized at the client,
-     *      {@code toCmd(..)} will fall back again to something more generic
      * <LI> Clients before v1.1.06 will be sent the status text {@code st} only,
      *      without the {@code sv} parameter which was added in 1.1.06
      *</UL>
@@ -599,7 +602,10 @@ public class SOCStatusMessage extends SOCMessage
      */
     @SuppressWarnings("fallthrough")
     public static int statusFallbackForVersion(int sv, int cliVersion)
+        throws IllegalArgumentException
     {
+        // When making changes to this method, please see if unit test TestSOCStatusMessage.testStatusFallback needs updates.
+
         if (! statusValidAtVersion(sv, cliVersion))
         {
             boolean reject = false;
