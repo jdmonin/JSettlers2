@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants; // for javadocs only
+import soc.game.SOCScenario;  // for javadocs only
 
 
 /**
@@ -306,12 +307,17 @@ public class SOCPlayerElement extends SOCMessage
          * Sent only at reconnect, because these are also tracked during play at the client.
          * At client, should be set before placing any pieces to avoid SVP scoring problems.
          * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
+         *<P>
+         * Server v2.4.50 and newer will also send this at the end of initial placement if
+         * game is using a scenario like {@link SOCScenario#K_SC_TTD SC_TTD} which uses
+         * {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} (an uncommon situation).
+         *
          * @since 2.0.00
          */
         STARTING_LANDAREAS(105),
 
         /**
-         * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
+         * For scenario {@link SOCScenario#K_SC_CLVI SC_CLVI} on the {@link soc.game.SOCBoardLarge large sea board},
          * the number of cloth held by this player.
          * This element is {@link #SET} to 0 or to the player's cloth count
          * from {@link SOCPlayer#getCloth()}.
@@ -325,7 +331,7 @@ public class SOCPlayerElement extends SOCMessage
         SCENARIO_CLOTH_COUNT(106),
 
         /**
-         * For scenario game option <tt>_SC_PIRI</tt>,
+         * For scenario game option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},
          * the player's total number of ships that have been converted to warships.
          * See SOCPlayer.getNumWarships() for details.
          * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of

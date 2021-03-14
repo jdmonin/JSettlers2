@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -42,7 +42,7 @@ import java.util.Random;
  * {@link SOCBoard.BoardFactory#createBoard(SOCGameOptionSet, boolean, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
- * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
+ * A {@link SOCGame} uses this board; the board does not hold a reference to the game or players, to enforce layering
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  * Calling board methods won't change the game state.
  *<P>

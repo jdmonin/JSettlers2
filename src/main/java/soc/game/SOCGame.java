@@ -4857,7 +4857,12 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Update game state as needed after initial placement before the first turn of normal play:
      *<UL>
-     *<LI> Call each player's {@link SOCPlayer#clearPotentialSettlements()}
+     *<LI> Calls each player's {@link SOCPlayer#clearPotentialSettlements()}
+     *
+     *<LI> At server, if {@link SOCBoardAtServer#getBonusExcludeLandArea()} != 0,
+     *     use that to set each player's second starting land area as a client compatibility workaround
+     *     for bonus calculations: Calls {@link SOCPlayer#setStartingLandAreasEncoded(int)}.
+     *
      *<LI> If {@link #hasSeaBoard}, check board for Added Layout Part {@code "AL"} for node lists that
      *     become legal locations for settlements after initial placement, and make them legal now.
      *     (This Added Layout Part is rarely used, currently is in scenario {@link SOCScenario#K_SC_WOND SC_WOND}.)
@@ -4868,8 +4873,8 @@ public class SOCGame implements Serializable, Cloneable
      *     players won't have roads to any node 2 away from their settlements, so they will have no
      *     new potential settlements yet.  Does call each player's
      *     {@link SOCPlayer#addLegalSettlement(int, boolean) pl.addLegalSettlement(coord, true)}.
-     *    <P>
-     *     Calls {@link #updateAtTurn()}.
+     *
+     *<LI> Calls {@link #updateAtTurn()}.
      *</UL>
      *<P>
      * Called at server by {@link #advanceTurnStateAfterPutPiece()}, and at client by first
@@ -4885,6 +4890,16 @@ public class SOCGame implements Serializable, Cloneable
     {
         for (int pn = 0; pn < maxPlayers; ++pn)
             players[pn].clearPotentialSettlements();
+
+        if (isAtServer)
+        {
+            final int bxLAEnc = ((SOCBoardAtServer) board).getBonusExcludeLandArea() << 8;
+                // Shift left for "encoded" form of players' 2nd starting land area.
+                // If bxLAEnc != 0, board must have 1 starting land area, so can assume players' 2nd starting LA is 0.
+            if (bxLAEnc != 0)
+                for (final SOCPlayer pl: players)
+                    pl.setStartingLandAreasEncoded(pl.getStartingLandAreasEncoded() | bxLAEnc);
+        }
 
         final int[] partAL =
             (board instanceof SOCBoardLarge) ? ((SOCBoardLarge) board).getAddedLayoutPart("AL") : null;

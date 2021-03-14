@@ -92,12 +92,14 @@ public class SOCGameOptionSet
 
     /**
      * Scenario key <tt>_SC_SANY</tt> for {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
+     * See that event's javadoc for details.
      * @since 2.0.00
      */
     public static final String K_SC_SANY = "_SC_SANY";
 
     /**
      * Scenario key <tt>_SC_SEAC</tt> for {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
+     * See that event's javadoc for details.
      * @since 2.0.00
      */
     public static final String K_SC_SEAC = "_SC_SEAC";

@@ -16,6 +16,8 @@ JARs for recent JSettlers versions can be downloaded from
 ## `2.4.50` (build JM20201xxx)
 - Currently being developed
 - Gameplay:
+	- Through the Desert scenario: No longer incorrectly gives 2 SVP to a player
+	  building a settlement within the desert (thanks kotc for reporting issue #86)
 	- When a trade is offered to bots and humans, bots wait longer before responding.
 	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
 	  (thank you Lee Passey)

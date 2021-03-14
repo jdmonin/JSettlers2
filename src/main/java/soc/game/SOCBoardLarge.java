@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -50,13 +50,14 @@ import soc.util.IntPair;
  * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
  * {@link #setLegalSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
- * See {@code SOCBoardAtServer}'s class javadoc, and its {@code makeNewBoard(SOCGameOptionSet)} javadoc,
+ * See {@link soc.server.SOCBoardAtServer}'s class javadoc, and its
+ * {@link soc.server.SOCBoardAtServer#makeNewBoard(SOCGameOptionSet) makeNewBoard(SOCGameOptionSet)},
  * for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
- * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
+ * If {@link #getStartingLandArea()} != 0, the players must start in that land area.
  * In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
@@ -505,7 +506,7 @@ public class SOCBoardLarge extends SOCBoard
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
      * If the players must start in a certain land area,
-     * {@link #startingLandArea} != 0, and
+     * then {@link #startingLandArea} != 0 and
      * <tt>landAreasLegalNodes[{@link #startingLandArea}]</tt>
      * is also the players' potential settlement nodes.
      *<P>
@@ -532,6 +533,8 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * The startingLandArea and {@link #landAreasLegalNodes} are sent
      * from the server to client as part of a <tt>POTENTIALSETTLEMENTS</tt> message.
+     *<P>
+     * See {@link #getStartingLandArea()} for other details.
      */
     protected int startingLandArea;
 
@@ -1625,9 +1628,9 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
-     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
-     *         or {@link #WATER_HEX}.
+     *         Land in range {@link SOCBoard#CLAY_HEX} to {@link SOCBoard#WOOD_HEX},
+     *         {@link SOCBoard#DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link SOCBoard#WATER_HEX}.
      *         Invalid hex coordinates return -1.
      *
      * @see #getLandHexCoords()
@@ -1648,9 +1651,9 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hex  the number of a hex, or -1 for invalid
      * @return the type of hex:
-     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
-     *         or {@link #WATER_HEX}.
+     *         Land in range {@link SOCBoard#CLAY_HEX} to {@link SOCBoard#WOOD_HEX},
+     *         {@link SOCBoard#DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link SOCBoard#WATER_HEX}.
      *         Invalid hex numbers return -1.
      *
      * @see #getHexTypeFromCoord(int)
@@ -2340,9 +2343,13 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the starting land area, if multiple "land areas" are used
      * and the players must start the game in a certain land area.
+     * Used by some game scenarios.
      *<P>
      * This is enforced during {@link #makeNewBoard(SOCGameOptionSet)}, by using
      * that land area for the only initial potential/legal settlement locations.
+     *<P>
+     * Must be &gt; 0 if using {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()};
+     * see that getter for details.
      *
      * @return the starting land area number; also its index in
      *   {@link #getLandAreasLegalNodes()}.
@@ -2367,7 +2374,7 @@ public class SOCBoardLarge extends SOCBoard
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
      * If the players must start in a certain land area,
-     * {@link #startingLandArea} != 0.
+     * {@link #getStartingLandArea()} != 0.
      *<P>
      * See also {@link #getLegalSettlements()}
      * which returns the starting land area's nodes, or if no starting
