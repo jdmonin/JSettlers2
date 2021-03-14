@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1625,9 +1625,9 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
-     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
-     *         or {@link #WATER_HEX}.
+     *         Land in range {@link SOCBoard#CLAY_HEX} to {@link SOCBoard#WOOD_HEX},
+     *         {@link SOCBoard#DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link SOCBoard#WATER_HEX}.
      *         Invalid hex coordinates return -1.
      *
      * @see #getLandHexCoords()
@@ -1648,9 +1648,9 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hex  the number of a hex, or -1 for invalid
      * @return the type of hex:
-     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
-     *         or {@link #WATER_HEX}.
+     *         Land in range {@link SOCBoard#CLAY_HEX} to {@link SOCBoard#WOOD_HEX},
+     *         {@link SOCBoard#DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link SOCBoard#WATER_HEX}.
      *         Invalid hex numbers return -1.
      *
      * @see #getHexTypeFromCoord(int)

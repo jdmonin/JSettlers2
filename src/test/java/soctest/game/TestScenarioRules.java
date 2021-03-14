@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,12 +23,16 @@ package soctest.game;
 import java.util.List;
 import java.util.Random;
 
+import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCGame;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
+import soc.game.SOCRoad;
 import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.server.SOCBoardAtServer;
@@ -42,7 +46,11 @@ import static org.junit.Assert.*;
 /**
  * A few tests for per-{@link SOCScenario} rules in {@link SOCGame}.
  * Nowhere near comprehensive at this point:
- * Currently tests only a few rules for {@link SOCScenario#K_SC_PIRI SC_PIRI}.
+ * Currently tests only:
+ *<UL>
+ * <LI> {@link SOCScenario#K_SC_PIRI SC_PIRI}: A few rules for pirate fleet robbery.
+ * <LI> {@link SOCScenario#K_SC_TTD SC_TTD}: 2 SVP for placing past the desert, but no SVP for placing in desert
+ *</UL>
  * See also {@link TestBoardLayouts#testLayout_SC_CLVI(SOCGame)}.
  *
  * @since 2.0.00
@@ -193,6 +201,102 @@ public class TestScenarioRules
         robResult = ga.movePirate(2, pirHexShared, 6);
         assertTrue((robResult.sc_piri_loot == null) || (robResult.sc_piri_loot.getTotal() == 0));
         assertTrue(robResult.getVictims().isEmpty());
+
+        // Cleanup
+        gl.deleteGame(gaName);
+    }
+
+    /**
+     * {@link SOCScenario#K_SC_TTD SC_TTD}: 2 SVP for placing past the desert, but no SVP for placing in desert.
+     * @since 2.4.50
+     */
+    @Test
+    public void test_SC_TTD_place_desert_SVP()
+    {
+        final String gaName = SOCScenario.K_SC_TTD + ":6";
+        final SOCGame ga = GameTestUtils.createGame
+            (6, SOCScenario.K_SC_TTD, null, gaName, gl, sgh);
+
+        // Create the board and 2 players. Adapted from SOCGameHandler.startGame
+        for (int pn = 0; pn < 2; ++pn)
+            ga.addPlayer("player" + pn, pn);
+        ga.startGame();  // SOCBoard/SOCBoardAtServer.makeNewBoard is called here
+        SOCBoardAtServer.startGame_scenarioSetup(ga);
+
+        final SOCBoardAtServer board = (SOCBoardAtServer) ga.getBoard();
+        final SOCPlayer pl0 = ga.getPlayer(0);
+
+        // Assert test assumptions on 6-player board:
+        // - water
+        for (final int HEXCOORD : new int[]{0x512, 0x711})
+            assertEquals("expected water at hex 0x" + Integer.toHexString(HEXCOORD),
+                SOCBoard.WATER_HEX, board.getHexTypeFromCoord(HEXCOORD));
+        // - main island's main part and past-desert strip
+        for (final int[] HEX_LA : new int[][]{{0x70f, 1}, {0x910, 1}, {0x30f, 2}, {0x311, 2}})
+        {
+            final int HEXCOORD = HEX_LA[0], LA = HEX_LA[1];
+            final int htype = board.getHexTypeFromCoord(HEXCOORD);
+            assertTrue("expected non-desert land type, got " + htype + ", at hex 0x" + Integer.toHexString(HEXCOORD),
+                ((htype >= SOCBoard.CLAY_HEX) && (htype <= SOCBoard.WOOD_HEX)) || (htype == SOCBoardLarge.GOLD_HEX));
+            for (final int node : board.getAdjacentNodesToHex_arr(HEXCOORD))
+            {
+                final int nodeLA = board.getNodeLandArea(node);
+                assertEquals
+                    ("expected LA# == " +LA + " at node 0x" + Integer.toHexString(node) + " for hex 0x" + Integer.toHexString(HEXCOORD) + ", got " + nodeLA,
+                     LA, nodeLA);
+            }
+        }
+        // - desert strip
+        for (int hc = 0x508; hc <= 0x510; hc += 2)
+            assertEquals("expected desert at hex 0x" + Integer.toHexString(hc),
+                SOCBoard.DESERT_HEX, board.getHexTypeFromCoord(hc));
+
+        // skip the usual initial placement, to avoid restrictions and player number changes
+
+        ga.setGameState(SOCGame.PLAY1);
+        ga.setCurrentPlayerNumber(0);
+        pl0.setStartingLandAreasEncoded(1);  // main part of main island
+
+        SOCPlayingPiece p = new SOCSettlement(pl0, 0x810, board);
+        ga.putPiece(p);
+        assertNotNull(board.settlementAtNode(0x810));
+
+        p = new SOCRoad(pl0, 0x710, board);
+        ga.putPiece(p);
+        assertNotNull(board.roadOrShipAtEdge(0x710));
+
+        p = new SOCRoad(pl0, 0x610, board);
+        ga.putPiece(p);
+        assertNotNull(board.roadOrShipAtEdge(0x610));
+
+        assertEquals(0, pl0.getSpecialVP());
+        assertEquals(1, pl0.getTotalVP());
+
+        // coastal settlement in middle of desert
+
+        p = new SOCSettlement(pl0, 0x611, board);
+        ga.putPiece(p);
+        assertNotNull(board.settlementAtNode(0x611));
+
+        assertEquals(0, pl0.getSpecialVP());
+        assertEquals(2, pl0.getTotalVP());
+
+        // roads and settlement past desert
+
+        p = new SOCRoad(pl0, 0x511, board);
+        ga.putPiece(p);
+        assertNotNull(board.roadOrShipAtEdge(0x511));
+
+        p = new SOCRoad(pl0, 0x410, board);
+        ga.putPiece(p);
+        assertNotNull(board.roadOrShipAtEdge(0x410));
+
+        p = new SOCSettlement(pl0, 0x410, board);
+        ga.putPiece(p);
+        assertNotNull(board.settlementAtNode(0x410));
+
+        assertEquals(2, pl0.getSpecialVP());
+        assertEquals(5, pl0.getTotalVP());
 
         // Cleanup
         gl.deleteGame(gaName);
