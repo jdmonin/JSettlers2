@@ -67,7 +67,7 @@ import java.util.Vector;
  * {@link SOCBoard#BOARD_ENCODING_LARGE}, use these methods to update the player's board data
  * after {@link SOCBoard#makeNewBoard(SOCGameOptionSet)}, in this order:
  *<UL>
- * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
+ * <LI> {@link #getNumbers()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
  * <LI> {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}
  * <LI> Optionally, {@link #setRestrictedLegalShips(int[])}
  *</UL>

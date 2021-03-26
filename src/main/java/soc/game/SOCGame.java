@@ -4535,7 +4535,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Do the things involved in starting a game at server:
      * Call {@link #initAtServer()},
-     * shuffle the tiles and cards, make a board,
+     * shuffle the tiles and cards,
+     * make a board by calling {@link SOCBoard#makeNewBoard(SOCGameOptionSet)},
      * set players' legal and potential piece locations,
      * choose first player.
      * gameState becomes {@link #START1A}.
