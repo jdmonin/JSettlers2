@@ -266,6 +266,23 @@ public class SOCPlayerClient
             System.setProperty("com.apple.mrj.application.apple.menu.about.name", "JSettlers");
                 // Works for earlier OSX versions
         }
+        else if (! IS_PLATFORM_WINDOWS)
+        {
+            // Linux/Unix: Use sub-pixel font antialiasing if available;
+            // some desktop environments don't enable antialiasing by default
+
+            String currVal = null;
+            try
+            {
+                currVal = System.getProperty("awt.useSystemAAFontSettings");
+            } catch (SecurityException e) {}
+            if (currVal == null)
+                try
+                {
+                    System.setProperty("awt.useSystemAAFontSettings", "lcd");
+                } catch (SecurityException e) {}
+
+        }
     }
 
     /**

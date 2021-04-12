@@ -96,6 +96,7 @@ JARs for recent JSettlers versions can be downloaded from
 	  (thanks kotc for reporting issue #81)
 	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
 	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
+	- Linux/Unix: Use sub-pixel font antialiasing if available (thanks kotc for issue #92)
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
 - Code internals:
