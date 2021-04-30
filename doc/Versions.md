@@ -16,6 +16,8 @@ JARs for recent JSettlers versions can be downloaded from
 ## `2.4.50` (build JM20201xxx)
 - Currently being developed
 - Gameplay:
+	- Recalc Longest Route when building coastal settlement to connect a player's roads to ships
+	  (thanks kotc for reporting issue #95)
 	- When a trade is offered to bots and humans, bots wait longer before responding.
 	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
 	  (thank you Lee Passey)

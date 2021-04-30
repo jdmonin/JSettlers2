@@ -3810,28 +3810,45 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pieceType != SOCPlayingPiece.CITY)
         {
+            final int placingPN = ppPlayer.getPlayerNumber();
+
             if (pp instanceof SOCRoutePiece)
             {
                 /**
                  * the affected player is the one who build the road or ship
                  */
-                updateLongestRoad(ppPlayer.getPlayerNumber());
+                updateLongestRoad(placingPN);
             }
             else if (pieceType == SOCPlayingPiece.SETTLEMENT)
             {
                 /**
                  * this is a settlement, check if it cut anyone else's road or trade route
+                 * or (on sea boards) if this connects a player's own roads to their ships
                  */
                 int[] roads = new int[maxPlayers];
+                boolean ownRoad = false, ownShip = false;
 
                 for (final int adjEdge : board.getAdjacentEdgesToNode(coord))
                 {
                     /**
-                     * look for other players' roads and ships adjacent to this node
+                     * check all roads and ships adjacent to this node
                      */
                     for (SOCRoutePiece road : board.getRoadsAndShips())
-                        if (adjEdge == road.getCoordinates())
-                            roads[road.getPlayerNumber()]++;
+                    {
+                        if (adjEdge != road.getCoordinates())
+                            continue;
+
+                        final int roadPN = road.getPlayerNumber();
+                        roads[roadPN]++;
+
+                        if (roadPN == placingPN)
+                        {
+                            if (road.isRoadNotShip())
+                                ownRoad = true;
+                            else
+                                ownShip = true;
+                        }
+                    }
                 }
 
                 /**
@@ -3841,7 +3858,7 @@ public class SOCGame implements Serializable, Cloneable
                  */
                 for (int i = 0; i < maxPlayers; i++)
                 {
-                    if ((i != ppPlayer.getPlayerNumber()) && (roads[i] == 2))
+                    if ((i != placingPN) && (roads[i] == 2))
                     {
                         updateLongestRoad(i);
 
@@ -3851,6 +3868,13 @@ public class SOCGame implements Serializable, Cloneable
                         break;
                     }
                 }
+
+                /**
+                 * if placing player has connected their own roads and ships
+                 * at this new coastal settlement, recalculate their longest route
+                 */
+                if (ownRoad && ownShip)
+                    updateLongestRoad(placingPN);
             }
         }
 

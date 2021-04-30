@@ -114,14 +114,20 @@ When preparing to release a new version, testing should include:
           - Build settlement to split another player's Longest Route, giving a 3rd player the new Longest Route.
             (Skip this situation if testing for "move a ship".)
             If this ends the game, 3rd player should win only when their turn begins.  
-            To save time, you can test with server Savegame feature enabled:  
-            Copy src/test/resources/resources/savegame/reletest-longest-3p.game.json and reletest-longest-3p-sea.game.json
-            to your server's configured savegame directory, then run `*LOADGAME* reletest-longest-3p`
-            or `*LOADGAME* reletest-longest-3p-sea`
+            To save time, you can test with server Savegame feature enabled:
+              - Copy src/test/resources/resources/savegame/reletest-longest-3p.game.json and reletest-longest-3p-sea.game.json to your server's configured savegame directory
+              - Run `*LOADGAME* reletest-longest-3p` or `*LOADGAME* reletest-longest-3p-sea` debug command in any other game window
         - Piece types to test each situation with:
           - Build roads only
           - Build a route that has roads and ships (through a coastal settlement)
           - Move a ship to gain Longest Route
+    - Take Longest Route by building a coastal settlement to connect roads to ships
+        - Copy src/test/resources/resources/savegame/reletest-longest-joinships.game.json to your server's configured savegame directory
+        - Run `*LOADGAME* reletest-longest-joinships` debug command in any other game window
+        - Optional: Use client 2.4.00 or older as players or observers
+            - Those versions don't recalculate longest route in this situation, but server 2.4.50 and newer should tell them it's changed
+        - Build a coastal settlement
+        - Should take Longest Route from other player
     - Can win by gaining Longest Road/Route
         - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces until you have 8 VP;
           be careful to not gain longest route before the test begins
@@ -405,7 +411,7 @@ When preparing to release a new version, testing should include:
             - Join with 1.x client
                 - Should see marked seat as unlocked, locked as locked
                 - Should be able to take over bot by sitting at "marked" seat
-        - When testing new server with client 2.4.50 or newer, and older client:
+        - When testing new server with client 2.4.50 or newer, and older client in same game:
             - All clients in game (players and observers) should see expected results in player hand panels and game text area for:
                 - Soldier dev card
                     - Give Soldier cards to client players:  
