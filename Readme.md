@@ -210,6 +210,13 @@ numeric value. To change the default winning victory points to 12 for example:
 
     -o VP=t12
 
+
+### Savegame optional feature:
+
+The server can save/load most games to files kept on the server, using admin commands.
+For details see [doc/Readme.developer.md](doc/Readme.developer.md): Search for "Saving and loading games"
+
+
 ### jsserver.properties:
 
 Instead of a long command line, any option can be added to `jsserver.properties`

@@ -595,7 +595,7 @@ ideas.
 ## Saving and loading games at server
 
 To help with testing, the server can save a game and board's state to a file
-and load it later, using debug commands.
+and load it later, using admin/debug commands.
 
 This feature is experimental and still being developed, so the notes here are very basic.
 
@@ -608,17 +608,17 @@ special rules or pieces can be saved and loaded.
 - Set value of server property `jsettlers.savegame.dir` to point to the game-saves directory
 - Log in as `debug` or an admin user
 - Start a game, place pieces as needed, begin game play
-- Debug command to save a snapshot: \*SAVEGAME\* savename
+- Admin command to save a snapshot: `*SAVEGAME* savename`
   - savename can contain letters and digits (Character.isLetterOrDigit), dashes (`-`), underscores (`_`)
   - If snapshot already exists, use flag `-f` to force overwriting it with the new save
-- Debug command to load a snapshot: \*LOADGAME\* savename
+- Admin command to load a snapshot: `*LOADGAME* savename`
   - Server parses the snapshot and create a game with its contents
   - Debug/admin user joins, bots are asked to join
   - A later version might optionally support requiring certain types of bots
   - Temporarily sets gamestate to new hold/pause state `LOADING`, so current player won't take action until everyone has joined
 - If other human players will be playing, have them join and sit down now
   - Note: If joining human has same name as any player in loaded game, their client will automatically sit down and can't be an observer
-- Debug command to resume play of loaded game: \*RESUMEGAME\*
+- Admin command to resume play of loaded game: `*RESUMEGAME*`
   - If game was saved with human players who haven't rejoined, bots will join now for those players
   - If no human players have sat down, game will play as robots-only even if server isn't set to allow bot-only games
   - Game play now resumes, at the current player and state it was saved with

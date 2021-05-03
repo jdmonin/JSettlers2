@@ -105,6 +105,10 @@ When preparing to release a new version, testing should include:
             shouldn't be asked whether to steal cloth or resources
         - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
     - Gain Longest Road/Route
+        - To save time with these tests, run the test server with Savegame feature enabled:
+          - Pick any directory/folder where you want your server to look for savegames
+          - Launch server with property `-Djsettlers.savegame.dir=` set to that directory
+          - Copy src/test/resources/resources/savegame/reletest-longest-3p.game.json and reletest-longest-3p-sea.game.json into that savegame directory
         - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
           to quickly build players' pieces and VP totals, then `rsrcs: 3 0 3 1 3 debug` to give
           resources to build the last few connecting roads/ships/last settlement the usual way
@@ -113,10 +117,8 @@ When preparing to release a new version, testing should include:
           - Build roads/ships to take Longest Route from another player
           - Build settlement to split another player's Longest Route, giving a 3rd player the new Longest Route.
             (Skip this situation if testing for "move a ship".)
-            If this ends the game, 3rd player should win only when their turn begins.  
-            To save time, you can test with server Savegame feature enabled:
-              - Copy src/test/resources/resources/savegame/reletest-longest-3p.game.json and reletest-longest-3p-sea.game.json to your server's configured savegame directory
-              - Run `*LOADGAME* reletest-longest-3p` or `*LOADGAME* reletest-longest-3p-sea` debug command in any other game window
+            If this ends the game, 3rd player should win only when their turn begins.
+              - To set up the board, run `*LOADGAME* reletest-longest-3p` or `*LOADGAME* reletest-longest-3p-sea` debug command in any other game window
         - Piece types to test each situation with:
           - Build roads only
           - Build a route that has roads and ships (through a coastal settlement)
