@@ -4016,10 +4016,12 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Update a player's amount of a resource.
+     * Calls {@link #handleResources(int, SOCPlayer, int, int)}.
      *<ul>
-     *<LI> If this is a {@link SOCPlayerElement#LOSE} action, and the player does not have enough of that type,
-     *     the rest are taken from the player's UNKNOWN amount.
-     *<LI> If we are losing from type UNKNOWN,
+     *<LI> If this is a {@link SOCPlayerElement#LOSE} action,
+     *     and the player does not have enough of that {@code rtype},
+     *     the rest are taken from the player's UNKNOWN rtype amount.
+     *<LI> If we are losing from {@code rtype} UNKNOWN,
      *     first convert player's known resources to unknown resources
      *     (individual amount information will be lost),
      *     then remove mes's unknown resources from player.
@@ -4978,6 +4980,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Handle the tracking of changing resources.
+     * Calls {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}.
      * Third-party bots can override this to
      * allow them to determine how accurately this is tracked
      * (full tracking of unknowns vs. cognitive modelling, etc).

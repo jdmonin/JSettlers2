@@ -1829,9 +1829,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Update a player's amount of a resource, for {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      *<ul>
-     *<LI> If this is a {@link SOCPlayerElement#LOSE} action, and the player does not have enough of that type,
-     *     the rest are taken from the player's UNKNOWN amount.
-     *<LI> If we are losing from type UNKNOWN,
+     *<LI> If this is a {@link SOCPlayerElement#LOSE} action,
+     *     and the player does not have enough of that {@code rtype},
+     *     the rest are taken from the player's UNKNOWN rtype amount.
+     *     (This often happens for non-client players).
+     *<LI> If we are losing from {@code rtype} UNKNOWN,
      *     first convert player's known resources to unknown resources
      *     (individual amount information will be lost),
      *     then remove mes's unknown resources from player.
@@ -1865,14 +1867,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case SOCPlayerElement.LOSE:
-            /**
-             * If known resource type:
-             *   if amount to remove is greater than player's known amount,
-             *   remove the excess from unknown.
-             * Otherwise (unknown rtype):
-             *   first convert player's known resources to unknown resources,
-             *   then remove mes's unknown resources.
-             */
             pl.getResources().subtract(amount, rtype, true);
             break;
         }
@@ -2247,6 +2241,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Update a player's resource data from a "bank trade" announcement from the server.
+     * Subtracts the resources given to the bank/port, then adds the resources received.
+     * See {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)} for behavior
+     * if subtracting more than the known amount of those resources
+     * (which often happens for non-client players).
      *
      * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message

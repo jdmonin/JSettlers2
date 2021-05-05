@@ -1622,7 +1622,13 @@ public class MessageHandler
 
     /**
      * handle the "player information" message: Finds game and its {@link PlayerClientListener} by name
-     * and calls {@link #handlePLAYERELEMENT(PlayerClientListener, SOCGame, SOCPlayer, int, int, PEType, int, boolean)}
+     * and calls {@link #handlePLAYERELEMENT(PlayerClientListener, SOCGame, SOCPlayer, int, int, PEType, int, boolean)}.
+     *<P>
+     * To update game information, that method defaults to calling
+     * {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, PEType, int, String)}
+     * or {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
+     * for elements that don't need special handling.
+     *
      * @param mes  the message
      */
     protected void handlePLAYERELEMENT(SOCPlayerElement mes)
@@ -1645,6 +1651,7 @@ public class MessageHandler
      *<P>
      * To update game information, defaults to calling
      * {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, PEType, int, String)}
+     * or {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
      * for elements that don't need special handling for this client class.
      *
      * @param pcl  PlayerClientListener for {@code ga}, to update display if not null
@@ -2144,6 +2151,8 @@ public class MessageHandler
 
     /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
+     * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(Map, SOCBankTrade)}.
+     *
      * @param mes  the message
      * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
      * @since 2.0.00
