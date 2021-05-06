@@ -2151,7 +2151,8 @@ public class MessageHandler
 
     /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
-     * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(Map, SOCBankTrade)}.
+     * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(Map, SOCBankTrade)}
+     * if server is v2.4.50 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
      *
      * @param mes  the message
      * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?

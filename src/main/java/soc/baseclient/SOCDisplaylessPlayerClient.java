@@ -2245,6 +2245,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * See {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)} for behavior
      * if subtracting more than the known amount of those resources
      * (which often happens for non-client players).
+     *<P>
+     * Call this method only if server is v2.4.50 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
+     * Older servers send PLAYERELEMENT messages before BANKTRADE, so calling this would subtract/add resources twice.
      *
      * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
