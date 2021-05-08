@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -173,7 +173,7 @@ public class SOCRobotNegotiator
     /**
      * add an offer to the offers made list
      *
-     * @param offer  the offer
+     * @param offer  the offer, or null. Null won't be added to list.
      */
     public void addToOffersMade(SOCTradeOffer offer)
     {
@@ -2586,21 +2586,26 @@ public class SOCRobotNegotiator
     }
 
     /**
-     * Marks what resources a player is not selling based on a reject to our offer
+     * Marks what resources another player is not selling, based on their reject to our offer.
+     * Does nothing if our {@link SOCPlayer#getCurrentOffer()} is null.
      *<P>
      * To do so for another player's offer, use {@link #recordResourcesFromRejectAlt(int)}.
      *
-     * @param rejector the player number corresponding to the player who has rejected an offer
+     * @param rejector the player number corresponding to the player who has rejected our offer
      * @since 2.4.50
      */
     protected void recordResourcesFromReject(int rejector)
     {
         D.ebugPrintlnINFO("%%%%%%%%% REJECT OFFER %%%%%%%%%%%%%");
 
+        final SOCTradeOffer ourOffer = ourPlayerData.getCurrentOffer();
+        if (ourOffer == null)
+            return;
+
         ///
         /// record which player said no
         ///
-        SOCResourceSet getSet = ourPlayerData.getCurrentOffer().getGetSet();
+        final SOCResourceSet getSet = ourOffer.getGetSet();
 
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD;
@@ -2656,7 +2661,7 @@ public class SOCRobotNegotiator
      * This is called when players haven't responded to our offer,
      * so we assume they are not selling and don't want anything else.
      * Marks the resources we offered as not selling and marks that the player doesn't want a different offer for that resource
-     * @param ourCurrentOffer the offer we made and not received an answer to
+     * @param ourCurrentOffer the offer we made and not received an answer to; not null
      * @since 2.4.50
      */
     protected void recordResourcesFromNoResponse(SOCTradeOffer ourCurrentOffer)

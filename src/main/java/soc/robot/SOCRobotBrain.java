@@ -3275,6 +3275,8 @@ public class SOCRobotBrain extends Thread
      * Determine whether to keep waiting for responses, and update negotiator appropriately.
      * If {@code accepted}, also clears {@link #waitingForTradeResponse}
      * by calling {@link #clearTradingFlags(boolean, boolean)}.
+     *<P>
+     * Also handles recovery if our offer was rejected, but our {@link SOCPlayer#getCurrentOffer()} is {@code null}.
      *
      * @param toPlayerNum  Player number: The other player accepting or rejecting our offer,
      *     or {@link #ourPlayerNumber} if called for accepting another player's offer
@@ -3293,29 +3295,38 @@ public class SOCRobotBrain extends Thread
 
         offerRejections[toPlayerNum] = true;
 
+        final SOCTradeOffer ourOffer = ourPlayerData.getCurrentOffer();
         boolean everyoneRejected = true,
             allHumansRejected = (tradeResponseTimeoutSec > TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY);
-        D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
+        D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourOffer);
 
-        boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
-
-        for (int pn = 0; pn < game.maxPlayers; ++pn)
+        if (ourOffer != null)
         {
-            D.ebugPrintlnINFO("offerRejections[" + pn + "]=" + offerRejections[pn]);
+            final boolean[] offeredTo = ourOffer.getTo();
 
-            if (offeredTo[pn] && ! offerRejections[pn])
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
-                everyoneRejected = false;
-                if (allHumansRejected && ! game.getPlayer(pn).isRobot())
-                    allHumansRejected = false;
+                D.ebugPrintlnINFO("offerRejections[" + pn + "]=" + offerRejections[pn]);
+
+                if (offeredTo[pn] && ! offerRejections[pn])
+                {
+                    everyoneRejected = false;
+                    if (allHumansRejected && ! game.getPlayer(pn).isRobot())
+                        allHumansRejected = false;
+                }
             }
+
+        } else {
+            // Inconsistent data, should have an offer;
+            // recover by clearing trade flags as if everyoneRejected
+            clearTradingFlags(false, true);
         }
 
         D.ebugPrintlnINFO("everyoneRejected=" + everyoneRejected);
 
         if (everyoneRejected)
         {
-            negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
+            negotiator.addToOffersMade(ourOffer);
             client.clearOffer(game);
             waitingForTradeResponse = false;
         }
@@ -3495,14 +3506,10 @@ public class SOCRobotBrain extends Thread
 
         if (waitingForTradeResponse)
         {
-            if (ourPlayerData.getCurrentOffer() == null)
-            {
-                return;  // <--- Early return: Inconsistent data, should have an offer ---
-            }
-
             negotiator.recordResourcesFromReject(rejector);
 
             handleTradeResponse(rejector, false);  // clear trading flags
+                // Also handles recovery if somehow ourPlayerData.getCurrentOffer() == null
         }
         else
         {
