@@ -1554,7 +1554,8 @@ public class SOCGameMessageHandler
                     SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
                         D.ebugPrintlnINFO("ILLEGAL BANK TRADE: " + c.getData()
-                          + ": give " + give + ", get " + get);
+                          + ": give " + give + ", get " + get
+                          + ", has " + ga.getPlayer(ga.getCurrentPlayerNumber()).getResources());
                 }
             } else {
                 if (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
