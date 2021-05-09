@@ -759,7 +759,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * Update game data for bank trade. Added 2021-01-20 for v2.4.50
              */
             case SOCMessage.BANKTRADE:
-                handleBANKTRADE(games, (SOCBankTrade) mes);
+                handleBANKTRADE(games.get(((SOCMessageForGame) mes).getGame()), (SOCBankTrade) mes);
                 break;
 
             /**
@@ -2249,18 +2249,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Call this method only if server is v2.4.50 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
      * Older servers send PLAYERELEMENT messages before BANKTRADE, so calling this would subtract/add resources twice.
      *
-     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
+     *<H3>Threads:</H3>
+     * If client is multi-threaded (for example, robot with a message treater thread and per-game brain threads),
+     * call this method from the same thread that needs the updated player resource data.
+     * Other threads may cache stale values for the resource count fields.
+     *
+     * @param game  Game to update, from Map of games the client is playing,
+     *     or {@code null} if not found in that map
      * @param mes  the message
-     * @return  True if updated, false if game name not found
+     * @return  True if updated, false if {@code game} is null
      * @since 2.4.50
      */
-    public static boolean handleBANKTRADE(final Map<String, SOCGame> games, final SOCBankTrade mes)
+    public static boolean handleBANKTRADE(final SOCGame game, final SOCBankTrade mes)
     {
-        final SOCGame ga = games.get(mes.getGame());
-        if (ga == null)
+        if (game == null)
             return false;
 
-        final SOCResourceSet plRes = ga.getPlayer(mes.getPlayerNumber()).getResources();
+        final SOCResourceSet plRes = game.getPlayer(mes.getPlayerNumber()).getResources();
         plRes.subtract(mes.getGiveSet(), true);
         plRes.add(mes.getGetSet());
 

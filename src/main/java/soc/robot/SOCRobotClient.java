@@ -685,14 +685,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * Update game data for bank trade. Added 2021-01-20 for v2.4.50
-             */
-            case SOCMessage.BANKTRADE:
-                if (super.handleBANKTRADE(games, (SOCBankTrade) mes))
-                    handlePutBrainQ((SOCMessageForGame) mes);
-                break;
-
-            /**
              * the server is requesting that we join a game
              */
             case SOCMessage.BOTJOINGAMEREQUEST:
@@ -760,6 +752,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             // which will update game data and do any bot-specific tracking or actions needed:
 
             case SOCMessage.ACCEPTOFFER:
+            case SOCMessage.BANKTRADE:     // added 2021-01-20 for v2.4.50
             case SOCMessage.CANCELBUILDREQUEST:  // current player has cancelled an initial settlement
             case SOCMessage.CHOOSEPLAYER:  // server wants our player to choose to rob cloth or rob resources from victim
             case SOCMessage.CHOOSEPLAYERREQUEST:

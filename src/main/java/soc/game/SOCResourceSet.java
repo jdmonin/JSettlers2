@@ -30,6 +30,12 @@ import java.util.Arrays;
  * Unknown resources are also tracked here.
  * Although it's possible to store negative amounts of resources, it's discouraged.
  *
+ *<H3>Threads:</H3>
+ * Resource count updates are not thread-safe:
+ * Try to update resource counts only from a single thread;
+ * other threads may cache stale values for the resource count fields.
+ * A future version might improve that.
+ *
  * @see SOCResourceConstants
  * @see SOCPlayingPiece#getResourcesToBuild(int)
  */
@@ -48,7 +54,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * 5 = {@link SOCResourceConstants#WHEAT},
      * 6 = {@link SOCResourceConstants#UNKNOWN}.
      */
-    private int[] resources;
+    private int[] resources;  // TODO: refactor to use something like AtomicIntegerArray for thread-safe writes/reads
 
     /**
      * Make an empty resource set

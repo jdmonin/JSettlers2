@@ -2151,7 +2151,7 @@ public class MessageHandler
 
     /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
-     * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(Map, SOCBankTrade)}
+     * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(SOCGame, SOCBankTrade)}
      * if server is v2.4.50 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
      *
      * @param mes  the message
@@ -2160,12 +2160,14 @@ public class MessageHandler
      */
     protected void handleBANKTRADE(final SOCBankTrade mes, final boolean isPractice)
     {
-        if (isPractice || (client.sVersion >= SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS))
-            if (! SOCDisplaylessPlayerClient.handleBANKTRADE(client.games, mes))
-                return;
-
         final String gaName = mes.getGame();
-        final SOCGame ga = client.games.get(gaName);  // non-null because SOCDisplaylessPlayerClient returned true
+        final SOCGame ga = client.games.get(gaName);
+        if (ga == null)
+            return;
+
+        if (isPractice || (client.sVersion >= SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS))
+            SOCDisplaylessPlayerClient.handleBANKTRADE(ga, mes);
+
         PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;

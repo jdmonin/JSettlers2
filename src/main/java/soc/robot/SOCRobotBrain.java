@@ -1719,15 +1719,21 @@ public class SOCRobotBrain extends Thread
                         planAndPlaceInvItem();  // choose and send a placement location
                     }
 
-                    if (waitingForTradeMsg && (mesType == SOCMessage.BANKTRADE))
+                    if (mesType == SOCMessage.BANKTRADE)
                     {
-                        final int pn = ((SOCBankTrade) mes).getPlayerNumber();
+                        // use our thread to update game data
+                        SOCDisplaylessPlayerClient.handleBANKTRADE(game, (SOCBankTrade) mes);
 
-                        if (pn == ourPlayerNumber)
-                            //
-                            // This is the bank/port trade confirmation announcement we've been waiting for
-                            //
-                            clearTradingFlags(true, true);
+                        if (waitingForTradeMsg)
+                        {
+                            final int pn = ((SOCBankTrade) mes).getPlayerNumber();
+
+                            if (pn == ourPlayerNumber)
+                                //
+                                // This is the bank/port trade confirmation announcement we've been waiting for
+                                //
+                                clearTradingFlags(true, true);
+                        }
                     }
 
                     if (waitingForDevCard && (mesType == SOCMessage.SIMPLEACTION)
