@@ -3010,7 +3010,6 @@ public class SOCRobotBrain extends Thread
                     {
                         counter = 0;
                         waitingForTradeMsg = true;
-                        pause(1500);
                     }
                 }
 
@@ -4817,6 +4816,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Make bank trades or port trades to get the required resources for executing a plan, if possible.
      * Calls {@link SOCRobotNegotiator#getOfferToBank(SOCBuildPlan, SOCResourceSet)}.
+     * Calls {@link #pause(int)} after requesting a bank/port trade.
      *<P>
      * Before v2.4.50 this method was {@code tradeToTarget2(SOCResourceSet)}.
      *
