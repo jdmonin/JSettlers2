@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013,2015-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,6 +50,10 @@ public enum SOCPlayerEvent
      *<P>
      * The new {@link SOCSettlement} will be passed as {@code obj} to
      * {@link SOCGameEventListener#playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)}.
+     *<P>
+     * If {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} is set during board generation,
+     * at end of initial placement that LA number is sent to player clients as if it's their second "starting land area"
+     * to exclude it from this bonus award.
      */
     SVP_SETTLED_ANY_NEW_LANDAREA(0x01),
 
@@ -64,6 +68,10 @@ public enum SOCPlayerEvent
      * Because there can be many land areas, this event flag isn't part of
      * {@link SOCPlayer#getPlayerEvents()}; instead see
      * {@link SOCPlayer#getScenarioSVPLandAreas()}.
+     *<P>
+     * If {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} is set during board generation,
+     * at end of initial placement that LA number is sent to player clients as if it's their second "starting land area"
+     * to exclude it from this bonus award.
      */
     SVP_SETTLED_EACH_NEW_LANDAREA(0x02),
 

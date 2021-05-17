@@ -18,6 +18,8 @@ JARs for recent JSettlers versions can be downloaded from
 - Gameplay:
 	- Recalc Longest Route when building coastal settlement to connect a player's roads to ships
 	  (thanks kotc for reporting issue #95)
+	- Through the Desert scenario: No longer incorrectly gives 2 SVP to a player
+	  building a settlement within the desert (thanks kotc for reporting #86)
 	- When a trade is offered to bots and humans, bots wait longer before responding.
 	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
 	  (thank you Lee Passey)

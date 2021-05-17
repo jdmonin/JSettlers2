@@ -4263,8 +4263,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's current potential settlement nodes.
-     * At the start of the game (before/during initial placement), this is all legal nodes.
-     * Afterwards it's mostly empty, and follows from the player's road locations.
+     * At the start of the game (before/during initial placement), all legal nodes
+     * are potential; see {@link #getLegalSettlements()} for initialization.
+     * During regular gameplay it's mostly empty, and based on player's road and ship locations.
      *<P>
      * Please make no changes, treat the returned set as read-only.
      * @return the player's set of potential-settlement node coordinates.
@@ -4272,7 +4273,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see #getPotentialSettlements_arr()
      * @see #hasPotentialSettlement()
      * @see #hasPotentialSettlementsInitialInFog()
-     * @see #getLegalSettlements()
      * @since 2.0.00
      */
     public HashSet<Integer> getPotentialSettlements()
@@ -4282,8 +4282,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's current potential settlement nodes.
-     * At the start of the game (before/during initial placement), this is all legal nodes.
-     * Afterwards it's mostly empty, and follows from the player's road locations.
+     * At the start of the game (before/during initial placement), all legal nodes
+     * are potential; see {@link #getLegalSettlements()} for initialization.
+     * During regular gameplay it's mostly empty, and based on player's road and ship locations.
      *<P>
      * This variant returns them as an array, for ease of use when traversing all potential settlements.
      * @return the player's set of potential-settlement node coordinates,

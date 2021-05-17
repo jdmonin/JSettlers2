@@ -3660,11 +3660,16 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * After a player action during initial placement: Send new game state.
+     * After a player action during initial placement or free placement/resource pick: Send new game state.
      * If current player changed, an initial-placement round ended ({@link SOCGame#isInitialPlacementRoundDone(int)}),
      * or regular game play started, announce the new player with
      * {@link #sendTurn(SOCGame, boolean)} or send {@link SOCRollDicePrompt}
      * to trigger auto-roll for the new player's client.
+     *<P>
+     * At end of initial placement, if board uses {@link SOCBoardAtServer#getBonusExcludeLandArea()},
+     * game at server adds that excluded LA to each player's "starting" LAs, and this method then
+     * sends {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#STARTING_LANDAREAS STARTING_LANDAREAS})
+     * so clients won't score any incorrect bonuses for placements there.
      *<P>
      * Call after an initial road/ship placement's {@link soc.game.SOCGame#putPiece(SOCPlayingPiece)},
      * or after a player has chosen free resources from a gold hex with
@@ -3683,10 +3688,33 @@ public class SOCGameHandler extends GameHandler
     {
         if (! checkTurn(c, ga))
         {
-            // Player changed (or normal play started), announce new state and player
+            // Player changed, announce new state and player
             sendTurn(ga, true);
+            return;
         }
-        else if (pl.isRobot() && ga.isInitialPlacementRoundDone(prevGameState))
+
+        if ((prevGameState < SOCGame.ROLL_OR_CARD) && (ga.getGameState() == SOCGame.ROLL_OR_CARD))
+        {
+            // End of initial placement. Before announcing normal game play state,
+            // check for and send any uncommon game/player data changes
+
+            final SOCBoard board = ga.getBoard();
+            if (board instanceof SOCBoardAtServer)
+            {
+                final int bxLA = ((SOCBoardAtServer) board).getBonusExcludeLandArea();
+                if (bxLA != 0)
+                {
+                    final String gaName = ga.getName();
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        if (! ga.isSeatVacant(pn))
+                            srv.messageToGame(gaName, true, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET,
+                                 PEType.STARTING_LANDAREAS, ga.getPlayer(pn).getStartingLandAreasEncoded()));
+                }
+            }
+        }
+
+        if (pl.isRobot() && ga.isInitialPlacementRoundDone(prevGameState))
         {
             // Player didn't change, but bot must be prompted to
             // place its next settlement or roll its first turn
