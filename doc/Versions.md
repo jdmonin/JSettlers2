@@ -55,12 +55,12 @@ JARs for recent JSettlers versions can be downloaded from
 	  `OpeningBuildStrategy.cancelWrongPiecePlacement`
 	- Made some data classes Serializable
 	- Save/load games:
+	    - Load: If must add a suffix for unique game name, but that makes it longer than max length,
+	      shorten name instead of failing to resume game play
 	    - SavedGameModel:
 	        - PlayerInfo: add fields for number of Discovery, Monopoly, Road Building cards played,
 	          list of dev cards played; TradeOffer add timestamp
 	        - MODEL_VERSION still 2400; earlier server versions will ignore these added fields while loading a savegame
-	        - If must add a suffix for unique game name, but that makes it longer than max length,
-	          shorten name instead of failing to resume game play
 	        - GLAS field made non-static so unit tests can safely run in parallel for quicker builds
 	- Unit tests and extraTests against running server for core game actions and message sequences
 	- Server consistently uses Properties if passed into constructors
