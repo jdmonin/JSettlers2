@@ -51,8 +51,9 @@ import soc.util.IntTriple;
 /**
  * A subclass of {@link SOCBoardLarge} for the server to hold server-only
  * per-game board state, isolate {@link #makeNewBoard(SOCGameOptionSet)}, and simplify
- * that parent class. See SOCBoardLarge for more details.
+ * that parent class. See {@code SOCBoardLarge} for more details.
  * For the board layout geometry, see that class javadoc's "Coordinate System" section.
+ * Non-sea "classic" boards use {@link SOCBoard4p} or {@link SOCBoard6p} at server and client.
  *<P>
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.

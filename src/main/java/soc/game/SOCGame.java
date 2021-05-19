@@ -4916,7 +4916,7 @@ public class SOCGame implements Serializable, Cloneable
         for (int pn = 0; pn < maxPlayers; ++pn)
             players[pn].clearPotentialSettlements();
 
-        if (isAtServer)
+        if (board instanceof SOCBoardAtServer)
         {
             final int bxLAEnc = ((SOCBoardAtServer) board).getBonusExcludeLandArea() << 8;
                 // Shift left for "encoded" form of players' 2nd starting land area.
