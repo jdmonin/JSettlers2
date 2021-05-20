@@ -5404,18 +5404,15 @@ import javax.swing.JComponent;
      */
     private void drawSuperText(Graphics g)
     {
+        // Specify the font, so we know its metrics.
+        // This avoids a timing bug where the wrong font's metrics are used.
+        final Font bpf = new Font("Dialog", Font.PLAIN, 10 * playerInterface.displayScale);
+
         // Do we need to calculate the metrics?
 
         if ((superText1_w == 0) || ((superText2 != null) && (superText2_w == 0)))
         {
-            final Font bpf = getFont();
-            if (bpf == null)
-            {
-                repaint();  // We'll have to try again
-                return;
-            }
-
-            final FontMetrics fm = getFontMetrics(bpf);
+            final FontMetrics fm = g.getFontMetrics(bpf);
             if (fm == null)
             {
                 repaint();
@@ -5464,6 +5461,9 @@ import javax.swing.JComponent;
         int ty = superTextBox_y + SUPERTEXT_INSET + superText_h - superText_des;
         if (superText1 == null)
             return;  // avoid NPE from multi-threading
+
+        final Font prev = g.getFont();
+        g.setFont(bpf);
         g.drawString(superText1, tx, ty);
         if (superText2 != null)
         {
@@ -5471,6 +5471,7 @@ import javax.swing.JComponent;
             ty += superText_h;
             g.drawString(superText2, tx, ty);
         }
+        g.setFont(prev);
     }
 
     /**
@@ -5479,8 +5480,8 @@ import javax.swing.JComponent;
      */
     private void drawSuperTextTop(Graphics g)
     {
-        // Force the font, so we know its metrics.
-        // This avoids an OSX fm.stringWidth bug.
+        // Specify the font, so we know its metrics.
+        // This avoids a timing bug where the wrong font's metrics are used.
         final Font bpf = new Font("Dialog", Font.PLAIN, 10 * playerInterface.displayScale);
 
         // Do we need to calculate the metrics?
@@ -7251,7 +7252,8 @@ import javax.swing.JComponent;
     {
         if ((superText1 == text1) && (superText2 == text2))
         {
-            return;  // <--- Early return: text unchanged ---
+            return;  // <--- Early return: text obviously unchanged ---
+
             // This quick check is an optimization.
             // Any of the 4 variables could be null.
             // It's not worth the additional complexity
