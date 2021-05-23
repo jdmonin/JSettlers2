@@ -484,8 +484,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *  client's visual "North" (index 15, hex coordinate 0x11) on that
      *  board is West internally in the board layout.
      *
-         @see #getHexTypeFromNumber(int)
-         @see #getAdjacentNodeToHex(int, int)
+     * @see #getHexTypeFromNumber(int)
+     * @see #getAdjacentNodeToHex(int, int)
+     * @see #portsLayout
      *
      **/
     private int[] hexLayout =   // initially all WATER_HEX
@@ -1543,10 +1544,10 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * This method should not be called frequently.
      *<P>
-     * A scenario of {@link SOCBoardLarge} has movable ports; a port's edge there might
-     * temporarily be -1.  Ignore this port if so, it's not currently placed on the board.
-     * This happens only with {@link SOCBoardLarge} (layout encoding v3), not the original or 6-player
-     * (v1 or v2) {@link SOCBoard} layouts.
+     * One scenario on {@link SOCBoardLarge} has movable ports; a port's edge there might
+     * temporarily be -1. Ignore that port if so, it's not currently placed on the board.
+     * This happens only with {@link SOCBoardLarge} (layout encoding v3), not the
+     * original {@link SOCBoard4p} or 6-player {@link SOCBoard6p} layouts.
      *
      * @return the ports' edges
      * @see #getPortsFacing()

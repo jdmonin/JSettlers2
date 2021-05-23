@@ -1034,7 +1034,7 @@ import javax.swing.JComponent;
     private int unscaledBoardW;
 
     /**
-     * If true, some hex images are a larger or nonuniform size and so
+     * If true, some images in {@link #hexes}[] are a larger or nonuniform size and so
      * their images must always be rescaled for {@link #drawBoardEmpty(Graphics)},
      * even when boardpanel dimensions are standard size (! {@link #isScaled}).
      * {@link #scaledHexes} contains those images scaled for the current panel size.
