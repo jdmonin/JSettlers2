@@ -909,6 +909,7 @@ public class SOCGameOptionSet
      * @return Option keys in the set, from each {@link SOCVersionedItem#key}, or an empty Set
      * @see #values()
      * @see #getAll()
+     * @see #iterator()
      */
     public Set<String> keySet()
     {
@@ -919,6 +920,7 @@ public class SOCGameOptionSet
      * For use in {@code for} loops, make and return an iterator;
      * calls {@link Map#values() map.values()}{@link Collection#iterator() .iterator()}.
      * {@link Iterator#remove()} is supported.
+     * @see #keySet()
      */
     public Iterator<SOCGameOption> iterator()
     {

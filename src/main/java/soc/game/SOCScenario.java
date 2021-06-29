@@ -310,6 +310,8 @@ public class SOCScenario
     /**
      * Scenario key {@code SC_TTD} for Through The Desert.
      * No main option or special rules, only a board layout and SVP.
+     * Awards 2 SVP for placing past the desert, but no SVP for placing at
+     * any node in the desert's interior (not adjacent to a non-desert Land Area).
      */
     public static final String K_SC_TTD = "SC_TTD";
 
