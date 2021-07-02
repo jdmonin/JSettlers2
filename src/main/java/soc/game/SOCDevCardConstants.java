@@ -119,7 +119,7 @@ public interface SOCDevCardConstants
      * Temple, library VP card.
      *<P>
      * Before v2.5.00 this constant was {@code TEMP},
-     * which could be misinterpreted as "temporary" at a glance.
+     * which could be misinterpreted as "temporary".
      */
     public static final int TEMPLE = 7;
 
