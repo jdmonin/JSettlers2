@@ -527,7 +527,7 @@ import soc.util.Version;
      * Show an error message and the initial 3 buttons, as if we've just started the client up.
      *
      * @param errText  Error message to show
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void lostServerConnection(final String errText)
     {

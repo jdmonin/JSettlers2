@@ -752,7 +752,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             // which will update game data and do any bot-specific tracking or actions needed:
 
             case SOCMessage.ACCEPTOFFER:
-            case SOCMessage.BANKTRADE:     // added 2021-01-20 for v2.4.50
+            case SOCMessage.BANKTRADE:     // added 2021-01-20 for v2.5.00
             case SOCMessage.CANCELBUILDREQUEST:  // current player has cancelled an initial settlement
             case SOCMessage.CHOOSEPLAYER:  // server wants our player to choose to rob cloth or rob resources from victim
             case SOCMessage.CHOOSEPLAYERREQUEST:
@@ -766,7 +766,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.PLAYERELEMENT:
             case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
             case SOCMessage.REJECTOFFER:
-            case SOCMessage.REPORTROBBERY:  // added 2021-01-05 for v2.4.50
+            case SOCMessage.REPORTROBBERY:  // added 2021-01-05 for v2.5.00
             case SOCMessage.RESOURCECOUNT:
             case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message
             case SOCMessage.TIMINGPING:  // server's 1x/second timing ping

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -103,7 +103,7 @@ public class SOCPieceValue extends SOCMessageTemplate4i
      * Build a human-readable form of the message, with this class's field names
      * instead of generic names from {@link SOCMessageTemplate4i}.
      * @return a human readable form of the message
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Override
     public String toString()

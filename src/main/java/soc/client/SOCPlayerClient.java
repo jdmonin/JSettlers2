@@ -503,7 +503,7 @@ public class SOCPlayerClient
      * See {@link #SOCPlayerClient()} for all other details.
      * @param mh  MessageHandler to use; not null
      * @throws IllegalArgumentException if {@code mh} is null
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected SOCPlayerClient(final MessageHandler mh)
         throws IllegalArgumentException

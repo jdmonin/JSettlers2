@@ -107,7 +107,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * along with default features or {@link soc.client.SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}.
      *
      * @see soc.server.SOCServer#PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P = "jsettlers.debug.client.gameopt3p";
 
@@ -142,7 +142,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * {@link SOCGameOptionInfo} messages.
      * @see #allOptsReceived
      * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
 
@@ -157,13 +157,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @see #knownOpts
      * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected boolean allOptsReceived = true;
 
     /**
      * Network socket. Initialized in subclasses.
-     * Before v2.4.50 this field was {@code s}.
+     * Before v2.5.00 this field was {@code s}.
      */
     protected Socket sock;
 
@@ -756,7 +756,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
-             * Update game data for bank trade. Added 2021-01-20 for v2.4.50
+             * Update game data for bank trade. Added 2021-01-20 for v2.5.00
              */
             case SOCMessage.BANKTRADE:
                 handleBANKTRADE(games.get(((SOCMessageForGame) mes).getGame()), (SOCBankTrade) mes);
@@ -916,7 +916,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             /**
              * Report Robbery.
-             * Added 2020-09-15 for v2.4.50.
+             * Added 2020-09-15 for v2.5.00.
              */
             case SOCMessage.REPORTROBBERY:
                 handleREPORTROBBERY
@@ -925,7 +925,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             /**
              * Player has Picked Resources.
-             * Added 2020-12-14 for v2.4.50.
+             * Added 2020-12-14 for v2.5.00.
              */
             case SOCMessage.PICKRESOURCES:
                 handlePICKRESOURCES
@@ -1102,7 +1102,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "list of games with options" message
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void handleGAMESWITHOPTIONS(final SOCGamesWithOptions mes) {}
 
@@ -1168,7 +1168,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "new game with options" message
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes) {}
 
@@ -2132,7 +2132,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @param mes  the message
      * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}; if {@code null}, message is ignored
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
     {
@@ -2246,7 +2246,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * if subtracting more than the known amount of those resources
      * (which often happens for non-client players).
      *<P>
-     * Call this method only if server is v2.4.50 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
+     * Call this method only if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
      * Older servers send PLAYERELEMENT messages before BANKTRADE, so calling this would subtract/add resources twice.
      *
      *<H3>Threads:</H3>
@@ -2258,7 +2258,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     or {@code null} if not found in that map
      * @param mes  the message
      * @return  True if updated, false if {@code game} is null
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static boolean handleBANKTRADE(final SOCGame game, final SOCBankTrade mes)
     {
@@ -2321,7 +2321,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     {@link SOCDevCardAction#ADD_OLD ADD_OLD}, or {@link SOCDevCardAction#ADD_NEW ADD_NEW}
      * @param ctype  Type of development card from {@link SOCDevCardConstants}
      * @see soc.client.MessageHandler#handleDEVCARDACTION(SOCGame, SOCPlayer, boolean, int, int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void handleDEVCARDACTION
         (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
@@ -2369,7 +2369,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      * @param ga  Game to update
      * @return  True if updated, false if player number not found
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static boolean handlePICKRESOURCES
         (final SOCPickResources mes, final SOCGame ga)
@@ -2596,7 +2596,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * by calling {@link SOCGameOptionSet#addKnownOption(SOCGameOption)}.
      * If all are now received, sets {@link #allOptsReceived} flag.
      * @param optInfo Info message for this {@link SOCGameOption}
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void handleGAMEOPTIONINFO(final SOCGameOptionInfo optInfo)
     {
@@ -2998,7 +2998,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param fromCoord  Move the piece from here; must be >= 0
      * @param toCoord    Move the piece to here; must be >= 0
      * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code fromCoord} &lt; 0, or {@code toCoord} &lt; 0
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void movePieceRequest
         (final SOCGame ga, final int pn, final int ptype, final int fromCoord, final int toCoord)
@@ -3101,7 +3101,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @param gaName  the game name
      * @see #leaveGame(SOCGame)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void leaveGame(final String gaName)
     {

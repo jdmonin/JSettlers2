@@ -36,7 +36,7 @@ import java.util.StringTokenizer;
  *<P>
  * If the client's trade request is acceptable, server responds to entire game with:
  *<UL>
- * <LI> {@link SOCPlayerElement}s to clients older than v2.4.50 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}):
+ * <LI> {@link SOCPlayerElement}s to clients older than v2.5.00 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}):
  *      A {@link SOCPlayerElement#LOSE} for each resource type being traded in,
  *      then {@link SOCPlayerElement#GAIN} for those given to the player.
  * <LI> This {@code SOCBankTrade} to announce the trade details to clients v2.0.00 or higher;
@@ -45,7 +45,7 @@ import java.util.StringTokenizer;
  *
  * The server disallows any unacceptable trade by sending the client a
  * {@code SOCRejectOffer} with a reason code like {@link SOCRejectOffer#REASON_NOT_YOUR_TURN}.
- * Servers before v2.4.50 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
+ * Servers before v2.5.00 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
  * sent an explanatory {@link SOCGameServerText} instead.
  *<P>
  * To undo a bank trade in version 1.1.13 or higher, the player's client can
@@ -62,12 +62,12 @@ public class SOCBankTrade extends SOCMessage
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
-     * Minimum version (2.4.50) where server doesn't accompany this message
+     * Minimum version (2.5.00) where server doesn't accompany this message
      * with {@link SOCPlayerElement}s, and client uses this message's fields to update
      * the player's resources.
-     * @since 2.4.50
+     * @since 2.5.00
      */
-    public static final int VERSION_FOR_SKIP_PLAYERELEMENTS = 2450;
+    public static final int VERSION_FOR_SKIP_PLAYERELEMENTS = 2500;
 
     /**
      * Name of game
@@ -140,7 +140,7 @@ public class SOCBankTrade extends SOCMessage
      * In a message from server, get the player number who made the bank trade.
      * In a message from client, get -1 because this field isn't set.
      * Versions older than 2.0.00 ignore this field.
-     * Versions older than 2.4.50 don't recognize reply reason codes (&lt; -1).
+     * Versions older than 2.5.00 don't recognize reply reason codes (&lt; -1).
      * @return the player number or negative reason code (message from server),
      *     or -1 if not set (message from client).
      */
@@ -231,7 +231,7 @@ public class SOCBankTrade extends SOCMessage
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String message)
     {

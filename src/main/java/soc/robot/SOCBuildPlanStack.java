@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
- * Portions of this file copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,12 +34,12 @@ import soc.game.SOCResourceSet;
  * to a wrapper if we ever change SOCBuildPlan to an abstract class instead of an interface.
  *
  * @author kho30
- * @since 2.4.50
+ * @since 2.5.00
  */
 public class SOCBuildPlanStack extends Stack<SOCPossiblePiece>
     implements SOCBuildPlan, Serializable
 {
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
 
     /**
      * NB: This does not check for a legal index

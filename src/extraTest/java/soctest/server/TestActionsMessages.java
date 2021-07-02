@@ -59,7 +59,7 @@ import soctest.server.savegame.TestLoadgame;
 /**
  * Extra testing to cover all core game actions and their messages, as recorded by {@link RecordingTesterServer}.
  * Expands coverage past the basic unit tests done by {@link TestRecorder}.
- * @since 2.4.50
+ * @since 2.5.00
  */
 public class TestActionsMessages
 {

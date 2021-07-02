@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014,2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2018-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -163,7 +163,7 @@ public class SOCDevCard
      *<P>
      * The names are generally the same as those in {@code SOCDevCardConstants} as of v2.4.00.
      * {@link SOCDevCardConstants#TEMPLE} has always been returned from here as {@code "TEMPLE"},
-     * although before v2.4.50 it was declared in the code as {@code SOCDevCardConstants.TEMP},
+     * although before v2.5.00 it was declared in the code as {@code SOCDevCardConstants.TEMP},
      * so it won't possibly be viewed as "TEMPORARY".
      *
      * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}

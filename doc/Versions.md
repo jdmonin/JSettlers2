@@ -13,7 +13,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.4.50` (build JM20201xxx)
+## `2.5.00` (build JM20210xxx)
 - Currently being developed
 - Gameplay:
 	- Recalc Longest Route when building coastal settlement to connect a player's roads to ships

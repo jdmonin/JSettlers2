@@ -41,7 +41,7 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  *<P>
  * Internally this is a {@code Map} whose keys are the options' {@link SOCVersionedItem#key}s.
  *<P>
- * Before v2.4.50 such sets were represented by <tt>Map&lt;String, SOCGameOption&gt;</tt>
+ * Before v2.5.00 such sets were represented by <tt>Map&lt;String, SOCGameOption&gt;</tt>
  * and these methods were part of {@link SOCGameOption}.
  * So, some methods here are marked <tt>@since</tt> earlier version numbers.
  * Many classes still use the Map format for simplicity:
@@ -79,7 +79,7 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  *</UL>
  *
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
- * @since 2.4.50
+ * @since 2.5.00
  */
 public class SOCGameOptionSet
     implements Iterable<SOCGameOption>
@@ -165,7 +165,7 @@ public class SOCGameOptionSet
      * server announces all resource and dev card details with actual types, not "unknown".
      * Useful for developers. Minimum client version 2.0.00.
      * @see #K_PLAY_VPO
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String K_PLAY_FO = "PLAY_FO";
 
@@ -175,7 +175,7 @@ public class SOCGameOptionSet
      * server announces all dev card details with actual types, not "unknown".
      * Useful for developers. Minimum client version 2.0.00.
      * @see #K_PLAY_FO
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String K_PLAY_VPO = "PLAY_VPO";
 
@@ -271,7 +271,7 @@ public class SOCGameOptionSet
     /**
      * Create and return a set of the Known Options.
      *<P>
-     * Before v2.4.50 this method was {@code SOCGameOption.initAllOptions()}.
+     * Before v2.5.00 this method was {@code SOCGameOption.initAllOptions()}.
      *
      * <h3>Current known options:</h3>
      *<UL>
@@ -566,10 +566,10 @@ public class SOCGameOptionSet
         // Player info observability, for developers
 
         opts.add(new SOCGameOption
-            (K_PLAY_FO, 2000, 2450, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
+            (K_PLAY_FO, 2000, 2500, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
              "Show all player info and resources"));
         opts.add(new SOCGameOption
-            (K_PLAY_VPO, 2000, 2450, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
+            (K_PLAY_VPO, 2000, 2500, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
              "Show all VP/dev card info"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
@@ -954,7 +954,7 @@ public class SOCGameOptionSet
     /**
      * Is this boolean-valued game option currently set to true?
      *<P>
-     * Before v2.4.50 this method was {@code SOCGame.isGameOptionSet(opts, optKey)}.
+     * Before v2.5.00 this method was {@code SOCGame.isGameOptionSet(opts, optKey)}.
      *
      * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
      *     {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
@@ -1118,7 +1118,7 @@ public class SOCGameOptionSet
      * Get information about a known option. See {@link #getAllKnownOptions()} for a summary of each known option.
      * Will return the info if known, even if option has {@link #FLAG_INACTIVE_HIDDEN}.
      *<P>
-     * Before v2.4.50 this method was {@code SOCGameOption.getOption(key, clone)}.
+     * Before v2.5.00 this method was {@code SOCGameOption.getOption(key, clone)}.
      *
      * @param key  Option key
      * @param clone  True if a copy of the option is needed; set this true
@@ -1548,7 +1548,7 @@ public class SOCGameOptionSet
      * Client-side gameopt code also assumes all scenarios use the sea board,
      * and sets game option <tt>"SBL"</tt> when a scenario is chosen by the user.
      *<P>
-     * Before v2.4.50 this method was {@code SOCGameOption.adjustOptionsToKnown(newOpts, knownOpts, boolean)}.
+     * Before v2.5.00 this method was {@code SOCGameOption.adjustOptionsToKnown(newOpts, knownOpts, boolean)}.
      *
      * @param knownOpts Set of known {@link SOCGameOption}s to check against; not null.
      *     Caller can use {@link #getAllKnownOptions()} if they don't already have such a set.

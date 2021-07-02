@@ -49,7 +49,7 @@ import java.util.StringTokenizer;
  * to give a specific reason for the rejection. This would be mentioned in that reason code constant's
  * javadoc. Server would then announce the rejection to all players.
  *<P>
- * Reason code field is ignored by clients older than v2.4.50 ({@link #VERSION_FOR_REPLY_REASONS}).
+ * Reason code field is ignored by clients older than v2.5.00 ({@link #VERSION_FOR_REPLY_REASONS}).
  * Older clients are sent {@link SOCGameServerText} instead.
  *
  * @author Robert S. Thomas
@@ -58,15 +58,15 @@ import java.util.StringTokenizer;
 public class SOCRejectOffer extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
 
     /**
      * Minimum server and client version number which uses reply/disallow reason codes
-     * ({@link #REASON_CANNOT_MAKE_TRADE}, etc), which are ignored by older clients: 2450 for v2.4.50.
+     * ({@link #REASON_CANNOT_MAKE_TRADE}, etc), which are ignored by older clients: 2500 for v2.5.00.
      * Older clients are sent {@link SOCGameServerText} instead.
-     * @since 2.4.50
+     * @since 2.5.00
      */
-    public static final int VERSION_FOR_REPLY_REASONS = 2450;
+    public static final int VERSION_FOR_REPLY_REASONS = 2500;
 
     /**
      * Server's generic reason code when the requesting client can't offer or accept this trade now
@@ -82,7 +82,7 @@ public class SOCRejectOffer extends SOCMessage
      * Requires minimum version {@link #VERSION_FOR_REPLY_REASONS}.
      *
      * @see #REASON_CANNOT_MAKE_OFFER
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int REASON_CANNOT_MAKE_TRADE = 1;
 
@@ -97,7 +97,7 @@ public class SOCRejectOffer extends SOCMessage
      * Requires minimum version {@link #VERSION_FOR_REPLY_REASONS}.
      *
      * @see #REASON_CANNOT_MAKE_TRADE
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int REASON_NOT_YOUR_TURN = 2;
 
@@ -109,7 +109,7 @@ public class SOCRejectOffer extends SOCMessage
      * Requires minimum version {@link #VERSION_FOR_REPLY_REASONS}.
      *
      * @see #REASON_CANNOT_MAKE_TRADE
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int REASON_CANNOT_MAKE_OFFER = 3;
 
@@ -126,7 +126,7 @@ public class SOCRejectOffer extends SOCMessage
     /**
      * Optional reason code for why an offer was rejected by server or declined by a player, or 0;
      * see {@link #getReasonCode()}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private int reasonCode;
 
@@ -145,7 +145,7 @@ public class SOCRejectOffer extends SOCMessage
 
     /**
      * Create a SOCRejectOffer message which may have a reason code.
-     * Clients older than v2.4.50 will ignore that field.
+     * Clients older than v2.5.00 will ignore that field.
      *
      * @param ga  the name of the game
      * @param pn  the player number rejecting offer(s), or -1 with some reason codes.
@@ -154,7 +154,7 @@ public class SOCRejectOffer extends SOCMessage
      *     the {@code reasonCode} constant's javadoc
      * @param reasonCode  Reason code constant, or 0 for none; see {@link #getReasonCode()}
      * @see #SOCRejectOffer(String, int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCRejectOffer(String ga, int pn, final int reasonCode)
     {
@@ -190,10 +190,10 @@ public class SOCRejectOffer extends SOCMessage
      * The standard reason code values are &gt; 0.
      * Values &lt; 0 can be used by third-party bots or forks.
      *<P>
-     * Ignored by clients older than v2.4.50 ({@link #VERSION_FOR_REPLY_REASONS}).
+     * Ignored by clients older than v2.5.00 ({@link #VERSION_FOR_REPLY_REASONS}).
      *
      * @return this message's Reason Code, or 0 if none
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public int getReasonCode()
     {

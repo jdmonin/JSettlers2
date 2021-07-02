@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2011,2013-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -53,7 +53,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     /**
      * Constructor from a set of game names/objects; used at server side.
      *<P>
-     * Before v2.4.50 this was a static {@code toCmd(..)} method.
+     * Before v2.5.00 this was a static {@code toCmd(..)} method.
      *
      * @param ga  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *            if a client can't join a game, it should be a String prefixed with
@@ -61,7 +61,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      * @return    the command string
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCGamesWithOptions(List<?> ga, final int cliVers)
     {

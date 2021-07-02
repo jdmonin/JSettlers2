@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2012,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2019-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,7 +51,7 @@ import soc.game.SOCResourceSet;
      * Width of this panel, in unscaled pixels: 5 columns of {@link ColorSquareLarger}s,
      * which share 1 pixel overlap for squares' shared border.
      *<P>
-     * Before v2.4.50 this field was {@code WIDTH}.
+     * Before v2.5.00 this field was {@code WIDTH}.
      *
      * @since 2.0.00
      */
@@ -61,7 +61,7 @@ import soc.game.SOCResourceSet;
      * Height of this panel, in unscaled pixels: 2 lines of {@link ColorSquareLarger}s,
      * which share 1 pixel overlap for squares' shared border.
      *<P>
-     * Before v2.4.50 this field was {@code HEIGHT}.
+     * Before v2.5.00 this field was {@code HEIGHT}.
      *
      * @since 1.1.08
      */

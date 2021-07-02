@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -256,7 +256,7 @@ public class SOCPlayerTracker
     /**
      * Recalculate all ETAs: Calls {@link #recalcLargestArmyETA()},
      * {@link #recalcLongestRoadETA()}, {@link #recalcWinGameETA()}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void recalculateAllETAs()
     {

@@ -96,7 +96,7 @@ import soc.util.Version;
      * keepalive messages: 45 minutes, in milliseconds. See {@link #connect(String, int)}.
      *<P>
      * Should be several minutes shorter than {@link soc.server.genericServer.NetConnection#TIMEOUT_VALUE}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected static final int PING_LOCAL_SERVER_INTERVAL_MS = 45 * 60 * 1000;
 
@@ -134,7 +134,7 @@ import soc.util.Version;
 
     /**
      * Network socket.
-     * Before v2.4.50 this field was {@code s}.
+     * Before v2.5.00 this field was {@code s}.
      */
     Socket sock;
     DataInputStream in;

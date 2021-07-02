@@ -1,9 +1,9 @@
 {
   "modelVersion": 2400,
-  "savedByVersion": 2450,
+  "savedByVersion": 2500,
   "gameMinVersion": 2000,
   "gameName": "reletest-longest-joinships",
-  "comments": "when player 3 builds a coastal settlement to connect roads to ships, should gain longest route from player 2 (checked in server v2.4.50 and newer; github issue 95)",
+  "comments": "when player 3 builds a coastal settlement to connect roads to ships, should gain longest route from player 2 (checked in server v2.5.00 and newer; github issue 95)",
   "author": "Jeremy D Monin  2021",
   "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d3,RD\u003df,SBL\u003dt,VP\u003dt11",
   "gameDurationSeconds": 215,

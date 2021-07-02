@@ -208,7 +208,7 @@ public class TestScenarioRules
 
     /**
      * {@link SOCScenario#K_SC_TTD SC_TTD}: 2 SVP for placing past the desert, but no SVP for placing in desert.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void test_SC_TTD_place_desert_SVP()

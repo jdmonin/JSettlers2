@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009,2012,2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012,2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -87,7 +87,7 @@ public class MonopolyStrategy
      *    such as {@link SOCResourceConstants#CLAY}
      *    or {@link SOCResourceConstants#SHEEP}.
      *    Not checked for validity.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void setMonopolyChoice(final int rtype)
     {

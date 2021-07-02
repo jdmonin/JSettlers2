@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
@@ -143,7 +143,7 @@ public class SOCApplet extends Applet
      * applet info, of the form similar to that seen at server startup:
      *<BR>
      * <tt>
-     * SOCPlayerClient (Java Settlers Client) 2.4.50, build JM20201227, (C) 2001-2004 Robb Thomas, portions (C) 2007-2020 Jeremy D Monin and contributors
+     * SOCPlayerClient (Java Settlers Client) 2.5.00, build JM20210701, (C) 2001-2004 Robb Thomas, portions (C) 2007-2021 Jeremy D Monin and contributors
      * </tt>
      *<P>
      * Version and copyright info is from the {@link Version} utility class.

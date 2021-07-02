@@ -106,7 +106,7 @@ public class SOCGame implements Serializable, Cloneable
      * The main game class has a serialVersionUID; pieces and players don't.
      * To persist a game between versions, use {@link soc.server.savegame.SavedGameModel}.
      */
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
 
     /**
      * Game states.  {@link #NEW} is a brand-new game, not yet ready to start playing.
@@ -882,7 +882,7 @@ public class SOCGame implements Serializable, Cloneable
      * Updated at server when client joins a game.
      * Because this is an uncommon feature to request, not updated when client leaves a game.
      *
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean clientRequestsDiceResultsFullySent;
 
@@ -967,7 +967,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * All Known Options, for {@link #opts} validation and adding options from scenario if present.
      * Not null unless {@link #opts} is null.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private final SOCGameOptionSet knownOpts;
 
@@ -1065,7 +1065,7 @@ public class SOCGame implements Serializable, Cloneable
      * Has a 7 been rolled yet in this game?
      * See {@link #hasRolledSeven()} for details.
      * @see #currentDice
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private boolean hasRolledSeven;
 
@@ -2153,7 +2153,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get this game's {@link SOCGameOption}s, if any.
      *<P>
-     * Before v2.4.50 this method returned a <tt>Map&lt;String, SOCGameOption&gt;</tt>.
+     * Before v2.5.00 this method returned a <tt>Map&lt;String, SOCGameOption&gt;</tt>.
      *
      * @return this game's options, or null
      * @since 1.1.07
@@ -2238,7 +2238,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
      *         or <tt>defValue</tt> if not defined in the set of options;
      *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
-     * @since 2.4.50
+     * @since 2.5.00
      * @see #isOptionSet(String)
      * @see #getOptionIntValue(String)
      * @see #getOptionStringValue(String)
@@ -2549,7 +2549,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return true if {@link #rollDice()} at server, or {@link #setCurrentDice(int)} at client,
      *     has encountered a 7
      * @see #getCurrentDice()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean hasRolledSeven()
     {
@@ -6972,7 +6972,7 @@ public class SOCGame implements Serializable, Cloneable
      * Is set at server only.
      * @return Robbery results at server, or {@code null} if none so far or at client
      * @see #getRobberyPirateFlag()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCMoveRobberResult getRobberyResult()
     {
@@ -9347,7 +9347,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return the turn number
      * @see #getRoundCount()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public int getTurnCount()
     {

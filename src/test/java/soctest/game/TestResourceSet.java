@@ -48,7 +48,7 @@ public class TestResourceSet
 
     /**
      * Tests for {@link SOCResourceSet#isEmpty()}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void isEmpty()
@@ -113,7 +113,7 @@ public class TestResourceSet
      * Test that {@link SOCResourceSet#subtract(int, int, boolean)} converts the entire set to unknown
      * when unknown resources are removed.
      * @see #removeTooMany_ConvertToUnknown()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void removeUnknown_ConvertToUnknown()
@@ -137,7 +137,7 @@ public class TestResourceSet
      * Test that {@link SOCResourceSet#subtract(int, int)} removes from unknown
      * when too many of a resource type is removed.
      * @see #removeUnknown_ConvertToUnknown()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void removeTooMany_ConvertToUnknown()
@@ -157,7 +157,7 @@ public class TestResourceSet
      * Test that {@link SOCResourceSet#subtract(soc.game.ResourceSet)} clips to 0
      * when too many of a resource type are removed, instead of having negative amounts.
      * @see #removeSet_ConvertToUnknown()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void removeSet_ClipTo0()
@@ -174,7 +174,7 @@ public class TestResourceSet
      * removes from unknown when too many of a resource type are removed, but not if
      * the player has at least that many.
      * @see #removeSet_ClipTo0()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void removeSet_ConvertToUnknown()
@@ -326,7 +326,7 @@ public class TestResourceSet
 
     /**
      * Test {@link SOCResourceSet#getAmounts(boolean)}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testGetAmounts()
@@ -358,7 +358,7 @@ public class TestResourceSet
 
     /**
      * Test {@link SOCResourceSet#hashCode()}
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testHashCode()

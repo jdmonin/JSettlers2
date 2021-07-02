@@ -37,7 +37,7 @@ import java.util.StringTokenizer;
  *<BR>
  * If this trade offer is disallowed, server replies with a {@link SOCRejectOffer}
  * with reason {@link SOCRejectOffer#REASON_CANNOT_MAKE_OFFER}.
- * Clients and servers older than v2.4.50 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
+ * Clients and servers older than v2.5.00 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
  * use a {@link SOCGameServerText} to reject such offers.
  *
  * @author Robert S. Thomas
@@ -199,7 +199,7 @@ public class SOCMakeOffer extends SOCMessage
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String message)
     {

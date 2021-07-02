@@ -140,8 +140,8 @@ public class SOCGameHandler extends GameHandler
     /**
      * To clean up during automated tests, should robot-only games be destroyed as soon as they're over?
      * Checks {@link SOCGame#isBotsOnly}.
-     * True by default. Added in v2.4.50; previous versions always removed such games.
-     * @since 2.4.50
+     * True by default. Added in v2.5.00; previous versions always removed such games.
+     * @since 2.5.00
      */
     public static boolean DESTROY_BOT_ONLY_GAMES_WHEN_OVER = true;
 
@@ -1968,7 +1968,7 @@ public class SOCGameHandler extends GameHandler
      *     Each message's action will be {@link SOCDevCardAction#ADD_NEW} or {@link SOCDevCardAction#ADD_OLD}
      *     depending on its item's age.
      *     List is empty, not null, if player's inventory is empty.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private List<SOCMessage> sitDown_gatherInventoryContents
         (final String gaName, final SOCPlayer pl, final int cliVers)
@@ -3011,7 +3011,7 @@ public class SOCGameHandler extends GameHandler
         /**
          * send the game data messages
          * and the text messages if needed.
-         * these texts are also printed in SOCPlayerInterface.reportRobbery in client v2.4.50 and newer;
+         * these texts are also printed in SOCPlayerInterface.reportRobbery in client v2.5.00 and newer;
          * if you change the logic or text, make sure it's updated in both places
          */
 
@@ -3262,7 +3262,7 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Takes and releases the gameList monitor for this game.
      *
-     * @param ga  Game whose members will be sent these messages. Before v2.4.50 this was {@code gaName}.
+     * @param ga  Game whose members will be sent these messages. Before v2.5.00 this was {@code gaName}.
      * @param resourceSet    Resource set (from a roll, or the "give" or "get" side of a trade).
      *                Resource type {@link SOCResourceConstants#UNKNOWN UNKNOWN} or
      *                {@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL} is ignored.
@@ -3334,7 +3334,7 @@ public class SOCGameHandler extends GameHandler
      *                Same format as {@link Version#versionNumber()} and {@link Connection#getVersion()}.
      *
      * @see #reportRsrcGainLoss(SOCGame, ResourceSet, boolean, boolean, int, int, Connection)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     void reportRsrcGainLossForVersions
         (final SOCGame ga, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,

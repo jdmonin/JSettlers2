@@ -133,7 +133,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @return true if set is completely empty, including its amount of unknown resources
      * @see #getTotal()
      * @see #clear()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean isEmpty()
     {
@@ -332,7 +332,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *     takes the resource below 0 is treated specially
      * @param asUnknown  If true and subtracting {@link SOCResourceConstants#UNKNOWN},
      *     calls {@link #convertToUnknown()} first
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void subtract(final int amt, final int rtype, final boolean asUnknown)
     {
@@ -408,7 +408,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @param asUnknown  If true: Removes excess amounts from this set's {@link SOCResourceConstants#UNKNOWN}
      *     field instead of clipping to 0; if subtracting {@code UNKNOWN},
      *     calls {@link #convertToUnknown() this.convertToUnknown()} first
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void subtract(final ResourceSet toReduce, final boolean asUnknown)
     {

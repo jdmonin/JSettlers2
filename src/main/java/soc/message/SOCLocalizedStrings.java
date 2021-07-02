@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -173,7 +173,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     /**
      * Client-side request constructor, for a single string key.
      *<P>
-     * Before v2.4.50, a static {@code toCmd(..)} method was called by the client.
+     * Before v2.5.00, a static {@code toCmd(..)} method was called by the client.
      *
      * @param type  String type such as {@link #TYPE_SCENARIO};
      *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -187,7 +187,7 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      * @throws IllegalArgumentException  If {@code type} or (if not empty) {@code str} fails
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @throws NullPointerException if {@code str} is null
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCLocalizedStrings(final String type, final int flags, String str)
         throws IllegalArgumentException, NullPointerException

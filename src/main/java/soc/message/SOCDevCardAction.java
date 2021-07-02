@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -325,7 +325,7 @@ public class SOCDevCardAction extends SOCMessage
     /**
      * Action string map from action constants ({@link #ADD_NEW}, etc) for {@link #toString()}
      * and {@link #stripAttribNames(String, String)}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String[] ACTION_STRINGS
         = { "DRAW", "PLAY", "ADD_NEW", "ADD_OLD", "CANNOT_PLAY"};
@@ -343,7 +343,7 @@ public class SOCDevCardAction extends SOCMessage
      *     The {@link SOCDevCardConstants#KNIGHT} constant has different values in v1.x vs current.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(final String messageTypeName, final String messageStrParams)
     {

@@ -38,7 +38,7 @@ package soc.message;
  * and those bot clients also locally generate and send themselves
  * one {@link SOCTimingPing} per second in their active games.
  *<P>
- * When clients v2.4.50 and higher start a TCP server,
+ * When clients v2.5.00 and higher start a TCP server,
  * they'll periodically send it {@code SOCServerPing}s
  * to prevent server-side socket read timeouts when idle between games.
  *

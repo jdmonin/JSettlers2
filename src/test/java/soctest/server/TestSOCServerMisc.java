@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
 
 /**
  * A few tests for miscellaneous {@link SOCServer} methods.
- * @since 2.4.50
+ * @since 2.5.00
  */
 public class TestSOCServerMisc
 {
@@ -66,16 +66,16 @@ public class TestSOCServerMisc
 
         final SOCServerWithCheck srv = new SOCServerWithCheck();
 
-        final SOCFeatureSet standardCliFeats = new SOCFeatureSet(";6pl;sb;sc=2450;");
+        final SOCFeatureSet standardCliFeats = new SOCFeatureSet(";6pl;sb;sc=2500;");
         assertTrue(standardCliFeats.isActive(SOCFeatureSet.CLIENT_6_PLAYERS));
         assertTrue(standardCliFeats.isActive(SOCFeatureSet.CLIENT_SEA_BOARD));
-        assertEquals(2450, standardCliFeats.getValue(SOCFeatureSet.CLIENT_SCENARIO_VERSION, 0));
+        assertEquals(2500, standardCliFeats.getValue(SOCFeatureSet.CLIENT_SCENARIO_VERSION, 0));
 
         // basics;
         assertNull(srv.checkDisallows(standardCliFeats, false, false));
         assertNull(srv.checkDisallows(null, false, false));
 
-        final SOCFeatureSet extraFeats = new SOCFeatureSet(";xyz=5;sbmisc;6pl;sb;sc=2450;");
+        final SOCFeatureSet extraFeats = new SOCFeatureSet(";xyz=5;sbmisc;6pl;sb;sc=2500;");
         for (SOCFeatureSet cliFeats : new SOCFeatureSet[]{ standardCliFeats, null, extraFeats })
         {
             // disallow only 6pl:
@@ -85,7 +85,7 @@ public class TestSOCServerMisc
             if (cliFeats != null)
             {
                 assertTrue(feats.isActive(SOCFeatureSet.CLIENT_SEA_BOARD));
-                assertEquals(2450, feats.getValue(SOCFeatureSet.CLIENT_SCENARIO_VERSION, 0));
+                assertEquals(2500, feats.getValue(SOCFeatureSet.CLIENT_SCENARIO_VERSION, 0));
                 if (cliFeats == extraFeats)
                 {
                     assertTrue(feats.isActive("sbmisc"));

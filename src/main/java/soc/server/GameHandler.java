@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -248,7 +248,7 @@ public abstract class GameHandler
      * May or may not have <tt>gameList.takeMonitorForGame(ga)</tt>;
      * use <tt>hasMonitorFromGameList</tt> to indicate.
      *<P>
-     * Before v2.4.50, this method was only in {@link SOCGameHandler}.
+     * Before v2.5.00, this method was only in {@link SOCGameHandler}.
      *
      * @param ga   The game to end turn if called for current player, or to otherwise stop waiting for a player
      * @param plNumber  player.getNumber; may or may not be current player
@@ -261,7 +261,7 @@ public abstract class GameHandler
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
      *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public abstract boolean endGameTurnOrForce
         (SOCGame ga, final int plNumber, final String plName, Connection plConn,

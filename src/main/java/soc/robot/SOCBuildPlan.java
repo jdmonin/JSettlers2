@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
- * Portions of this file copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,10 +28,10 @@ import soc.game.SOCResourceSet;
  * Encapsulation for building plans of {@link SOCPossiblePiece}s.
  * Typically implemented as {@link SOCBuildPlanStack}; a third-party bot might have a different implementation.
  *<P>
- * Before v2.4.50, Building Plans were represented as {@code Stack<SOCPossiblePiece>}.
+ * Before v2.5.00, Building Plans were represented as {@code Stack<SOCPossiblePiece>}.
  *
  * @author kho30
- * @since 2.4.50
+ * @since 2.5.00
  */
 public interface SOCBuildPlan
 {

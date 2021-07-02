@@ -230,7 +230,7 @@ public class TestGameOptions
      * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) gameOpts.adjustOptionsToKnown(knownOpts, doServerPreadjust=true, limitedCliFeats)}
      * checks for {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}. Uses game options
      * {@link SOCGameOptionSet#K_PLAY_FO "PLAY_FO"}, {@link SOCGameOptionSet#K_PLAY_VPO "PLAY_VPO"}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testFlagInactiveActivate()
@@ -273,7 +273,7 @@ public class TestGameOptions
             assertTrue("inactive gameopts should include PLAY_FO", inacts.containsKey("PLAY_FO"));
         }
 
-        SOCGameOptionSet activatedOpts = knowns.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2450);
+        SOCGameOptionSet activatedOpts = knowns.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2500);
         assertNull("not activated yet", activatedOpts);
 
         // testing the actual activation feature:
@@ -333,7 +333,7 @@ public class TestGameOptions
         assertFalse(activated2.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
         assertTrue(activated2.hasFlag(SOCGameOption.FLAG_ACTIVATED));
 
-        activatedOpts = knowns.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2450);
+        activatedOpts = knowns.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2500);
         assertNotNull(activatedOpts);
         assertEquals(2, activatedOpts.size());
         assertEquals(activated, activatedOpts.get("PLAY_VPO"));
@@ -403,7 +403,7 @@ public class TestGameOptions
 
     /**
      * Test {@link SOCGameOptionSet#activate(String)} when known option not found.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test(expected=IllegalArgumentException.class)
     public void testFlagInactiveActivate_notFound()
@@ -414,7 +414,7 @@ public class TestGameOptions
 
     /**
      * Test {@link SOCGameOptionSet#activate(String)} when known option not inactive.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test(expected=IllegalArgumentException.class)
     public void testFlagInactiveActivate_notInactive()
@@ -425,13 +425,13 @@ public class TestGameOptions
     /**
      * Test that gameopt constructors can't be called with both
      * {@link SOCGameOption#FLAG_ACTIVATED} and {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} set at same time.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test(expected=IllegalArgumentException.class)
     public void testFlagInactiveActivate_constructor()
     {
         final SOCGameOption opt = new SOCGameOption
-            ("_TESTIAF", 2000, 2450, false, SOCGameOption.FLAG_ACTIVATED | SOCGameOption.FLAG_INACTIVE_HIDDEN,
+            ("_TESTIAF", 2000, 2500, false, SOCGameOption.FLAG_ACTIVATED | SOCGameOption.FLAG_INACTIVE_HIDDEN,
              "test active and inactive at same time");
         // should throw IllegalArgumentException; next statement is there only to avoid compiler warnings
         assertNotNull(opt);
@@ -456,7 +456,7 @@ public class TestGameOptions
      * Currently client-side functions only: checkValues=false, trimEnums=false.
      * Also tests {@link SOCGameOption#FLAG_3RD_PARTY} and its interaction at client
      * with {@code optionsNewerThanVersion(..)}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testOptionsNewerThanVersion()
@@ -587,7 +587,7 @@ public class TestGameOptions
     /**
      * Test {@link SOCGameOptionSet#optionsNotSupported(soc.util.SOCFeatureSet)}.
      * @see #testOptionsTrimmedForSupport()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testOptionsNotSupported()
@@ -698,7 +698,7 @@ public class TestGameOptions
     /**
      * Test {@link SOCGameOptionSet#optionsTrimmedForSupport(soc.util.SOCFeatureSet)}.
      * @see #testOptionsNotSupported()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testOptionsTrimmedForSupport()
@@ -772,7 +772,7 @@ public class TestGameOptions
      * Relies on related tests covered in {@link #testOptionsNotSupported()} and
      * {@link #testOptionsTrimmedForSupport()}, since
      * {@code SOCGameOptionSet.adjustOptionsToKnown(..)} calls the methods tested there.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testAdjustOptionsToKnown_doServerPreadjust_limitedCliFeats()
@@ -796,7 +796,7 @@ public class TestGameOptions
         assertTrue(optProblems.toString().contains("PLB: requires missing feature"));
 
         // client has some features, but not 6-player
-        optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";sb;sc=2450;"));
+        optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";sb;sc=2500;"));
         assertNotNull(optProblems);
         assertTrue(optProblems.toString().contains("PLB: requires missing feature"));
 
@@ -807,7 +807,7 @@ public class TestGameOptions
 
     /**
      * Test {@link SOCGameOption#equals(Object)}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testEquals()

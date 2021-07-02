@@ -213,7 +213,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
      * @return true if {@code o} is a {@link SOCTradeOffer}
      *     with the same To, From, Give and Get field contents.
      *     Ignores {@link #getGame()} field.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Override
     public boolean equals(Object o)
@@ -236,7 +236,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
     /**
      * @return a hashCode for this trade offer based on field contents,
      *     ignoring {@link #getGame()} because {@link #equals(Object)} does
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Override
     public int hashCode()

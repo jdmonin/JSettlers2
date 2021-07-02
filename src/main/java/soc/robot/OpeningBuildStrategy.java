@@ -53,7 +53,7 @@ public class OpeningBuildStrategy {
 
     /**
      * Our {@link SOCBuildingSpeedEstimate} factory, from {@link #ourPlayerData}'s brain passed into constructor.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected final SOCBuildingSpeedEstimateFactory bseFactory;
 
@@ -112,14 +112,14 @@ public class OpeningBuildStrategy {
      * {@link SOCGame#START1A}, {@link SOCGame#START2B}, etc.
      * Any overriders should call {@code super.cancelWrongPiecePlacement(..)}.
      *<P>
-     * In versions before 2.4.50, if an initial road was cancelled, bot would call
+     * In versions before 2.5.00, if an initial road was cancelled, bot would call
      * {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}
      * on the future-planned settlement node we were aiming for,
      * stored in this OBS's {@code plannedRoadDestinationNode} field.
      * That action might not apply to every third-party bot's OBS.
      *
      * @param cancelPiece  Playing piece type and coordinate which were rejected by server; not null
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void cancelWrongPiecePlacement(final SOCPlayingPiece cancelPiece)
     {

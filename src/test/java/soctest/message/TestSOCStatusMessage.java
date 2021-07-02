@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
 
 /**
  * A few tests for {@link SOCStatusMessage}.
- * @since 2.4.50
+ * @since 2.5.00
  */
 public class TestSOCStatusMessage
 {

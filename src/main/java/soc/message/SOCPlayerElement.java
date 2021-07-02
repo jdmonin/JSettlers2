@@ -64,7 +64,7 @@ import soc.game.SOCScenario;  // for javadocs only
  * several {@code SOCPlayerElement} and {@link SOCGameServerText}s:
  *<UL>
  * <LI> {@link SOCDiceResultResources}: v2.0.00 and newer
- * <LI> {@link SOCReportRobbery}: v2.4.50 and newer
+ * <LI> {@link SOCReportRobbery}: v2.5.00 and newer
  *</UL>
  *
  * @author Robert S Thomas
@@ -239,7 +239,7 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numDISCCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.50
+         * @since 2.5.00
          */
         NUM_PLAYED_DEV_CARD_DISC(22),
 
@@ -247,7 +247,7 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numMONOCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.50
+         * @since 2.5.00
          */
         NUM_PLAYED_DEV_CARD_MONO(23),
 
@@ -255,7 +255,7 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numRBCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.50
+         * @since 2.5.00
          */
         NUM_PLAYED_DEV_CARD_ROADS(24),
 
@@ -308,7 +308,7 @@ public class SOCPlayerElement extends SOCMessage
          * At client, should be set before placing any pieces to avoid SVP scoring problems.
          * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
          *<P>
-         * Server v2.4.50 and newer will also send this at the end of initial placement if
+         * Server v2.5.00 and newer will also send this at the end of initial placement if
          * game is using a scenario like {@link SOCScenario#K_SC_TTD SC_TTD} which uses
          * {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} (an uncommon situation).
          *
@@ -770,7 +770,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * Action string map from action constants ({@link #GAIN}, etc) for {@link #toString()}
      * and {@link #stripAttribNames(String)}. Offset is 100.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String[] ACTION_STRINGS = {"SET", "GAIN", "LOSE"};
         // if you add to this array:
@@ -783,7 +783,7 @@ public class SOCPlayerElement extends SOCMessage
      * Undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -188,7 +188,7 @@ import soc.util.Version;
      * This game's server's Known Options, from {@link ServerGametypeInfo#knownOpts}, or null if server is very old.
      * When NGOF is being shown to create the first new game / practice game, {@code knownOpts}
      * is copied to {@link ServerGametypeInfo#newGameOpts} to be {@link #opts} here.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private final SOCGameOptionSet knownOpts;
 

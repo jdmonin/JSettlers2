@@ -37,11 +37,11 @@ import java.util.StringTokenizer;
  *<P>
  * The server disallows any unacceptable trade by sending that "accepting" client a
  * {@code SOCRejectOffer} with reason code {@link SOCRejectOffer#REASON_CANNOT_MAKE_TRADE}.
- * Servers before v2.4.50 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
+ * Servers before v2.5.00 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
  * sent an explanatory {@link SOCGameServerText} instead.
  *<P>
  * Only v1.x clients are sent the {@code SOCGameTextMsg}, which conveys the same info as this {@code SOCAcceptOffer}.
- * Before v2.4.50 the server announced {@code SOCGameTextMsg} before {@code SOCAcceptOffer}, instead of after.
+ * Before v2.5.00 the server announced {@code SOCGameTextMsg} before {@code SOCAcceptOffer}, instead of after.
  *<P>
  * Before v2.0.00 the server announced the {@code SOCClearOffer}s before {@code SOCAcceptOffer}. The old
  * non-robot clients ignored that {@code SOCAcceptOffer}, so changing the order has no effect on them.

@@ -81,7 +81,7 @@ public class SOCRobotNegotiator
     /**
      * {@link #ourPlayerData}'s building plan.
      *<P>
-     * Before v2.4.50 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+     * Before v2.5.00 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
      */
     protected SOCBuildPlanStack buildingPlan;
 
@@ -285,7 +285,7 @@ public class SOCRobotNegotiator
      * Make an trade offer to another player, or decide to make no offer,
      * based on what we want to build and our player's current {@link SOCPlayer#getResources()}.
      *<P>
-     * Before v2.4.50 this method took a {@link SOCPossiblePiece} instead of a {@link SOCBuildPlan}.
+     * Before v2.5.00 this method took a {@link SOCPossiblePiece} instead of a {@link SOCBuildPlan}.
      *
      * @param buildPlan  our build plan, or {@code null}
      * @return the offer we want to make, or {@code null} for no offer
@@ -2514,7 +2514,7 @@ public class SOCRobotNegotiator
      *     unless a third-party bot overrides this method.
      * @param ourResources   the resources we have, from {@link SOCPlayer#getResources()}; not {@code null}
      * @return the offer that we'll make to the bank/ports, or {@code null} if none needed or {@code buildPlan} is empty
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCTradeOffer getOfferToBank(SOCBuildPlan buildPlan, SOCResourceSet ourResources)
     {
@@ -2545,7 +2545,7 @@ public class SOCRobotNegotiator
     /**
      * Marks what a player wants or is not selling based on the received offer.
      * @param offer the offer we have received
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void recordResourcesFromOffer(SOCTradeOffer offer)
     {
@@ -2592,7 +2592,7 @@ public class SOCRobotNegotiator
      * To do so for another player's offer, use {@link #recordResourcesFromRejectAlt(int)}.
      *
      * @param rejector the player number corresponding to the player who has rejected our offer
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void recordResourcesFromReject(int rejector)
     {
@@ -2622,7 +2622,7 @@ public class SOCRobotNegotiator
      * To do so for our player's offer, use {@link #recordResourcesFromReject(int)}.
      *
      * @param rejector the player number corresponding to the player who has rejected an offer
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void recordResourcesFromRejectAlt(int rejector)
     {
@@ -2662,7 +2662,7 @@ public class SOCRobotNegotiator
      * so we assume they are not selling and don't want anything else.
      * Marks the resources we offered as not selling and marks that the player doesn't want a different offer for that resource
      * @param ourCurrentOffer the offer we made and not received an answer to; not null
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void recordResourcesFromNoResponse(SOCTradeOffer ourCurrentOffer)
     {

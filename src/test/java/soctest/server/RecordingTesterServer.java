@@ -37,7 +37,7 @@ import soctest.server.TestRecorder;  // for javadocs only
  *<P>
  * Works with {@link DisplaylessTesterClient}.
  *
- * @since 2.4.50
+ * @since 2.5.00
  */
 @SuppressWarnings("serial")
 public class RecordingTesterServer

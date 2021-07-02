@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2013-2015,2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2013-2015,2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ import soc.game.SOCGameOptionSet;
 public class SOCBotJoinGameRequest extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
 
     /**
      * Name of game
@@ -63,7 +63,7 @@ public class SOCBotJoinGameRequest extends SOCMessage
      * Packed game options if any, as created by
      * {@link SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)}.
      * Won't be null, even if opts is null, due to {@code packOptionsToString(..)} format.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private String optsStr;
 
@@ -99,7 +99,7 @@ public class SOCBotJoinGameRequest extends SOCMessage
      * @param pn  the seat number
      * @param optsStr {@link SOCGameOption game options}, or null
      * @see #SOCBotJoinGameRequest(String, int, SOCGameOptionSet)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCBotJoinGameRequest(String ga, int pn, final String optsStr)
     {
@@ -187,7 +187,7 @@ public class SOCBotJoinGameRequest extends SOCMessage
     /**
      * Simple human-readable delimited representation, used for debug purposes.
      *<P>
-     * Before v2.4.50, opts didn't contain game option details, only "null" or "(non-null)".
+     * Before v2.5.00, opts didn't contain game option details, only "null" or "(non-null)".
      * @return a human readable form of the message
      */
     @Override

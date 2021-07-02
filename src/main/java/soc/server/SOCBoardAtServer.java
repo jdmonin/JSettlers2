@@ -180,7 +180,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * see {@link #getBonusExcludeLandArea()} for details.
      * To enforce constraints, always use {@link #setBonusExcludeLandArea(int)} when setting this field.
      *
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private int bonusExcludeLandArea;
 
@@ -260,7 +260,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *
      * @return Land Area number to exclude, or 0 if none
      * @see #setBonusExcludeLandArea(int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public int getBonusExcludeLandArea()
     {
@@ -276,7 +276,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * @throws IllegalArgumentException if {@code la} &lt;= 0
      * @throws IllegalStateException if {@link #getBonusExcludeLandArea()} already set,
      *     or if {@link SOCBoardLarge#getStartingLandArea()} == 0
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void setBonusExcludeLandArea(final int la)
     {

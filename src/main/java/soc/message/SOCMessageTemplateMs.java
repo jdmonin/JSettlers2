@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2012,2014-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2012,2014-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -208,7 +208,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      *     Can be longer or shorter than {@code params}: Extra entries are ignored,
      *     uses {@code "p="} after end of a too-short list.
      * @return a human readable form of the message and parameters
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected String toString(final List<String> params, final String[] fieldNames)
     {

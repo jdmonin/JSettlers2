@@ -127,7 +127,7 @@ When preparing to release a new version, testing should include:
         - Copy src/test/resources/resources/savegame/reletest-longest-joinships.game.json to your server's configured savegame directory
         - Run `*LOADGAME* reletest-longest-joinships` debug command in any other game window
         - Optional: Use client 2.4.00 or older as players or observers
-            - Those versions don't recalculate longest route in this situation, but server 2.4.50 and newer should tell them it's changed
+            - Those versions don't recalculate longest route in this situation, but server 2.5.00 and newer should tell them it's changed
         - Build a coastal settlement
         - Should take Longest Route from other player
     - Can win by gaining Longest Road/Route
@@ -413,18 +413,18 @@ When preparing to release a new version, testing should include:
             - Join with 1.x client
                 - Should see marked seat as unlocked, locked as locked
                 - Should be able to take over bot by sitting at "marked" seat
-        - When testing new server with client 2.4.50 or newer, and older client in same game:
+        - When testing new server with client 2.5.00 or newer, and older client in same game:
             - All clients in game (players and observers) should see expected results in player hand panels and game text area for:
                 - Soldier dev card
                     - Give Soldier cards to client players:  
                       `dev: 9 #2` etc
                     - Test robbery, with each client as victim, robber, observer
-                    - Clients v2.4.50 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+                    - Clients v2.5.00 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
                 - Discovery/Year of Plenty dev card
                     - Give Discovery cards to client players:  
                       `dev: 2 #2` etc
                     - Play Discovery, with each client as player, observer
-                    - Clients v2.4.50 or newer are sent `SOCPickResources` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+                    - Clients v2.5.00 or newer are sent `SOCPickResources` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
                 - Gold Hex resource pick
                     - Make a new game with New Shores scenario
                     - Reset the board until island's gold hex dice number is reasonably frequent

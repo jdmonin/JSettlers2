@@ -251,14 +251,14 @@ public class SOCPlayerInterface extends Frame
      * Is this game using developer Game Option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO}?
      * If so, all {@link SOCHandPanel}s will show dev cards/inventory details
      * ({@link #isGameObservableVP}) and each resource type amount (brick, ore, ...).
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected final boolean isGameFullyObservable;
 
     /**
      * Is this game using developer Game Option {@link SOCGameOptionSet#K_PLAY_VPO PLAY_VPO}
      * or {@link #isGameFullyObservable}? If so, all {@link SOCHandPanel}s will show dev cards/inventory details.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected final boolean isGameObservableVP;
 
@@ -1069,7 +1069,7 @@ public class SOCPlayerInterface extends Frame
      * Third-party clients can use this to extend SOCPlayerInterface.
      * Is called during early part of construction, so most PI fields won't be initialized yet.
      * @return a new {@link ClientBridge} for this PlayerInterface
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected ClientBridge createClientListenerBridge()
     {
@@ -1904,7 +1904,7 @@ public class SOCPlayerInterface extends Frame
      * Is the client player active in this game, and the current player?
      * Assertion: If this returns true, {@link #getClientHand()} will return non-null.
      *<P>
-     * Before v2.4.50 this method was {@code clientIsCurrentPlayer()}.
+     * Before v2.5.00 this method was {@code clientIsCurrentPlayer()}.
      *
      * @see #getClientPlayerNumber()
      * @see #isClientPlayer(SOCPlayer)
@@ -2113,7 +2113,7 @@ public class SOCPlayerInterface extends Frame
      *                 or null to look for client's main Frame/Dialog as parent,
      *                 for NotifyDialog if shown
      * @return true if OK to send, false if a dialog was shown
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static boolean checkTextCharactersOrPopup
         (final String txt, final MainDisplay md, final Window parent)
@@ -2963,7 +2963,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Clear contents of the chat input text ("please wait" during setup, etc).
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void clearChatTextInput()
     {
@@ -3103,13 +3103,13 @@ public class SOCPlayerInterface extends Frame
      * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
      * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
      * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void reportRobbery
         (final int perpPN, final int victimPN, final int resType, SOCResourceSet resSet, final PEType peType,
          final boolean isGainLose, final int amount, final int victimAmount, final int extraValue)
     {
-        // These texts are also sent from server SOCGameHandler.reportRobbery to clients older than v2.4.50;
+        // These texts are also sent from server SOCGameHandler.reportRobbery to clients older than v2.5.00;
         // if you change the logic or text, make sure it's updated in both places
 
         final String peName = (perpPN >= 0) ? game.getPlayer(perpPN).getName() : null,

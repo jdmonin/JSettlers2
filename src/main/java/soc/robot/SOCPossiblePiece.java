@@ -52,7 +52,7 @@ import java.util.List;
  */
 public abstract class SOCPossiblePiece implements Serializable
 {
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
 
     // If any piece types are added, please update unit test TestPossiblePiece.testSerializeToFile().
 
@@ -115,7 +115,7 @@ public abstract class SOCPossiblePiece implements Serializable
      * null if piece type doesn't require this field.
      * Null if loaded from serialized form, until
      * {@link #setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} is called.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected transient SOCBuildingSpeedEstimateFactory bseFactory;
 
@@ -190,7 +190,7 @@ public abstract class SOCPossiblePiece implements Serializable
      * @param bsef  factory to use for {@link SOCBuildingSpeedEstimate} calls;
      *     may be null if unused by piece type subclass
      * @see #SOCPossiblePiece(int, SOCPlayer, int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected SOCPossiblePiece
         (final int pt, final SOCPlayer pl, final int coord, final SOCBuildingSpeedEstimateFactory bsef)
@@ -458,7 +458,7 @@ public abstract class SOCPossiblePiece implements Serializable
      * @param pl This piece's player; not null
      * @param pt {@code pl}'s Player Tracker; not null, and
      *     {@link SOCPlayerTracker#getBrain() pt.getBrain()} also can't be null
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void setTransientsAtLoad(final SOCPlayer pl, final SOCPlayerTracker pt)
     {

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009,2014,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2014,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -126,7 +126,7 @@ public class SOCResetBoardVote extends SOCMessageTemplate2i
      * instead of generic names from {@link SOCMessageTemplate2i}.
      * {@code vote} field shows 1 for yes, 0 for no.
      * @return a human readable form of the message
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Override
     public String toString()

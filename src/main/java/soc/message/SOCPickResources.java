@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -64,7 +64,7 @@ import java.util.StringTokenizer;
  * {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}, 0)
  * to clear that player field.
  *<P>
- * When server announces to clients older than v2.4.50 ({@link #VERSION_FOR_SERVER_ANNOUNCE}),
+ * When server announces to clients older than v2.5.00 ({@link #VERSION_FOR_SERVER_ANNOUNCE}),
  * it instead sends player data update {@link SOCPlayerElement} message(s) and {@link SOCGameServerText}.
  *<P>
  * Before v2.0.00 this message class was called {@code SOCDiscoveryPick}.
@@ -77,30 +77,30 @@ public class SOCPickResources extends SOCMessage
 {
     /**
      * Minimum server and client version number where server sends this message,
-     * with player number and optional reason code ({@link #REASON_DISCOVERY}, etc): 2450 for v2.4.50.
-     * @since 2.4.50
+     * with player number and optional reason code ({@link #REASON_DISCOVERY}, etc): 2500 for v2.5.00.
+     * @since 2.5.00
      */
-    public static final int VERSION_FOR_SERVER_ANNOUNCE = 2450;
+    public static final int VERSION_FOR_SERVER_ANNOUNCE = 2500;
 
     /**
      * Generic pick reason. Client can mention as "(player) has picked (resources)."
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int REASON_GENERIC = 1;
 
     /**
      * Discovery/Year of Plenty reason. Client can mention as "(player) received (resources) from the bank."
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int REASON_DISCOVERY = 2;
 
     /**
      * Gold Hex pick reason. Client can mention as "(player) has picked (resources) from the gold hex."
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int REASON_GOLD_HEX = 3;
 
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
 
     /**
      * Name of game
@@ -115,14 +115,14 @@ public class SOCPickResources extends SOCMessage
     /**
      * Player number when sent from server, or 0 when sent from client:
      * See {@link #getPlayerNumber()} for details
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private int playerNumber;
 
     /**
      * Optional reason code when sent from server, or 0:
      * See {@link #getReasonCode()} for details
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private int reasonCode;
 
@@ -156,7 +156,7 @@ public class SOCPickResources extends SOCMessage
 
     /**
      * Create a PickResources message with an optional player number and reason code,
-     * for sending to client v2.4.50 or newer ({@link #VERSION_FOR_SERVER_ANNOUNCE}).
+     * for sending to client v2.5.00 or newer ({@link #VERSION_FOR_SERVER_ANNOUNCE}).
      *
      * @param ga  the name of the game
      * @param rs  the resources being picked.
@@ -195,7 +195,7 @@ public class SOCPickResources extends SOCMessage
      * Ignored by clients older than {@link #VERSION_FOR_SERVER_ANNOUNCE}.
      *
      * @return  player number, or 0 if none
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public int getPlayerNumber()
     {
@@ -209,7 +209,7 @@ public class SOCPickResources extends SOCMessage
      * Ignored by clients older than {@link #VERSION_FOR_SERVER_ANNOUNCE}.
      *
      * @return reason code, or 0 if none
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public int getReasonCode()
     {
@@ -284,7 +284,7 @@ public class SOCPickResources extends SOCMessage
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String message)
     {

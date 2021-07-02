@@ -90,7 +90,7 @@ public class MessageHandler
      *
      * @param cli  Client for this MessageHandler; its {@link SOCPlayerClient#getGameMessageSender()} must not be null
      * @throw IllegalArgumentException if {@code cli} or its {@code getGameMessageSender()} is null
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void init(final SOCPlayerClient cli)
         throws IllegalArgumentException
@@ -106,7 +106,7 @@ public class MessageHandler
 
     /**
      * Get this MessageHandler's client.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCPlayerClient getClient()
     {
@@ -731,7 +731,7 @@ public class MessageHandler
 
             /**
              * Report Robbery.
-             * Added 2020-09-15 for v2.4.50.
+             * Added 2020-09-15 for v2.5.00.
              */
             case SOCMessage.REPORTROBBERY:
                 handleREPORTROBBERY
@@ -740,7 +740,7 @@ public class MessageHandler
 
             /**
              * Player has Picked Resources.
-             * Added 2020-12-14 for v2.4.50.
+             * Added 2020-12-14 for v2.5.00.
              */
             case SOCMessage.PICKRESOURCES:
                 handlePICKRESOURCES
@@ -790,7 +790,7 @@ public class MessageHandler
         // Check known game options vs server's version. (added in 1.1.07)
         // Server's responses will add, remove or change our "known options".
         // In v2.0.00 and later, also checks for game option localized descriptions.
-        // In v2.4.50 and later, also checks for 3rd-party game opts.
+        // In v2.5.00 and later, also checks for 3rd-party game opts.
 
         final int cliVersion = Version.versionNumber();
         final boolean sameVersion = (client.sVersion == cliVersion);
@@ -2136,7 +2136,7 @@ public class MessageHandler
      * Handle the "report robbery" message.
      * @param mes  the message
      * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
     {
@@ -2152,7 +2152,7 @@ public class MessageHandler
     /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
      * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(SOCGame, SOCBankTrade)}
-     * if server is v2.4.50 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
+     * if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
      *
      * @param mes  the message
      * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
@@ -2396,7 +2396,7 @@ public class MessageHandler
      * Handle the "Player has Picked Resources" message by updating player resource data.
      * @param mes  the message
      * @param ga  Game to update
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void handlePICKRESOURCES
         (final SOCPickResources mes, final SOCGame ga)

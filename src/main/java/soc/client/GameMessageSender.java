@@ -133,7 +133,7 @@ import soc.message.SOCStartGame;
      * @return true if the message was sent, false if not
      * @throws IllegalArgumentException if {@code msg} is {@code null}
      * @see #put(String, boolean)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public synchronized boolean put(SOCMessage msg, final boolean isPractice)
         throws IllegalArgumentException

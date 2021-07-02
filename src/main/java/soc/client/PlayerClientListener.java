@@ -70,7 +70,7 @@ public interface PlayerClientListener
     /**
      * Get the game shown in this UI. This reference changes if board is reset.
      * @return game; not null
-     * @since 2.4.50
+     * @since 2.5.00
      * @see #getClientPlayerNumber()
      */
     SOCGame getGame();
@@ -85,7 +85,7 @@ public interface PlayerClientListener
     /**
      * Is the client player active in this game, and the current player?
      * @see #getClientPlayerNumber()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     boolean isClientCurrentPlayer();
 
@@ -232,7 +232,7 @@ public interface PlayerClientListener
      * @param resSet  Resources chosen; not null
      * @param reasonCode  Reason code from {@link SOCPickResources}, such as
      *     {@link SOCPickResources#REASON_DISCOVERY} or {@link SOCPickResources#REASON_GOLD_HEX}, or 0
-     * @since 2.4.50
+     * @since 2.5.00
      */
     void playerPickedResources(SOCPlayer player, SOCResourceSet resSet, int reasonCode);
 
@@ -291,7 +291,7 @@ public interface PlayerClientListener
      * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
      * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
      * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
-     * @since 2.4.50
+     * @since 2.5.00
      */
     void reportRobbery
         (final int perpPN, final int victimPN, final int resType, final SOCResourceSet resSet, final PEType peType,
@@ -354,7 +354,7 @@ public interface PlayerClientListener
      *     or -1 if bank trade. Always -1 if {@code isNotTurn}.
      * @param isOffer  True if this is about a proposed trade offer, not acceptance of an existing offer
      * @param isNotTurn  True if was disallowed because this trade can be done only during client player's turn
-     * @since 2.4.50
+     * @since 2.5.00
      */
     void playerTradeDisallowed(int offeringPN, boolean isOffer, boolean isNotTurn);
 
@@ -375,7 +375,7 @@ public interface PlayerClientListener
      *    selection checkboxes for which opponents are sent the offer.
      *    If it's currently that client player's turn, check all boxes where the seat isn't empty.
      *    Otherwise, check only the box for the opponent whose turn it is.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     void clearTradeOffer(SOCPlayer player, boolean updateSendCheckboxes);
 
@@ -514,7 +514,7 @@ public interface PlayerClientListener
 
     /**
      * Print a line of text in the game text area, like {@link SOCPlayerInterface#print(String)}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     void printText(String txt);
 

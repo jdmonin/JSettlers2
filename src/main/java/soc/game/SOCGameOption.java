@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ import soc.util.Version;
  * Also handles packing/parsing sets of options to/from Strings.
  *<P>
  * Many static methods expect the caller to pass in their set of Known Options.
- * Before v2.4.50 this class used a static shared copy of those known options, which caused problems when server
+ * Before v2.5.00 this class used a static shared copy of those known options, which caused problems when server
  * and robot clients both want to change their "known options" in different ways.
  *<P>
  * For information about adding or changing game options in a
@@ -113,7 +113,7 @@ import soc.util.Version;
  * The server's owner can choose to {@link SOCGameOptionSet#activate(String)} the option during server startup,
  * making it visible and available for games.
  *<P>
- * Added in 2.4.50, also compatible with earlier clients. Example: {@link #K_PLAY_VPO "PLAY_VPO"}.
+ * Added in 2.5.00, also compatible with earlier clients. Example: {@link #K_PLAY_VPO "PLAY_VPO"}.
  *
  *<H3>Third-Party Options</H3>
  *
@@ -124,7 +124,7 @@ import soc.util.Version;
  * when clients connect to servers. To use such an option, the client and server must both be
  * from the same third-party source and have its definition. See {@link #FLAG_3RD_PARTY} javadoc for details.
  *<P>
- * Added in 2.4.50, not compatible with earlier clients because they won't have such an option's definition
+ * Added in 2.5.00, not compatible with earlier clients because they won't have such an option's definition
  * or its required client feature.
  *
  *<H3>Version negotiation</H3>
@@ -212,7 +212,7 @@ public class SOCGameOption
      * If an inactive Known Option is activated during server startup by calling
      * {@link SOCGameOptionSet#activate(String)}, it loses this flag and gains {@link #FLAG_ACTIVATED}.
      *
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int FLAG_INACTIVE_HIDDEN = 0x04;  // NEW_OPTION - decide if this applies to your option
 
@@ -223,7 +223,7 @@ public class SOCGameOption
      * as long as their version &gt;= its {@link SOCVersionedItem#minVersion minVersion}.
      *
      * @see SOCGameOptionSet#optionsWithFlag(int, int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int FLAG_ACTIVATED = 0x08;
 
@@ -249,7 +249,7 @@ public class SOCGameOption
      *      process done when the client connects
      *</UL>
      *
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int FLAG_3RD_PARTY = 0x10;
 
@@ -751,7 +751,7 @@ public class SOCGameOption
      * Copy constructor to change {@link #optFlags} value.
      * @param opt  Option to copy
      * @param newFlags  New value for {@link #optFlags}
-     * @since 2.4.50
+     * @since 2.5.00
      * @throws IllegalArgumentException if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set
      */
     /*package*/ SOCGameOption(final int newFlags, final SOCGameOption opt)
@@ -810,7 +810,7 @@ public class SOCGameOption
      * For copy constructors, copy miscellanous fields into the new object from the previous one.
      * Handles fields which aren't individual parameters of the common constructor: {@link #clientFeat}.
      * @param copyFrom  Option object to copy fields from
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private void copyMiscFields(final SOCGameOption copyFrom)
     {
@@ -827,7 +827,7 @@ public class SOCGameOption
      *</UL>
      *
      * @return true if any value field is set
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean hasValue()
     {
@@ -1371,7 +1371,7 @@ public class SOCGameOption
      * @see #parseOptionNameValue(String, String, boolean, SOCGameOptionSet)
      * @throws IllegalArgumentException if any game option keyname in {@code ostr} is unknown
      *     and not a valid alphanumeric keyname by the rules listed at {@link #SOCGameOption(String)}
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static SOCGameOptionSet parseOptionsToSet(final String ostr, final SOCGameOptionSet knownOpts)
     {
@@ -1765,7 +1765,7 @@ public class SOCGameOption
      *     {@link #getIntValue()}, and {@link #getStringValue()} as this option.
      * @see Object#equals(Object)
      * @see #compareTo(Object)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean equals(final Object other)
     {
@@ -1782,7 +1782,7 @@ public class SOCGameOption
 
     /**
      * Call {@link Object#clone()}; added here for access by {@link SOCGameOptionSet}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Override
     protected Object clone()

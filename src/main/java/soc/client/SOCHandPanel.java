@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -718,7 +718,7 @@ import javax.swing.UIManager;
 
     /**
      * Cached result for {@link #doLayout()} for width of resource labels.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private int doLayout_resourceLabelsWidth;
 

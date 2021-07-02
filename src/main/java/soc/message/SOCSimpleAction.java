@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -99,7 +99,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * for that resource type, which for any victim also has the {@link SOCPlayerElement#isNews()} flag set.
      *<P>
      * In v2.0.00 - 2.4.00 those {@code SOCPlayerElement}s weren't sent until after
-     * SOCSimpleAction(RSRC_TYPE_MONOPOLIZED). v2.4.50 and newer send them before the action message
+     * SOCSimpleAction(RSRC_TYPE_MONOPOLIZED). v2.5.00 and newer send them before the action message
      * (as v1.x did before sending current player "You monopolized..." text)
      * so client's game data is updated by the time it sees RSRC_TYPE_MONOPOLIZED.
      *
@@ -141,7 +141,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * {@code pn}: Unused; -1 <br>
      * {@code value1}, {@code value2}: Unused; 0
      *
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final int DICE_RESULTS_FULLY_SENT = 5;
 

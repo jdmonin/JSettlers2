@@ -381,7 +381,7 @@ public class SOCStatusMessage extends SOCMessage
      *<P>
      * For details and the list of status value fallbacks, see {@link #statusFallbackForVersion(int, int)}.
      *<P>
-     * Replaces {@link #toCmd(int, int, String)} used before v2.4.50.
+     * Replaces {@link #toCmd(int, int, String)} used before v2.5.00.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
@@ -393,7 +393,7 @@ public class SOCStatusMessage extends SOCMessage
      * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVers},
      *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
      *     the exception is thrown to prevent continued server processing as if the fallback was successful.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static SOCStatusMessage buildForVersion(final int sv, final int cliVers, final String st)
         throws IllegalArgumentException
@@ -684,7 +684,7 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * Get a delimited human-readable form of this message, starting with optional {@code sv=} if not 0.
      *<P>
-     * Before v2.4.50, fields were comma-separated; that version changed to use standard {@code '|'} separator.
+     * Before v2.5.00, fields were comma-separated; that version changed to use standard {@code '|'} separator.
      * @return a human readable form of the message
      */
     public String toString()

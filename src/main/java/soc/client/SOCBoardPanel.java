@@ -7637,7 +7637,7 @@ import javax.swing.JComponent;
      * Calls blocking {@link ImageIO#read(java.net.URL)}.
      * Returned images are {@link BufferedImage} for performance.
      *<P>
-     * Before v2.4.50, this method loaded asynchronously instead of blocking.
+     * Before v2.5.00, this method loaded asynchronously instead of blocking.
      *<P>
      * Before v1.1.20, this method was called {@code loadHexesPortsImages(..)}.
      *
