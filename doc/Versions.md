@@ -102,6 +102,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
 	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
 	  (thanks kotc for reporting issue #81)
+	- If client starts a TCP server, can turn on Debug Mode for that server
+	  by adding `-Djsettlers.allow.debug=Y` before `-jar` on java command line
 	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
 	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
 	- Linux/Unix: Use sub-pixel font antialiasing if available (thanks kotc for issue #92)

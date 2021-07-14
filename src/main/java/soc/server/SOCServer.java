@@ -493,6 +493,10 @@ public class SOCServer extends Server
     /**
      * Property <tt>jsettlers.allow.debug</tt> to permit debug commands over TCP.
      * (The default is N; to allow, set to Y)
+     *<P>
+     * For convenience when hosting a server at the client, server also checks
+     * Java system properties for this one in v2.5.00 and newer.
+     *
      * @since 1.1.14
      */
     public static final String PROP_JSETTLERS_ALLOW_DEBUG = "jsettlers.allow.debug";
@@ -1660,11 +1664,26 @@ public class SOCServer extends Server
 
         if (maxConnections == 0)
             maxConnections = getConfigIntProperty(PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
-        allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
         CLIENT_MAX_CREATE_GAMES = getConfigIntProperty
             (PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
         CLIENT_MAX_CREATE_CHANNELS = getConfigIntProperty
             (PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
+
+        /**
+         * allowDebugUser: For convenience when hosting a server at the client,
+         * check in props and also Java system properties.
+         */
+        if (getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false))
+        {
+            allowDebugUser = true;
+        } else {
+            final String val = System.getProperty(PROP_JSETTLERS_ALLOW_DEBUG, "");
+            if (! val.isEmpty())
+            {
+                props.put(PROP_JSETTLERS_ALLOW_DEBUG, val);
+                allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
+            }
+        }
 
         /**
          * If true, will connect to DB (like validate_config_mode does) but start no threads.
