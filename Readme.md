@@ -72,7 +72,7 @@ write documentation please contact the development team from our github page.
 
 If you downloaded a JSettlers JAR file without attached documentation,
 the official location of this Readme and the docs is online at
-https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
+https://github.com/jdmonin/JSettlers2/blob/main/Readme.md .
 
 
 ## Requirements
@@ -224,7 +224,7 @@ which is read at startup if it exists in the current directory.  Any option
 given on the command line overrides the same option in the properties file.
 Comment lines start with # .  See `src/main/bin/jsserver.properties.sample` for full
 descriptions of all available properties. (Also available online at
-https://raw.githubusercontent.com/jdmonin/JSettlers2/master/src/main/bin/jsserver.properties.sample).
+https://raw.githubusercontent.com/jdmonin/JSettlers2/main/src/main/bin/jsserver.properties.sample).
 
 
 This example command line
@@ -335,7 +335,7 @@ all of which is optional, you will need to set up a MariaDB, MySQL, PostgreSQL,
 or SQLite database. If you will be using a non-SQLite database, be sure to start
 the database server software before installing JSettlers. For DB setup details
 see the "Database Setup" section of [doc/Database.md](doc/Database.md)
-(available online at https://github.com/jdmonin/JSettlers2/blob/master/doc/Database.md).
+(available online at https://github.com/jdmonin/JSettlers2/blob/main/doc/Database.md).
 
 To install a JSettlers server, start the server as described in "Server Setup
 and Testing". Remember that you can set server parameters and game option
@@ -447,7 +447,7 @@ org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 Miscellaneous code is attributed to the Strategic Conversation (STAC) Project -
 https://www.irit.fr/STAC/ - from their fork published at https://github.com/sorinMD/StacSettlers
 and reintegrated into JSettlers by Jeremy D Monin for v2.5.00.
-[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/master/README.md)
+[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/main/README.md)
 says "Copyright (C) 2017  STAC" and that repo's most recent substantial change was in 2018.
 In the JSettlers repository, commits from that code use "STAC Project" as the author.
 

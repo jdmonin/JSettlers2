@@ -1104,23 +1104,24 @@ The project code lives at https://github.com/jdmonin/JSettlers2 .
 Patches can be sent by email or by pull request.
 Please make sure your patch follows the project coding style.
 
-The master branch receives new features and enhancements for the next 'minor'
+The main branch receives new features and enhancements for the next 'minor'
 release. As soon as a bug is fixed or a feature's design is fairly stable,
-it should be committed to master.
+it should be committed to main.
 
 v3 is the experimental branch with major architectural changes.
 
-While v2.0.00 was being developed, several 1.x.xx releases came out.
-2.0 work began (and stable-1.x.xx branch split from master)
-right after releasing version 1.1.13. Most work on 1.x.xx was backported
-from 2.0 to the stable-1.x.xx git branch; changeset comments often mention
-a hash from a master commit.
-
-There will be periodic v2.x minor releases. Each release's files are tagged for
-the release (format: "release-2.4.00"). The last commit for the release
+Releases are tagged as format "release-2.4.00". Each release's last commit
 updates [Versions.md](Versions.md) with the final build number,
 with a commit message like: "Version 2.4.00 is build JM20200704"  
 Then: `git tag -a release-2.4.00 -m 'Version 2.4.00 is build JM20200704'`
+
+### Historical info
+
+While v2.0.00 was being developed, several 1.x.xx releases came out.
+2.0 work began (and stable-1.x.xx branch split from main)
+right after releasing version 1.1.13. Most work on 1.x.xx was backported
+from 2.0 to the stable-1.x.xx git branch; changeset comments often mention
+a hash from a main commit. The main branch was renamed from master for v2.5.
 
 The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
 https://sourceforge.net/projects/jsettlers2/ , converted to git on 2012-09-28

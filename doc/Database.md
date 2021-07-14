@@ -152,7 +152,7 @@ see above for instructions on starting the JSettlers server and connecting
 to the database.
 
 If you downloaded the JAR and not the full tar.gz, you can get the SQL scripts
-from https://github.com/jdmonin/JSettlers2/tree/master/src/main/bin/sql .
+from https://github.com/jdmonin/JSettlers2/tree/main/src/main/bin/sql .
 To get each script needed for your DB type: Click the SQL file to view it;
 click Raw; save to the folder containing your JSettlers JAR.
 
