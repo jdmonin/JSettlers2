@@ -37,7 +37,8 @@ import java.util.StringTokenizer;
  * If this is the right total amount to discard, server will respond to player
  * with {@link SOCPlayerElement} LOSE messages to confirm the details,
  * then report only the discard's resource total to the other players
- * via {@link SOCPlayerElement} and text.
+ * via {@code SOCPlayerElement} and text. See {@link SOCPlayerElement}
+ * class javadoc for more details.
  *<P>
  * If no other players need to discard, server will then send the new {@link SOCGameState}.
  * If waiting for others to discard, server sends the game a {@link SOCGameServerText} that lists

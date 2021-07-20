@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2013,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013,2017-2018,2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@
 package soc.message;
 
 import java.util.StringTokenizer;
+import soc.game.SOCGame;  // for javadocs only
 
 
 /**
@@ -46,6 +47,11 @@ import java.util.StringTokenizer;
  * Afterwards each gaining player (any client version) is sent their currently
  * held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt>
  * messages.
+ *<P>
+ * When 7 is rolled and players must discard, then instead, {@code SOCDiceResult}
+ * is followed by a {@link SOCGameState}({@link SOCGame#WAITING_FOR_DISCARDS}) announcement,
+ * then a {@link SOCDiscardRequest} prompt to each affected player.
+ * See {@link SOCDiscard} for player response and the next part of that sequence.
  *
  * @author Robert S. Thomas
  */

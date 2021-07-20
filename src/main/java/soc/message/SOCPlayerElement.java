@@ -47,6 +47,13 @@ import soc.game.SOCScenario;  // for javadocs only
  *   for each resource type gained by each player from the roll. Newer clients are instead sent
  *   {@link SOCDiceResultResources}. Afterwards the current player (any client version) is sent their currently
  *   held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt> messages.
+ * <LI> When dice roll result is 7 and player(s) must discard, server announces
+ *   game state {@link SOCGame#WAITING_FOR_DISCARDS}, then prompts individual players to discard;
+ *   see {@link SOCDiceResult} docs for more of that sequence.
+ *   Once a players's chosen their resources to discard, server announces they've done so
+ *   with a <tt>SOCPlayerElement(playerNum, {@link #LOSE LOSE}, {@link PEType#UNKNOWN_RESOURCE}, total)</tt>
+ *   while game is still in state {@code WAITING_FOR_DISCARDS}; any {@code LOSE} message in that
+ *   game state is for a discard.
  * <LI> Most other situations send single PlayerElement messages or their sequence doesn't matter.
  *</UL>
  *<P>
