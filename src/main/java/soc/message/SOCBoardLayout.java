@@ -33,6 +33,10 @@ import soc.util.DataUtils;
  * dice number layout, and the robber location.  Does not contain information
  * about any player's pieces on the board (see {@link SOCPutPiece PUTPIECE}).
  *<P>
+ * Sent to a client who is joining a game as an observer or player,
+ * after {@link SOCSitDown} messages about current players.
+ * Also sent during start of the game when its board is generated.
+ *<P>
  * This message sends the classic board layout for the original
  * 4-player game, {@link #BOARD_ENCODING_ORIGINAL}.
  * As of version 1.1.08 there are newer board layouts for game expansions

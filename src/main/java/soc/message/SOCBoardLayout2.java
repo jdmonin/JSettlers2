@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -39,7 +39,9 @@ import soc.util.DataUtils;
  * This message does not contain information about where the
  * player's pieces are on the board.
  *<P>
- * Sent to a client who has joined a game as an observer or player.
+ * Sent to a client who is joining a game as an observer or player,
+ * after {@link SOCSitDown} messages about current players.
+ * Also sent during start of the game when its board is generated.
  *<P>
  * <H4>Typical parts of the board layout:</H4>
  *
