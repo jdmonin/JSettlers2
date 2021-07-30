@@ -416,7 +416,7 @@ import soc.message.SOCStartGame;
      */
     public void acceptOffer(SOCGame ga, final int offeringPN)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), 0, offeringPN), ga.isPractice);
+        put(new SOCAcceptOffer(ga.getName(), 0, offeringPN), ga.isPractice);
     }
 
     /**

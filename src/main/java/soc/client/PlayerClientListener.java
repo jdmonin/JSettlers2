@@ -305,7 +305,7 @@ public interface PlayerClientListener
      * @param player  Player making the bank/port trade
      * @param give  Resources given by player in trade
      * @param get   Resources received by player in trade
-     * @see #playerTradeAccepted(SOCPlayer, SOCPlayer)
+     * @see #playerTradeAccepted(SOCPlayer, SOCPlayer, SOCResourceSet, SOCResourceSet)
      */
     void playerBankTrade(SOCPlayer player, SOCResourceSet give, SOCResourceSet get);
 
@@ -340,12 +340,22 @@ public interface PlayerClientListener
 
     /**
      * A player has accepted a trade offer from another player.
-     * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
+     * Call this after updating player resource data, but before
+     * calling <tt>offerer.{@link SOCPlayer#setCurrentOffer(soc.game.SOCTradeOffer) setCurrentOffer(null)}</tt>.
+     *<P>
+     * Newer servers' trade acceptance announcements include the offer details
+     * for {@code toOffering} and {@code toAccepting}; if null, implementer
+     * should call <tt>offerer.{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}</tt> for those details.
+     * (Older servers instead announced with PlayerElement messages sent before the Accept.)
+     *
      * @param offerer  Player who made the trade offer
      * @param acceptor  Player who accepted the trade offer
+     * @param toOffering  Resources given to offering player in trade, or {@code null} if not announced by server
+     * @param toAccepting  Resources given to accepting player in trade, or {@code null} if not announced by server
      * @see #playerBankTrade(SOCPlayer, SOCResourceSet, SOCResourceSet)
      */
-    void playerTradeAccepted(SOCPlayer offerer, SOCPlayer acceptor);
+    void playerTradeAccepted
+        (SOCPlayer offerer, SOCPlayer acceptor, SOCResourceSet toOffering, SOCResourceSet toAccepting);
 
     /**
      * Server has rejected client player's attempt to trade with the bank,

@@ -749,6 +749,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * update game data for a trade between players. Added 2021-08-02 for v2.5.00
+             */
+            case SOCMessage.ACCEPTOFFER:
+                handleACCEPTOFFER(games.get(((SOCMessageForGame) mes).getGame()), (SOCAcceptOffer) mes);
+                break;
+
+            /**
              * the trade message needs to be cleared
              */
             case SOCMessage.CLEARTRADEMSG:
@@ -2234,6 +2241,40 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleREJECTOFFER(SOCRejectOffer mes) {}
 
     /**
+     * Update game data for a trade between players: static to share with SOCPlayerClient.
+     *<P>
+     * Added for v2.5.00, the first server version to include trade details in {@code SOCAcceptOffer} message.
+     * Older servers send PLAYERELEMENT messages before ACCEPTOFFER instead, and their ACCEPTOFFER won't have
+     * trade detail fields; this method does nothing if those fields are {@code null}.
+     *
+     *<H3>Threads:</H3>
+     * If client is multi-threaded (for example, robot with a message treater thread and per-game brain threads),
+     * call this method from the same thread that needs the updated player resource data.
+     * Other threads may cache stale values for the resource count fields.
+     *
+     * @param ga  Game to update
+     * @param mes  Message data
+     * @since 2.5.00
+     */
+    public static void handleACCEPTOFFER(final SOCGame ga, final SOCAcceptOffer mes)
+    {
+        if (ga == null)
+            return;
+
+        final SOCResourceSet resToAcc = mes.getResToAcceptingPlayer();
+        if (resToAcc == null)
+            return;
+
+        final SOCResourceSet resToOff = mes.getResToOfferingPlayer();
+        final SOCResourceSet accRes = ga.getPlayer(mes.getAcceptingNumber()).getResources(),
+            offRes = ga.getPlayer(mes.getOfferingNumber()).getResources();
+        accRes.add(resToAcc);
+        accRes.subtract(resToOff, true);
+        offRes.add(resToOff);
+        offRes.subtract(resToAcc, true);
+    }
+
+    /**
      * handle the "clear trade message" message
      * @param mes  the message
      */
@@ -2254,18 +2295,18 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * call this method from the same thread that needs the updated player resource data.
      * Other threads may cache stale values for the resource count fields.
      *
-     * @param game  Game to update, from Map of games the client is playing,
+     * @param ga  Game to update, from Map of games the client is playing,
      *     or {@code null} if not found in that map
      * @param mes  the message
-     * @return  True if updated, false if {@code game} is null
+     * @return  True if updated, false if {@code ga} is null
      * @since 2.5.00
      */
-    public static boolean handleBANKTRADE(final SOCGame game, final SOCBankTrade mes)
+    public static boolean handleBANKTRADE(final SOCGame ga, final SOCBankTrade mes)
     {
-        if (game == null)
+        if (ga == null)
             return false;
 
-        final SOCResourceSet plRes = game.getPlayer(mes.getPlayerNumber()).getResources();
+        final SOCResourceSet plRes = ga.getPlayer(mes.getPlayerNumber()).getResources();
         plRes.subtract(mes.getGiveSet(), true);
         plRes.add(mes.getGetSet());
 
@@ -3198,7 +3239,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void acceptOffer(SOCGame ga, int from)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), 0, from));
+        put(new SOCAcceptOffer(ga.getName(), 0, from).toCmd());
     }
 
     /**

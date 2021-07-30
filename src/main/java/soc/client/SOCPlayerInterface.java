@@ -5087,11 +5087,25 @@ public class SOCPlayerInterface extends Frame
             pi.getPlayerHandPanel(rejecter.getPlayerNumber()).rejectOfferShowNonClient();
         }
 
-        public void playerTradeAccepted(final SOCPlayer offerer, final SOCPlayer acceptor)
+        public void playerTradeAccepted
+            (final SOCPlayer offerer, final SOCPlayer acceptor, SOCResourceSet toOffering, SOCResourceSet toAccepting)
         {
-            final SOCTradeOffer offer = offerer.getCurrentOffer();
-            if (offer != null)
-                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), false, acceptor);
+            if (toOffering == null)
+            {
+                final SOCTradeOffer offer = offerer.getCurrentOffer();
+                if (offer == null)
+                    return;
+
+                toAccepting = offer.getGiveSet();
+                toOffering = offer.getGetSet();
+            } else {
+                // update resource-count displays, since there weren't PlayerElement messages for this trade
+                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateResourcesVP();
+                pi.getPlayerHandPanel(acceptor.getPlayerNumber()).updateResourcesVP();
+            }
+
+            if (toOffering != null)
+                pi.printTradeResources(offerer, toAccepting, toOffering, false, acceptor);
         }
 
         public void playerTradeDisallowed(final int offeringPN, final boolean isOffer, final boolean isNotTurn)

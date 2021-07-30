@@ -1566,13 +1566,8 @@ public class TestActionsMessages
                 {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C2
                  + "|to=false,false,false,true|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
-                {"all:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=1|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=1|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=2|actionType=GAIN|elementType=2|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=2|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=2|actionType=GAIN|elementType=4|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=1"},
-                {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2},
+                {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2
+                    + "|toAccepting=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
                 {"all:SOCClearOffer:", "|playerNumber=-1"}
             });
 

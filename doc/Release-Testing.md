@@ -415,6 +415,12 @@ When preparing to release a new version, testing should include:
                 - Should be able to take over bot by sitting at "marked" seat
         - When testing new server with client 2.5.00 or newer, and older client in same game:
             - All clients in game (players and observers) should see expected results in player hand panels and game text area for:
+                - Bank trade and Undo trade
+                    - Total resource counts should be accurate before and after
+                    - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCBankTrade` message
+                - Trade between players
+                    - Do a trade where a player gives 1, receives 2; total resource counts should be accurate before and after
+                    - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCAcceptOffer` message
                 - Soldier dev card
                     - Give Soldier cards to client players:  
                       `dev: 9 #2` etc

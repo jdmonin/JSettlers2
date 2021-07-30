@@ -349,6 +349,11 @@ public class TestToCmdToStringParse
     private static final Object[][] TOCMD_TOSTRING_COMPARES =
     {
         {new SOCAcceptOffer("ga", 2, 3), "1039|ga,2,3", "SOCAcceptOffer:game=ga|accepting=2|offering=3"},
+        {
+            new SOCAcceptOffer("ga", 2, 3, new SOCResourceSet(0, 0, 2, 0, 0, 0), new SOCResourceSet(1, 0, 0, 0, 4, 0)),
+            "1039|ga,2,3,0,0,2,0,0,1,0,0,0,4",
+            "SOCAcceptOffer:game=ga|accepting=2|offering=3|toAccepting=clay=0|ore=0|sheep=2|wheat=0|wood=0|unknown=0|toOffering=clay=1|ore=0|sheep=0|wheat=0|wood=4|unknown=0"
+        },
         // TODO? SOCAdminPing
         {new SOCAdminReset(), "1065", "SOCAdminReset:"},
         // TODO SOCAuthRequest

@@ -202,15 +202,12 @@ public class SOCBankTrade extends SOCMessage
         {
             ga = st.nextToken();
 
-            /**
-             * Note: this only works if SOCResourceConstants.CLAY == 1
-             */
-            for (int i = 1; i <= SOCResourceConstants.WOOD; i++)
+            for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; i++)
             {
                 give.setAmount(Integer.parseInt(st.nextToken()), i);
             }
 
-            for (int i = 1; i <= SOCResourceConstants.WOOD; i++)
+            for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; i++)
             {
                 get.setAmount(Integer.parseInt(st.nextToken()), i);
             }

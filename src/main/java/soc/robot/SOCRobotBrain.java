@@ -1516,6 +1516,9 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.ACCEPTOFFER:
+                        SOCDisplaylessPlayerClient.handleACCEPTOFFER(game, (SOCAcceptOffer) mes);
+                            // use our thread to update game data
+
                         if (waitingForTradeResponse && (robotParameters.getTradeFlag() == 1))
                         {
                             final int acceptingPN = ((SOCAcceptOffer) mes).getAcceptingNumber();
@@ -1721,8 +1724,8 @@ public class SOCRobotBrain extends Thread
 
                     if (mesType == SOCMessage.BANKTRADE)
                     {
-                        // use our thread to update game data
                         SOCDisplaylessPlayerClient.handleBANKTRADE(game, (SOCBankTrade) mes);
+                            // use our thread to update game data
 
                         if (waitingForTradeMsg)
                         {

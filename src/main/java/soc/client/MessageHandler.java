@@ -2263,12 +2263,16 @@ public class MessageHandler
         final SOCGame ga = client.games.get(gaName);
         if (ga == null)
             return;
+
+        SOCDisplaylessPlayerClient.handleACCEPTOFFER(ga, mes);
+
         PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;
 
         pcl.playerTradeAccepted
-            (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
+            (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()),
+             mes.getResToOfferingPlayer(), mes.getResToAcceptingPlayer());
     }
 
     /**

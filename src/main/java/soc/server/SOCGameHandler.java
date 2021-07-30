@@ -3139,12 +3139,13 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Report a trade that has taken place between players, using {@link SOCPlayerElement}.
+     * Report a trade that has taken place between players.
+     * Sends {@link SOCPlayerElement}s to clients older than v2.5.00.
      * Also announces the trade to pre-v2.0.00 clients with a {@link SOCGameTextMsg}
      * ("Joe gave 1 sheep for 1 wood from Lily.").
      *<P>
      * Also reports trade player numbers by sending a {@link SOCAcceptOffer}
-     * message to the game after calling this method. In v2.0.00 and newer clients,
+     * message to the game. In v2.0.00 and newer clients,
      * that message announces the trade instead of {@link SOCGameTextMsg}.
      *
      * @param ga        the game
@@ -3159,10 +3160,17 @@ public class SOCGameHandler extends GameHandler
         final SOCResourceSet giveSet = offer.getGiveSet(),
                              getSet  = offer.getGetSet();
 
-        reportRsrcGainLoss(ga, giveSet, true, false, offering, accepting, null);
-        reportRsrcGainLoss(ga, getSet, false, false, offering, accepting, null);
+        if (ga.clientVersionLowest < SOCAcceptOffer.VERSION_FOR_SKIP_PLAYERELEMENTS)
+        {
+            reportRsrcGainLossForVersions
+                (ga, giveSet, true, false, offering, accepting, null,
+                 SOCAcceptOffer.VERSION_FOR_SKIP_PLAYERELEMENTS - 1);
+            reportRsrcGainLossForVersions
+                (ga, getSet, false, false, offering, accepting, null,
+                 SOCAcceptOffer.VERSION_FOR_SKIP_PLAYERELEMENTS - 1);
+        }
 
-        srv.messageToGame(gaName, true, new SOCAcceptOffer(gaName, accepting, offering));
+        srv.messageToGame(gaName, true, new SOCAcceptOffer(gaName, accepting, offering, giveSet, getSet));
 
         if (ga.clientVersionLowest < SOCStringManager.VERSION_FOR_I18N)
         {

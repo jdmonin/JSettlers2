@@ -1451,7 +1451,7 @@ public class SOCGameMessageHandler
      * {@link SOCGameHandler#reportTrade(SOCGame, int, int)}, then clears all trade offers
      * by announcing {@link SOCClearOffer}.
      *<P>
-     * If trade cannot be made, will send {@code acceptingNumber}'s client a message explaining that.
+     * If trade cannot be made, will reply to {@code acceptingNumber}'s client with a message explaining that.
      *<P>
      * <B>Note:</B> Calling this method assumes the players have either accepted and/or made a counter-offer,
      * and that the offer-initiating player's {@link SOCPlayer#getCurrentOffer()} is set to the trade to be executed.
@@ -1459,7 +1459,7 @@ public class SOCGameMessageHandler
      * @param ga the game object to execute the trade in
      * @param offeringNumber  Player number offering the trade
      * @param acceptingNumber  Player number accepting the trade
-     * @param c  accepting player client's connection, if need to reply that trade is not possible
+     * @param c  accepting player client's connection, for server's reply if trade is not possible
      * @since 2.5.00
      */
     private void executeTrade
