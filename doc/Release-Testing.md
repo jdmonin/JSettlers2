@@ -361,7 +361,8 @@ When preparing to release a new version, testing should include:
            during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
     - Versions to test against: **1.1.06** (before Game Options); **1.1.11** (has client bugfixes, 6-player board);
-      **1.2.01** (newest 1.x, before Scenarios/sea boards); **2.0.00** (many message format changes, i18n)
+      **1.2.01** (newest 1.x, before Scenarios/sea boards); **2.0.00** (many message format changes, i18n);
+      **2.5.00** (many message sequence changes)
     - New client, old server
         - If server is >= 1.1.09 but older than 1.1.19, add property at end of command line: `-Djsettlers.startrobots=5`
         - If server >= 1.1.14, also add at end of command line: `-Djsettlers.allow.debug=Y`

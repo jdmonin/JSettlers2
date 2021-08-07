@@ -121,7 +121,7 @@ use debug commands.
 
 For security, if you must use the "debug" user outside of your own laptop or workstation,
 please use sqlite or another database and make a "debug" account with a password
-(see [Readme.md](../Readme.md) section "Database Setup").
+(see "Database Setup" section of [Database.md](Database.md)).
 
 `D.ebugPrintlnINFO` is turned on or off for each java class by the import at the top of the file.
 For example if you wanted to see D.ebugPrintlnINFO output for soc.game.SOCPlayer,
