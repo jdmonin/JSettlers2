@@ -542,13 +542,13 @@ public class SOCGameMessageHandler
                      * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
                      * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
                      */
-                    String rollRsrcTxtOldCli = null;
-                    SOCDiceResultResources rollRsrcMsgNewCli = null;
+                    String rollRsrcTxtToV1 = null;
+                    SOCDiceResultResources rollRsrcMsg = null;
 
                     if (ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
                     {
-                        rollRsrcMsgNewCli = SOCDiceResultResources.buildForGame(ga);
-                        noPlayersGained = (rollRsrcMsgNewCli == null);
+                        rollRsrcMsg = SOCDiceResultResources.buildForGame(ga);
+                        noPlayersGained = (rollRsrcMsg == null);
                     }
 
                     if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
@@ -583,7 +583,7 @@ public class SOCGameMessageHandler
                     }
 
                     if (! noPlayersGained)
-                        rollRsrcTxtOldCli = gainsText.toString();
+                        rollRsrcTxtToV1 = gainsText.toString();
 
                     }
 
@@ -601,21 +601,21 @@ public class SOCGameMessageHandler
                         // debug_printPieceDiceNumbers(ga, message);
                         srv.messageToGameKeyed(ga, true, true, key);
                     } else {
-                        if (rollRsrcTxtOldCli == null)
-                            srv.messageToGame(gn, true, rollRsrcMsgNewCli);
-                        else if (rollRsrcMsgNewCli == null)
-                            srv.messageToGame(gn, true, rollRsrcTxtOldCli);
+                        if (rollRsrcTxtToV1 == null)
+                            srv.messageToGame(gn, true, rollRsrcMsg);
+                        else if (rollRsrcMsg == null)
+                            srv.messageToGame(gn, true, rollRsrcTxtToV1);
                         else
                         {
                             // neither is null: we have old and new clients
                             srv.messageToGameForVersions
                                 (ga, 0, (SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1),
-                                 new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcTxtOldCli), true);
+                                 new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcTxtToV1), true);
                             srv.messageToGameForVersions
                                 (ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
-                                 rollRsrcMsgNewCli, true);
+                                 rollRsrcMsg, true);
 
-                            srv.recordGameEvent(gn, rollRsrcMsgNewCli);
+                            srv.recordGameEvent(gn, rollRsrcMsg);
                         }
 
                         //
@@ -654,7 +654,8 @@ public class SOCGameMessageHandler
                                 srv.messageToGame(gn, false, new SOCResourceCount(gn, pn, resources.getTotal()));
                             // else, already-sent SOCDiceResultResources included players' new resource totals
 
-                            if ((rollRsrcMsgNewCli == null) && srv.recordGameEventsIsActive())
+                            if ((rollRsrcMsg == null) && srv.recordGameEventsIsActive())
+                                // make sure rsrc count gets recorded, since there's no SOCDiceResultResources with it
                                 srv.recordGameEvent(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
 
                             // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
