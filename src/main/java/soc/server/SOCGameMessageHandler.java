@@ -541,11 +541,14 @@ public class SOCGameMessageHandler
                     /**
                      * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
                      * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
+                     * rollRsrcMsg is generated if srv.recordGameEventsIsActive() even if there aren't
+                     * new-enough clients, because recording uses current-version message sequences.
                      */
                     String rollRsrcTxtToV1 = null;
                     SOCDiceResultResources rollRsrcMsg = null;
 
-                    if (ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                    if ((ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                        || srv.recordGameEventsIsActive())
                     {
                         rollRsrcMsg = SOCDiceResultResources.buildForGame(ga);
                         noPlayersGained = (rollRsrcMsg == null);
@@ -653,10 +656,6 @@ public class SOCGameMessageHandler
                             if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
                                 srv.messageToGame(gn, false, new SOCResourceCount(gn, pn, resources.getTotal()));
                             // else, already-sent SOCDiceResultResources included players' new resource totals
-
-                            if ((rollRsrcMsg == null) && srv.recordGameEventsIsActive())
-                                // make sure rsrc count gets recorded, since there's no SOCDiceResultResources with it
-                                srv.recordGameEvent(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
 
                             // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
                             // after the per-player loop
