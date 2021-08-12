@@ -370,8 +370,8 @@ When preparing to release a new version, testing should include:
     - New server, old client
     - Test these specific things for each version:
         - Server config:
-            - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`;  
-              all client versions should see that custom text when they connect
+            - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`  
+              All client versions should see that custom text when they connect
         - With an older client connected to a newer server, available new-game options
           should adapt to the older client version.  
           With a newer client connected to an older server, available new-game options
@@ -439,6 +439,17 @@ When preparing to release a new version, testing should include:
                     - For two players, build ships and a settlement on that gold hex by using debug command `*FREEPLACE* 1`
                     - When gold hex dice number is rolled, pick free resources
                     - Clients are sent same message sequence as for Discovery/Year of Plenty detailed above
+            - Optionally: Test as observer, as current player/affected player, as uninvolved player:
+                - Classic board: (client 1.1.18 and 2.0.00)
+                    - Roll 7, no discards, prompt move robber
+                    - Roll 7, prompt for discards
+                    - Not 7, gain resources
+                - Sea game scenarios: (client 2.0.00)
+                    - Roll 7, no discards, ask move robber or pirate
+                    - New Shores: Roll, gain from gold hex (for self, for others)
+                    - Cloth Trade: Roll, distribute cloth; game ends at roll because distributed/depleted half of villages' cloth
+                    - Pirate Islands: Roll, fleet battle lost (discard), won (pick free resource);
+                      if 7, battle results should be shown at client by the time they're asked to discard or choose a player to rob
 - Server robustness: Bot disconnect/reconnect during game start
     - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
     - Connect and start a 6-player game

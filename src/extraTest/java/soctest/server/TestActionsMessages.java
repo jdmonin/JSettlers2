@@ -990,14 +990,13 @@ public class TestActionsMessages
                         /*
                         example:
                         all:SOCDiceResult:game=message-seqs|param=3
-                        all:SOCGameState:game=message-seqs|state=20
                         all:SOCDiceResultResources:game=message-seqs|p=2|p=2|p=5|p=1|p=3|p=0|p=3|p=7|p=1|p=4
                         p2:SOCPlayerElements:game=message-seqs|playerNum=2|actionType=SET|e1=1,e2=1,e3=3,e4=0,e5=0
                         p3:SOCPlayerElements:game=message-seqs|playerNum=3|actionType=SET|e1=0,e2=3,e3=1,e4=3,e5=0
+                        all:SOCGameState:game=message-seqs|state=20
                          */
                         ArrayList<String[]> recordsList = new ArrayList<>();
                         recordsList.add(new String[]{"all:SOCDiceResult:", "|param=" + diceNumber});
-                        recordsList.add(new String[]{"all:SOCGameState:", "|state=20"});
                         recordsList.add(new String[]{"all:SOCDiceResultResources:", diceResRsrc.toString()});
                         for (int i = 0; i < playerNums.size(); ++i)
                         {
@@ -1008,6 +1007,7 @@ public class TestActionsMessages
                                     playerRsrcElems.get(i).toString()
                                 });
                         }
+                        recordsList.add(new String[]{"all:SOCGameState:", "|state=20"});
 
                         comparesRsrcs = TestRecorder.compareRecordsToExpected
                             (records, recordsList.toArray(new String[recordsList.size()][]));
@@ -1021,8 +1021,8 @@ public class TestActionsMessages
                             (records, new String[][]
                             {
                                 {"all:SOCDiceResult:", "|param=" + diceNumber},
+                                {"all:SOCGameServerText:", "|text=No player gets anything."},
                                 {"all:SOCGameState:", "|state=20"},
-                                {"all:SOCGameServerText:", "|text=No player gets anything."}
                             });
 
                         testedNoRsrcs = true;
@@ -1268,13 +1268,13 @@ public class TestActionsMessages
                 (records, new String[][]
                 {
                     {"all:SOCDiceResult:game=", "|param=" + GOLD_DICE_NUM},
-                    {"all:SOCGameState:game=", "|state=56"},
                     {"all:SOCGameServerText:game=", "|text=No player gets anything."},
                     {"all:SOCGameServerText:game=", "|text=" + CLIENT2_NAME + " and " + CLIENT_NAME + " need to pick resources from the gold hex."},
                     {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=1"},
                     {"p1:SOCSimpleRequest:game=", "|pn=1|reqType=1|v1=1|v2=0"},
                     {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=1"},
                     {"p3:SOCSimpleRequest:game=", "|pn=3|reqType=1|v1=1|v2=0"},
+                    {"all:SOCGameState:game=", "|state=56"},
                     {"all:SOCPickResources:game=", "|resources=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=3"},
                     {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=0"},
                     {"all:SOCGameState:game=", "|state=56"},

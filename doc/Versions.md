@@ -32,6 +32,8 @@ JARs for recent JSettlers versions can be downloaded from
 		- Report robbery with `SOCReportRobbery`
 		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
 		- Reject disallowed trade requests with `SOCRejectOffer` reason codes
+	- In dice roll result message sequence, new game state is sent only after resources or other gains/losses by players
+	  to indicate end of sequence
 	- Bank Trade and Accept Offer messages have resource info, so server no longer sends redundant `SOCPlayerElement`s
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource

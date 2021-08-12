@@ -418,7 +418,6 @@ public class SOCGameMessageHandler
                              plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N OK: v1.x always english
                         true);
                 }
-                handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
 
                 /** if true but noPlayersGained, will change announcement wording from "No player gets anything". */
                 boolean someoneWonFreeRsrc = false;
@@ -735,37 +734,61 @@ public class SOCGameMessageHandler
                        }
                        }
                      */
+
+                    handler.sendGameState(ga);  // Send game state last
                 }
                 else
                 {
                     /**
                      * player rolled 7
-                     * If anyone needs to discard, prompt them.
+                     * Send new game state, then if anyone needs to
+                     * discard or gain gold, prompt them.
                      */
-                    if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-                    {
-                        handler.sendGameState_sendDiscardRequests(ga, gn);
-                    }
-                    else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+
+                    final int newGameState = ga.getGameState();
+                    int[] goldPicks = null;
+                    Connection[] goldPickPlayerClis = null;
+
+                    if (newGameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
                     {
                         // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
+                        // Send number of picks as part of roll result sequence before game state.
+
+                        goldPicks = new int[ga.maxPlayers];
+                        goldPickPlayerClis = new Connection[ga.maxPlayers];
+
                         for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         {
                             final SOCPlayer pp = ga.getPlayer(pn);
                             final int numPick = pp.getNeedToPickGoldHexResources();
+
                             if (( ! ga.isSeatVacant(pn)) && (numPick > 0))
                             {
-                                Connection con = srv.getConnection(pp.getName());
-                                if (con != null)
-                                {
-                                    srv.messageToGame(gn, true, new SOCPlayerElement
+                                srv.messageToGame(gn, true, new SOCPlayerElement
                                         (gn, pn, SOCPlayerElement.SET,
                                          PEType.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
-                                    srv.messageToPlayer
-                                        (con, gn, pn, new SOCSimpleRequest
-                                            (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
-                                }
+
+                                goldPicks[pn] = numPick;
+                                goldPickPlayerClis[pn] = srv.getConnection(pp.getName());  // null unlikely but possible
                             }
+                        }
+                    }
+
+                    handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
+
+                    if (newGameState == SOCGame.WAITING_FOR_DISCARDS)
+                    {
+                        handler.sendGameState_sendDiscardRequests(ga, gn);
+                    }
+                    else if (goldPickPlayerClis != null)
+                    {
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        {
+                            Connection con = goldPickPlayerClis[pn];
+                            if (con != null)
+                                srv.messageToPlayer
+                                    (con, gn, pn, new SOCSimpleRequest
+                                        (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, goldPicks[pn], 0));
                         }
                     }
                 }
