@@ -29,16 +29,24 @@ import soc.game.SOCGame;  // for javadocs only
  * The two individual dice amounts can be reported in a text message.
  *<P>
  * This is in response to a client player's {@link SOCRollDice} request.
- * Will always be followed by {@link SOCGameState} (rolling a 7 might lead to
- * discards or moving the robber, etc.), and sometimes with further messages
- * after that, depending on the roll results and scenario/rules in effect.
+ * Will sometimes be followed with further messages to entire game and/or
+ * to some players, depending on the roll results and scenario/rules in effect.
+ * The last data message of sequence sent to entire game is always {@link SOCGameState}
+ * (rolling a 7 might lead to discards or moving the robber, etc.)
  *<P>
+ * The guideline is that the "public" sequence ends with the new game state message,
+ * then new state text if any for human clients, then any prompt for action by clients in the new state.
+ * Any special resource (cloth) distributed as roll results, or any report of action happening
+ * (fleet battle lost/won), is sent before the state message.
+ *
+ *<H4>Sequence details</H4>
+ *
  * When players gain resources on the roll, game members will be sent
  * {@link SOCDiceResultResources} if v2.0.00 or newer; older clients will
  * be sent {@link SOCPlayerElement SOCPlayerElement(GAIN, resType, amount)}
  * and a text message such as "Joe gets 3 sheep. Mike gets 1 clay."
  *<P>
- * Players who gain resources on the roll will be sent
+ * Players who gain resources on the roll will be individually sent
  * {@link SOCPlayerElement SOCPlayerElement(SET, resType, amount)} messages
  * for all their new resource counts.  (Before v2.0.00 those were sent to each
  * player in the game after a roll, not just those who gained resources, followed by
@@ -52,6 +60,14 @@ import soc.game.SOCGame;  // for javadocs only
  * is followed by a {@link SOCGameState}({@link SOCGame#WAITING_FOR_DISCARDS}) announcement,
  * then a {@link SOCDiscardRequest} prompt to each affected player.
  * See {@link SOCDiscard} for player response and the next part of that sequence.
+ *
+ *<H4>End of sequence</H4>
+ *
+ * As noted above, the message sequence to the entire game always ends with {@code SOCGameState}.
+ * That might be followed with {@link SOCGameServerText} for human players to read,
+ * and/or messages sent privately to a player such as {@link SOCDiscardRequest}
+ * (which doesn't need to be "public" because entire game knew the number of cards held
+ * when the 7 was rolled).
  *
  * @author Robert S. Thomas
  */
