@@ -2744,7 +2744,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
         // Catch these before default case, so 'unknown type' won't be printed
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
-        case SOCSimpleAction.DICE_RESULTS_FULLY_SENT:
         case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
         case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
             // game data updates are sent in preceding or following messages, can ignore this one

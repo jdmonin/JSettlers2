@@ -121,31 +121,6 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     public static final int BOARD_EDGE_SET_SPECIAL = 4;
 
     /**
-     * This marker "action" means the server has sent all results/game data changes from the current dice roll.
-     * Clients can now take plan and take action based on fully updated game details. Server announces this
-     * to game at end of its response to current player client's {@link SOCRollDice}, only if game has a certain
-     * config flag set.
-     *<P>
-     * Can be useful for third-party bot or client development.
-     * The standard client and built-in bots don't need this to be sent:
-     * If the roll results require special action from the bots or human clients
-     * (move robber, discard resources, etc), the game state and other messages from server
-     * will prompt that.
-     *<P>
-     * Is sent only if the game's {@link SOCGame#clientRequestsDiceResultsFullySent} config flag is set.
-     *<P>
-     * A client can request this by saying it has {@link soc.util.SOCFeatureSet#CLIENT_REQUESTS_DICE_RESULTS_FULLY_SENT}
-     * when it sends {@link SOCVersion} info while connecting to the server. The flag is then set for any game that
-     * client joins.
-     *<P>
-     * {@code pn}: Unused; -1 <br>
-     * {@code value1}, {@code value2}: Unused; 0
-     *
-     * @since 2.5.00
-     */
-    public static final int DICE_RESULTS_FULLY_SENT = 5;
-
-    /**
      * This message from server announces the results of the current player's pirate fortress attack attempt:
      * Pirates' random defense strength, number of player's ships lost (win/tie/loss).
      * Sent in response to client's {@link SOCSimpleRequest#SC_PIRI_FORT_ATTACK}

@@ -20,8 +20,6 @@
  **/
 package soc.message;
 
-import soc.game.SOCGame;  // for javadocs only
-
 
 /**
  * This message is a request from client to server; client player wants to roll the dice.
@@ -30,7 +28,6 @@ import soc.game.SOCGame;  // for javadocs only
  * possibly other messages depending on the roll results and scenario/rules in effect,
  * then {@link SOCGameState}. See {@link SOCDiceResult} for message sequence details.
  *
- * @see SOCGame#clientRequestsDiceResultsFullySent
  * @author Robert S Thomas
  */
 public class SOCRollDice extends SOCMessage

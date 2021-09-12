@@ -792,10 +792,6 @@ public class SOCGameMessageHandler
                         }
                     }
                 }
-
-                if (ga.clientRequestsDiceResultsFullySent)
-                    srv.messageToGame(gn, true, new SOCSimpleAction
-                        (gn, -1, SOCSimpleAction.DICE_RESULTS_FULLY_SENT));
             }
             else
             {

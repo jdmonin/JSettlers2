@@ -874,19 +874,6 @@ public class SOCGame implements Serializable, Cloneable
     private SOCFeatureSet clientFeaturesRequired;
 
     /**
-     * For use at server; if true, server sends the "end of dice result info" marker at end of message sequence
-     * when the dice are rolled each turn. Can be requested by having client feature
-     * {@link SOCFeatureSet#CLIENT_REQUESTS_DICE_RESULTS_FULLY_SENT}: See that feature's javadoc for details.
-     * Treat as read-only.
-     *<P>
-     * Updated at server when client joins a game.
-     * Because this is an uncommon feature to request, not updated when client leaves a game.
-     *
-     * @since 2.5.00
-     */
-    public boolean clientRequestsDiceResultsFullySent;
-
-    /**
      * For use at server for i18n; does this game have any members (players or observers)
      * with a locale different than {@link #getOwnerLocale()}?
      * Initially false, set true in {@code SOCGameListAtServer.addMember} if needed.
@@ -8856,7 +8843,6 @@ public class SOCGame implements Serializable, Cloneable
         cp.clientVersionLowest = clientVersionLowest;
         cp.clientVersionHighest = clientVersionHighest;
         cp.clientVersionMinRequired = clientVersionMinRequired;
-        cp.clientRequestsDiceResultsFullySent = clientRequestsDiceResultsFullySent;
 
         // Per-player state
         for (int i = 0; i < maxPlayers; i++)

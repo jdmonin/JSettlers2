@@ -2893,10 +2893,6 @@ public class MessageHandler
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;
 
-        case SOCSimpleAction.DICE_RESULTS_FULLY_SENT:
-            // game data updates are sent in preceding messages, can ignore this one
-            break;
-
         default:
             // ignore unknown types
             {
