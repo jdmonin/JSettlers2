@@ -40,6 +40,8 @@ JARs for recent JSettlers versions can be downloaded from
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)
 		  so client's game data's is updated by the time it sees that action message
 	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
+	- When client joins a game:
+		- If any player currently picking free resources, server sends SOCPlayerElement(NUM_PICK_GOLD_HEX_RESOURCES)
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/ruflab/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code

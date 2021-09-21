@@ -1517,6 +1517,12 @@ public class SOCGameHandler extends GameHandler
 
             // more per-player data to send after dice result
 
+            itm = pl.getNeedToPickGoldHexResources();
+            if ((itm > 0) && ! gameData.isSeatVacant(i))
+                srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+                    new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, itm));
+
             sendTradeOffer(pl, c);
         }
 

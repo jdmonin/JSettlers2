@@ -438,6 +438,8 @@ When preparing to release a new version, testing should include:
                     - During initial placement, put two players near gold hex
                     - For two players, build ships and a settlement on that gold hex by using debug command `*FREEPLACE* 1`
                     - When gold hex dice number is rolled, pick free resources
+                    - Test once: Have observers (client 2.0.00 and current) join while waiting for the pick;
+                      should see "Picking Resources" text in player's hand panel
                     - Clients are sent same message sequence as for Discovery/Year of Plenty detailed above
             - Optionally: Test as observer, as current player/affected player, as uninvolved player:
                 - Classic board: (client 1.1.18 and 2.0.00)
