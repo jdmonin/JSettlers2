@@ -4112,7 +4112,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             final int edge = edges[i];
                             if ((edge == -9) || (edge == id))
                                 continue;
-                            if (null != getRoadOrShip(edge))
+                            if (getRoadOrShip(edge) instanceof SOCShip)  // adjacent roads aren't a branch
                             {
                                 foundOtherShips = true;
                                 break;
@@ -4120,14 +4120,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         }
 
                         if (foundOtherShips)
-                        {
                             for (int i = 0; i < 3; ++i)
-                            {
-                                final Integer edgeInt = Integer.valueOf(edges[i]);
-                                if (potentialShips.contains(edgeInt))
-                                    potentialShips.remove(edgeInt);
-                            }
-                        }
+                                potentialShips.remove(Integer.valueOf(edges[i]));
                     }
                 }
             }

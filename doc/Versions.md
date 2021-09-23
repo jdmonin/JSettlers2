@@ -18,6 +18,8 @@ JARs for recent JSettlers versions can be downloaded from
 - Gameplay:
 	- Recalc Longest Route when building coastal settlement to connect a player's roads to ships
 	  (thanks kotc for reporting issue #95)
+	- Pirate Islands scenario: Ship placement: Fix client bug where placing a coastal ship
+	  next to a road would prevent any further ship building, based on "no branches in route" rule
 	- Through the Desert scenario: No longer incorrectly gives 2 SVP to a player
 	  building a settlement within the desert (thanks kotc for reporting #86)
 	- When a trade is offered to bots and humans, bots wait longer before responding.
