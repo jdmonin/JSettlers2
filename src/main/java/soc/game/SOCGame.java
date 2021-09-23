@@ -5116,6 +5116,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("Game not active: state " + gameState);
 
         forcingEndTurn = true;
+        final SOCPlayer currPlayer = players[currentPlayerNumber];
         SOCInventoryItem itemCard = null;  // card/inventory item being returned to player, if any
 
         if (gameState == WAITING_FOR_ROBBER_OR_PIRATE)
@@ -5199,7 +5200,6 @@ public class SOCGame implements Serializable, Cloneable
                 {
                     placingRobberForKnightCard = false;
                     itemCard = new SOCDevCard(SOCDevCardConstants.KNIGHT, false);
-                    final SOCPlayer currPlayer = players[currentPlayerNumber];
                     currPlayer.getInventory().addItem(itemCard);
 
                     final int newNumKnights = currPlayer.getNumKnights() - 1;
@@ -5224,7 +5224,7 @@ public class SOCGame implements Serializable, Cloneable
         case PLACING_FREE_ROAD1:
             gameState = PLAY1;
             itemCard = new SOCDevCard(SOCDevCardConstants.ROADS, false);
-            players[currentPlayerNumber].getInventory().addItem(itemCard);
+            currPlayer.getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
@@ -5244,14 +5244,14 @@ public class SOCGame implements Serializable, Cloneable
         case WAITING_FOR_DISCOVERY:
             gameState = PLAY1;
             itemCard = new SOCDevCard(SOCDevCardConstants.DISC, false);
-            players[currentPlayerNumber].getInventory().addItem(itemCard);
+            currPlayer.getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
         case WAITING_FOR_MONOPOLY:
             gameState = PLAY1;
             itemCard = new SOCDevCard(SOCDevCardConstants.MONO, false);
-            players[currentPlayerNumber].getInventory().addItem(itemCard);
+            currPlayer.getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
