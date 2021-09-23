@@ -778,8 +778,13 @@ public class SOCGameHandler extends GameHandler
         final String gaName = ga.getName();
         final int cpn = ga.getCurrentPlayerNumber();
         final int endFromGameState = ga.getGameState();
+        final int largestArmyPN;
+        {
+            final SOCPlayer pl = ga.getPlayerWithLargestArmy();
+            largestArmyPN = (pl != null) ? pl.getPlayerNumber() : -1;
+        }
 
-        SOCPlayer cp = ga.getPlayer(cpn);
+        final SOCPlayer cp = ga.getPlayer(cpn);
         if (cp.hasAskedSpecialBuild())
         {
             cp.setAskedSpecialBuild(false);
@@ -925,6 +930,30 @@ public class SOCGameHandler extends GameHandler
 
                 srv.messageToGameKeyed(ga, true, true, "forceend.devcard.returned", plName);
                     // "{0}''s just-played development card was returned."
+
+                if (itemCard.itype == SOCDevCardConstants.KNIGHT)
+                    // send updated army size, since clients saw increase when the card was played
+                    srv.messageToGame(gaName, true, new SOCPlayerElement
+                        (gaName, cpn, SOCPlayerElement.SET, PEType.NUMKNIGHTS, cp.getNumKnights()));
+            }
+        }
+
+        /**
+         * Announce if largest-army player changed (Knight card was returned to hand, etc)
+         */
+        {
+            final SOCPlayer pl = ga.getPlayerWithLargestArmy();
+            final int newLargestArmyPN = (pl != null) ? pl.getPlayerNumber() : -1;
+
+            if (largestArmyPN != newLargestArmyPN)
+            {
+                SOCMessage msg =
+                    (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+                    ? new SOCGameElements
+                        (gaName, GEType.LARGEST_ARMY_PLAYER, newLargestArmyPN)
+                    : new SOCLargestArmy(gaName, newLargestArmyPN);
+
+                srv.messageToGame(gaName, true, msg);
             }
         }
 

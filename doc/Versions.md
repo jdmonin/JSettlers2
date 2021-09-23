@@ -23,6 +23,8 @@ JARs for recent JSettlers versions can be downloaded from
 	- When a trade is offered to bots and humans, bots wait longer before responding.
 	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
 	  (thank you Lee Passey)
+	- If knight card is played by bot, then returned because bot is unresponsive,
+	  server updates their army size and largest army (thanks kotc for reporting #91)
 - Bots/AI:
 	- Shorten pause after bot requests a bank trade
 - I18N:

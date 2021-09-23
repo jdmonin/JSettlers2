@@ -5199,7 +5199,23 @@ public class SOCGame implements Serializable, Cloneable
                 {
                     placingRobberForKnightCard = false;
                     itemCard = new SOCDevCard(SOCDevCardConstants.KNIGHT, false);
-                    players[currentPlayerNumber].getInventory().addItem(itemCard);
+                    final SOCPlayer currPlayer = players[currentPlayerNumber];
+                    currPlayer.getInventory().addItem(itemCard);
+
+                    final int newNumKnights = currPlayer.getNumKnights() - 1;
+                    if (newNumKnights >= 0)
+                        currPlayer.setNumKnights(newNumKnights);
+
+                    if (currentPlayerNumber == playerWithLargestArmy)
+                    {
+                        if (newNumKnights < 3)
+                            playerWithLargestArmy = -1;
+
+                        updateLargestArmy();
+                            // TODO: Not perfect; if there had been a tie before the Knight was played,
+                            // the current player would've taken Largest Army by playing it,
+                            // now it's returned so there's a tie again, but they keep Largest Army.
+                    }
                 }
                 return new SOCForceEndTurnResult
                     (SOCForceEndTurnResult.FORCE_ENDTURN_UNPLACE_ROBBER, itemCard);

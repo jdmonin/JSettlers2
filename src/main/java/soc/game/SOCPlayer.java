@@ -2349,6 +2349,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the player's army size (their number of knights in play).
      * @return the number of knights in play
      */
     public int getNumKnights()
@@ -2357,7 +2358,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the number of knights in play
+     * set the player's army size (their number of knights in play).
      *
      * @param nk        the number of knights
      */
@@ -2367,7 +2368,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * increment the number of knights in play
+     * increment the player's army size (their number of knights in play).
      */
     public void incrementNumKnights()
     {
