@@ -1773,7 +1773,7 @@ public class SOCRobotBrain extends Thread
                                 //
                                 // This is the bank/port trade confirmation announcement we've been waiting for
                                 //
-                                clearTradingFlags(true, true);
+                                clearTradingFlags(true, true, true);
                         }
                     }
 
@@ -2476,7 +2476,7 @@ public class SOCRobotBrain extends Thread
      * Call {@link SOCRobotClient#clearOffer(SOCGame) client.clearOffer},
      * clear {@link #waitingForTradeResponse} and {@link #counter}.
      * Call {@link SOCRobotNegotiator#recordResourcesFromNoResponse(SOCTradeOffer)}.
-     * @see #clearTradingFlags(boolean, boolean)
+     * @see #clearTradingFlags(boolean, boolean, boolean)
      * @see #handleTradeResponse(int, boolean)
      * @since 1.1.09
      */
@@ -3324,7 +3324,7 @@ public class SOCRobotBrain extends Thread
      * Note that a player has replied to our offer, or we've accepted another player's offer.
      * Determine whether to keep waiting for responses, and update negotiator appropriately.
      * If {@code accepted}, also clears {@link #waitingForTradeResponse}
-     * by calling {@link #clearTradingFlags(boolean, boolean)}.
+     * by calling {@link #clearTradingFlags(boolean, boolean, boolean)}.
      *<P>
      * Also handles recovery if our offer was rejected, but our {@link SOCPlayer#getCurrentOffer()} is {@code null}.
      *
@@ -3338,7 +3338,7 @@ public class SOCRobotBrain extends Thread
     {
         if (accepted)
         {
-            clearTradingFlags(false, true);
+            clearTradingFlags(false, true, true);
 
             return;
         }
@@ -3369,7 +3369,7 @@ public class SOCRobotBrain extends Thread
         } else {
             // Inconsistent data, should have an offer;
             // recover by clearing trade flags as if everyoneRejected
-            clearTradingFlags(false, true);
+            clearTradingFlags(false, true, true);
         }
 
         D.ebugPrintlnINFO("everyoneRejected=" + everyoneRejected);
@@ -3564,13 +3564,9 @@ public class SOCRobotBrain extends Thread
                 ++declinedOurPlayerTrades;
 
             if (reasonCode != SOCRejectOffer.REASON_CANNOT_MAKE_OFFER)
-            {
-                clearTradingFlags((rejector < 0), false);
-            } else {
-                waitingForTradeMsg = false;
-                waitingForTradeResponse = false;
-                // TODO should clearTradingFlags take a param for offer rejected by server?
-            }
+                clearTradingFlags((rejector < 0), false, true);
+            else
+                clearTradingFlags(false, false, false);
 
             return;
         }
@@ -5044,22 +5040,25 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Clears all flags waiting for a bank or player trade message.
+     * Clears all flags waiting for a bank or player trade message,
+     * or as needed to recover from a rejected trade offer:
      * {@link #waitingForTradeResponse}, {@link #waitingForTradeMsg},
      * any flags added in a third-party robot brain.
      *
      * @param isBankTrade  True if was bank/port trade, not player trade
      * @param wasAllowed  True if trade was successfully offered, completed, or rejected;
      *     false if server sent a message disallowing it
+     * @param wasOfferAllowed  False if server rejected our player trade offer, otherwise true.
+     *     If false, ignores value of {@code wasAllowed}.
      * @see #tradeStopWaitingClearOffer()
      * @see #handleTradeResponse(int, boolean)
      * @see #setDoneTrading(boolean)
      * @since 2.5.00
      */
-    public void clearTradingFlags(final boolean isBankTrade, final boolean wasAllowed)
+    public void clearTradingFlags(final boolean isBankTrade, final boolean wasAllowed, final boolean wasOfferAllowed)
     {
-        // This method clears both fields regardless of isBankTrade,
-        // but third-party bots might override it and use that parameter
+        // This implementation clears both fields regardless of isBankTrade or wasOfferAllowed,
+        // but third-party bots might override it and use those parameters
 
         waitingForTradeMsg = false;
         waitingForTradeResponse = false;
@@ -5069,7 +5068,7 @@ public class SOCRobotBrain extends Thread
      * Updates the flag indicating done with player trading, do any other actions necessary at that time.
      * This method is encapsulation to be overridden by third-party robot brains if needed.
      * @param isDone  True to set flag, false to clear
-     * @see #clearTradingFlags(boolean, boolean)
+     * @see #clearTradingFlags(boolean, boolean, boolean)
      * @since 2.5.00
      */
     public void setDoneTrading(final boolean isDone)
