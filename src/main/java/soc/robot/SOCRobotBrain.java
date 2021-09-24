@@ -166,6 +166,25 @@ public class SOCRobotBrain extends Thread
     public static int MAX_DENIED_BUILDING_PER_TURN = 3;
 
     /**
+     * If we made this many server-rejected bank and port trades, stop trying.
+     *
+     * @see #failedBankTrades
+     * @see #MAX_DENIED_PLAYER_TRADES_PER_TURN
+     * @since 2.5.00
+     */
+    public static int MAX_DENIED_BANK_TRADES_PER_TURN = 9;
+
+    /**
+     * If we made this many server-rejected trade offers to other players
+     * (including counter-offers), stop trying.
+     *
+     * @see #declinedOurPlayerTrades
+     * @see #MAX_DENIED_BANK_TRADES_PER_TURN
+     * @since 2.5.00
+     */
+    public static int MAX_DENIED_PLAYER_TRADES_PER_TURN = 9;
+
+    /**
      * When a trade has been offered to humans (and maybe also to bots), pause
      * for this many seconds before accepting an offer to give humans a chance
      * to compete against fast bot decisions.
@@ -361,6 +380,25 @@ public class SOCRobotBrain extends Thread
      * @since 1.1.00
      */
     protected int failedBuildingAttempts;
+
+    /**
+     * Track how many of our bank trades were rejected by server this turn.
+     *
+     * @see #declinedOurPlayerTrades
+     * @see #MAX_DENIED_BANK_TRADES_PER_TURN
+     * @since 2.5.00
+     */
+    protected int failedBankTrades;
+
+    /**
+     * Track how many of our player trade offers or counter-offers were rejected by server this turn.
+     *
+     * @see #failedBankTrades
+     * @see #doneTrading
+     * @see #MAX_DENIED_PLAYER_TRADES_PER_TURN
+     * @since 2.5.00
+     */
+    protected int declinedOurPlayerTrades;
 
     /**
      * Our player tracker within {@link #playerTrackers}.
@@ -660,9 +698,14 @@ public class SOCRobotBrain extends Thread
     // please update debugPrintBrainStatus().
 
     /**
-     * true if we're done trading
+     * true if we're done trading with other players this turn.
+     * To encapsulate for benefit of third-party bots, most users should call {@link #setDoneTrading()}
+     * instead of directly changing this flag, unless they're also changing similar internal flags
+     * like {@link #waitingForTradeResponse}.
+     *
      * @see #makeOffer(SOCBuildPlan)
      * @see #waitingForTradeResponse
+     * @see #declinedOurPlayerTrades
      */
     protected boolean doneTrading;
 
@@ -819,7 +862,7 @@ public class SOCRobotBrain extends Thread
         decidedIfSpecialBuild = false;
         moveRobberOnSeven = false;
         waitingForTradeResponse = false;
-        doneTrading = false;
+        setDoneTrading(false);
         offerRejections = new boolean[game.maxPlayers];
         for (int i = 0; i < game.maxPlayers; i++)
         {
@@ -1358,17 +1401,11 @@ public class SOCRobotBrain extends Thread
                         //
                         // reset the selling flags and offers history
                         //
-                        if (robotParameters.getTradeFlag() == 1)
-                        {
-                            doneTrading = false;
-                        }
-                        else
-                        {
-                            doneTrading = true;
-                        }
+                        setDoneTrading(robotParameters.getTradeFlag() == 0);
 
                         waitingForTradeMsg = false;
                         waitingForTradeResponse = false;
+                        declinedOurPlayerTrades = 0;
                         negotiator.resetIsSelling();
                         negotiator.resetOffersMade();
 
@@ -1435,6 +1472,7 @@ public class SOCRobotBrain extends Thread
                         // For others, see above: if (mesType == SOCMessage.TURN)
                         whatWeFailedToBuild = null;
                         failedBuildingAttempts = 0;
+                        failedBankTrades = 0;
                         rejectedPlayDevCardType = -1;
                         rejectedPlayInvItem = null;
                     }
@@ -2183,7 +2221,7 @@ public class SOCRobotBrain extends Thread
         expectROLL_OR_CARD = true;
         waitingForOurTurn = true;
 
-        doneTrading = (robotParameters.getTradeFlag() != 1);
+        setDoneTrading(robotParameters.getTradeFlag() == 0);
 
         //D.ebugPrintln("!!! ENDING TURN !!!");
         negotiator.resetIsSelling();
@@ -2999,12 +3037,16 @@ public class SOCRobotBrain extends Thread
 
                     if (robotParameters.getTradeFlag() == 1)
                     {
-                        makeOffer(buildingPlan);
-                        // makeOffer will set waitingForTradeResponse or doneTrading.
+                        if (declinedOurPlayerTrades < MAX_DENIED_PLAYER_TRADES_PER_TURN)
+                            makeOffer(buildingPlan);
+                                // will set waitingForTradeResponse or doneTrading
+                        else
+                            setDoneTrading(true);
                     }
                 }
 
-                if (gameStatePLAY1 && ! waitingForTradeResponse)
+                if (gameStatePLAY1 && (! waitingForTradeResponse)
+                    && (failedBankTrades < MAX_DENIED_BANK_TRADES_PER_TURN))
                 {
                     /**
                      * trade with the bank/ports
@@ -3484,10 +3526,19 @@ public class SOCRobotBrain extends Thread
             break;
 
         case SOCRobotNegotiator.COUNTER_OFFER:
+            {
+                final boolean madeCounter;
+                if (declinedOurPlayerTrades < MAX_DENIED_PLAYER_TRADES_PER_TURN)
+                {
+                    madeCounter = makeCounterOffer(offer);
+                } else {
+                    madeCounter = false;
+                    setDoneTrading(true);
+                }
 
-            if (! makeCounterOffer(offer))
-                client.rejectOffer(game);
-
+                if (! madeCounter)
+                    client.rejectOffer(game);
+            }
             break;
         }
     }
@@ -3496,6 +3547,9 @@ public class SOCRobotBrain extends Thread
      * Handle a REJECTOFFER for this game.
      * watch rejections of other players' offers, and of our offers.
      * If everyone's rejected our offer, clear {@link #waitingForTradeResponse}.
+     * If rejection is from server because of game rules
+     * ({@link SOCRejectOffer#getReasonCode() mes.getReasonCode()} != 0),
+     * increments {@link #failedBankTrades} or {@link #declinedOurPlayerTrades}.
      * @since 1.1.08
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
@@ -3504,10 +3558,19 @@ public class SOCRobotBrain extends Thread
 
         if ((rejector < 0) || (reasonCode != 0))
         {
+            if (waitingForTradeMsg)
+                ++failedBankTrades;
+            else
+                ++declinedOurPlayerTrades;
+
             if (reasonCode != SOCRejectOffer.REASON_CANNOT_MAKE_OFFER)
+            {
                 clearTradingFlags((rejector < 0), false);
-            // else
-                // TODO: recover if needed from server rejection of our trade offer
+            } else {
+                waitingForTradeMsg = false;
+                waitingForTradeResponse = false;
+                // TODO should clearTradingFlags take a param for offer rejected by server?
+            }
 
             return;
         }
@@ -4820,8 +4883,11 @@ public class SOCRobotBrain extends Thread
      * Make bank trades or port trades to get the required resources for executing a plan, if possible.
      * Calls {@link SOCRobotNegotiator#getOfferToBank(SOCBuildPlan, SOCResourceSet)}.
      * Calls {@link #pause(int)} after requesting a bank/port trade.
+     * If returns true, caller typically sets a status flag like {@link #waitingForTradeMsg}.
      *<P>
      * Before v2.5.00 this method was {@code tradeToTarget2(SOCResourceSet)}.
+     *<P>
+     * Note: Caller should first check {@link #failedBankTrades} vs {@link #MAX_DENIED_BANK_TRADES_PER_TURN}.
      *
      * @param buildPlan  Build plan to look for resources to build. {@code getOfferToBank(..)}
      *     will typically call {@link SOCBuildPlan#getFirstPieceResources()} to determine
@@ -4889,6 +4955,8 @@ public class SOCRobotBrain extends Thread
      * and update {@link #ourPlayerData}.{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) setCurrentOffer()},
      *<P>
      * Before v2.5.00 this method took a {@link SOCPossiblePiece}, not a {@link SOCBuildPlan}.
+     *<P>
+     * Note: Caller should first check {@link #declinedOurPlayerTrades} vs {@link #MAX_DENIED_PLAYER_TRADES_PER_TURN}.
      *
      * @param buildPlan  our current build plan
      * @return true if we made an offer
@@ -4937,6 +5005,8 @@ public class SOCRobotBrain extends Thread
      * then {@link #ourPlayerData}{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) .setCurrentOffer(..)}
      * with the result or {@code null}. Updates {@link #waitingForTradeResponse} flag.
      * If no counteroffer is made here, sets {@link #doneTrading}.
+     *<P>
+     * Note: Caller should first check {@link #declinedOurPlayerTrades} vs {@link #MAX_DENIED_PLAYER_TRADES_PER_TURN}.
      *
      * @param offer  the other player's offer
      * @return true if we made and sent a counteroffer
@@ -4983,6 +5053,7 @@ public class SOCRobotBrain extends Thread
      *     false if server sent a message disallowing it
      * @see #tradeStopWaitingClearOffer()
      * @see #handleTradeResponse(int, boolean)
+     * @see #setDoneTrading(boolean)
      * @since 2.5.00
      */
     public void clearTradingFlags(final boolean isBankTrade, final boolean wasAllowed)
@@ -4992,6 +5063,18 @@ public class SOCRobotBrain extends Thread
 
         waitingForTradeMsg = false;
         waitingForTradeResponse = false;
+    }
+
+    /**
+     * Updates the flag indicating done with player trading, do any other actions necessary at that time.
+     * This method is encapsulation to be overridden by third-party robot brains if needed.
+     * @param isDone  True to set flag, false to clear
+     * @see #clearTradingFlags(boolean, boolean)
+     * @since 2.5.00
+     */
+    public void setDoneTrading(final boolean isDone)
+    {
+        doneTrading = isDone;
     }
 
     /**

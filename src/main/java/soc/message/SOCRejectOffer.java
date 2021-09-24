@@ -25,7 +25,8 @@ import java.util.StringTokenizer;
 
 /**
  * Typically this message means that the player is rejecting all offers ("no thanks").
- * Server can also send it with a "reason code" when rejecting a client's trade-related request.
+ * Server can also send it with a "reason code" when rejecting a client's trade-related request
+ * (player trade or bank trade).
  *
  *<H3>Typical usage: (without a reason code)</H3>
  *
@@ -39,8 +40,8 @@ import java.util.StringTokenizer;
  *
  *<H3>With a reason code:</H3>
  *
- * Sent from server to a player's client in response to their trade offer or request to accept a trade,
- * with the specific reason it was disallowed ({@link #REASON_NOT_YOUR_TURN},
+ * Sent from server to a player's client in response to their bank trade, player trade offer,
+ * or request to accept a trade, with the specific reason it was disallowed ({@link #REASON_NOT_YOUR_TURN},
  * {@link #REASON_CANNOT_MAKE_OFFER}, or generic {@link #REASON_CANNOT_MAKE_TRADE}).
  * See those constants for info about when they're used,
  * or {@link #getReasonCode()} for general info.
@@ -70,7 +71,7 @@ public class SOCRejectOffer extends SOCMessage
 
     /**
      * Server's generic reason code when the requesting client can't offer or accept this trade now
-     * for whatever reason. Usually because they don't have the right resources to give.
+     * for whatever reason, or make this bank trade. Usually because they don't have the right resources to give.
      * See {@link #getReasonCode()} for more info.
      *<P>
      * Sent in response to {@link SOCBankTrade} and {@link SOCAcceptOffer}.
@@ -184,7 +185,7 @@ public class SOCRejectOffer extends SOCMessage
     }
 
     /**
-     * Optional reason code for why an offer was rejected by server or declined by a player:
+     * Optional reason code for why an offer or bank trade was rejected by server or declined by a player:
      * {@link #REASON_CANNOT_MAKE_TRADE}, {@link #REASON_CANNOT_MAKE_OFFER}, etc.
      *<P>
      * The standard reason code values are &gt; 0.

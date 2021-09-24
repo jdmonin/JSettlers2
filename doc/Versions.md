@@ -29,6 +29,7 @@ JARs for recent JSettlers versions can be downloaded from
 	  server updates their army size and largest army (thanks kotc for reporting #91)
 - Bots/AI:
 	- Shorten pause after bot requests a bank trade
+	- Limit the number of failed trade offers/bank trades per turn
 - I18N:
 	- Added French translation (thank you Lee Passey)
 - Network/Message traffic:
