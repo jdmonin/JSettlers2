@@ -645,6 +645,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCPlayerNumbers ourNumbers;
 
     /**
+     * Flag for whether the player has been asked and then re-asked to discard resources this turn.
+     * For details see {@link #hasAskedDiscardTwiceThisTurn()}.
+     * @since 2.5.00
+     */
+    private boolean askedDiscardTwiceThisTurn;
+
+    /**
      * a guess at how many turns it takes to build
      */
 
@@ -933,6 +940,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * <LI> Clear {@link #getCurrentOffer()} in v2.4.00 and newer.
      *      In earlier versions this was cleared only at client, when server sent
      *      a {@code SOCClearOffer} message while ending previous player's turn.
+     * <LI> Clear {@link #hasAskedDiscardTwiceThisTurn()} flag
      *</UL>
      * @since 1.1.14
      */
@@ -940,6 +948,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         rolledResources.clear();
         setCurrentOffer(null);
+        askedDiscardTwiceThisTurn = false;
     }
 
     /**
@@ -1293,9 +1302,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Increment the forced-end-turn count that's checked by {@link #isStubbornRobot()}.
+     * Also includes forced discards / gold-hex resource picks when not current player.
      *<P>
-     * This method is not named {@code forceEndTurn()} because all turn-forcing actions are done in
-     * {@link soc.server.SOCGameHandler}.
+     * This method is not named {@code forceEndTurn()} because all turn-forcing actions are done by server code; see
+     * {@link soc.server.SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, soc.server.genericServer.Connection, boolean)}.
      * @since 2.0.00
      */
     public void addForcedEndTurn()
@@ -1328,6 +1338,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public SOCPlayerNumbers getNumbers()
     {
         return ourNumbers;
+    }
+
+    /**
+     * Flag for whether the player has been asked and then re-asked to discard resources this turn.
+     * Helps prevent endless loops of server discard request + bot client's wrong-amount discard action
+     * if a bot is buggy or its resource amounts are wrong.
+     *<P>
+     * Is set by {@link #setAskedDiscardTwiceThisTurn()}, cleared by {@link #updateAtTurn()}.
+     *
+     * @return true if flag is set
+     * @since 2.5.00
+     */
+    public boolean hasAskedDiscardTwiceThisTurn()
+    {
+        return askedDiscardTwiceThisTurn;
+    }
+
+    /**
+     * Set the {@link #hasAskedDiscardTwiceThisTurn()} flag; see that method for details.
+     * @since 2.5.00
+     */
+    public void setAskedDiscardTwiceThisTurn()
+    {
+        askedDiscardTwiceThisTurn = true;
     }
 
     /**

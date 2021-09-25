@@ -233,7 +233,8 @@ public abstract class GameHandler
 
     /**
      * A bot is unresponsive, or a human player has left the game.
-     * End this player's turn cleanly, or force-end if needed.
+     * End this player's turn cleanly, or force-end if needed,
+     * or force a discard or free-resource pick if not current player.
      *<P>
      * Can be called for a player still in the game, or for a player
      * who has left ({@link SOCGame#removePlayer(String, boolean)} has been called).

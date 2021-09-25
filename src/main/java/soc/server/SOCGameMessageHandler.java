@@ -879,8 +879,16 @@ public class SOCGameMessageHandler
 
                 srv.messageToPlayer(c, gn, pn, "You can't discard that many cards.");  // I18N OK: not part of normal message flow
                 final int n = player.getCountToDiscard();
-                if (n > 0)
+                if ((n > 0) && ! player.hasAskedDiscardTwiceThisTurn())
+                {
+                    player.setAskedDiscardTwiceThisTurn();
                     srv.messageToPlayer(c, gn, pn, new SOCDiscardRequest(gn, n));
+                }
+
+                // If hasAskedDiscardTwiceThisTurn: Won't ask again, to avoid loop of request + discard messages
+                // if a bot is buggy. Since the server doesn't request yet again, and state is WAITING_FOR_DISCARDS,
+                // bot will likely do nothing and the time-based SOCServer.checkForExpiredTurns will choose random
+                // resources, force the bot to discard them.
             }
         }
         catch (Throwable e)

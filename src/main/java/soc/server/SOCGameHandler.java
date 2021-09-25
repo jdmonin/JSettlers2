@@ -4246,8 +4246,12 @@ public class SOCGameHandler extends GameHandler
             {
                 srv.gameList.releaseMonitorForGame(gaName);
                 ga.takeMonitor();
-                endGameTurn(ga, null, true);
-                ga.releaseMonitor();
+                try
+                {
+                    endGameTurn(ga, null, true);
+                } finally {
+                    ga.releaseMonitor();
+                }
                 srv.gameList.takeMonitorForGame(gaName);
             } else {
                 /**
@@ -4261,24 +4265,29 @@ public class SOCGameHandler extends GameHandler
                  */
                 srv.gameList.releaseMonitorForGame(gaName);
                 ga.takeMonitor();
-                if (gameVotingActiveDuringStart)
+                try
                 {
+                    if (gameVotingActiveDuringStart)
+                    {
+                        /**
+                         * If anyone has requested a board-reset vote during
+                         * game-start phases, we have to tell clients to cancel
+                         * the vote request, because {@link soc.message.SOCTurn}
+                         * isn't always sent during start phases.  (Voting must
+                         * end when the turn ends.)
+                         */
+                        srv.messageToGame(gaName, true, new SOCResetBoardReject(gaName));
+                        ga.resetVoteClear();
+                    }
+
                     /**
-                     * If anyone has requested a board-reset vote during
-                     * game-start phases, we have to tell clients to cancel
-                     * the vote request, because {@link soc.message.SOCTurn}
-                     * isn't always sent during start phases.  (Voting must
-                     * end when the turn ends.)
+                     * Force turn to end
                      */
-                    srv.messageToGame(gaName, true, new SOCResetBoardReject(gaName));
-                    ga.resetVoteClear();
+                    gameStillActive = forceEndGameTurn(ga, plName);
+                } finally {
+                    ga.releaseMonitor();
                 }
 
-                /**
-                 * Force turn to end
-                 */
-                gameStillActive = forceEndGameTurn(ga, plName);
-                ga.releaseMonitor();
                 if (gameStillActive)
                 {
                     srv.gameList.takeMonitorForGame(gaName);
@@ -4289,7 +4298,7 @@ public class SOCGameHandler extends GameHandler
         {
             /**
              * Check if game is waiting for input from the player who
-             * is leaving, but who isn't current player.
+             * is leaving or unresponsive, but who isn't current player.
              * To keep the game moving, fabricate their response.
              * - Board-reset voting: Handled above.
              * - Waiting for discard: Handle here.
@@ -4309,10 +4318,14 @@ public class SOCGameHandler extends GameHandler
                 System.err.println("L5789: Waiting too long for bot discard or gain: game="
                     + ga.getName() + ", pn=" + plNumber + "  " + plName);
                 ga.takeMonitor();
-                forceGamePlayerDiscardOrGain(ga, cpn, plConn, plName, plNumber);
-                sendGameState(ga, false, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER for discard;
-                    // PLAY1 or WAITING_FOR_PICK_GOLD_RESOURCE for gain
-                ga.releaseMonitor();
+                try
+                {
+                    forceGamePlayerDiscardOrGain(ga, cpn, plConn, plName, plNumber);
+                    sendGameState(ga, false, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER for discard;
+                        // PLAY1 or WAITING_FOR_PICK_GOLD_RESOURCE for gain
+                } finally {
+                    ga.releaseMonitor();
+                }
                 srv.gameList.takeMonitorForGame(gaName);
             }
 

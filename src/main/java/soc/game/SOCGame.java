@@ -7609,21 +7609,19 @@ public class SOCGame implements Serializable, Cloneable
             && currPlayer.lastActionBankTrade_get.equals(give)
             && currPlayer.lastActionBankTrade_give.equals(get))
         {
-            playerResources.subtract(give);
-            playerResources.add(get);
-            lastActionTime = System.currentTimeMillis();
+            // trade is undo
             lastActionWasBankTrade = false;
             currPlayer.lastActionBankTrade_give = null;
             currPlayer.lastActionBankTrade_get = null;
-            return;
+        } else {
+            lastActionWasBankTrade = true;
+            currPlayer.lastActionBankTrade_give = give;
+            currPlayer.lastActionBankTrade_get = get;
         }
 
         playerResources.subtract(give);
         playerResources.add(get);
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = true;
-        currPlayer.lastActionBankTrade_give = give;
-        currPlayer.lastActionBankTrade_get = get;
     }
 
     /**
