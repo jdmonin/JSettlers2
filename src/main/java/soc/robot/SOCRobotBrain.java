@@ -1593,6 +1593,9 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.SIMPLEREQUEST:
+                        // For any player's request, update game data in our thread
+                        SOCDisplaylessPlayerClient.handleSIMPLEREQUEST((SOCSimpleRequest) mes, game);
+
                         // These messages can almost always be ignored by bots,
                         // unless we've just sent a request to attack a pirate fortress.
                         // Some request types are handled at the bottom of the loop body;
@@ -1618,6 +1621,9 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.SIMPLEACTION:
+                        // For any player's action, update game data in our thread
+                        SOCDisplaylessPlayerClient.handleSIMPLEACTION((SOCSimpleAction) mes, game);
+
                         // Most action types are handled later in the loop body;
                         // search for SOCMessage.SIMPLEACTION
 

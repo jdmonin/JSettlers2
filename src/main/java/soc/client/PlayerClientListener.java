@@ -547,7 +547,7 @@ public interface PlayerClientListener
      * If other game data messages are sent (resource gains/loss, etc), or other client code must update that data
      * based on info in the SOCSimpleRequest, this method will be called only after other game data is updated.
      * Some SimpleRequest {@code reqtype}s update the game data: Client must call
-     * {@link SOCDisplaylessPlayerClient#handleSIMPLEREQUEST(Map, soc.message.SOCSimpleRequest)}
+     * {@link SOCDisplaylessPlayerClient#handleSIMPLEREQUEST(soc.message.SOCSimpleRequest, SOCGame)}
      * to update game before calling this method.
      *
      * @param pn  The player number requesting or acting, or -1 if our own request was declined

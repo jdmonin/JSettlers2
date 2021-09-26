@@ -678,13 +678,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * a player built something
-             */
-            case SOCMessage.PUTPIECE:
-                handlePUTPIECE((SOCPutPiece) mes);
-                break;
-
-            /**
              * the server is requesting that we join a game
              */
             case SOCMessage.BOTJOINGAMEREQUEST:
@@ -703,26 +696,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
-                break;
-
-            /**
-             * generic "simple request" responses or announcements from the server.
-             * Message type added 2013-02-17 for v1.1.18,
-             * bot ignored these until 2015-10-10 for v2.0.00 SC_PIRI
-             * and for PROMPT_PICK_RESOURCES from gold hex.
-             */
-            case SOCMessage.SIMPLEREQUEST:
-                super.handleSIMPLEREQUEST(games, (SOCSimpleRequest) mes);
-                handlePutBrainQ((SOCSimpleRequest) mes);
-                break;
-
-            /**
-             * generic "simple action" announcements from the server.
-             * Added 2013-09-04 for v1.1.19.
-             */
-            case SOCMessage.SIMPLEACTION:
-                super.handleSIMPLEACTION(games, (SOCSimpleAction) mes);
-                handlePutBrainQ((SOCSimpleAction) mes);
                 break;
 
             /**
@@ -765,9 +738,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.MOVEROBBER:
             case SOCMessage.PLAYERELEMENT:
             case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
+            case SOCMessage.PUTPIECE:
             case SOCMessage.REJECTOFFER:
             case SOCMessage.REPORTROBBERY:  // added 2021-01-05 for v2.5.00
             case SOCMessage.RESOURCECOUNT:
+            case SOCMessage.SIMPLEACTION:   // added 2013-09-04 for v1.1.19
+            case SOCMessage.SIMPLEREQUEST:  // bot ignored these until 2015-10-10 for v2.0.00
             case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message
             case SOCMessage.TIMINGPING:  // server's 1x/second timing ping
             case SOCMessage.TURN:
@@ -1416,35 +1392,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         if (ga != null)
         {
             handlePutBrainQ(mes);
-        }
-    }
-
-    /**
-     * handle the "put piece" message
-     * @param mes  the message
-     */
-    protected void handlePUTPIECE(SOCPutPiece mes)
-    {
-        CappedQueue<SOCMessage> brainQ = brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintlnINFO("CutoffExceededException" + exc);
-            }
-
-            SOCGame ga = games.get(mes.getGame());
-
-            if (ga != null)
-            {
-                // SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
-                // JDM TODO - Was this in stock client?
-            }
         }
     }
 

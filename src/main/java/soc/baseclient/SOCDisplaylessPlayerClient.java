@@ -853,7 +853,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * Added 2013-09-04 for v1.1.19.
              */
             case SOCMessage.SIMPLEACTION:
-                handleSIMPLEACTION(games, (SOCSimpleAction) mes);
+                handleSIMPLEACTION((SOCSimpleAction) mes, games.get(((SOCSimpleAction) mes).getGame()));
                 break;
 
             /**
@@ -1999,7 +1999,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      * @param ga  Message's game from {@link SOCPutPiece#getGame()}; if {@code null}, message is ignored
      */
-    public static void handlePUTPIECE(final SOCPutPiece mes, SOCGame ga)
+    public static void handlePUTPIECE(final SOCPutPiece mes, final SOCGame ga)
     {
         if (ga == null)
             return;
@@ -2662,14 +2662,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     Calls {@link SOCGame#placePort(SOCPlayer, int, int)} if {@code pn} &gt;= 0
      *</UL>
      *
-     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
      * @since 2.0.00
      */
-    public static void handleSIMPLEREQUEST(final Map<String, SOCGame> games, final SOCSimpleRequest mes)
+    public static void handleSIMPLEREQUEST(final SOCSimpleRequest mes, final SOCGame ga)
     {
-        final String gaName = mes.getGame();
-        SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
 
@@ -2699,7 +2698,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 // Since the bots and server are almost always the same version, this
                 // shouldn't often occur: print for debugging.
                 System.err.println
-                    ("DPC.handleSIMPLEREQUEST: Unknown type ignored: " + rtype + " in game " + gaName);
+                    ("DPC.handleSIMPLEREQUEST: Unknown type ignored: " + rtype + " in game " + ga.getName());
         }
     }
 
@@ -2711,14 +2710,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     Calls {@link SOCGame#removePort(SOCPlayer, int)}
      *</UL>
      *
-     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
      * @since 1.1.19
      */
-    public static void handleSIMPLEACTION(final Map<String, SOCGame> games, final SOCSimpleAction mes)
+    public static void handleSIMPLEACTION(final SOCSimpleAction mes, final SOCGame ga)
     {
-        final String gaName = mes.getGame();
-        SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
 
@@ -2755,7 +2753,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             // shouldn't often occur: print for debugging.
             if (mes.getPlayerNumber() >= 0)
                 System.err.println
-                    ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
+                    ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + ga.getName());
         }
     }
 

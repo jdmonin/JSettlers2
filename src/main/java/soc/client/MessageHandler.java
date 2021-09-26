@@ -2852,11 +2852,13 @@ public class MessageHandler
      */
     private final void handleSIMPLEREQUEST(SOCSimpleRequest mes)
     {
-        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        final String gaName = mes.getGame();
+
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;  // Not one of our games
 
-        SOCDisplaylessPlayerClient.handleSIMPLEREQUEST(client.games, mes);  // update any game state
+        SOCDisplaylessPlayerClient.handleSIMPLEREQUEST(mes, client.games.get(gaName));  // update any game data
         pcl.simpleRequest(mes.getPlayerNumber(), mes.getRequestType(), mes.getValue1(), mes.getValue2());
     }
 
@@ -2884,7 +2886,7 @@ public class MessageHandler
             // fall through: displayless sets game data, pcl.simpleAction displays updated board layout
 
         case SOCSimpleAction.TRADE_PORT_REMOVED:
-            SOCDisplaylessPlayerClient.handleSIMPLEACTION(client.games, mes);  // calls ga.removePort(..)
+            SOCDisplaylessPlayerClient.handleSIMPLEACTION(mes, client.games.get(gaName));  // calls ga.removePort(..)
             // fall through so pcl.simpleAction updates displayed board
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
