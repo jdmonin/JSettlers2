@@ -44,6 +44,7 @@ import soc.message.SOCAcceptOffer;  // for javadocs only
 import soc.message.SOCBankTrade;
 import soc.message.SOCBoardLayout;
 import soc.message.SOCBoardLayout2;
+import soc.message.SOCBotGameDataCheck;
 import soc.message.SOCBotJoinGameRequest;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChangeFace;
@@ -103,6 +104,7 @@ import soc.message.SOCStartGame;
 import soc.message.SOCStatusMessage;
 import soc.message.SOCTurn;
 import soc.server.genericServer.Connection;
+import soc.util.DataUtils;
 import soc.util.IntPair;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
@@ -664,18 +666,19 @@ public class SOCGameHandler extends GameHandler
      * As a special case, endTurn is used to begin the Special Building Phase during the
      * start of a player's own turn, if permitted.  (Added in 1.1.09)
      *<P>
-     * A simplified version of this logic (during initial placement) is used in
+     * A simplified version of this logic is used during initial placement in
      * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, Connection, SOCPutPiece)}.
      *
      * @param ga Game to end turn
-     * @param pl Current player in <tt>ga</tt>, or null. Not needed except in SPECIAL_BUILDING.
+     * @param currPlayer Current player in {@code ga}, or null. Not needed except in SPECIAL_BUILDING.
      *           If null, will be determined within this method.
      * @param callEndTurn  Almost always true; if false, don't call {@link SOCGame#endTurn()}
      *           because it was called before calling this method.
-     *           If false, be sure to set {@code pl} to the player whose turn it was before {@code endTurn()} was called.
+     *           If false, be sure to set {@code currPlayer} to the player whose turn it was
+     *           before {@code endTurn()} was called.
      * @since 1.1.00
      */
-    void endGameTurn(SOCGame ga, SOCPlayer pl, final boolean callEndTurn)
+    void endGameTurn(SOCGame ga, SOCPlayer currPlayer, final boolean callEndTurn)
     {
         // Reminder: if this method's logic is changed or added to,
         // please also look at SOCGameMessageHandler.handlePUTPIECE
@@ -686,11 +689,11 @@ public class SOCGameHandler extends GameHandler
 
         if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
         {
-            if (pl == null)
-                pl = ga.getPlayer(ga.getCurrentPlayerNumber());
-            pl.setAskedSpecialBuild(false);
+            if (currPlayer == null)
+                currPlayer = ga.getPlayer(ga.getCurrentPlayerNumber());
+            currPlayer.setAskedSpecialBuild(false);
             srv.messageToGame(gname, true, new SOCPlayerElement
-                (gname, pl.getPlayerNumber(), SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 0));
+                (gname, currPlayer.getPlayerNumber(), SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 0));
         }
 
         final boolean hadBoardResetRequest = (-1 != ga.getResetVoteRequester());
@@ -732,6 +735,34 @@ public class SOCGameHandler extends GameHandler
             }
         } finally {
             srv.gameList.releaseMonitorForGame(gname);
+        }
+
+        /**
+         * Check bot resource counts if debugging that
+         */
+        if (srv.getConfigBoolProperty(SOCServer.PROP_JSETTLERS_DEBUG_BOTS_DATACHECK_RSRC, false))
+        {
+            List<Integer> allRes = null;
+
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            {
+                if (ga.isSeatVacant(pn))
+                    continue;
+                final SOCPlayer pl = ga.getPlayer(pn);
+                if (! pl.isRobot())
+                    continue;
+
+                if (allRes == null)
+                    allRes = new ArrayList<>(6);
+                final SOCResourceSet plRes = pl.getResources();
+                allRes.add(Integer.valueOf(pn));
+                for (final int resAmt : plRes.getAmounts(false))
+                    allRes.add(Integer.valueOf(resAmt));
+            }
+
+            if (allRes != null)
+                srv.messageToGame(gname, false, new SOCBotGameDataCheck
+                    (gname, SOCBotGameDataCheck.TYPE_RESOURCE_AMOUNTS, DataUtils.intListToPrimitiveArray(allRes)));
         }
 
         /**
@@ -3387,8 +3418,8 @@ public class SOCGameHandler extends GameHandler
         // reportRsrcGainLoss internally calls this with vmax = 0, for which this method does record events.
 
         final String gaName = ga.getName();
-        final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
-        final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for pnB
+        final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for mainPlayer
+        final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for tradingPlayer
 
         srv.gameList.takeMonitorForGame(gaName);
 

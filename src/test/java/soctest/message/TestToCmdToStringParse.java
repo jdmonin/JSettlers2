@@ -373,6 +373,7 @@ public class TestToCmdToStringParse
             "SOCBoardLayout:game=ga|hexLayout={ 50 6 65 6 6 5 3 4 10 8 2 3 1 0 6 6 1 1 4 3 4 11 8 2 5 5 2 6 6 5 3 4 100 19 6 101 6 }|numberLayout={ -1 -1 -1 -1 -1 1 4 0 -1 -1 5 2 6 -1 -1 -1 7 3 8 7 3 -1 -1 6 4 1 5 -1 -1 9 8 2 -1 -1 -1 -1 -1 }|robberHex=0x9b"
         },
         // TODO SOCBoardLayout2
+        {new SOCBotGameDataCheck("ga", 42, new int[]{3, 4, 7, 9}), "1103|ga|42|3|4|7|9", "SOCBotGameDataCheck:game=ga|p=42|p=3|p=4|p=7|p=9"},
         {
             new SOCBotJoinGameRequest("ga", 3, (SOCGameOptionSet) null),
             "1023|ga,3,-",

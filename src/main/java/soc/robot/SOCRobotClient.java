@@ -726,6 +726,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             case SOCMessage.ACCEPTOFFER:
             case SOCMessage.BANKTRADE:     // added 2021-01-20 for v2.5.00
+            case SOCMessage.BOTGAMEDATACHECK:    // added 2021-09-30 for v2.5.00
             case SOCMessage.CANCELBUILDREQUEST:  // current player has cancelled an initial settlement
             case SOCMessage.CHOOSEPLAYER:  // server wants our player to choose to rob cloth or rob resources from victim
             case SOCMessage.CHOOSEPLAYERREQUEST:

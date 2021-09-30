@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019,2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,8 @@
 package soc.util;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Common helper functions for data and conversions.
@@ -95,6 +97,25 @@ public abstract class DataUtils
 
             sb.append(s);
         }
+    }
+
+    /**
+     * Convert a list of boxed Integers to a primitive int array.
+     * @param li  List to convert, or {@code null}
+     * @return The list as an array, or {@code null} if {@code li} is {@code null}
+     * @since 2.5.00
+     */
+    public static final int[] intListToPrimitiveArray(final List<Integer> li)
+    {
+        if (li == null)
+            return null;
+
+        int[] arr = new int[li.size()];
+        Iterator<Integer> iterator = li.iterator();
+        for (int i = 0; i < arr.length; ++i)
+            arr[i] = iterator.next().intValue();
+
+        return arr;
     }
 
 }

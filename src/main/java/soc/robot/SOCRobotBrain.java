@@ -48,6 +48,7 @@ import soc.game.SOCTradeOffer;
 
 import soc.message.SOCAcceptOffer;
 import soc.message.SOCBankTrade;
+import soc.message.SOCBotGameDataCheck;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCChoosePlayerRequest;
@@ -82,6 +83,7 @@ import soc.util.DebugRecorder;
 import soc.util.SOCRobotParameters;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -299,6 +301,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * The game messages received this turn / previous turn, for debugging.
+     * Swapped/cleared when {@link SOCTurn} message received.
      * @since 1.1.13
      */
     protected Vector<SOCMessage> turnEventsCurrent, turnEventsPrev;
@@ -1661,6 +1664,11 @@ public class SOCRobotBrain extends Thread
                         }
                         break;
 
+                    case SOCMessage.BOTGAMEDATACHECK:
+                        handleBOTGAMEDATACHECK
+                            (((SOCBotGameDataCheck) mes).getDataType(), ((SOCBotGameDataCheck) mes).getValues());
+                        break;
+
                     }  // switch(mesType)
 
                     debugInfo();
@@ -2199,6 +2207,85 @@ public class SOCRobotBrain extends Thread
         {
             startTurnMainActions();
             waitingForTurnMain = false;
+        }
+    }
+
+    /**
+     * Compare "known" game data from server to what this brain thinks the data is.
+     * If any discrepancies are found, they're printed to {@link System#err} along with the message sequence for
+     * the previous and current turn. Brain corrects its data to the known values to continue the game or current test.
+     * @param dtype Data type to check. Currently recognizes only {@link SOCBotGameDataCheck#TYPE_RESOURCE_AMOUNTS},
+     *     ignores any other type.
+     * @param values Server's data values for each element. Format is specific to each {@code dtype}.
+     * @since 2.5.00
+     */
+    protected void handleBOTGAMEDATACHECK(final int dtype, final int[] values)
+    {
+        if (dtype != SOCBotGameDataCheck.TYPE_RESOURCE_AMOUNTS)
+            return;  // unrecognized
+
+        StringBuilder problems = null;
+        for (int i = 0; i < values.length; i += 6)
+        {
+            final int pn = values[i];
+            final SOCResourceSet plRes = game.getPlayer(pn).getResources();
+            final int[] expected = new int[]
+                {values[i + 1], values[i + 2], values[i + 3], values[i + 4], values[i + 5]};
+            int localUnknown = plRes.getAmount(SOCResourceConstants.UNKNOWN);
+
+            // compare; take any shortfalls from localUnknown
+            boolean playerOK = true;
+            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+            {
+                int missingAmt = expected[res - 1] - plRes.getAmount(res);
+                if (missingAmt < 0)
+                {
+                    playerOK = false;  // more than expected
+                    break;
+                } else if (missingAmt > 0) {
+                    if (missingAmt <= localUnknown)
+                    {
+                        localUnknown -= missingAmt;
+                    } else {
+                        playerOK = false;  // unknown doesn't have enough
+                        break;
+                    }
+                }
+            }
+            if (localUnknown != 0)
+                playerOK = false;  // leftovers
+
+            if (! playerOK)
+            {
+                if (problems == null)
+                    problems = new StringBuilder();
+                problems.append("pn=" + pn);
+                if (pn == ourPlayerNumber)
+                    problems.append(" self");
+                problems.append(": Expected ").append(Arrays.toString(expected))
+                    .append(", has ").append(plRes).append(". ");
+
+                // correct bot's amounts to continue game
+                for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+                    plRes.setAmount(expected[res - 1], res);
+                plRes.setAmount(0, SOCResourceConstants.UNKNOWN);
+            }
+        }
+
+        if (problems != null)
+        {
+            ArrayList<String> rbSta = new ArrayList<String>();
+            debugPrintTurnMessages(turnEventsPrev, "previous", rbSta);
+            debugPrintTurnMessages(turnEventsCurrent, "current", rbSta);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append
+                ("\nBot " + client.getNickname() + " in " + game.getName() + ": Resource mismatch server/client: "
+                 + problems + "\n");
+            for (final String st : rbSta)
+                sb.append(st).append('\n');
+
+            System.err.println(sb);
         }
     }
 

@@ -452,6 +452,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int REPORTROBBERY = 1102;  // Report Robbery, 20200915, v2.5.00
 
+    /**
+     * {@link SOCBotGameDataCheck} - Check if all bots still have an accurate copy of various game data.
+     * @since 2.5.00
+     */
+    public static final int BOTGAMEDATACHECK = 1103;  // Bot game data consistency check, 20210930, v2.5.00
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -1041,6 +1047,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case REPORTROBBERY:        // Report Robbery, 20200915, v2.5.00
                 return SOCReportRobbery.parseDataStr(data);
 
+            case BOTGAMEDATACHECK:      // Bot game data consistency check, 20210930, v2.5.00
+                return SOCBotGameDataCheck.parseDataStr(multiData);
+
             // gametype-specific messages:
 
             case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
@@ -1067,7 +1076,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * static {@code stripAttribNames(messageTypeName, messageStrParams)} method.
      * @since 2.5.00
      */
-    public static Map<String, String> MESSAGE_RENAME_MAP = new HashMap<>();
+    public static final Map<String, String> MESSAGE_RENAME_MAP = new HashMap<>();
     static
     {
         for (final String[] fromTo : new String[][]

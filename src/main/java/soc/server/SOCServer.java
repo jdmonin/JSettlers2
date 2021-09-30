@@ -524,6 +524,14 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_CLI_MAXCREATECHANNELS = "jsettlers.client.maxcreatechannels";
 
     /**
+     * For bot debugging and testing, boolean property {@code "jsettlers.debug.bots.datacheck.rsrc"}
+     * to check if all bots still have an accurate count of all players' resources at end of each turn.
+     * Sends {@link SOCBotGameDataCheck}({@link SOCBotGameDataCheck#TYPE_RESOURCE_AMOUNTS TYPE_RESOURCE_AMOUNTS}).
+     * @since 2.5.00
+     */
+    public static final String PROP_JSETTLERS_DEBUG_BOTS_DATACHECK_RSRC = "jsettlers.debug.bots.datacheck.rsrc";
+
+    /**
      * Property prefix {@code jsettlers.gameopt.} to specify game option defaults in a server properties file.
      * Option names are case-insensitive past this prefix. Syntax for default value is the same as on the
      * command line, for example:
@@ -643,6 +651,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
         PROP_JSETTLERS_BOTS_START3P,            "Third-party bot client classes to start up with server",
         PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
+        PROP_JSETTLERS_DEBUG_BOTS_DATACHECK_RSRC, "Debug flag to check bots' count of player resources",
         PROP_JSETTLERS_SAVEGAME_DIR,            "Dir in which to store savegame files",
         PROP_JSETTLERS_STATS_FILE_NAME,         "If set, filename to append daily *STATS* into",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",

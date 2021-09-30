@@ -886,6 +886,11 @@ with any given combination of game options and scenarios. (Only the `debug` user
 can run debug commands on standalone servers. To enable the debug user, start
 the server with `-Djsettlers.allow.debug=Y` .)
 
+To test that your bot is properly tracking resources in the game data,
+start the server with `-Djsettlers.debug.bots.datacheck.rsrc=Y`
+to send `SOCBotGameDataCheck(TYPE_RESOURCE_AMOUNTS)` at the end of
+each turn. See that message's javadoc for details.
+
 For robustness testing, the `SOCRobotClient.debugRandomPause` flag can be enabled
 by editing its declaration to inject random delays into handling messages and
 commands from the server.
