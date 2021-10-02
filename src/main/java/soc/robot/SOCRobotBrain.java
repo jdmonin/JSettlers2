@@ -1664,6 +1664,10 @@ public class SOCRobotBrain extends Thread
                         }
                         break;
 
+                    case SOCMessage.REPORTROBBERY:
+                        handleREPORTROBBERY((SOCReportRobbery) mes);
+                        break;
+
                     case SOCMessage.BOTGAMEDATACHECK:
                         handleBOTGAMEDATACHECK
                             (((SOCBotGameDataCheck) mes).getDataType(), ((SOCBotGameDataCheck) mes).getValues());
