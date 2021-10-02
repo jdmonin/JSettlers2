@@ -55,6 +55,7 @@ import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDiceResult;
+import soc.message.SOCDiceResultResources;
 import soc.message.SOCDiscardRequest;
 import soc.message.SOCGameState;
 import soc.message.SOCGameStats;
@@ -1513,6 +1514,11 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.DICERESULT:
                         handleDICERESULT((SOCDiceResult) mes);
+                        break;
+
+                    case SOCMessage.DICERESULTRESOURCES:
+                        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES
+                            ((SOCDiceResultResources) mes, game, ourPlayerName, false);
                         break;
 
                     case SOCMessage.PUTPIECE:

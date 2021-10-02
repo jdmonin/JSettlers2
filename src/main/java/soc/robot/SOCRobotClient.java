@@ -733,6 +733,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.CLEAROFFER:
             case SOCMessage.DEVCARDACTION:  // either draw, play, or add to hand, or cannot play our requested dev card
             case SOCMessage.DICERESULT:
+            case SOCMessage.DICERESULTRESOURCES:
             case SOCMessage.DISCARDREQUEST:
             case SOCMessage.MAKEOFFER:
             case SOCMessage.MOVEPIECE:   // move a previously placed ship; will update game data and player trackers
