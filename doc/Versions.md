@@ -74,6 +74,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Server consistently uses Properties if passed into constructors
 	- Server waits for {@code serverUp()} to return before starting to accept connections
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
+	- Bots: When forcing end turn, omit previous/current turn messages if stubborn
 	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
 	- Refactored message classes:
 	    - Server now mostly calls constructors, not static toCmd methods

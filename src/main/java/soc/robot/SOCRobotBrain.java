@@ -116,7 +116,7 @@ import java.util.Vector;
  * Current status and the next expected action are tracked by the "waitingFor" and "expect" flag fields.
  * If we've sent the server an action and we're waiting for the result, {@link #waitingForGameState} is true
  * along with one other "expect" flag, such as {@link #expectPLACING_ROBBER}.
- * All these fields can be output for inspection by calling {@link #debugPrintBrainStatus()}.
+ * All these fields can be output for inspection by calling {@link #debugPrintBrainStatus(boolean)}.
  *<P>
  * See {@link #run()} for more details of how the bot waits for and reacts to incoming messages.
  * Some reactions are chosen in methods like {@link #considerOffer(SOCTradeOffer)} called from {@code run()}.
@@ -1172,9 +1172,11 @@ public class SOCRobotBrain extends Thread
      * during the previous and current turns.
      *<P>
      * Before v1.1.20, this printed to {@link System#err} instead of returning the status as Strings.
+     *
+     * @param withMessages  If true, include messages received in previous and current turn
      * @since 1.1.13
      */
-    public List<String> debugPrintBrainStatus()
+    public List<String> debugPrintBrainStatus(final boolean withMessages)
     {
         ArrayList<String> rbSta = new ArrayList<String>();
 
@@ -1248,8 +1250,11 @@ public class SOCRobotBrain extends Thread
         if (slen > 0)
             rbSta.add(sb.toString());
 
-        debugPrintTurnMessages(turnEventsPrev, "previous", rbSta);
-        debugPrintTurnMessages(turnEventsCurrent, "current", rbSta);
+        if (withMessages)
+        {
+            debugPrintTurnMessages(turnEventsPrev, "previous", rbSta);
+            debugPrintTurnMessages(turnEventsCurrent, "current", rbSta);
+        }
 
         return rbSta;
     }
@@ -2273,7 +2278,7 @@ public class SOCRobotBrain extends Thread
                 if (pn == ourPlayerNumber)
                     problems.append(" self");
                 problems.append(": Expected ").append(Arrays.toString(expected))
-                    .append(", has ").append(plRes).append(". ");
+                    .append(", has [").append(plRes).append("]. ");
 
                 // correct bot's amounts to continue game
                 for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)

@@ -1250,7 +1250,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         else if (dcmd.startsWith(":print-vars") || dcmd.startsWith(":pv"))
         {
             // "prints" the results as series of SOCGameTextMsg to game
-            debugPrintBrainStatus(gaName, true);
+            debugPrintBrainStatus(gaName, true, true);
         }
 
         else if (dcmd.startsWith(":stats"))
@@ -1502,25 +1502,31 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * Print brain variables and status for this game, to {@link System#err}
      * or as {@link SOCGameTextMsg} sent to the game's members,
-     * by calling {@link SOCRobotBrain#debugPrintBrainStatus()}.
+     * by calling {@link SOCRobotBrain#debugPrintBrainStatus(boolean)}.
      * @param gameName  Game name; if no brain for that game, do nothing.
+     * @param withMessages  If true, include messages received in previous and current turn
      * @param sendTextToGame  Send to game as {@link SOCGameTextMsg} if true,
      *     otherwise print to {@link System#err}.
      * @since 1.1.13
      */
-    public void debugPrintBrainStatus(String gameName, final boolean sendTextToGame)
+    public void debugPrintBrainStatus(String gameName, final boolean withMessages, final boolean sendTextToGame)
     {
         SOCRobotBrain brain = robotBrains.get(gameName);
         if (brain == null)
             return;
 
-        List<String> rbSta = brain.debugPrintBrainStatus();
+        List<String> rbSta = brain.debugPrintBrainStatus(withMessages);
         if (sendTextToGame)
+        {
             for (final String st : rbSta)
                 put(new SOCGameTextMsg(gameName, nickname, st).toCmd());
-        else
+        } else {
+            StringBuilder sb = new StringBuilder();
             for (final String st : rbSta)
-                System.err.println(st);
+                sb.append(st).append('\n');
+
+            System.err.print(sb);
+        }
     }
 
     /**
