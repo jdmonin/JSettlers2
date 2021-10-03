@@ -752,7 +752,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * update game data for a trade between players. Added 2021-08-02 for v2.5.00
              */
             case SOCMessage.ACCEPTOFFER:
-                handleACCEPTOFFER(games.get(((SOCMessageForGame) mes).getGame()), (SOCAcceptOffer) mes);
+                handleACCEPTOFFER((SOCAcceptOffer) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
 
             /**
@@ -766,7 +766,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * Update game data for bank trade. Added 2021-01-20 for v2.5.00
              */
             case SOCMessage.BANKTRADE:
-                handleBANKTRADE(games.get(((SOCMessageForGame) mes).getGame()), (SOCBankTrade) mes);
+                handleBANKTRADE((SOCBankTrade) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
 
             /**
@@ -2255,11 +2255,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * call this method from the same thread that needs the updated player resource data.
      * Other threads may cache stale values for the resource count fields.
      *
-     * @param ga  Game to update
      * @param mes  Message data
+     * @param ga  Game to update
      * @since 2.5.00
      */
-    public static void handleACCEPTOFFER(final SOCGame ga, final SOCAcceptOffer mes)
+    public static void handleACCEPTOFFER(final SOCAcceptOffer mes, final SOCGame ga)
     {
         if (ga == null)
             return;
@@ -2298,13 +2298,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * call this method from the same thread that needs the updated player resource data.
      * Other threads may cache stale values for the resource count fields.
      *
+     * @param mes  the message
      * @param ga  Game to update, from Map of games the client is playing,
      *     or {@code null} if not found in that map
-     * @param mes  the message
      * @return  True if updated, false if {@code ga} is null
      * @since 2.5.00
      */
-    public static boolean handleBANKTRADE(final SOCGame ga, final SOCBankTrade mes)
+    public static boolean handleBANKTRADE(final SOCBankTrade mes, final SOCGame ga)
     {
         if (ga == null)
             return false;

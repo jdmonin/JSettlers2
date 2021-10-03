@@ -43,7 +43,6 @@ import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
@@ -2142,7 +2141,7 @@ public class MessageHandler
 
     /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
-     * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(SOCGame, SOCBankTrade)}
+     * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(SOCBankTrade, SOCGame)}
      * if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
      *
      * @param mes  the message
@@ -2157,7 +2156,7 @@ public class MessageHandler
             return;
 
         if (isPractice || (client.sVersion >= SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS))
-            SOCDisplaylessPlayerClient.handleBANKTRADE(ga, mes);
+            SOCDisplaylessPlayerClient.handleBANKTRADE(mes, ga);
 
         PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
@@ -2255,7 +2254,7 @@ public class MessageHandler
         if (ga == null)
             return;
 
-        SOCDisplaylessPlayerClient.handleACCEPTOFFER(ga, mes);
+        SOCDisplaylessPlayerClient.handleACCEPTOFFER(mes, ga);
 
         PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
