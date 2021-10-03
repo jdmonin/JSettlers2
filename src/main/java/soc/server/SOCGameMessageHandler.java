@@ -3251,13 +3251,21 @@ public class SOCGameMessageHandler
                      * Send each affected player's resource counts for the monopolized resource;
                      * set isNews flag for each victim player's count.
                      * Sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY.
+                     * Also sends their new total, for clients which may have tracked some of the victims'
+                     * lost resource as UNKNOWN.
                      */
                     for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         if (isVictim[pn])
+                        {
+                            final SOCResourceSet plRes = ga.getPlayer(pn).getResources();
                             srv.messageToGameWithMon
                                 (gaName, true, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.SET,
-                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), true));
+                                     rsrc, plRes.getAmount(rsrc), true));
+                            srv.messageToGameWithMon
+                                (gaName, true, new SOCResourceCount
+                                    (gaName, pn, plRes.getTotal()));
+                        }
                     srv.messageToGameWithMon
                         (gaName, true, new SOCPlayerElement
                             (gaName, cpn, SOCPlayerElement.GAIN,

@@ -846,7 +846,9 @@ public class TestToCmdToStringParse
             // parse from old field names, which are in some STACSettlers soclog files:
         {new SOCResetBoardVote("ga", 3, true), "1076|ga,3,1", "SOCResetBoardVote:game=ga|param1=3|param2=1", OPT_PARSE_ONLY},
         {new SOCResetBoardVoteRequest("ga", 3), "1075|ga,3", "SOCResetBoardVoteRequest:game=ga|param=3"},
-        {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11"},
+        {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNum=3|count=11"},
+            // parse from old pre-2.5.00 field names, which are in some STACSettlers soclog files:
+        {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11", OPT_PARSE_ONLY},
         {new SOCRevealFogHex("ga", 3340, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|hexCoord=3340|hexType=5|diceNum=12"},
         {new SOCRobotDismiss("ga"), "1056|ga", "SOCRobotDismiss:game=ga"},
         {new SOCRollDice("ga"), "1031|ga", "SOCRollDice:game=ga"},

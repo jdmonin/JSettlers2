@@ -43,7 +43,8 @@ JARs for recent JSettlers versions can be downloaded from
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)
-		  so client's game data's is updated by the time it sees that action message
+		  so client's game data's is updated by the time it sees that action message, and sends
+		  SOCResourceCount for clients which may have tracked some of the victims' lost resource as unknowns
 	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 	- When client joins a game:
 		- If any player currently picking free resources, server sends SOCPlayerElement(NUM_PICK_GOLD_HEX_RESOURCES)
@@ -115,6 +116,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
 	- Linux/Unix: Use sub-pixel font antialiasing if available (thanks kotc for issue #92)
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
+	- When receiving SOCResourceCount or RESOURCE_COUNT player element, try to avoid converting that player's resources to unknowns
 	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields

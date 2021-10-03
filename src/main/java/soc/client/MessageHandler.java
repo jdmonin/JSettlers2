@@ -1773,23 +1773,14 @@ public class MessageHandler
         case RESOURCE_COUNT:
             if (amount != pl.getResources().getTotal())
             {
-                SOCResourceSet rsrcs = pl.getResources();
-
-                if (D.ebugOn)
-                {
-                    //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
-                }
+                // Update count if possible; convert known to unknown if needed.
+                // For our own player, server sends resource specifics, not just total count
 
                 boolean isClientPlayer = pl.getName().equals(client.getNickname(ga.isPractice));
-
-                //
-                //  fix it
-                //
-
                 if (! isClientPlayer)
                 {
-                    rsrcs.clear();
-                    rsrcs.setAmount(amount, SOCResourceConstants.UNKNOWN);
+                    SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                        (ga, pl, pn, action, etype, amount, null);
                     pcl.playerResourcesUpdated(pl);
                 }
             }

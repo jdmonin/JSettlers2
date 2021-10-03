@@ -190,6 +190,7 @@ public class SOCPlayerElement extends SOCMessage
          *<P>
          * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
          * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         * Client game-data updates from this element and {@code SOCResourceCount} should use the same code or logic.
          *
          * @see PEType#UNKNOWN_RESOURCE
          * @since 2.0.00

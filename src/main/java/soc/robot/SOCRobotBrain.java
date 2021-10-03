@@ -4069,7 +4069,7 @@ public class SOCRobotBrain extends Thread
      * @param amount  The new value to set, or the delta to gain/lose
      * @since 2.0.00
      */
-    @SuppressWarnings("fallthrough")
+    @SuppressWarnings({ "fallthrough", "unused" })
     protected void handlePLAYERELEMENT
         (SOCPlayer pl, final int pn, final int action, final PEType etype, final int amount)
     {
@@ -4142,25 +4142,14 @@ public class SOCRobotBrain extends Thread
             break;
 
         case RESOURCE_COUNT:
-            if (amount != pl.getResources().getTotal())
+            if (D.ebugOn && (amount != pl.getResources().getTotal())
+                && (game.getGameState() != SOCGame.WAITING_FOR_MONOPOLY))
             {
-                SOCResourceSet rsrcs = pl.getResources();
-
-                if (D.ebugOn)
-                {
-                    client.sendText(game, ">>> RESOURCE COUNT ERROR FOR PLAYER " + pl.getPlayerNumber()
-                        + ": " + amount + " != " + rsrcs.getTotal());
-                }
-
-                //
-                //  fix it
-                //
-                if (pl.getPlayerNumber() != ourPlayerNumber)
-                {
-                    rsrcs.clear();
-                    rsrcs.setAmount(amount, SOCResourceConstants.UNKNOWN);
-                }
+                client.sendText(game, ">>> RESOURCE COUNT ERROR FOR PLAYER " + pl.getPlayerNumber()
+                    + ": " + amount + " != " + pl.getResources().getTotal());
             }
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (game, pl, pn, action, etype, amount, ourPlayerName);
             break;
 
         case SCENARIO_WARSHIP_COUNT:

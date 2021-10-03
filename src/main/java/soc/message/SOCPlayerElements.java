@@ -33,6 +33,8 @@ import soc.message.SOCPlayerElement.PEType;
  * For a given player number and action type, contains multiple
  * pairs of (element type, amount).
  *<P>
+ * Unlike {@link SOCPlayerElement}, has no "isNews" flag (client treats as if flagged false).
+ *<P>
  * Defined in v1.1.09 but unused before v2.0.00, so {@link #getMinimumVersion()} returns 2000.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

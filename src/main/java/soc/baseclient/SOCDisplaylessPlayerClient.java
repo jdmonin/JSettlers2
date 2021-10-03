@@ -1233,7 +1233,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param nickname  Our client player's nickname, needed only if {@code skipResourceCount} is false.
      *     Can be {@code null} otherwise.
      *     See {@link #handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
-     * @param skipResourceCount  If true, ignore the resource part of the message
+     * @param skipResourceCount  If true, ignore the resource-totals part of the message
      *     because caller will handle that separately; {@code nickname} can be {@code null}
      * @since 2.0.00
      */
@@ -1630,13 +1630,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param etype  Element type, such as {@link PEType#SETTLEMENTS} or {@link PEType#NUMKNIGHTS}.
      *     Does nothing if {@code null}.
      * @param val  The new value to set, or the delta to gain/lose
-     * @param nickname  Our client player nickname/username, for the only element where that matters:
-     *     {@link PEType#RESOURCE_COUNT}. Can be {@code null} otherwise.
+     * @param cliNickname  Our client player nickname/username, for the only element where that matters:
+     *     {@link PEType#RESOURCE_COUNT}, or {@code null} if {@code pl} is definitely not the client player.
+     *     Can be {@code null} for all other element types.
      * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_simple
         (SOCGame ga, SOCPlayer pl, final int pn, final int action,
-         final PEType etype, final int val, final String nickname)
+         final PEType etype, final int val, final String cliNickname)
     {
         if (etype == null)
             return;
@@ -1662,22 +1663,24 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case RESOURCE_COUNT:
-            if (val != pl.getResources().getTotal())
             {
                 SOCResourceSet rsrcs = pl.getResources();
-
-                if (D.ebugOn)
+                if (val != rsrcs.getTotal())
                 {
-                    //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
-                }
+                    // Update count if possible; convert known to unknown if needed.
+                    // For our own player, server sends resource specifics, not just total count
 
-                //
-                //  fix it if possible
-                //
-                if ((nickname != null) && ! pl.getName().equals(nickname))
-                {
-                    rsrcs.clear();
-                    rsrcs.setAmount(val, SOCResourceConstants.UNKNOWN);
+                    if ((cliNickname == null) || ! pl.getName().equals(cliNickname))
+                    {
+                        int numKnown = rsrcs.getKnownTotal();
+                        if (numKnown <= val)
+                        {
+                            rsrcs.setAmount(val - numKnown, SOCResourceConstants.UNKNOWN);
+                        } else {
+                            rsrcs.clear();
+                            rsrcs.setAmount(val, SOCResourceConstants.UNKNOWN);
+                        }
+                    }
                 }
             }
             break;

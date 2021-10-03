@@ -8301,6 +8301,8 @@ public class SOCGame implements Serializable, Cloneable
      * (Checks of game rules online show "MAY" or "CAN", not "MUST" place 2.)
      * If they have 0 roads, cannot play the card.
      *<P>
+     * Game state becomes {@link #PLACING_FREE_ROAD1}, or {@link #PLACING_FREE_ROAD2} if player has only 1 road piece.
+     *<P>
      * Assumes {@link #canPlayRoadBuilding(int)} has already been called, and move is valid.
      * The card can be played before or after rolling the dice.
      * Doesn't set <tt>oldGameState</tt>, because after placing the road, we might need that field.
@@ -8332,6 +8334,8 @@ public class SOCGame implements Serializable, Cloneable
      * the current player plays a Discovery card.
      * Assumes {@link #canPlayDiscovery(int)} has already been called, and move is valid.
      *<P>
+     * Game state becomes {@link #WAITING_FOR_DISCOVERY}.
+     *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
      *
      * @see SOCPlayer#getDevCardsPlayed()
@@ -8351,6 +8355,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * the current player plays a Monopoly card.
      * Assumes {@link #canPlayMonopoly(int)} has already been called, and move is valid.
+     *<P>
+     * Game state becomes {@link #WAITING_FOR_MONOPOLY}.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
      *
