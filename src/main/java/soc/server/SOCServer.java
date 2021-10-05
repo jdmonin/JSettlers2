@@ -3039,6 +3039,8 @@ public class SOCServer extends Server
                 // Add this (creating) player to the game
                 gameList.addMember(c, gaName);
 
+            startLog(gaName);
+
             // should release monitor before we broadcast
             if (! hasGameListMonitor)
                 gameList.releaseMonitor();
@@ -3686,6 +3688,8 @@ public class SOCServer extends Server
         ///
         Vector<Connection> members = null;
         members = gameList.getMembers(gm);
+
+        logger.endLog(gm);
 
         gameList.deleteGame(gm);  // also calls SOCGame.destroyGame
 
@@ -9566,6 +9570,19 @@ public class SOCServer extends Server
     public boolean recordGameEventsIsActive()
     {
         return false;
+    }
+
+    /**
+     * Call the logger to initiate logging for the specified game and initialise the parserIncrementString.
+     * @param gaName
+     * @throws IOException 
+     */
+    void startLog(String gaName) throws IOException {
+        logger.startLog(gaName);
+        if (useParser) {
+            parserIncrementStrings.put(gaName, "");
+            parserIncrementXMLStrings.put(gaName, "");
+        }
     }
 
     /**
