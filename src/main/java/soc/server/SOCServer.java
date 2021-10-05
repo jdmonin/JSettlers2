@@ -3689,7 +3689,7 @@ public class SOCServer extends Server
         Vector<Connection> members = null;
         members = gameList.getMembers(gm);
 
-        logger.endLog(gm);
+        endLog(gm);
 
         gameList.deleteGame(gm);  // also calls SOCGame.destroyGame
 
@@ -3925,6 +3925,23 @@ public class SOCServer extends Server
     public final String getUtilityModeMessage()
     {
          return utilityModeMessage;
+    }
+
+    /**
+     * Get this server's {@link SOCFeatureSet} as sent to connecting clients.
+     * @return List of features, from {@link SOCFeatureSet#getEncodedList()}
+     * @since 2.5.00
+     */
+    public String getFeaturesList()
+    {
+        SOCFeatureSet feats = features;
+        if (acctsNotOpenRegButNoUsers)
+        {
+            feats = new SOCFeatureSet(features);
+            feats.add(SOCFeatureSet.SERVER_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
+        }
+
+        return feats.getEncodedList();
     }
 
     /**
@@ -5913,14 +5930,8 @@ public class SOCServer extends Server
         c.setAppData(cdata);
 
         // VERSION of server
-        SOCFeatureSet feats = features;
-        if (acctsNotOpenRegButNoUsers)
-        {
-            feats = new SOCFeatureSet(features);
-            feats.add(SOCFeatureSet.SERVER_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
-        }
         c.put(new SOCVersion
-            (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList(), null));
+            (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
 
         // CHANNELS
         List<String> cl = new ArrayList<String>();
@@ -9573,16 +9584,21 @@ public class SOCServer extends Server
     }
 
     /**
-     * Call the logger to initiate logging for the specified game and initialise the parserIncrementString.
-     * @param gaName
-     * @throws IOException 
+     * If {@link #recordGameEventsIsActive()}, set up logging for the specified game.
+     * Should be called before {@link #recordGameEvent(String, SOCMessage)} or similar methods.
+     * Later at end of game, call {@link #endLog(String)}.
+     *<P>
+     * May open files, set up queues, etc, depending on implementation. This stub does nothing.
+     * If overriding, should record a {@link SOCVersion} message as game's first log entry to help parsing later,
+     * including {@link #getFeaturesList()} field.
+     *
+     * @param gameName  Name of the game to start logging for
+     * @throws IOException if the implementation must create a file or does other I/O, and a problem occurs
+     * @since 2.5.00
      */
-    void startLog(String gaName) throws IOException {
-        logger.startLog(gaName);
-        if (useParser) {
-            parserIncrementStrings.put(gaName, "");
-            parserIncrementXMLStrings.put(gaName, "");
-        }
+    public void startLog(final String gameName)
+        throws IOException
+    {
     }
 
     /**
@@ -9685,6 +9701,20 @@ public class SOCServer extends Server
      * @since 2.5.00
      */
     public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
+    {
+    }
+
+    /**
+     * If {@link #recordGameEventsIsActive()}, finish and close out logging for the specified game.
+     *<P>
+     * May close files, remove queues, etc, depending on implementation. This stub does nothing.
+     * Any exception must be caught here; the caller doesn't need to deal with that detail of ending the game.
+     *
+     * @param gameName  Name of the game to end logging for
+     * @see #startLog(String)
+     * @since 2.5.00
+     */
+    public void endLog(final String gameName)
     {
     }
 

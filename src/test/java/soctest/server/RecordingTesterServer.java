@@ -27,7 +27,9 @@ import java.util.Vector;
 
 import soc.message.SOCMessage;
 import soc.message.SOCServerPing;
+import soc.message.SOCVersion;
 import soc.server.SOCServer;
+import soc.util.Version;
 import soctest.server.TestRecorder;  // for javadocs only
 
 /**
@@ -92,6 +94,15 @@ public class RecordingTesterServer
         return true;
     }
 
+    @Override
+    public void startLog(final String gameName)
+    {
+        // Game's queue is created by recordEvent calls
+
+        recordGameEvent(gameName, new SOCVersion
+            (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
+    }
+
     private void recordEvent(final String gameName, QueueEntry entry)
     {
         if (entry.event instanceof SOCServerPing)
@@ -132,6 +143,8 @@ public class RecordingTesterServer
     {
         recordEvent(gameName, new QueueEntry(event, excludedPN));
     }
+
+    // No need to override endLog: Game's queue isn't removed, in case tester wants to end games and check them later
 
     /**
      * A recorded entry: Event SOCMessage, audience (all players, 1 player, or specifically excluded player(s)).
