@@ -604,7 +604,7 @@ Most games with a scenario can't yet be saved, because of their special pieces
 or game/player data fields. Basic scenarios like "Four Islands" which don't have
 special rules or pieces can be saved and loaded.
 
-**Usage/UI**
+### Usage/UI
 
 - Set value of server property `jsettlers.savegame.dir` to point to the game-saves directory
 - Log in as `debug` or an admin user
@@ -634,6 +634,25 @@ If you're not using this feature, JSettlers doesn't require or use the GSON jar.
 
 If you want to write code which loads saved games, see `SOCServer.createAndJoinReloadedGame`
 and/or `TestRecorder.connectLoadJoinResumeGame`.
+
+### Saving game message logs / game event logs
+
+For test or debugging purposes, if you want to play some games and save their network message logs
+in a standardized format, you can do so with `soctest.server.RecordingTesterServer`. That specialized SOCServer
+records all messages relevant to gameplay, captured by server-side calls to
+`messageToPlayer / messageToGame(.., isEvent=true)` or `recordGameEvent(..)`.
+
+Launch RecordingTesterServer and log in as `debug` with the standard client.
+In any game you're playing or observing, logs can be saved at any time with the debug command  
+`*savelog* filename`  
+which will save to `filename.soclog` in the server's current directory.
+
+For log file format, see `soctest.server.GameEventLog` javadocs.
+
+Because RecordingTesterServer is part of the testing code, it isn't built into the JSettlers JARs.
+If you need to run it from the command line, you'll need more than the usual classpath.
+You can launch it with a bash/zsh command like:  
+`jar=(build/libs/JSettlersServer-*.jar); java -classpath ${CLASSPATH}:${jar}:build/classes/java/test soctest.server.RecordingTesterServer`
 
 
 ## Game rules, Game Options

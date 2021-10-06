@@ -47,9 +47,11 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
-import soc.message.SOCBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCGameServerText;
+import soc.message.SOCNewGame;
+import soc.message.SOCNewGameWithOptions;
+import soc.message.SOCVersion;
 import soc.server.SOCClientData;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
@@ -58,14 +60,16 @@ import soc.server.genericServer.Connection;
 import soc.server.savegame.SavedGameModel;
 import soc.util.SOCStringManager;
 import soc.util.Version;
-import soctest.server.RecordingTesterServer.QueueEntry;
+import soctest.server.GameEventLog.QueueEntry;
 import soctest.server.savegame.TestLoadgame;
 
 /**
  * A few tests for {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)} and similar methods,
- * using {@link RecordingTesterServer} and its {@link QueueEntry} format.
+ * using {@link RecordingTesterServer} and the {@link GameEventLog.QueueEntry} format.
  * Covers a few core game actions and message sequences. For more complete coverage of those,
  * you should periodically run {@code extraTest} {@code soctest.server.TestActionsMessages}.
+ *<P>
+ * Main game-action test methods: {@link #testLoadAndBasicSequences()}, {@link #testTradeDecline2Clients()}
  *<P>
  * Also has convenience methods like
  * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
@@ -351,11 +355,11 @@ public class TestRecorder
         assertNotNull(scd);
         assertEquals("es", scd.localeStr);
 
-        final Vector<QueueEntry> records = srv.records.get(loadedName);
-        assertNotNull("record queue for game", records);
+        final GameEventLog log = srv.records.get(loadedName);
+        assertNotNull("record queue for game", log);
 
         // directly call messageToPlayerKeyed methods being tested
-        records.clear();
+        log.clear();
         srv.messageToPlayerKeyed
             (tcliConn, loadedName, PN, "base.reply.not.your.turn");
         srv.messageToPlayerKeyed
@@ -368,7 +372,7 @@ public class TestRecorder
         // compare results to fallback en_US text
         final SOCStringManager strings = SOCStringManager.getFallbackServerManagerForClient();
         StringBuilder compares = compareRecordsToExpected
-            (records, new String[][]
+            (log.entries, new String[][]
                 {
                     {"p3:SOCGameServerText:", "text="
                         + strings.get("base.reply.not.your.turn")},
@@ -391,6 +395,65 @@ public class TestRecorder
         if (compares != null)
         {
             compares.insert(0, "testBasics_SendToClientWithLocale: Message mismatch: ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
+     * Test that a new game's log always starts with {@link SOCVersion}
+     * followed by {@link SOCNewGame} or {@link SOCNewGameWithOptions}.
+     *
+     * @see TestGameEventLog
+     */
+    @Test
+    public void testNewGameFirstLogEntries()
+    {
+        assertNotNull(srv);
+
+        // game without gameopts
+        SOCGame ga = srv.createGameAndBroadcast(null, "testNewGameN", null, false);
+        assertNotNull("Internal error, please re-run test: Couldn't create new game", ga);
+        String gaName = ga.getName();
+        GameEventLog log = ((RecordingTesterServer) srv).records.get(gaName);
+        assertNotNull(log);
+        assertEquals(2, log.entries.size());
+        StringBuilder compares = compareRecordsToExpected
+            (log.entries, new String[][]
+                {
+                    {"all:SOCVersion:" + Version.versionNumber(), "str=" + Version.version()},
+                    {"all:SOCNewGame:", "game=" + gaName}
+                });
+        srv.destroyGameAndBroadcast(gaName, null);
+        if (compares != null)
+        {
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+
+        // game with gameopts
+        final SOCGameOptionSet gaOpts = new SOCGameOptionSet();
+        {
+            SOCGameOption optNT = srv.knownOpts.getKnownOption("NT", true);
+            assertNotNull(optNT);
+            optNT.setBoolValue(true);
+            gaOpts.add(optNT);
+        }
+        ga = srv.createGameAndBroadcast(null, "testNewGameO", gaOpts, false);
+        assertNotNull("Internal error, please re-run test: Couldn't create new game", ga);
+        gaName = ga.getName();
+        log = ((RecordingTesterServer) srv).records.get(gaName);
+        assertNotNull(log);
+        assertEquals(2, log.entries.size());
+        compares = compareRecordsToExpected
+            (log.entries, new String[][]
+                {
+                    {"all:SOCVersion:" + Version.versionNumber(), "str=" + Version.version()},
+                    {"all:SOCNewGameWithOptions:", "game=" + gaName}
+                });
+        srv.destroyGameAndBroadcast(gaName, null);
+        if (compares != null)
+        {
             System.err.println(compares);
             fail(compares.toString());
         }
@@ -675,11 +738,11 @@ public class TestRecorder
             assertEquals(SOCGame.PLAY1, ga.getGameState());
         }
 
-        final Vector<QueueEntry> records = server.records.get(loadedName);
-        assertNotNull("record queue for game", records);
+        final GameEventLog log = server.records.get(loadedName);
+        assertNotNull("record queue for game", log);
 
         return new StartedTestGameObjects
-            (tcli, tcli2, tcliConn, tcli2Conn, sgm, ga, ga.getBoard(), cliPl, cli2Pl, records);
+            (tcli, tcli2, tcliConn, tcli2Conn, sgm, ga, ga.getBoard(), cliPl, cli2Pl, log.entries);
     }
 
     /**
@@ -1093,43 +1156,6 @@ public class TestRecorder
             return null;
         else
             return compares;
-    }
-
-    /** Comprehensive tests for {@link RecordingTesterServer.QueueEntry}: Constructors, toString */
-    @Test
-    public void testQueueEntry()
-    {
-        final SOCBuildRequest event = new SOCBuildRequest("testgame", 2);
-
-        QueueEntry qe = new QueueEntry(event, -1);
-        assertEquals(-1, qe.toPN);
-        assertEquals(event, qe.event);
-        assertNull(qe.excludedPN);
-        assertEquals("all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-
-        qe = new QueueEntry(event, new int[]{3});
-        assertEquals(-1, qe.toPN);
-        assertEquals(event, qe.event);
-        assertArrayEquals(new int[]{3}, qe.excludedPN);
-        assertEquals("!p3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-
-        qe = new QueueEntry(event, new int[]{2,3,4});
-        assertEquals(-1, qe.toPN);
-        assertEquals(event, qe.event);
-        assertArrayEquals(new int[]{2,3,4}, qe.excludedPN);
-        assertEquals("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-
-        qe = new QueueEntry(null, -1);
-        assertEquals(-1, qe.toPN);
-        assertNull(qe.event);
-        assertNull(qe.excludedPN);
-        assertEquals("all:null", qe.toString());
-
-        qe = new QueueEntry(null, 3);
-        assertEquals(3, qe.toPN);
-        assertNull(qe.event);
-        assertNull(qe.excludedPN);
-        assertEquals("p3:null", qe.toString());
     }
 
     /**

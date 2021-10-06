@@ -58,6 +58,10 @@ JARs for recent JSettlers versions can be downloaded from
 	    - SOCDBHelper is no longer a static/unextendable singleton
 	    - Many thanks to Morgan Giraud for collaboration on this work
 	- Enhanced server's recordGameEvent framework for more detailed game recording
+	    - GameEventLog entries note their audience (all of game, specific player, etc)
+	    - `*SAVELOG*` debug command of soctest.server.RecordingTesterServer can save logs to files
+	    - Unit tests TestRecorder and TestActionsMessages prevent unexpected changes to game event message sequences
+	    - Unit test TestToCmdToStringParse for backwards-compatible parsing of logged event messages
 	- More accessible robot-related methods and data classes
 	- For third-party bots, added more granular override points like
 	  `endTurnActions`, `handleTradeResponse`, `planAndDoActionForPLAY1`, `SOCBuildingSpeedEstimateFactory`,
@@ -77,6 +81,10 @@ JARs for recent JSettlers versions can be downloaded from
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
 	- Bots: When forcing end turn, omit previous/current turn messages if stubborn
 	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
+	- Server extensibility:
+	    - Added public `createGameAndBroadcast` method
+	    - Added factory methods like `buildServerMessageHandler`
+	    - Made some methods and fields less private
 	- Refactored message classes:
 	    - Server now mostly calls constructors, not static toCmd methods
 	    - Add toString to several message types to clarify fields

@@ -52,7 +52,7 @@ import soc.message.SOCChoosePlayer;
 import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
-import soctest.server.RecordingTesterServer.QueueEntry;
+import soctest.server.GameEventLog.QueueEntry;
 import soctest.server.TestRecorder.StartedTestGameObjects;
 import soctest.server.savegame.TestLoadgame;
 
@@ -417,7 +417,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1"},
-                {"all:SOCGameElements:", "|e2=22"},
+                {"all:SOCGameElements:", "|e2=22"},  // DEV_CARD_COUNT
                 {"p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
                 {
                     "!p3:SOCDevCardAction:",
@@ -509,7 +509,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=3"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Monopoly card."},
                 {"all:SOCGameState:", "|state=53"},
                 {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y"},
@@ -549,7 +549,7 @@ public class TestActionsMessages
                 (records, new String[][]
                 {
                     {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=2"},
-                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
                     {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Year of Plenty card."},
                     {"all:SOCGameState:", "|state=52"},
                     {"all:SOCPickResources:", "|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=2"},
@@ -595,7 +595,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Road Building card."},
                 {"all:SOCGameState:", "|state=40"},
                 {"p3:SOCGameServerText:", "|text=You may place 2 roads/ships."},
@@ -604,7 +604,7 @@ public class TestActionsMessages
                 {"all:SOCGameState:", "|state=41"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a road."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=809"},
-                {"all:SOCGameElements:", "|e6=3"},
+                {"all:SOCGameElements:", "|e6=3"},  // LONGEST_ROAD_PLAYER
                 {"all:SOCGameState:", "|state=20"}
             });
 
@@ -661,8 +661,8 @@ public class TestActionsMessages
             {
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Soldier card."},
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=9"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},  // NUMKNIGHTS
                 {"all:SOCGameState:", "|state=54"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " must choose to move the robber or the pirate."},
                 {"all:SOCGameState:", "|state=34"},
@@ -747,9 +747,9 @@ public class TestActionsMessages
             {
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Soldier card."},
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=9"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},
-                {"all:SOCGameElements:", "|e5=3"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},  // NUMKNIGHTS
+                {"all:SOCGameElements:", "|e5=3"},  // LARGEST_ARMY_PLAYER
                 {"all:SOCGameState:", "|state=54"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " must choose to move the robber or the pirate."},
                 {"all:SOCGameState:", "|state=33"},
@@ -1272,7 +1272,7 @@ public class TestActionsMessages
                     {"all:SOCDiceResult:game=", "|param=" + GOLD_DICE_NUM},
                     {"all:SOCGameServerText:game=", "|text=No player gets anything."},
                     {"all:SOCGameServerText:game=", "|text=" + CLIENT2_NAME + " and " + CLIENT_NAME + " need to pick resources from the gold hex."},
-                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=1"},
+                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=1"},  // NUM_PICK_GOLD_HEX_RESOURCES
                     {"p1:SOCSimpleRequest:game=", "|pn=1|reqType=1|v1=1|v2=0"},
                     {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=1"},
                     {"p3:SOCSimpleRequest:game=", "|pn=3|reqType=1|v1=1|v2=0"},
@@ -1644,7 +1644,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCClearOffer:", "|playerNumber=-1"},
-                {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=19|amount=0"},
+                {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=19|amount=0"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCTurn:", "|playerNumber=1|gameState=15"},
                 {"all:SOCRollDicePrompt:", "|playerNumber=1"}
             });
@@ -1770,9 +1770,9 @@ public class TestActionsMessages
         StringBuilder compares = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=16|amount=1"},
+                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=16|amount=1"},  // ASK_SPECIAL_BUILD
                 {"all:SOCClearOffer:game=", "|playerNumber=-1"},
-                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=19|amount=0"},
+                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=19|amount=0"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCTurn:game=", "|playerNumber=5|gameState=100"},
                 {"all:SOCGameServerText:game=", "|text=Special building phase: " + CLIENT1_NAME + "'s turn to place."},
                 {"all:SOCPlayerElements:game=", "|playerNum=5|actionType=LOSE|e1=1,e5=1"},
@@ -1887,7 +1887,7 @@ public class TestActionsMessages
                 {"all:SOCPlayerElements:", "|playerNum=" + PN_WIN + "|actionType=LOSE|e1=1,e3=1,e4=1,e5=1"},
                 {"all:SOCGameServerText:", "|text=" + plName + " built a settlement."},
                 {"all:SOCPutPiece:", "|playerNumber=" + PN_WIN + "|pieceType=1|coord=" + Integer.toHexString(SETTLE_NODE)},
-                {"all:SOCGameElements:", "|e4=" + PN_WIN},
+                {"all:SOCGameElements:", "|e4=" + PN_WIN},  // CURRENT_PLAYER
                 {"all:SOCGameState:", "|state=1000"},
                 {"all:SOCGameServerText:", "|text=>>> " + plName + " has won the game with 10 points."},
                 {"all:SOCDevCardAction:", "|playerNum=" + PN_OTHER_NONWIN_PLAYER + "|actionType=ADD_OLD|cardTypes=[4]"},

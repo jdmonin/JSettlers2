@@ -20,15 +20,22 @@
 
 package soctest.server;
 
-import java.util.Arrays;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Properties;
-import java.util.Vector;
 
+import soc.game.SOCGame;
 import soc.message.SOCMessage;
 import soc.message.SOCServerPing;
 import soc.message.SOCVersion;
+import soc.server.SOCChannelList;
+import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
+import soc.server.SOCServerMessageHandler;
+import soc.server.genericServer.Connection;
 import soc.util.Version;
 import soctest.server.TestRecorder;  // for javadocs only
 
@@ -38,6 +45,12 @@ import soctest.server.TestRecorder;  // for javadocs only
  * see {@link QueueEntry#toString()}.
  *<P>
  * Works with {@link DisplaylessTesterClient}.
+ *<P>
+ * Logs are kept in memory, and can be written to a file with {@link #saveLogToFile(SOCGame, File, String)}.
+ *<P>
+ * This server can also run standalone on the usual TCP {@link SOCServer#PROP_JSETTLERS_PORT} port number,
+ * to connect from a client and generate a log. Server JAR and compiled test classes must be on the classpath.
+ * Use debug command {@code *SAVELOG* filename} to save to {@code filename.soclog} in the current directory.
  *
  * @since 2.5.00
  */
@@ -48,7 +61,7 @@ public class RecordingTesterServer
     public static final String STRINGPORT_NAME = "testport";
 
     /** per-game queues of recorded game "event" messages */
-    public final HashMap<String, Vector<QueueEntry>> records = new HashMap<>();
+    public final HashMap<String, GameEventLog> records = new HashMap<>();
 
     /** Number of bots to start up: 5 (basic default is 7: {@link SOCServer#SOC_STARTROBOTS_DEFAULT}) */
     public static final int NUM_STARTROBOTS = 5;
@@ -80,12 +93,25 @@ public class RecordingTesterServer
     }
 
     /**
+     * Stringport server for automated tests.
      * To add or change server properties, update {@link #PROPS} before calling this constructor.
+     * @see #RecordingTesterServer(int, Properties)
      */
     public RecordingTesterServer()
         throws IllegalStateException
     {
         super(STRINGPORT_NAME, PROPS);
+    }
+
+    /**
+     * TCP server for manual tests.
+     * For parameters and exceptions, see parent {@link SOCServer#SOCServer(int, Properties)}.
+     * @see #RecordingTesterServer()
+     */
+    public RecordingTesterServer(final int port, final Properties props)
+        throws Exception
+    {
+        super(port, props);
     }
 
     @Override
@@ -103,118 +129,242 @@ public class RecordingTesterServer
             (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
     }
 
-    private void recordEvent(final String gameName, QueueEntry entry)
+    private void recordEvent(final String gameName, GameEventLog.QueueEntry entry)
     {
         if (entry.event instanceof SOCServerPing)
             // ignore unrelated administrative message which has unpredictable timing
             return;
 
-        Vector<QueueEntry> queue = records.get(gameName);
-        if (queue == null)
+        GameEventLog log = records.get(gameName);
+        if (log == null)
         {
-            queue = new Vector<QueueEntry>();
-            records.put(gameName, queue);
+            log = new GameEventLog();
+            records.put(gameName, log);
         }
 
-        queue.add(entry);
+        log.add(entry);
     }
 
     @Override
     public void recordGameEvent(final String gameName, SOCMessage event)
     {
-        recordEvent(gameName, new QueueEntry(event, -1));
+        recordEvent(gameName, new GameEventLog.QueueEntry(event, -1));
     }
 
     @Override
     public void recordGameEventTo(final String gameName, final int pn, SOCMessage event)
     {
-        recordEvent(gameName, new QueueEntry(event, pn));
+        recordEvent(gameName, new GameEventLog.QueueEntry(event, pn));
 
     }
 
     @Override
     public void recordGameEventNotTo(final String gameName, final int excludedPN, SOCMessage event)
     {
-        recordEvent(gameName, new QueueEntry(event, new int[]{excludedPN}));
+        recordEvent(gameName, new GameEventLog.QueueEntry(event, new int[]{excludedPN}));
     }
 
     @Override
     public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
     {
-        recordEvent(gameName, new QueueEntry(event, excludedPN));
+        recordEvent(gameName, new GameEventLog.QueueEntry(event, excludedPN));
     }
 
     // No need to override endLog: Game's queue isn't removed, in case tester wants to end games and check them later
 
     /**
-     * A recorded entry: Event SOCMessage, audience (all players, 1 player, or specifically excluded player(s)).
-     * See {@link #toString()} for human-readable delimited format.
+     * Save a game's current event message logs to a file.
+     * First message in log file is the server's {@link SOCVersion}.
+     * See {@link GameEventLog#saveToFile(SOCGame, File, String)} for format details.
+     * Overwrites file if it already exists.
      *<P>
-     * If this class changes, update comprehensive unit test {@link TestRecorder#testQueueEntry()}.
+     * Reminder: If the game was previously loaded from a {@code .game.json} file, its logs will be incomplete
+     * instead of starting at the game's beginning.
+     *
+     * @param ga  Game to save; not null.
+     * @param saveDir  Existing directory into which to save the file
+     * @param saveFilename  Filename to save to; not validated for format or security.
+     *   Recommended suffix is {@link GameEventLog#LOG_FILENAME_EXTENSION} for consistency.
+     * @throws NoSuchElementException if no logs found for game
+     * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
+     * @throws IOException if an I/O problem or {@link SecurityException} occurs
      */
-    public static final class QueueEntry
+    public void saveLogToFile(final SOCGame ga, final File saveDir, final String saveFilename)
+        throws NoSuchElementException, IllegalArgumentException, IOException
     {
-        /** Event message data */
-        public final SOCMessage event;
+        final String gameName = ga.getName();
 
-        /** Which player number this event was sent to, or -1 for all; is also -1 if {@link #excludedPN} != null */
-        public final int toPN;
+        final GameEventLog gameLog = records.get(gameName);
+        if (gameLog == null)
+            throw new NoSuchElementException(gameName);
 
-        /** Player numbers specifically excluded from this event's audience, or null */
-        public final int[] excludedPN;
+        gameLog.saveToFile(ga, saveDir, saveFilename);
+    }
 
-        /** QueueEntry sent to one player, or all players if {@code toPN} is -1 */
-        public QueueEntry(SOCMessage event, int toPN)
+    @Override
+    protected SOCServerMessageHandler buildServerMessageHandler
+        (final SOCGameListAtServer games, final SOCChannelList channels)
+    {
+        return new RecordingServerMessageHandler(this, games, channels);
+    }
+
+    /**
+     * Main method, for running {@link RecordingTesterServer} interactively to generate a log.
+     * Server JAR and compiled test classes must be on the classpath.
+     * @param args  Command-line args, parsed with {@link SOCServer#parseCmdline_DashedArgs(String[])}
+     *     which also reads file {@code jsserver.properties} if it exists
+     */
+    public static void main(final String args[])
+    {
+        Properties argp = SOCServer.parseCmdline_DashedArgs(args);
+        if (argp == null)
         {
-            this.event = event;
-            this.toPN = toPN;
-            this.excludedPN = null;
+            SOCServer.printUsage(false);
+            return;
         }
 
-        /** QueueEntry sent to all players except specific ones, or to all if {@code excludedPN} null */
-        public QueueEntry(SOCMessage event, int[] excludedPN)
+        if (SOCServer.hasStartupPrintAndExit)
         {
-            this.event = event;
-            this.toPN = -1;
-            this.excludedPN = excludedPN;
+            return;
+        }
+
+        int port = 0;
+        try
+        {
+            port = Integer.parseInt(argp.getProperty(PROP_JSETTLERS_PORT));
+        }
+        catch (NumberFormatException e)
+        {
+            SOCServer.printUsage(false);
+            return;
+        }
+
+        try
+        {
+            for (Map.Entry<Object, Object> prop: argp.entrySet())
+                PROPS.setProperty(prop.getKey().toString(), prop.getValue().toString());
+
+            SOCServer server = new RecordingTesterServer(port, PROPS);
+            if (! server.hasUtilityModeProperty())
+            {
+                server.setPriority(5);
+                server.start();  // <---- Start the Main SOCServer Thread: serverUp() method ----
+            }
+        } catch (Throwable e) {
+            // runtime exception, problem in an initializer's method call, etc
+            System.err.println
+                ("\n" + e.getMessage()
+                 + "\n* Internal error during startup: Exiting now.\n");
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+
+    /**
+     * Extends server message handler in order to add {@code *SAVELOG*} admin/debug command.
+     */
+    private static class RecordingServerMessageHandler extends SOCServerMessageHandler
+    {
+        public RecordingServerMessageHandler
+            (final RecordingTesterServer srv, final SOCGameListAtServer gameList, final SOCChannelList channelList)
+        {
+            super(srv, gameList, channelList);
         }
 
         /**
-         * Basic delimited contents, suitable for comparisons in unit tests.
-         * Calls {@link SOCMessage#toString()}, not {@link SOCMessage#toCmd()},
-         * for class/field name label strings and to help test stable SOCMessage.toString results
-         * for any third-party recorder implementers that use that format.
-         *<P>
-         * Shows message audience and human-readable but delimited {@link SOCMessage#toString()}.
-         * Possible formats:
-         *<UL>
-         * <LI> To all players: {@code all:MessageClassName:param=value|param=value|...}
-         * <LI> To a single player number: {@code p3:MessageClassName:param=value|param=value|...}
-         * <LI> To all but one player: {@code !p3:MessageClassName:param=value|param=value|...}
-         * <LI> To all but two players: {@code !p[3, 1]:MessageClassName:param=value|param=value|...}
-         *</UL>
-         * Non-playing game observers are also sent all messages, except those to a single player.
+         * Process the {@code *SAVELOG*} debug/admin command: Save logs of the current game to a file.
+         * Based on {@code SOCServerMessageHandler.processDebugCommand_saveGame}.
+         * @param c  Client sending the command
+         * @param ga  Game in which the command was sent
+         * @param argsStr  Args for SAVELOG command (trimmed), or ""
          */
-        @Override
-        public String toString()
+        private void processDebugCommand_saveLog(final Connection c, final SOCGame ga, String argsStr)
         {
-            StringBuilder sb = new StringBuilder();
-            if (toPN != -1)
-                sb.append("p" + toPN + ":");
-            else if (excludedPN != null)
+            final String gaName = ga.getName();
+            boolean askedForce = false;
+
+            // very basic flag parse, as a stopgap until something better is needed
+            if (argsStr.startsWith("-f "))
             {
-                if (excludedPN.length == 1)
-                    sb.append("!p" + excludedPN[0]);
-                else
-                    sb.append("!p" + Arrays.toString(excludedPN));
-                sb.append(':');
+                askedForce = true;
+                argsStr = argsStr.substring(3).trim();
+            } else {
+                int i = argsStr.indexOf(' ');
+                if ((i != -1) && (argsStr.substring(i + 1).trim().equals("-f")))
+                {
+                    askedForce = true;
+                    argsStr = argsStr.substring(0, i);
+                }
             }
-            else
-                sb.append("all:");
 
-            sb.append(event);  // or "null"
+            if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
+            {
+                srv.messageToPlayer
+                    (c, gaName, SOCServer.PN_NON_EVENT, "Usage: *SAVELOG* [-f] filename");  // I18N OK: debug only
+                return;
+            }
 
-            return sb.toString();
+            final String fname = argsStr + GameEventLog.LOG_FILENAME_EXTENSION;
+
+            if (! askedForce)
+                try
+                {
+                    File f = new File(fname);
+                    if (f.exists())
+                    {
+                        srv.messageToPlayer
+                            (c, gaName, SOCServer.PN_NON_EVENT,
+                             "Log file already exists: Add -f flag to force, or use a different name");  // I18N OK: debug only
+                        return;
+                    }
+                } catch (SecurityException e) {}
+                    // ignore until actual save; that code covers this & other situations
+
+            final int gstate = ga.getGameState();
+            if ((gstate == SOCGame.LOADING) || (gstate == SOCGame.LOADING_RESUMING))
+            {
+                // Could technically save the log, but it would be empty
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_NON_EVENT, "admin.savegame.resp.must_resume");
+                    // "Must resume loaded game before saving again."
+                return;
+            }
+
+            if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(argsStr).matches())
+            {
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_NON_EVENT, "admin.loadsavegame.resp.gamename.chars");
+                    // "gamename can only include letters, numbers, dashes, underscores."
+                return;
+            }
+
+            try
+            {
+                ((RecordingTesterServer) srv).saveLogToFile(ga, new File("."), fname);  // <--- The actual log save method ---
+
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                     "admin.savegame.ok.saved_to", fname);
+                     // "Saved game to {0}"
+            } catch (NoSuchElementException|IOException e) {
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                     "admin.savegame.err.problem_saving", e);
+                      // "Problem saving game: {0}"
+            }
+        }
+
+        public boolean processAdminCommand
+            (final Connection c, final SOCGame ga, final String cmdText, final String cmdTextUC)
+        {
+            if (cmdTextUC.startsWith("*SAVELOG*"))
+            {
+                processDebugCommand_saveLog(c, ga, cmdText.substring(9).trim());
+                return true;
+            }
+
+            return super.processAdminCommand(c, ga, cmdText, cmdTextUC);
         }
     }
 

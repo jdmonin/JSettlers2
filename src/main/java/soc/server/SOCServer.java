@@ -162,6 +162,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The version check timer is set in {@link SOCClientData#setVersionTimer(SOCServer, Connection)}.
  * Before 1.1.06 the server's currently active game and channel lists were sent beforehand,
  * and client version was then sent in reply to server's version.
+ *<P>
+ * This server can be extended. To customize its handlers, you can override factory methods
+ * {@link #buildGameHandler()} and {@link #buildServerMessageHandler(SOCGameListAtServer, SOCChannelList)}.
  */
 @SuppressWarnings("serial")
 public class SOCServer extends Server
@@ -996,10 +999,11 @@ public class SOCServer extends Server
     /**
      * Game type handler, currently shared by all game instances.
      * Includes a {@link SOCGameMessageHandler}.
+     * Initialized by {@link #buildGameHandler()}.
      * @see #srvMsgHandler
      * @since 2.0.00
      */
-    private final SOCGameHandler handler = new SOCGameHandler(this);
+    private final SOCGameHandler handler = buildGameHandler();
 
     /**
      * Server internal flag to indicate that user accounts are active, and authentication
@@ -1123,7 +1127,7 @@ public class SOCServer extends Server
      * Set in {@link #parseCmdline_DashedArgs(String[])}.
      * @since 1.1.15
      */
-    private static boolean hasStartupPrintAndExit = false;
+    protected static boolean hasStartupPrintAndExit = false;
 
     /**
      * Did the properties or command line include --option / -o to set {@link SOCGameOption game option} values?
@@ -1231,10 +1235,11 @@ public class SOCServer extends Server
      * Server message handler to process inbound messages from clients.
      * Messages related to actions in specific games are instead processed
      * by {@link SOCGameMessageHandler}.
+     * Initialized by {@link #buildServerMessageHandler(SOCGameListAtServer, SOCChannelList)}.
      * @see #handler
      * @since 2.0.00
      */
-    private final SOCServerMessageHandler srvMsgHandler = new SOCServerMessageHandler(this, gameList, channelList);
+    private final SOCServerMessageHandler srvMsgHandler = buildServerMessageHandler(gameList, channelList);
 
     /**
      * Holds current requests for robots to join games:<BR>
@@ -1607,6 +1612,33 @@ public class SOCServer extends Server
         } catch (SocketException | SQLException | EOFException e) {
             throw new IllegalStateException("Internal error, not expected to encounter " + e.toString(), e);
         }
+    }
+
+    /**
+     * Factory method to build this server's {@link SOCGameHandler} (which includes its {@link SOCGameMessageHandler}).
+     * Returns {@code new SOCGameHandler(this)} unless overridden.
+     * @return a SOCGameHandler for this server
+     * @see #buildServerMessageHandler(SOCGameListAtServer, SOCChannelList)
+     * @since 2.5.00
+     */
+    protected SOCGameHandler buildGameHandler()
+    {
+        return new SOCGameHandler(this);
+    }
+
+    /**
+     * Factory method to build this server's {@link SOCServerMessageHandler}.
+     * Returns {@code new SOCServerMessageHandler(this, games, channels)} unless overridden.
+     * @param games  Server's game list
+     * @param channels  Server's channel list
+     * @return a SOCServerMessageHandler for this server
+     * @see #buildGameHandler()
+     * @since 2.5.00
+     */
+    protected SOCServerMessageHandler buildServerMessageHandler
+        (final SOCGameListAtServer games, final SOCChannelList channels)
+    {
+        return new SOCServerMessageHandler(this, games, channels);
     }
 
     /**
@@ -2958,22 +2990,57 @@ public class SOCServer extends Server
     }
 
     /**
-     * Create a new game or connect to a reloaded one, and announce it with a broadcast.
-     * Called from {@link #connectToGame(Connection, String, SOCGameOptionSet, SOCGame)}.
-     *<P>
-     * Can also be used with a {@code loadedGame} being reloaded; will
-     * add it to game list and generally act as if a new game is being created.
+     * Create a new game and announce it with a broadcast.
      *<P>
      * The new game is created with
      * {@link SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, GameHandler)}
      * and will expire in {@link SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES} unless extended during play.
      *<P>
      * The broadcast will send {@link SOCNewGameWithOptions} if {@code gaOpts != null}, {@link SOCNewGame} otherwise.
-     * If some connected clients are older than {@code gVers}, the message sent to those older clients will
-     * let them know they can't connect to the new game.
+     * If some connected clients are older than the options' minimum version
+     * (from {@link SOCVersionedItem#itemsMinimumVersion(Map)})
+     * the message sent to those older clients will let them know they can't connect to the new game.
+     * The new-game message is also recorded as a game event.
      *<P>
      * <b>Locks:</b> Uses {@link SOCGameList#takeMonitor()} / {@link SOCGameList#releaseMonitor()};
      * see {@code hasGameListMonitor} parameter.
+     *
+     * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
+     *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
+     *             will be called.  Can be null, especially if {@code isBotsOnly}.
+     * @param gaName  requested name of the game; no game should be in game list yet with this name.
+     *             If another game with this name does exist, tries to rename {@code gaName}
+     *             (see {@link SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, GameHandler)}).
+     *             Not validated or trimmed, see
+     *             {@link SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)} for that.
+     * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
+     *                Must already be validated, by calling
+     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
+     *                with <tt>doServerPreadjust</tt> true.
+     * @param isBotsOnly  True if the game's only players are bots, no humans and no owner
+     * @return  Newly created game, or null if an unexpected error occurs during creation
+     * @see #destroyGameAndBroadcast(String, String)
+     * @since 2.5.00
+     */
+    public SOCGame createGameAndBroadcast
+        (final Connection c, String gaName, SOCGameOptionSet gaOpts, final boolean isBotsOnly)
+    {
+        return createGameAndBroadcast
+            (c, gaName, gaOpts, null,
+             ((gaOpts != null) ? SOCVersionedItem.itemsMinimumVersion(gaOpts.getAll()) : -1),
+             isBotsOnly, false);
+    }
+
+    /**
+     * Create a new game or connect to a reloaded one, and announce it with a broadcast.
+     * Called from {@link #connectToGame(Connection, String, SOCGameOptionSet, SOCGame)}
+     * and {@link #startRobotOnlyGames(boolean, boolean)}.
+     *<P>
+     * Can also be used with a {@code loadedGame} being reloaded; will
+     * add it to game list and generally act as if a new game is being created.
+     *<P>
+     * See public form {@link #createGameAndBroadcast(Connection, String, SOCGameOptionSet, boolean)}
+     * for more info.
      *
      * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
      *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
@@ -3076,7 +3143,7 @@ public class SOCServer extends Server
      * @param newGame  Newly created game
      * @param gaName  New game's name
      * @param gaOpts  New game's options if any, or null
-     * @param gVers   New game's minimum version
+     * @param gVers   New game's minimum version, or -1 if none
      * @since 2.0.00
      */
     private void broadcastNewGame
@@ -3740,7 +3807,7 @@ public class SOCServer extends Server
      * Calls {@link SOCGameList#takeMonitor()}, {@link #destroyGame(String)},
      * {@link SOCGameList#releaseMonitor()}, and {@link #broadcast(SOCMessage) broadcast}({@link SOCDeleteGame}).
      * Doesn't call {@link #recordGameEvent(String, SOCMessage)} for deletion broadcast:
-     * Any recording for the game was probably closed by destroyGame.
+     * Any recording for the game was probably closed by our call to destroyGame.
      *
      * @param gaName  Game name to destroy
      * @param descForStackTrace  Activity description in case of exception thrown from destroyGame;

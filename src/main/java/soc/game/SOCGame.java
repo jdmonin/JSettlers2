@@ -736,6 +736,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For a game at server which was loaded from disk and hasn't yet been resumed,
      * its {@link soc.server.savegame.SavedGameModel}. Otherwise {@code null}.
+     * After the game is resumed by {@link soc.server.savegame.SavedGameModel#resumePlay(boolean)},
+     * there's no field or flag that remembers it was previously loaded.
+     *<P>
      * Declared as Object here to avoid needing server class at client.
      * @since 2.3.00
      */

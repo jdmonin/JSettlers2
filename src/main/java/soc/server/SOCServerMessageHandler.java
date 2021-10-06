@@ -86,20 +86,20 @@ public class SOCServerMessageHandler
      * along with dashes (-) and underscores (_).
      * @since 2.3.00
      */
-    private static final Pattern DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX
+    protected static final Pattern DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX
         = Pattern.compile("^[\\p{IsLetter}\\p{IsDigit}_-]+$");
 
-    private final SOCServer srv;
+    protected final SOCServer srv;
 
     /**
      * List of {@link #srv}'s games.
      */
-    private final SOCGameListAtServer gameList;
+    protected final SOCGameListAtServer gameList;
 
     /**
      * List of {@link #srv}'s chat channels.
      */
-    private final SOCChannelList channelList;
+    protected final SOCChannelList channelList;
 
     public SOCServerMessageHandler
         (SOCServer srv, final SOCGameListAtServer gameList, final SOCChannelList channelList)
@@ -1306,7 +1306,7 @@ public class SOCServerMessageHandler
      * @return true if {@code cmdText} is an admin command and has been handled here, false otherwise
      * @since 2.3.00
      */
-    boolean processAdminCommand
+    public boolean processAdminCommand
         (final Connection c, final SOCGame ga, final String cmdText, final String cmdTextUC)
     {
         final String gaName = ga.getName();
@@ -1851,7 +1851,7 @@ public class SOCServerMessageHandler
 
         try
         {
-            GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);
+            GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);  // <--- The actual save game method ---
 
             srv.messageToPlayerKeyed
                 (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
