@@ -162,6 +162,14 @@ public class SOCGameHandler extends GameHandler
         = "dev: #typ player";
 
     /**
+     * Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
+     * @see #DEBUG_COMMANDS_HELP_DEV_TYPES
+     * @since 2.5.00
+     */
+    private static final String DEBUG_COMMANDS_HELP_DEVNEXT
+        = "devnext: #typ";
+
+    /**
      * Debug help: player name or number. Used by {@link #SOC_DEBUG_COMMANDS_HELP}, etc.
      * @since 1.1.20
      */
@@ -197,6 +205,7 @@ public class SOCGameHandler extends GameHandler
         "--- Debug Resources ---",
         DEBUG_COMMANDS_HELP_RSRCS,
         "Example  rsrcs: 0 3 0 2 0 Myname  or  rsrcs: 0 3 0 2 0 #3",
+        DEBUG_COMMANDS_HELP_DEVNEXT,
         DEBUG_COMMANDS_HELP_DEV,
         "Example  dev: 2 Myname   or  dev: 2 #3",
         DEBUG_COMMANDS_HELP_PLAYER,
@@ -308,6 +317,11 @@ public class SOCGameHandler extends GameHandler
         else if (dcmdU.startsWith("DEV:"))
         {
             debugGiveDevCard(debugCli, dcmd, ga);
+            return true;
+        }
+        else if (dcmdU.startsWith("DEVNEXT:"))
+        {
+            debugSetNextDevCard(debugCli, dcmd, ga);
             return true;
         }
         else if (dcmd.charAt(0) != '*')
@@ -4082,6 +4096,57 @@ public class SOCGameHandler extends GameHandler
         }
         srv.messageToGameKeyedSpecial(game, true, true, "debug.dev.gets", pl.getName(), Integer.valueOf(cardType));
             // ""### joe gets a Road Building card."
+    }
+
+    /** Debugging command that sets the next dev card type to be drawn/bought.
+     *  <PRE> devnext: cardtype </PRE>
+     *  For card-types numbers, see {@link SOCDevCardConstants}
+     *  or {@link #DEBUG_COMMANDS_HELP_DEV_TYPES}.
+     *  @since 2.5.00
+     */
+    private final void debugSetNextDevCard(Connection c, String mes, SOCGame game)
+    {
+        StringTokenizer st = new StringTokenizer(mes.substring(8));
+        int cardType = -1;
+        boolean parseError = false;
+
+        try
+        {
+            cardType = Integer.parseInt(st.nextToken());
+            if ((cardType < SOCDevCardConstants.MIN_KNOWN) || (cardType >= SOCDevCardConstants.MAXPLUSONE))
+                parseError = true;  // Can't give unknown dev cards
+        }
+        catch (NumberFormatException e)
+        {
+            parseError = true;
+        }
+
+        if (st.hasMoreTokens())
+            parseError = true;
+
+        final String gaName = game.getName();
+
+        if (parseError)
+        {
+            for (String txt : new String[]{
+                    "### Usage: " + DEBUG_COMMANDS_HELP_DEVNEXT,
+                    DEBUG_COMMANDS_HELP_DEV_TYPES
+                })
+                srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, txt);
+
+            return;  // <--- early return ---
+        }
+
+        if (game.getNumDevCards() > 0)
+        {
+            game.setNextDevCard(cardType);
+            srv.messageToGameKeyedSpecial
+                (game, true, true, "debug.devnext.set", Integer.valueOf(cardType));
+                    // ""### Next dev card is set to a Road Building."
+        } else {
+            srv.messageToPlayer
+                (c, gaName, SOCServer.PN_NON_EVENT, /*I*/"There are no more Development cards."/*18N*/ );
+        }
     }
 
     /**

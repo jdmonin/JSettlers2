@@ -1178,6 +1178,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * The number of development cards remaining in {@link #devCardDeck};
      * {@code numDevCards - 1} is index of the next card to buy for {@link #buyDevCard()}.
+     * @see #getNumDevCards()
      */
     private int numDevCards;
 
@@ -2718,6 +2719,7 @@ public class SOCGame implements Serializable, Cloneable
      * Get the number of development cards remaining to be bought.
      * @return the number of dev cards in the deck
      * @see #setNumDevCards(int)
+     * @see #buyDevCard()
      */
     public int getNumDevCards()
     {
@@ -7667,7 +7669,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * @return true if the player has the resources
      *         to buy a dev card, and if there are dev cards
-     *         left to buy
+     *         left to buy: {@link #getNumDevCards()} &gt; 0.
      *
      * @param pn  the number of the player
      * @see #buyDevCard()
@@ -7980,6 +7982,40 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * For debugging at server, set card type of the next development card for {@link #buyDevCard()}
+     * To maintain the ratio of card types, will try to find a card of this type within the deck
+     * and swap it with the next-to-play card. If none found, will change the type of the next card
+     * in the deck.
+     *
+     * @param cardType  Dev card type from {@link SOCDevCardConstants}; not validated.
+     * @throws IllegalStateException if deck is empty; check {@link #getNumDevCards()} before calling.
+     * @since 2.5.00
+     */
+    public void setNextDevCard(final int cardType)
+        throws IllegalStateException
+    {
+        final int nextCardIdx = numDevCards - 1;
+        if (nextCardIdx < 0)
+            throw new IllegalStateException("empty");
+
+        if (cardType == devCardDeck[nextCardIdx])
+            return;  // already is the next type
+
+        for (int i = nextCardIdx - 1; i >= 0; --i)
+        {
+            if (cardType == devCardDeck[i])
+            {
+                final int otherType = devCardDeck[nextCardIdx];
+                devCardDeck[nextCardIdx] = cardType;
+                devCardDeck[i] = otherType;
+                return;
+            }
+        }
+
+        devCardDeck[nextCardIdx] = cardType;
+    }
+
+    /**
      * the current player is buying a dev card.
      *<P>
      *<b>Note:</b> Not checked for validity; please call {@link #couldBuyDevCard(int)} first.
@@ -7994,6 +8030,8 @@ public class SOCGame implements Serializable, Cloneable
      * @see #playKnight()
      * @see #playMonopoly()
      * @see #playRoadBuilding()
+     * @see #getNumDevCards()
+     * @see #setNextDevCard(int)
      */
     public int buyDevCard()
     {
