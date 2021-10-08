@@ -868,8 +868,9 @@ public class SOCServer extends Server
     /**
      * For {@link #messageToPlayer(Connection, String, int, SOCMessage)} and similar methods,
      * "event playerNumber" parameter value to indicate this is the server's reply to a client player, and
-     * their player number is undetermined, possibly because current player's name isn't the client nickname
-     * so server knows client can't take an action right now.
+     * their player number is undetermined. Sometimes this happens when current player's name
+     * is different from the client nickname, so server knows client can't take an action right now
+     * and hasn't bothered searching that game for a player with client's nickname.
      *
      * @see #PN_NON_EVENT
      * @see #PN_OBSERVER

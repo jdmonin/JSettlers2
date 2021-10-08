@@ -33,6 +33,7 @@ import java.util.Vector;
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
 import soc.message.SOCVersion;
+import soc.server.SOCServer;
 import soc.util.Version;
 
 /**
@@ -164,20 +165,29 @@ public class GameEventLog
      * A recorded entry: Event SOCMessage, audience (all players, 1 player, or specifically excluded player(s)).
      * See {@link #toString()} for human-readable delimited format.
      *<P>
-     * If this class changes, update comprehensive unit test {@link TestGameEventLog#testQueueEntry()}.
+     * If this class changes, update comprehensive unit test {@link soctest.server.TestGameEventLog#testQueueEntry()}.
      */
     public static final class QueueEntry
     {
         /** Event message data */
         public final SOCMessage event;
 
-        /** Which player number this event was sent to, or -1 for all; is also -1 if {@link #excludedPN} != null */
+        /**
+         * Which player number this event was sent to, or -1 for all; is also -1 if {@link #excludedPN} != null.
+         * Can also be {@link SOCServer#PN_OBSERVER} or {@link SOCServer#PN_REPLY_TO_UNDETERMINED}.
+         */
         public final int toPN;
 
         /** Player numbers specifically excluded from this event's audience, or null */
         public final int[] excludedPN;
 
-        /** QueueEntry sent to one player, or all players if {@code toPN} is -1 */
+        /**
+         * QueueEntry sent to one player or observer, or all players if {@code toPN} is -1.
+         * @param event  Event message to record
+         * @param toPN  Player number sent to, or all players if -1.
+         *     Can also be {@link SOCServer#PN_OBSERVER} or {@link SOCServer#PN_REPLY_TO_UNDETERMINED}.
+         * @see #QueueEntry(SOCMessage, int[])
+         */
         public QueueEntry(SOCMessage event, int toPN)
         {
             this.event = event;
@@ -185,7 +195,12 @@ public class GameEventLog
             this.excludedPN = null;
         }
 
-        /** QueueEntry sent to all players except specific ones, or to all if {@code excludedPN} null */
+        /**
+         * QueueEntry sent to all players except specific ones, or to all if {@code excludedPN} null.
+         * @param event  Event message to record
+         * @param excludedPN  Player number(s) excluded, or all players if null
+         * @see #QueueEntry(SOCMessage, int)
+         */
         public QueueEntry(SOCMessage event, int[] excludedPN)
         {
             this.event = event;
@@ -206,6 +221,9 @@ public class GameEventLog
          * <LI> To a single player number: {@code p3:MessageClassName:param=value|param=value|...}
          * <LI> To all but one player: {@code !p3:MessageClassName:param=value|param=value|...}
          * <LI> To all but two players: {@code !p[3, 1]:MessageClassName:param=value|param=value|...}
+         * <LI> To an observer: {@code ob:MessageClassName:param=value|param=value|...}
+         * <LI> To an undetermined game member: {@code un:MessageClassName:param=value|param=value|...} <BR>
+         *     (for {@link SOCServer#PN_REPLY_TO_UNDETERMINED})
          *</UL>
          * Non-playing game observers are also sent all messages, except those to a single player.
          */
@@ -213,18 +231,28 @@ public class GameEventLog
         public String toString()
         {
             StringBuilder sb = new StringBuilder();
-            if (toPN != -1)
-                sb.append("p" + toPN + ":");
-            else if (excludedPN != null)
+
+            switch(toPN)
             {
-                if (excludedPN.length == 1)
-                    sb.append("!p" + excludedPN[0]);
-                else
-                    sb.append("!p" + Arrays.toString(excludedPN));
-                sb.append(':');
+            case SOCServer.PN_OBSERVER:
+                sb.append("ob:");  break;
+            case SOCServer.PN_REPLY_TO_UNDETERMINED:
+                sb.append("un:");  break;
+            case -1:
+                if (excludedPN != null)
+                {
+                    if (excludedPN.length == 1)
+                        sb.append("!p" + excludedPN[0]);
+                    else
+                        sb.append("!p" + Arrays.toString(excludedPN));
+                    sb.append(':');
+                } else {
+                    sb.append("all:");
+                }
+                break;
+            default:
+                sb.append("p" + toPN + ":");
             }
-            else
-                sb.append("all:");
 
             sb.append(event);  // or "null"
 

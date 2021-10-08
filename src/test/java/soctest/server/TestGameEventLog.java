@@ -22,6 +22,7 @@ package soctest.server;
 
 import soc.extra.server.GameEventLog;
 import soc.message.SOCBuildRequest;
+import soc.server.SOCServer;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -58,6 +59,18 @@ public class TestGameEventLog
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{2,3,4}, qe.excludedPN);
         assertEquals("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+
+        qe = new GameEventLog.QueueEntry(event, SOCServer.PN_OBSERVER);
+        assertEquals(SOCServer.PN_OBSERVER, qe.toPN);
+        assertEquals(event, qe.event);
+        assertNull(qe.excludedPN);
+        assertEquals("ob:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+
+        qe = new GameEventLog.QueueEntry(event, SOCServer.PN_REPLY_TO_UNDETERMINED);
+        assertEquals(SOCServer.PN_REPLY_TO_UNDETERMINED, qe.toPN);
+        assertEquals(event, qe.event);
+        assertNull(qe.excludedPN);
+        assertEquals("un:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
         qe = new GameEventLog.QueueEntry(null, -1);
         assertEquals(-1, qe.toPN);
