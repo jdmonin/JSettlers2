@@ -9677,7 +9677,8 @@ public class SOCServer extends Server
      *<P>
      * This stub can be overridden.
      * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
-     * For a sample implementation, see unit test helper {@code soctest.server.RecordingTesterServer}.
+     * For a sample implementation, see unit test helper {@link soc.extra.server.RecordingSOCServer}
+     * and its {@link soc.extra.server.GameEventLog} format.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.

@@ -59,7 +59,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Many thanks to Morgan Giraud for collaboration on this work
 	- Enhanced server's recordGameEvent framework for more detailed game recording
 	    - GameEventLog entries note their audience (all of game, specific player, etc)
-	    - `*SAVELOG*` debug command of soctest.server.RecordingTesterServer can save logs to files
+	    - `*SAVELOG*` debug command of soc.extra.server.RecordingSOCServer can save logs to files
 	    - Unit tests TestRecorder and TestActionsMessages prevent unexpected changes to game event message sequences
 	    - Unit test TestToCmdToStringParse for backwards-compatible parsing of logged event messages
 	- More accessible robot-related methods and data classes
@@ -85,6 +85,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Added public `createGameAndBroadcast` method
 	    - Added factory methods like `buildServerMessageHandler`
 	    - Made some methods and fields less private
+	- New package `soc.extra` for useful or reusable code like `GameEventLog`
+	  which is developed with the main code but shouldn't be part of the built JARs
 	- Refactored message classes:
 	    - Server now mostly calls constructors, not static toCmd methods
 	    - Add toString to several message types to clarify fields

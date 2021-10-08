@@ -18,7 +18,7 @@
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 
-package soctest.server;
+package soc.extra.server;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -39,7 +39,7 @@ import soc.util.Version;
  * A Game Event Log in memory or saved to/loaded from a file.
  * Log entries are {@link QueueEntry}.
  *<P>
- * These logs and their entry format are used by various tests,
+ * These logs and their entry format are used by various tests and {@link RecordingSOCServer},
  * but aren't used by the standard SOCServer.
  *
  *<H3>Log file format</H3>

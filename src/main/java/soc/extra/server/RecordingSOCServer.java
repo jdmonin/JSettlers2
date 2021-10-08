@@ -18,7 +18,7 @@
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 
-package soctest.server;
+package soc.extra.server;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,10 +37,9 @@ import soc.server.SOCServer;
 import soc.server.SOCServerMessageHandler;
 import soc.server.genericServer.Connection;
 import soc.util.Version;
-import soctest.server.TestRecorder;  // for javadocs only
 
 /**
- * Non-testing class: Server which records game events into {@link #records}
+ * SOCServer which records game events into {@link #records}
  * having a human-readable delimited format, suitable for comparisons in unit tests:
  * see {@link QueueEntry#toString()}.
  *<P>
@@ -55,7 +54,7 @@ import soctest.server.TestRecorder;  // for javadocs only
  * @since 2.5.00
  */
 @SuppressWarnings("serial")
-public class RecordingTesterServer
+public class RecordingSOCServer
     extends SOCServer
 {
     public static final String STRINGPORT_NAME = "testport";
@@ -78,7 +77,7 @@ public class RecordingTesterServer
      * <LI> {@link SOCServer#PROP_JSETTLERS_STARTROBOTS} = 5 ({@link #NUM_STARTROBOTS})
      * <LI> {@link SOCServer#PROP_JSETTLERS_GAME_DISALLOW_6PLAYER} = "N"
      * <LI> {@link SOCServer#PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD} = "N"
-     *      (because {@link TestRecorder} unit tests use sea board)
+     *      (because {@link soctest.server.TestRecorder} unit tests use sea board)
      *</UL>
      */
     public static final Properties PROPS = new Properties();
@@ -95,9 +94,9 @@ public class RecordingTesterServer
     /**
      * Stringport server for automated tests.
      * To add or change server properties, update {@link #PROPS} before calling this constructor.
-     * @see #RecordingTesterServer(int, Properties)
+     * @see #RecordingSOCServer(int, Properties)
      */
-    public RecordingTesterServer()
+    public RecordingSOCServer()
         throws IllegalStateException
     {
         super(STRINGPORT_NAME, PROPS);
@@ -106,9 +105,9 @@ public class RecordingTesterServer
     /**
      * TCP server for manual tests.
      * For parameters and exceptions, see parent {@link SOCServer#SOCServer(int, Properties)}.
-     * @see #RecordingTesterServer()
+     * @see #RecordingSOCServer()
      */
-    public RecordingTesterServer(final int port, final Properties props)
+    public RecordingSOCServer(final int port, final Properties props)
         throws Exception
     {
         super(port, props);
@@ -209,7 +208,7 @@ public class RecordingTesterServer
     }
 
     /**
-     * Main method, for running {@link RecordingTesterServer} interactively to generate a log.
+     * Main method, for running {@link RecordingSOCServer} interactively to generate a log.
      * Server JAR and compiled test classes must be on the classpath.
      * @param args  Command-line args, parsed with {@link SOCServer#parseCmdline_DashedArgs(String[])}
      *     which also reads file {@code jsserver.properties} if it exists
@@ -244,7 +243,7 @@ public class RecordingTesterServer
             for (Map.Entry<Object, Object> prop: argp.entrySet())
                 PROPS.setProperty(prop.getKey().toString(), prop.getValue().toString());
 
-            SOCServer server = new RecordingTesterServer(port, PROPS);
+            SOCServer server = new RecordingSOCServer(port, PROPS);
             if (! server.hasUtilityModeProperty())
             {
                 server.setPriority(5);
@@ -267,7 +266,7 @@ public class RecordingTesterServer
     private static class RecordingServerMessageHandler extends SOCServerMessageHandler
     {
         public RecordingServerMessageHandler
-            (final RecordingTesterServer srv, final SOCGameListAtServer gameList, final SOCChannelList channelList)
+            (final RecordingSOCServer srv, final SOCGameListAtServer gameList, final SOCChannelList channelList)
         {
             super(srv, gameList, channelList);
         }
@@ -341,7 +340,7 @@ public class RecordingTesterServer
 
             try
             {
-                ((RecordingTesterServer) srv).saveLogToFile(ga, new File("."), fname);  // <--- The actual log save method ---
+                ((RecordingSOCServer) srv).saveLogToFile(ga, new File("."), fname);  // <--- The actual log save method ---
 
                 srv.messageToPlayerKeyed
                     (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,

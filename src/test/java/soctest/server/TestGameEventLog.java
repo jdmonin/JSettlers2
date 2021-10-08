@@ -20,8 +20,8 @@
 
 package soctest.server;
 
+import soc.extra.server.GameEventLog;
 import soc.message.SOCBuildRequest;
-import soctest.server.GameEventLog.QueueEntry;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -41,31 +41,31 @@ public class TestGameEventLog
     {
         final SOCBuildRequest event = new SOCBuildRequest("testgame", 2);
 
-        QueueEntry qe = new QueueEntry(event, -1);
+        GameEventLog.QueueEntry qe = new GameEventLog.QueueEntry(event, -1);
         assertEquals(-1, qe.toPN);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertEquals("all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
-        qe = new QueueEntry(event, new int[]{3});
+        qe = new GameEventLog.QueueEntry(event, new int[]{3});
         assertEquals(-1, qe.toPN);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{3}, qe.excludedPN);
         assertEquals("!p3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
-        qe = new QueueEntry(event, new int[]{2,3,4});
+        qe = new GameEventLog.QueueEntry(event, new int[]{2,3,4});
         assertEquals(-1, qe.toPN);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{2,3,4}, qe.excludedPN);
         assertEquals("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
-        qe = new QueueEntry(null, -1);
+        qe = new GameEventLog.QueueEntry(null, -1);
         assertEquals(-1, qe.toPN);
         assertNull(qe.event);
         assertNull(qe.excludedPN);
         assertEquals("all:null", qe.toString());
 
-        qe = new QueueEntry(null, 3);
+        qe = new GameEventLog.QueueEntry(null, 3);
         assertEquals(3, qe.toPN);
         assertNull(qe.event);
         assertNull(qe.excludedPN);

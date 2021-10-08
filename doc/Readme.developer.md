@@ -51,6 +51,10 @@ The sea board and scenarios use `SOCBoardLarge`. Game options and scenario rules
 are controlled through `SOCGameOption`: See section "Game rules, Game Options"
 for details.
 
+Package `soc.extra` is for useful or reusable code like `GameEventLog`
+which is developed with the main code but shouldn't be part of the built jars
+or test packages.
+
 Communication is described in soc.message.SOCMessage. Robots talk with the
 server like normal human clients. Most robot messages are per-game; instead
 of being handled in SOCRobotClient, these are handled in a loop in
@@ -638,21 +642,20 @@ and/or `TestRecorder.connectLoadJoinResumeGame`.
 ### Saving game message logs / game event logs
 
 For test or debugging purposes, if you want to play some games and save their network message logs
-in a standardized format, you can do so with `soctest.server.RecordingTesterServer`. That specialized SOCServer
-records all messages relevant to gameplay, captured by server-side calls to
+in a standardized format, you can do so with `soc.extra.server.RecordingSOCServer`. That specialized server
+records all messages relevant to gameplay captured by server-side calls to
 `messageToPlayer / messageToGame(.., isEvent=true)` or `recordGameEvent(..)`.
 
-Launch RecordingTesterServer and log in as `debug` with the standard client.
+Launch RecordingSOCServer and log in as `debug` with the standard client.
 In any game you're playing or observing, logs can be saved at any time with the debug command  
 `*savelog* filename`  
 which will save to `filename.soclog` in the server's current directory.
 
-For log file format, see `soctest.server.GameEventLog` javadocs.
+For log file format, see `soc.extra.server.GameEventLog` javadocs.
 
-Because RecordingTesterServer is part of the testing code, it isn't built into the JSettlers JARs.
-If you need to run it from the command line, you'll need more than the usual classpath.
-You can launch it with a bash/zsh command like:  
-`jar=(build/libs/JSettlersServer-*.jar); java -classpath ${CLASSPATH}:${jar}:build/classes/java/test soctest.server.RecordingTesterServer`
+RecordingSOCServer isn't built into the JSettlers jars. So if you need to run it from the command line,
+you'll need more than the usual classpath. You can launch it with a bash/zsh command like:  
+`jar=(build/libs/JSettlersServer-*.jar); java -classpath ${CLASSPATH}:${jar}:build/classes/java/main:build/classes/java/test soc.extra.server.RecordingSOCServer`
 
 
 ## Game rules, Game Options

@@ -33,6 +33,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.extra.server.GameEventLog;
+import soc.extra.server.GameEventLog.QueueEntry;
+import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
@@ -60,26 +63,25 @@ import soc.server.genericServer.Connection;
 import soc.server.savegame.SavedGameModel;
 import soc.util.SOCStringManager;
 import soc.util.Version;
-import soctest.server.GameEventLog.QueueEntry;
 import soctest.server.savegame.TestLoadgame;
 
 /**
  * A few tests for {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)} and similar methods,
- * using {@link RecordingTesterServer} and the {@link GameEventLog.QueueEntry} format.
+ * using {@link RecordingSOCServer} and the {@link GameEventLog.QueueEntry} format.
  * Covers a few core game actions and message sequences. For more complete coverage of those,
  * you should periodically run {@code extraTest} {@code soctest.server.TestActionsMessages}.
  *<P>
  * Main game-action test methods: {@link #testLoadAndBasicSequences()}, {@link #testTradeDecline2Clients()}
  *<P>
  * Also has convenience methods like
- * {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
+ * {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
  * and {@link #compareRecordsToExpected(List, String[][])} which other test classes can use.
  *
  * @since 2.5.00
  */
 public class TestRecorder
 {
-    private static RecordingTesterServer srv;
+    private static RecordingSOCServer srv;
 
     /**
      * Client name tracking, to prevent accidentally using same name in 2 test methods:
@@ -104,7 +106,7 @@ public class TestRecorder
 
         SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER = false;  // keep games around, to check asserts
 
-        srv = new RecordingTesterServer();
+        srv = new RecordingSOCServer();
         srv.setPriority(5);  // same as in SOCServer.main
         srv.start();
 
@@ -195,7 +197,7 @@ public class TestRecorder
     /**
      * Test the basics, to rule out problems with that if other tests fail:
      *<UL>
-     * <LI> {@link RecordingTesterServer} is up
+     * <LI> {@link RecordingSOCServer} is up
      * <LI> {@link SOCServer#recordGameEventsIsActive()} is true
      * <LI> Bots are connected to test server
      * <LI> {@link DisplaylessTesterClient} can connect and see server's version
@@ -209,16 +211,16 @@ public class TestRecorder
         final String CLIENT_NAME = "testServerUp";
 
         assertNotNull(srv);
-        assertEquals(RecordingTesterServer.STRINGPORT_NAME, srv.getLocalSocketName());
+        assertEquals(RecordingSOCServer.STRINGPORT_NAME, srv.getLocalSocketName());
 
         assertTrue("recordGameEvents shouldn't be stubbed out", srv.recordGameEventsIsActive());
 
         final int nConn = srv.getNamedConnectionCount();
         assertTrue
-            ("some bots are connected; actual nConn=" + nConn, nConn >= RecordingTesterServer.NUM_STARTROBOTS);
+            ("some bots are connected; actual nConn=" + nConn, nConn >= RecordingSOCServer.NUM_STARTROBOTS);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
+            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -265,7 +267,7 @@ public class TestRecorder
         assertNotNull(server);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
+            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -320,7 +322,7 @@ public class TestRecorder
         assertNotNull(srv);
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, CLIENT_NAME, "es", null);
+            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME, "es", null);
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -415,7 +417,7 @@ public class TestRecorder
         SOCGame ga = srv.createGameAndBroadcast(null, "testNewGameN", null, false);
         assertNotNull("Internal error, please re-run test: Couldn't create new game", ga);
         String gaName = ga.getName();
-        GameEventLog log = ((RecordingTesterServer) srv).records.get(gaName);
+        GameEventLog log = ((RecordingSOCServer) srv).records.get(gaName);
         assertNotNull(log);
         assertEquals(2, log.entries.size());
         StringBuilder compares = compareRecordsToExpected
@@ -442,7 +444,7 @@ public class TestRecorder
         ga = srv.createGameAndBroadcast(null, "testNewGameO", gaOpts, false);
         assertNotNull("Internal error, please re-run test: Couldn't create new game", ga);
         gaName = ga.getName();
-        log = ((RecordingTesterServer) srv).records.get(gaName);
+        log = ((RecordingSOCServer) srv).records.get(gaName);
         assertNotNull(log);
         assertEquals(2, log.entries.size());
         compares = compareRecordsToExpected
@@ -518,7 +520,7 @@ public class TestRecorder
      * @throws IOException if game artifact file can't be loaded
      */
     public static StartedTestGameObjects connectLoadJoinResumeGame
-        (final RecordingTesterServer server, final String clientName, final String client2Name, final int client2PN,
+        (final RecordingSOCServer server, final String clientName, final String client2Name, final int client2PN,
          final SavedGameModel gameArtifactSGM, final boolean withResume,
          final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IllegalArgumentException, IllegalStateException, IOException
@@ -590,7 +592,7 @@ public class TestRecorder
         }
 
         final DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingTesterServer.STRINGPORT_NAME, clientName, null, clientKnownOpts);
+            (RecordingSOCServer.STRINGPORT_NAME, clientName, null, clientKnownOpts);
         tcli.init();
         assertEquals(clientName, tcli.getNickname());
 
@@ -602,7 +604,7 @@ public class TestRecorder
         if (client2Name != null)
         {
             tcli2 = new DisplaylessTesterClient
-                (RecordingTesterServer.STRINGPORT_NAME, client2Name, null, clientKnownOpts);
+                (RecordingSOCServer.STRINGPORT_NAME, client2Name, null, clientKnownOpts);
             tcli2.init();
             assertEquals(client2Name, tcli2.getNickname());
 
@@ -861,7 +863,7 @@ public class TestRecorder
      *
      * @param tcli  Test client connected to server and playing in {@code ga}
      * @param ga  Game loaded and started by
-     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
+     *     {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
      * @param cliPl  Client's Player object at test server
      * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
      * @return any discrepancies found by {@link #compareRecordsToExpected(List, String[][])}, or null if no differences
@@ -921,7 +923,7 @@ public class TestRecorder
      *
      * @param tcli  Test client connected to server and playing in {@code ga}
      * @param ga  Game loaded and started by
-     *     {@link #connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
+     *     {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
      * @param cliPl  Client's Player object at test server
      * @param observabilityMode  Observability mode (0..2, normally 0): See {@code connectLoadJoinResumeGame(..)} javadoc
      * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
@@ -1160,7 +1162,7 @@ public class TestRecorder
 
     /**
      * Data class for useful objects returned from
-     * {@link TestRecorder#connectLoadJoinResumeGame(RecordingTesterServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
+     * {@link TestRecorder#connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
      */
     public static final class StartedTestGameObjects
     {

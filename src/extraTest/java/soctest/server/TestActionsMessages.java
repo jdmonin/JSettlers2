@@ -32,6 +32,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.extra.server.GameEventLog.QueueEntry;
+import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -52,25 +54,24 @@ import soc.message.SOCChoosePlayer;
 import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
-import soctest.server.GameEventLog.QueueEntry;
 import soctest.server.TestRecorder.StartedTestGameObjects;
 import soctest.server.savegame.TestLoadgame;
 
 /**
- * Extra testing to cover all core game actions and their messages, as recorded by {@link RecordingTesterServer}.
+ * Extra testing to cover all core game actions and their messages, as recorded by {@link RecordingSOCServer}.
  * Expands coverage past the basic unit tests done by {@link TestRecorder}.
  * @since 2.5.00
  */
 public class TestActionsMessages
 {
-    private static RecordingTesterServer srv;
+    private static RecordingSOCServer srv;
 
     @BeforeClass
     public static void startStringportServer()
     {
         SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER = false;  // keep games around, to check asserts
 
-        srv = new RecordingTesterServer();
+        srv = new RecordingSOCServer();
         srv.setPriority(5);  // same as in SOCServer.main
         srv.start();
 

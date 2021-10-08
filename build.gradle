@@ -169,7 +169,15 @@ task fullJar(type: Jar) {
     }
     from(sourceSets.main.output) {
         include "net/nand/util/i18n/mgr/**"
-        include "soc/**"
+        include "soc/baseclient/**"
+        include "soc/client/**"
+        include "soc/debug/**"
+        include "soc/disableDebug/**"
+        include "soc/game/**"
+        include "soc/message/**"
+        include "soc/robot/**"
+        include "soc/server/**"
+        include "soc/util/**"
     }
     from(sourceSets.main.resources) {
         include "resources/**"

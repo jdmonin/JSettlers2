@@ -26,6 +26,7 @@ import java.net.Socket;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.baseclient.ServerConnectInfo;
+import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
@@ -37,7 +38,7 @@ import soc.util.Version;
 
 /**
  * Non-testing class: Robot utility client to help run the actual tests.
- * Works with {@link RecordingTesterServer}.
+ * Works with {@link RecordingSOCServer}.
  * Debug Traffic flag is set, which makes unit test logs larger but is helpful when troubleshooting.
  * Unlike parent class, this client connects and authenticates as a "human" player, not a bot,
  * to see same messages a human would be shown.
