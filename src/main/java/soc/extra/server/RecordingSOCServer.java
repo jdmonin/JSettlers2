@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
+import soc.message.SOCMessageForGame;
 import soc.message.SOCServerPing;
 import soc.message.SOCVersion;
 import soc.server.SOCChannelList;
@@ -42,6 +43,10 @@ import soc.util.Version;
  * SOCServer which records game events into {@link #records}
  * having a human-readable delimited format, suitable for comparisons in unit tests:
  * see {@link QueueEntry#toString()}.
+ *<P>
+ * Records game events from server to players and observers.
+ * If you also want to record messages from clients with {@link #recordClientMessage(String, int, SOCMessageForGame)},
+ * set the {@link #isRecordingFromClients} flag field.
  *<P>
  * Works with {@link DisplaylessTesterClient}.
  *<P>
@@ -61,6 +66,13 @@ public class RecordingSOCServer
 
     /** per-game queues of recorded game "event" messages */
     public final HashMap<String, GameEventLog> records = new HashMap<>();
+
+    /**
+     * Should messages from clients in the game also be recorded?
+     * False by default.
+     * Returned by {@link #isRecordGameEventsFromClientsActive()}.
+     */
+    public volatile boolean isRecordingFromClients;
 
     /** Number of bots to start up: 5 (basic default is 7: {@link SOCServer#SOC_STARTROBOTS_DEFAULT}) */
     public static final int NUM_STARTROBOTS = 5;
@@ -120,6 +132,12 @@ public class RecordingSOCServer
     }
 
     @Override
+    public boolean isRecordGameEventsFromClientsActive()
+    {
+        return isRecordingFromClients;
+    }
+
+    @Override
     public void startLog(final String gameName)
     {
         // Game's queue is created by recordEvent calls
@@ -147,13 +165,13 @@ public class RecordingSOCServer
     @Override
     public void recordGameEvent(final String gameName, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.QueueEntry(event, -1));
+        recordEvent(gameName, new GameEventLog.QueueEntry(event, -1, false));
     }
 
     @Override
     public void recordGameEventTo(final String gameName, final int pn, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.QueueEntry(event, pn));
+        recordEvent(gameName, new GameEventLog.QueueEntry(event, pn, false));
 
     }
 
@@ -167,6 +185,17 @@ public class RecordingSOCServer
     public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
     {
         recordEvent(gameName, new GameEventLog.QueueEntry(event, excludedPN));
+    }
+
+    @Override
+    public void recordClientMessage(final String gameName, int fromPN, SOCMessageForGame event)
+    {
+        if (! isRecordingFromClients)
+            return;
+
+        if (fromPN == -1)
+            fromPN = SOCServer.PN_OBSERVER;
+        recordEvent(gameName, new GameEventLog.QueueEntry((SOCMessage) event, fromPN, true));
     }
 
     // No need to override endLog: Game's queue isn't removed, in case tester wants to end games and check them later

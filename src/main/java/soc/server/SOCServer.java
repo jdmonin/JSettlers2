@@ -9636,7 +9636,8 @@ public class SOCServer extends Server
     }
 
     // Game "event" recording:
-    // If this group of method stubs is changed, also update soctest.server.TestRecorder.
+    // If this group of method stubs is changed, also update soctest.server.TestRecorder
+    // and soc.extra.server.RecordingSOCServer.
 
     /**
      * Are game events being recorded by {@link #recordGameEvent(String, SOCMessage)} and similar methods?
@@ -9644,9 +9645,22 @@ public class SOCServer extends Server
      * like localizing text into {@link Locale#US}.
      * This stub returns false.
      * @return true if {@link #recordGameEvent(String, SOCMessage)} and similar methods aren't empty stubs
+     * @see #isRecordGameEventsFromClientsActive()
      * @since 2.5.00
      */
     public boolean recordGameEventsIsActive()
+    {
+        return false;
+    }
+
+    /**
+     * Are game events also recording messages from game member clients?
+     * If so, server will call {@link #recordClientMessage(String, int, SOCMessageForGame)}
+     * for messages from players and game observers.
+     * @return true if recording from clients is active and {@link #recordGameEventsIsActive()}
+     * @since 2.5.00
+     */
+    public boolean isRecordGameEventsFromClientsActive()
     {
         return false;
     }
@@ -9690,6 +9704,7 @@ public class SOCServer extends Server
      * @param event      the event data
      * @see #recordGameEventTo(String, int, SOCMessage)
      * @see #recordGameEventNotTo(String, int, SOCMessage)
+     * @see #recordClientMessage(String, int, SOCMessage)
      */
     public void recordGameEvent(final String gameName, SOCMessage event)
     {
@@ -9727,6 +9742,7 @@ public class SOCServer extends Server
      *     Can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}.
      * @see #recordGameEvent(String, SOCMessage)
      * @see #recordGameEventNotTo(String, int, SOCMessage)
+     * @see #recordClientMessage(String, int, SOCMessage)
      * @since 2.5.00
      */
     public void recordGameEventTo(final String gameName, final int pn, SOCMessage event)
@@ -9770,6 +9786,21 @@ public class SOCServer extends Server
      * @since 2.5.00
      */
     public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
+    {
+    }
+
+    /**
+     * Record an event message from a game member client (player or observer).
+     * Does nothing unless {@link #isRecordGameEventsFromClientsActive()}.
+     *
+     * @param gameName  the game name
+     * @param fromPN Player number from a client player, or {@link #PN_OBSERVER} from an observer.
+     *     Can also be -1 for an observer's message; the recorded event will use {@link #PN_OBSERVER}.
+     * @param event  the message
+     * @see #recordGameEventTo(String, int, SOCMessage)
+     * @since 2.5.00
+     */
+    public void recordClientMessage(final String gameName, final int fromPN, SOCMessageForGame event)
     {
     }
 

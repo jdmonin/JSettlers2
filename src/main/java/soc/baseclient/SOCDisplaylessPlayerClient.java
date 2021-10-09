@@ -2975,6 +2975,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Ask to join a game; robots don't send this, server instead tells them to join games.
+     * Useful for testing and maybe third-party clients.
+     * @param gaName  Name of game to ask to join
+     * @since 2.5.00
+     */
+    public void joinGame(final String gaName)
+    {
+        put(new SOCJoinGame("-", "", "-", gaName).toCmd());
+    }
+
+    /**
      * request to buy a development card
      *
      * @param ga     the game
@@ -3151,7 +3162,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user sits down to play
+     * the user wants to sit down to play
      *
      * @param ga   the game
      * @param pn   the number of the seat where the user wants to sit

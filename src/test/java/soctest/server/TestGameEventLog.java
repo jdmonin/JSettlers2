@@ -22,6 +22,8 @@ package soctest.server;
 
 import soc.extra.server.GameEventLog;
 import soc.message.SOCBuildRequest;
+import soc.message.SOCMessageForGame;
+import soc.message.SOCVersion;
 import soc.server.SOCServer;
 
 import org.junit.Test;
@@ -42,47 +44,90 @@ public class TestGameEventLog
     {
         final SOCBuildRequest event = new SOCBuildRequest("testgame", 2);
 
-        GameEventLog.QueueEntry qe = new GameEventLog.QueueEntry(event, -1);
-        assertEquals(-1, qe.toPN);
+        GameEventLog.QueueEntry qe = new GameEventLog.QueueEntry(event, -1, false);
+        assertFalse(qe.isFromClient);
+        assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertEquals("all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
         qe = new GameEventLog.QueueEntry(event, new int[]{3});
-        assertEquals(-1, qe.toPN);
+        assertFalse(qe.isFromClient);
+        assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{3}, qe.excludedPN);
         assertEquals("!p3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
         qe = new GameEventLog.QueueEntry(event, new int[]{2,3,4});
-        assertEquals(-1, qe.toPN);
+        assertFalse(qe.isFromClient);
+        assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{2,3,4}, qe.excludedPN);
         assertEquals("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
-        qe = new GameEventLog.QueueEntry(event, SOCServer.PN_OBSERVER);
-        assertEquals(SOCServer.PN_OBSERVER, qe.toPN);
+        qe = new GameEventLog.QueueEntry(event, SOCServer.PN_OBSERVER, false);
+        assertFalse(qe.isFromClient);
+        assertEquals(SOCServer.PN_OBSERVER, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertEquals("ob:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
-        qe = new GameEventLog.QueueEntry(event, SOCServer.PN_REPLY_TO_UNDETERMINED);
-        assertEquals(SOCServer.PN_REPLY_TO_UNDETERMINED, qe.toPN);
+        qe = new GameEventLog.QueueEntry(event, SOCServer.PN_REPLY_TO_UNDETERMINED, false);
+        assertFalse(qe.isFromClient);
+        assertEquals(SOCServer.PN_REPLY_TO_UNDETERMINED, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertEquals("un:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
 
-        qe = new GameEventLog.QueueEntry(null, -1);
-        assertEquals(-1, qe.toPN);
+        qe = new GameEventLog.QueueEntry(event, 3, true);
+        assertTrue(qe.isFromClient);
+        assertEquals(3, qe.pn);
+        assertEquals(event, qe.event);
+        assertNull(qe.excludedPN);
+        assertEquals("f3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+
+        qe = new GameEventLog.QueueEntry(event, SOCServer.PN_OBSERVER, true);
+        assertTrue(qe.isFromClient);
+        assertEquals(SOCServer.PN_OBSERVER, qe.pn);
+        assertEquals(event, qe.event);
+        assertNull(qe.excludedPN);
+        assertEquals("fo:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+
+        // Should use PN_OBSERVER not -1 for observer client, so make sure -1 doesn't result in "fo:" or "all:"
+        qe = new GameEventLog.QueueEntry(event, -1, true);
+        assertTrue(qe.isFromClient);
+        assertEquals(-1, qe.pn);
+        assertEquals(event, qe.event);
+        assertNull(qe.excludedPN);
+        assertEquals("f-1:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+
+        qe = new GameEventLog.QueueEntry(null, -1, false);
+        assertFalse(qe.isFromClient);
+        assertEquals(-1, qe.pn);
         assertNull(qe.event);
         assertNull(qe.excludedPN);
         assertEquals("all:null", qe.toString());
 
-        qe = new GameEventLog.QueueEntry(null, 3);
-        assertEquals(3, qe.toPN);
+        qe = new GameEventLog.QueueEntry(null, 3, false);
+        assertFalse(qe.isFromClient);
+        assertEquals(3, qe.pn);
         assertNull(qe.event);
         assertNull(qe.excludedPN);
         assertEquals("p3:null", qe.toString());
+
+        try
+        {
+            qe = new GameEventLog.QueueEntry(null, 3, true);
+            fail("Should throw IllegalArgumentException if isFromClient and event=null");
+        } catch (IllegalArgumentException e) {}
+
+        try
+        {
+            final SOCVersion vmsg = new SOCVersion(1100, "1.1.00", "", null, null);
+            assertFalse(vmsg instanceof SOCMessageForGame);
+            qe = new GameEventLog.QueueEntry(vmsg, 3, true);
+            fail("Should throw IllegalArgumentException if isFromClient and event not SOCMessageForGame");
+        } catch (IllegalArgumentException e) {}
     }
 
 }

@@ -199,7 +199,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a settlement."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=60a"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* upgrade that settlement to city */
 
@@ -233,7 +233,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a city."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=2|coord=60a"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* build ship */
 
@@ -267,7 +267,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text="+ CLIENT_NAME + " built a ship."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=e05"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* move a different ship */
 
@@ -288,7 +288,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCMovePiece:", "|pn=3|pieceType=3|fromCoord=3078|toCoord=3846"}
-            });
+            }, false);
 
         /* build settlement (on small island) */
 
@@ -312,7 +312,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text="+ CLIENT_NAME + " built a settlement."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=1006"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* leave game, consolidate results */
 
@@ -428,7 +428,7 @@ public class TestActionsMessages
                 },
                 {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -522,7 +522,7 @@ public class TestActionsMessages
                 (othersAsRobot ? null : new String[]{"p1:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 1 sheep."}),
                 (othersAsRobot ? null : new String[]{"p2:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 2 sheep."}),
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* discovery/year of plenty */
 
@@ -555,7 +555,7 @@ public class TestActionsMessages
                     {"all:SOCGameState:", "|state=52"},
                     {"all:SOCPickResources:", "|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=2"},
                     {"all:SOCGameState:", "|state=20"}
-                });
+                }, false);
         }
 
         /* road building, gain longest road */
@@ -607,7 +607,7 @@ public class TestActionsMessages
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=809"},
                 {"all:SOCGameElements:", "|e6=3"},  // LONGEST_ROAD_PLAYER
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* soldier (move pirate ship) */
 
@@ -680,7 +680,7 @@ public class TestActionsMessages
                     ? new String[]{"!p[3, 1]:SOCReportRobbery:", "|perp=3|victim=1|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"},
-            });
+            }, false);
 
         /* soldier (move robber), gain largest army */
 
@@ -767,7 +767,7 @@ public class TestActionsMessages
                     ? new String[]{"!p[3, 2]:SOCReportRobbery:", "|perp=3|victim=2|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* leave game, consolidate results */
 
@@ -1013,7 +1013,7 @@ public class TestActionsMessages
                         recordsList.add(new String[]{"all:SOCGameState:", "|state=20"});
 
                         comparesRsrcs = TestRecorder.compareRecordsToExpected
-                            (records, recordsList.toArray(new String[recordsList.size()][]));
+                            (records, recordsList.toArray(new String[recordsList.size()][]), false);
 
                         testedRsrcs = true;
                     }
@@ -1026,7 +1026,7 @@ public class TestActionsMessages
                                 {"all:SOCDiceResult:", "|param=" + diceNumber},
                                 {"all:SOCGameServerText:", "|text=No player gets anything."},
                                 {"all:SOCGameState:", "|state=20"},
-                            });
+                            }, false);
 
                         testedNoRsrcs = true;
                     }
@@ -1284,7 +1284,7 @@ public class TestActionsMessages
                     {"all:SOCPickResources:game=", "|resources=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|pn=1|reason=3"},
                     {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=0"},
                     {"all:SOCGameState:game=", "|state=20"}
-                });
+                }, false);
         }
 
         /* leave game, consolidate results */
@@ -1353,7 +1353,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=0|wheat=4|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3"}
-            });
+            }, false);
 
         /* undo 4:1 bank trade */
 
@@ -1369,7 +1369,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=4|wood=0|unknown=0|pn=3"}
-            });
+            }, false);
 
         /* build wheat port to enable 2:1 trades */
 
@@ -1403,7 +1403,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3"}
-            });
+            }, false);
 
         /* undo 2:1 port trade */
 
@@ -1419,7 +1419,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|pn=3"}
-            });
+            }, false);
 
         /* leave game, consolidate results */
 
@@ -1572,7 +1572,7 @@ public class TestActionsMessages
                 {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2
                     + "|toAccepting=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
                 {"all:SOCClearOffer:", "|playerNumber=-1"}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -1648,7 +1648,7 @@ public class TestActionsMessages
                 {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=19|amount=0"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCTurn:", "|playerNumber=1|gameState=15"},
                 {"all:SOCRollDicePrompt:", "|playerNumber=1"}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -1780,7 +1780,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:game=", "|text="+ CLIENT1_NAME + " built a road."},
                 {"all:SOCPutPiece:game=", "|playerNumber=5|pieceType=0|coord=82"},
                 {"all:SOCGameState:game=", "|state=100"}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -1901,7 +1901,7 @@ public class TestActionsMessages
                 ((othersAsRobot) ? null : new String[]{"p1:SOCPlayerStats:", "|p=1|p=1|p=1|p=1|p=2|p=0"}),
                 ((othersAsRobot) ? null : new String[]{"p2:SOCPlayerStats:", "|p=1|p=1|p=1|p=1|p=0|p=0"}),
                 ((clientAsRobot) ? null : new String[]{"p3:SOCPlayerStats:", "|p=1|p=1|p=0|p=0|p=2|p=2"})
-            });
+            }, false);
 
         /* leave game, check results */
 

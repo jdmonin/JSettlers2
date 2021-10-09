@@ -32,6 +32,7 @@ import java.util.Vector;
 
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
+import soc.message.SOCMessageForGame;
 import soc.message.SOCVersion;
 import soc.server.SOCServer;
 import soc.util.Version;
@@ -162,50 +163,75 @@ public class GameEventLog
     }
 
     /**
-     * A recorded entry: Event SOCMessage, audience (all players, 1 player, or specifically excluded player(s)).
-     * See {@link #toString()} for human-readable delimited format.
+     * A recorded entry: Event SOCMessage, its audience (all players, 1 player, or specifically excluded player(s)),
+     * or source if from client. See {@link #toString()} for human-readable delimited format.
      *<P>
      * If this class changes, update comprehensive unit test {@link soctest.server.TestGameEventLog#testQueueEntry()}.
      */
     public static final class QueueEntry
     {
-        /** Event message data */
+        /**
+         * Event message data; can be {@code null} if ! {@link #isFromClient}.
+         * If {@link #isFromClient}, can be cast to {@link SOCMessageForGame}.
+         */
         public final SOCMessage event;
 
         /**
-         * Which player number this event was sent to, or -1 for all; is also -1 if {@link #excludedPN} != null.
+         * If {@link #isFromClient}, the player number this event was sent from, or {@link SOCServer#PN_OBSERVER}.
+         * If from server, the player number this event was sent to, or -1 if to all;
+         * is also -1 if {@link #excludedPN} != null.
          * Can also be {@link SOCServer#PN_OBSERVER} or {@link SOCServer#PN_REPLY_TO_UNDETERMINED}.
          */
-        public final int toPN;
+        public final int pn;
 
-        /** Player numbers specifically excluded from this event's audience, or null */
+        /** If from server, the player numbers specifically excluded from this event's audience, or null */
         public final int[] excludedPN;
 
         /**
-         * QueueEntry sent to one player or observer, or all players if {@code toPN} is -1.
-         * @param event  Event message to record
-         * @param toPN  Player number sent to, or all players if -1.
+         * True if this message is from a game member client instead of from server.
+         */
+        public final boolean isFromClient;
+
+        /**
+         * QueueEntry sent to one player or observer, or all players if {@code pn} is -1,
+         * or from a player or observer.
+         *
+         * @param event  Event message to record.
+         *     If {@code isFromClient}, must be a {@link SOCMessageForGame} and not {@code null}
+         * @param pn  From server, the player number sent to, or -1 if to all players if -1.
          *     Can also be {@link SOCServer#PN_OBSERVER} or {@link SOCServer#PN_REPLY_TO_UNDETERMINED}.
+         *     From client, the player number sent from, or {@link SOCServer#PN_OBSERVER} (not -1).
+         * @param isFromClient  True if is from client instead of from server to member client(s)
+         * @throws IllegalArgumentException if {@code isFromClient} but {@code event} is {@code null}
+         *     or in't a {@link SOCMessageForGame}
          * @see #QueueEntry(SOCMessage, int[])
          */
-        public QueueEntry(SOCMessage event, int toPN)
+        public QueueEntry(SOCMessage event, int pn, boolean isFromClient)
+            throws IllegalArgumentException
         {
             this.event = event;
-            this.toPN = toPN;
+            this.pn = pn;
             this.excludedPN = null;
+            this.isFromClient = isFromClient;
+            if (isFromClient && ! (event instanceof SOCMessageForGame))
+                throw new IllegalArgumentException
+                    ((event != null)
+                     ? "isFromClient but not SOCMessageForGame: " + event.getClass().getSimpleName()
+                     : "can't be null when isFromClient");
         }
 
         /**
          * QueueEntry sent to all players except specific ones, or to all if {@code excludedPN} null.
          * @param event  Event message to record
          * @param excludedPN  Player number(s) excluded, or all players if null
-         * @see #QueueEntry(SOCMessage, int)
+         * @see #GameEventLog(SOCMessage, int, boolean)
          */
         public QueueEntry(SOCMessage event, int[] excludedPN)
         {
             this.event = event;
-            this.toPN = -1;
+            this.pn = -1;
             this.excludedPN = excludedPN;
+            this.isFromClient = false;
         }
 
         /**
@@ -224,6 +250,8 @@ public class GameEventLog
          * <LI> To an observer: {@code ob:MessageClassName:param=value|param=value|...}
          * <LI> To an undetermined game member: {@code un:MessageClassName:param=value|param=value|...} <BR>
          *     (for {@link SOCServer#PN_REPLY_TO_UNDETERMINED})
+         * <LI> From a player client: {@code f3:MessageClassName:param=value|param=value|...}
+         * <LI> From an observing client: {@code fo:MessageClassName:param=value|param=value|...}
          *</UL>
          * Non-playing game observers are also sent all messages, except those to a single player.
          */
@@ -232,27 +260,34 @@ public class GameEventLog
         {
             StringBuilder sb = new StringBuilder();
 
-            switch(toPN)
-            {
-            case SOCServer.PN_OBSERVER:
-                sb.append("ob:");  break;
-            case SOCServer.PN_REPLY_TO_UNDETERMINED:
-                sb.append("un:");  break;
-            case -1:
-                if (excludedPN != null)
+            if (isFromClient)
+                sb.append((pn == SOCServer.PN_OBSERVER)
+                    ? "fo:"
+                    : ("f" + pn + ":"));
+            else
+                switch(pn)
                 {
-                    if (excludedPN.length == 1)
-                        sb.append("!p" + excludedPN[0]);
-                    else
-                        sb.append("!p" + Arrays.toString(excludedPN));
-                    sb.append(':');
-                } else {
-                    sb.append("all:");
+                case SOCServer.PN_OBSERVER:
+                    sb.append("ob:");
+                    break;
+                case SOCServer.PN_REPLY_TO_UNDETERMINED:
+                    sb.append("un:");
+                    break;
+                case -1:
+                    if (excludedPN != null)
+                    {
+                        if (excludedPN.length == 1)
+                            sb.append("!p" + excludedPN[0]);
+                        else
+                            sb.append("!p" + Arrays.toString(excludedPN));
+                        sb.append(':');
+                    } else {
+                        sb.append("all:");
+                    }
+                    break;
+                default:
+                    sb.append("p" + pn + ":");
                 }
-                break;
-            default:
-                sb.append("p" + toPN + ":");
-            }
 
             sb.append(event);  // or "null"
 

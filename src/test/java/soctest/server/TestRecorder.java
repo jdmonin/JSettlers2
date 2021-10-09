@@ -21,6 +21,7 @@
 package soctest.server;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +51,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
+import soc.message.SOCBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCGameServerText;
 import soc.message.SOCNewGame;
@@ -75,7 +77,7 @@ import soctest.server.savegame.TestLoadgame;
  *<P>
  * Also has convenience methods like
  * {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
- * and {@link #compareRecordsToExpected(List, String[][])} which other test classes can use.
+ * and {@link #compareRecordsToExpected(List, String[][], boolean)} which other test classes can use.
  *
  * @since 2.5.00
  */
@@ -90,12 +92,12 @@ public class TestRecorder
      */
     private static Set<String> clientNamesUsed = new HashSet<>();
 
-    /** Localized text for {@link #compareRecordsToExpected(List, String[][])} to ignore */
+    /** Localized text for {@link #compareRecordsToExpected(List, String[][], boolean)} to ignore */
     private static final String GAME_RENAMED_LOCAL_TEXT
         = SOCStringManager.getFallbackServerManagerForClient().get("admin.loadgame.ok.game_renamed", "x");
             // "Game was renamed: Original name {0} is already used."
 
-    /** Localized text for {@link #compareRecordsToExpected(List, String[][])} to ignore */
+    /** Localized text for {@link #compareRecordsToExpected(List, String[][], boolean)} to ignore */
     private static final String GAME_RENAMED_TEXT_PREFIX
         = GAME_RENAMED_LOCAL_TEXT.substring(0, 17);
 
@@ -258,8 +260,8 @@ public class TestRecorder
         if (server == null)
             throw new IllegalArgumentException("server");
 
-        // similar code is in testBasics_SendToClientWithLocale;
-        // if you change one, consider changing the other
+        // Similar setup code is in testBasics_SendToClientWithLocale, testRecordClientMessage;
+        // if you change one, consider changing all occurrences
 
         // unique client nickname, in case tests run in parallel
         final String CLIENT_NAME = "testLoadgame";
@@ -305,7 +307,8 @@ public class TestRecorder
 
     /**
      * Load a game, join a client with locale {@code "es"}, test the server's recording of messages sent to that client.
-     * For consistency, server should always record game logs as if client locale is {@code "en_US"}.
+     * For consistency, server should record game logs as if all clients' locale is {@code "en_US"}, but actual messages
+     * are sent in the client's locale.
      *
      * @throws IOException if problem occurs during {@link TestLoadgame#load(String, SOCServer)}
      */
@@ -313,8 +316,8 @@ public class TestRecorder
     public void testBasics_SendToClientWithLocale()
         throws IOException
     {
-        // code is based on testBasics_Loadgame;
-        // if you change one, consider changing the other
+        // This setup code is based on testBasics_Loadgame;
+        // if you change one, consider changing all occurrences
 
         // unique client nickname, in case tests run in parallel
         final String CLIENT_NAME = "testCliLocale";
@@ -384,7 +387,7 @@ public class TestRecorder
                     {"p3:SOCGameServerText:", "text="
                         + strings.getSpecial
                             (ga, "robber.common.you.stole.resource.from", -1, SOCResourceConstants.SHEEP, "xyz")}
-                });
+                }, false);
 
         // TODO test client: Add flag field to record messages,
         //      make sure that actual client receives text localized to es not en_US
@@ -397,6 +400,48 @@ public class TestRecorder
         if (compares != null)
         {
             compares.insert(0, "testBasics_SendToClientWithLocale: Message mismatch: ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
+     * Internal test that {@link #compareRecordsToExpected(List, String[][], boolean)} ignores
+     * message log entries with {@link QueueEntry#isFromClient} flag set unless {@code withFromClient}=true.
+     */
+    @Test
+    public void testBasics_compareIgnoresFromClient()
+    {
+        List<QueueEntry> entries = new ArrayList<>();
+        final SOCBuildRequest event = new SOCBuildRequest("testgame", 1);
+
+        entries.add(new GameEventLog.QueueEntry(event, 2, false));
+        entries.add(new GameEventLog.QueueEntry(event, 3, true));
+        entries.add(new GameEventLog.QueueEntry(event, 3, false));
+
+        StringBuilder compares = compareRecordsToExpected
+            (entries, new String[][]
+                {
+                    {"p2:SOCBuildRequest:", "pieceType=1"},
+                    {"f3:SOCBuildRequest:", "pieceType=1"},
+                    {"p3:SOCBuildRequest:", "pieceType=1"},
+                }, true);
+        if (compares != null)
+        {
+            compares.insert(0, "testBasics_compareIgnoresFromClient: Message mismatch: ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+
+        compares = compareRecordsToExpected
+            (entries, new String[][]
+                {
+                    {"p2:SOCBuildRequest:", "pieceType=1"},
+                    {"p3:SOCBuildRequest:", "pieceType=1"},
+                }, false);
+        if (compares != null)
+        {
+            compares.insert(0, "testBasics_compareIgnoresFromClient: Message mismatch: ");
             System.err.println(compares);
             fail(compares.toString());
         }
@@ -425,7 +470,7 @@ public class TestRecorder
                 {
                     {"all:SOCVersion:" + Version.versionNumber(), "str=" + Version.version()},
                     {"all:SOCNewGame:", "game=" + gaName}
-                });
+                }, false);
         srv.destroyGameAndBroadcast(gaName, null);
         if (compares != null)
         {
@@ -452,13 +497,221 @@ public class TestRecorder
                 {
                     {"all:SOCVersion:" + Version.versionNumber(), "str=" + Version.version()},
                     {"all:SOCNewGameWithOptions:", "game=" + gaName}
-                });
+                }, false);
         srv.destroyGameAndBroadcast(gaName, null);
         if (compares != null)
         {
             System.err.println(compares);
             fail(compares.toString());
         }
+    }
+
+    /**
+     * Test {@link SOCServer#recordClientMessage(String, int, soc.message.SOCMessageForGame)}
+     * and {@link SOCServer#isRecordGameEventsFromClientsActive()}.
+     * @throws IOException if problem occurs during {@link TestLoadgame#load(String, SOCServer)}
+     */
+    @Test
+    public void testRecordClientMessage()
+        throws IOException
+    {
+        assertFalse("Client recording should be off by default", srv.isRecordGameEventsFromClientsActive());
+        assertFalse(srv.isRecordingFromClients);
+
+        assertNotNull(srv);
+
+        // This setup code is based on testBasics_Loadgame;
+        // if you change one, consider changing all occurrences
+
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME = "testRecordCli", OBS_CLIENT_NAME = "testRecordObs";
+
+        assertNotNull(srv);
+
+        final DisplaylessTesterClient tcli = new DisplaylessTesterClient
+            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
+        tcli.init();
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
+
+        SavedGameModel sgm = TestLoadgame.load("classic-botturn.game.json", srv);
+        assertNotNull(sgm);
+        assertEquals("classic", sgm.gameName);
+        assertEquals("debug", sgm.playerSeats[3].name);
+        sgm.playerSeats[3].name = CLIENT_NAME;
+
+        Connection tcliConn = srv.getConnection(CLIENT_NAME);
+        assertNotNull(tcliConn);
+        String loadedName = srv.createAndJoinReloadedGame(sgm, tcliConn, null);
+        assertNotNull("reloaded game name", loadedName);
+
+        // wait to join in client's thread
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertTrue("debug cli member of reloaded game?", srv.getGameList().isMember(tcliConn, loadedName));
+
+        final SOCGame ga = srv.getGame(loadedName);
+        assertNotNull("game object at server", ga);
+        final int PN = 3;
+        assertEquals(1, ga.getCurrentPlayerNumber());
+        final SOCPlayer cliPl = ga.getPlayer(PN);
+        assertEquals(CLIENT_NAME, cliPl.getName());
+
+        final GameEventLog log = srv.records.get(loadedName);
+        assertNotNull("record queue for game", log);
+
+        // Test: send messages from client player, see nothing in log
+
+        log.clear();
+        tcli.buyDevCard(ga);
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        tcli.buildRequest(ga, SOCPlayingPiece.ROAD);
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        StringBuilder compares = compareRecordsToExpected
+            (log.entries, new String[][]
+            {
+                {"p3:SOCGameServerText:", "|text="},  // ="It's not your turn." but exact text not important here
+                {"p3:SOCGameServerText:", "|text="},
+            }, true);
+        if (compares != null)
+        {
+            compares.insert(0, "testRecordClientMessage: Message mismatch, should not have message from client: ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+
+        // Test: send messages from client player, see them in log
+
+        srv.isRecordingFromClients = true;
+        assertTrue(srv.isRecordGameEventsFromClientsActive());
+
+        log.clear();
+        tcli.buyDevCard(ga);
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        tcli.buildRequest(ga, SOCPlayingPiece.ROAD);
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        compares = compareRecordsToExpected
+            (log.entries, new String[][]
+            {
+                {"f3:SOCBuyDevCardRequest:", ""},
+                {"p3:SOCGameServerText:", "|text="},
+                {"f3:SOCBuildRequest:", "|pieceType=0"},
+                {"p3:SOCGameServerText:", "|text="},
+            }, true);
+        if (compares != null)
+        {
+            compares.insert(0, "testRecordClientMessage: Message mismatch: ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+
+        // Test: directly call srv.recordClientMessage
+        // recordClientMessage(-1), (PN_OBSERVER) should both result in an entry w/ pn==PN_OBSERVER
+
+        log.clear();
+        {
+            final SOCBuildRequest event = new SOCBuildRequest("testgame", 1);
+            srv.recordClientMessage(loadedName, 2, event);
+            srv.recordClientMessage(loadedName, -1, event);
+            srv.recordClientMessage(loadedName, SOCServer.PN_OBSERVER, event);
+            synchronized(log.entries)
+            {
+                compares = compareRecordsToExpected
+                    (log.entries, new String[][]
+                    {
+                        {"f2:SOCBuildRequest:", "|pieceType=1"},
+                        {"fo:SOCBuildRequest:", "|pieceType=1"},
+                        {"fo:SOCBuildRequest:", "|pieceType=1"},
+                    }, true);
+                if (compares == null)
+                {
+                    assertEquals(2, log.entries.get(0).pn);
+                    assertEquals(SOCServer.PN_OBSERVER, log.entries.get(1).pn);  // from recordClientMessage(-1)
+                    assertEquals(SOCServer.PN_OBSERVER, log.entries.get(2).pn);  // from recordClientMessage(PN_OBSERVER)
+                }
+            }
+            if (compares != null)
+            {
+                compares.insert(0, "testRecordClientMessage: Message mismatch: ");
+                System.err.println(compares);
+                fail(compares.toString());
+            }
+        }
+
+        // Test: send message from observer, see it in log
+
+        final DisplaylessTesterClient obsCli = new DisplaylessTesterClient
+            (RecordingSOCServer.STRINGPORT_NAME, OBS_CLIENT_NAME, null, null);
+        obsCli.init();
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertEquals("get version from test SOCServer", Version.versionNumber(), obsCli.getServerVersion());
+
+        Connection obsCliConn = srv.getConnection(OBS_CLIENT_NAME);
+        assertNotNull(obsCliConn);
+
+        obsCli.joinGame(loadedName);
+
+        // wait to join in client's thread
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertTrue("observing cli member of reloaded game?", srv.getGameList().isMember(obsCliConn, loadedName));
+
+        log.clear();
+        obsCli.sendText(ga, "txt");
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        compares = compareRecordsToExpected
+            (log.entries, new String[][]
+            {
+                {"fo:SOCGameTextMsg:", "|text=txt"},
+                {"all:SOCGameTextMsg", "|nickname=" + OBS_CLIENT_NAME + "|text=txt"}
+            }, true);
+        if (compares != null)
+        {
+            compares.insert(0, "testRecordClientMessage: Message mismatch: ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+
+        // Turn off client recording again for efficiency, since other tests ignore them
+        srv.isRecordingFromClients = false;
+        assertFalse(srv.isRecordGameEventsFromClientsActive());
+
+        // now, client's messages should again be unlogged
+        log.clear();
+        tcli.buyDevCard(ga);
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        compares = compareRecordsToExpected
+            (log.entries, new String[][]
+            {
+                {"p3:SOCGameServerText:", "|text="},
+            }, true);
+        if (compares != null)
+        {
+            compares.insert(0, "testRecordClientMessage: Message mismatch, should not have message from client: ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+
+        // leave game
+        srv.destroyGameAndBroadcast(ga.getName(), null);
+        tcli.destroy();
+        obsCli.destroy();
     }
 
     /**
@@ -796,7 +1049,7 @@ public class TestRecorder
                 {"!p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=0"},
                 {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* sequence recording: choose and move robber, steal from 1 player */
 
@@ -866,7 +1119,8 @@ public class TestRecorder
      *     {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
      * @param cliPl  Client's Player object at test server
      * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
-     * @return any discrepancies found by {@link #compareRecordsToExpected(List, String[][])}, or null if no differences
+     * @return any discrepancies found by {@link #compareRecordsToExpected(List, String[][], boolean)},
+     *     or null if no differences
      */
     public static StringBuilder buildRoadSequence
         (final DisplaylessTesterClient tcli, final SOCGame ga, final SOCPlayer cliPl,
@@ -907,7 +1161,7 @@ public class TestRecorder
                 {"all:SOCGameServerText:", "|text=" + clientName + " built a road."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=40a"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
     }
 
     /**
@@ -928,7 +1182,8 @@ public class TestRecorder
      * @param observabilityMode  Observability mode (0..2, normally 0): See {@code connectLoadJoinResumeGame(..)} javadoc
      * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
      * @param seqPrefix null, or messages which start the sequence to be compared here
-     * @return any discrepancies found by {@link #compareRecordsToExpected(List, String[][])}, or null if no differences
+     * @return any discrepancies found by {@link #compareRecordsToExpected(List, String[][], boolean)},
+     *     or null if no differences
      */
     public static StringBuilder moveRobberStealSequence
         (final DisplaylessTesterClient tcli, final SOCGame ga, final SOCPlayer cliPl, final int observabilityMode,
@@ -1009,7 +1264,7 @@ public class TestRecorder
             System.arraycopy(SEQ, 0, expectedSeq, seqPrefix.length, SEQ.length);
         }
 
-        return compareRecordsToExpected(records, expectedSeq);
+        return compareRecordsToExpected(records, expectedSeq, false);
     }
 
     /**
@@ -1067,7 +1322,7 @@ public class TestRecorder
                  + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
                 {"all:SOCRejectOffer:", "|playerNumber=" + PN_C2}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -1087,27 +1342,33 @@ public class TestRecorder
 
     /**
      * Compare game event records against expected sequence.
+     * Ignores messages from clients ({@code "fo:..."}, {@code "f3:..."}; {@link QueueEntry#isFromClient} true)
+     * unless {@code withFromClient}.
+     *
      * @param records  Game records from server
      * @param expected  Expected: Per-record lists of prefix, any other contained strings
      *     to ignore game name and variable fields.
      *     {@code expected[i]} which are {@code null} are skipped
      *     as if the array didn't contain the null and was 1 element shorter.
+     * @param withFromClient  True if client messages should be checked instead of ignored
      * @return {@code null} if no differences, or the differences found
      */
     public static StringBuilder compareRecordsToExpected
-        (final List<QueueEntry> records, final String[][] expected)
+        (final List<QueueEntry> records, final String[][] expected, final boolean withFromClient)
     {
         StringBuilder compares = new StringBuilder();
 
         // preprocess: ignore/remove incidental rename message from artifact loading
+        //     and messages from clients
         {
             ListIterator<QueueEntry> ri = records.listIterator();
             while (ri.hasNext())
             {
                 QueueEntry rec = ri.next();
-                if ((rec.toPN == SOCServer.PN_REPLY_TO_UNDETERMINED)
-                    && (rec.event instanceof SOCGameServerText)
-                    && ((SOCGameServerText) rec.event).getText().startsWith(GAME_RENAMED_TEXT_PREFIX))
+                if ((rec.isFromClient && ! withFromClient)
+                    || ((rec.pn == SOCServer.PN_REPLY_TO_UNDETERMINED)
+                        && (rec.event instanceof SOCGameServerText)
+                        && ((SOCGameServerText) rec.event).getText().startsWith(GAME_RENAMED_TEXT_PREFIX)))
                     ri.remove();
             }
         }

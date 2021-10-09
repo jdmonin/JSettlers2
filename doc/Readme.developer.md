@@ -510,6 +510,7 @@ ideas.
     by calling SOCServer.createAndJoinReloadedGame or a method like TestRecorder.connectLoadJoinResumeGame
 - Possibly: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
+- Refactor: TestRecorder: Add method for common setup code from testBasics_Loadgame, testBasics_SendToClientWithLocale, testRecordClientMessage
 - Refactor: `SOCResourceSet`: Use something like AtomicIntegerArray for thread-safe writes/reads
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
 - Refactor: Rework ShadowedBox, SpeechBalloon to use a custom-drawn Swing Border
