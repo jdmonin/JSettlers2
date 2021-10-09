@@ -1963,11 +1963,11 @@ public class SOCServerMessageHandler
             {
                 // Check if using user admins; if not, if using debug user
 
-                final String uname = c.getData();
+                final String cliUsername = c.getData();
                 final boolean isAdmin =
                     (c instanceof StringConnection)  // practice game
-                    || srv.isUserDBUserAdmin(uname)
-                    || (srv.isDebugUserEnabled() && uname.equals("debug"));
+                    || srv.isUserDBUserAdmin(cliUsername)
+                    || (srv.isDebugUserEnabled() && cliUsername.equals("debug"));
                 if (! isAdmin)
                 {
                     srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_NON_EVENT, "reply.must_be_admin.view");
@@ -2121,7 +2121,7 @@ public class SOCServerMessageHandler
     {
         final SOCClientData scd = (SOCClientData) c.getAppData();
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
-        final String msgUser = c.getData();
+        final String msgUsername = c.getData();
             // if mustSetUsername, will tell client to set nickname to original case from db case-insensitive search
 
         /**
@@ -2173,9 +2173,9 @@ public class SOCServerMessageHandler
             }
         } else {
             c.put(new SOCStatusMessage
-                (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUser + SOCMessage.sep2_char + txt));
+                (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUsername + SOCMessage.sep2_char + txt));
         }
-        c.put(new SOCJoinChannelAuth(msgUser, ch));
+        c.put(new SOCJoinChannelAuth(msgUsername, ch));
 
         /**
          * Add the Connection to the channel
@@ -2203,7 +2203,7 @@ public class SOCServerMessageHandler
 
             try
             {
-                channelList.createChannel(ch, msgUser);
+                channelList.createChannel(ch, msgUsername);
                 scd.createdChannel();
             }
             catch (Exception e)
@@ -2215,7 +2215,7 @@ public class SOCServerMessageHandler
             srv.broadcast(new SOCNewChannel(ch));
             c.put(new SOCChannelMembers(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
-                D.ebugPrintlnINFO("*** " + msgUser + " joined new channel " + ch + " at "
+                D.ebugPrintlnINFO("*** " + msgUsername + " joined new channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             channelList.takeMonitorForChannel(ch);
 
@@ -2234,7 +2234,7 @@ public class SOCServerMessageHandler
         /**
          * let everyone know about the change
          */
-        srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", SOCMessage.EMPTYSTR, ch));
+        srv.messageToChannel(ch, new SOCJoinChannel(msgUsername, "", SOCMessage.EMPTYSTR, ch));
 
         /**
          * Send recap; same sequence is in SOCGameHandler.joinGame with different message type

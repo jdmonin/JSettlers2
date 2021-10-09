@@ -6068,10 +6068,10 @@ public class SOCServer extends Server
         Connection oldConn = null;
         if (isReplacing)
         {
-            String cKey = c.getData();
-            if (cKey == null)
+            final String cliName = c.getData();
+            if (cliName == null)
                 throw new IllegalArgumentException("null c.getData");
-            oldConn = conns.get(cKey);
+            oldConn = conns.get(cliName);
             if (oldConn == null)
                 isReplacing = false;  // shouldn't happen, but fail gracefully
         }
@@ -6129,10 +6129,10 @@ public class SOCServer extends Server
             Enumeration<Connection> ec = getConnections();  // the named ones
             while (ec.hasMoreElements())
             {
-                String cname = ec.nextElement().getData();
+                final String cliName = ec.nextElement().getData();
 
                 int L = sb.length();
-                if (L + cname.length() > 50)
+                if (L + cliName.length() > 50)
                 {
                     sb.append(',');  // TODO I18N list
                     sb = new StringBuilder("- ");
@@ -6142,7 +6142,7 @@ public class SOCServer extends Server
 
                 if (L > 2)
                     sb.append(", ");  // TODO I18N list with "line wrap"
-                sb.append(cname);
+                sb.append(cliName);
             }
         }
 
