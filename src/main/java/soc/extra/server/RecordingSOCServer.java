@@ -50,11 +50,12 @@ import soc.util.Version;
  *<P>
  * Works with {@link DisplaylessTesterClient}.
  *<P>
- * Logs are kept in memory, and can be written to a file with {@link #saveLogToFile(SOCGame, File, String)}.
+ * Logs are kept in memory, and can be written to a file with {@link #saveLogToFile(SOCGame, File, String, boolean)}.
  *<P>
  * This server can also run standalone on the usual TCP {@link SOCServer#PROP_JSETTLERS_PORT} port number,
- * to connect from a client and generate a log. Server JAR and compiled test classes must be on the classpath.
- * Use debug command {@code *SAVELOG* filename} to save to {@code filename.soclog} in the current directory.
+ * to connect from a client and generate a log, which by default also includes messages from the clients.
+ * Server JAR and compiled test classes must be on the classpath.
+ * Use debug command {@code *SAVELOG* [-s] [-f] filename} to save to {@code filename.soclog} in the current directory.
  *
  * @since 2.5.00
  */
@@ -116,6 +117,9 @@ public class RecordingSOCServer
 
     /**
      * TCP server for manual tests.
+     * Unlike the stringport server, turns on {@link #isRecordingFromClients}
+     * to capture more data by default when saving logs to disk.
+     *
      * For parameters and exceptions, see parent {@link SOCServer#SOCServer(int, Properties)}.
      * @see #RecordingSOCServer()
      */
@@ -123,6 +127,7 @@ public class RecordingSOCServer
         throws Exception
     {
         super(port, props);
+        isRecordingFromClients = true;
     }
 
     @Override
@@ -203,7 +208,7 @@ public class RecordingSOCServer
     /**
      * Save a game's current event message logs to a file.
      * First message in log file is the server's {@link SOCVersion}.
-     * See {@link GameEventLog#saveToFile(SOCGame, File, String)} for format details.
+     * See {@link GameEventLog#saveToFile(SOCGame, File, String, boolean)} for format details.
      * Overwrites file if it already exists.
      *<P>
      * Reminder: If the game was previously loaded from a {@code .game.json} file, its logs will be incomplete
@@ -213,11 +218,12 @@ public class RecordingSOCServer
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save to; not validated for format or security.
      *   Recommended suffix is {@link GameEventLog#LOG_FILENAME_EXTENSION} for consistency.
+     * @param serverOnly  If true, don't write entries having {@link GameEventLog.QueueEntry#isFromClient} true
      * @throws NoSuchElementException if no logs found for game
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
      * @throws IOException if an I/O problem or {@link SecurityException} occurs
      */
-    public void saveLogToFile(final SOCGame ga, final File saveDir, final String saveFilename)
+    public void saveLogToFile(final SOCGame ga, final File saveDir, final String saveFilename, final boolean serverOnly)
         throws NoSuchElementException, IllegalArgumentException, IOException
     {
         final String gameName = ga.getName();
@@ -226,7 +232,7 @@ public class RecordingSOCServer
         if (gameLog == null)
             throw new NoSuchElementException(gameName);
 
-        gameLog.saveToFile(ga, saveDir, saveFilename);
+        gameLog.saveToFile(ga, saveDir, saveFilename, serverOnly);
     }
 
     @Override
@@ -309,31 +315,58 @@ public class RecordingSOCServer
          */
         private void processDebugCommand_saveLog(final Connection c, final SOCGame ga, String argsStr)
         {
+            final String USAGE = "Usage: *SAVELOG* [-s] [-f] filename";  // I18N OK: debug only
             final String gaName = ga.getName();
-            boolean askedForce = false;
 
-            // very basic flag parse, as a stopgap until something better is needed
-            if (argsStr.startsWith("-f "))
-            {
-                askedForce = true;
-                argsStr = argsStr.substring(3).trim();
-            } else {
-                int i = argsStr.indexOf(' ');
-                if ((i != -1) && (argsStr.substring(i + 1).trim().equals("-f")))
-                {
-                    askedForce = true;
-                    argsStr = argsStr.substring(0, i);
-                }
-            }
-
-            if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
+            if (argsStr.isEmpty())
             {
                 srv.messageToPlayer
-                    (c, gaName, SOCServer.PN_NON_EVENT, "Usage: *SAVELOG* [-f] filename");  // I18N OK: debug only
+                    (c, gaName, SOCServer.PN_NON_EVENT, USAGE);
                 return;
             }
 
-            final String fname = argsStr + GameEventLog.LOG_FILENAME_EXTENSION;
+            // very basic flag parsing, until something better is needed
+            String fname = null;
+            boolean askedForce = false;
+            boolean serverOnly = false;
+            boolean argsOK = true;
+            for (String arg : argsStr.split("\\s+"))
+            {
+                if (arg.startsWith("-"))
+                {
+                    if (arg.equals("-s"))
+                        serverOnly = true;
+                    else if (arg.equals("-f"))
+                        askedForce = true;
+                    else
+                    {
+                        argsOK = false;
+                        break;
+                    }
+                } else {
+                    if (fname == null)
+                        fname = arg;
+                    else
+                        argsOK = false;
+                }
+            }
+
+            if ((fname == null) || ! argsOK)
+            {
+                srv.messageToPlayer
+                    (c, gaName, SOCServer.PN_NON_EVENT, USAGE);
+                return;
+            }
+
+            if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(fname).matches())
+            {
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_NON_EVENT, "admin.loadsavegame.resp.gamename.chars");
+                    // "gamename can only include letters, numbers, dashes, underscores."
+                return;
+            }
+
+            fname += GameEventLog.LOG_FILENAME_EXTENSION;
 
             if (! askedForce)
                 try
@@ -359,17 +392,10 @@ public class RecordingSOCServer
                 return;
             }
 
-            if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(argsStr).matches())
-            {
-                srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_NON_EVENT, "admin.loadsavegame.resp.gamename.chars");
-                    // "gamename can only include letters, numbers, dashes, underscores."
-                return;
-            }
-
             try
             {
-                ((RecordingSOCServer) srv).saveLogToFile(ga, new File("."), fname);  // <--- The actual log save method ---
+                ((RecordingSOCServer) srv).saveLogToFile
+                    (ga, new File("."), fname, serverOnly);  // <--- The actual log save method ---
 
                 srv.messageToPlayerKeyed
                     (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,

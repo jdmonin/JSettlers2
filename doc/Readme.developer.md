@@ -645,12 +645,14 @@ and/or `TestRecorder.connectLoadJoinResumeGame`.
 For test or debugging purposes, if you want to play some games and save their network message logs
 in a standardized format, you can do so with `soc.extra.server.RecordingSOCServer`. That specialized server
 records all messages relevant to gameplay captured by server-side calls to
-`messageToPlayer / messageToGame(.., isEvent=true)` or `recordGameEvent(..)`.
+`messageToPlayer / messageToGame(.., isEvent=true)` or `recordGameEvent(..)`,
+along with messages from client players and observers.
 
 Launch RecordingSOCServer and log in as `debug` with the standard client.
 In any game you're playing or observing, logs can be saved at any time with the debug command  
 `*savelog* filename`  
 which will save to `filename.soclog` in the server's current directory.
+To save only messages from the server, not also from clients, use its `-s` flag.
 
 For log file format, see `soc.extra.server.GameEventLog` javadocs.
 

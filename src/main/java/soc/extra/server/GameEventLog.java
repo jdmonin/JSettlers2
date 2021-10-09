@@ -75,7 +75,7 @@ public class GameEventLog
 {
     /**
      * Standard suffix/extension for {@link GameEventLog} files: {@code ".soclog"}
-     * @see #saveToFile(SOCGame, File, String)
+     * @see #saveToFile(SOCGame, File, String, boolean)
      */
     public static final String LOG_FILENAME_EXTENSION = ".soclog";
 
@@ -114,10 +114,11 @@ public class GameEventLog
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save to; not validated for format or security.
      *   Recommended suffix is {@link #LOG_FILENAME_EXTENSION} for consistency.
+     * @param serverOnly  If true, don't write entries where {@link GameEventLog.QueueEntry#isFromClient} true
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
      * @throws IOException if an I/O problem or {@link SecurityException} occurs
      */
-    public void saveToFile(final SOCGame ga, final File saveDir, final String saveFilename)
+    public void saveToFile(final SOCGame ga, final File saveDir, final String saveFilename, final boolean serverOnly)
         throws IllegalArgumentException, IOException
     {
         // GameSaverJSON.saveGame uses similar logic to check status before saving.
@@ -150,8 +151,9 @@ public class GameEventLog
             writer.append("# Game created at: " + createdStr + '\n');
             writer.append("# Log written at:  " + nowStr + '\n');
 
-            for (GameEventLog.QueueEntry log : entries)
-                writer.append(log.toString()).append('\n');
+            for (GameEventLog.QueueEntry entry : entries)
+                if (! (entry.isFromClient && serverOnly))
+                    writer.append(entry.toString()).append('\n');
 
             writer.append("# End of log; final game state is ")
                 .append(Integer.toString(ga.getGameState())).append('\n');
