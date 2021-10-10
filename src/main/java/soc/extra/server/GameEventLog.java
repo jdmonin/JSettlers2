@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import soc.game.SOCGame;
+import soc.game.SOCPlayer;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCVersion;
@@ -157,6 +158,29 @@ public class GameEventLog
 
             writer.append("# End of log; final game state is ")
                 .append(Integer.toString(ga.getGameState())).append('\n');
+            writer.append("# Final player info:\n");
+            final SOCPlayer winner = ga.getPlayerWithWin();  // null if still playing
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            {
+                final SOCPlayer pl = ga.getPlayer(pn);
+                int vp = pl.getPublicVP();
+                if (vp == 0)
+                    continue;
+
+                String plName = pl.getName();
+                if (plName == null)
+                    plName = "(vacant)";
+                writer.append
+                    ("# - pn " + pn + ": visible score " + vp + ": " + plName);
+                if (pl.hasLargestArmy())
+                    writer.append(", Largest Army");
+                if (pl.hasLongestRoad())
+                    writer.append(", Longest Road");
+                if (winner == pl)
+                    writer.append(", Winner");
+                writer.append('\n');
+            }
+
             writer.flush();
         }
         catch (SecurityException e) {
