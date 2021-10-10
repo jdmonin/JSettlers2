@@ -28,6 +28,9 @@ import java.util.StringTokenizer;
  *<P>
  * Text messages from clients in games use {@link SOCGameTextMsg} instead.
  *<P>
+ * Before v2.5.00 the server didn't remove {@link #getText()}'s trailing {@code \n} sent from the client,
+ * sending it unchanged to the channel's members, but the receiving clients trimmed it out.
+ *<P>
  * Before v2.0.00 this message class was {@code SOCTextMsg}.
  *
  * @author Robert S Thomas

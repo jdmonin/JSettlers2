@@ -48,6 +48,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 	- When client joins a game:
 		- If any player currently picking free resources, server sends SOCPlayerElement(NUM_PICK_GOLD_HEX_RESOURCES)
+	- SOCGameTextMsg, SOCChannelTextMsg: Clients and server remove extraneous trailing `\n` when sending message
 - For developers:
 	- New debug command `devnext: cardType` to rearrange the Development Card deck
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/ruflab/StacSettlers :

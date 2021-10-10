@@ -2087,9 +2087,8 @@ public class SOCPlayerInterface extends Frame
                 }
             }
 
-            final String msg = s + '\n';
-            if (! doLocalCommand(msg))
-                client.getGameMessageSender().sendText(game, msg);
+            if (! doLocalCommand(s))
+                client.getGameMessageSender().sendText(game, s);
 
             if (sOverflow != null)
             {

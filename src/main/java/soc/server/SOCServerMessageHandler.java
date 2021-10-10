@@ -1033,7 +1033,7 @@ public class SOCServerMessageHandler
      */
     void handleCHANNELTEXTMSG(final Connection c, final SOCChannelTextMsg mes)
     {
-        final String chName = mes.getChannel(), mName = c.getData(), txt = mes.getText();
+        final String chName = mes.getChannel(), mName = c.getData(), txt = mes.getText().trim();
 
         if (srv.isDebugUserEnabled() && mName.equals("debug"))
         {
@@ -1133,7 +1133,7 @@ public class SOCServerMessageHandler
 
         //currentGameEventRecord.setSnapshot(ga);
 
-        final String cmdText = gameTextMsgMes.getText();
+        final String cmdText = gameTextMsgMes.getText().trim();
         String cmdTxtUC = null;
 
         if (canChat && (cmdText.charAt(0) == '*'))
