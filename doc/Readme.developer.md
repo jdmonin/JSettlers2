@@ -656,6 +656,8 @@ To save only messages from the server, not also from clients, use its `-s` flag.
 
 For log file format, see `soc.extra.server.GameEventLog` javadocs.
 
+RecordingSOCServer also enables the `*SAVEGAME*` command; games are saved to the current directory.
+
 RecordingSOCServer isn't built into the JSettlers jars. So if you need to run it from the command line,
 you'll need more than the usual classpath. You can launch it with a bash/zsh command like:  
 `jar=(build/libs/JSettlersServer-*.jar); java -classpath ${CLASSPATH}:${jar}:build/classes/java/main:build/classes/java/test soc.extra.server.RecordingSOCServer`

@@ -91,6 +91,7 @@ public class RecordingSOCServer
      * <LI> {@link SOCServer#PROP_JSETTLERS_GAME_DISALLOW_6PLAYER} = "N"
      * <LI> {@link SOCServer#PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD} = "N"
      *      (because {@link soctest.server.TestRecorder} unit tests use sea board)
+     * <LI> {@link SOCServer#PROP_JSETTLERS_SAVEGAME_DIR} = "." (server's current directory)
      *</UL>
      */
     public static final Properties PROPS = new Properties();
@@ -102,6 +103,7 @@ public class RecordingSOCServer
         PROPS.setProperty(SOCServer.PROP_JSETTLERS_STARTROBOTS, Integer.toString(NUM_STARTROBOTS));
         PROPS.setProperty(SOCServer.PROP_JSETTLERS_GAME_DISALLOW_6PLAYER, "N");
         PROPS.setProperty(SOCServer.PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD, "N");
+        PROPS.setProperty(SOCServer.PROP_JSETTLERS_SAVEGAME_DIR, ".");
     }
 
     /**
