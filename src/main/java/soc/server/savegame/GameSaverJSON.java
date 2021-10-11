@@ -68,7 +68,7 @@ public class GameSaverJSON
         throws IllegalArgumentException, SavedGameModel.UnsupportedSGMOperationException,
             IllegalStateException, IOException
     {
-        // GameEventLog.saveToFile uses similar logic to check status before saving.
+        // GameEventLog.save uses similar logic to check status before saving.
         // If you update this, consider updating that too.
 
         if (! saveDir.isDirectory())

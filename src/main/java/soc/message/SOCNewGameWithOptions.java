@@ -122,9 +122,14 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
 
     /**
      * Get the encoded game options, if any.
-     * @return the options for the new game, in the format returned by
+     * Can be parsed/decoded with {@link SOCGameOption#parseOptionsToMap(String, SOCGameOptionSet)}
+     * or {@link SOCGameOption#parseOptionsToSet(String, SOCGameOptionSet)}.
+     *
+     * @return the options for the new game, in the format returned at server by
      *     {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)},
-     *     or null if no options
+     *     or null if no options.
+     *     At receiving end, may start with {@code ','} because of how the message is parsed;
+     *     that leading comma is cosmetic only and doesn't impair parsing to Map or Set.
      */
     public String getOptionsString()
     {

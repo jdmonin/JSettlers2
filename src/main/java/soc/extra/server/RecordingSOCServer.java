@@ -214,7 +214,7 @@ public class RecordingSOCServer
     /**
      * Save a game's current event message logs to a file.
      * First message in log file is the server's {@link SOCVersion}.
-     * See {@link GameEventLog#saveToFile(SOCGame, File, String, boolean)} for format details.
+     * See {@link GameEventLog} for format details.
      * Overwrites file if it already exists.
      *<P>
      * Reminder: If the game was previously loaded from a {@code .game.json} file, its logs will be incomplete
@@ -223,7 +223,7 @@ public class RecordingSOCServer
      * @param ga  Game to save; not null.
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save to; not validated for format or security.
-     *   Recommended suffix is {@link GameEventLog#LOG_FILENAME_EXTENSION} for consistency.
+     *     Recommended suffix is {@link GameEventLog#FILENAME_EXTENSION} for consistency.
      * @param serverOnly  If true, don't write entries having {@link GameEventLog.QueueEntry#isFromClient} true
      * @throws NoSuchElementException if no logs found for game
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
@@ -238,7 +238,7 @@ public class RecordingSOCServer
         if (gameLog == null)
             throw new NoSuchElementException(gameName);
 
-        gameLog.saveToFile(ga, saveDir, saveFilename, serverOnly);
+        gameLog.save(ga, saveDir, saveFilename, serverOnly);
     }
 
     @Override
@@ -372,7 +372,7 @@ public class RecordingSOCServer
                 return;
             }
 
-            fname += GameEventLog.LOG_FILENAME_EXTENSION;
+            fname += GameEventLog.FILENAME_EXTENSION;
 
             if (! askedForce)
                 try

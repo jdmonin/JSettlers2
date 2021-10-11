@@ -94,13 +94,16 @@ public class TestLoadgame
      * {@link GameLoaderJSON#loadGame(File, SOCServer)}.
      * Doesn't postprocess or call {@link SavedGameModel#resumePlay(boolean)}.
      * If not found, will fail an {@code assertNotNull}. Doesn't try to catch
-     * {@link SavedGameModel.UnsupportedSGMOperationException} or SGM's other declared runtime exceptions.
+     * {@link SavedGameModel.UnsupportedSGMOperationException} or SGM's other declared runtime exceptions,
+     * most of which aren't declared as {@code throws} here.
+     *
      * @param testResFilename  Base name of test artifact, like {@code "classic-botturn.game.json"},
      *     to be loaded from {@code /src/test/resources/resources/savegame/}
      * @param server  SOCServer that will host this game later; its {@link SOCServer#getGameList()} is needed here
      * @throws IllegalArgumentException if {@code server} is null
      * @throws IOException if file can't be loaded
      * @throws SavedGameModel.UnsupportedSGMOperationException if unsupported feature; see {@code GameLoaderJson.loadGame}
+     * @see soctest.server.TestGameEventLog#load(String, boolean, boolean)
      */
     public static SavedGameModel load(final String testRsrcFilename, final SOCServer server)
         throws IllegalArgumentException, IOException, SavedGameModel.UnsupportedSGMOperationException

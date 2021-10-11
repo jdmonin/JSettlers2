@@ -593,7 +593,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Simple human-readable delimited representation, used for debug purposes:
      * {@code SOCPutPiece:game=test5|playerNumber=3|pieceType=0|coord=40a}
      *<BR>
-     * Could also be used by a {@link soc.server.SOCServer#recordGameEvent(String, SOCMessage)} implementation.
+     * Could also be used by a {@link soc.server.SOCServer#recordGameEvent(String, SOCMessage)} implementation
+     * like {@link soc.extra.server.GameEventLog.QueueEntry}.
      *<P>
      * Within this representation, message parameters should be in same order used by {@link #toCmd()} and
      * {@code parseDataStr(..)}. Should be parseable by {@link #parseMsgStr(String)} which calls
@@ -1116,7 +1117,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * and {@code parseDataStr(String or List<String>)} methods
      * if available, otherwise {@link SOCMessage#stripAttribNames(String)}.
      * @param messageStr  Message as delimited string from {@link #toString()}; not null
-     * @return parsed message if successful, throws exception otherwise
+     * @return parsed message if successful, throws exception otherwise; not null
      * @throws InputMismatchException if message can't be parsed and
      *     {@link #parseMsgStr(String)} returned null
      * @throws ParseException if message class name not parsed or class not found,
