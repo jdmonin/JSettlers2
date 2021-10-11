@@ -2464,6 +2464,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * end of game, when they've been announced by server.
      * Special Victory Points (SVPs) are included, if the game scenario awards them.
      * Also includes any VP from {@link #getCloth() cloth}.
+     *<P>
+     * After end of game at server, {@code getPublicVP()} might still be &lt; {@link #getTotalVP()}
+     * because {@link #forceFinalVP(int)} is called only at clients.
      *
      * @return the number of publicly known victory points,
      *     or "final" VP if {@link #forceFinalVP(int)} was called

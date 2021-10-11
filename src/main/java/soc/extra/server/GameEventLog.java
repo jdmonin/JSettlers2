@@ -66,7 +66,7 @@ import soc.util.Version;
  *  <LI> Rest of the log entries are all game events sent from the server to players and/or observers
  *  <LI> Comment lines start with {@code #} after optional leading whitespace
  *  <LI> Blank lines are allowed
- *  <LI> For convenience, {@code saveToFile(..)} ends the log with a comment with the game's current gameState
+ *  <LI> For convenience, {@code saveToFile(..)} ends the log with comments with the game's current state and players
  *</UL>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -87,7 +87,9 @@ public class GameEventLog
      */
     private static final SimpleDateFormat TIMESTAMP_SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 
-    // TODO jdoc; public for easy access, since final & Vector is thread-safe
+    /**
+     * All log entries, chronologically. Public for easy access; Vector is thread-safe, field is final.
+     */
     public final Vector<QueueEntry> entries = new Vector<>();
 
     /**
@@ -163,8 +165,8 @@ public class GameEventLog
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
                 final SOCPlayer pl = ga.getPlayer(pn);
-                int vp = pl.getPublicVP();
-                if (vp == 0)
+                int vp = (winner != null) ? pl.getTotalVP() : pl.getPublicVP();
+                if ((vp == 0) && ga.isSeatVacant(pn))
                     continue;
 
                 String plName = pl.getName();

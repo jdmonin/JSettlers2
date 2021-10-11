@@ -147,6 +147,10 @@ public class RecordingSOCServer
     @Override
     public void startLog(final String gameName)
     {
+        final GameEventLog log = records.get(gameName);
+        if (log != null)
+            log.clear();
+
         // Game's queue is created by recordEvent calls
 
         recordGameEvent(gameName, new SOCVersion

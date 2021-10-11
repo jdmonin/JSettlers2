@@ -9668,11 +9668,14 @@ public class SOCServer extends Server
     /**
      * If {@link #recordGameEventsIsActive()}, set up logging for the specified game.
      * Should be called before {@link #recordGameEvent(String, SOCMessage)} or similar methods.
-     * Later at end of game, call {@link #endLog(String)}.
+     * Later at end of game, caller should call {@link #endLog(String)}.
      *<P>
      * May open files, set up queues, etc, depending on implementation. This stub does nothing.
      * If overriding, should record a {@link SOCVersion} message as game's first log entry to help parsing later,
      * including {@link #getFeaturesList()} field.
+     *<P>
+     * If a previous game with the same name had unsaved logs in memory,
+     * discard them before setting up the new game's logs.
      *
      * @param gameName  Name of the game to start logging for
      * @throws IOException if the implementation must create a file or does other I/O, and a problem occurs
