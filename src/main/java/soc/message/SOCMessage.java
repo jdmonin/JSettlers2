@@ -41,6 +41,9 @@ import java.util.StringTokenizer;
  * Text announcements ({@link SOCGameServerText} or {@link SOCGameTextMsg})
  * are often sent after data messages. Bots ignore text messages except for
  * a few bot-debug commands.
+ *<P>
+ * A list of basic game actions and their message sequences is in
+ * {@code /doc/Message-Sequences-for-Game-Actions.md}.
  *
  *<H3>Implementation:</H3>
  * No {@code Object}s, only strings and integers, are to be sent over the network

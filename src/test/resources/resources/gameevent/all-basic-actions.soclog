@@ -3,8 +3,9 @@ SOC game event log: version=2500, created_at=1633920526, now=1633921260, game_na
 # Log written at:  2021-10-10 23:01:00 -0400
 # Added comments are (C) Jeremy D Monin 2021 (GPLv3)
 # This log has a complete game on the sea board,
-# including all basic actions: Build pieces, buy and use each dev card type,
-# trade with bank and players, move robber and pirate, rob, move ship.
+# including all basic actions: Roll dice, discard, build pieces, move ship,
+# buy and use each dev card type, trade with bank and players,
+# move robber and pirate, choose player and rob, Special Building phase.
 # Starts with debug player and 1 robot; human player p2 takes over for bot just after initial placement.
 # Uses debug comands rsrcs, devnext.
 all:SOCVersion:2500|str=2.5.00|verBuild=JM20211010|feats=;ch;|cliLocale=(null)
@@ -308,6 +309,12 @@ all:SOCGameState:game=test|state=33
 all:SOCGameServerText:game=test|text=debug will move the robber.
 f3:SOCMoveRobber:game=test|playerNumber=3|coord=50a
 all:SOCMoveRobber:game=test|playerNumber=3|coord=50a
+# Choose player to rob: Added afterwards to test GameEventSequenceRecognizer; actual game has only 2 players
+all:SOCGameServerText:game=test|text=debug moved the robber. Must choose a victim.
+all:SOCGameState:game=test|state=51
+p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
+f3:SOCChoosePlayer:game=test|choice=2
+# End of added section
 p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
 p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
 !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
@@ -468,8 +475,27 @@ f2:SOCRollDice:game=test
 all:SOCDiceResult:game=test|param=2
 all:SOCGameServerText:game=test|text=No player gets anything.
 all:SOCGameState:game=test|state=20
+# Request Special Building Phase: Added afterwards to test GameEventSequenceRecognizer; actual game is on 4-player board
+f3:SOCBuildRequest:game=test|pieceType=-1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=1
+# End of added section
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
+# Special Building phase: Added afterwards to test.
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
+all:SOCTurn:game=test|playerNumber=3|gameState=100
+all:SOCGameServerText:game=test|text=Special building phase: debug's turn to place.
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+all:SOCGameElements:game=test|e2=31
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=4
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=31|v2=0
+all:SOCGameState:game=test|state=100
+f3:SOCEndTurn:game=test
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=0
+all:SOCClearOffer:game=test|playerNumber=-1
+# End of added section
 all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
@@ -594,6 +620,10 @@ p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
 p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
 !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
+f3:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3
+f3:SOCBankTrade:game=test|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCBankTrade:game=test|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|pn=3
 f3:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0
 all:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3
 f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804
@@ -696,7 +726,7 @@ all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=603
 all:SOCGameElements:game=test|e4=3
 all:SOCGameState:game=test|state=1000
 all:SOCGameServerText:game=test|text=>>> debug has won the game with 10 points.
-all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardTypes=[4]
+all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4
 all:SOCGameStats:game=test|0|0|2|10|false|false|false|false
 all:SOCGameServerText:game=test|text=This game was 12 rounds, and took 11 minutes 29 seconds.
 p2:SOCPlayerStats:game=test|p=1|p=0|p=2|p=4|p=1|p=5

@@ -311,13 +311,14 @@ public class TestGameEventLog
         throws NoSuchElementException, IOException, ParseException
     {
         final GameEventLog log = load("all-basic-actions.soclog", false, false);
+        final int EXPECTED_FILE_LINE_COUNT = 741;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,SBL=t,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
-        assertEquals(711, log.numLines);  // length from wc -l
+        assertEquals(EXPECTED_FILE_LINE_COUNT, log.numLines);
         assertEquals(log.numLines, 1 + log.entries.size());  // true if no blank lines
 
         // comment-line parsing
@@ -325,13 +326,17 @@ public class TestGameEventLog
 
         // spot-check a couple of parsed messages:
 
-        SOCMessage msg = log.entries.get(16).event;
-        assertTrue("Line 18 parsed to SOCDiceResult", msg instanceof SOCDiceResult);
+        SOCMessage msg = log.entries.get(17).event;
+        assertTrue("Line 19 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCDiceResult);
         assertEquals("test", ((SOCDiceResult) msg).getGame());
         assertEquals(-1, ((SOCDiceResult) msg).getResult());
 
-        msg = log.entries.get(693).event;
-        assertTrue("Line 695 parsed to SOCPutPiece", msg instanceof SOCPutPiece);
+        msg = log.entries.get(EXPECTED_FILE_LINE_COUNT - 16 - 2).event;
+        assertTrue
+            ("Line " + (EXPECTED_FILE_LINE_COUNT - 16) + " expected SOCPutPiece, got " +
+                 ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+             msg instanceof SOCPutPiece);
         assertEquals("test", ((SOCPutPiece) msg).getGame());
         assertEquals(2, ((SOCPutPiece) msg).getPieceType());
     }

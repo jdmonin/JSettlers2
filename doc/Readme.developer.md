@@ -55,7 +55,8 @@ Package `soc.extra` is for useful or reusable code like `GameEventLog`
 which is developed with the main code but shouldn't be part of the built jars
 or test packages.
 
-Communication is described in soc.message.SOCMessage. Robots talk with the
+Communication is described in the "Network Communication" section
+and `soc.message.SOCMessage` javadocs. Robots talk with the
 server like normal human clients. Most robot messages are per-game; instead
 of being handled in SOCRobotClient, these are handled in a loop in
 SOCRobotBrain.run().
@@ -481,7 +482,6 @@ ideas.
 - Occasionally the board does not re-scale at game reset
 - Docs: State diagram for `SOCGame` states, or important message sequences
   (log into server, create/join game, roll dice, etc)
-    - Or point docs to src/extraTest/java/soctest/server/TestActionsMessages.java which has many important message sequences
 - Docs: `PlayerClientListener` interface has some methods without javadocs: Add by checking `SOCPlayerInterface.ClientBridge` implementation
 - Java 7 cleanup: Use diamond operator where possible
   - Example: change  
@@ -930,6 +930,9 @@ message format. See "Overall Structure" for an overview on network message
 handling. Communication format and more details are described in
 `soc.message.SOCMessage`. To see all message traffic from a client, set
 `jsettlers.debug.traffic=Y` (see "Tips for Debugging" section).
+
+A list of basic game actions and their message sequences is in
+[Message-Sequences-for-Game-Actions.md](Message-Sequences-for-Game-Actions.md).
 
 Keeping the network protocol simple helps with interoperability between different
 versions and implementations. At the TCP level, JSettlers messages are unicode

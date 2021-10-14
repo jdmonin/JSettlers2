@@ -29,13 +29,14 @@ import soc.game.SOCGame;  // for javadocs only
  * The two individual dice amounts can be reported in a text message.
  *<P>
  * This is in response to a client player's {@link SOCRollDice} request.
- * Will sometimes be followed with further messages to entire game and/or
+ * Will sometimes be followed with various messages to entire game and/or
  * to some players, depending on the roll results and scenario/rules in effect.
  * The last data message of sequence sent to entire game is always {@link SOCGameState}
  * (rolling a 7 might lead to discards or moving the robber, etc.)
  *<P>
  * The guideline is that the "public" sequence ends with the new game state message,
- * then new state text if any for human clients, then any prompt for action by clients in the new state.
+ * then any new state text for human clients, then any prompt for action
+ * sent to individual player clients in the new state.
  * Any special resource (cloth) distributed as roll results, or any report of action happening
  * (fleet battle lost/won), is sent before the state message.
  *

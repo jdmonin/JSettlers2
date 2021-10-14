@@ -53,8 +53,9 @@ import soc.util.Version;
  * These logs and their entry format are used by various tests and {@link RecordingSOCServer},
  * but aren't used by the standard SOCServer.
  *<P>
- * Calling {@link #load(File, boolean, boolean)}
- * updates {@link #entries}, {@link #gameName}, {@link #version}, {@link #optsStr}, and {@link #numLines}.
+ * Use {@link #load(File, boolean, boolean)} to parse from a {@code .soclog} file,
+ * creating a new {@code GameEventLog} with {@link #entries}, {@link #gameName}, {@link #version},
+ * {@link #optsStr}, and {@link #numLines} from the parsed entries.
  *
  *<H3>Log file format</H3>
  *

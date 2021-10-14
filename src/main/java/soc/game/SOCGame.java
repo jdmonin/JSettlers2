@@ -6096,8 +6096,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * A player is picking which resources to gain from the gold hex.
      * Gain them, check if other players must still pick, and set
-     * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
-     * or oldGameState (usually {@link #PLAY1}) accordingly.
+     * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE} if so,
+     * oldGameState otherwise (usually {@link #PLAY1}).
      * (Or, during initial placement, usually {@link #START2B} or {@link #START3B} after initial settlement at gold,
      * or {@link #START1A} or {@link #START2A} after placing a ship to a fog hex reveals gold.)
      * During normal play, the oldGameState might sometimes be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
