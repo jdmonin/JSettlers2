@@ -320,8 +320,9 @@ public class SOCBoardLayout2 extends SOCMessage
     {
         final Object obj = layoutParts.get(pkey);
         if (obj instanceof Number)
-            return ((Number) obj).intValue();  // message was probably loaded from JSON
+            return ((Number) obj).intValue();
 
+        // message probably wasn't received & parsed from network or loaded from JSON
         String sobj = (String) obj;
         if (sobj == null)
             return 0;
@@ -471,7 +472,7 @@ public class SOCBoardLayout2 extends SOCMessage
                     }
                     parts.put(pname, pv);
                 } else {
-                    parts.put(pname, pvalue);
+                    parts.put(pname, Integer.valueOf(Integer.parseInt(pvalue)));
                 }
             }
         }
@@ -481,6 +482,75 @@ public class SOCBoardLayout2 extends SOCMessage
         }
 
         return new SOCBoardLayout2(ga, bef, parts);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
+     * Converts all array layout parts from hexadecimal except {@code "HL"}, {@code "NL"} which are already base 10.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.5.00
+     */
+    public static String stripAttribNames(final String messageStrParams)
+    {
+        String[] pieces = messageStrParams.split("\\|");  // split on SOCMessage.SEP_CHAR
+        StringBuffer ret = new StringBuffer();
+
+        if (! pieces[0].startsWith("game="))
+            return null;
+        ret.append(pieces[0].substring(5)).append(sep2_char);
+
+        if (! pieces[1].startsWith("bef="))
+            return null;
+        ret.append(pieces[1].substring(4)).append(sep2_char);
+
+        // the rest: K=V pairs
+        for (int i = 2; i < pieces.length; ++i)
+        {
+            final String k, v;
+            {
+                final String kv = pieces[i];
+                final int idx = kv.indexOf('=');
+                if (idx <= 0)
+                    return null;
+                k = kv.substring(0, idx);
+                v = kv.substring(idx + 1);
+                if (v.isEmpty())
+                    return null;
+            }
+
+            ret.append(k).append(sep2_char);
+
+            if (v.startsWith("{ "))
+            {
+                if (! v.endsWith(" }"))
+                    return null;
+
+                final boolean notHex = (k.equals("HL") || k.equals("NL"));
+                final String[] vals = v.substring(2, v.length() - 2).split(" ");
+
+                ret.append('[').append(vals.length).append(sep2_char);
+                for (String vitem : vals)
+                {
+                    if (notHex)
+                        ret.append(vitem);
+                    else
+                        try {
+                            ret.append(Integer.parseInt(vitem, 16));
+                        } catch (NumberFormatException e) {
+                            return null;
+                        }
+
+                    ret.append(sep2_char);
+                }
+            } else {
+                // single base-10 value
+                ret.append(v).append(sep2_char);
+            }
+        }
+
+        return ret.toString();
     }
 
     /**

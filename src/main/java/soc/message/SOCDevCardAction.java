@@ -177,6 +177,9 @@ public class SOCDevCardAction extends SOCMessage
      *<P>
      * This form is currently used only at end of game (state {@link soc.game.SOCGame#OVER OVER})
      * to reveal hidden Victory Point cards. So, bots ignore it.
+     *<P>
+     * If called with a single-item list, v2.5.00 and newer will behave as if
+     * the {@link #SOCDevCardAction(String, int, int, int)} constructor was called.
      *
      * @param ga  name of the game
      * @param pn  the player number; cannot be &lt; 0
@@ -205,8 +208,8 @@ public class SOCDevCardAction extends SOCMessage
         game = ga;
         playerNumber = pn;
         actionType = ac;
-        cardType = 0;
-        cardTypes = ct;
+        cardType = (S != 1) ? 0 : ct.get(0).intValue();
+        cardTypes = (S != 1) ? ct : null;
     }
 
     /**
@@ -377,22 +380,29 @@ public class SOCDevCardAction extends SOCMessage
 
         if (hasArray)
         {
-            // {"ga", "3", "2", "[5", " 4]"} -> {"ga", "3", "2", "5", "4"}
-            int ilast = pieces.length - 1;
-
-            for (int i = 3; i < ilast; ++i)
+            if (pieces.length == 4)
             {
-                String piece = pieces[i];
-                char ch0 = piece.charAt(0);
-                if ((ch0 == '[') || (ch0 == ' '))
-                    pieces[i] = piece.substring(1);
-            }
+                // {"ga", "3", "2", "[5]"} -> {"ga", "3", "2", "5"}
+                String piece = pieces[3];
+                pieces[3] = piece.substring(1, piece.length() - 1);
+            } else {
+                // {"ga", "3", "2", "[5", " 4]"} -> {"ga", "3", "2", "5", "4"}
+                int ilast = pieces.length - 1;
 
-            String piece = pieces[ilast];
-            int charIdxFirst = (piece.charAt(0) == ' ') ? 1 : 0;
-            int charIdxLast = piece.length() - 1;
-            if ((charIdxLast >= 0) && (piece.charAt(charIdxLast) == ']'))
-                pieces[ilast] = piece.substring(charIdxFirst, charIdxLast);
+                for (int i = 3; i < ilast; ++i)
+                {
+                    String piece = pieces[i];
+                    char ch0 = piece.charAt(0);
+                    if ((ch0 == '[') || (ch0 == ' '))
+                        pieces[i] = piece.substring(1);
+                }
+
+                String piece = pieces[ilast];
+                int charIdxFirst = (piece.charAt(0) == ' ') ? 1 : 0;
+                int charIdxLast = piece.length() - 1;
+                if ((charIdxLast >= 0) && (piece.charAt(charIdxLast) == ']'))
+                    pieces[ilast] = piece.substring(charIdxFirst, charIdxLast);
+            }
         } else if (isV1Format) {
             try
             {

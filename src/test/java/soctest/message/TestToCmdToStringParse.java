@@ -25,9 +25,11 @@ import java.lang.reflect.Modifier;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import soc.game.SOCBoard;
@@ -232,6 +234,45 @@ public class TestToCmdToStringParse
                             res.append
                                 (" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
                     }
+                    else if ((valueExpected instanceof Map<?, ?>) && (valueActual instanceof Map<?, ?>))
+                    {
+                        // if values are arrays, Map.equals won't do a deep compare, just thinks they're different
+                        final Set<?> ksE = ((Map<?, ?>) valueExpected).keySet(),
+                            ksA = ((Map<?, ?>) valueActual).keySet();
+                        if (! ksE.equals(ksA))
+                        {
+                            res.append
+                                (" field " + fName + ": expected keys " + str(valueExpected) + ", got " + str(valueActual));
+                        } else {
+                            boolean allOK = true;
+
+                            for (final Object k : ksE)
+                            {
+                                final Object vE = ((Map<?, ?>) valueExpected).get(k),
+                                    vA = ((Map<?, ?>) valueActual).get(k);
+                                if (! (vE.getClass().isAssignableFrom(vA.getClass())))
+                                {
+                                    allOK = false;
+                                } else if (vE instanceof int[]) {
+                                    if (! Arrays.equals((int[]) vE, (int[]) vA))
+                                        allOK = false;
+                                } else if (vE instanceof Object[]) {
+                                    if (! Arrays.deepEquals((Object[]) vE, (Object[]) vA))
+                                        allOK = false;
+                                } else {
+                                    if (! vE.equals(vA))
+                                        allOK = false;
+                                }
+
+                                if (! allOK)
+                                    break;
+                            }
+
+                            if (! allOK)
+                                res.append
+                                    (" field " + fName + ": expected values " + str(valueExpected) + ", got " + str(valueActual));
+                        }
+                    }
                     else if (! valueExpected.equals(valueActual))
                     {
                         res.append(" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
@@ -251,7 +292,8 @@ public class TestToCmdToStringParse
      * <LI> int[][] -> [[1, 2, 3], [3079, -3083, 3335]]
      * <LI> boolean[] -> [false, true, true, true]
      * <LI> Object[] -> [each elem.toString]
-     * <LI> null -> null
+     * <LI> Map -> {k=v, k=v, ...}
+     * <LI> null -> null as string
      *<UL>
      * @param val value to render, or {@code null}
      * @return value as string
@@ -272,6 +314,23 @@ public class TestToCmdToStringParse
             ret = Arrays.toString((boolean[]) val);
         else if (val instanceof Object[])
             ret = Arrays.toString((Object[]) val);
+        else if (val instanceof Map<?, ?>)
+        {
+            StringBuilder res = new StringBuilder();
+            res.append('{');
+            boolean first = true;
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) val).entrySet())
+            {
+                if (first)
+                    first = false;
+                else
+                    res.append(", ");
+
+                res.append(entry.getKey()).append('=').append(str(entry.getValue()));
+            }
+            res.append('}');
+            ret = res.toString();
+        }
         else
             ret = val.toString();
 
@@ -372,7 +431,22 @@ public class TestToCmdToStringParse
             "1014|ga,50,6,65,6,6,5,3,4,10,8,2,3,1,0,6,6,1,1,4,3,4,11,8,2,5,5,2,6,6,5,3,4,100,19,6,101,6,-1,-1,-1,-1,-1,1,4,0,-1,-1,5,2,6,-1,-1,-1,7,3,8,7,3,-1,-1,6,4,1,5,-1,-1,9,8,2,-1,-1,-1,-1,-1,155",
             "SOCBoardLayout:game=ga|hexLayout={ 50 6 65 6 6 5 3 4 10 8 2 3 1 0 6 6 1 1 4 3 4 11 8 2 5 5 2 6 6 5 3 4 100 19 6 101 6 }|numberLayout={ -1 -1 -1 -1 -1 1 4 0 -1 -1 5 2 6 -1 -1 -1 7 3 8 7 3 -1 -1 6 4 1 5 -1 -1 9 8 2 -1 -1 -1 -1 -1 }|robberHex=0x9b"
         },
-        // TODO SOCBoardLayout2
+        {
+            new SOCBoardLayout2
+                ("ga", 3,
+                 /* LH */ new int[]{1795, 4, 8, 3843, 4, 6, 2308, 2, 4, 1284, 1, 10, 773, 4, 5, 2821, 5, 11, 1797, 3, 3,
+                    3845, 3, 3, 1286, 4, 9, 2310, 5, 6, 4358, 2, 5, 775, 5, 2, 2823, 1, 12, 1799, 3, 11, 1288, 3, 4,
+                    2312, 2, 5, 4360, 2, 11, 777, 4, 6, 2825, 3, 9, 1801, 6, 0, 1290, 2, 3, 2314, 5, 10, 1803, 1, 8,
+                    3853, 1, 9, 1294, 5, 9, 3342, 7, 4, 783, 6, 0, 1807, 7, 4, 3855, 5, 5, 1296, 4, 10, 3344, 3, 8,
+                    1809, 2, 5, 3346, 1, 10},
+                 /* PL */ new int[]{2, 0, 5, 1, 0, 4, 0, 3, 0, 4, 5, 0, 3, 516, 519, 1034, 1804, 2570, 3079, 3076, 2307,
+                    1283, 2063, 3088, 4109, 4103, 3, 4, 4, 5, 6, 6, 1, 2, 2, 6, 4, 6, 3},
+                 1801, 0, null, null,
+                 Collections.singletonMap("VS", new int[]{-2, 1, 3, 0})),
+            "1084|ga,3,RH,1801,LH,[99,1795,4,8,3843,4,6,2308,2,4,1284,1,10,773,4,5,2821,5,11,1797,3,3,3845,3,3,1286,4,9,2310,5,6,4358,2,5,775,5,2,2823,1,12,1799,3,11,1288,3,4,2312,2,5,4360,2,11,777,4,6,2825,3,9,1801,6,0,1290,2,3,2314,5,10,1803,1,8,3853,1,9,1294,5,9,3342,7,4,783,6,0,1807,7,4,3855,5,5,1296,4,10,3344,3,8,1809,2,5,3346,1,10,PL,[39,2,0,5,1,0,4,0,3,0,4,5,0,3,516,519,1034,1804,2570,3079,3076,2307,1283,2063,3088,4109,4103,3,4,4,5,6,6,1,2,2,6,4,6,3,VS,[4,-2,1,3,0",
+            "SOCBoardLayout2:game=ga|bef=3|RH=1801|LH={ 703 4 8 f03 4 6 904 2 4 504 1 a 305 4 5 b05 5 b 705 3 3 f05 3 3 506 4 9 906 5 6 1106 2 5 307 5 2 b07 1 c 707 3 b 508 3 4 908 2 5 1108 2 b 309 4 6 b09 3 9 709 6 0 50a 2 3 90a 5 a 70b 1 8 f0d 1 9 50e 5 9 d0e 7 4 30f 6 0 70f 7 4 f0f 5 5 510 4 a d10 3 8 711 2 5 d12 1 a }|PL={ 2 0 5 1 0 4 0 3 0 4 5 0 3 204 207 40a 70c a0a c07 c04 903 503 80f c10 100d 1007 3 4 4 5 6 6 1 2 2 6 4 6 3 }|VS={ -2 1 3 0 }"
+        },
+        // TODO SOCBoardLayout2 other fields? incl toString w/ HL, NL base 10, others base 16
         {new SOCBotGameDataCheck("ga", 42, new int[]{3, 4, 7, 9}), "1103|ga|42|3|4|7|9", "SOCBotGameDataCheck:game=ga|p=42|p=3|p=4|p=7|p=9"},
         {
             new SOCBotJoinGameRequest("ga", 3, (SOCGameOptionSet) null),
@@ -449,10 +523,23 @@ public class TestToCmdToStringParse
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, 2), "1046|ga,3,0,2", "SOCDevCard:game=ga|playerNum=3|actionType=0|cardType=2", OPT_PARSE_ONLY},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), null, "SOCDevCard:game=ga|playerNum=3|actionType=0|cardType=0", OPT_PARSE_ONLY},
         {
-            // v2.x end-of-game form
+            // v2.x end-of-game form, multiple cards
             new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, Arrays.asList(new Integer[]{5, 4})),
             "1046|ga,3,3,5,4",
             "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardTypes=[5, 4]"
+        },
+        {
+            // v2.x end-of-game form, 1 card, server v2.5 and newer constructor builds single-item format
+            new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, Arrays.asList(new Integer[]{7})),
+            "1046|ga,3,3,7",
+            "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardType=7"
+        },
+        {
+            // compat: v2.x end-of-game form, 1 card but server v2.0 - 2.4 constructor still built as array
+            new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, Arrays.asList(new Integer[]{7})),
+            "1046|ga,3,3,7",
+            "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardTypes=[7]",
+            OPT_PARSE_ONLY
         },
         {new SOCDevCardCount("ga", 22), "1047|ga,22", "SOCDevCardCount:game=ga|numDevCards=22"},
         {new SOCDiceResult("ga", 9), "1028|ga,9", "SOCDiceResult:game=ga|param=9"},
