@@ -12,6 +12,9 @@ That version updated and reorganized many sequences to be more efficient
 and easier for bots and other automated readers to recognize.
 Since the server and built-in robots are packaged together,
 the bots also use these updated message sequences.
+The server uses the latest version format to record the game event sequences
+it sends, even when sending other more-compatible messages to an older client.
+
 If you're curious about older versions, see the code and comments in
 server classes like `SOCGameMessageHandler` and `SOCGameHandler` which communicate with clients.
 
@@ -333,7 +336,7 @@ Or if other players still need to discard:
 - !p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=6|amount=6|news=Y
 - all:SOCGameServerText:game=test|text=p3 discarded 6 resources.
 - all:SOCGameServerText:game=test|text=p2 needs to discard.
-- // No final SOCGameState message, since state is still 50
+- // No final SOCGameState message, since state is still 50 (WAITING_FOR_DISCARDS)
 
 ### Choose free resources (Gold hex gains; see also "Year of Plenty/Discovery" sequence)
 
@@ -344,15 +347,15 @@ Or if other players still need to discard:
 
 ### Choose to move robber or pirate
 
-In gameState 54:
+In gameState 54 (WAITING_FOR_ROBBER_OR_PIRATE):
 
 - all:SOCGameServerText:game=test|text=p3 must choose to move the robber or the pirate.
-- f3:SOCChoosePlayer:game=test|choice=-3
+- f3:SOCChoosePlayer:game=test|choice=-2  // or -3 (CHOICE_MOVE_PIRATE)
 - all:SOCGameState:game=test|state=33  // or 34 (PLACING_PIRATE) or other states
 
 ### Move robber
 
-In gameState 33:
+In gameState 33 (PLACING_ROBBER):
 
 - f3:SOCMoveRobber:game=test|playerNumber=3|coord=504
 - all:SOCMoveRobber:game=test|playerNumber=3|coord=504
@@ -361,21 +364,23 @@ In gameState 33:
 
 ### Move pirate
 
-In gameState 34:
+In gameState 34 (PLACING_PIRATE):
 
 - f3:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
 - all:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
 - all:SOCGameServerText:game=test|text=p3 moved the pirate.
 - all:SOCGameState:game=test|state=20  // or others, same as Move robber
 
-### Choose player to steal from
+### Choose player to rob from
+
+Occurs after moving robber or pirate.
 
 - all:SOCGameServerText:game=test|text=p3 moved the robber. Must choose a victim.
 - all:SOCGameState:game=test|state=51
 - p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
 - f3:SOCChoosePlayer:game=test|choice=2
 
-### Rob
+### Rob a player
 
 Occurs after moving robber or pirate, then possibly choosing a victim,
 and (scenario SC_CLVI) choosing whether to rob cloth or resources.
@@ -465,7 +470,7 @@ because the current player changes.
 
 ## Game over
 
-- all:SOCGameElements:game=test|e4=3
+- all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
 - all:SOCGameState:game=test|state=1000
 - all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.
 - all:SOCDevCardAction:game=test|playerNum=2|actionType=ADD_OLD|cardType=6
