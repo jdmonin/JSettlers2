@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2012,2014-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012,2014-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,6 +44,8 @@ import soc.game.SOCResourceConstants;
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't care about their player stats.
+ *<P>
+ * For full end-of-game sequence, see {@link SOCGameStats}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.09

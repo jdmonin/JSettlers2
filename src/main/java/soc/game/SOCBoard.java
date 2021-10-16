@@ -1873,6 +1873,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
      *         or {@link #DESERT_HEX},
      *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc),
+     *         or {@link SOCBoardLarge#GOLD_HEX} on a sea board,
      *         or {@link #WATER_HEX}
      *         or -1 for invalid hex coordinate
      *

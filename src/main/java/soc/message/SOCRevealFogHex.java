@@ -110,6 +110,8 @@ public class SOCRevealFogHex extends SOCMessageTemplate3i
     /**
      * Build a human-readable form of the message, with this class's field names
      * instead of generic names from {@link SOCMessageTemplate3i}.
+     * Note: {@code hexCoord} is decimal, not hexadecimal like in {@link SOCPutPiece},
+     * to avoid being a special case when parsing.
      * @return a human readable form of the message
      * @since 2.5.00
      */

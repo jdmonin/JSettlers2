@@ -24,6 +24,10 @@ Sequences are tested for consistency during unit tests and release testing:
 - `/src/test/resources/resources/gameevent/all-basic-actions.soclog` has all of these sequences and some non-sequence messages
   (debug commands, a client joins the game, etc).
 
+For sample code which recognizes and extracts game actions from these sequences,
+see [GameActionExtractor.md](extra/GameActionExtractor.md).
+
+
 # Game actions and their message sequences
 
 This list isn't exhaustive; some sequences like Roll Dice
@@ -159,6 +163,7 @@ Example with player 2's first initial road, second initial settlement:
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=104|amount=4  // SCENARIO_SVP_LANDAREAS_BITMASK
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=102|amount=2  // SCENARIO_SVP
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=60a
+- If Longest Route player changes: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
 - all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
 
 Or if client starts with build request:
@@ -169,6 +174,7 @@ Or if client starts with build request:
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=67
 - all:SOCGameServerText:game=test|text=p3 built a settlement.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=67
+- If Longest Route player changes: all:SOCGameElements:game=test|e6=3
 - all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
 
 ### City
@@ -201,6 +207,10 @@ Or if client starts with build request:
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y
     - all:SOCGameServerText:game=test|text=p3 gets 1 wheat by revealing the fog hex.
 - all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING or (gold fog hex revealed) 56 WAITING_FOR_PICK_GOLD_RESOURCE
+- If revealing a fog hex as gold:
+    - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
+    - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
+    - p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
 
 Or if client sends build request:
 
@@ -208,9 +218,18 @@ Or if client sends build request:
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1
 - all:SOCGameState:game=test|state=30
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=56
+- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=1288|hexType=5|diceNum=10
 - all:SOCGameServerText:game=test|text=p3 built a road.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=56
+- If Longest Route player changes: all:SOCGameElements:game=test|e6=3
+- If revealing a fog hex as non-gold:
+    - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=1|news=Y
+    - all:SOCGameServerText:game=test|text=p3 gets 1 wood by revealing the fog hex.
 - all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
+- If revealing a fog hex as gold:
+    - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
+    - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
+    - p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
 
 ### Ship (may set Longest Route)
 
@@ -219,8 +238,8 @@ Or if client sends build request:
 - If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=1801|hexType=7|diceNum=9
 - all:SOCGameServerText:game=test|text=p3 built a ship.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=80a
-- If revealing a fog hex as non-gold: SOCPlayerElement and SOCGameServerText (see Road above for details)
 - If gaining Longest Route: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
+- If revealing a fog hex as non-gold: SOCPlayerElement and SOCGameServerText (see Road above for details)
 - all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING or (gold fog hex revealed) 56 WAITING_FOR_PICK_GOLD_RESOURCE
 - If revealing a fog hex as gold:
     - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
@@ -233,11 +252,20 @@ Or if client sends build request:
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e3=1,e5=1
 - all:SOCGameState:game=test|state=35
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=602
+- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=1539|hexType=1|diceNum=5
 - all:SOCGameServerText:game=test|text=p3 built a ship.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=602
-- all:SOCGameState:game=test|state=20
+- If gaining Longest Route: all:SOCGameElements:game=test|e6=3
+- If revealing a fog hex as non-gold:
+    - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=1|amount=1|news=Y
+    - all:SOCGameServerText:game=test|text=p3 gets 1 clay by revealing the fog hex.
+- all:SOCGameState:game=test|state=20  // or others as noted above
+- If revealing a fog hex as gold:
+    - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
+    - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
+    - p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
 
-## Move ship
+## Move piece (move ship)
 
 - f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
 - all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
@@ -253,7 +281,7 @@ Or if client sends build request:
 - all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0  // v1 amount same as in SOCGameElements(e2)
 - all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
 
-## Play/use each dev card type
+## Use/Play each dev card type
 
 ### Road Building
 
@@ -296,12 +324,14 @@ Or if client sends build request:
 - all:SOCGameServerText:game=test|text=p3 played a Monopoly card.
 - all:SOCGameState:game=test|state=53
 - f3:SOCPickResourceType:game=test|resType=3
+- From the victim players, if any:
 - all:SOCPlayerElement:game=test|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y
 - all:SOCResourceCount:game=test|playerNum=1|count=7
 - all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y
 - all:SOCResourceCount:game=test|playerNum=2|count=2
-- all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=6
-- all:SOCSimpleAction:game=test|pn=3|actType=3|v1=6|v2=3
+- To the current player:
+- all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=6  // or amount=0 if none gained
+- all:SOCSimpleAction:game=test|pn=3|actType=3|v1=6|v2=3  // RSRC_TYPE_MONOPOLIZED
 - p1:SOCGameServerText:game=test|text=p3's Monopoly took your 5 sheep.
 - p2:SOCGameServerText:game=test|text=p3's Monopoly took your 1 sheep.
 - all:SOCGameState:game=test|state=20  // or 15 (ROLL_OR_CARD)
@@ -360,7 +390,9 @@ In gameState 33 (PLACING_ROBBER):
 - f3:SOCMoveRobber:game=test|playerNumber=3|coord=504
 - all:SOCMoveRobber:game=test|playerNumber=3|coord=504
 - all:SOCGameServerText:game=test|text=p3 moved the robber.
+- If any choices to be made:
 - all:SOCGameState:game=test|state=20  // or choose-player, choose-resource-or-cloth, etc
+- Otherwise next message is SOCReportRobbery from server, which isn't part of this sequence
 
 ### Move pirate
 
@@ -369,26 +401,38 @@ In gameState 34 (PLACING_PIRATE):
 - f3:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
 - all:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
 - all:SOCGameServerText:game=test|text=p3 moved the pirate.
-- all:SOCGameState:game=test|state=20  // or others, same as Move robber
+- all:SOCGameState:game=test|state=20  // or another state, same as Move robber
 
 ### Choose player to rob from
 
 Occurs after moving robber or pirate.
 
-- all:SOCGameServerText:game=test|text=p3 moved the robber. Must choose a victim.
-- all:SOCGameState:game=test|state=51
+In gameState 51 (WAITING_FOR_ROB_CHOOSE_PLAYER):
+
 - p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
 - f3:SOCChoosePlayer:game=test|choice=2
 
-### Rob a player
+### Choose whether to steal cloth or a resource (Cloth Trade scenario)
+
+In gameState 55 (WAITING_FOR_ROB_CLOTH_OR_RESOURCE):
+
+- p3:SOCChoosePlayer:game=test|choice=2  // 2 = victim pn, as a prompt and reminder
+- f3:SOCChoosePlayer:game=test|choice=-3  // negative pn -> rob cloth, not resource
+
+### Rob a player of a resource
 
 Occurs after moving robber or pirate, then possibly choosing a victim,
-and (scenario SC_CLVI) choosing whether to rob cloth or resources.
+and (Cloth Trade scenario) choosing whether to rob cloth or resources.
 
 - p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
 - p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
 - !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
-- all:SOCGameState:game=test|state=20
+- all:SOCGameState:game=test|state=20  // or 15 if hasn't rolled yet
+
+### Rob a player of cloth
+
+- all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3  // rob 1 cloth; gives new total amounts for perpetrator and victim
+- all:SOCGameState:game=test|state=20  // or 15
 
 ## Trade with bank and players
 

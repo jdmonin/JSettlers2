@@ -4,7 +4,7 @@ SOC game event log: version=2500, created_at=1633920526, now=1633921260, game_na
 # Added comments are (C) Jeremy D Monin 2021 (GPLv3)
 # This log has a complete game on the sea board,
 # including all basic actions: Roll dice, discard, build pieces, move ship,
-# buy and use each dev card type, trade with bank and players,
+# buy and use each dev card type, trade with bank and players, do nothing,
 # move robber and pirate, choose player and rob, Special Building phase.
 # Starts with debug player and 1 robot; human player p2 takes over for bot just after initial placement.
 # Uses debug comands rsrcs, devnext.
@@ -422,7 +422,13 @@ all:SOCGameState:game=test|state=34
 all:SOCGameServerText:game=test|text=debug will move the pirate ship.
 f3:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
 all:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
-all:SOCGameServerText:game=test|text=debug moved the pirate.
+all:SOCGameServerText:game=test|text=debug moved the pirate. Must choose to steal cloth or steal resources.
+# Steal cloth: Added afterwards to test GameEventSequenceRecognizer; actual game doesn't have scenario SC_CLVI
+all:SOCGameState:game=test|state=55
+p3:SOCChoosePlayer:game=test|choice=2
+f3:SOCChoosePlayer:game=test|choice=-3
+all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3
+# End of added section
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
@@ -499,6 +505,26 @@ all:SOCClearOffer:game=test|playerNumber=-1
 all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
+# Play Soldier, move robber, and steal before rolling dice: Added afterwards to test.
+f3:SOCPlayDevCardRequest:game=test|devCard=9
+all:SOCGameServerText:game=test|text=debug played a Soldier card.
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=debug will move the robber.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=55
+all:SOCMoveRobber:game=test|playerNumber=3|coord=55
+all:SOCGameServerText:game=test|text=debug moved the robber. Must choose a victim.
+all:SOCGameState:game=test|state=51
+p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
+f3:SOCChoosePlayer:game=test|choice=2
+p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+!p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+all:SOCGameState:game=test|state=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+# End of added section
 f3:SOCRollDice:game=test
 all:SOCDiceResult:game=test|param=6
 all:SOCDiceResultResources:game=test|p=1|p=2|p=3|p=1|p=3|p=1|p=5
@@ -519,6 +545,17 @@ f2:SOCRollDice:game=test
 all:SOCDiceResult:game=test|param=12
 all:SOCGameServerText:game=test|text=No player gets anything.
 all:SOCGameState:game=test|state=20
+# Play Monopoly card, but no resources gained: Added afterwards to test.
+f2:SOCPlayDevCardRequest:game=test|devCard=3
+all:SOCDevCardAction:game=test|playerNum=2|actionType=PLAY|cardType=3
+all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=1
+all:SOCGameServerText:game=test|text=p2 played a Monopoly card.
+all:SOCGameState:game=test|state=53
+f2:SOCPickResourceType:game=test|resType=5
+all:SOCPlayerElement:game=test|playerNum=2|actionType=GAIN|elementType=5|amount=0
+all:SOCSimpleAction:game=test|pn=2|actType=2|v1=0|v2=5
+all:SOCGameState:game=test|state=20
+# End of added section
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
 all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0

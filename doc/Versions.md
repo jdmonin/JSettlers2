@@ -61,6 +61,9 @@ JARs for recent JSettlers versions can be downloaded from
 	- Enhanced server's recordGameEvent framework for more detailed game recording
 	    - GameEventLog entries note their audience (all of game, specific player, etc)
 	    - `*SAVELOG*` debug command of soc.extra.server.RecordingSOCServer can save logs to files
+	- Message sequences/network traffic:
+	    - Game action message sequences documented in [Message-Sequences-for-Game-Actions.md](Message-Sequences-for-Game-Actions.md)
+	    - Sample code/unit tests recognize and extract game actions from message sequences: See [GameActionExtractor.md](extra/GameActionExtractor.md)
 	    - Unit tests TestRecorder and TestActionsMessages prevent unexpected changes to game event message sequences
 	    - Unit test TestToCmdToStringParse for backwards-compatible parsing of logged event messages
 	- More accessible robot-related methods and data classes

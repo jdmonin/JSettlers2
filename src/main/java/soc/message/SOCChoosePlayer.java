@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2012,2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2012,2014,2016-2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCGame;
+
 
 /**
  * This message from client to server has a few purposes, all related to robbing:
@@ -31,10 +33,11 @@ import java.util.StringTokenizer;
  *     steal from.
  *     <P>
  *     In some game scenarios in version 2.0.00 or newer,
- *     the player might have the option to steal from no one.
+ *     the player might have the option to steal from no one
+ *     (see {@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER}).
  *     If the player makes that choice, {@link #getChoice()} is {@link #CHOICE_NO_PLAYER}.
  *<LI> In response to a server's {@link SOCGameState}
- *     ({@link soc.game.SOCGame#WAITING_FOR_ROBBER_OR_PIRATE WAITING_FOR_ROBBER_OR_PIRATE}) message,
+ *     ({@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE WAITING_FOR_ROBBER_OR_PIRATE}) message,
  *     it says whether the player wants to move the robber
  *     or the pirate ship. (v2.0.00+)
  *<LI> In response to a server's {@link SOCChoosePlayer} message, it says whether the player wants to
@@ -45,7 +48,7 @@ import java.util.StringTokenizer;
  * Server will respond with the results of the choice: {@link SOCReportRobbery}, {@link SOCGameState}, etc.
  *<P>
  * Also sent from server to client (v2.0.00+) in game state
- * {@link soc.game.SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
+ * {@link SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
  * to prompt the client player to choose what to rob from the victim (cloth or a resource);
  * {@link #getChoice()} is the victim player number.
  *
@@ -58,6 +61,7 @@ public class SOCChoosePlayer extends SOCMessage
 
     /** Constant for {@link #getChoice()} in response to server's {@link SOCChoosePlayerRequest},
      *  if player has chosen to not rob from any player.
+     *  See {@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER} for when that is allowed.
      *  @since 2.0.00
      */
     public static final int CHOICE_NO_PLAYER = -1;
@@ -96,7 +100,7 @@ public class SOCChoosePlayer extends SOCMessage
      *   or {@link #CHOICE_MOVE_ROBBER} to move the robber
      *   or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      *<br>
-     * For {@link soc.game.SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE},
+     * For {@link SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE},
      * use {@code ch} = playerNumber to rob a resource from that player;
      * to rob cloth, use {@code ch} = -(playerNumber + 1).
      */

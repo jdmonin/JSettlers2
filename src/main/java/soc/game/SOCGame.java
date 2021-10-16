@@ -416,7 +416,7 @@ public class SOCGame implements Serializable, Cloneable
     public static final int WAITING_FOR_ROB_CHOOSE_PLAYER = 51;
 
     /**
-     * Waiting for player to choose 2 resources (Discovery card)
+     * Waiting for player to choose 2 resources (Discovery/Year of Plenty card)
      * Next game state is {@link #PLAY1}.
      */
     public static final int WAITING_FOR_DISCOVERY = 52;
@@ -7991,14 +7991,15 @@ public class SOCGame implements Serializable, Cloneable
      * in the deck.
      *
      * @param cardType  Dev card type from {@link SOCDevCardConstants}; not validated.
-     * @throws IllegalStateException if deck is empty; check {@link #getNumDevCards()} before calling.
+     * @throws IllegalStateException if deck is empty or game hasn't started yet;
+     *     check {@link #getNumDevCards()} before calling.
      * @since 2.5.00
      */
     public void setNextDevCard(final int cardType)
         throws IllegalStateException
     {
         final int nextCardIdx = numDevCards - 1;
-        if (nextCardIdx < 0)
+        if ((nextCardIdx < 0) || (devCardDeck == null))
             throw new IllegalStateException("empty");
 
         if (cardType == devCardDeck[nextCardIdx])

@@ -433,14 +433,20 @@ public class GameEventLog
          * If from server, the player number this event was sent to, or -1 if to all;
          * is also -1 if {@link #excludedPN} != null.
          * Can also be {@link SOCServer#PN_OBSERVER} or {@link SOCServer#PN_REPLY_TO_UNDETERMINED}.
+         * @see #isToAll()
          */
         public final int pn;
 
-        /** If from server, the player numbers specifically excluded from this event's audience, or null */
+        /**
+         * If from server, the player numbers specifically excluded from this event's audience, or null.
+         * Ignored if {@link #isFromClient}.
+         * @see #pn
+         */
         public final int[] excludedPN;
 
         /**
          * True if this message is from a game member client instead of from server.
+         * @see #pn
          */
         public final boolean isFromClient;
 
@@ -516,6 +522,15 @@ public class GameEventLog
             this.pn = -1;
             this.excludedPN = null;
             this.isFromClient = false;
+        }
+
+        /**
+         * Is this a server message sent to all players?
+         * @return true if {@link #isFromClient} false, {@link #pn} == -1, and {@link #excludedPN} == null
+         */
+        public boolean isToAll()
+        {
+            return (! isFromClient) && (pn == -1) && (excludedPN == null);
         }
 
         /**

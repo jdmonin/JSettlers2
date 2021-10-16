@@ -933,6 +933,9 @@ handling. Communication format and more details are described in
 
 A list of basic game actions and their message sequences is in
 [Message-Sequences-for-Game-Actions.md](Message-Sequences-for-Game-Actions.md).
+Sample code to recognize and extract game actions from them
+(`soc.extra.robot.GameActionExtractor`)
+is described in [GameActionExtractor.md](extra/GameActionExtractor.md).
 
 Keeping the network protocol simple helps with interoperability between different
 versions and implementations. At the TCP level, JSettlers messages are unicode
