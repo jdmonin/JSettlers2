@@ -45,6 +45,7 @@ import soc.message.*;
  *<P>
  * For more details and the message analysis on which this is based,
  * see {@code /doc/extra/GameActionExtractor.md}.
+ * For sample code which uses it, see {@code soctest.robot.TestGameActionExtractor}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.5.00
@@ -551,12 +552,16 @@ public class GameActionExtractor
         if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
             return null;
 
+        // Except during initial placement:
         // all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1 (elems vary by type)
-        e = next();
-        if ((e == null)
-            || ! (e.isToAll() && (e.event instanceof SOCPlayerElements)
-                  && (((SOCPlayerElements) e.event).getAction() == SOCPlayerElement.LOSE)))
-            return null;
+        if (state.currentGameState >= SOCGame.ROLL_OR_CARD)
+        {
+            e = next();
+            if ((e == null)
+                || ! (e.isToAll() && (e.event instanceof SOCPlayerElements)
+                      && (((SOCPlayerElements) e.event).getAction() == SOCPlayerElement.LOSE)))
+                return null;
+        }
 
         if (startsWithBuildReq)
         {
@@ -784,24 +789,43 @@ public class GameActionExtractor
                    == SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG.getValue()))
             return null;
 
-        // Rest of sequence varies by dev card type
+        // Rest of sequence varies by dev card type; they all end with SOCGameState
+        final Action seq;
         switch (cardType)
         {
         case SOCDevCardConstants.ROADS:
-            return extract_PLAY_DEV_CARD_ROADS();
+            seq = extract_PLAY_DEV_CARD_ROADS();
+            break;
 
         case SOCDevCardConstants.DISC:
-            return extract_PLAY_DEV_CARD_DISCOVERY();
+            seq = extract_PLAY_DEV_CARD_DISCOVERY();
+            break;
 
         case SOCDevCardConstants.MONO:
-            return extract_PLAY_DEV_CARD_MONOPOLY();
+            seq = extract_PLAY_DEV_CARD_MONOPOLY();
+            break;
 
         case SOCDevCardConstants.KNIGHT:
-            return extract_PLAY_DEV_CARD_KNIGHT();
+            seq = extract_PLAY_DEV_CARD_KNIGHT();
+            break;
 
         default:
             return null;
         }
+
+        // If was played before dice roll, now in gamestate ROLL_OR_CARD, that may be followed by:
+        // all:SOCRollDicePrompt:game=test|playerNumber=3
+        if ((seq != null) && (state.currentGameState == SOCGame.ROLL_OR_CARD))
+        {
+            e = nextIfType(SOCMessage.ROLLDICEPROMPT);
+            if (e != null)
+            {
+                seq.eventSequence.add(e);
+                resetCurrentSequence();
+            }
+        }
+
+        return seq;
     }
 
     /**
@@ -1162,7 +1186,9 @@ public class GameActionExtractor
         e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCMoveRobber)))
             return null;
-        final int hexCoord = ((SOCMoveRobber) e.event).getCoordinates();
+        int hexCoord = ((SOCMoveRobber) e.event).getCoordinates();
+        if (isPirate && (hexCoord < 0))
+            hexCoord = -hexCoord;  // network sends pirate as negative coord; Action abstracts away from that
 
         // If any choices to be made:
         // all:SOCGameState:game=test|state=20  // or another state

@@ -213,6 +213,7 @@ public class GameActionLog
         /**
          * All recognized {@link Action}s.
          * Actions which don't include a player number are done by the current player.
+         * Only {@link #TURN_BEGINS} actions change the current player number.
          */
         public static enum ActionType
         {
@@ -224,11 +225,15 @@ public class GameActionLog
             /** Any sequence that doesn't start with a "sequence start" message type */
             UNKNOWN,
 
-            /** Entire contents of log before first turn of initial placement (optional section) */
+            /**
+             * Entire contents of log before first turn of initial placement (optional section).
+             * Last message in {@link Action#eventSequence} is a {@link SOCStartGame}.
+             */
             LOG_START_TO_STARTGAME,
 
             /**
              * Start a player's regular turn or Special Build Phase (SBP), depending on {@link Action#endingGameState}.
+             * Current player number has changed.
              *<BR>
              * {@code p1} = new current player number.
              */

@@ -304,6 +304,8 @@ Or if client sends build request:
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
 - If gains Longest Route after 2nd placement: all:SOCGameElements:game=test|e6=3
 - all:SOCGameState:game=test|state=20  // or 15 (ROLL_OR_CARD) if played before dice roll
+- If played before dice roll:
+- all:SOCRollDicePrompt:game=test|playerNumber=3
 
 ### Year of Plenty/Discovery (see also "Gold hex gains" sequence)
 
@@ -315,6 +317,8 @@ Or if client sends build request:
 - f3:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0
 - all:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=2
 - all:SOCGameState:game=test|state=20  // or 15 (ROLL_OR_CARD)
+- If played before dice roll:
+- all:SOCRollDicePrompt:game=test|playerNumber=3
 
 ### Monopoly
 
@@ -335,6 +339,8 @@ Or if client sends build request:
 - p1:SOCGameServerText:game=test|text=p3's Monopoly took your 5 sheep.
 - p2:SOCGameServerText:game=test|text=p3's Monopoly took your 1 sheep.
 - all:SOCGameState:game=test|state=20  // or 15 (ROLL_OR_CARD)
+- If played before dice roll:
+- all:SOCRollDicePrompt:game=test|playerNumber=3
 
 ### Soldier (may set Largest Army)
 
@@ -345,6 +351,8 @@ Or if client sends build request:
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1  // NUMKNIGHTS
 - If Largest Army player changing: all:SOCGameElements:game=test|e5=3  // LARGEST_ARMY_PLAYER
 - all:SOCGameState:game=test|state=33  // or 34 (PLACING_PIRATE), 54 (WAITING_FOR_ROBBER_OR_PIRATE), or other states
+- If played before dice roll:
+- all:SOCRollDicePrompt:game=test|playerNumber=3
 
 ## Actions which happen because of other game actions
 

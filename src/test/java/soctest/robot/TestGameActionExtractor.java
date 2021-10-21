@@ -28,13 +28,16 @@ import soc.extra.robot.GameActionLog;
 import soc.extra.robot.GameActionLog.Action.ActionType;
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.QueueEntry;
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
+import soc.game.SOCScenario;
 import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
 import soc.message.SOCMessage;
 import soc.message.SOCNewGame;
+import soc.message.SOCPlayerElement;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRollDiceRequest;
 import soc.message.SOCStartGame;
@@ -66,7 +69,10 @@ public class TestGameActionExtractor
     /** Game state at end of event sequence from {@link #makeEmptyEventLog()}. */
     private static final int EMPTYEVENTLOG_STARTGAME_GAME_STATE = SOCGame.START1A;
 
-    /** Create an event log with the minimal required entries. */
+    /**
+     * Create an event log with the minimal required entries. Ends with {@link SOCStartGame},
+     * to be extracted into a {@link ActionType#LOG_START_TO_STARTGAME} {@link GameActionLog.Action}.
+     */
     private static GameEventLog makeEmptyEventLog()
     {
         GameEventLog log = new GameEventLog();
@@ -183,10 +189,12 @@ public class TestGameActionExtractor
         assertEquals(10, state.nextLogIndex);
     }
 
+    // TODO testInitialPlacement()
+
     /**
-     * Test extraction of a turn where pieces are built:
+     * Test extraction of a turn where pieces are built and a ship moved:
      * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE} with gains,
-     * {@link ActionType#BUILD_PIECE} x 2, {@link ActionType#END_TURN}.
+     * {@link ActionType#BUILD_PIECE} x 2, {@link ActionType#MOVE_PIECE}, {@link ActionType#END_TURN}.
      * Sequences based on {@code all-basic-actions.soclog}.
      */
     @Test
@@ -235,6 +243,15 @@ public class TestGameActionExtractor
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804",
             "all:SOCGameState:game=test|state=20",
 
+            // move piece (ship):
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1538|toCoord=1283",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1538|toCoord=1283",
+
+            // move ship and gain longest route (actual game rules don't allow 2 moves/turn):
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1026|toCoord=2818",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1026|toCoord=2818",
+            "all:SOCGameElements:game=test|e6=3",
+
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
@@ -250,7 +267,7 @@ public class TestGameActionExtractor
         assertEquals("at end of event log", events.size(), state.nextLogIndex);
         assertNull(next());  // at end of log again
         assertNotNull(actionLog);
-        assertEquals(6, actionLog.size());
+        assertEquals(8, actionLog.size());
 
         GameActionLog.Action act = actionLog.get(0);
         assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -286,9 +303,227 @@ public class TestGameActionExtractor
         assertEquals("built by player 3", 3, act.param3);
 
         act = actionLog.get(5);
+        assertEquals(ActionType.MOVE_PIECE, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("moved a ship", SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("moved from", 1538, act.param2);
+        assertEquals("moved to", 1283, act.param3);
+
+        act = actionLog.get(6);
+        assertEquals(ActionType.MOVE_PIECE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("moved a ship", SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("moved from", 1026, act.param2);
+        assertEquals("moved to", 2818, act.param3);
+
+        act = actionLog.get(7);
         assertEquals(ActionType.END_TURN, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
+    }
+
+    /**
+     * Test extraction of asking and playing the Special Building Phase (SBP):
+     * {@link ActionType#ASK_SPECIAL_BUILDING}, {@link ActionType#END_TURN},
+     * {@link ActionType#TURN_BEGINS} for SBP, etc.
+     */
+    @Test
+    public void testSpecialBuildingPhase()
+    {
+        final List<QueueEntry> events = eventLog.entries;
+
+        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
+        assertEquals(1, actLog.size());
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
+        assertEquals(-1, state.currentPlayerNumber);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
+        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
+        assertEquals(0, currentSequence.size());
+        assertNull(next());  // at end of log
+
+        for (String event : new String[] {
+            // start of p3's turn:
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // roll dice:
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            // p1 asks for SBP:
+            "f1:SOCBuildRequest:game=test|pieceType=-1",
+            "all:SOCPlayerElement:game=test|playerNum=1|actionType=SET|elementType=16|amount=1",
+
+            // p4 asks for SBP:
+            "f4:SOCBuildRequest:game=test|pieceType=0",
+            "all:SOCPlayerElement:game=test|playerNum=4|actionType=SET|elementType=16|amount=1",
+
+            // end p3's normal turn:
+            "f3:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // start of SBP: p4's turn:
+            "all:SOCPlayerElement:game=test|playerNum=4|actionType=SET|elementType=19|amount=0",
+            "all:SOCTurn:game=test|playerNumber=4|gameState=100",
+
+            // this prompt text goes with SOCTurn,
+            // but since servertext are ignored, it's collected as part of
+            // the next sequence:
+            "all:SOCGameServerText:game=test|text=Special building phase: p4's turn to place.",
+
+            // buy dev card:
+            "f4:SOCBuyDevCardRequest:game=test",
+            "all:SOCPlayerElements:game=test|playerNum=4|actionType=LOSE|e2=1,e3=1,e4=1",
+            "all:SOCGameElements:game=test|e2=32",
+            "p4:SOCDevCardAction:game=test|playerNum=4|actionType=DRAW|cardType=9",
+            "!p4:SOCDevCardAction:game=test|playerNum=4|actionType=DRAW|cardType=0",
+            "all:SOCSimpleAction:game=test|pn=4|actType=1|v1=32|v2=0",
+            "all:SOCGameState:game=test|state=100",
+
+            // buy & place a road, starting with putpiece:
+            "f4:SOCPutPiece:game=test|playerNumber=4|pieceType=0|coord=76",
+            "all:SOCPlayerElements:game=test|playerNum=4|actionType=LOSE|e1=1,e5=1",
+            "all:SOCGameServerText:game=test|text=p4 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=4|pieceType=0|coord=76",
+            "all:SOCGameState:game=test|state=100",
+
+            // end p4's SBP:
+            "f4:SOCEndTurn:game=test",
+            "all:SOCPlayerElement:game=test|playerNum=4|actionType=SET|elementType=16|amount=0",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // start of p1's SBP:
+            "all:SOCPlayerElement:game=test|playerNum=1|actionType=SET|elementType=19|amount=0",
+            "all:SOCTurn:game=test|playerNumber=1|gameState=100",
+
+            "all:SOCGameServerText:game=test|text=Special building phase: p1's turn to place.",
+
+            // buy & place a road, starting with buildrequest:
+            "f1:SOCBuildRequest:game=test|pieceType=0",
+            "all:SOCPlayerElements:game=test|playerNum=1|actionType=LOSE|e1=1,e5=1",
+            "all:SOCGameState:game=test|state=30",
+            "f1:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=a8",
+            "all:SOCGameServerText:game=test|text=p1 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=a8",
+            "all:SOCGameState:game=test|state=100",
+
+            // end p1's SBP:
+            "f1:SOCEndTurn:game=test",
+            "all:SOCPlayerElement:game=test|playerNum=1|actionType=SET|elementType=16|amount=0",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // start of p4's normal turn:
+            "all:SOCPlayerElement:game=test|playerNum=4|actionType=SET|elementType=19|amount=0",
+            "all:SOCTurn:game=test|playerNumber=4|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=4",
+            })
+            try {
+                events.add(QueueEntry.parse(event));
+            } catch (ParseException e) {
+                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
+            }
+
+        final GameActionLog actionLog = extract();
+
+        assertEquals("at end of event log", events.size(), state.nextLogIndex);
+        assertNull(next());  // at end of log again
+        assertNotNull(actionLog);
+        assertEquals(14, actionLog.size());
+
+        GameActionLog.Action act = actionLog.get(0);
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+        act = actionLog.get(1);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals("new current player number", 3, act.param1);
+
+        act = actionLog.get(2);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("dice roll sum", 12, act.param1);
+
+        act = actionLog.get(3);
+        assertEquals(ActionType.ASK_SPECIAL_BUILDING, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(1, act.param1);
+
+        act = actionLog.get(4);
+        assertEquals(ActionType.ASK_SPECIAL_BUILDING, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(4, act.param1);
+
+        act = actionLog.get(5);
+        assertEquals(ActionType.END_TURN, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+
+        // start of SBP: p4
+        act = actionLog.get(6);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
+        assertEquals("new current player number", 4, act.param1);
+
+        act = actionLog.get(7);
+        assertEquals(ActionType.BUY_DEV_CARD, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
+        assertEquals("dev card type", SOCDevCardConstants.KNIGHT, act.param1);
+        assertEquals("remaining cards", 32, act.param2);
+
+        act = actionLog.get(8);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(5, act.eventSequence.size());
+        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
+        assertEquals("built road", SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0x76", 0x76, act.param2);
+        assertEquals("built by player 4", 4, act.param3);
+
+        act = actionLog.get(9);
+        assertEquals(ActionType.END_TURN, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
+
+        // start of SBP: p1
+        act = actionLog.get(10);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
+        assertEquals("new current player number", 1, act.param1);
+
+        act = actionLog.get(11);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
+        assertEquals("built road", SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0xa8", 0xa8, act.param2);
+        assertEquals("built by player 1", 1, act.param3);
+
+        act = actionLog.get(12);
+        assertEquals(ActionType.END_TURN, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
+
+        // start of p4's normal turn
+        act = actionLog.get(13);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals("new current player number", 4, act.param1);
     }
 
     /**
@@ -435,11 +670,15 @@ public class TestGameActionExtractor
 
     /**
      * Test extraction of a turn with rolling 7, players discard, move robber, rob,
-     * play Knight/Soldier dev card, choose victim, rob:
+     * play Knight/Soldier dev card, choose victim, rob as usual, rove pirate, rob cloth
+     * ({@link SOCScenario#K_SC_CLVI SC_CLVI} scenario):
      * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE}, {@link ActionType#DISCARD},
      * {@link ActionType#MOVE_ROBBER_OR_PIRATE}, {@link ActionType#ROB_PLAYER},
      * {@link ActionType#PLAY_DEV_CARD}, {@link ActionType#CHOOSE_ROBBERY_VICTIM},
-     * {@link ActionType#ROB_PLAYER}, {@link ActionType#END_TURN}.
+     * {@link ActionType#ROB_PLAYER}, {@link ActionType#CHOOSE_MOVE_ROBBER_PIRATE},
+     * {@link ActionType#CHOOSE_ROB_CLOTH_OR_RESOURCE}, {@link ActionType#END_TURN}.
+     *
+     * @see #testBuyPlayDevCards()
      */
     @Test
     public void testRoll7DiscardsMoveRobberSteal()
@@ -534,6 +773,57 @@ public class TestGameActionExtractor
             "!p[3, 1]:SOCReportRobbery:game=test|perp=3|victim=1|resType=6|amount=1|isGainLose=true",
             "all:SOCGameState:game=test|state=20",
 
+            // play Soldier dev card (couldn't actually happen twice in same turn),
+            // move pirate, steal cloth (SC_CLVI scenario):
+            "f3:SOCPlayDevCardRequest:game=test|devCard=9",
+            "all:SOCGameServerText:game=test|text=p3 played a Soldier card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1",
+            "all:SOCGameState:game=test|state=54",
+
+            "all:SOCGameServerText:game=test|text=p3 must choose to move the robber or the pirate.",
+
+            // choose to move pirate ship:
+            "f3:SOCChoosePlayer:game=test|choice=-3",
+            "all:SOCGameState:game=test|state=34",
+
+            "all:SOCGameServerText:game=test|text=p3 will move the pirate ship.",
+
+            // move the pirate:
+            "f3:SOCMoveRobber:game=test|playerNumber=3|coord=-b07",
+            "all:SOCMoveRobber:game=test|playerNumber=3|coord=-b07",
+            "all:SOCGameServerText:game=test|text=p3 moved the pirate. Must choose to steal cloth or steal resources.",
+            "all:SOCGameState:game=test|state=55",
+
+            // choose to steal cloth:
+            "p3:SOCChoosePlayer:game=test|choice=2",
+            "f3:SOCChoosePlayer:game=test|choice=-3",
+
+            // steal cloth:
+            "all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=2|isGainLose=false|victimAmount=1",
+            "all:SOCGameState:game=test|state=20",
+
+            // play Soldier dev card "again" (but no victims) to gain largest army
+            "f3:SOCPlayDevCardRequest:game=test|devCard=9",
+            "all:SOCGameServerText:game=test|text=p3 played a Soldier card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1",
+            "all:SOCGameElements:game=test|e5=3",  // LARGEST_ARMY_PLAYER
+            "all:SOCGameState:game=test|state=33",
+
+            // these are from dev card, but since extractor ignores SOCGameServerText
+            // they'll be included as part of next sequence:
+
+            "all:SOCGameServerText:game=test|text=p3 will move the robber.",
+
+            // move robber: (no victims)
+            "f3:SOCMoveRobber:game=test|playerNumber=3|coord=57",
+            "all:SOCMoveRobber:game=test|playerNumber=3|coord=57",
+            "all:SOCGameServerText:game=test|text=p3 moved the robber.",
+            "all:SOCGameState:game=test|state=20",
+
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
@@ -549,7 +839,7 @@ public class TestGameActionExtractor
         assertEquals("at end of event log", events.size(), state.nextLogIndex);
         assertNull(next());  // at end of log again
         assertNotNull(actionLog);
-        assertEquals(12, actionLog.size());
+        assertEquals(19, actionLog.size());
 
         GameActionLog.Action act = actionLog.get(0);
         assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -572,16 +862,22 @@ public class TestGameActionExtractor
         assertEquals(ActionType.DISCARD, act.actType);
         assertEquals(5, act.eventSequence.size());
         assertEquals(SOCGame.WAITING_FOR_DISCARDS, act.endingGameState);
+        assertEquals(1, act.param1);
+        assertEquals(new SOCResourceSet(0, 0, 3, 1, 2, 0), act.rset1);
 
         act = actionLog.get(4);
         assertEquals(ActionType.DISCARD, act.actType);
         assertEquals(10, act.eventSequence.size());
         assertEquals(SOCGame.PLACING_ROBBER, act.endingGameState);
+        assertEquals(3, act.param1);
+        assertEquals(new SOCResourceSet(0, 2, 2, 2, 3, 0), act.rset1);
 
         act = actionLog.get(5);
         assertEquals(ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
         assertEquals(3, act.eventSequence.size());
         assertEquals(SOCGame.PLACING_ROBBER, act.endingGameState);
+        assertEquals(1, act.param1);
+        assertEquals("moved robber to 0xb9", 0xb9, act.param2);
 
         act = actionLog.get(6);
         assertEquals(ActionType.ROB_PLAYER, act.actType);
@@ -592,26 +888,599 @@ public class TestGameActionExtractor
         assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
         assertEquals(6, act.eventSequence.size());
         assertEquals(SOCGame.PLACING_ROBBER, act.endingGameState);
+        assertEquals(SOCDevCardConstants.KNIGHT, act.param1);
 
         act = actionLog.get(8);
         assertEquals(ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
         assertEquals(5, act.eventSequence.size());
         assertEquals(SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER, act.endingGameState);
+        assertEquals(1, act.param1);
+        assertEquals("moved robber to 0x75", 0x75, act.param2);
 
         act = actionLog.get(9);
         assertEquals(ActionType.CHOOSE_ROBBERY_VICTIM, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER, act.endingGameState);
+        assertEquals(1, act.param1);
 
         act = actionLog.get(10);
         assertEquals(ActionType.ROB_PLAYER, act.actType);
         assertEquals(4, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(1, act.param1);
+        assertEquals(new SOCResourceSet(0, 1, 0, 0, 0, 0), act.rset1);
 
         act = actionLog.get(11);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, act.endingGameState);
+        assertEquals(SOCDevCardConstants.KNIGHT, act.param1);
+
+        act = actionLog.get(12);
+        assertEquals(ActionType.CHOOSE_MOVE_ROBBER_PIRATE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLACING_PIRATE, act.endingGameState);
+        assertEquals("chose pirate", 2, act.param1);
+
+        act = actionLog.get(13);
+        assertEquals(ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
+        assertEquals(5, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
+        assertEquals(2, act.param1);
+        assertEquals("moved pirate to 0xb07", 0xb07, act.param2);
+
+        act = actionLog.get(14);
+        assertEquals(ActionType.CHOOSE_ROB_CLOTH_OR_RESOURCE, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
+        assertEquals(2, act.param1);
+
+        act = actionLog.get(15);
+        assertEquals(ActionType.ROB_PLAYER, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertNull(act.rset1);
+        assertEquals(2, act.param1);
+        assertEquals("steal cloth", SOCPlayerElement.PEType.SCENARIO_CLOTH_COUNT.getValue(), act.param2);
+
+        act = actionLog.get(16);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(7, act.eventSequence.size());
+        assertEquals(SOCGame.PLACING_ROBBER, act.endingGameState);
+        assertEquals(SOCDevCardConstants.KNIGHT, act.param1);
+
+        act = actionLog.get(17);
+        assertEquals(ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
+        assertEquals(5, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(1, act.param1);
+        assertEquals("moved robber to 0x57", 0x57, act.param2);
+
+        act = actionLog.get(18);
         assertEquals(ActionType.END_TURN, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
     }
+
+    /**
+     * Test extraction of a turn with buying and playing dev cards:
+     * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE} without gains,
+     * {@link ActionType#BUY_DEV_CARD}, various {@link ActionType#PLAY_DEV_CARD},
+     * {@link ActionType#END_TURN}.
+     * Sequences based on {@code all-basic-actions.soclog}.
+     *<P>
+     * {@code PLAY_DEV_CARD} for Knight/Soldier is tested in {@link #testRoll7DiscardsMoveRobberSteal()},
+     * for Road Building in {@link #testPlayDevCardRoadBuilding()}.
+     */
+    @Test
+    public void testBuyPlayDevCards()
+    {
+        final List<QueueEntry> events = eventLog.entries;
+
+        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
+        assertEquals(1, actLog.size());
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
+        assertEquals(-1, state.currentPlayerNumber);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
+        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
+        assertEquals(0, currentSequence.size());
+        assertNull(next());  // at end of log
+
+        for (String event : new String[] {
+            // start of turn:
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // roll dice:
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameServerText:game=test|text=No player gets anything.",
+            "all:SOCGameState:game=test|state=20",
+
+            // buy dev card:
+            "f3:SOCBuyDevCardRequest:game=test",
+            "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1",
+            "all:SOCGameElements:game=test|e2=15",
+            "p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9",
+            "!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0",
+            "all:SOCSimpleAction:game=test|pn=3|actType=1|v1=15|v2=0",
+            "all:SOCGameState:game=test|state=20",
+
+            // Play dev cards:
+            // These wouldn't really happen all in same turn
+
+            // monopoly with 1 victim:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=3",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Monopoly card.",
+            "all:SOCGameState:game=test|state=53",
+            "f3:SOCPickResourceType:game=test|resType=3",
+            "all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y",
+            "all:SOCResourceCount:game=test|playerNum=2|count=2",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=1",
+            "all:SOCSimpleAction:game=test|pn=3|actType=3|v1=1|v2=3",
+            "p2:SOCGameServerText:game=test|text=p3's Monopoly took your 1 sheep.",
+            "all:SOCGameState:game=test|state=20",
+
+            // with 0 victims:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=3",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Monopoly card.",
+            "all:SOCGameState:game=test|state=53",
+            "f3:SOCPickResourceType:game=test|resType=5",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=0",
+            "all:SOCSimpleAction:game=test|pn=3|actType=3|v1=0|v2=5",
+            "all:SOCGameState:game=test|state=20",
+
+            // with 2 victims:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=3",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Monopoly card.",
+            "all:SOCGameState:game=test|state=53",
+            "f3:SOCPickResourceType:game=test|resType=3",
+            "all:SOCPlayerElement:game=test|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y",
+            "all:SOCResourceCount:game=test|playerNum=1|count=7",
+            "all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y",
+            "all:SOCResourceCount:game=test|playerNum=2|count=2",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=6",
+            "all:SOCSimpleAction:game=test|pn=3|actType=3|v1=6|v2=3",
+            "p1:SOCGameServerText:game=test|text=p3's Monopoly took your 5 sheep.",
+            "p2:SOCGameServerText:game=test|text=p3's Monopoly took your 1 sheep.",
+            "all:SOCGameState:game=test|state=20",
+
+            // discovery/year of plenty:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=2",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=2",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Year of Plenty card.",
+            "all:SOCGameState:game=test|state=52",
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=2|sheep=0|wheat=0|wood=0|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=2|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=2",
+            "all:SOCGameState:game=test|state=20",
+
+            // end turn:
+            "f3:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+            })
+            try {
+                events.add(QueueEntry.parse(event));
+            } catch (ParseException e) {
+                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
+            }
+
+        final GameActionLog actionLog = extract();
+
+        assertEquals("at end of event log", events.size(), state.nextLogIndex);
+        assertNull(next());  // at end of log again
+        assertNotNull(actionLog);
+        assertEquals(9, actionLog.size());
+
+        GameActionLog.Action act = actionLog.get(0);
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+        act = actionLog.get(1);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals("new current player number", 3, act.param1);
+
+        act = actionLog.get(2);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("dice roll sum", 12, act.param1);
+
+        act = actionLog.get(3);
+        assertEquals(ActionType.BUY_DEV_CARD, act.actType);
+        assertEquals(7, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("dev card type", SOCDevCardConstants.KNIGHT, act.param1);
+        assertEquals("remaining cards", 15, act.param2);
+
+        act = actionLog.get(4);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(12, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played mono card", SOCDevCardConstants.MONO, act.param1);
+        assertEquals("resources from mono", new SOCResourceSet(0, 0, 1, 0, 0, 0), act.rset1);
+
+        act = actionLog.get(5);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(9, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played mono card", SOCDevCardConstants.MONO, act.param1);
+        assertNull("nothing gained from mono", act.rset1);
+
+        act = actionLog.get(6);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(15, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played mono card", SOCDevCardConstants.MONO, act.param1);
+        assertEquals("resources from mono", new SOCResourceSet(0, 0, 6, 0, 0, 0), act.rset1);
+
+        act = actionLog.get(7);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played discov card", SOCDevCardConstants.DISC, act.param1);
+        assertEquals("resources from discov", new SOCResourceSet(0, 2, 0, 0, 0, 0), act.rset1);
+
+        act = actionLog.get(8);
+        assertEquals(ActionType.END_TURN, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+    }
+
+    /**
+     * Test extraction of a turn with playing the Road Building dev card
+     * ({@link ActionType#PLAY_DEV_CARD}) in different conditions.
+     *<P>
+     * @see #testBuyPlayDevCards()
+     */
+    @Test
+    public void testPlayDevCardRoadBuilding()
+    {
+        final List<QueueEntry> events = eventLog.entries;
+
+        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
+        assertEquals(1, actLog.size());
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
+        assertEquals(-1, state.currentPlayerNumber);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
+        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
+        assertEquals(0, currentSequence.size());
+        assertNull(next());  // at end of log
+
+        for (String event : new String[] {
+            // start of turn:
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // play Road Building before rolling dice: 1 road, 1 ship
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=70c",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=70c",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60c",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60c",
+            "all:SOCGameState:game=test|state=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // roll dice:
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameServerText:game=test|text=No player gets anything.",
+            "all:SOCGameState:game=test|state=20",
+
+            // Basic Road Building: 2 roads, no Longest Route change:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804",
+            "all:SOCGameState:game=test|state=20",
+
+            // 1 ship left, no Longest Route change:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=41",
+            "p3:SOCGameServerText:game=test|text=You may place your 1 remaining road or ship.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a8",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a8",
+            "all:SOCGameState:game=test|state=20",
+
+            // 1 road left, gains Longest Route:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=41",
+            "p3:SOCGameServerText:game=test|text=You may place your 1 remaining road.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a8",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a8",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameState:game=test|state=20",
+
+            // 1 road, 1 ship, gains Longest Route after 1st placed:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=509",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=509",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=50d",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=50d",
+            "all:SOCGameState:game=test|state=20",
+
+            // 2 ships, gains Longest Route after 2nd placed:
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60c",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60c",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=50d",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=50d",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameState:game=test|state=20",
+
+            // end turn:
+            "f3:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+            })
+            try {
+                events.add(QueueEntry.parse(event));
+            } catch (ParseException e) {
+                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
+            }
+
+        final GameActionLog actionLog = extract();
+
+        assertEquals("at end of event log", events.size(), state.nextLogIndex);
+        assertNull(next());  // at end of log again
+        assertNotNull(actionLog);
+        assertEquals(10, actionLog.size());
+
+        GameActionLog.Action act = actionLog.get(0);
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+        act = actionLog.get(1);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals("new current player number", 3, act.param1);
+
+        act = actionLog.get(2);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(15, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals("played road building", SOCDevCardConstants.ROADS, act.param1);
+
+        act = actionLog.get(3);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("dice roll sum", 12, act.param1);
+
+        act = actionLog.get(4);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(14, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played road building", SOCDevCardConstants.ROADS, act.param1);
+
+        act = actionLog.get(5);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(10, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played road building", SOCDevCardConstants.ROADS, act.param1);
+
+        act = actionLog.get(6);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(11, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played road building", SOCDevCardConstants.ROADS, act.param1);
+
+        act = actionLog.get(7);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(15, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played road building", SOCDevCardConstants.ROADS, act.param1);
+
+        act = actionLog.get(8);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(15, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("played road building", SOCDevCardConstants.ROADS, act.param1);
+
+        act = actionLog.get(9);
+        assertEquals(ActionType.END_TURN, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+    }
+
+    /**
+     * Test gold hexes during roll, revealing fog hexes during building, gold hex revealed from fog hex:
+     * {@link ActionType#CHOOSE_FREE_RESOURCES}, etc.
+     */
+    @Test
+    public void testGoldHexFogHex()
+    {
+        final List<QueueEntry> events = eventLog.entries;
+
+        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
+        assertEquals(1, actLog.size());
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
+        assertEquals(-1, state.currentPlayerNumber);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
+        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
+        assertEquals(0, currentSequence.size());
+        assertNull(next());  // at end of log
+
+        for (String event : new String[] {
+            // start of turn:
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // roll dice:
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=4",
+            "all:SOCDiceResultResources:game=test|p=1|p=2|p=6|p=1|p=3",
+            "p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=2,e2=0,e3=2,e4=2,e5=0",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0",
+            "all:SOCGameState:game=test|state=56",
+
+            // gain 1 free resource from gold:
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+            "all:SOCGameState:game=test|state=20",
+
+            // build road, reveal non-gold fog hex:
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=406",
+            "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1",
+            "all:SOCRevealFogHex:game=test|hexCoord=773|hexType=5|diceNum=6",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=406",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=1|news=Y",
+            "all:SOCGameServerText:game=test|text=p3 gets 1 wood by revealing the fog hex.",
+            "all:SOCGameState:game=test|state=20",
+
+            // build road, reveal gold fog hex:
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=708",
+            "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1",
+            "all:SOCRevealFogHex:game=test|hexCoord=1288|hexType=7|diceNum=5",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=708",
+            "all:SOCGameState:game=test|state=56",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0",
+
+            // pick free from revealed gold hex:
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+            "all:SOCGameState:game=test|state=20",
+
+            // end turn:
+            "f3:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+            })
+            try {
+                events.add(QueueEntry.parse(event));
+            } catch (ParseException e) {
+                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
+            }
+
+        final GameActionLog actionLog = extract();
+
+        assertEquals("at end of event log", events.size(), state.nextLogIndex);
+        assertNull(next());  // at end of log again
+        assertNotNull(actionLog);
+        assertEquals(8, actionLog.size());
+
+        GameActionLog.Action act = actionLog.get(0);
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+        act = actionLog.get(1);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals("new current player number", 3, act.param1);
+
+        act = actionLog.get(2);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals("dice roll sum", 4, act.param1);
+
+        act = actionLog.get(3);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
+
+        act = actionLog.get(4);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("built road", SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0x406", 0x406, act.param2);
+        assertEquals("built by player 3", 3, act.param3);
+
+        act = actionLog.get(5);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(9, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals("built road", SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0x708", 0x708, act.param2);
+        assertEquals("built by player 3", 3, act.param3);
+
+        act = actionLog.get(6);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
+
+        act = actionLog.get(7);
+        assertEquals(ActionType.END_TURN, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+    }
+
+    // TODO testGameOver()
 
 }

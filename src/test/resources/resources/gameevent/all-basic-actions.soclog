@@ -553,7 +553,7 @@ all:SOCGameServerText:game=test|text=p2 played a Monopoly card.
 all:SOCGameState:game=test|state=53
 f2:SOCPickResourceType:game=test|resType=5
 all:SOCPlayerElement:game=test|playerNum=2|actionType=GAIN|elementType=5|amount=0
-all:SOCSimpleAction:game=test|pn=2|actType=2|v1=0|v2=5
+all:SOCSimpleAction:game=test|pn=2|actType=3|v1=0|v2=5
 all:SOCGameState:game=test|state=20
 # End of added section
 f2:SOCEndTurn:game=test
@@ -686,6 +686,7 @@ all:SOCGameServerText:game=test|text=p2 moved the robber.
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
+# Do nothing this turn
 all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
@@ -745,6 +746,23 @@ all:SOCClearOffer:game=test|playerNumber=-1
 all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
+# Play dev card Road Building before roll: Added afterwards to test.
+f3:SOCPlayDevCardRequest:game=test|devCard=1
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCGameServerText:game=test|text=debug played a Road Building card.
+all:SOCGameState:game=test|state=40
+p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=70c
+all:SOCGameServerText:game=test|text=debug built a road.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=70c
+all:SOCGameState:game=test|state=41
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60c
+all:SOCGameServerText:game=test|text=debug built a ship.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60c
+all:SOCGameState:game=test|state=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+# End of added section
 f3:SOCRollDice:game=test
 all:SOCDiceResult:game=test|param=10
 all:SOCDiceResultResources:game=test|p=1|p=3|p=5|p=2|p=2
