@@ -189,7 +189,297 @@ public class TestGameActionExtractor
         assertEquals(10, state.nextLogIndex);
     }
 
-    // TODO testInitialPlacement()
+    /**
+     * Test extraction of basic initial placement with 3 players: p3 (first player), p0, and p1.
+     */
+    @Test
+    public void testInitialPlacement()
+    {
+        final List<QueueEntry> events = eventLog.entries;
+
+        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
+        assertEquals(1, actLog.size());
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
+        assertEquals(-1, state.currentPlayerNumber);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
+        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
+        assertEquals(0, currentSequence.size());
+        assertNull(next());  // at end of log
+
+        for (String event : new String[] {
+            // start of 1st initial placements (right after SOCStartGame):
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=5",
+
+            "f0:SOCChangeFace:game=test|playerNumber=0|faceId=-1",
+            "all:SOCChangeFace:game=test|playerNumber=0|faceId=-1",
+            "f1:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
+            "all:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=34",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=34",
+            "all:SOCGameState:game=test|state=6",
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a road.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=34",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=34",
+
+            "all:SOCGameServerText:game=test|text=It's p0's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=0|gameState=5",
+            "all:SOCRollDicePrompt:game=test|playerNumber=0",
+
+            "f0:SOCPutPiece:game=test|playerNumber=0|pieceType=1|coord=c9",
+            "all:SOCGameServerText:game=test|text=p0 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=0|pieceType=1|coord=c9",
+            "all:SOCGameState:game=test|state=6",
+
+            "all:SOCGameServerText:game=test|text=It's p0's turn to build a road.",
+            "f0:SOCPutPiece:game=test|playerNumber=0|pieceType=0|coord=b8",
+            "all:SOCGameServerText:game=test|text=p0 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=0|pieceType=0|coord=b8",
+
+            "all:SOCGameServerText:game=test|text=It's p1's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=1|gameState=5",
+            "all:SOCRollDicePrompt:game=test|playerNumber=1",
+
+            "f1:SOCPutPiece:game=test|playerNumber=1|pieceType=1|coord=87",
+            "all:SOCGameServerText:game=test|text=p1 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=1|pieceType=1|coord=87",
+            "all:SOCGameState:game=test|state=6",
+
+            "all:SOCGameServerText:game=test|text=It's p1's turn to build a road.",
+            "f1:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=87",
+            "all:SOCGameServerText:game=test|text=p1 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=87",
+
+            // start of 2nd initial placements:
+
+            "all:SOCGameServerText:game=test|text=It's p1's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=1|gameState=10",
+
+            "f1:SOCPutPiece:game=test|playerNumber=1|pieceType=1|coord=43",
+            "all:SOCGameServerText:game=test|text=p1 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=1|pieceType=1|coord=43",
+            "all:SOCGameState:game=test|state=11",
+
+            "all:SOCGameServerText:game=test|text=It's p1's turn to build a road.",
+            "f1:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=43",
+            "all:SOCGameServerText:game=test|text=p1 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=43",
+
+            "all:SOCGameServerText:game=test|text=It's p0's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=0|gameState=10",
+            "all:SOCRollDicePrompt:game=test|playerNumber=0",
+
+            "f0:SOCPutPiece:game=test|playerNumber=0|pieceType=1|coord=ba",
+            "all:SOCGameServerText:game=test|text=p0 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=0|pieceType=1|coord=ba",
+            "all:SOCGameState:game=test|state=11",
+
+            "all:SOCGameServerText:game=test|text=It's p0's turn to build a road.",
+            "f0:SOCPutPiece:game=test|playerNumber=0|pieceType=0|coord=ba",
+            "all:SOCGameServerText:game=test|text=p0 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=0|pieceType=0|coord=ba",
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=10",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=b6",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=b6",
+            "all:SOCGameState:game=test|state=11",
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a road.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a6",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a6",
+            "all:SOCGameState:game=test|state=15",
+
+            // start of first player's first turn:
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // roll dice:
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=8",
+            "all:SOCDiceResultResources:game=test|p=1|p=3|p=8|p=1|p=1",
+            "p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=1,e4=3,e5=1",
+            "all:SOCGameState:game=test|state=20",
+            })
+            try {
+                events.add(QueueEntry.parse(event));
+            } catch (ParseException e) {
+                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
+            }
+
+        final GameActionLog actionLog = extract();
+
+        assertEquals("at end of event log", events.size(), state.nextLogIndex);
+        assertNull(next());  // at end of log again
+        assertNotNull(actionLog);
+        assertEquals(21, actionLog.size());
+
+        GameActionLog.Action act = actionLog.get(0);
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+        // Start of 1st initial placements
+
+        act = actionLog.get(1);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals("new current player number", 3, act.param1);
+
+        act = actionLog.get(2);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x34", 0x34, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(3);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0x34", 0x34, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(4);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(0, act.param1);
+
+        act = actionLog.get(5);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0xc9", 0xc9, act.param2);
+        assertEquals(0, act.param3);
+
+        act = actionLog.get(6);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0xb8", 0xb8, act.param2);
+        assertEquals(0, act.param3);
+
+        act = actionLog.get(7);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(1, act.param1);
+
+        act = actionLog.get(8);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x87", 0x87, act.param2);
+        assertEquals(1, act.param3);
+
+        act = actionLog.get(9);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0x87", 0x87, act.param2);
+        assertEquals(1, act.param3);
+
+        // Start of 2nd initial placements
+
+        act = actionLog.get(10);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.START2A, act.endingGameState);
+        assertEquals(1, act.param1);
+
+        act = actionLog.get(11);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START2B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x43", 0x43, act.param2);
+        assertEquals(1, act.param3);
+
+        act = actionLog.get(12);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START2B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0x43", 0x43, act.param2);
+        assertEquals(1, act.param3);
+
+        act = actionLog.get(13);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START2A, act.endingGameState);
+        assertEquals(0, act.param1);
+
+        act = actionLog.get(14);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START2B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0xba", 0xba, act.param2);
+        assertEquals(0, act.param3);
+
+        act = actionLog.get(15);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START2B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0xba", 0xba, act.param2);
+        assertEquals(0, act.param3);
+
+        act = actionLog.get(16);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START2A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(17);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START2B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0xb6", 0xb6, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(18);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(5, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0xa6", 0xa6, act.param2);
+        assertEquals(3, act.param3);
+
+        // First round of regular gameplay
+
+        act = actionLog.get(19);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(20);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(5, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("dice roll sum", 8, act.param1);
+    }
 
     /**
      * Test extraction of a turn where pieces are built and a ship moved:
@@ -216,7 +506,6 @@ public class TestGameActionExtractor
 
         for (String event : new String[] {
             // start of turn:
-            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
@@ -276,7 +565,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(1);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
         assertEquals("new current player number", 3, act.param1);
 
@@ -348,7 +637,6 @@ public class TestGameActionExtractor
 
         for (String event : new String[] {
             // start of p3's turn:
-            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
@@ -370,7 +658,6 @@ public class TestGameActionExtractor
             "all:SOCClearOffer:game=test|playerNumber=-1",
 
             // start of SBP: p4's turn:
-            "all:SOCPlayerElement:game=test|playerNum=4|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=4|gameState=100",
 
             // this prompt text goes with SOCTurn,
@@ -400,7 +687,6 @@ public class TestGameActionExtractor
             "all:SOCClearOffer:game=test|playerNumber=-1",
 
             // start of p1's SBP:
-            "all:SOCPlayerElement:game=test|playerNum=1|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=1|gameState=100",
 
             "all:SOCGameServerText:game=test|text=Special building phase: p1's turn to place.",
@@ -420,7 +706,6 @@ public class TestGameActionExtractor
             "all:SOCClearOffer:game=test|playerNumber=-1",
 
             // start of p4's normal turn:
-            "all:SOCPlayerElement:game=test|playerNum=4|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=4|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=4",
             })
@@ -444,7 +729,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(1);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
         assertEquals("new current player number", 3, act.param1);
 
@@ -474,7 +759,7 @@ public class TestGameActionExtractor
         // start of SBP: p4
         act = actionLog.get(6);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(2, act.eventSequence.size());
+        assertEquals(1, act.eventSequence.size());
         assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
         assertEquals("new current player number", 4, act.param1);
 
@@ -501,7 +786,7 @@ public class TestGameActionExtractor
         // start of SBP: p1
         act = actionLog.get(10);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(2, act.eventSequence.size());
+        assertEquals(1, act.eventSequence.size());
         assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
         assertEquals("new current player number", 1, act.param1);
 
@@ -521,7 +806,7 @@ public class TestGameActionExtractor
         // start of p4's normal turn
         act = actionLog.get(13);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
         assertEquals("new current player number", 4, act.param1);
     }
@@ -553,7 +838,6 @@ public class TestGameActionExtractor
 
         for (String event : new String[] {
             // start of turn:
-            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
@@ -609,7 +893,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(1);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
         assertEquals("new current player number", 3, act.param1);
 
@@ -699,7 +983,6 @@ public class TestGameActionExtractor
 
         for (String event : new String[] {
             // start of turn:
-            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
@@ -848,7 +1131,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(1);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
         assertEquals("new current player number", 3, act.param1);
 
@@ -991,7 +1274,6 @@ public class TestGameActionExtractor
 
         for (String event : new String[] {
             // start of turn:
-            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
@@ -1089,7 +1371,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(1);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
         assertEquals("new current player number", 3, act.param1);
 
@@ -1165,7 +1447,6 @@ public class TestGameActionExtractor
 
         for (String event : new String[] {
             // start of turn:
-            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
@@ -1291,7 +1572,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(1);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
         assertEquals("new current player number", 3, act.param1);
 
@@ -1366,7 +1647,6 @@ public class TestGameActionExtractor
 
         for (String event : new String[] {
             // start of turn:
-            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0",
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
@@ -1437,7 +1717,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(1);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
         assertEquals("new current player number", 3, act.param1);
 

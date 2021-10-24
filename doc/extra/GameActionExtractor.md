@@ -29,7 +29,7 @@ Will want to track current player, current game state.
 
 Message sequence beginnings, roughly in same order as in [Message-Sequences-for-Game-Actions.md](../Message-Sequences-for-Game-Actions.md):
 
-- all:SOCPlayerElement(PLAYED_DEV_CARD_FLAG=0), all:SOCTurn
+- all:SOCTurn
     - SOCTurn's gameState=15 -> Begin regular turn
     - SOCTurn's gameState=100 -> Begin SBP
 - f3:SOCRollDice -> Roll Dice

@@ -257,6 +257,10 @@ public class GameActionLog
              * {@code p1} = piece type like {@link SOCPlayingPiece#SETTLEMENT},
              * {@code p2} = coordinate to build at.
              * {@code p3} = player number who built the piece; helpful during initial placement.
+             *<P>
+             * When player changes during initial placement,
+             * {@link Action#endingGameState} won't change during the {@code BUILD_PIECE},
+             * but during the {@link #TURN_BEGINS} action which follows it.
              */
             BUILD_PIECE,
 

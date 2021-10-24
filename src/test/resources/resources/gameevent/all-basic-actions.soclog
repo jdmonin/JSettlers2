@@ -74,7 +74,6 @@ all:SOCGameElements:game=test|e2=25
 all:SOCGameServerText:game=test|text=Randomly picking a starting player...
 all:SOCStartGame:game=test|gameState=5
 all:SOCGameServerText:game=test|text=It's debug's turn to build a settlement.
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=5
 f2:SOCChangeFace:game=test|playerNumber=2|faceId=-1
 all:SOCChangeFace:game=test|playerNumber=2|faceId=-1
@@ -87,7 +86,6 @@ f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=603
 all:SOCGameServerText:game=test|text=debug built a road.
 all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=603
 all:SOCGameServerText:game=test|text=It's robot 4's turn to build a settlement.
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=5
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=609
@@ -99,7 +97,6 @@ f2:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=509
 all:SOCGameServerText:game=test|text=robot 4 built a road.
 all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=509
 all:SOCGameServerText:game=test|text=It's robot 4's turn to build a settlement.
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=10
 f2:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=806
 all:SOCGameServerText:game=test|text=robot 4 built a settlement.
@@ -110,7 +107,6 @@ f2:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=706
 all:SOCGameServerText:game=test|text=robot 4 built a road.
 all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=706
 all:SOCGameServerText:game=test|text=It's debug's turn to build a settlement.
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=10
 all:SOCRollDicePrompt:game=test|playerNumber=3
 ob:SOCJoinGameAuth:game=test|bh=20|bw=21|vs=[-2, 1, 3, 0]
@@ -266,7 +262,6 @@ f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 9
 all:SOCGameServerText:game=test|text=### Next dev card is set to a Soldier.
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -282,7 +277,6 @@ all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=605
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -321,7 +315,6 @@ p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -342,7 +335,6 @@ f3:SOCRejectOffer:game=test|playerNumber=0
 all:SOCRejectOffer:game=test|playerNumber=3
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -374,7 +366,6 @@ p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -401,7 +392,6 @@ p3:SOCReportRobbery:game=test|perp=2|victim=3|resType=5|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -432,7 +422,6 @@ all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amoun
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -442,7 +431,6 @@ p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=2,e2=1,e3=0,e4=1,e5
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -474,7 +462,6 @@ all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -488,7 +475,6 @@ all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
 # Special Building phase: Added afterwards to test.
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=100
 all:SOCGameServerText:game=test|text=Special building phase: debug's turn to place.
 f3:SOCBuyDevCardRequest:game=test
@@ -502,7 +488,6 @@ f3:SOCEndTurn:game=test
 all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=0
 all:SOCClearOffer:game=test|playerNumber=-1
 # End of added section
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 # Play Soldier, move robber, and steal before rolling dice: Added afterwards to test.
@@ -538,7 +523,6 @@ all:SOCGameElements:game=test|e6=3
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -558,7 +542,6 @@ all:SOCGameState:game=test|state=20
 # End of added section
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -580,7 +563,6 @@ all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=a08
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -590,7 +572,6 @@ p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=0,e4=0,e5
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -621,7 +602,6 @@ all:SOCSimpleAction:game=test|pn=3|actType=1|v1=15|v2=0
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -632,7 +612,6 @@ p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=0,e4=1,e5
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -670,7 +649,6 @@ all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -687,7 +665,6 @@ all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
 # Do nothing this turn
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -697,7 +674,6 @@ p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=2,e3=1,e4=0,e5
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -707,7 +683,6 @@ p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=2,e3=2,e4=0,e5
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
@@ -733,7 +708,6 @@ p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
@@ -743,7 +717,6 @@ p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=0,e3=0,e4=2,e5
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
-all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=0
 all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 # Play dev card Road Building before roll: Added afterwards to test.

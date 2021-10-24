@@ -3852,11 +3852,13 @@ public class SOCGameHandler extends GameHandler
         final int gs = ga.getGameState(),
             cpn = ga.getCurrentPlayerNumber();
 
-        if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
-            srv.messageToGame(gname, true, new SOCPlayerElement
-                (gname, cpn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 0));
-        else
-            srv.messageToGame(gname, true, new SOCSetPlayedDevCard(gname, cpn, false));
+        if (ga.clientVersionLowest < SOCTurn.VERSION_FOR_DEV_CARD_FLAG_CLEAR)
+            srv.messageToGameForVersions
+                (ga, -1, SOCTurn.VERSION_FOR_DEV_CARD_FLAG_CLEAR - 1,
+                 ((ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
+                  ? new SOCPlayerElement(gname, cpn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 0)
+                  : new SOCSetPlayedDevCard(gname, cpn, false)),
+                 true);
 
         SOCTurn turnMessage = new SOCTurn(gname, cpn, gs);
         srv.recordGameEvent(gname, turnMessage);

@@ -4835,7 +4835,6 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         updateAtTurn();
-        players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
 
         if ((players[currentPlayerNumber].getTotalVP() >= vp_winner) || hasScenarioWinCondition)
             checkForWinner();  // Will do nothing during Special Building Phase

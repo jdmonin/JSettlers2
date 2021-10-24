@@ -134,15 +134,14 @@ Or:
 ### Initial Placement
 
 The placement message sequence is different during initial placement. Server assumes client knows the rules,
-and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won't send SOCPlayerElements.
+and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won't send cost SOCPlayerElements.
 
-Example with player 2's first initial road, second initial settlement:
+#### Example with player 2's first initial road, second initial settlement:
 
 - f2:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=907
 - all:SOCGameServerText:game=test|text=p2 built a road.
 - all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=907
 - all:SOCGameServerText:game=test|text=It's p2's turn to build a settlement.
-- all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 - all:SOCTurn:game=test|playerNumber=2|gameState=10
 
 (p2 decides on a location to build)
@@ -287,7 +286,7 @@ Or if client sends build request:
 
 - f3:SOCPlayDevCardRequest:game=test|devCard=1
 - all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1
-- all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+- all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1  // PLAYED_DEV_CARD_FLAG
 - all:SOCGameServerText:game=test|text=p3 played a Road Building card.
 - If player has only 1 remaining road/ship, skips this section:
 - all:SOCGameState:game=test|state=40
@@ -382,6 +381,7 @@ Or if other players still need to discard:
 - all:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=3
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0  // NUM_PICK_GOLD_HEX_RESOURCES
 - all:SOCGameState:game=test|state=20  // or another state, like 56 if another player must also choose
+- Or during initial placement, instead of all:SOCGameState, can be all:SOCTurn to begin next sequence
 
 ### Choose to move robber or pirate
 
@@ -510,13 +510,11 @@ because the current player changes.
 
 ### Next player's usual turn begins
 
-- all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0  // PLAYED_DEV_CARD_FLAG
 - all:SOCTurn:game=test|playerNumber=2|gameState=15
 - all:SOCRollDicePrompt:game=test|playerNumber=2
 
 ### Next player's SBP begins
 
-- all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0
 - all:SOCTurn:game=test|playerNumber=2|gameState=100
 - all:SOCGameServerText:game=test|text=Special building phase: p2's turn to place.
 

@@ -488,6 +488,10 @@ public interface PlayerClientListener
      * Update interface after game state has changed.
      * Please call {@link SOCGame#setGameState(int)} first.
      *<P>
+     * Is also called as part of handling a TURN message from server, so don't immediately assume
+     * the current player can (for example) roll dice when called for {@link SOCGame#ROLL_OR_CARD}:
+     * That state may be intended for the next player. If so, {@link #playerTurnSet(int)} will be called very soon.
+     *<P>
      * If the game is now starting, please call in this order:
      *<code><pre>
      *   game.setGameState(newState);

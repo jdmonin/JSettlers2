@@ -1645,7 +1645,6 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCClearOffer:", "|playerNumber=-1"},
-                {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=19|amount=0"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCTurn:", "|playerNumber=1|gameState=15"},
                 {"all:SOCRollDicePrompt:", "|playerNumber=1"}
             }, false);
@@ -1773,7 +1772,6 @@ public class TestActionsMessages
             {
                 {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=16|amount=1"},  // ASK_SPECIAL_BUILD
                 {"all:SOCClearOffer:game=", "|playerNumber=-1"},
-                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=19|amount=0"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCTurn:game=", "|playerNumber=5|gameState=100"},
                 {"all:SOCGameServerText:game=", "|text=Special building phase: " + CLIENT1_NAME + "'s turn to place."},
                 {"all:SOCPlayerElements:game=", "|playerNum=5|actionType=LOSE|e1=1,e5=1"},

@@ -962,6 +962,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * the player's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *<UL>
      *<LI> Mark our new dev cards as old
+     *<LI> Clear our {@link #hasPlayedDevCard()} flag (in v2.5.00 and newer)
      *<LI> Set {@link #getNeedToPickGoldHexResources()} to 0
      *<LI> Clear the "last-action bank trade" flag/list
      *     used by {@link SOCGame#canUndoBankTrade(SOCResourceSet, SOCResourceSet) game.canUndoBankTrade}
@@ -971,6 +972,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     void updateAtOurTurn()
     {
         inventory.newToOld();
+        playedDevCard = false;
         lastActionBankTrade_give = null;
         lastActionBankTrade_get = null;
         if (needToPickGoldHexResources > 0)

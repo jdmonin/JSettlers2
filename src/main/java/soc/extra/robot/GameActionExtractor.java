@@ -60,7 +60,7 @@ public class GameActionExtractor
     static {
         for (int msgtype : new int[]
             {
-                SOCMessage.PLAYERELEMENT, SOCMessage.ROLLDICE, SOCMessage.PUTPIECE, SOCMessage.BUILDREQUEST,
+                SOCMessage.TURN, SOCMessage.ROLLDICE, SOCMessage.PUTPIECE, SOCMessage.BUILDREQUEST,
                 SOCMessage.MOVEPIECE, SOCMessage.BUYDEVCARDREQUEST, SOCMessage.PLAYDEVCARDREQUEST,
                 SOCMessage.DISCARD, SOCMessage.PICKRESOURCES, SOCMessage.CHOOSEPLAYER, SOCMessage.MOVEROBBER,
                 SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.REPORTROBBERY,
@@ -319,15 +319,8 @@ public class GameActionExtractor
 
                 switch (eventType)
                 {
-                case SOCMessage.PLAYERELEMENT:
-                    if (e.isToAll())
-                    {
-                        // all:SOCPlayerElement(PLAYED_DEV_CARD_FLAG=0), all:SOCTurn
-                        SOCPlayerElement pe = (SOCPlayerElement) e.event;
-                        if ((pe.getAmount() == 0)
-                            && (pe.getElementType() == SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG.getValue()))
-                            extractedAct = extract_TURN_BEGINS(e);
-                    }
+                case SOCMessage.TURN:
+                    extractedAct = extract_TURN_BEGINS(e);
                     break;
 
                 case SOCMessage.ROLLDICE:
@@ -465,12 +458,8 @@ public class GameActionExtractor
      */
     private Action extract_TURN_BEGINS(GameEventLog.QueueEntry e)
     {
-        // assumes caller has completely validated first message:
-        // all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=0  // PLAYED_DEV_CARD_FLAG
-
         // all:SOCTurn:game=test|playerNumber=2|gameState=15  // or 100 (SPECIAL_BUILDING)
-        e = next();
-        if ((e == null) || ! e.isToAll())
+        if (! e.isToAll())
             return null;
         // next() has set state.currentPlayerNumber, currentGameState from SOCTurn's fields
 
@@ -552,9 +541,11 @@ public class GameActionExtractor
         if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
             return null;
 
+        final boolean isInitPlacement = (state.currentGameState < SOCGame.ROLL_OR_CARD);
+
         // Except during initial placement:
         // all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1 (elems vary by type)
-        if (state.currentGameState >= SOCGame.ROLL_OR_CARD)
+        if (! isInitPlacement)
         {
             e = next();
             if ((e == null)
@@ -610,6 +601,8 @@ public class GameActionExtractor
             buildCoord = ((SOCPutPiece) e.event).getCoordinates(),
             playerNumber = ((SOCPutPiece) e.event).getPlayerNumber();
 
+        final ExtractorState eState = new ExtractorState(state);
+
         // Optional, if Longest Route player changes: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
         e = next();
         if (e.isToAll() && (e.event instanceof SOCGameElements))
@@ -619,6 +612,7 @@ public class GameActionExtractor
             if ((et.length != 1) || (et[0] != SOCGameElements.GEType.LONGEST_ROAD_PLAYER.getValue()))
                 return null;
 
+            eState.snapshotFrom(state);
             e = next();
         }
 
@@ -631,11 +625,24 @@ public class GameActionExtractor
                    && (((SOCPlayerElement) e.event).getAction() == SOCPlayerElement.GAIN)))
                 return null;
 
+            eState.snapshotFrom(state);
             e = next();
         }
 
         // all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
-        if (! (e.isToAll() && (e.event instanceof SOCGameState)))
+        // Or during initial placement, can be all:SOCTurn to begin next sequence
+        if (! e.isToAll())
+            return null;
+        if (isInitPlacement && (e.event instanceof SOCTurn))
+        {
+            backtrackTo(eState);
+
+            int prevStart = currentSequenceStartIndex;
+            return new Action
+                (ActionType.BUILD_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
+                 pType, buildCoord, playerNumber);
+        }
+        if (! (e.event instanceof SOCGameState))
             return null;
 
         // If revealing a fog hex as gold:
