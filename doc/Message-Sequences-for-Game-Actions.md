@@ -136,7 +136,7 @@ Or:
 The placement message sequence is different during initial placement. Server assumes client knows the rules,
 and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won't send cost SOCPlayerElements.
 
-#### Example with player 2's first initial road, second initial settlement:
+#### Basic example with player 2's first initial road, second initial settlement:
 
 - f2:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=907
 - all:SOCGameServerText:game=test|text=p2 built a road.
@@ -151,6 +151,41 @@ and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won'
 - all:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=809
 - all:SOCGameState:game=test|state=11
 - all:SOCGameServerText:game=test|text=It's p2's turn to build a road or ship.
+
+#### Building ship (or settlement) reveals non-gold hex from fog
+
+- f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
+- all:SOCRevealFogHex:game=test|hexCoord=2312|hexType=3|diceNum=4
+- all:SOCGameServerText:game=test|text=p3 built a ship.
+- all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
+- all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=1|news=Y
+- all:SOCGameServerText:game=test|text=p3 gets 1 sheep by revealing the fog hex.
+- That SOCPlayerElement and text will repeat if multiple hexes were revealed by placing a settlement.
+- all:SOCGameServerText:game=test|text=It's p2's turn to build a settlement.
+- all:SOCTurn:game=test|playerNumber=2|gameState=10  // START2A
+
+#### Building ship (or settlement) reveals gold hex from fog
+
+- all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805
+- all:SOCGameState:game=test|state=6  // START1B
+- all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.
+- f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805
+- all:SOCRevealFogHex:game=test|hexCoord=1799|hexType=7|diceNum=12
+- all:SOCGameServerText:game=test|text=p3 built a ship.
+- all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805
+- all:SOCGameState:game=test|state=14  // STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
+- all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
+- all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
+- p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
+
+(p3 picks a free resource from the revealed gold hex)
+
+- f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
+- all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|pn=3|reason=3
+- all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0
+- all:SOCGameState:game=test|state=10  // START2A
+- all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.
+
 
 ### Settlement
 

@@ -33,6 +33,7 @@ import soc.extra.server.GameEventLog.QueueEntry;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
+import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.message.*;
@@ -581,7 +582,8 @@ public class GameActionExtractor
 
         // Optional: Occasionally extra messages here, depending on game options/scenario
         // (SOCSVPTextMessage, SOCPlayerElement, etc)
-        boolean hasFog = false, fogIsGold = false;
+        boolean hasFog = false, fogHasGold = false, fogHasNonGold = false;
+            // reminder: Placing initial settlement can reveal more than 1 fog hex
         do
         {
             e = next();
@@ -590,7 +592,10 @@ public class GameActionExtractor
             if (e.event instanceof SOCRevealFogHex)
             {
                 hasFog = true;
-                fogIsGold = (((SOCRevealFogHex) e.event).getParam2() == SOCBoardLarge.GOLD_HEX);
+                if (((SOCRevealFogHex) e.event).getParam2() == SOCBoardLarge.GOLD_HEX)
+                    fogHasGold = true;
+                else
+                    fogHasNonGold = true;
             }
         } while (! (e.event instanceof SOCPutPiece));
 
@@ -616,18 +621,21 @@ public class GameActionExtractor
             e = next();
         }
 
-        // If revealing a fog hex as non-gold:
-        if (hasFog && ! fogIsGold)
-        {
+        // If revealing any fog hexes as non-gold:
+        if (hasFog && fogHasNonGold)
             // all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=1|amount=1|news=Y
-            if (! (e.isToAll() && (e.event instanceof SOCPlayerElement)
-                   && ((SOCPlayerElement) e.event).isNews()
-                   && (((SOCPlayerElement) e.event).getAction() == SOCPlayerElement.GAIN)))
-                return null;
+            // (can be multiple if initial settlement was placed)
+            do
+            {
+                if (! (e.isToAll() && (e.event instanceof SOCPlayerElement)
+                       && ((SOCPlayerElement) e.event).isNews()
+                       && (((SOCPlayerElement) e.event).getAction() == SOCPlayerElement.GAIN)))
+                    return null;
 
-            eState.snapshotFrom(state);
-            e = next();
-        }
+                eState.snapshotFrom(state);
+                e = next();
+            }
+            while ((e.event instanceof SOCPlayerElement) && (pType == SOCPlayingPiece.SETTLEMENT));
 
         // all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
         // Or during initial placement, can be all:SOCTurn to begin next sequence
@@ -646,7 +654,7 @@ public class GameActionExtractor
             return null;
 
         // If revealing a fog hex as gold:
-        if (hasFog && fogIsGold)
+        if (hasFog && fogHasGold)
         {
             // all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
             e = next();
@@ -1136,8 +1144,14 @@ public class GameActionExtractor
             return null;
 
         // all:SOCGameState:game=test|state=20  // or another state
+        // Or during initial placement, can be all:SOCTurn to begin next sequence
+        ExtractorState eState = new ExtractorState(state);
         e = next();
-        if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCGameState)))
+        if ((e == null) || ! e.isToAll())
+            return null;
+        if ((e.event instanceof SOCTurn) && (state.currentGameState < SOCGame.ROLL_OR_CARD))
+            backtrackTo(eState);
+        else if (! (e.event instanceof SOCGameState))
             return null;
 
         int prevStart = currentSequenceStartIndex;

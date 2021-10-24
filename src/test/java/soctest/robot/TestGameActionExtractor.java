@@ -191,6 +191,7 @@ public class TestGameActionExtractor
 
     /**
      * Test extraction of basic initial placement with 3 players: p3 (first player), p0, and p1.
+     * Initial placement with gold hexes and revealed fog hexes is tested in {@link #testGoldHexFogHex()}.
      */
     @Test
     public void testInitialPlacement()
@@ -1625,8 +1626,8 @@ public class TestGameActionExtractor
     }
 
     /**
-     * Test gold hexes during roll, revealing fog hexes during building, gold hex revealed from fog hex:
-     * {@link ActionType#CHOOSE_FREE_RESOURCES}, etc.
+     * Test gold hexes during roll, revealing fog hexes during building, gold hex revealed from fog hex,
+     * fog and gold during initial placement: {@link ActionType#CHOOSE_FREE_RESOURCES}, etc.
      */
     @Test
     public void testGoldHexFogHex()
@@ -1696,6 +1697,214 @@ public class TestGameActionExtractor
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // Initial Placement: Place settlement, reveal hex from fog:
+
+            // not gold:
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=5",
+
+            "f1:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
+            "all:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=408",
+            "all:SOCRevealFogHex:game=test|hexCoord=775|hexType=5|diceNum=2",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=408",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=1|news=Y",
+            "all:SOCGameServerText:game=test|text=p3 gets 1 wood by revealing the fog hex.",
+            "all:SOCGameState:game=test|state=6",
+
+            // 2 non-gold:
+
+            "all:SOCGameServerText:game=test|text=It's debug's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=10",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=80a",
+            "all:SOCRevealFogHex:game=test|hexCoord=2314|hexType=4|diceNum=10",
+            "all:SOCRevealFogHex:game=test|hexCoord=1803|hexType=1|diceNum=8",
+            "all:SOCGameServerText:game=test|text=debug built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=80a",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y",
+            "all:SOCGameServerText:game=test|text=debug gets 1 wheat by revealing the fog hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=1|amount=1|news=Y",
+            "all:SOCGameServerText:game=test|text=debug gets 1 clay by revealing the fog hex.",
+            "all:SOCGameState:game=test|state=11",
+
+            // gold:
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=905",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=905",
+            "all:SOCGameState:game=test|state=10",
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=808",
+            "all:SOCRevealFogHex:game=test|hexCoord=1801|hexType=7|diceNum=4",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=808",
+            "all:SOCGameState:game=test|state=14",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0",
+
+            "f3:SOCPickResources:game=test|resources=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+            "all:SOCGameState:game=test|state=11",
+
+            // 2 gold:
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=5",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=408",
+            "all:SOCRevealFogHex:game=test|hexCoord=775|hexType=7|diceNum=2",
+            "all:SOCRevealFogHex:game=test|hexCoord=777|hexType=7|diceNum=6",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=408",
+            "all:SOCGameState:game=test|state=14",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=2",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=2|v2=0",
+
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=1|wheat=1|wood=0|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=1|wheat=1|wood=0|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+            "all:SOCGameState:game=test|state=6",
+
+            // 1 gold, 1 non-gold:
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=5",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805",
+            "all:SOCRevealFogHex:game=test|hexCoord=2308|hexType=3|diceNum=11",
+            "all:SOCRevealFogHex:game=test|hexCoord=2310|hexType=7|diceNum=6",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=1|news=Y",
+            "all:SOCGameServerText:game=test|text=p3 gets 1 sheep by revealing the fog hex.",
+            "all:SOCGameState:game=test|state=14",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0",
+
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+            "all:SOCGameState:game=test|state=6",
+
+            // Initial Placement: Place settlement and ship, reveal hex from fog:
+
+            // reveal non-gold hex, current player doesn't change afterwards:
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=5",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=604",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=604",
+            "all:SOCGameState:game=test|state=6",
+
+            "all:SOCGameServerText:game=test|text=It's p3 turn to build a road or ship.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=604",
+            "all:SOCRevealFogHex:game=test|hexCoord=1286|hexType=4|diceNum=12",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=604",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y",
+            "all:SOCGameServerText:game=test|text=p3 gets 1 wheat by revealing the fog hex.",
+            "all:SOCGameState:game=test|state=10",
+
+            // reveal non-gold hex, player changes afterwards:
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=5",
+
+            "f1:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
+            "all:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
+            "f2:SOCChangeFace:game=test|playerNumber=2|faceId=-1",
+            "all:SOCChangeFace:game=test|playerNumber=2|faceId=-1",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=a06",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=a06",
+            "all:SOCGameState:game=test|state=6",
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06",
+            "all:SOCRevealFogHex:game=test|hexCoord=2312|hexType=5|diceNum=6",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=1|news=Y",
+
+            "all:SOCGameServerText:game=test|text=p3 gets 1 wood by revealing the fog hex.",
+            "all:SOCGameServerText:game=test|text=It's p1's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=1|gameState=5",
+            "all:SOCRollDicePrompt:game=test|playerNumber=1",
+
+            // reveal gold hex, current player doesn't change afterwards:
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=5",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805",
+            "all:SOCGameState:game=test|state=6",
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805",
+            "all:SOCRevealFogHex:game=test|hexCoord=1799|hexType=7|diceNum=8",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805",
+            "all:SOCGameState:game=test|state=14",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0",
+
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+            "all:SOCGameState:game=test|state=10",
+
+            // reveal gold hex, player changes afterwards:
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=3|gameState=5",
+
+            "f2:SOCChangeFace:game=test|playerNumber=2|faceId=-1",
+            "all:SOCChangeFace:game=test|playerNumber=2|faceId=-1",
+            "f1:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
+            "all:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805",
+            "all:SOCGameState:game=test|state=6",
+
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805",
+            "all:SOCRevealFogHex:game=test|hexCoord=1799|hexType=7|diceNum=10",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805",
+            "all:SOCGameState:game=test|state=14",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0",
+
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+
+            "all:SOCGameServerText:game=test|text=It's p1's turn to build a settlement.",
+            "all:SOCTurn:game=test|playerNumber=1|gameState=5",
+            "all:SOCRollDicePrompt:game=test|playerNumber=1",
+
             })
             try {
                 events.add(QueueEntry.parse(event));
@@ -1708,7 +1917,7 @@ public class TestGameActionExtractor
         assertEquals("at end of event log", events.size(), state.nextLogIndex);
         assertNull(next());  // at end of log again
         assertNotNull(actionLog);
-        assertEquals(8, actionLog.size());
+        assertEquals(37, actionLog.size());
 
         GameActionLog.Action act = actionLog.get(0);
         assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -1759,6 +1968,230 @@ public class TestGameActionExtractor
         assertEquals(ActionType.END_TURN, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
+
+        // Initial Placement tests: Place settlement, reveal hex from fog:
+
+        // not gold:
+
+        act = actionLog.get(8);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(9);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(9, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x408", 0x408, act.param2);
+        assertEquals(3, act.param3);
+
+        // 2 non-gold:
+
+        act = actionLog.get(10);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START2A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(11);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(10, act.eventSequence.size());
+        assertEquals(SOCGame.START2B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x80a", 0x80a, act.param2);
+        assertEquals(3, act.param3);
+
+        // gold:
+
+        act = actionLog.get(12);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(5, act.eventSequence.size());
+        assertEquals(SOCGame.START2A, act.endingGameState);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0x905", 0x905, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(13);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(9, act.eventSequence.size());
+        assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x808", 0x808, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(14);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START2B, act.endingGameState);
+        assertEquals(new SOCResourceSet(1, 0, 0, 0, 0, 0), act.rset1);
+
+        // 2 gold:
+
+        act = actionLog.get(15);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(16);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(9, act.eventSequence.size());
+        assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x408", 0x408, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(17);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 1, 1, 0, 0), act.rset1);
+
+        // 1 gold, 1 non-gold:
+
+        act = actionLog.get(18);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(19);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(11, act.eventSequence.size());
+        assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x805", 0x805, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(20);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 0, 1, 0, 0), act.rset1);
+
+        // Initial Placement tests: Place settlement and ship, reveal hex from fog:
+
+        // reveal non-gold hex, current player doesn't change afterwards:
+
+        act = actionLog.get(21);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(22);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x604", 0x604, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(23);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.START2A, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("built at 0x604", 0x604, act.param2);
+        assertEquals(3, act.param3);
+
+        // reveal non-gold hex, player changes afterwards:
+
+        act = actionLog.get(24);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(25);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0xa06", 0xa06, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(26);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("built at 0xa06", 0xa06, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(27);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(1, act.param1);
+
+        // reveal gold hex, current player doesn't change afterwards:
+
+        act = actionLog.get(28);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(29);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x805", 0x805, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(30);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(9, act.eventSequence.size());
+        assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("built at 0x805", 0x805, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(31);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START2A, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 1, 0, 0, 0), act.rset1);
+
+        // reveal gold hex, player changes afterwards:
+
+        act = actionLog.get(32);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(33);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x805", 0x805, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(34);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(9, act.eventSequence.size());
+        assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("built at 0x805", 0x805, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(35);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
+
+        act = actionLog.get(36);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(1, act.param1);
     }
 
     // TODO testGameOver()
