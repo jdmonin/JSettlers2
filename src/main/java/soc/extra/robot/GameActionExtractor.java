@@ -177,6 +177,7 @@ public class GameActionExtractor
      * @return next non-ignored event log message, or {@code null} if reached end of {@link #eventLog}.
      *     If not {@code null}, its {@code event} field won't be null either.
      * @see #nextIfType(int)
+     * @see #nextIfGamestateOrOver()
      * @see #backtrackTo(ExtractorState)
      * @see #resetCurrentSequence()
      */
@@ -229,6 +230,7 @@ public class GameActionExtractor
      * If not found, backtrack as if {@link #next()} was never called.
      * @param msgType  Message type expected to be found, from {@link SOCMessage#getType()}
      * @return  Event log entry of expected type, or {@code null} if end of log or next entry was another type
+     * @see #nextIfGamestateOrOver()
      */
     protected GameEventLog.QueueEntry nextIfType(final int msgType)
     {
@@ -242,6 +244,63 @@ public class GameActionExtractor
         } else {
             return e;
         }
+    }
+
+    /**
+     * Read the next event in our {@link GameEventLog} if it's a {@link SOCGameState}
+     * as expected, or if it's the pair of messages indicating game over state:
+     * <tt>all:{@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER})</tt>
+     * followed by <tt>all:{@link SOCGameState}({@link SOCGame#OVER})</tt>.
+     *<P>
+     * If found, adds all to {@link #currentSequence} as usual and returns the {@link SOCGameState} message;
+     * if game is now over, {@link ExtractorState#currentGameState} will be {@link SOCGame#OVER}
+     * and {@link ExtractorState#currentPlayerNumber} will be updated to the new value
+     * seen in {@link SOCGameElements}.
+     *<P>
+     * If a game state or game over pair isn't found, will not add anything to {@link #currentSequence};
+     * will backtrack and return null.
+     *
+     * @return {@link SOCGameState} entry or {@code null}
+     * @see #nextIfType(int)
+     */
+    protected GameEventLog.QueueEntry nextIfGamestateOrOver()
+    {
+        final ExtractorState presentState = new ExtractorState(state);
+        boolean sawGE = false;
+
+        // if game is now over:
+        // all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
+        GameEventLog.QueueEntry e = next();
+        if (e == null)
+        {
+            backtrackTo(presentState);
+            return null;
+        }
+        if (e.event instanceof SOCGameElements)
+        {
+            // look for curr_player only
+            SOCGameElements ge = (SOCGameElements) e.event;
+            int[] et = ge.getElementTypes();
+            if ((et.length != 1) || (et[0] != SOCGameElements.GEType.CURRENT_PLAYER.getValue())
+                || ! e.isToAll())
+                return null;
+
+            sawGE = true;
+            state.currentPlayerNumber = ge.getValues()[0];
+
+            e = next();
+        }
+
+        // all:SOCGameState:game=test|state=1000 // OVER
+        // or another state if game not over
+        if ((e == null) || (! (e.isToAll() && (e.event instanceof SOCGameState)))
+            || (sawGE && (state.currentGameState != SOCGame.OVER)))
+        {
+            backtrackTo(presentState);
+            return null;
+        }
+
+        return e;
     }
 
     /**
@@ -638,7 +697,7 @@ public class GameActionExtractor
             while ((e.event instanceof SOCPlayerElement) && (pType == SOCPlayingPiece.SETTLEMENT));
 
         // all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
-        // Or during initial placement, can be all:SOCTurn to begin next sequence
+        // Or during initial placement, can be all:SOCTurn which begins next sequence
         if (! e.isToAll())
             return null;
         if (isInitPlacement && (e.event instanceof SOCTurn))
@@ -1144,7 +1203,7 @@ public class GameActionExtractor
             return null;
 
         // all:SOCGameState:game=test|state=20  // or another state
-        // Or during initial placement, can be all:SOCTurn to begin next sequence
+        // Or during initial placement, can be all:SOCTurn which begins next sequence
         ExtractorState eState = new ExtractorState(state);
         e = next();
         if ((e == null) || ! e.isToAll())
@@ -1581,10 +1640,12 @@ public class GameActionExtractor
         public int nextLogIndex;
 
         /**
-         * "Current" size of sequencer's {@link GameActionExtractor#currentSequence};
-         * used only by copy constructor and backtrackTo, otherwise 0.
+         * "Current" size of sequencer's {@link GameActionExtractor#currentSequence}.
+         * Not continually updated during extraction, is -1 in extractor's {@link GameActionExtractor#state}:
+         * Used only by copy constructor, {@link #snapshotFrom(ExtractorState)},
+         * and {@link GameActionExtractor#backtrackTo(ExtractorState)}, otherwise -1.
          */
-        public int currentSequenceSize;
+        public int currentSequenceSize = -1;
 
         /**
          * Current player number, or -1 if not yet known.
@@ -1604,7 +1665,7 @@ public class GameActionExtractor
          * Copy constructor, to snapshot current state
          * before a call to {@link GameActionExtractor#next()}.
          * @param snapshotFrom  State to snapshot from; not null.
-         *    If its {@link #currentSequenceSize} is 0, will call
+         *    If its {@link #currentSequenceSize} is -1, will call
          *    {@link GameActionExtractor#currentSequence}{@link List#size() .size()}.
          * @see #snapshotFrom(ExtractorState)
          */
@@ -1617,19 +1678,54 @@ public class GameActionExtractor
          * Snapshot current state before a call to {@link GameActionExtractor#next()}.
          * Overwrites values of all fields.
          * @param from  State to snapshot from; not null.
-         *    If its {@link #currentSequenceSize} is 0, will call
+         *    If its {@link #currentSequenceSize} is -1, will call
          *    {@link GameActionExtractor#currentSequence}{@link List#size() .size()}.
          * @see #ExtractorState(ExtractorState)
          */
         public void snapshotFrom(ExtractorState from)
         {
             nextLogIndex = from.nextLogIndex;
-            currentSequenceSize = (from.currentSequenceSize != 0)
+            currentSequenceSize = (from.currentSequenceSize != -1)
                 ? from.currentSequenceSize
                 : currentSequence.size();
             currentPlayerNumber = from.currentPlayerNumber;
             currentGameState = from.currentGameState;
         }
+
+        /**
+         * Basic ExtractorState equality test.
+         * Compares all ExtractorState fields except enclosing instance reference.
+         * {@link #currentSequenceSize} is a field that may not always be equal, see its javadoc.
+         * @return True if {@code o} is an {@code ExtractorState} and all compared fields are equal
+         */
+        public boolean equals(Object o)
+        {
+            if (! (o instanceof ExtractorState))
+                return false;
+
+            final ExtractorState es = (ExtractorState) o;
+            return (nextLogIndex == es.nextLogIndex) && (currentSequenceSize == es.currentSequenceSize)
+                && (currentPlayerNumber == es.currentPlayerNumber) && (currentGameState == es.currentGameState);
+        }
+
+        /**
+         * Render this object's fields in human-readable form.
+         * @return Object fields' current value, in the form
+         *     {@code "ExtractorState{nextLogIndex=7, currentSeqSize=2, currentPN=3, currentGState=15"}
+         */
+        public String toString()
+        {
+            StringBuilder sb = new StringBuilder("ExtractorState{nextLogIndex=");
+
+            sb.append(nextLogIndex)
+                .append(", currentSeqSize=").append(currentSequenceSize)
+                .append(", currentPN=").append(currentPlayerNumber)
+                .append(", currentGState=").append(currentGameState)
+                .append('}');
+
+            return sb.toString();
+        }
+
     }
 
 }

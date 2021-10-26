@@ -416,7 +416,7 @@ Or if other players still need to discard:
 - all:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=3
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0  // NUM_PICK_GOLD_HEX_RESOURCES
 - all:SOCGameState:game=test|state=20  // or another state, like 56 if another player must also choose
-- Or during initial placement, instead of all:SOCGameState, can be all:SOCTurn to begin next sequence
+- Or during initial placement, instead of all:SOCGameState, can be all:SOCTurn which begins next sequence
 
 ### Choose to move robber or pirate
 
@@ -555,8 +555,13 @@ because the current player changes.
 
 ## Game over
 
+Preceding messages are:
+
 - all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
 - all:SOCGameState:game=test|state=1000
+
+which are part of the previous sequence if it typically ends with a SOCGameState.
+
 - all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.
 - all:SOCDevCardAction:game=test|playerNum=2|actionType=ADD_OLD|cardType=6
 - all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardTypes=[5, 4]

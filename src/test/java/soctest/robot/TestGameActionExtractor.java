@@ -33,6 +33,7 @@ import soc.game.SOCGame;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
+import soc.message.SOCGameElements;
 import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
 import soc.message.SOCMessage;
@@ -87,7 +88,8 @@ public class TestGameActionExtractor
 
     /**
      * Test basic extractor read methods {@code next()}, {@code pushbackTo(...)}, {@code nextIfType()},
-     * and {@code resetCurrentSequence()}.
+     * {@code resetCurrentSequence()}, and {@link ExtractorState#equals(Object)}.
+     * @see #testBasicsNextIfGameStateOrOver()
      */
     @Test
     public void testBasicsReadEvents()
@@ -108,6 +110,18 @@ public class TestGameActionExtractor
         assertEquals(0, currentSequence.size());
         assertNull(next());  // at end of log
 
+        // ExtractorState basic tests
+        ExtractorState presentState = new ExtractorState(state);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, presentState.currentGameState);
+        assertEquals(currentSequence.size(), presentState.currentSequenceSize);
+        assertEquals(state.nextLogIndex, presentState.nextLogIndex);
+        assertEquals(-1, state.currentSequenceSize);
+        presentState.currentSequenceSize = -1;
+        assertEquals(state, presentState);
+        assertEquals(state.toString(), presentState.toString());
+        presentState.nextLogIndex = -1;
+        assertNotEquals(state, presentState);
+
         // add a few entries
         events.add(new QueueEntry(new SOCGameState("test", SOCGame.START1B), -1, false));
         events.add(new QueueEntry("next() ignores comments"));
@@ -126,6 +140,14 @@ public class TestGameActionExtractor
         assertTrue(currentSequence.get(0).event instanceof SOCGameState);
         assertEquals(5, state.nextLogIndex);
 
+        // test ExtractorState after that next()
+        assertNotEquals(state, presentState);
+        presentState.snapshotFrom(state);
+        assertEquals(-1, state.currentSequenceSize);
+        state.currentSequenceSize = currentSequence.size();  // for sake of equals()
+        assertEquals(state, presentState);
+        state.currentSequenceSize = -1;
+
         // comment, SOCPutPiece:
         e = next();
         assertNotNull(e);
@@ -135,7 +157,8 @@ public class TestGameActionExtractor
         assertTrue(currentSequence.get(2).event instanceof SOCPutPiece);
         assertEquals(7, state.nextLogIndex);
 
-        ExtractorState presentState = new GameActionExtractor.ExtractorState(state);
+        // save state to read and backtrack
+        presentState.snapshotFrom(state);
         assertEquals(SOCGame.START1B, presentState.currentGameState);
         assertEquals(currentSequence.size(), presentState.currentSequenceSize);
         assertEquals(state.nextLogIndex, presentState.nextLogIndex);
@@ -187,6 +210,94 @@ public class TestGameActionExtractor
         assertEquals(0, currentSequence.size());
         assertEquals(10, currentSequenceStartIndex);
         assertEquals(10, state.nextLogIndex);
+    }
+
+    /**
+     * Test {@code nextIfGameStateOrOver()}.
+     */
+    @Test
+    public void testBasicsNextIfGameStateOrOver()
+    {
+        final List<QueueEntry> events = eventLog.entries;
+
+        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
+        assertEquals(4, EMPTYEVENTLOG_SIZE_TO_STARTGAME);
+        assertEquals(4, events.size());
+        assertEquals(1, actLog.size());
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
+        assertEquals(4, actLog.get(0).eventSequence.size());
+        assertEquals(-1, state.currentPlayerNumber);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
+        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals(4, currentSequenceStartIndex);
+        assertEquals(0, currentSequence.size());
+        assertNull(next());  // at end of log
+
+        assertNull(nextIfGamestateOrOver());
+
+        // Recognize typical gamestate
+
+        events.add(new QueueEntry(new SOCGameState("test", SOCGame.PLAY1), -1, false));
+        QueueEntry e = nextIfGamestateOrOver();
+        assertNotNull(e);
+        assertTrue(e.event instanceof SOCGameState);
+        assertEquals(1, currentSequence.size());
+        assertEquals(SOCGame.PLAY1, state.currentGameState);
+
+        final int currentEvSize = events.size();
+        assertEquals("at end of event log so far", currentEvSize, state.nextLogIndex);
+
+        // Negative tests: if isn't the expected sequence, return null and backtrack
+
+        // not the expected GameElement
+        events.add(new QueueEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
+        assertNull(nextIfGamestateOrOver());
+        assertEquals(1, currentSequence.size());
+        assertEquals(SOCGame.PLAY1, state.currentGameState);
+        assertEquals(currentEvSize, state.nextLogIndex);
+        events.remove(currentEvSize);
+
+        // gameelement + another gamestate(not OVER)
+        events.add(new QueueEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        events.add(new QueueEntry(new SOCGameState("test", SOCGame.ROLL_OR_CARD), -1, false));
+        assertNull(nextIfGamestateOrOver());
+        assertEquals(1, currentSequence.size());
+        assertEquals(SOCGame.PLAY1, state.currentGameState);  // not ROLL_OR_CARD
+        assertEquals(currentEvSize, state.nextLogIndex);
+        events.remove(currentEvSize + 1);
+        events.remove(currentEvSize);
+
+        // gameelement + end of log
+        events.add(new QueueEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        assertNull(nextIfGamestateOrOver());
+        assertEquals(1, currentSequence.size());
+        assertEquals(SOCGame.PLAY1, state.currentGameState);
+        assertEquals(currentEvSize, state.nextLogIndex);
+        events.remove(currentEvSize);
+
+        // gameelement + non-gamestate message
+        events.add(new QueueEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        events.add(new QueueEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
+        assertNull(nextIfGamestateOrOver());
+        assertEquals(1, currentSequence.size());
+        assertEquals(SOCGame.PLAY1, state.currentGameState);
+        assertEquals(currentEvSize, state.nextLogIndex);
+        events.remove(currentEvSize + 1);
+        events.remove(currentEvSize);
+
+        // Recognize SOCPlayerElement + gstate(OVER)
+
+        assertEquals(-1, state.currentPlayerNumber);
+        events.add(new QueueEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        events.add(new QueueEntry(new SOCGameState("test", SOCGame.OVER), -1, false));
+        e = nextIfGamestateOrOver();
+        assertNotNull(e);
+        assertTrue(e.event instanceof SOCGameState);
+        assertEquals(3, currentSequence.size());
+        assertTrue(currentSequence.get(1).event instanceof SOCGameElements);
+        assertTrue(currentSequence.get(2).event instanceof SOCGameState);
+        assertEquals(SOCGame.OVER, state.currentGameState);
+        assertEquals(5, state.currentPlayerNumber);
     }
 
     /**
