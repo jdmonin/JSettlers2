@@ -213,7 +213,8 @@ public class TestGameActionExtractor
     }
 
     /**
-     * Test {@code nextIfGameStateOrOver()}.
+     * Basic tests for {@link GameActionExtractor#nextIfGamestateOrOver()},
+     * which is used by extractors tested in {@link #testGameOver()}.
      */
     @Test
     public void testBasicsNextIfGameStateOrOver()
@@ -596,8 +597,9 @@ public class TestGameActionExtractor
     /**
      * Test extraction of a turn where pieces are built and a ship moved:
      * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE} with gains,
-     * {@link ActionType#BUILD_PIECE} x 2, {@link ActionType#MOVE_PIECE}, {@link ActionType#END_TURN}.
+     * {@link ActionType#BUILD_PIECE}, {@link ActionType#MOVE_PIECE}, {@link ActionType#END_TURN}.
      * Sequences based on {@code all-basic-actions.soclog}.
+     * Some uncommon build piece sequences are also tested in {@link #testGoldHexFogHex()}.
      */
     @Test
     public void testTurnWithBuilding()
@@ -1071,7 +1073,7 @@ public class TestGameActionExtractor
      * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE}, {@link ActionType#DISCARD},
      * {@link ActionType#MOVE_ROBBER_OR_PIRATE}, {@link ActionType#ROB_PLAYER},
      * {@link ActionType#PLAY_DEV_CARD}, {@link ActionType#CHOOSE_ROBBERY_VICTIM},
-     * {@link ActionType#ROB_PLAYER}, {@link ActionType#CHOOSE_MOVE_ROBBER_PIRATE},
+     * {@link ActionType#ROB_PLAYER}, {@link ActionType#CHOOSE_MOVE_ROBBER_OR_PIRATE},
      * {@link ActionType#CHOOSE_ROB_CLOTH_OR_RESOURCE}, {@link ActionType#END_TURN}.
      *
      * @see #testBuyPlayDevCards()
@@ -1312,7 +1314,7 @@ public class TestGameActionExtractor
         assertEquals(SOCDevCardConstants.KNIGHT, act.param1);
 
         act = actionLog.get(12);
-        assertEquals(ActionType.CHOOSE_MOVE_ROBBER_PIRATE, act.actType);
+        assertEquals(ActionType.CHOOSE_MOVE_ROBBER_OR_PIRATE, act.actType);
         assertEquals(3, act.eventSequence.size());
         assertEquals(SOCGame.PLACING_PIRATE, act.endingGameState);
         assertEquals("chose pirate", 2, act.param1);
@@ -1536,7 +1538,8 @@ public class TestGameActionExtractor
 
     /**
      * Test extraction of a turn with playing the Road Building dev card
-     * ({@link ActionType#PLAY_DEV_CARD}) in different conditions.
+     * ({@link ActionType#PLAY_DEV_CARD}) in different conditions,
+     * including win game ({@link ActionType#GAME_OVER}) by gaining Longest Route.
      *<P>
      * @see #testBuyPlayDevCards()
      */
@@ -1663,6 +1666,48 @@ public class TestGameActionExtractor
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // win by gaining Longest Route after 1st placed:
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a04",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a04",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.",
+            "all:SOCGameStats:game=test|0|2|0|10|false|true|false|false",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=0|p=0|p=0",
+
+            // win by gaining Longest Route after 2nd placed:
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=76",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=76",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=74",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=74",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 11 points.",
+            "all:SOCGameStats:game=test|0|2|0|11|false|true|false|false",
+            "p3:SOCPlayerStats:game=test|p=1|p=2|p=5|p=0|p=0|p=0",
             })
             try {
                 events.add(QueueEntry.parse(event));
@@ -1675,7 +1720,7 @@ public class TestGameActionExtractor
         assertEquals("at end of event log", events.size(), state.nextLogIndex);
         assertNull(next());  // at end of log again
         assertNotNull(actionLog);
-        assertEquals(10, actionLog.size());
+        assertEquals(16, actionLog.size());
 
         GameActionLog.Action act = actionLog.get(0);
         assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -1734,11 +1779,50 @@ public class TestGameActionExtractor
         assertEquals(ActionType.END_TURN, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
+
+        // win by gaining Longest Route after 1st placed:
+
+        act = actionLog.get(10);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(11);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(12, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(SOCDevCardConstants.ROADS, act.param1);
+
+        act = actionLog.get(12);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // win by gaining Longest Route after 2nd placed:
+
+        act = actionLog.get(13);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(14);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(16, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(SOCDevCardConstants.ROADS, act.param1);
+
+        act = actionLog.get(15);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(3, act.param1);
     }
 
     /**
      * Test gold hexes during roll, revealing fog hexes during building, gold hex revealed from fog hex,
-     * fog and gold during initial placement: {@link ActionType#CHOOSE_FREE_RESOURCES}, etc.
+     * fog and gold during initial placement: {@link ActionType#BUILD_PIECE}, {@link ActionType#MOVE_PIECE},
+     * {@link ActionType#CHOOSE_FREE_RESOURCES}, etc.
      */
     @Test
     public void testGoldHexFogHex()
@@ -1809,6 +1893,81 @@ public class TestGameActionExtractor
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
 
+            // Move Ship, reveal hex from fog:
+
+            // reveal non-gold hex
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3082|toCoord=3333",
+            "all:SOCRevealFogHex:game=test|hexCoord=3845|hexType=4|diceNum=9",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3082|toCoord=3333",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y",
+
+            "all:SOCGameServerText:game=test|text=p3 gets 1 wheat by revealing the fog hex.",
+
+            // reveal non-gold and gain longest route
+
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3333|toCoord=3595",
+            "all:SOCRevealFogHex:game=test|hexCoord=3853|hexType=2|diceNum=3",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3333|toCoord=3595",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=2|amount=1|news=Y",
+
+            "all:SOCGameServerText:game=test|text=p3 gets 1 ore by revealing the fog hex.",
+
+            // reveal gold
+
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1804|toCoord=3084",
+            "all:SOCRevealFogHex:game=test|hexCoord=3342|hexType=7|diceNum=6",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1804|toCoord=3084",
+            "all:SOCGameState:game=test|state=56",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0",
+
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+            "all:SOCGameState:game=test|state=20",
+
+            // reveal gold and gain longest route
+
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1804|toCoord=3084",
+            "all:SOCRevealFogHex:game=test|hexCoord=3342|hexType=7|diceNum=6",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1804|toCoord=3084",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameState:game=test|state=56",
+            "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
+            "p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0",
+
+            "f3:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0",
+            "all:SOCPickResources:game=test|resources=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=3",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
+            "all:SOCGameState:game=test|state=20",
+
+            // reveal gold and win by gaining longest route
+
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=521|toCoord=2570",
+            "all:SOCRevealFogHex:game=test|hexCoord=2825|hexType=7|diceNum=9",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=521|toCoord=2570",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 11 points.",
+            "all:SOCDevCardAction:game=test|playerNum=1|actionType=ADD_OLD|cardType=7",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4",
+            "all:SOCGameStats:game=test|0|3|0|11|false|true|false|false",
+            "all:SOCGameServerText:game=test|text=This game was 3 rounds, and took 1 minutes 53 seconds.",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=4|p=0|p=1|p=1",
+
             // Initial Placement: Place settlement, reveal hex from fog:
 
             // not gold:
@@ -1828,19 +1987,19 @@ public class TestGameActionExtractor
 
             // 2 non-gold:
 
-            "all:SOCGameServerText:game=test|text=It's debug's turn to build a settlement.",
+            "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
             "all:SOCTurn:game=test|playerNumber=3|gameState=10",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=80a",
             "all:SOCRevealFogHex:game=test|hexCoord=2314|hexType=4|diceNum=10",
             "all:SOCRevealFogHex:game=test|hexCoord=1803|hexType=1|diceNum=8",
-            "all:SOCGameServerText:game=test|text=debug built a settlement.",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=80a",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y",
-            "all:SOCGameServerText:game=test|text=debug gets 1 wheat by revealing the fog hex.",
+            "all:SOCGameServerText:game=test|text=p3 gets 1 wheat by revealing the fog hex.",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=1|amount=1|news=Y",
-            "all:SOCGameServerText:game=test|text=debug gets 1 clay by revealing the fog hex.",
+            "all:SOCGameServerText:game=test|text=p3 gets 1 clay by revealing the fog hex.",
             "all:SOCGameState:game=test|state=11",
 
             // gold:
@@ -2015,7 +2174,6 @@ public class TestGameActionExtractor
             "all:SOCGameServerText:game=test|text=It's p1's turn to build a settlement.",
             "all:SOCTurn:game=test|playerNumber=1|gameState=5",
             "all:SOCRollDicePrompt:game=test|playerNumber=1",
-
             })
             try {
                 events.add(QueueEntry.parse(event));
@@ -2028,7 +2186,7 @@ public class TestGameActionExtractor
         assertEquals("at end of event log", events.size(), state.nextLogIndex);
         assertNull(next());  // at end of log again
         assertNotNull(actionLog);
-        assertEquals(37, actionLog.size());
+        assertEquals(47, actionLog.size());
 
         GameActionLog.Action act = actionLog.get(0);
         assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -2080,17 +2238,98 @@ public class TestGameActionExtractor
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
 
-        // Initial Placement tests: Place settlement, reveal hex from fog:
+        // Move Ship, reveal hex from fog:
+
+        // reveal non-gold hex
+
+        act = actionLog.get(8);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals("new current player number", 3, act.param1);
+
+        act = actionLog.get(9);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("dice roll sum", 12, act.param1);
+
+        act = actionLog.get(10);
+        assertEquals(ActionType.MOVE_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("moved a ship", SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("moved from", 3082, act.param2);
+        assertEquals("moved to", 3333, act.param3);
+
+        // reveal non-gold and gain longest route
+
+        act = actionLog.get(11);
+        assertEquals(ActionType.MOVE_PIECE, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("moved a ship", SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(3333, act.param2);
+        assertEquals(3595, act.param3);
+
+        // reveal gold
+
+        act = actionLog.get(12);
+        assertEquals(ActionType.MOVE_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(1804, act.param2);
+        assertEquals(3084, act.param3);
+
+        act = actionLog.get(13);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 0, 1, 0, 0), act.rset1);
+
+        // reveal gold and gain longest route
+
+        act = actionLog.get(14);
+        assertEquals(ActionType.MOVE_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(1804, act.param2);
+        assertEquals(3084, act.param3);
+
+        act = actionLog.get(15);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 0, 1, 0, 0), act.rset1);
+
+        // reveal gold and win by gaining longest route
+
+        act = actionLog.get(16);
+        assertEquals(ActionType.MOVE_PIECE, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(521, act.param2);
+        assertEquals(2570, act.param3);
+
+        act = actionLog.get(17);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // Initial Placement: Place settlement, reveal hex from fog:
 
         // not gold:
 
-        act = actionLog.get(8);
+        act = actionLog.get(18);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.START1A, act.endingGameState);
         assertEquals(3, act.param1);
 
-        act = actionLog.get(9);
+        act = actionLog.get(19);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(9, act.eventSequence.size());
         assertEquals(SOCGame.START1B, act.endingGameState);
@@ -2100,13 +2339,13 @@ public class TestGameActionExtractor
 
         // 2 non-gold:
 
-        act = actionLog.get(10);
+        act = actionLog.get(20);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
         assertEquals(3, act.eventSequence.size());
         assertEquals(SOCGame.START2A, act.endingGameState);
         assertEquals(3, act.param1);
 
-        act = actionLog.get(11);
+        act = actionLog.get(21);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(10, act.eventSequence.size());
         assertEquals(SOCGame.START2B, act.endingGameState);
@@ -2116,7 +2355,7 @@ public class TestGameActionExtractor
 
         // gold:
 
-        act = actionLog.get(12);
+        act = actionLog.get(22);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(5, act.eventSequence.size());
         assertEquals(SOCGame.START2A, act.endingGameState);
@@ -2124,7 +2363,7 @@ public class TestGameActionExtractor
         assertEquals("built at 0x905", 0x905, act.param2);
         assertEquals(3, act.param3);
 
-        act = actionLog.get(13);
+        act = actionLog.get(23);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(9, act.eventSequence.size());
         assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
@@ -2132,7 +2371,7 @@ public class TestGameActionExtractor
         assertEquals("built at 0x808", 0x808, act.param2);
         assertEquals(3, act.param3);
 
-        act = actionLog.get(14);
+        act = actionLog.get(24);
         assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
         assertEquals(4, act.eventSequence.size());
         assertEquals(SOCGame.START2B, act.endingGameState);
@@ -2140,13 +2379,13 @@ public class TestGameActionExtractor
 
         // 2 gold:
 
-        act = actionLog.get(15);
+        act = actionLog.get(25);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
         assertEquals(3, act.eventSequence.size());
         assertEquals(SOCGame.START1A, act.endingGameState);
         assertEquals(3, act.param1);
 
-        act = actionLog.get(16);
+        act = actionLog.get(26);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(9, act.eventSequence.size());
         assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
@@ -2154,91 +2393,13 @@ public class TestGameActionExtractor
         assertEquals("built at 0x408", 0x408, act.param2);
         assertEquals(3, act.param3);
 
-        act = actionLog.get(17);
+        act = actionLog.get(27);
         assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
         assertEquals(4, act.eventSequence.size());
         assertEquals(SOCGame.START1B, act.endingGameState);
         assertEquals(new SOCResourceSet(0, 0, 1, 1, 0, 0), act.rset1);
 
         // 1 gold, 1 non-gold:
-
-        act = actionLog.get(18);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
-        assertEquals(SOCGame.START1A, act.endingGameState);
-        assertEquals(3, act.param1);
-
-        act = actionLog.get(19);
-        assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(11, act.eventSequence.size());
-        assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
-        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
-        assertEquals("built at 0x805", 0x805, act.param2);
-        assertEquals(3, act.param3);
-
-        act = actionLog.get(20);
-        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
-        assertEquals(4, act.eventSequence.size());
-        assertEquals(SOCGame.START1B, act.endingGameState);
-        assertEquals(new SOCResourceSet(0, 0, 0, 1, 0, 0), act.rset1);
-
-        // Initial Placement tests: Place settlement and ship, reveal hex from fog:
-
-        // reveal non-gold hex, current player doesn't change afterwards:
-
-        act = actionLog.get(21);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
-        assertEquals(SOCGame.START1A, act.endingGameState);
-        assertEquals(3, act.param1);
-
-        act = actionLog.get(22);
-        assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(4, act.eventSequence.size());
-        assertEquals(SOCGame.START1B, act.endingGameState);
-        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
-        assertEquals("built at 0x604", 0x604, act.param2);
-        assertEquals(3, act.param3);
-
-        act = actionLog.get(23);
-        assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(8, act.eventSequence.size());
-        assertEquals(SOCGame.START2A, act.endingGameState);
-        assertEquals(SOCPlayingPiece.SHIP, act.param1);
-        assertEquals("built at 0x604", 0x604, act.param2);
-        assertEquals(3, act.param3);
-
-        // reveal non-gold hex, player changes afterwards:
-
-        act = actionLog.get(24);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(2, act.eventSequence.size());
-        assertEquals(SOCGame.START1A, act.endingGameState);
-        assertEquals(3, act.param1);
-
-        act = actionLog.get(25);
-        assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(8, act.eventSequence.size());
-        assertEquals(SOCGame.START1B, act.endingGameState);
-        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
-        assertEquals("built at 0xa06", 0xa06, act.param2);
-        assertEquals(3, act.param3);
-
-        act = actionLog.get(26);
-        assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(6, act.eventSequence.size());
-        assertEquals(SOCGame.START1B, act.endingGameState);
-        assertEquals(SOCPlayingPiece.SHIP, act.param1);
-        assertEquals("built at 0xa06", 0xa06, act.param2);
-        assertEquals(3, act.param3);
-
-        act = actionLog.get(27);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(4, act.eventSequence.size());
-        assertEquals(SOCGame.START1A, act.endingGameState);
-        assertEquals(1, act.param1);
-
-        // reveal gold hex, current player doesn't change afterwards:
 
         act = actionLog.get(28);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
@@ -2248,13 +2409,91 @@ public class TestGameActionExtractor
 
         act = actionLog.get(29);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(11, act.eventSequence.size());
+        assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x805", 0x805, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(30);
+        assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(new SOCResourceSet(0, 0, 0, 1, 0, 0), act.rset1);
+
+        // Initial Placement tests: Place settlement and ship, reveal hex from fog:
+
+        // reveal non-gold hex, current player doesn't change afterwards:
+
+        act = actionLog.get(31);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(32);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x604", 0x604, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(33);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.START2A, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("built at 0x604", 0x604, act.param2);
+        assertEquals(3, act.param3);
+
+        // reveal non-gold hex, player changes afterwards:
+
+        act = actionLog.get(34);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(35);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(8, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0xa06", 0xa06, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(36);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.START1B, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("built at 0xa06", 0xa06, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(37);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(1, act.param1);
+
+        // reveal gold hex, current player doesn't change afterwards:
+
+        act = actionLog.get(38);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.START1A, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(39);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(4, act.eventSequence.size());
         assertEquals(SOCGame.START1B, act.endingGameState);
         assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
         assertEquals("built at 0x805", 0x805, act.param2);
         assertEquals(3, act.param3);
 
-        act = actionLog.get(30);
+        act = actionLog.get(40);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(9, act.eventSequence.size());
         assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
@@ -2262,7 +2501,7 @@ public class TestGameActionExtractor
         assertEquals("built at 0x805", 0x805, act.param2);
         assertEquals(3, act.param3);
 
-        act = actionLog.get(31);
+        act = actionLog.get(41);
         assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
         assertEquals(4, act.eventSequence.size());
         assertEquals(SOCGame.START2A, act.endingGameState);
@@ -2270,13 +2509,13 @@ public class TestGameActionExtractor
 
         // reveal gold hex, player changes afterwards:
 
-        act = actionLog.get(32);
+        act = actionLog.get(42);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.START1A, act.endingGameState);
         assertEquals(3, act.param1);
 
-        act = actionLog.get(33);
+        act = actionLog.get(43);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(8, act.eventSequence.size());
         assertEquals(SOCGame.START1B, act.endingGameState);
@@ -2284,7 +2523,7 @@ public class TestGameActionExtractor
         assertEquals("built at 0x805", 0x805, act.param2);
         assertEquals(3, act.param3);
 
-        act = actionLog.get(34);
+        act = actionLog.get(44);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(9, act.eventSequence.size());
         assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
@@ -2292,19 +2531,458 @@ public class TestGameActionExtractor
         assertEquals("built at 0x805", 0x805, act.param2);
         assertEquals(3, act.param3);
 
-        act = actionLog.get(35);
+        act = actionLog.get(45);
         assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
         assertEquals(3, act.eventSequence.size());
         assertEquals(SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
         assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
 
-        act = actionLog.get(36);
+        act = actionLog.get(46);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
         assertEquals(3, act.eventSequence.size());
         assertEquals(SOCGame.START1A, act.endingGameState);
         assertEquals(1, act.param1);
     }
 
-    // TODO testGameOver()
+    /**
+     * Test sequences for various ways to win ({@link ActionType#GAME_OVER}):
+     * Building settlement/city, largest army, longest road/route, etc.
+     * Some win conditions are also tested in {@link #testTurnWithBuilding()}, {@link #testPlayDevCardRoadBuilding()}.
+     * @see #testBasicsNextIfGameStateOrOver()
+     */
+    @Test
+    public void testGameOver()
+    {
+        final List<QueueEntry> events = eventLog.entries;
+
+        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
+        assertEquals(1, actLog.size());
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
+        assertEquals(-1, state.currentPlayerNumber);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
+        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
+        assertEquals(0, currentSequence.size());
+        assertNull(next());  // at end of log
+
+        for (String event : new String[] {
+            // win by build settlement:
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=72",
+            "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1",
+            "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=72",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.",
+            "all:SOCGameStats:game=test|0|2|0|10|false|true|false|false",
+            "all:SOCGameServerText:game=test|text=This game was 2 rounds, and took 1 minutes 4 seconds.",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=0|p=0|p=3",
+
+            // win by upgrade to city:
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=b8",
+            "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=3,e4=2",
+            "all:SOCGameServerText:game=test|text=p3 built a city.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=b8",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.",
+            "all:SOCGameStats:game=test|0|0|2|10|false|false|true|false",
+            "all:SOCGameServerText:game=test|text=This game was 6 rounds, and took 1 minutes 41 seconds.",
+            "p3:SOCPlayerStats:game=test|p=1|p=5|p=5|p=1|p=2|p=2",
+
+            // win by longest route (build road):
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=87",
+            "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=87",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 11 points.",
+            "all:SOCGameStats:game=test|0|2|0|11|false|true|false|false",
+            "all:SOCGameServerText:game=test|text=This game was 2 rounds, and took 1 minutes 33 seconds.",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=1|p=1|p=0",
+
+            // win by longest route (build ship):
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=702",
+            "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e3=1,e5=1",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=702",
+            "all:SOCGameElements:game=test|e6=3",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 11 points.",
+            "all:SOCGameStats:game=test|0|2|0|11|false|true|false|false",
+            "all:SOCGameServerText:game=test|text=This game was 2 rounds, and took 0 minutes 59 seconds.",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=1|p=0|p=0|p=0",
+
+            // win by largest army (move robber, no victim):
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            "f3:SOCPlayDevCardRequest:game=test|devCard=9",
+            "all:SOCGameServerText:game=test|text=p3 played a Soldier card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1",
+            "all:SOCGameElements:game=test|e5=3",
+            "all:SOCGameState:game=test|state=33",
+
+            "all:SOCGameServerText:game=test|text=p3 will move the robber.",
+            "f3:SOCMoveRobber:game=test|playerNumber=3|coord=99",
+            "all:SOCMoveRobber:game=test|playerNumber=3|coord=99",
+            "all:SOCGameServerText:game=test|text=p3 moved the robber.",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 11 points.",
+            "all:SOCGameStats:game=test|0|2|0|11|false|true|false|false",
+            "all:SOCGameServerText:game=test|text=This game was 3 rounds, and took 0 minutes 49 seconds.",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=3|p=0|p=0|p=0",
+
+            // win by largest army (rob victim):
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCPlayDevCardRequest:game=test|devCard=9",
+            "all:SOCGameServerText:game=test|text=p3 played a Soldier card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1",
+            "all:SOCGameElements:game=test|e5=3",
+            "all:SOCGameState:game=test|state=33",
+
+            "all:SOCGameServerText:game=test|text=p3 will move the robber.",
+            "f3:SOCMoveRobber:game=test|playerNumber=3|coord=79",
+            "all:SOCMoveRobber:game=test|playerNumber=3|coord=79",
+
+            "p3:SOCReportRobbery:game=test|perp=3|victim=1|resType=5|amount=1|isGainLose=true",
+            "p1:SOCReportRobbery:game=test|perp=3|victim=1|resType=5|amount=1|isGainLose=true",
+            "!p[3, 1]:SOCReportRobbery:game=test|perp=3|victim=1|resType=6|amount=1|isGainLose=true",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 11 points.",
+            "all:SOCGameStats:game=test|0|2|0|11|false|true|false|false",
+            "all:SOCGameServerText:game=test|text=This game was 4 rounds, and took 1 minutes 16 seconds.",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=2|p=0|p=1|p=0",
+
+            // win by VP from stealing cloth (SC_CLVI scenario):
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            "f3:SOCPlayDevCardRequest:game=test|devCard=9",
+            "all:SOCGameServerText:game=test|text=p3 played a Soldier card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1",
+            "all:SOCGameState:game=test|state=54",
+
+            "all:SOCGameServerText:game=test|text=p3 must choose to move the robber or the pirate.",
+            "f3:SOCChoosePlayer:game=test|choice=-3",
+            "all:SOCGameState:game=test|state=34",
+
+            "all:SOCGameServerText:game=test|text=p3 will move the pirate ship.",
+            "f3:SOCMoveRobber:game=test|playerNumber=3|coord=-b0d",
+            "all:SOCMoveRobber:game=test|playerNumber=3|coord=-b0d",
+            "all:SOCGameServerText:game=test|text=p3 moved the pirate. Must choose to steal cloth or steal resources.",
+            "all:SOCGameState:game=test|state=55",
+
+            "p3:SOCChoosePlayer:game=test|choice=1",
+            "f3:SOCChoosePlayer:game=test|choice=-2",
+
+            "all:SOCReportRobbery:game=test|perp=3|victim=1|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=2",
+            "all:SOCGameElements:game=test|e4=3",
+            "all:SOCGameState:game=test|state=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4",
+            "all:SOCGameStats:game=test|0|5|0|10|false|true|false|false",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=2|p=0|p=0|p=1",
+        })
+        try {
+            events.add(QueueEntry.parse(event));
+        } catch (ParseException e) {
+            fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
+        }
+
+        final GameActionLog actionLog = extract();
+
+        assertEquals("at end of event log", events.size(), state.nextLogIndex);
+        assertNull(next());  // at end of log again
+        assertNotNull(actionLog);
+        assertEquals(34, actionLog.size());
+
+        GameActionLog.Action act = actionLog.get(0);
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+        // win by build settlement:
+
+        act = actionLog.get(1);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(2);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(12, act.param1);
+
+        act = actionLog.get(3);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals("built at 0x72", 0x72, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(4);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // win by upgrade to city:
+
+        act = actionLog.get(5);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(6);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(12, act.param1);
+
+        act = actionLog.get(7);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(SOCPlayingPiece.CITY, act.param1);
+        assertEquals("built at 0xb8", 0xb8, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(8);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // win by longest route (build road):
+
+        act = actionLog.get(9);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(10);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(12, act.param1);
+
+        act = actionLog.get(11);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(7, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals("built at 0x87", 0x87, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(12);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // win by longest route (build ship):
+
+        act = actionLog.get(13);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(14);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(12, act.param1);
+
+        act = actionLog.get(15);
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(7, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals("built at 0x702", 0x702, act.param2);
+        assertEquals(3, act.param3);
+
+        act = actionLog.get(16);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // win by largest army (move robber, no victim):
+
+        act = actionLog.get(17);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(18);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(12, act.param1);
+
+        act = actionLog.get(19);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(7, act.eventSequence.size());
+        assertEquals(SOCGame.PLACING_ROBBER, act.endingGameState);
+        assertEquals(SOCDevCardConstants.KNIGHT, act.param1);
+
+        act = actionLog.get(20);
+        assertEquals(ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(1, act.param1);
+        assertEquals("moved robber to 0x99", 0x99, act.param2);
+
+        act = actionLog.get(21);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // win by largest army (rob victim):
+
+        act = actionLog.get(22);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(23);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(7, act.eventSequence.size());
+        assertEquals(SOCGame.PLACING_ROBBER, act.endingGameState);
+        assertEquals(SOCDevCardConstants.KNIGHT, act.param1);
+
+        act = actionLog.get(24);
+        assertEquals(ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLACING_ROBBER, act.endingGameState);
+        assertEquals(1, act.param1);
+        assertEquals("moved robber to 0x79", 0x79, act.param2);
+
+        act = actionLog.get(25);
+        assertEquals(ActionType.ROB_PLAYER, act.actType);
+        assertEquals(5, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(1, act.param1);
+        assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
+
+        act = actionLog.get(26);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // win by VP from stealing cloth (SC_CLVI scenario):
+
+        act = actionLog.get(27);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(28);
+        assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
+        assertEquals(6, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, act.endingGameState);
+        assertEquals(SOCDevCardConstants.KNIGHT, act.param1);
+
+        act = actionLog.get(29);
+        assertEquals(ActionType.CHOOSE_MOVE_ROBBER_OR_PIRATE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLACING_PIRATE, act.endingGameState);
+        assertEquals("chose pirate", 2, act.param1);
+
+        act = actionLog.get(30);
+        assertEquals(ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
+        assertEquals(5, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
+        assertEquals(2, act.param1);
+        assertEquals("moved pirate to 0xb0d", 0xb0d, act.param2);
+
+        act = actionLog.get(31);
+        assertEquals(ActionType.CHOOSE_ROB_CLOTH_OR_RESOURCE, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
+        assertEquals(2, act.param1);
+
+        act = actionLog.get(32);
+        assertEquals(ActionType.ROB_PLAYER, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertNull(act.rset1);
+        assertEquals(1, act.param1);
+        assertEquals("steal cloth", SOCPlayerElement.PEType.SCENARIO_CLOTH_COUNT.getValue(), act.param2);
+
+        act = actionLog.get(33);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
+
+        // TODO win at start of turn after gaining 10 VP on an earlier player's turn:
+    }
 
 }

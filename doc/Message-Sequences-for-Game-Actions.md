@@ -69,7 +69,7 @@ Some examples:
 
 - f3:SOCRollDice:game=test
 - all:SOCDiceResult:game=test|param=7
-- all:SOCGameState:game=test|state=50
+- all:SOCGameState:game=test|state=50  // WAITING_FOR_DISCARDS
 - all:SOCGameServerText:game=test|text=p2 needs to discard.
 - p2:SOCDiscardRequest:game=test|numDiscards=4
 
@@ -77,14 +77,14 @@ Or:
 
 - f3:SOCRollDice:game=test
 - all:SOCDiceResult:game=test|param=7
-- all:SOCGameState:game=test|state=33
+- all:SOCGameState:game=test|state=33  // PLACING_ROBBER
 - all:SOCGameServerText:game=test|text=p3 will move the robber.
 
 Or:
 
 - f3:SOCRollDice:game=test
 - all:SOCDiceResult:game=test|param=7
-- all:SOCGameState:game=test|state=54
+- all:SOCGameState:game=test|state=54  // WAITING_FOR_ROBBER_OR_PIRATE
 - all:SOCGameServerText:game=test|text=p3 must choose to move the robber or the pirate.
 
 ### Roll other than 7
@@ -96,7 +96,7 @@ Some examples:
 - all:SOCDiceResultResources:game=test|p=2|p=2|p=4|p=1|p=4|p=0|p=3|p=7|p=1|p=4
 - p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=2,e2=0,e3=0,e4=1,e5=1
 - p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=2,e3=1,e4=3,e5=1
-- all:SOCGameState:game=test|state=20
+- all:SOCGameState:game=test|state=20  // PLAY1
 
 Or:
 
@@ -114,7 +114,7 @@ Or:
 - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1  // NUM_PICK_GOLD_HEX_RESOURCES
 - p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
-- all:SOCGameState:game=test|state=56
+- all:SOCGameState:game=test|state=56  // WAITING_FOR_PICK_GOLD_RESOURCE
 
 Or:
 
@@ -142,14 +142,14 @@ and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won'
 - all:SOCGameServerText:game=test|text=p2 built a road.
 - all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=907
 - all:SOCGameServerText:game=test|text=It's p2's turn to build a settlement.
-- all:SOCTurn:game=test|playerNumber=2|gameState=10
+- all:SOCTurn:game=test|playerNumber=2|gameState=10  // START2A
 
 (p2 decides on a location to build)
 
 - f2:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=809
 - all:SOCGameServerText:game=test|text=p2 built a settlement.
 - all:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=809
-- all:SOCGameState:game=test|state=11
+- all:SOCGameState:game=test|state=11  // START2B
 - all:SOCGameServerText:game=test|text=It's p2's turn to build a road or ship.
 
 #### Building ship (or settlement) reveals non-gold hex from fog
@@ -198,18 +198,20 @@ and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won'
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=102|amount=2  // SCENARIO_SVP
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=60a
 - If Longest Route player changes: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
-- all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
+- all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
+    - Or if won game:  
+      all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
 
 Or if client starts with build request:
 
 - f3:SOCBuildRequest:game=test|pieceType=1
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1
-- all:SOCGameState:game=test|state=31
+- all:SOCGameState:game=test|state=31  // PLACING_SETTLEMENT
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=67
 - all:SOCGameServerText:game=test|text=p3 built a settlement.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=67
 - If Longest Route player changes: all:SOCGameElements:game=test|e6=3
-- all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
+- all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
 
 ### City
 
@@ -217,7 +219,9 @@ Or if client starts with build request:
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=3,e4=2
 - all:SOCGameServerText:game=test|text=p3 built a city.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=a08
-- all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
+- all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
+    - Or if won game:  
+      all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
 
 Or if client starts with build request:
 
@@ -227,7 +231,7 @@ Or if client starts with build request:
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=67
 - all:SOCGameServerText:game=test|text=p3 built a city.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=67
-- all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
+- all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
 
 ### Road (may set Longest Route)
 
@@ -240,8 +244,11 @@ Or if client starts with build request:
 - If revealing a fog hex as non-gold:
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y
     - all:SOCGameServerText:game=test|text=p3 gets 1 wheat by revealing the fog hex.
-- all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING or (gold fog hex revealed) 56 WAITING_FOR_PICK_GOLD_RESOURCE
-- If revealing a fog hex as gold:
+- all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING) or (gold fog hex revealed) 56 (WAITING_FOR_PICK_GOLD_RESOURCE)
+    - Or if won game with that Longest Route:
+    - all:SOCGameElements:game=test|e4=3
+    - all:SOCGameState:game=test|state=1000  // OVER
+- If revealing a fog hex as gold, and didn't just win game:
     - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
     - p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
@@ -259,7 +266,7 @@ Or if client sends build request:
 - If revealing a fog hex as non-gold:
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=1|news=Y
     - all:SOCGameServerText:game=test|text=p3 gets 1 wood by revealing the fog hex.
-- all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
+- all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
 - If revealing a fog hex as gold:
     - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
@@ -274,8 +281,11 @@ Or if client sends build request:
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=80a
 - If gaining Longest Route: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
 - If revealing a fog hex as non-gold: SOCPlayerElement and SOCGameServerText (see Road above for details)
-- all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING or (gold fog hex revealed) 56 WAITING_FOR_PICK_GOLD_RESOURCE
-- If revealing a fog hex as gold:
+- all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING) or (gold fog hex revealed) 56 (WAITING_FOR_PICK_GOLD_RESOURCE)
+    - Or if won game with that Longest Route:
+    - all:SOCGameElements:game=test|e4=3
+    - all:SOCGameState:game=test|state=1000  // OVER
+- If revealing a fog hex as gold, and didn't just win game:
     - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
     - p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
@@ -302,8 +312,20 @@ Or if client sends build request:
 ## Move piece (move ship)
 
 - f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
+- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=3342|hexType=7|diceNum=6
 - all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
 - If gaining Longest Route: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
+- If won game with that Longest Route:
+    - all:SOCGameElements:game=test|e4=3
+    - all:SOCGameState:game=test|state=1000
+- If revealing a fog hex as gold, and didn't just win game:
+    - all:SOCGameState:game=test|state=56
+    - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
+    - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
+    - p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
+- If revealing a fog hex as non-gold:
+    - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=2|amount=1|news=Y
+    - all:SOCGameServerText:game=test|text=p3 gets 1 ore by revealing the fog hex.
 
 ## Buy dev card
 
@@ -313,7 +335,7 @@ Or if client sends build request:
 - p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=5 // type varies
 - !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 - all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0  // v1 amount same as in SOCGameElements(e2)
-- all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
+- all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
 
 ## Use/Play each dev card type
 
@@ -324,20 +346,24 @@ Or if client sends build request:
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1  // PLAYED_DEV_CARD_FLAG
 - all:SOCGameServerText:game=test|text=p3 played a Road Building card.
 - If player has only 1 remaining road/ship, skips this section:
-- all:SOCGameState:game=test|state=40
+- all:SOCGameState:game=test|state=40  // PLACING_FREE_ROAD1
 - p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704  // or pieceType=3 for ship for any/all SOCPutPiece in this sequence
 - all:SOCGameServerText:game=test|text=p3 built a road.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704
 - If gains Longest Route after 1st placement: all:SOCGameElements:game=test|e6=3
 - If player has only 1 remaining, skips to gamestate(41) and omits the above section
-- all:SOCGameState:game=test|state=41
+- all:SOCGameState:game=test|state=41  // PLACING_FREE_ROAD2
+    - Or if won game by gaining Longest Route:  
+      all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
 - If player has 1 remaining: p3:SOCGameServerText:game=test|text=You may place your 1 remaining road.
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
 - all:SOCGameServerText:game=test|text=p3 built a road.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
 - If gains Longest Route after 2nd placement: all:SOCGameElements:game=test|e6=3
 - all:SOCGameState:game=test|state=20  // or 15 (ROLL_OR_CARD) if played before dice roll
+    - Or if won game by gaining Longest Route:  
+      all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
 - If played before dice roll:
 - all:SOCRollDicePrompt:game=test|playerNumber=3
 
@@ -347,7 +373,7 @@ Or if client sends build request:
 - all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=2
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1  // PLAYED_DEV_CARD_FLAG
 - all:SOCGameServerText:game=test|text=p3 played a Year of Plenty card.
-- all:SOCGameState:game=test|state=52
+- all:SOCGameState:game=test|state=52  // WAITING_FOR_DISCOVERY
 - f3:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0
 - all:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=2
 - all:SOCGameState:game=test|state=20  // or 15 (ROLL_OR_CARD)
@@ -360,7 +386,7 @@ Or if client sends build request:
 - all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=3
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
 - all:SOCGameServerText:game=test|text=p3 played a Monopoly card.
-- all:SOCGameState:game=test|state=53
+- all:SOCGameState:game=test|state=53  // WAITING_FOR_MONOPOLY
 - f3:SOCPickResourceType:game=test|resType=3
 - From the victim players, if any:
 - all:SOCPlayerElement:game=test|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y
@@ -384,9 +410,8 @@ Or if client sends build request:
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1  // NUMKNIGHTS
 - If Largest Army player changing: all:SOCGameElements:game=test|e5=3  // LARGEST_ARMY_PLAYER
-- all:SOCGameState:game=test|state=33  // or 34 (PLACING_PIRATE), 54 (WAITING_FOR_ROBBER_OR_PIRATE), or other states
-- If played before dice roll:
-- all:SOCRollDicePrompt:game=test|playerNumber=3
+    - If player wins game by gaining Largest Army, that will be announced after moving/robbing.
+- all:SOCGameState:game=test|state=33  // PLACING_ROBBER, or 34 (PLACING_PIRATE), 54 (WAITING_FOR_ROBBER_OR_PIRATE), or other states
 
 ## Actions which happen because of other game actions
 
@@ -408,7 +433,7 @@ Or if other players still need to discard:
 - !p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=6|amount=6|news=Y
 - all:SOCGameServerText:game=test|text=p3 discarded 6 resources.
 - all:SOCGameServerText:game=test|text=p2 needs to discard.
-- // No final SOCGameState message, since state is still 50 (WAITING_FOR_DISCARDS)
+- No final SOCGameState message, since state is still 50 (WAITING_FOR_DISCARDS)
 
 ### Choose free resources (Gold hex gains; see also "Year of Plenty/Discovery" sequence)
 
@@ -434,8 +459,12 @@ In gameState 33 (PLACING_ROBBER):
 - all:SOCMoveRobber:game=test|playerNumber=3|coord=504
 - all:SOCGameServerText:game=test|text=p3 moved the robber.
 - If any choices to be made:
-- all:SOCGameState:game=test|state=20  // or choose-player, choose-resource-or-cloth, etc
-- Otherwise next message is SOCReportRobbery from server, which isn't part of this sequence
+    - all:SOCGameState:game=test|state=20  // or choose-player, choose-resource-or-cloth, etc
+- Else, if there's no possible victim to rob from, and player just won by gaining largest army:
+    - all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
+    - all:SOCGameState:game=test|state=1000
+- Else:
+    - Next message is SOCReportRobbery from server, which will be start of next sequence
 
 ### Move pirate
 
@@ -444,7 +473,7 @@ In gameState 34 (PLACING_PIRATE):
 - f3:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
 - all:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
 - all:SOCGameServerText:game=test|text=p3 moved the pirate.
-- all:SOCGameState:game=test|state=20  // or another state, same as Move robber
+- all:SOCGameState:game=test|state=20  // or another state or "game over" message pair, same as Move robber
 
 ### Choose player to rob from
 
@@ -470,12 +499,17 @@ and (Cloth Trade scenario) choosing whether to rob cloth or resources.
 - p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
 - p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
 - !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
-- all:SOCGameState:game=test|state=20  // or 15 if hasn't rolled yet
+- all:SOCGameState:game=test|state=20  // or 15 + all:SOCRollDicePrompt if hasn't rolled yet
+    - Or if player won game by gaining Largest Army with this soldier:  
+      all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
 
 ### Rob a player of cloth
 
 - all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3  // rob 1 cloth; gives new total amounts for perpetrator and victim
 - all:SOCGameState:game=test|state=20  // or 15
+    - Or if player won game by gaining VP from the robbed cloth:  
+      all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
+
 
 ## Trade with bank and players
 
@@ -550,7 +584,7 @@ because the current player changes.
 
 ### Next player's SBP begins
 
-- all:SOCTurn:game=test|playerNumber=2|gameState=100
+- all:SOCTurn:game=test|playerNumber=2|gameState=100  // SPECIAL_BUILDING
 - all:SOCGameServerText:game=test|text=Special building phase: p2's turn to place.
 
 ## Game over
@@ -558,7 +592,7 @@ because the current player changes.
 Preceding messages are:
 
 - all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
-- all:SOCGameState:game=test|state=1000
+- all:SOCGameState:game=test|state=1000  // OVER
 
 which are part of the previous sequence if it typically ends with a SOCGameState.
 
@@ -569,4 +603,25 @@ which are part of the previous sequence if it typically ends with a SOCGameState
 - all:SOCGameServerText:game=test|text=This game was 12 rounds, and took 11 minutes 29 seconds.
 - p2:SOCPlayerStats:game=test|p=1|p=0|p=2|p=4|p=1|p=5  // sent to each still-connected player client; might be none if observing a robot-only game
 - p3:SOCPlayerStats:game=test|p=1|p=2|p=6|p=0|p=5|p=1
+- If winning at start of your turn (see below):
+- all:SOCTurn:game=test|playerNumber=3|gameState=1000
 
+### Winning at Start of your Turn
+
+This happens when the winning player gains enough VP to win during another player's turn.
+Maybe they became longest-route player because another player broke a longer route,
+or gained VP from cloth during another player's roll in the Cloth Trade scenario.
+
+The previous player's "end turn" is immediately followed by the "game over" sequence,
+without a "turn begins" sequence:
+
+- f2:SOCEndTurn:game=test
+- all:SOCClearOffer:game=test|playerNumber=-1
+
+- all:SOCGameElements:game=test|e4=3
+- all:SOCGameState:game=test|state=1000
+- all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.
+- all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4
+- all:SOCGameStats:game=test|0|2|2|10|false|true|true|false
+- p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=5|p=2|p=0
+- all:SOCTurn:game=test|playerNumber=3|gameState=1000

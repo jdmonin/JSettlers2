@@ -55,4 +55,6 @@ Message sequence beginnings, roughly in same order as in [Message-Sequences-for-
 - f3:SOCRejectOffer -> Reject trade offer
 - f3:SOCAcceptOffer -> Accept trade offer
 - f3:SOCEndTurn -> End turn (usual or Special Building)
-- all:SOCGameElements(CURRENT_PLAYER), all:SOCGameState(state=1000) -> Game Over
+- all:SOCGameStats -> Game Over
+- all:SOCDevCardAction(ADD_OLD)
+    - gameState 1000 -> Game Over

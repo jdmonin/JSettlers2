@@ -66,7 +66,7 @@ public class GameActionExtractor
                 SOCMessage.DISCARD, SOCMessage.PICKRESOURCES, SOCMessage.CHOOSEPLAYER, SOCMessage.MOVEROBBER,
                 SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.REPORTROBBERY,
                 SOCMessage.BANKTRADE, SOCMessage.MAKEOFFER, SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
-                SOCMessage.ENDTURN, SOCMessage.GAMEELEMENTS
+                SOCMessage.ENDTURN, SOCMessage.GAMESTATS, SOCMessage.DEVCARDACTION
             })
             SEQ_START_MSG_TYPES.add(msgtype);
     }
@@ -247,8 +247,8 @@ public class GameActionExtractor
     }
 
     /**
-     * Read the next event in our {@link GameEventLog} if it's a {@link SOCGameState}
-     * as expected, or if it's the pair of messages indicating game over state:
+     * Read the next event in our {@link GameEventLog} if it's <tt>all:{@link SOCGameState}</tt>
+     * as expected, or if it's the pair of messages indicating Game Over state:
      * <tt>all:{@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER})</tt>
      * followed by <tt>all:{@link SOCGameState}({@link SOCGame#OVER})</tt>.
      *<P>
@@ -262,6 +262,7 @@ public class GameActionExtractor
      *
      * @return {@link SOCGameState} entry or {@code null}
      * @see #nextIfType(int)
+     * @see #extract_GAME_OVER(QueueEntry)
      */
     protected GameEventLog.QueueEntry nextIfGamestateOrOver()
     {
@@ -424,7 +425,7 @@ public class GameActionExtractor
 
                 case SOCMessage.CHOOSEPLAYER:
                     if (state.currentGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE)
-                        extractedAct = extract_CHOOSE_MOVE_ROBBER_PIRATE(e);
+                        extractedAct = extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(e);
                     else if (state.currentGameState == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
                         extractedAct = extract_CHOOSE_ROB_CLOTH_OR_RESOURCE(e);
                     break;
@@ -462,8 +463,13 @@ public class GameActionExtractor
                     extractedAct = extract_END_TURN(e);
                     break;
 
-                case SOCMessage.GAMEELEMENTS:
+                case SOCMessage.GAMESTATS:
                     extractedAct = extract_GAME_OVER(e);
+                    break;
+
+                case SOCMessage.DEVCARDACTION:
+                    if (state.currentGameState == SOCGame.OVER)
+                        extractedAct = extract_GAME_OVER(e);
                     break;
 
                 default:
@@ -641,7 +647,7 @@ public class GameActionExtractor
 
         // Optional: Occasionally extra messages here, depending on game options/scenario
         // (SOCSVPTextMessage, SOCPlayerElement, etc)
-        boolean hasFog = false, fogHasGold = false, fogHasNonGold = false;
+        boolean hasFogGold = false, hasFogNonGold = false;
             // reminder: Placing initial settlement can reveal more than 1 fog hex
         do
         {
@@ -650,11 +656,10 @@ public class GameActionExtractor
                 return null;
             if (e.event instanceof SOCRevealFogHex)
             {
-                hasFog = true;
                 if (((SOCRevealFogHex) e.event).getParam2() == SOCBoardLarge.GOLD_HEX)
-                    fogHasGold = true;
+                    hasFogGold = true;
                 else
-                    fogHasNonGold = true;
+                    hasFogNonGold = true;
             }
         } while (! (e.event instanceof SOCPutPiece));
 
@@ -673,15 +678,21 @@ public class GameActionExtractor
         {
             SOCGameElements ge = (SOCGameElements) e.event;
             final int[] et = ge.getElementTypes();
-            if ((et.length != 1) || (et[0] != SOCGameElements.GEType.LONGEST_ROAD_PLAYER.getValue()))
+            if (et.length != 1)
                 return null;
-
-            eState.snapshotFrom(state);
-            e = next();
+            if (et[0] == SOCGameElements.GEType.LONGEST_ROAD_PLAYER.getValue())
+            {
+                eState.snapshotFrom(state);
+                e = next();
+            } else if (et[0] == SOCGameElements.GEType.CURRENT_PLAYER.getValue()) {
+                backtrackTo(eState);
+            } else {
+                return null;
+            }
         }
 
         // If revealing any fog hexes as non-gold:
-        if (hasFog && fogHasNonGold)
+        if (hasFogNonGold)
             // all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=1|amount=1|news=Y
             // (can be multiple if initial settlement was placed)
             do
@@ -698,6 +709,7 @@ public class GameActionExtractor
 
         // all:SOCGameState:game=test|state=20  // or 100 SPECIAL_BUILDING
         // Or during initial placement, can be all:SOCTurn which begins next sequence
+        // Or if won due to this placement, can be all:SOCGameElements:game=test|e4=(winner PN)
         if (! e.isToAll())
             return null;
         if (isInitPlacement && (e.event instanceof SOCTurn))
@@ -709,11 +721,18 @@ public class GameActionExtractor
                 (ActionType.BUILD_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
                  pType, buildCoord, playerNumber);
         }
+        if (e.event instanceof SOCGameElements)
+        {
+            backtrackTo(eState);
+            e = nextIfGamestateOrOver();  // all:SOCGameElements, all:SOCGameState(1000)
+            if (e == null)
+                return null;
+        }
         if (! (e.event instanceof SOCGameState))
             return null;
 
         // If revealing a fog hex as gold:
-        if (hasFog && fogHasGold)
+        if (hasFogGold)
         {
             // all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
             e = next();
@@ -750,9 +769,25 @@ public class GameActionExtractor
         SOCMovePiece mp = (SOCMovePiece) e.event;
         final int pType = mp.getPieceType(), fromCoord = mp.getFromCoord(), toCoord = mp.getToCoord();
 
-        // all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
+        // If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=3342|hexType=7|diceNum=6
         e = next();
-        if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCMovePiece)))
+        if ((e == null) || ! e.isToAll())
+            return null;
+        boolean hasFogGold = false, hasFogNonGold = false;
+        if (e.event instanceof SOCRevealFogHex)
+        {
+            if (((SOCRevealFogHex) e.event).getParam2() == SOCBoardLarge.GOLD_HEX)
+                hasFogGold = true;
+            else
+                hasFogNonGold = true;
+
+            e = next();
+            if ((e == null) || ! e.isToAll())
+                return null;
+        }
+
+        // all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
+        if (! (e.event instanceof SOCMovePiece))
             return null;
         mp = (SOCMovePiece) e.event;
         if ((pType != mp.getPieceType()) || (fromCoord != mp.getFromCoord()) || (toCoord != mp.getToCoord()))
@@ -767,6 +802,40 @@ public class GameActionExtractor
             final int[] et = ge.getElementTypes();
             if ((et.length != 1) || (et[0] != SOCGameElements.GEType.LONGEST_ROAD_PLAYER.getValue()))
                 backtrackTo(presentState);
+        }
+
+        if (hasFogGold)
+        {
+            // all:SOCGameState:game=test|state=56
+            // or if won game with longest route: all:SOCGameElements, all:SOCGameState(1000)
+            e = nextIfGamestateOrOver();
+            if (e == null)
+                return null;
+
+            if (state.currentGameState != SOCGame.OVER)
+            {
+                // all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
+                e = next();
+                if (! (e.isToAll() && (e.event instanceof SOCPlayerElement)
+                       && (((SOCPlayerElement) e.event).getAction() == SOCPlayerElement.SET)
+                       && (((SOCPlayerElement) e.event).getElementType()
+                           == SOCPlayerElement.PEType.NUM_PICK_GOLD_HEX_RESOURCES.getValue())))
+                    return null;
+
+                // p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
+                e = next();
+                if (e.isFromClient
+                    || ! ((e.pn == state.currentPlayerNumber) && (e.event instanceof SOCSimpleRequest)
+                          && (((SOCSimpleRequest) e.event).getRequestType() == SOCSimpleRequest.PROMPT_PICK_RESOURCES)))
+                    return null;
+            }
+        } else if (hasFogNonGold) {
+            // all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=2|amount=1|news=Y
+            e = next();
+            if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCPlayerElement)
+                    && ((SOCPlayerElement) e.event).isNews()
+                    && (((SOCPlayerElement) e.event).getAction() == SOCPlayerElement.GAIN)))
+                 return null;
         }
 
         int prevStart = currentSequenceStartIndex;
@@ -930,17 +999,38 @@ public class GameActionExtractor
             if (! (e.isToAll() && (e.event instanceof SOCPutPiece)))
                 return null;
 
-            // If gains Longest Route after 1st placement: all:SOCGameElements:game=test|e6=3
+            // If gains Longest Route after 1st placement: all:SOCGameElements:game=test|e6=(PN)
             e = next();
             if (e.event instanceof SOCGameElements)
             {
                 if (! e.isToAll())
                     return null;
+
+                e = next();
+            }
+
+            // If won due to Longest Route: all:SOCGameElements:game=test|e4=(winner PN)
+            if (e.event instanceof SOCGameElements)
+            {
+                if (! e.isToAll())
+                    return null;
+                final int[] et = ((SOCGameElements) e.event).getElementTypes();
+                if ((et.length != 1) || (et[0] != SOCGameElements.GEType.CURRENT_PLAYER.getValue()))
+                    return null;
+
                 e = next();
             }
 
             if (! (e.isToAll() && (e.event instanceof SOCGameState)))
                 return null;
+
+            if (state.currentGameState == SOCGame.OVER)
+            {
+                int prevStart = currentSequenceStartIndex;
+                return new Action
+                    (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                     SOCDevCardConstants.ROADS, 0, 0);
+            }
         }
 
         // all:SOCGameState:game=test|state=41
@@ -957,16 +1047,29 @@ public class GameActionExtractor
         if (! (e.isToAll() && (e.event instanceof SOCPutPiece)))
             return null;
 
-        // If gains Longest Route after 2nd placement: all:SOCGameElements:game=test|e6=3
+        // If gains Longest Route after 2nd placement: all:SOCGameElements:game=test|e6=(PN)
         e = next();
         if (e.event instanceof SOCGameElements)
         {
             if (! e.isToAll())
                 return null;
+
             e = next();
         }
 
-        // all:SOCGameState:game=test|state=20  // or 15
+        // If won due to Longest Route: all:SOCGameElements:game=test|e4=(winner PN)
+        if (e.event instanceof SOCGameElements)
+        {
+            if (! e.isToAll())
+                return null;
+            final int[] et = ((SOCGameElements) e.event).getElementTypes();
+            if ((et.length != 1) || (et[0] != SOCGameElements.GEType.CURRENT_PLAYER.getValue()))
+                return null;
+
+            e = next();
+        }
+
+        // all:SOCGameState:game=test|state=20  // or 15 or 1000
         if (! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
 
@@ -1220,12 +1323,12 @@ public class GameActionExtractor
     }
 
     /**
-     * Extract {@link ActionType#CHOOSE_MOVE_ROBBER_PIRATE} from the current message sequence.
+     * Extract {@link ActionType#CHOOSE_MOVE_ROBBER_OR_PIRATE} from the current message sequence.
      * gameState should be {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE} when called.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_CHOOSE_MOVE_ROBBER_PIRATE(GameEventLog.QueueEntry e)
+    private Action extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(GameEventLog.QueueEntry e)
     {
         // f3:SOCChoosePlayer:game=test|choice=-2  // or -3
         if (! e.isFromClient)
@@ -1241,13 +1344,14 @@ public class GameActionExtractor
 
         int prevStart = currentSequenceStartIndex;
         return new Action
-            (ActionType.CHOOSE_MOVE_ROBBER_PIRATE, state.currentGameState, resetCurrentSequence(), prevStart,
+            (ActionType.CHOOSE_MOVE_ROBBER_OR_PIRATE, state.currentGameState, resetCurrentSequence(), prevStart,
              choice, 0, 0);
     }
 
     /**
      * Extract {@link ActionType#MOVE_ROBBER_OR_PIRATE} from the current message sequence.
-     * gameState should be {@link SOCGame#PLACING_ROBBER} or {@link SOCGame#PLACING_PIRATE} when called.
+     * gameState must be {@link SOCGame#PLACING_ROBBER} or {@link SOCGame#PLACING_PIRATE} when called,
+     * or will return {@code null}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      *     or if {@link ExtractorState#currentGameState} when called isn't one of those two {@code PLACING_} states.
@@ -1271,17 +1375,41 @@ public class GameActionExtractor
             hexCoord = -hexCoord;  // network sends pirate as negative coord; Action abstracts away from that
 
         // If any choices to be made:
-        // all:SOCGameState:game=test|state=20  // or another state
-        // Otherwise next message is SOCReportRobbery from server, which isn't part of this sequence
+        //   all:SOCGameState:game=test|state=20  // or another state
+        // Or if no possible victims and winning by gaining Largest Army:
+        //   all:SOCGameElements + all:SOCGameState(1000)
+        // Otherwise next message is SOCReportRobbery from server, which will be start of next sequence
+
         ExtractorState presentState = new ExtractorState(state);
 
         e = next();
         if ((e == null) || e.isFromClient)
             return null;
 
+        boolean sawGE = false;
+        if (e.event instanceof SOCGameElements)
+        {
+            // look for type CURRENT_PLAYER only, as part of "game over" message pair
+            SOCGameElements ge = (SOCGameElements) e.event;
+            int[] et = ge.getElementTypes();
+            if ((et.length != 1) || (et[0] != SOCGameElements.GEType.CURRENT_PLAYER.getValue())
+                || ! e.isToAll())
+                return null;
+
+            sawGE = true;
+            state.currentPlayerNumber = ge.getValues()[0];
+
+            e = next();
+            if ((e == null) || e.isFromClient)
+                return null;
+        }
+
         if (e.event instanceof SOCReportRobbery)
             backtrackTo(presentState);
         else if (! (e.isToAll() && (e.event instanceof SOCGameState)))
+            return null;
+
+        if (sawGE && (state.currentGameState != SOCGame.OVER))
             return null;
 
         int prevStart = currentSequenceStartIndex;
@@ -1387,9 +1515,10 @@ public class GameActionExtractor
         }
 
         // Common to both:
-        // all:SOCGameState:game=test|state=20  // or 15 if hasn't rolled yet
-        e = next();
-        if (! (e.isToAll() && (e.event instanceof SOCGameState)))
+        // all:SOCGameState:game=test|state=20
+        //     or =15 + all:SOCRollDicePrompt if hasn't rolled yet, or all:GameElement + state=1000 if OVER
+        e = nextIfGamestateOrOver();
+        if (e == null)
             return null;
 
         int prevStart = currentSequenceStartIndex;
@@ -1572,40 +1701,27 @@ public class GameActionExtractor
     }
 
     /**
-     * Extract {@link ActionType#GAME_OVER} from the current message sequence.
+     * Extract {@link ActionType#GAME_OVER} from the current message sequence,
+     * which follows but does not include {@link SOCGameState}({@link SOCGame#OVER}).
+     * Previous sequence (seen by calling {@link #nextIfGamestateOrOver()} or otherwise)
+     * should already have set {@link ExtractorState#currentPlayerNumber} to the winning player
+     * and {@link ExtractorState#currentGameState} = {@link SOCGame#OVER}.
+     *
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      *     or if {@link ExtractorState#currentGameState} when called isn't one of those two {@code PLACING_} states.
      */
     private Action extract_GAME_OVER(GameEventLog.QueueEntry e)
     {
-        // all:SOCGameElements:game=test|e4=3
-        SOCGameElements ge = (SOCGameElements) e.event;
-        int[] et = ge.getElementTypes();
-        if ((et.length != 1) || (et[0] != SOCGameElements.GEType.CURRENT_PLAYER.getValue())
-            || ! e.isToAll())
-            return null;
-        final int newCurrPlayer = ge.getValues()[0];
-
-        // all:SOCGameState:game=test|state=1000
-        final ExtractorState presentState = new ExtractorState(state);
-        e = nextIfType(SOCMessage.GAMESTATE);
-        if (e == null)
-            return null;
-        if (SOCGame.OVER != ((SOCGameState) e.event).getState())
-        {
-            backtrackTo(presentState);
-            return null;
-        }
+        final int winningPlayerNumber = state.currentPlayerNumber;
 
         // players' revealed dev cards, if any:
         // all:SOCDevCardAction:game=test|playerNum=2|actionType=ADD_OLD|cardType=6
         // all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardTypes=[5, 4]
-        e = next();
-        if (e == null)
-            return null;
         if (e.event instanceof SOCDevCardAction)
         {
+            if (! e.isToAll())
+                return null;
             do
             {
                 e = next();
@@ -1626,7 +1742,7 @@ public class GameActionExtractor
         int prevStart = currentSequenceStartIndex;
         return new Action
             (ActionType.GAME_OVER, state.currentGameState, resetCurrentSequence(), prevStart,
-             newCurrPlayer, 0, 0);
+             winningPlayerNumber, 0, 0);
     }
 
     /** State fields, encapsulated for calling {@link GameActionExtractor#backtrackTo(ExtractorState)}. */

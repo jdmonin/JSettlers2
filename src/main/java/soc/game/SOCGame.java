@@ -6297,10 +6297,14 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Called only at server.  Client gets messages with results of the move, and
      * calls {@link SOCBoard#setRobberHex(int, boolean)}.
-     *<P>
-     * If no victims (players to possibly steal from): State becomes oldGameState.
-     * If just one victim: call stealFromPlayer, State becomes oldGameState.
-     * If multiple possible victims: Player must choose a victim: State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
+     *
+     *<UL>
+     * <LI> If no victims (players to possibly steal from): State becomes oldGameState,
+     *      or {@link #OVER} if they just won with Largest Army.
+     * <LI> If just one victim: calls stealFromPlayer, during which State becomes oldGameState,
+     *      or {@link #OVER} if won with Largest Army
+     * <LI> If multiple possible victims: Player must choose a victim: State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
+     *</UL>
      *<P>
      * Assumes {@link #canMoveRobber(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_ROBBER}.
@@ -6396,26 +6400,30 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Called only at server.  Client gets messages with results of the move, and
      * calls {@link SOCBoardLarge#setPirateHex(int, boolean)}.
-     *<br>
-     * <h5>Normal operation:</h5>
-     *<P>
-     * If no victims (players to possibly steal from): State becomes oldGameState.
-     *<br>
-     * If multiple possible victims: Player must choose a victim: State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
-     *    Once chosen, call {@link #choosePlayerForRobbery(int)} to choose a victim.
-     *<br>
-     * If just one victim: call stealFromPlayer, State becomes oldGameState.
-     * If cloth robbery gives player enough VP to win, sets gameState to {@link #OVER}.
-     *<br>
-     *    Or: If just one victim but {@link #canChooseRobClothOrResource(int)},
-     *    state becomes {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
-     *    Once chosen, call {@link #stealFromPlayer(int, boolean)}.
-     *<P>
+     *
+     *<H5>Normal operation:</H5>
+     *
+     *<UL>
+     * <LI> If no victims (players to possibly steal from): State becomes oldGameState,
+     *      or {@link #OVER} if they just won with Largest Army.
+     * <LI> If multiple possible victims: Player must choose a victim:
+     *      State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
+     *      Once chosen, call {@link #choosePlayerForRobbery(int)} to choose a victim.
+     * <LI> If just one victim: calls stealFromPlayer, State becomes oldGameState.
+     *      If Largest Army or cloth robbery gives player enough VP to win, sets gameState to {@link #OVER}.
+     *      <P>
+     *      Or if just one victim but {@link #canChooseRobClothOrResource(int)},
+     *      state becomes {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
+     *      Once chosen, call {@link #stealFromPlayer(int, boolean)}.
+     *</UL>
+     *
      * Assumes {@link #canMovePirate(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_PIRATE}.
      * Also updates {@link #getRobberyResult()}.
-     *<P>
-     * In <b>game scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
+     *
+     *<H5>Game scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}:</H5>
+     *
+     * The pirate is moved not by the player,
      * but by the game at every dice roll.  See {@link #movePirate(int, int, int)} instead of this method.
      *
      * @param pn  the number of the player that is moving the pirate ship
@@ -8290,6 +8298,9 @@ public class SOCGame implements Serializable, Cloneable
      * Assumes {@link #canPlayKnight(int)} already called, and the play is allowed.
      * gameState becomes either {@link #PLACING_ROBBER}
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
+     *<P>
+     * See note at {@link #moveRobber(int, int)} or {@link #movePirate(int, int)}
+     * about when Largest Army can win the game.
      *<P>
      * <b>In scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> instead the player
      * converts a normal ship to a warship.  There is no robber piece in this scenario.

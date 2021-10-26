@@ -286,6 +286,10 @@ public class GameActionLog
              *<BR>
              * {@code p1} = dev card type played, like {@link SOCDevCardConstants#ROADS}.
              * {@code rs1} = resources gained by Year of Plenty/Discovery or Monopoly (if none: null, not empty).
+             *<P>
+             * For knight/soldier ({@link SOCDevCardConstants#KNIGHT}),
+             * see note at {@link #MOVE_ROBBER_OR_PIRATE} about when Largest Army can win the game.
+             *
              * @see #BUY_DEV_CARD
              */
             PLAY_DEV_CARD,
@@ -311,7 +315,7 @@ public class GameActionLog
              *<BR>
              * {@code p1} = 1 for robber or 2 for pirate.
              */
-            CHOOSE_MOVE_ROBBER_PIRATE,
+            CHOOSE_MOVE_ROBBER_OR_PIRATE,
 
             /**
              * Move the robber or the pirate.
@@ -319,6 +323,14 @@ public class GameActionLog
              *<BR>
              * {@code p1} = 1 for robber or 2 for pirate.
              * {@code p2} = new hex coordinate.
+             *<P>
+             * If player has just made the game-winning move by gaining Largest Army:
+             *<UL>
+             * <LI> If no possible victims, game state will change to {@link SOCGame#OVER}
+             *      at end of this action's sequence
+             * <LI> If there's victim(s) to rob from, game won't be {@link SOCGame#OVER}
+             *      until after the robbery is completed
+             *</UL>
              */
             MOVE_ROBBER_OR_PIRATE,
 
@@ -351,6 +363,9 @@ public class GameActionLog
              *     {@link SOCPlayerElement.PEType#SCENARIO_CLOTH_COUNT}.{@link SOCPlayerElement.PEType#getValue() getValue()}.
              * {@code p3} = amount robbed.
              * {@code rs1} = null.
+             *<P>
+             * If player has just made winning move by gaining Largest Army,
+             * game state won't be {@link SOCGame#OVER} until end of this {@code ROB_PLAYER} action.
              */
             ROB_PLAYER,
 
