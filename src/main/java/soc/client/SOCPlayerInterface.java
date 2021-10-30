@@ -1825,6 +1825,8 @@ public class SOCPlayerInterface extends Frame
                 boardPanel.setPlayer(null);
             boardPanel.updateMode();  // will set or clear top text, which triggers a repaint
             buildingPanel.updateButtonStatus();
+            if (clientHand != null)
+                clientHand.updateAtOurGameState();
         } catch (IllegalStateException e) {
             textDisplay.append
               ("*** Can't setDebugFreePlacement(" + setOn+ ") for " + game.getName() + " in state " + game.getGameState() + "\n");

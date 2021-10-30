@@ -1612,6 +1612,7 @@ import javax.swing.UIManager;
     /**
      * Handle a click on the "play card" button, or double-click
      * on an item in the inventory/list of cards held.
+     * Silently ignored if {@link SOCGame#isDebugFreePlacement()}.
      *<P>
      * Inventory items are almost always {@link SOCDevCard}s.
      * Some scenarios may place other items in the player's inventory,
@@ -1629,6 +1630,9 @@ import javax.swing.UIManager;
             messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
             return;
         }
+
+        if (game.isDebugFreePlacement())
+            return;
 
         String itemText;
         int itemNum;  // Which one to play from list?
@@ -2725,6 +2729,8 @@ import javax.swing.UIManager;
     /**
      * Client is current player; state changed.
      * Enable or disable the Roll, Done and Bank buttons.
+     * Also disables/enables Play Card and Inventory when entering/exiting
+     * Free Placement debug mode ({@link SOCGame#isDebugFreePlacement()}).
      *<P>
      * Should not be called except by client's playerinterface.
      * Call only when if player is client and is current player.
@@ -3562,6 +3568,10 @@ import javax.swing.UIManager;
      * {@link #rollBut}, {@link #doneBut}, {@link #bankBut}.
      * Call only if {@link #playerIsCurrent} and {@link #playerIsClient}.
      *<P>
+     * Free Placement debug mode: Disables Play Card button and {@link #inventory}
+     * if {@link SOCGame#isDebugFreePlacement()}, re-enables it after exiting that mode
+     * unless {@link #inventoryItems} is empty.
+     *<P>
      * v2.0.00+: In game state {@link SOCGame#PLACING_INV_ITEM}, the Play Card button's label
      * becomes {@link #CANCEL}, and {@link #inventory} is disabled, while the player places
      * an item on the board.  They can hit Cancel to return the item to their inventory instead.
@@ -3575,31 +3585,40 @@ import javax.swing.UIManager;
     private void updateRollDoneBankButtons()
     {
         final int gs = game.getGameState();
+
         rollBut.setEnabled(gs == SOCGame.ROLL_OR_CARD);
         doneBut.setEnabled
             ((gs <= SOCGame.START3B) || doneButIsRestart || game.canEndTurn(playerNumber));
         bankBut.setEnabled(gs == SOCGame.PLAY1);
 
-        if (game.hasSeaBoard)
+        if (game.hasSeaBoard && (gs == SOCGame.PLACING_INV_ITEM))
         {
-            if (gs == SOCGame.PLACING_INV_ITEM)
-            {
-                // in this state only, "Play Card" becomes "Cancel"
-                SOCInventoryItem placing = game.getPlacingItem();
-                if (placing != null)
-                    canCancelInvItemPlay = placing.canCancelPlay;
-                inventory.setEnabled(false);
-                playCardBut.setText(CANCEL);
-                playCardBut.setEnabled(canCancelInvItemPlay);
-            } else {
-                if (! inventory.isEnabled())
-                    inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
+            // in this state only, "Play Card" becomes "Cancel"
+            SOCInventoryItem placing = game.getPlacingItem();
+            if (placing != null)
+                canCancelInvItemPlay = placing.canCancelPlay;
+            inventory.setEnabled(false);
+            playCardBut.setText(CANCEL);
+            playCardBut.setEnabled(canCancelInvItemPlay);
+        }
+        else if (game.isDebugFreePlacement() && inventory.isEnabled())
+        {
+            inventory.setEnabled(false);
+            playCardBut.setEnabled(false);
+        }
+        else
+        {
+            if (! inventory.isEnabled())
+                inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
 
-                if (playCardBut.getText().equals(CANCEL))
-                {
-                    playCardBut.setText(CARD);  // " Play Card "
-                    playCardBut.setEnabled(! inventoryItems.isEmpty());
-                }
+            if (playCardBut.getText().equals(CANCEL))
+            {
+                playCardBut.setText(CARD);  // " Play Card "
+                playCardBut.setEnabled(! inventoryItems.isEmpty());
+            }
+            else if (! (playCardBut.isEnabled() || inventoryItems.isEmpty() || player.hasPlayedDevCard()))
+            {
+                playCardBut.setEnabled(true);
             }
         }
     }

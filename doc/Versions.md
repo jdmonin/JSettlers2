@@ -52,6 +52,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- SOCGameTextMsg, SOCChannelTextMsg: Clients and server remove extraneous trailing `\n` when sending message
 - For developers:
 	- New debug command `devnext: cardType` to rearrange the Development Card deck
+	- Bugfix: When Free Placement debug mode active, disallow playing dev cards: SOCBoardPanel was ignoring "move robber" clicks in that mode
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/ruflab/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
 	    - Misc bot API refactoring; encapsulate robot's build stack as SOCBuildPlan
