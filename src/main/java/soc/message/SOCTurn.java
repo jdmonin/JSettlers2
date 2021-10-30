@@ -95,6 +95,7 @@ public class SOCTurn extends SOCMessage
      * @param pn  the seat number
      * @param gs  the new turn's optional Game State such as {@link SOCGame#ROLL_OR_CARD}, or 0.
      *     Values &lt; 0 are out of range and ignored (treated as 0).
+     *     This field is ignored by clients older than v2.0.00 ({@link SOCGameState#VERSION_FOR_GAME_STATE_AS_FIELD}).
      */
     public SOCTurn(final String ga, final int pn, final int gs)
     {
@@ -138,20 +139,7 @@ public class SOCTurn extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, playerNumber, gameState);
-    }
-
-    /**
-     * TURN sep game sep2 playerNumber [sep2 gameState]
-     *
-     * @param ga  the name of the game
-     * @param pn  the seat number
-     * @param gs  the new turn's optional Game State such as {@link SOCGame#ROLL_OR_CARD}, or 0 to omit that field
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final int pn, final int gs)
-    {
-        return TURN + sep + ga + sep2 + pn + ((gs > 0) ? sep2 + gs : "");
+        return TURN + sep + game + sep2 + playerNumber + ((gameState > 0) ? sep2 + gameState : "");
     }
 
     /**
@@ -166,7 +154,7 @@ public class SOCTurn extends SOCMessage
         {
             String ga;   // the game name
             int pn;  // the seat number
-            int gs = 0;  // the game state
+            int gs = 0;  // the game state; not sent from v1.x servers
 
             StringTokenizer st = new StringTokenizer(s, sep2);
 
