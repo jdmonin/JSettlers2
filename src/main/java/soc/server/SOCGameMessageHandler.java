@@ -424,7 +424,8 @@ public class SOCGameMessageHandler
 
                 if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
                 {
-                    // pirate moves on every roll
+                    // pirate moves on every roll,
+                    // attacks when 1 player's settlement/city is adjacent
                     srv.messageToGame(gn, true, new SOCMoveRobber
                         (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
 
@@ -753,6 +754,7 @@ public class SOCGameMessageHandler
                     {
                         // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
                         // Send number of picks as part of roll result sequence before game state.
+                        // Resolving the 7 as usual (discards, robbing) will happen after the pick.
 
                         goldPicks = new int[ga.maxPlayers];
                         goldPickPlayerClis = new Connection[ga.maxPlayers];
@@ -867,7 +869,7 @@ public class SOCGameMessageHandler
                 if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
                     if (gstate == SOCGame.WAITING_FOR_DISCARDS)
-                        handler.sendGameState(ga, true, false);  // send only text prompt, not redundant GAMESTATE
+                        handler.sendGameState(ga, true, false, false);  // send only text prompt, not redundant GAMESTATE
                     else
                         handler.sendGameState(ga);
                             // if state is WAITING_FOR_ROB_CHOOSE_PLAYER (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
@@ -2461,14 +2463,14 @@ public class SOCGameMessageHandler
                 {
                     // If ship placement reveals a gold hex in _SC_FOG,
                     // the player gets to pick a free resource.
-                    handler.sendGameState(ga, false, false);
+                    handler.sendGameState(ga, false, true, false);
                     handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                 }
                 else if (gstate != ga.getGameState())
                 {
                     // announce new state (such as PLACING_INV_ITEM in _SC_FTRI),
                     // or if state is now SOCGame.OVER, announce end of game
-                    handler.sendGameState(ga, false, false);
+                    handler.sendGameState(ga, false, true, false);
                 }
             }
         }
@@ -2581,9 +2583,9 @@ public class SOCGameMessageHandler
             {
                 // exit debug mode, announce end of game
                 handler.processDebugCommand_freePlace(c, ga, "0");
-                handler.sendGameState(ga, false, false);
+                handler.sendGameState(ga, false, true, false);
             } else if (newState != gstate) {
-                handler.sendGameState(ga, false, false);
+                handler.sendGameState(ga, false, true, false);
             }
         } else {
             if (initialDeny)

@@ -451,7 +451,7 @@ public class SOCGameHandler extends GameHandler
                     // Player changed (or play started), announce new player.
                     sendTurn(ga, false);
                 } else {
-                    sendGameState(ga, false, false);
+                    sendGameState(ga, false, true, false);
                 }
             }
         }
@@ -1035,7 +1035,7 @@ public class SOCGameHandler extends GameHandler
         if (ga.canEndTurn(cpn))
             endGameTurn(ga, null, true);  // could force gamestate to OVER, if a client leaves
         else
-            sendGameState(ga, false, false);
+            sendGameState(ga, false, true, false);
 
         return (ga.getGameState() != SOCGame.OVER);
     }
@@ -2410,11 +2410,12 @@ public class SOCGameHandler extends GameHandler
     /**
      * {@inheritDoc}
      *<P>
-     * Equivalent to: {@link #sendGameState(SOCGame, boolean, boolean) sendGameState(ga, false, true)}.
+     * {@code sendGameState(ga)} is equivalent to:
+     * {@link #sendGameState(SOCGame, boolean, boolean, boolean) sendGameState(ga, false, true, true)}.
      */
     public void sendGameState(SOCGame ga)
     {
-        sendGameState(ga, false, true);
+        sendGameState(ga, false, true, true);
     }
 
     /**
@@ -2473,12 +2474,15 @@ public class SOCGameHandler extends GameHandler
      * @param omitGameStateMessage  if true, don't send the {@link SOCGameState} message itself
      *    but do send any other messages as described above. For use just after sending a message which
      *    includes a Game State field. Ignored if gamestate >= {@link SOCGame#OVER}.
+     * @param gameStateIsEvent  if true and ! {@code omitGameStateMessage}, record the
+     *    {@link SOCGameState} message itself as an event. Ignored if {@code omitGameStateMessage} true.
      * @param sendRollPrompt  If true and state is {@link SOCGame#ROLL_OR_CARD}, send game a {@code RollDicePrompt}.
      * @return  If true, caller ({@code sendTurn}) should send game a {@code RollDicePrompt}
      *    because {@code sendRollPrompt} is false, although they may send other messages first.
      * @since 1.1.00
      */
-    boolean sendGameState(SOCGame ga, final boolean omitGameStateMessage, final boolean sendRollPrompt)
+    boolean sendGameState
+        (SOCGame ga, final boolean omitGameStateMessage, final boolean gameStateIsEvent, final boolean sendRollPrompt)
     {
         if (ga == null)
             return false;
@@ -2507,7 +2511,7 @@ public class SOCGameHandler extends GameHandler
         }
 
         if ((! omitGameStateMessage) || (gaState >= SOCGame.OVER))
-            srv.messageToGame(gname, true, new SOCGameState(gname, gaState));
+            srv.messageToGame(gname, gameStateIsEvent, new SOCGameState(gname, gaState));
 
         SOCPlayer player = null;
 
@@ -3739,7 +3743,7 @@ public class SOCGameHandler extends GameHandler
             sendTurn(ga, false);
         } else {
             final int cpn = ga.getCurrentPlayerNumber();
-            final boolean sendRoll = sendGameState(ga, false, false);
+            final boolean sendRoll = sendGameState(ga, false, false, false);
             srv.messageToGame(gaName, true, new SOCStartGame(gaName, 0));
             srv.messageToGame(gaName, true, new SOCTurn(gaName, cpn, 0));
             if (sendRoll)
@@ -3762,7 +3766,7 @@ public class SOCGameHandler extends GameHandler
      * Call after an initial road/ship placement's {@link soc.game.SOCGame#putPiece(SOCPlayingPiece)},
      * or after a player has chosen free resources from a gold hex with
      * {@link soc.game.SOCGame#pickGoldHexResources(int, SOCResourceSet)},
-     * and only after {@link #sendGameState(SOCGame, boolean, boolean)}.
+     * and only after {@link #sendGameState(SOCGame, boolean, boolean, boolean)}.
      *
      * @param ga  The game
      * @param pl  Player who did the gold pick or piece placement action
@@ -3810,7 +3814,7 @@ public class SOCGameHandler extends GameHandler
         }
         else
         {
-            final boolean sendRoll = sendGameState(ga, false, false);
+            final boolean sendRoll = sendGameState(ga, false, true, false);
 
             if (sendRoll)
             {
@@ -3830,7 +3834,7 @@ public class SOCGameHandler extends GameHandler
      * The {@link SOCTurn} sent will have a field for the Game State unless
      * {@link SOCGame#clientVersionLowest} &lt; 2.0.00 ({@link SOCGameState#VERSION_FOR_GAME_STATE_AS_FIELD}),
      * in which case a separate {@link SOCGameState} message will be sent first.
-     * Calls {@link #sendGameState(SOCGame, boolean, boolean)} in either case,
+     * Calls {@link #sendGameState(SOCGame, boolean, boolean, boolean)} in either case,
      * to send any text prompts or other gamestate-related messages.
      *<P>
      * sendTurn should be called whenever the current player changes, including
@@ -3846,7 +3850,7 @@ public class SOCGameHandler extends GameHandler
 
         final boolean useGSField = (ga.clientVersionLowest >= SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD);
 
-        sendRollPrompt |= sendGameState(ga, useGSField, false);
+        sendRollPrompt |= sendGameState(ga, useGSField, false, false);
 
         String gname = ga.getName();
         final int gs = ga.getGameState(),
@@ -4419,7 +4423,7 @@ public class SOCGameHandler extends GameHandler
                 try
                 {
                     forceGamePlayerDiscardOrGain(ga, cpn, plConn, plName, plNumber);
-                    sendGameState(ga, false, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER for discard;
+                    sendGameState(ga, false, true, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER for discard;
                         // PLAY1 or WAITING_FOR_PICK_GOLD_RESOURCE for gain
                 } finally {
                     ga.releaseMonitor();
