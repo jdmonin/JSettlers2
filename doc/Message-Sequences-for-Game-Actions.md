@@ -13,10 +13,10 @@ and easier for bots and other automated readers to recognize.
 Since the server and built-in robots are packaged together,
 the bots also use these updated message sequences.
 The server uses the latest version format to record the game event sequences
-it sends, even when sending other more-compatible messages to an older client.
+it sends, even when it actually sent different messages to an older client to be compatible.
 
-If you're curious about older versions, see the code and comments in
-server classes like `SOCGameMessageHandler` and `SOCGameHandler` which communicate with clients.
+If you're curious about older versions, see the code and comments in message classes like `SOCPutPiece`
+and server classes like `SOCGameMessageHandler` and `SOCGameHandler` which communicate with clients.
 
 Sequences are tested for consistency during unit tests and release testing:
 - `/src/test/java/soctest/server/TestRecorder.java` `testLoadAndBasicSequences()` runs through some basic game actions
@@ -579,8 +579,8 @@ because the current player changes.
 
 ### Next player's usual turn begins
 
-- all:SOCTurn:game=test|playerNumber=2|gameState=15
-- all:SOCRollDicePrompt:game=test|playerNumber=2
+- all:SOCTurn:game=test|playerNumber=2|gameState=15  // ROLL_OR_CARD, or 1000 (OVER) if they just won
+- If new turn's gameState not OVER: all:SOCRollDicePrompt:game=test|playerNumber=2
 
 ### Next player's SBP begins
 
@@ -590,11 +590,13 @@ because the current player changes.
 ## Game over
 
 Preceding messages are:
+- If winning points gained during the player's turn:
+    - all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
+    - all:SOCGameState:game=test|state=1000  // OVER
+- If gained during another player's turn, and winning at start of player's own turn:
+    - all:SOCTurn:game=test|playerNumber=3|gameState=1000
 
-- all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
-- all:SOCGameState:game=test|state=1000  // OVER
-
-which are part of the previous sequence if it typically ends with a SOCGameState.
+Those are part of the previous sequence if it typically ends with a SOCGameState.
 
 - all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.
 - all:SOCDevCardAction:game=test|playerNum=2|actionType=ADD_OLD|cardType=6
@@ -603,8 +605,6 @@ which are part of the previous sequence if it typically ends with a SOCGameState
 - all:SOCGameServerText:game=test|text=This game was 12 rounds, and took 11 minutes 29 seconds.
 - p2:SOCPlayerStats:game=test|p=1|p=0|p=2|p=4|p=1|p=5  // sent to each still-connected player client; might be none if observing a robot-only game
 - p3:SOCPlayerStats:game=test|p=1|p=2|p=6|p=0|p=5|p=1
-- If winning at start of your turn (see below):
-- all:SOCTurn:game=test|playerNumber=3|gameState=1000
 
 ### Winning at Start of your Turn
 
@@ -612,16 +612,14 @@ This happens when the winning player gains enough VP to win during another playe
 Maybe they became longest-route player because another player broke a longer route,
 or gained VP from cloth during another player's roll in the Cloth Trade scenario.
 
-The previous player's "end turn" is immediately followed by the "game over" sequence,
-without a "turn begins" sequence:
+The previous player's "end turn" is followed by a "turn begins" sequence,
+then the "game over" sequence:
 
 - f2:SOCEndTurn:game=test
 - all:SOCClearOffer:game=test|playerNumber=-1
-
-- all:SOCGameElements:game=test|e4=3
-- all:SOCGameState:game=test|state=1000
+- all:SOCTurn:game=test|playerNumber=3|gameState=1000
 - all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.
 - all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4
 - all:SOCGameStats:game=test|0|2|2|10|false|true|true|false
 - p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=5|p=2|p=0
-- all:SOCTurn:game=test|playerNumber=3|gameState=1000
+

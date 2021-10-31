@@ -40,8 +40,11 @@ JARs for recent JSettlers versions can be downloaded from
 	- In dice roll result message sequence, new game state is sent only after resources or other gains/losses by players
 	  to indicate end of sequence
 	- Bank Trade and Accept Offer messages have resource info, so server no longer sends redundant `SOCPlayerElement`s
-	- `SOCTurn` no longer preceded by SOCPlayerElement(PLAYED_DEV_CARD_FLAG) except to older clients,
-	  now sends game state field even when game has v1.x clients
+	- Begin Turn sequence:
+		- `SOCTurn` no longer preceded by SOCPlayerElement(PLAYED_DEV_CARD_FLAG) except to older clients
+		- `SOCTurn` uses game state field even when game has v1.x clients
+		- If a player gains winning points during another player's turn, and wins when it becomes their own turn,
+		  send `SOCTurn` instead of SOCGameElements(CURRENT_PLAYER) and SOCGameState(OVER)
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)

@@ -2474,15 +2474,20 @@ public class SOCGameHandler extends GameHandler
      * @param omitGameStateMessage  if true, don't send the {@link SOCGameState} message itself
      *    but do send any other messages as described above. For use just after sending a message which
      *    includes a Game State field. Ignored if gamestate >= {@link SOCGame#OVER}.
-     * @param gameStateMsgIsEvent  if true and ! {@code omitGameStateMessage}, record the
-     *    {@link SOCGameState} message itself as an event. Ignored if {@code omitGameStateMessage} true.
+     * @param sendStateMessageToAllVersions  If true and ! {@code omitGameStateMessage},
+     *    send the {@link SOCGameState} message itself to all client versions and record it as an event.
+     *    Otherwise will send only to v1.x, also won't send its preceding {@link SOCGameElements}
+     *    ({@link GEType#CURRENT_PLAYER}) to v2 clients, only {@link SOCSetTurn} to v1.x;
+     *    caller should have already sent {@link SOCTurn} or a similar message to convey that data to v2 clients.
+     *    <BR>
+     *    Ignored if {@code omitGameStateMessage} true.
      * @param sendRollPrompt  If true and state is {@link SOCGame#ROLL_OR_CARD}, send game a {@code RollDicePrompt}.
      * @return  If true, caller ({@code sendTurn}) should send game a {@code RollDicePrompt}
      *    because {@code sendRollPrompt} is false, although they may send other messages first.
      * @since 1.1.00
      */
     boolean sendGameState
-        (SOCGame ga, final boolean omitGameStateMessage, final boolean gameStateMsgIsEvent,
+        (SOCGame ga, final boolean omitGameStateMessage, final boolean sendStateMessageToAllVersions,
          final boolean sendRollPrompt)
     {
         if (ga == null)
@@ -2499,8 +2504,11 @@ public class SOCGameHandler extends GameHandler
              * Before sending state "OVER", enforce current player number.
              * This helps the client's copy of game recognize winning condition.
              */
-            if (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+            if (! sendStateMessageToAllVersions)
             {
+                srv.messageToGameForVersions
+                    (ga, -1, SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD - 1, new SOCSetTurn(gname, cpn), true);
+            } else if (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION) {
                 srv.messageToGame(gname, true,
                     new SOCGameElements(gname, GEType.CURRENT_PLAYER, cpn));
             } else {
@@ -2512,7 +2520,15 @@ public class SOCGameHandler extends GameHandler
         }
 
         if ((! omitGameStateMessage) || (gaState >= SOCGame.OVER))
-            srv.messageToGame(gname, gameStateMsgIsEvent, new SOCGameState(gname, gaState));
+        {
+            final SOCGameState gstateMsg = new SOCGameState(gname, gaState);
+
+            if (sendStateMessageToAllVersions)
+                srv.messageToGame(gname, true, gstateMsg);
+            else
+                srv.messageToGameForVersions
+                    (ga, -1, SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD - 1, gstateMsg, true);
+        }
 
         SOCPlayer player = null;
 
@@ -3744,7 +3760,7 @@ public class SOCGameHandler extends GameHandler
             sendTurn(ga, false);
         } else {
             final int cpn = ga.getCurrentPlayerNumber();
-            final boolean sendRoll = sendGameState(ga, false, false, false);
+            final boolean sendRoll = sendGameState(ga, false, true, false);
             srv.messageToGame(gaName, true, new SOCStartGame(gaName, 0));
             srv.messageToGame(gaName, true, new SOCTurn(gaName, cpn, 0));
             if (sendRoll)
@@ -3852,19 +3868,36 @@ public class SOCGameHandler extends GameHandler
         final boolean hasV1Clients = (ga.clientVersionLowest < SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD);
 
         String gname = ga.getName();
-        final int gaState = ga.getGameState();
+        final int gaState = ga.getGameState(), cpn = ga.getCurrentPlayerNumber();
+
         if (gaState == SOCGame.OVER)
         {
-            sendRollPrompt |= sendGameState(ga, ! hasV1Clients, false, false);
-        } else {
+            final SOCTurn turnMsg = new SOCTurn(gname, cpn, gaState);
+            if (! hasV1Clients)
+            {
+                srv.messageToGame(gname, true, turnMsg);
+            } else {
+                srv.recordGameEvent(gname, turnMsg);
+                srv.messageToGameForVersions
+                    (ga, SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD, Integer.MAX_VALUE, turnMsg, true);
+            }
+
+            sendGameState(ga, false, false, false);
+                // send SOCGameState message itself only to v1; v2 gets gaState from SOCTurn.
+                // will send all versions the related "game over" detail messages.
+
             if (hasV1Clients)
                 srv.messageToGameForVersions
-                    (ga, -1, SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD - 1,
-                     new SOCGameState(gname, gaState), true);
-            sendRollPrompt |= sendGameState(ga, true, false, false);  // send related messages/prompts
+                    (ga, -1, SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD - 1, turnMsg, true);
+
+            return;  // <--- Early return: Simpler sequence because game over ---
         }
 
-        final int cpn = ga.getCurrentPlayerNumber();
+        if (hasV1Clients)
+            srv.messageToGameForVersions
+                (ga, -1, SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD - 1,
+                 new SOCGameState(gname, gaState), true);
+        sendRollPrompt |= sendGameState(ga, true, false, false);  // send related messages/prompts
 
         if (ga.clientVersionLowest < SOCTurn.VERSION_FOR_DEV_CARD_FLAG_CLEAR)
             srv.messageToGameForVersions

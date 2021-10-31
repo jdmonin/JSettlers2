@@ -503,7 +503,9 @@ public interface PlayerClientListener
     void gameStateChanged(int gameState);
 
     /**
-     * Update interface after game is over.
+     * Update game data and interface after game is over.
+     * Call each player's {@link SOCPlayer#forceFinalVP(int)},
+     * then if {@link SOCGame#getPlayerWithWin()} == null, call {@link SOCGame#checkForWinner()}.
      * Reveal actual total scores, list other players' VP cards, etc.
      * @param scores  Each player's actual total score, including hidden VP cards.
      *     Map contains each player object in the game, including empty seats,

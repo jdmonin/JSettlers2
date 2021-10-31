@@ -2744,6 +2744,25 @@ public class TestGameActionExtractor
             "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4",
             "all:SOCGameStats:game=test|0|5|0|10|false|true|false|false",
             "p3:SOCPlayerStats:game=test|p=1|p=0|p=2|p=0|p=0|p=1",
+
+            // win at start of turn after gaining 10 VP on an earlier player's turn:
+
+            "all:SOCTurn:game=test|playerNumber=2|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=2",
+
+            "f2:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            "f2:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            "all:SOCTurn:game=test|playerNumber=3|gameState=1000",
+
+            "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 10 points.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4",
+            "all:SOCGameStats:game=test|0|2|2|10|false|true|true|false",
+            "p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=5|p=2|p=0",
         })
         try {
             events.add(QueueEntry.parse(event));
@@ -2756,7 +2775,7 @@ public class TestGameActionExtractor
         assertEquals("at end of event log", events.size(), state.nextLogIndex);
         assertNull(next());  // at end of log again
         assertNotNull(actionLog);
-        assertEquals(34, actionLog.size());
+        assertEquals(39, actionLog.size());
 
         GameActionLog.Action act = actionLog.get(0);
         assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -2982,7 +3001,35 @@ public class TestGameActionExtractor
         assertEquals(4, act.eventSequence.size());
         assertEquals("winning player", 3, act.param1);
 
-        // TODO win at start of turn after gaining 10 VP on an earlier player's turn:
+        // win at start of turn after gaining 10 VP on an earlier player's turn:
+
+        act = actionLog.get(34);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(2, act.param1);
+
+        act = actionLog.get(35);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals(12, act.param1);
+
+        act = actionLog.get(36);
+        assertEquals(ActionType.END_TURN, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+
+        act = actionLog.get(37);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(1, act.eventSequence.size());
+        assertEquals(SOCGame.OVER, act.endingGameState);
+        assertEquals(3, act.param1);
+
+        act = actionLog.get(38);
+        assertEquals(ActionType.GAME_OVER, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals("winning player", 3, act.param1);
     }
 
 }

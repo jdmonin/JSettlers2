@@ -2824,7 +2824,8 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Game is over; server has sent us the revealed scores
-     * for each player.  Refresh the display.
+     * for each player. Update game data and refresh the display:
+     * see {@link PlayerClientListener#gameEnded(Map)}.
      *
      * @param finalScores  Final score for each player position; length should be {@link SOCGame#maxPlayers}
      * @since 1.1.00

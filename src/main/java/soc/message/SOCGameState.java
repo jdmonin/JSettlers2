@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -113,10 +113,12 @@ import soc.game.SOCGame;  // for javadoc's use
  * <LI>{@link SOCGame#LOADING LOADING}: -
  * <LI>{@link SOCGame#LOADING_RESUMING LOADING_RESUMING}: -
  * <LI>{@link SOCGame#OVER OVER}: Server announces the winner with
- *     {@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages
- *     reporting winner's name, final score, each player's victory-point cards, game length, and a {@link SOCGameStats}.
- *     Each player is sent text with their resource roll totals. win-loss count for this session, and
- *     how long they've been connected.
+ *     {@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER})
+ *     (or {@link SOCTurn} instead of {@link SOCGameState}), reports winner's name, final score,
+ *     each player's victory-point cards, game length, and a {@link SOCGameStats}.
+ *     Each player is sent text with their resource roll totals, win-loss count for this session,
+ *     and how long they've been connected.
+ *     See {@link SOCGameStats} javadoc for sequence details.
  *</UL>
  * This list doesn't mention some informational/cosmetic text messages, such as the {@code START1A}
  * prompt "It's Joe's turn to build a settlement" or {@code PLACING_ROBBER}'s "Lily will move the robber".

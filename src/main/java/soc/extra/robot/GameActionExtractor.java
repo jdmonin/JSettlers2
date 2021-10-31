@@ -529,8 +529,8 @@ public class GameActionExtractor
             return null;
         // next() has set state.currentPlayerNumber, currentGameState from SOCTurn's fields
 
-        // Optional, if not SBP: all:SOCRollDicePrompt:game=test|playerNumber=2
-        if (state.currentGameState != SOCGame.SPECIAL_BUILDING)
+        // Optional, if not SBP or OVER: all:SOCRollDicePrompt:game=test|playerNumber=2
+        if ((state.currentGameState != SOCGame.SPECIAL_BUILDING) && (state.currentGameState != SOCGame.OVER))
             nextIfType(SOCMessage.ROLLDICEPROMPT);
 
         int prevStart = currentSequenceStartIndex;
