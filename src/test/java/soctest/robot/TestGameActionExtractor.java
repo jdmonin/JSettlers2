@@ -105,7 +105,7 @@ public class TestGameActionExtractor
         assertEquals(4, actLog.get(0).eventSequence.size());
         assertEquals(-1, state.currentPlayerNumber);
         assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals("at end of event log so far", events.size(), state.nextLogIndex);
         assertEquals(4, currentSequenceStartIndex);
         assertEquals(0, currentSequence.size());
         assertNull(next());  // at end of log
@@ -229,7 +229,7 @@ public class TestGameActionExtractor
         assertEquals(4, actLog.get(0).eventSequence.size());
         assertEquals(-1, state.currentPlayerNumber);
         assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
+        assertEquals("at end of event log so far", events.size(), state.nextLogIndex);
         assertEquals(4, currentSequenceStartIndex);
         assertEquals(0, currentSequence.size());
         assertNull(next());  // at end of log
@@ -246,7 +246,7 @@ public class TestGameActionExtractor
         assertEquals(SOCGame.PLAY1, state.currentGameState);
 
         final int currentEvSize = events.size();
-        assertEquals("at end of event log so far", currentEvSize, state.nextLogIndex);
+        assertEquals("at end of event log", currentEvSize, state.nextLogIndex);
 
         // Negative tests: if isn't the expected sequence, return null and backtrack
 
@@ -302,6 +302,38 @@ public class TestGameActionExtractor
     }
 
     /**
+     * Parse event log entries and add them, after some
+     * sanity checks of current event log and {@link #actLog} status
+     * which assume {@code events} was initialized with {@link #makeEmptyEventLog()}.
+     * If sanity checks or parsing fails, will {@code fail(..)} various asserts
+     * to end the current test.
+     *
+     * @param events  Event log to add from, like {@link #eventLog}; not null
+     * @param toAdd  Events to add; will call {@link QueueEntry#parse(String)} on each
+     */
+    protected void addEventLogEntries(final List<QueueEntry> events, final String[] toAdd)
+    {
+        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
+        assertEquals(1, actLog.size());
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
+        assertEquals(-1, state.currentPlayerNumber);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
+        assertEquals("at end of event log so far", events.size(), state.nextLogIndex);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
+        assertEquals(0, currentSequence.size());
+        assertNull(next());  // at end of log
+
+        for (String event : toAdd)
+            try {
+                events.add(QueueEntry.parse(event));
+            } catch (ParseException e) {
+                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
+            }
+    }
+
+    /**
      * Test extraction of basic initial placement with 3 players: p3 (first player), p0, and p1.
      * Initial placement with gold hexes and revealed fog hexes is tested in {@link #testGoldHexFogHex()}.
      */
@@ -310,19 +342,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // start of 1st initial placements (right after SOCStartGame):
 
             "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
@@ -424,12 +445,7 @@ public class TestGameActionExtractor
             "all:SOCDiceResultResources:game=test|p=1|p=3|p=8|p=1|p=1",
             "p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=1,e4=3,e5=1",
             "all:SOCGameState:game=test|state=20",
-            })
-            try {
-                events.add(QueueEntry.parse(event));
-            } catch (ParseException e) {
-                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-            }
+            });
 
         final GameActionLog actionLog = extract();
 
@@ -606,19 +622,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // start of turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
@@ -658,12 +663,7 @@ public class TestGameActionExtractor
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
-            })
-            try {
-                events.add(QueueEntry.parse(event));
-            } catch (ParseException e) {
-                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-            }
+            });
 
         final GameActionLog actionLog = extract();
 
@@ -737,19 +737,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // start of p3's turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
@@ -822,12 +811,7 @@ public class TestGameActionExtractor
             // start of p4's normal turn:
             "all:SOCTurn:game=test|playerNumber=4|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=4",
-            })
-            try {
-                events.add(QueueEntry.parse(event));
-            } catch (ParseException e) {
-                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-            }
+            });
 
         final GameActionLog actionLog = extract();
 
@@ -938,19 +922,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // start of turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
@@ -986,12 +959,7 @@ public class TestGameActionExtractor
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
-            })
-            try {
-                events.add(QueueEntry.parse(event));
-            } catch (ParseException e) {
-                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-            }
+            });
 
         final GameActionLog actionLog = extract();
 
@@ -1083,19 +1051,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // start of turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
@@ -1224,12 +1181,7 @@ public class TestGameActionExtractor
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
-            })
-            try {
-                events.add(QueueEntry.parse(event));
-            } catch (ParseException e) {
-                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-            }
+            });
 
         final GameActionLog actionLog = extract();
 
@@ -1374,19 +1326,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // start of turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
@@ -1464,12 +1405,7 @@ public class TestGameActionExtractor
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
-            })
-            try {
-                events.add(QueueEntry.parse(event));
-            } catch (ParseException e) {
-                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-            }
+            });
 
         final GameActionLog actionLog = extract();
 
@@ -1548,19 +1484,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // start of turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
@@ -1708,12 +1633,7 @@ public class TestGameActionExtractor
             "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 11 points.",
             "all:SOCGameStats:game=test|0|2|0|11|false|true|false|false",
             "p3:SOCPlayerStats:game=test|p=1|p=2|p=5|p=0|p=0|p=0",
-            })
-            try {
-                events.add(QueueEntry.parse(event));
-            } catch (ParseException e) {
-                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-            }
+            });
 
         final GameActionLog actionLog = extract();
 
@@ -1829,19 +1749,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // start of turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
@@ -2174,12 +2083,7 @@ public class TestGameActionExtractor
             "all:SOCGameServerText:game=test|text=It's p1's turn to build a settlement.",
             "all:SOCTurn:game=test|playerNumber=1|gameState=5",
             "all:SOCRollDicePrompt:game=test|playerNumber=1",
-            })
-            try {
-                events.add(QueueEntry.parse(event));
-            } catch (ParseException e) {
-                fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-            }
+            });
 
         final GameActionLog actionLog = extract();
 
@@ -2555,19 +2459,8 @@ public class TestGameActionExtractor
     {
         final List<QueueEntry> events = eventLog.entries;
 
-        // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
-        assertEquals(1, actLog.size());
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, actLog.get(0).eventSequence.size());
-        assertEquals(-1, state.currentPlayerNumber);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
-        assertTrue("at end of event log so far", state.nextLogIndex == events.size());
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, currentSequenceStartIndex);
-        assertEquals(0, currentSequence.size());
-        assertNull(next());  // at end of log
-
-        for (String event : new String[] {
+        addEventLogEntries(events, new String[]
+            {
             // win by build settlement:
 
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
@@ -2763,12 +2656,7 @@ public class TestGameActionExtractor
             "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4",
             "all:SOCGameStats:game=test|0|2|2|10|false|true|true|false",
             "p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=5|p=2|p=0",
-        })
-        try {
-            events.add(QueueEntry.parse(event));
-        } catch (ParseException e) {
-            fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
-        }
+            });
 
         final GameActionLog actionLog = extract();
 
