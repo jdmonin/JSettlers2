@@ -29,7 +29,7 @@ import java.util.Set;
 import soc.extra.robot.GameActionLog.Action;
 import soc.extra.robot.GameActionLog.Action.ActionType;
 import soc.extra.server.GameEventLog;
-import soc.extra.server.GameEventLog.QueueEntry;
+import soc.extra.server.GameEventLog.EventEntry;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -91,7 +91,7 @@ public class GameActionExtractor
      * Current sequence to gather all entries into during {@link #next()}, or {@code null}.
      * @see #resetCurrentSequence()
      */
-    protected ArrayList<GameEventLog.QueueEntry> currentSequence;
+    protected ArrayList<GameEventLog.EventEntry> currentSequence;
 
     /**
      * Index within {@link #eventLog} of start of current sequence:
@@ -130,7 +130,7 @@ public class GameActionExtractor
         if (keepEntriesBeforeInitPlacement)
             currentSequence = new ArrayList<>(70);  // approx. message count before startgame for a 2-player game
 
-        GameEventLog.QueueEntry e = next();
+        GameEventLog.EventEntry e = next();
         if ((e == null) || ! (e.event instanceof SOCVersion))
             throw new NoSuchElementException("expected SOCVersion");
 
@@ -163,7 +163,7 @@ public class GameActionExtractor
 
     /**
      * Read the next event entry: Starting at current log position {@link ExtractorState#nextLogIndex},
-     * look for an entry that has a {@link SOCMessage} as its {@link GameEventLog.QueueEntry#event}
+     * look for an entry that has a {@link SOCMessage} as its {@link GameEventLog.EventEntry#event}
      * whose type isn't in {@link #IGNORE_MSG_TYPES}.
      *<P>
      * If {@link #currentSequence} != null, will add any ignored entries and the returned entry to it.
@@ -181,13 +181,13 @@ public class GameActionExtractor
      * @see #backtrackTo(ExtractorState)
      * @see #resetCurrentSequence()
      */
-    protected GameEventLog.QueueEntry next()
+    protected GameEventLog.EventEntry next()
     {
         final int size = eventLog.entries.size();
 
         while (state.nextLogIndex < size)
         {
-            final GameEventLog.QueueEntry e = eventLog.entries.get(state.nextLogIndex);
+            final GameEventLog.EventEntry e = eventLog.entries.get(state.nextLogIndex);
             ++state.nextLogIndex;
 
             if (currentSequence != null)
@@ -232,14 +232,14 @@ public class GameActionExtractor
      * @return  Event log entry of expected type, or {@code null} if end of log or next entry was another type
      * @see #nextIfGamestateOrOver()
      */
-    protected GameEventLog.QueueEntry nextIfType(final int msgType)
+    protected GameEventLog.EventEntry nextIfType(final int msgType)
     {
-        final ExtractorState presentState = new ExtractorState(state);
+        final ExtractorState prevState = new ExtractorState(state);
 
-        GameEventLog.QueueEntry e = next();
+        GameEventLog.EventEntry e = next();
         if ((e == null) || (e.event.getType() != msgType))
         {
-            backtrackTo(presentState);
+            backtrackTo(prevState);
             return null;
         } else {
             return e;
@@ -262,19 +262,19 @@ public class GameActionExtractor
      *
      * @return {@link SOCGameState} entry or {@code null}
      * @see #nextIfType(int)
-     * @see #extract_GAME_OVER(QueueEntry)
+     * @see #extract_GAME_OVER(EventEntry)
      */
-    protected GameEventLog.QueueEntry nextIfGamestateOrOver()
+    protected GameEventLog.EventEntry nextIfGamestateOrOver()
     {
-        final ExtractorState presentState = new ExtractorState(state);
+        final ExtractorState prevState = new ExtractorState(state);
         boolean sawGE = false;
 
         // if game is now over:
         // all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
-        GameEventLog.QueueEntry e = next();
+        GameEventLog.EventEntry e = next();
         if (e == null)
         {
-            backtrackTo(presentState);
+            backtrackTo(prevState);
             return null;
         }
         if (e.event instanceof SOCGameElements)
@@ -297,7 +297,7 @@ public class GameActionExtractor
         if ((e == null) || (! (e.isToAll() && (e.event instanceof SOCGameState)))
             || (sawGE && (state.currentGameState != SOCGame.OVER)))
         {
-            backtrackTo(presentState);
+            backtrackTo(prevState);
             return null;
         }
 
@@ -339,9 +339,9 @@ public class GameActionExtractor
      * it will be updated here to {@link ExtractorState#nextLogIndex}.
      * @return previous {@link #currentSequence}, or {@code null} if none
      */
-    protected List<QueueEntry> resetCurrentSequence()
+    protected List<EventEntry> resetCurrentSequence()
     {
-        final List<QueueEntry> prev = currentSequence;
+        final List<EventEntry> prev = currentSequence;
 
         currentSequence = new ArrayList<>();
         currentSequenceStartIndex = state.nextLogIndex;
@@ -366,7 +366,7 @@ public class GameActionExtractor
             // nextLogIndex points at what's hopefully the start of the next message sequence.
             // currentSequence is empty, currentSequenceStartIndex == nextLogIndex.
 
-            GameEventLog.QueueEntry e = next();
+            GameEventLog.EventEntry e = next();
             if (e == null)
                 break;
 
@@ -485,7 +485,7 @@ public class GameActionExtractor
                 // keep looking until we find a sequence-starting message or end of log;
                 // gather events from here to then into an UNKNOWN "action"
 
-                ExtractorState presentState = new ExtractorState(state);
+                ExtractorState eState = new ExtractorState(state);
                 for (;;)
                 {
                     e = next();
@@ -496,10 +496,10 @@ public class GameActionExtractor
                     if (SEQ_START_MSG_TYPES.contains(event.getType()))
                     {
                         // don't include this sequence-starting message in the UNKNOWN "sequence"
-                        backtrackTo(presentState);
+                        backtrackTo(eState);
                         break;
                     } else {
-                        presentState.snapshotFrom(state);
+                        eState.snapshotFrom(state);
                     }
                 }
 
@@ -522,7 +522,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_TURN_BEGINS(GameEventLog.QueueEntry e)
+    private Action extract_TURN_BEGINS(GameEventLog.EventEntry e)
     {
         // all:SOCTurn:game=test|playerNumber=2|gameState=15  // or 100 (SPECIAL_BUILDING)
         if (! e.isToAll())
@@ -544,7 +544,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_ROLL_DICE(GameEventLog.QueueEntry e)
+    private Action extract_ROLL_DICE(GameEventLog.EventEntry e)
     {
         // f3:SOCRollDice:game=test
         if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
@@ -569,7 +569,7 @@ public class GameActionExtractor
             return null;
 
         // More messages occasionally follow, so gather until another sequence-starting message is seen
-        ExtractorState presentState = new ExtractorState(state);
+        ExtractorState eState = new ExtractorState(state);
         for (;;)
         {
             e = next();
@@ -579,10 +579,10 @@ public class GameActionExtractor
             if (SEQ_START_MSG_TYPES.contains(e.event.getType()))
             {
                 // don't include this sequence-starting message in the ROLL_DICE sequence
-                backtrackTo(presentState);
+                backtrackTo(eState);
                 break;
             } else {
-                presentState.snapshotFrom(state);
+                eState.snapshotFrom(state);
             }
         }
 
@@ -598,7 +598,7 @@ public class GameActionExtractor
      * @param startsWithBuildReq  True if first entry is {@link SOCBuildRequest} instead of {@link SOCPutPiece}
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_BUILD_PIECE(GameEventLog.QueueEntry e, final boolean startsWithBuildReq)
+    private Action extract_BUILD_PIECE(GameEventLog.EventEntry e, final boolean startsWithBuildReq)
     {
         // Either
         // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804
@@ -761,7 +761,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_MOVE_PIECE(GameEventLog.QueueEntry e)
+    private Action extract_MOVE_PIECE(GameEventLog.EventEntry e)
     {
         // f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
         if (! e.isFromClient)
@@ -794,14 +794,14 @@ public class GameActionExtractor
             return null;
 
         // optional: SOCGameElements(LONGEST_ROAD_PLAYER)
-        final ExtractorState presentState = new ExtractorState(state);
+        final ExtractorState eState = new ExtractorState(state);
         e = nextIfType(SOCMessage.GAMEELEMENTS);
         if (e != null)
         {
             final SOCGameElements ge = (SOCGameElements) e.event;
             final int[] et = ge.getElementTypes();
             if ((et.length != 1) || (et[0] != SOCGameElements.GEType.LONGEST_ROAD_PLAYER.getValue()))
-                backtrackTo(presentState);
+                backtrackTo(eState);
         }
 
         if (hasFogGold)
@@ -849,7 +849,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_BUY_DEV_CARD(GameEventLog.QueueEntry e)
+    private Action extract_BUY_DEV_CARD(GameEventLog.EventEntry e)
     {
         // f3:SOCBuyDevCardRequest:game=test
         if (! e.isFromClient)
@@ -912,7 +912,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_PLAY_DEV_CARD(GameEventLog.QueueEntry e)
+    private Action extract_PLAY_DEV_CARD(GameEventLog.EventEntry e)
     {
         // f3:SOCPlayDevCardRequest:game=test|devCard=2
         if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
@@ -978,7 +978,7 @@ public class GameActionExtractor
      */
     private Action extract_PLAY_DEV_CARD_ROADS()
     {
-        GameEventLog.QueueEntry e = next();
+        GameEventLog.EventEntry e = next();
         if (! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
 
@@ -1087,7 +1087,7 @@ public class GameActionExtractor
     private Action extract_PLAY_DEV_CARD_DISCOVERY()
     {
         // all:SOCGameState:game=test|state=52
-        GameEventLog.QueueEntry e = next();
+        GameEventLog.EventEntry e = next();
         if (! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
         if (state.currentGameState != SOCGame.WAITING_FOR_DISCOVERY)
@@ -1123,7 +1123,7 @@ public class GameActionExtractor
     private Action extract_PLAY_DEV_CARD_MONOPOLY()
     {
         // all:SOCGameState:game=test|state=53
-        GameEventLog.QueueEntry e = next();
+        GameEventLog.EventEntry e = next();
         if (! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
         if (state.currentGameState != SOCGame.WAITING_FOR_MONOPOLY)
@@ -1199,7 +1199,7 @@ public class GameActionExtractor
     private Action extract_PLAY_DEV_CARD_KNIGHT()
     {
         // all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1  // NUMKNIGHTS
-        GameEventLog.QueueEntry e = next();
+        GameEventLog.EventEntry e = next();
         if (! (e.isToAll() && (e.event instanceof SOCPlayerElement)
                && (((SOCPlayerElement) e.event).getElementType() == SOCPlayerElement.PEType.NUMKNIGHTS.getValue())))
             return null;
@@ -1235,7 +1235,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_DISCARD(GameEventLog.QueueEntry e)
+    private Action extract_DISCARD(GameEventLog.EventEntry e)
     {
         // f2:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0
         if (! e.isFromClient)
@@ -1284,7 +1284,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_CHOOSE_FREE_RESOURCES(GameEventLog.QueueEntry e)
+    private Action extract_CHOOSE_FREE_RESOURCES(GameEventLog.EventEntry e)
     {
         // f3:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
         if (! e.isFromClient)
@@ -1307,12 +1307,12 @@ public class GameActionExtractor
 
         // all:SOCGameState:game=test|state=20  // or another state
         // Or during initial placement, can be all:SOCTurn which begins next sequence
-        ExtractorState eState = new ExtractorState(state);
+        ExtractorState prevState = new ExtractorState(state);
         e = next();
         if ((e == null) || ! e.isToAll())
             return null;
         if ((e.event instanceof SOCTurn) && (state.currentGameState < SOCGame.ROLL_OR_CARD))
-            backtrackTo(eState);
+            backtrackTo(prevState);
         else if (! (e.event instanceof SOCGameState))
             return null;
 
@@ -1328,7 +1328,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(GameEventLog.QueueEntry e)
+    private Action extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(GameEventLog.EventEntry e)
     {
         // f3:SOCChoosePlayer:game=test|choice=-2  // or -3
         if (! e.isFromClient)
@@ -1356,7 +1356,7 @@ public class GameActionExtractor
      * @return extracted action, or {@code null} if sequence incomplete
      *     or if {@link ExtractorState#currentGameState} when called isn't one of those two {@code PLACING_} states.
      */
-    private Action extract_MOVE_ROBBER_OR_PIRATE(GameEventLog.QueueEntry e)
+    private Action extract_MOVE_ROBBER_OR_PIRATE(GameEventLog.EventEntry e)
     {
         boolean isPirate = (state.currentGameState == SOCGame.PLACING_PIRATE);
         if (! (isPirate || (state.currentGameState == SOCGame.PLACING_ROBBER)))
@@ -1380,7 +1380,7 @@ public class GameActionExtractor
         //   all:SOCGameElements + all:SOCGameState(1000)
         // Otherwise next message is SOCReportRobbery from server, which will be start of next sequence
 
-        ExtractorState presentState = new ExtractorState(state);
+        ExtractorState prevState = new ExtractorState(state);
 
         e = next();
         if ((e == null) || e.isFromClient)
@@ -1405,7 +1405,7 @@ public class GameActionExtractor
         }
 
         if (e.event instanceof SOCReportRobbery)
-            backtrackTo(presentState);
+            backtrackTo(prevState);
         else if (! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
 
@@ -1424,7 +1424,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_CHOOSE_ROBBERY_VICTIM(GameEventLog.QueueEntry e)
+    private Action extract_CHOOSE_ROBBERY_VICTIM(GameEventLog.EventEntry e)
     {
         // p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
         if (e.isFromClient || (e.pn != state.currentPlayerNumber))
@@ -1451,7 +1451,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_CHOOSE_ROB_CLOTH_OR_RESOURCE(GameEventLog.QueueEntry e)
+    private Action extract_CHOOSE_ROB_CLOTH_OR_RESOURCE(GameEventLog.EventEntry e)
     {
         // p3:SOCChoosePlayer:game=test|choice=2  // 2 = victim pn
         if (e.isFromClient || (e.pn != state.currentPlayerNumber))
@@ -1475,7 +1475,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_ROB_PLAYER(GameEventLog.QueueEntry e)
+    private Action extract_ROB_PLAYER(GameEventLog.EventEntry e)
     {
         final SOCReportRobbery rr = (SOCReportRobbery) e.event;
         SOCResourceSet stolenRes = null;
@@ -1537,7 +1537,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_TRADE_BANK(GameEventLog.QueueEntry e)
+    private Action extract_TRADE_BANK(GameEventLog.EventEntry e)
     {
         // f3:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0
         if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
@@ -1560,7 +1560,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_TRADE_MAKE_OFFER(GameEventLog.QueueEntry e)
+    private Action extract_TRADE_MAKE_OFFER(GameEventLog.EventEntry e)
     {
         // f2:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
         if (! (e.isFromClient && (e.pn != -1)))
@@ -1591,7 +1591,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_TRADE_REJECT_OFFER(GameEventLog.QueueEntry e)
+    private Action extract_TRADE_REJECT_OFFER(GameEventLog.EventEntry e)
     {
         // f3:SOCRejectOffer:game=test|playerNumber=0
         if (! (e.isFromClient && (e.pn != -1)))
@@ -1614,7 +1614,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_TRADE_ACCEPT_OFFER(GameEventLog.QueueEntry e)
+    private Action extract_TRADE_ACCEPT_OFFER(GameEventLog.EventEntry e)
     {
         // f2:SOCAcceptOffer:game=test|accepting=0|offering=3
         if (! (e.isFromClient && (e.pn != -1)))
@@ -1645,7 +1645,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_ASK_SPECIAL_BUILDING(GameEventLog.QueueEntry e)
+    private Action extract_ASK_SPECIAL_BUILDING(GameEventLog.EventEntry e)
     {
         // f3:SOCBuildRequest:game=test|pieceType=-1  // or a defined piece type
         if (! e.isFromClient)
@@ -1673,7 +1673,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_END_TURN(GameEventLog.QueueEntry e)
+    private Action extract_END_TURN(GameEventLog.EventEntry e)
     {
         // f3:SOCEndTurn:game=test
         if (! e.isFromClient)
@@ -1711,7 +1711,7 @@ public class GameActionExtractor
      * @return extracted action, or {@code null} if sequence incomplete
      *     or if {@link ExtractorState#currentGameState} when called isn't one of those two {@code PLACING_} states.
      */
-    private Action extract_GAME_OVER(GameEventLog.QueueEntry e)
+    private Action extract_GAME_OVER(GameEventLog.EventEntry e)
     {
         final int winningPlayerNumber = state.currentPlayerNumber;
 

@@ -38,7 +38,7 @@ regardless of game options or scenarios in use.
 All `SOCGameServerText` should be considered optional or ignored,
 since server may not localize and send text to bots.
 
-The format used here is from `soc.extra.server.GameEventLog.QueueEntry.toString()`.
+The format used here is from `soc.extra.server.GameEventLog.EventEntry.toString()`.
 It shows the origin of each message from a client player (`f3:`)
 or the audience of each message from server (`all:`, `p3:`, etc).
 See toString() javadoc for details. In this doc we use "//" for comments about a message.

@@ -597,7 +597,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * {@code SOCPutPiece:game=test5|playerNumber=3|pieceType=0|coord=40a}
      *<BR>
      * Could also be used by a {@link soc.server.SOCServer#recordGameEvent(String, SOCMessage)} implementation
-     * like {@link soc.extra.server.GameEventLog.QueueEntry}.
+     * like {@link soc.extra.server.GameEventLog.EventEntry}.
      *<P>
      * Within this representation, message parameters should be in same order used by {@link #toCmd()} and
      * {@code parseDataStr(..)}. Should be parseable by {@link #parseMsgStr(String)} which calls

@@ -32,7 +32,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import soc.extra.server.GameEventLog.QueueEntry;
+import soc.extra.server.GameEventLog.EventEntry;
 import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
@@ -147,7 +147,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         /* build road */
 
@@ -402,7 +402,7 @@ public class TestActionsMessages
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         records.clear();
         assertEquals(23, ga.getNumDevCards());
@@ -478,7 +478,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         List<Integer> expectedCardsPlayed = new ArrayList<>(Arrays.asList(SOCDevCardConstants.KNIGHT));
         assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
@@ -860,7 +860,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         assertTrue(ga.isSeatVacant(0));
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
@@ -1172,7 +1172,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer, cli2Pl = objs.client2Player;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         assertEquals(SOCBoardLarge.GOLD_HEX, board.getHexTypeFromCoord(0xF05));
         assertEquals(GOLD_DICE_NUM, board.getNumberOnHexFromCoord(0xF05));
@@ -1331,7 +1331,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         final SOCResourceSet SHEEP_1 = new SOCResourceSet(0, 0, 1, 0, 0, 0),
             WHEAT_4 = new SOCResourceSet(0, 0, 0, 4, 0, 0),
@@ -1497,7 +1497,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final String gaName = ga.getName();
         final SOCPlayer cli1Pl = objs.clientPlayer, cli2Pl = objs.client2Player;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         records.clear();
 
@@ -1621,7 +1621,7 @@ public class TestActionsMessages
                 (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
         final SOCGame ga = objs.gameAtServer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         records.clear();
 
@@ -1703,7 +1703,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCPlayer clientPlayer = objs.clientPlayer;
         assertEquals(PN_CLI, clientPlayer.getPlayerNumber());
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         // Verify current player and basics of game: same as in TestLoadgame.testLoad6PlayerSBP.
         // Copying that code instead of calling it, to ensure it's still checked here if that check changes.
@@ -1842,7 +1842,7 @@ public class TestActionsMessages
         final String plName = plWin.getName();
         if (! clientWin)
             plWin.setRobotFlag(othersAsRobot, othersAsRobot);
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         /* prep: change game data and resume */
 

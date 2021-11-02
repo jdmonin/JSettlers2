@@ -27,7 +27,7 @@ import soc.extra.robot.GameActionExtractor;
 import soc.extra.robot.GameActionLog;
 import soc.extra.robot.GameActionLog.Action.ActionType;
 import soc.extra.server.GameEventLog;
-import soc.extra.server.GameEventLog.QueueEntry;
+import soc.extra.server.GameEventLog.EventEntry;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCPlayingPiece;
@@ -77,11 +77,11 @@ public class TestGameActionExtractor
     private static GameEventLog makeEmptyEventLog()
     {
         GameEventLog log = new GameEventLog();
-        log.add(new QueueEntry(new SOCVersion
+        log.add(new EventEntry(new SOCVersion
             (Version.versionNumber(), Version.version(), "-", null, null), -1, false));
-        log.add(new QueueEntry(new SOCNewGame("test"), -1, false));
-        log.add(new QueueEntry("Extractor expects to see version, newgame, and startgame"));
-        log.add(new QueueEntry(new SOCStartGame("test", EMPTYEVENTLOG_STARTGAME_GAME_STATE), -1, false));
+        log.add(new EventEntry(new SOCNewGame("test"), -1, false));
+        log.add(new EventEntry("Extractor expects to see version, newgame, and startgame"));
+        log.add(new EventEntry(new SOCStartGame("test", EMPTYEVENTLOG_STARTGAME_GAME_STATE), -1, false));
 
         return log;
     }
@@ -95,7 +95,7 @@ public class TestGameActionExtractor
     public void testBasicsReadEvents()
         throws ParseException
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
         assertEquals(4, EMPTYEVENTLOG_SIZE_TO_STARTGAME);
@@ -111,28 +111,28 @@ public class TestGameActionExtractor
         assertNull(next());  // at end of log
 
         // ExtractorState basic tests
-        ExtractorState presentState = new ExtractorState(state);
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, presentState.currentGameState);
-        assertEquals(currentSequence.size(), presentState.currentSequenceSize);
-        assertEquals(state.nextLogIndex, presentState.nextLogIndex);
+        ExtractorState prevState = new ExtractorState(state);
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, prevState.currentGameState);
+        assertEquals(currentSequence.size(), prevState.currentSequenceSize);
+        assertEquals(state.nextLogIndex, prevState.nextLogIndex);
         assertEquals(-1, state.currentSequenceSize);
-        presentState.currentSequenceSize = -1;
-        assertEquals(state, presentState);
-        assertEquals(state.toString(), presentState.toString());
-        presentState.nextLogIndex = -1;
-        assertNotEquals(state, presentState);
+        prevState.currentSequenceSize = -1;
+        assertEquals(state, prevState);
+        assertEquals(state.toString(), prevState.toString());
+        prevState.nextLogIndex = -1;
+        assertNotEquals(state, prevState);
 
         // add a few entries
-        events.add(new QueueEntry(new SOCGameState("test", SOCGame.START1B), -1, false));
-        events.add(new QueueEntry("next() ignores comments"));
-        events.add(new QueueEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
-        events.add(new QueueEntry(new SOCGameServerText("test", "should ignore during next()"), -1, false));
-        events.add(new QueueEntry(new SOCTurn("test", 3, SOCGame.ROLL_OR_CARD), -1, false));
+        events.add(new EventEntry(new SOCGameState("test", SOCGame.START1B), -1, false));
+        events.add(new EventEntry("next() ignores comments"));
+        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
+        events.add(new EventEntry(new SOCGameServerText("test", "should ignore during next()"), -1, false));
+        events.add(new EventEntry(new SOCTurn("test", 3, SOCGame.ROLL_OR_CARD), -1, false));
 
         // read through those:
 
         // gamestate(START1B):
-        QueueEntry e = next();
+        EventEntry e = next();
         assertNotNull(e);
         assertTrue(e.event instanceof SOCGameState);
         assertEquals(1, currentSequence.size());
@@ -141,11 +141,11 @@ public class TestGameActionExtractor
         assertEquals(5, state.nextLogIndex);
 
         // test ExtractorState after that next()
-        assertNotEquals(state, presentState);
-        presentState.snapshotFrom(state);
+        assertNotEquals(state, prevState);
+        prevState.snapshotFrom(state);
         assertEquals(-1, state.currentSequenceSize);
         state.currentSequenceSize = currentSequence.size();  // for sake of equals()
-        assertEquals(state, presentState);
+        assertEquals(state, prevState);
         state.currentSequenceSize = -1;
 
         // comment, SOCPutPiece:
@@ -158,10 +158,10 @@ public class TestGameActionExtractor
         assertEquals(7, state.nextLogIndex);
 
         // save state to read and backtrack
-        presentState.snapshotFrom(state);
-        assertEquals(SOCGame.START1B, presentState.currentGameState);
-        assertEquals(currentSequence.size(), presentState.currentSequenceSize);
-        assertEquals(state.nextLogIndex, presentState.nextLogIndex);
+        prevState.snapshotFrom(state);
+        assertEquals(SOCGame.START1B, prevState.currentGameState);
+        assertEquals(currentSequence.size(), prevState.currentSequenceSize);
+        assertEquals(state.nextLogIndex, prevState.nextLogIndex);
 
         // gameservertext, SOCTurn: Test next, backtrack, next
         for (int i = 0; i <= 1; ++i)
@@ -178,7 +178,7 @@ public class TestGameActionExtractor
 
             if (i == 0)
             {
-                backtrackTo(presentState);
+                backtrackTo(prevState);
 
                 assertEquals(3, currentSequence.size());
                 assertEquals(7, state.nextLogIndex);
@@ -191,7 +191,7 @@ public class TestGameActionExtractor
 
         // add another entry, test nextIfType:
 
-        events.add(new QueueEntry(new SOCRollDiceRequest("test"), -1, false));
+        events.add(new EventEntry(new SOCRollDiceRequest("test"), -1, false));
 
         e = nextIfType(SOCMessage.BANKTRADE);
         assertNull(e);
@@ -205,7 +205,7 @@ public class TestGameActionExtractor
         assertEquals(10, state.nextLogIndex);
 
         // resetCurrentSequence
-        List<QueueEntry> seq = resetCurrentSequence();
+        List<EventEntry> seq = resetCurrentSequence();
         assertEquals(6, seq.size());
         assertEquals(0, currentSequence.size());
         assertEquals(10, currentSequenceStartIndex);
@@ -219,7 +219,7 @@ public class TestGameActionExtractor
     @Test
     public void testBasicsNextIfGameStateOrOver()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
         assertEquals(4, EMPTYEVENTLOG_SIZE_TO_STARTGAME);
@@ -238,8 +238,8 @@ public class TestGameActionExtractor
 
         // Recognize typical gamestate
 
-        events.add(new QueueEntry(new SOCGameState("test", SOCGame.PLAY1), -1, false));
-        QueueEntry e = nextIfGamestateOrOver();
+        events.add(new EventEntry(new SOCGameState("test", SOCGame.PLAY1), -1, false));
+        EventEntry e = nextIfGamestateOrOver();
         assertNotNull(e);
         assertTrue(e.event instanceof SOCGameState);
         assertEquals(1, currentSequence.size());
@@ -251,7 +251,7 @@ public class TestGameActionExtractor
         // Negative tests: if isn't the expected sequence, return null and backtrack
 
         // not the expected GameElement
-        events.add(new QueueEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
+        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
         assertNull(nextIfGamestateOrOver());
         assertEquals(1, currentSequence.size());
         assertEquals(SOCGame.PLAY1, state.currentGameState);
@@ -259,8 +259,8 @@ public class TestGameActionExtractor
         events.remove(currentEvSize);
 
         // gameelement + another gamestate(not OVER)
-        events.add(new QueueEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
-        events.add(new QueueEntry(new SOCGameState("test", SOCGame.ROLL_OR_CARD), -1, false));
+        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        events.add(new EventEntry(new SOCGameState("test", SOCGame.ROLL_OR_CARD), -1, false));
         assertNull(nextIfGamestateOrOver());
         assertEquals(1, currentSequence.size());
         assertEquals(SOCGame.PLAY1, state.currentGameState);  // not ROLL_OR_CARD
@@ -269,7 +269,7 @@ public class TestGameActionExtractor
         events.remove(currentEvSize);
 
         // gameelement + end of log
-        events.add(new QueueEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
         assertNull(nextIfGamestateOrOver());
         assertEquals(1, currentSequence.size());
         assertEquals(SOCGame.PLAY1, state.currentGameState);
@@ -277,8 +277,8 @@ public class TestGameActionExtractor
         events.remove(currentEvSize);
 
         // gameelement + non-gamestate message
-        events.add(new QueueEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
-        events.add(new QueueEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
+        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
         assertNull(nextIfGamestateOrOver());
         assertEquals(1, currentSequence.size());
         assertEquals(SOCGame.PLAY1, state.currentGameState);
@@ -289,8 +289,8 @@ public class TestGameActionExtractor
         // Recognize SOCPlayerElement + gstate(OVER)
 
         assertEquals(-1, state.currentPlayerNumber);
-        events.add(new QueueEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
-        events.add(new QueueEntry(new SOCGameState("test", SOCGame.OVER), -1, false));
+        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        events.add(new EventEntry(new SOCGameState("test", SOCGame.OVER), -1, false));
         e = nextIfGamestateOrOver();
         assertNotNull(e);
         assertTrue(e.event instanceof SOCGameState);
@@ -309,9 +309,9 @@ public class TestGameActionExtractor
      * to end the current test.
      *
      * @param events  Event log to add from, like {@link #eventLog}; not null
-     * @param toAdd  Events to add; will call {@link QueueEntry#parse(String)} on each
+     * @param toAdd  Events to add; will call {@link EventEntry#parse(String)} on each
      */
-    protected void addEventLogEntries(final List<QueueEntry> events, final String[] toAdd)
+    protected void addEventLogEntries(final List<EventEntry> events, final String[] toAdd)
     {
         // check contents from makeEmptyEventLog() ran through GameActionExtractor constructor
         assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, events.size());
@@ -327,7 +327,7 @@ public class TestGameActionExtractor
 
         for (String event : toAdd)
             try {
-                events.add(QueueEntry.parse(event));
+                events.add(EventEntry.parse(event));
             } catch (ParseException e) {
                 fail("Internal error: ParseException for \"" + event + "\": " + e.getMessage());
             }
@@ -340,7 +340,7 @@ public class TestGameActionExtractor
     @Test
     public void testInitialPlacement()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {
@@ -620,7 +620,7 @@ public class TestGameActionExtractor
     @Test
     public void testTurnWithBuilding()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {
@@ -735,7 +735,7 @@ public class TestGameActionExtractor
     @Test
     public void testSpecialBuildingPhase()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {
@@ -920,7 +920,7 @@ public class TestGameActionExtractor
     @Test
     public void testBankTradePlayerTrade()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {
@@ -1049,7 +1049,7 @@ public class TestGameActionExtractor
     @Test
     public void testRoll7DiscardsMoveRobberSteal()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {
@@ -1324,7 +1324,7 @@ public class TestGameActionExtractor
     @Test
     public void testBuyPlayDevCards()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {
@@ -1482,7 +1482,7 @@ public class TestGameActionExtractor
     @Test
     public void testPlayDevCardRoadBuilding()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {
@@ -1747,7 +1747,7 @@ public class TestGameActionExtractor
     @Test
     public void testGoldHexFogHex()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {
@@ -2457,7 +2457,7 @@ public class TestGameActionExtractor
     @Test
     public void testGameOver()
     {
-        final List<QueueEntry> events = eventLog.entries;
+        final List<EventEntry> events = eventLog.entries;
 
         addEventLogEntries(events, new String[]
             {

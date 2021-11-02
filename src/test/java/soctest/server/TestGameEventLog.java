@@ -28,7 +28,7 @@ import java.text.ParseException;
 import java.util.NoSuchElementException;
 
 import soc.extra.server.GameEventLog;
-import soc.extra.server.GameEventLog.QueueEntry;
+import soc.extra.server.GameEventLog.EventEntry;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCDiceResult;
 import soc.message.SOCMessage;
@@ -41,7 +41,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * A few tests for {@link GameEventLog} and its {@link GameEventLog.QueueEntry},
+ * A few tests for {@link GameEventLog} and its {@link GameEventLog.EventEntry},
  * including {@code .soclog} file parsing.
  *
  * @see TestRecorder#testNewGameFirstLogEntries()
@@ -85,121 +85,121 @@ public class TestGameEventLog
     }
 
     /**
-     * Comprehensive tests for {@link GameEventLog.QueueEntry}: Constructors, toString,
-     * corresponding {@link GameEventLog.QueueEntry#parse(String)}.
+     * Comprehensive tests for {@link GameEventLog.EventEntry}: Constructors, toString,
+     * corresponding {@link GameEventLog.EventEntry#parse(String)}.
      *<P>
-     * More tests for {@link QueueEntry#parse(String)} are in {@link #testQueueEntryParse()}.
+     * More tests for {@link EventEntry#parse(String)} are in {@link #testEventEntryParse()}.
      *
      * @throws ParseException if parsing fails unexpectedly
      */
     @Test
-    public void testQueueEntry()
+    public void testEventEntry()
         throws ParseException
     {
         final SOCBuildRequest event = new SOCBuildRequest("testgame", 2);
 
-        QueueEntry qe = new QueueEntry(event, -1, false);
+        EventEntry qe = new EventEntry(event, -1, false);
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertNull(qe.comment);
         assertEquals("all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, QueueEntry.parse("all:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals(qe, EventEntry.parse("all:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new QueueEntry(event, new int[]{3});
+        qe = new EventEntry(event, new int[]{3});
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{3}, qe.excludedPN);
         assertNull(qe.comment);
         assertEquals("!p3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, QueueEntry.parse("!p3:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals(qe, EventEntry.parse("!p3:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new QueueEntry(event, new int[]{2,3,4});
+        qe = new EventEntry(event, new int[]{2,3,4});
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{2,3,4}, qe.excludedPN);
         assertNull(qe.comment);
         assertEquals("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, QueueEntry.parse("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals(qe, EventEntry.parse("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new QueueEntry(event, SOCServer.PN_OBSERVER, false);
+        qe = new EventEntry(event, SOCServer.PN_OBSERVER, false);
         assertFalse(qe.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertEquals("ob:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, QueueEntry.parse("ob:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals(qe, EventEntry.parse("ob:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new QueueEntry(event, SOCServer.PN_REPLY_TO_UNDETERMINED, false);
+        qe = new EventEntry(event, SOCServer.PN_REPLY_TO_UNDETERMINED, false);
         assertFalse(qe.isFromClient);
         assertEquals(SOCServer.PN_REPLY_TO_UNDETERMINED, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertEquals("un:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, QueueEntry.parse("un:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals(qe, EventEntry.parse("un:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new QueueEntry(event, 3, true);
+        qe = new EventEntry(event, 3, true);
         assertTrue(qe.isFromClient);
         assertEquals(3, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertNull(qe.comment);
         assertEquals("f3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, QueueEntry.parse("f3:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals(qe, EventEntry.parse("f3:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new QueueEntry(event, SOCServer.PN_OBSERVER, true);
+        qe = new EventEntry(event, SOCServer.PN_OBSERVER, true);
         assertTrue(qe.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertEquals("fo:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, QueueEntry.parse("fo:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals(qe, EventEntry.parse("fo:SOCBuildRequest:game=testgame|pieceType=2"));
 
         // Should use PN_OBSERVER not -1 for observer client, so make sure -1 doesn't result in "fo:" or "all:"
-        qe = new QueueEntry(event, -1, true);
+        qe = new EventEntry(event, -1, true);
         assertTrue(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
         assertEquals("f-1:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, QueueEntry.parse("f-1:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals(qe, EventEntry.parse("f-1:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new QueueEntry(null, -1, false);
+        qe = new EventEntry(null, -1, false);
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertNull(qe.event);
         assertNull(qe.excludedPN);
         assertEquals("all:null", qe.toString());
-        assertEquals(qe, QueueEntry.parse("all:null"));
+        assertEquals(qe, EventEntry.parse("all:null"));
 
-        qe = new QueueEntry(null, 3, false);
+        qe = new EventEntry(null, 3, false);
         assertFalse(qe.isFromClient);
         assertEquals(3, qe.pn);
         assertNull(qe.event);
         assertNull(qe.excludedPN);
         assertEquals("p3:null", qe.toString());
-        assertEquals(qe, QueueEntry.parse("p3:null"));
+        assertEquals(qe, EventEntry.parse("p3:null"));
 
-        qe = new QueueEntry("abcde");
+        qe = new EventEntry("abcde");
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertNull(qe.event);
         assertNull(qe.excludedPN);
         assertEquals("abcde", qe.comment);
         assertEquals("#abcde", qe.toString());
-        assertEquals(qe, QueueEntry.parse("#abcde"));
+        assertEquals(qe, EventEntry.parse("#abcde"));
 
-        qe = new QueueEntry(" abcde ");
+        qe = new EventEntry(" abcde ");
         assertNull(qe.event);
         assertEquals("# abcde ", qe.toString());
-        assertEquals(qe, QueueEntry.parse("# abcde "));
+        assertEquals(qe, EventEntry.parse("# abcde "));
 
         try
         {
-            qe = new QueueEntry(null, 3, true);
+            qe = new EventEntry(null, 3, true);
             fail("Should throw IllegalArgumentException if isFromClient and event=null");
         } catch (IllegalArgumentException e) {}
 
@@ -207,71 +207,71 @@ public class TestGameEventLog
         {
             final SOCVersion vmsg = new SOCVersion(1100, "1.1.00", "", null, null);
             assertFalse(vmsg instanceof SOCMessageForGame);
-            qe = new QueueEntry(vmsg, 3, true);
+            qe = new EventEntry(vmsg, 3, true);
             fail("Should throw IllegalArgumentException if isFromClient and event not SOCMessageForGame");
         } catch (IllegalArgumentException e) {}
 
         try
         {
-            qe = new QueueEntry(null);
+            qe = new EventEntry(null);
             fail("Should throw IllegalArgumentException for comment constructor if comment=null");
         } catch (IllegalArgumentException e) {}
     }
 
     /**
-     * Various negative and positive tests for {@link QueueEntry#parse(String)}.
-     * More positive tests are included in {@link #testQueueEntry()}.
+     * Various negative and positive tests for {@link EventEntry#parse(String)}.
+     * More positive tests are included in {@link #testEventEntry()}.
      * @throws ParseException if parsing fails unexpectedly
      */
     @Test
-    public void testQueueEntryParse()
+    public void testEventEntryParse()
         throws ParseException
     {
-        QueueEntry qe;
+        EventEntry qe;
 
-        assertNull(QueueEntry.parse(null));
-        assertNull(QueueEntry.parse(""));
+        assertNull(EventEntry.parse(null));
+        assertNull(EventEntry.parse(""));
 
-        qe = QueueEntry.parse("all:SOCBuildRequest:game=testgame|pieceType=2");
+        qe = EventEntry.parse("all:SOCBuildRequest:game=testgame|pieceType=2");
         assertNotNull(qe);
-            // Detailed parsing of that is done in testQueueEntry;
+            // Detailed parsing of that is done in testEventEntry;
             // here we just want to show what successfully parses,
             // to narrow down why these next parses should fail
 
         try
         {
-            qe = QueueEntry.parse(":SOCBuildRequest:game=testgame|pieceType=2");
+            qe = EventEntry.parse(":SOCBuildRequest:game=testgame|pieceType=2");
             fail("Should throw ParseException when nothing before ':'");
         } catch (ParseException e) {}
 
         try
         {
-            qe = QueueEntry.parse("all:");
+            qe = EventEntry.parse("all:");
             fail("Should throw ParseException when nothing after ':'");
         } catch (ParseException e) {}
 
         try
         {
-            qe = QueueEntry.parse("SOCBuildRequest:game=testgame|pieceType=2");
+            qe = EventEntry.parse("SOCBuildRequest:game=testgame|pieceType=2");
             fail("Should throw ParseException when missing ':'");
         } catch (ParseException e) {}
 
         try
         {
-            qe = QueueEntry.parse("all:xyz");
+            qe = EventEntry.parse("all:xyz");
             fail("Should throw ParseException when not a SOCMessage after ':'");
         } catch (ParseException e) {}
 
         try
         {
-            qe = QueueEntry.parse("all:SOCBuildRequest:game=testgame|pieceType=X");
+            qe = EventEntry.parse("all:SOCBuildRequest:game=testgame|pieceType=X");
             fail("Should throw ParseException when can't parse expected message fields after ':'");
         } catch (ParseException e) {}
 
         for(String userSpec : new String[]{ "p", "p_", "f", "f_", "fz", "al", "xy", "_", "!p", "!pz", "!p_, !p]" })
             try
             {
-                qe = QueueEntry.parse(userSpec + ":SOCBuildRequest:game=testgame|pieceType=2");
+                qe = EventEntry.parse(userSpec + ":SOCBuildRequest:game=testgame|pieceType=2");
                 fail("Should throw ParseException for invalid user spec " + userSpec + ':');
             } catch (ParseException e) {}
 
@@ -279,25 +279,25 @@ public class TestGameEventLog
 
         try
         {
-            qe = QueueEntry.parse("!p[]:SOCBuildRequest:game=testgame|pieceType=2");
+            qe = EventEntry.parse("!p[]:SOCBuildRequest:game=testgame|pieceType=2");
             fail("Should throw ParseException for empty !p[]");
         } catch (ParseException e) {}
 
         try
         {
-            qe = QueueEntry.parse("!p[:SOCBuildRequest:game=testgame|pieceType=2");
+            qe = EventEntry.parse("!p[:SOCBuildRequest:game=testgame|pieceType=2");
             fail("Should throw ParseException for missing ']'");
         } catch (ParseException e) {}
 
         try
         {
-            qe = QueueEntry.parse("!p[X]:SOCBuildRequest:game=testgame|pieceType=2");
+            qe = EventEntry.parse("!p[X]:SOCBuildRequest:game=testgame|pieceType=2");
             fail("Should throw ParseException for non-digit in [] list");
         } catch (ParseException e) {}
 
         try
         {
-            qe = QueueEntry.parse("!p[5, X]:SOCBuildRequest:game=testgame|pieceType=2");
+            qe = EventEntry.parse("!p[5, X]:SOCBuildRequest:game=testgame|pieceType=2");
             fail("Should throw ParseException for non-digit in [] list");
         } catch (ParseException e) {}
     }

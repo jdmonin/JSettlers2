@@ -75,7 +75,7 @@ public class GameActionLog
         public final SOCResourceSet rset1, rset2;
 
         /** Event sequence from which this Action is extracted. */
-        public final List<GameEventLog.QueueEntry> eventSequence;
+        public final List<GameEventLog.EventEntry> eventSequence;
 
         /** Index of beginning of this event sequence within its {@link GameEventLog}, or 0. */
         public final int startingLogIndex;
@@ -92,7 +92,7 @@ public class GameActionLog
          * @see #Action(ActionType, int, List, int, int, int, int, SOCResourceSet, SOCResourceSet)
          */
         public Action
-            (ActionType aType, final int endGState, List<GameEventLog.QueueEntry> seq, final int startIndex)
+            (ActionType aType, final int endGState, List<GameEventLog.EventEntry> seq, final int startIndex)
             throws IllegalArgumentException
         {
             this(aType, endGState, seq, startIndex, 0, 0, 0, null, null);
@@ -113,7 +113,7 @@ public class GameActionLog
          * @see #Action(ActionType, int, List, int, int, int, int, SOCResourceSet, SOCResourceSet)
          */
         public Action
-            (ActionType aType, final int endGState, List<GameEventLog.QueueEntry> seq, final int startIndex,
+            (ActionType aType, final int endGState, List<GameEventLog.EventEntry> seq, final int startIndex,
              final int p1, final int p2, final int p3)
             throws IllegalArgumentException
         {
@@ -134,7 +134,7 @@ public class GameActionLog
          * @see #Action(ActionType, int, List, int, int, int, int, SOCResourceSet, SOCResourceSet)
          */
         public Action
-            (ActionType aType, final int endGState, List<GameEventLog.QueueEntry> seq, final int startIndex,
+            (ActionType aType, final int endGState, List<GameEventLog.EventEntry> seq, final int startIndex,
              final SOCResourceSet rs1, final SOCResourceSet rs2)
         {
             this(aType, endGState, seq, startIndex, 0, 0, 0, rs1, rs2);
@@ -157,7 +157,7 @@ public class GameActionLog
          * @see #Action(ActionType, int, List, int, SOCResourceSet, SOCResourceSet)
          */
         public Action
-            (ActionType aType, final int endGState, List<GameEventLog.QueueEntry> seq, final int startIndex,
+            (ActionType aType, final int endGState, List<GameEventLog.EventEntry> seq, final int startIndex,
              final int p1, final int p2, final int p3, final SOCResourceSet rs1, final SOCResourceSet rs2)
             throws IllegalArgumentException
         {

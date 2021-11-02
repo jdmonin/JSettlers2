@@ -42,7 +42,7 @@ import soc.util.Version;
 /**
  * SOCServer which records game events into {@link #records}
  * having a human-readable delimited format, suitable for comparisons in unit tests:
- * see {@link QueueEntry#toString()}.
+ * see {@link GameEventLog.EventEntry#toString()}.
  *<P>
  * Records game events from server to players and observers.
  * If you also want to record messages from clients with {@link #recordClientMessage(String, int, SOCMessageForGame)},
@@ -51,6 +51,7 @@ import soc.util.Version;
  * Works with {@link DisplaylessTesterClient}.
  *<P>
  * Logs are kept in memory, and can be written to a file with {@link #saveLogToFile(SOCGame, File, String, boolean)}.
+ * When a game ends its log stays in memory, in case tester wants to run through games first and check them later.
  *<P>
  * This server can also run standalone on the usual TCP {@link SOCServer#PROP_JSETTLERS_PORT} port number,
  * to connect from a client and generate a log, which by default also includes messages from the clients.
@@ -65,7 +66,7 @@ public class RecordingSOCServer
 {
     public static final String STRINGPORT_NAME = "testport";
 
-    /** per-game queues of recorded game "event" messages */
+    /** Each game's log of recorded game "event" messages. */
     public final HashMap<String, GameEventLog> records = new HashMap<>();
 
     /**
@@ -151,13 +152,13 @@ public class RecordingSOCServer
         if (log != null)
             log.clear();
 
-        // Game's queue is created by recordEvent calls
+        // Log gets created by first call to recordGameEvent
 
         recordGameEvent(gameName, new SOCVersion
             (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
     }
 
-    private void recordEvent(final String gameName, GameEventLog.QueueEntry entry)
+    private void recordEvent(final String gameName, GameEventLog.EventEntry entry)
     {
         if (entry.event instanceof SOCServerPing)
             // ignore unrelated administrative message which has unpredictable timing
@@ -176,26 +177,26 @@ public class RecordingSOCServer
     @Override
     public void recordGameEvent(final String gameName, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.QueueEntry(event, -1, false));
+        recordEvent(gameName, new GameEventLog.EventEntry(event, -1, false));
     }
 
     @Override
     public void recordGameEventTo(final String gameName, final int pn, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.QueueEntry(event, pn, false));
+        recordEvent(gameName, new GameEventLog.EventEntry(event, pn, false));
 
     }
 
     @Override
     public void recordGameEventNotTo(final String gameName, final int excludedPN, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.QueueEntry(event, new int[]{excludedPN}));
+        recordEvent(gameName, new GameEventLog.EventEntry(event, new int[]{excludedPN}));
     }
 
     @Override
     public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.QueueEntry(event, excludedPN));
+        recordEvent(gameName, new GameEventLog.EventEntry(event, excludedPN));
     }
 
     @Override
@@ -206,10 +207,10 @@ public class RecordingSOCServer
 
         if (fromPN == -1)
             fromPN = SOCServer.PN_OBSERVER;
-        recordEvent(gameName, new GameEventLog.QueueEntry((SOCMessage) event, fromPN, true));
+        recordEvent(gameName, new GameEventLog.EventEntry((SOCMessage) event, fromPN, true));
     }
 
-    // No need to override endLog: Game's queue isn't removed, in case tester wants to end games and check them later
+    // No need to override endLog: No file to close, etc.
 
     /**
      * Save a game's current event message logs to a file.
@@ -224,7 +225,7 @@ public class RecordingSOCServer
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save to; not validated for format or security.
      *     Recommended suffix is {@link GameEventLog#FILENAME_EXTENSION} for consistency.
-     * @param serverOnly  If true, don't write entries having {@link GameEventLog.QueueEntry#isFromClient} true
+     * @param serverOnly  If true, don't write entries having {@link GameEventLog.EventEntry#isFromClient} true
      * @throws NoSuchElementException if no logs found for game
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
      * @throws IOException if an I/O problem or {@link SecurityException} occurs

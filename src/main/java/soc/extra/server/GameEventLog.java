@@ -48,7 +48,7 @@ import soc.util.Version;
 
 /**
  * A Game Event Log in memory or saved to/loaded from a file.
- * Log entries are {@link QueueEntry}.
+ * An {@link EventEntry} holds each log entry.
  *<P>
  * These logs and their entry format are used by various tests and {@link RecordingSOCServer},
  * but aren't used by the standard SOCServer.
@@ -73,7 +73,7 @@ import soc.util.Version;
  *  <LI> For convenience, {@code save(..)} then writes comments with those timestamps
  *    in human-readable local time with RFC 822 timezone:
  *    "2001-06-09 13:30:23 -0400". These comments aren't part of the format spec.
- *  <LI> Each log entry is on its own line, formatted by {@link QueueEntry#toString()}
+ *  <LI> Each log entry is on its own line, formatted by {@link EventEntry#toString()}
  *  <LI> First log entry: The server's {@link SOCVersion} as sent to clients, for info on active features
  *  <LI> Next log entry: {@link SOCNewGameWithOptions} with the game's options; may be {@link SOCNewGame} if no gameopts
  *  <LI> Rest of the log entries are all game events sent from the server to players and/or observers
@@ -108,7 +108,7 @@ public class GameEventLog
     /**
      * All log entries, chronologically. Public for easy access; Vector is thread-safe, field is final.
      */
-    public final Vector<QueueEntry> entries = new Vector<>();
+    public final Vector<EventEntry> entries = new Vector<>();
 
     /**
      * Name of game seen in a log that's been loaded by {@link #load(File, boolean, boolean)}. Otherwise {@code null}.
@@ -137,7 +137,7 @@ public class GameEventLog
      * Add an entry to this game's log {@link #entries}.
      * @param e  Entry to add; not null
      */
-    public void add(QueueEntry e)
+    public void add(EventEntry e)
     {
         entries.add(e);
     }
@@ -158,7 +158,7 @@ public class GameEventLog
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save to; not validated for format or security.
      *     Recommended suffix is {@link #FILENAME_EXTENSION} for consistency.
-     * @param serverOnly  If true, don't write entries where {@link GameEventLog.QueueEntry#isFromClient} true
+     * @param serverOnly  If true, don't write entries where {@link GameEventLog.EventEntry#isFromClient} true
      * @throws IllegalStateException  if {@link #entries} doesn't start with {@link SOCVersion}
      *     followed by {@link SOCNewGame} or {@link SOCNewGameWithOptions} where
      *     {@link SOCNewGame#getGame()} equals {@link SOCGame#getName() ga.getName()}
@@ -228,7 +228,7 @@ public class GameEventLog
             writer.append("# Game created at: " + createdStr + '\n');
             writer.append("# Log written at:  " + nowStr + '\n');
 
-            for (GameEventLog.QueueEntry entry : entries)
+            for (GameEventLog.EventEntry entry : entries)
                 if (! (entry.isFromClient && serverOnly))
                     writer.append(entry.toString()).append('\n');
 
@@ -271,8 +271,8 @@ public class GameEventLog
      *
      * @param loadFrom  File to load from; filename usually ends with {@link #FILENAME_EXTENSION}
      * @param ignoreComments  If true, ignore comment lines instead of calling
-     *     {@link QueueEntry#QueueEntry(String) new QueueEntry(String)} constructor
-     * @param serverOnly  If true, ignore log entries which have {@link QueueEntry#isFromClient} set true
+     *     {@link EventEntry#EventEntry(String) new EventEntry(String)} constructor
+     * @param serverOnly  If true, ignore log entries which have {@link EventEntry#isFromClient} set true
      * @throws IOException  if a problem occurs while loading
      * @throws ParseException  if a log line can't be parsed. Exception text will start with line number: "Line 5: ...".
      *     {@link ParseException#getErrorOffset()} will be the offset within that trimmed line,
@@ -290,7 +290,7 @@ public class GameEventLog
         throws IOException, ParseException, NoSuchElementException
     {
         final GameEventLog ret = new GameEventLog();
-        final Vector<QueueEntry> entries = ret.entries;
+        final Vector<EventEntry> entries = ret.entries;
         boolean sawVers = false, sawNewGame = false;  // required first messages
 
         try
@@ -353,10 +353,10 @@ public class GameEventLog
                             throw new NoSuchElementException("First event message must be SOCVersion");
                     }
 
-                    QueueEntry qe;
+                    EventEntry qe;
                     try
                     {
-                        qe = QueueEntry.parse(line);
+                        qe = EventEntry.parse(line);
                     } catch (ParseException e) {
                         throw new ParseException
                             ("Line " + lnum + ": " + e.getMessage() + "\n  for line: " + line, e.getErrorOffset());
@@ -418,9 +418,9 @@ public class GameEventLog
      * (all players, 1 player, or specifically excluded player(s)),
      * or source if from client. See {@link #toString()} for human-readable delimited format.
      *<P>
-     * If this class changes, update comprehensive unit test {@link soctest.server.TestGameEventLog#testQueueEntry()}.
+     * If this class changes, update comprehensive unit test {@link soctest.server.TestGameEventLog#testEventEntry()}.
      */
-    public static final class QueueEntry
+    public static final class EventEntry
     {
         /**
          * Event message data; can be {@code null} if ! {@link #isFromClient}.
@@ -458,7 +458,7 @@ public class GameEventLog
         // Reminder: if you add fields, update toString(), equals(), and unit tests.
 
         /**
-         * QueueEntry sent to one player or observer, or all players if {@code pn} is -1,
+         * EventEntry sent to one player or observer, or all players if {@code pn} is -1,
          * or from a player or observer.
          *
          * @param event  Event message to record.
@@ -469,10 +469,10 @@ public class GameEventLog
          * @param isFromClient  True if is from client instead of from server to member client(s)
          * @throws IllegalArgumentException if {@code isFromClient} but {@code event} is {@code null}
          *     or in't a {@link SOCMessageForGame}
-         * @see #QueueEntry(SOCMessage, int[])
-         * @see #QueueEntry(String)
+         * @see #EventEntry(SOCMessage, int[])
+         * @see #EventEntry(String)
          */
-        public QueueEntry(SOCMessage event, int pn, boolean isFromClient)
+        public EventEntry(SOCMessage event, int pn, boolean isFromClient)
             throws IllegalArgumentException
         {
             this.event = event;
@@ -488,13 +488,13 @@ public class GameEventLog
         }
 
         /**
-         * QueueEntry sent to all players except specific ones, or to all if {@code excludedPN} null.
+         * EventEntry sent to all players except specific ones, or to all if {@code excludedPN} null.
          * @param event  Event message to record
          * @param excludedPN  Player number(s) excluded, or all players if null
-         * @see #QueueEntry(SOCMessage, int, boolean)
-         * @see #QueueEntry(String)
+         * @see #EventEntry(SOCMessage, int, boolean)
+         * @see #EventEntry(String)
          */
-        public QueueEntry(SOCMessage event, int[] excludedPN)
+        public EventEntry(SOCMessage event, int[] excludedPN)
         {
             this.event = event;
             this.pn = -1;
@@ -504,14 +504,14 @@ public class GameEventLog
         }
 
         /**
-         * QueueEntry representing a comment when log is read from file.
+         * EventEntry representing a comment when log is read from file.
          * Other fields will be set to java default values, except {@link #pn} = -1.
          * @param comment  Contents of comment, not {@code null}; see {@link #comment}.
          * @throws IllegalArgumentException if {@code comment} null
-         * @see #QueueEntry(SOCMessage, int, boolean)
-         * @see #QueueEntry(SOCMessage, int[])
+         * @see #EventEntry(SOCMessage, int, boolean)
+         * @see #EventEntry(SOCMessage, int[])
          */
-        public QueueEntry(String comment)
+        public EventEntry(String comment)
             throws IllegalArgumentException
         {
             if (comment == null)
@@ -534,12 +534,12 @@ public class GameEventLog
         }
 
         /**
-         * Basic QueueEntry equality test.
+         * Basic EventEntry equality test.
          * This implementation is slow, and calls {@link #event}{@link SOCMessage#toString() .toString()}
          * on both objects. It's useful for testing but shouldn't be used as-is in production code.
          * Also, the class doesn't override {@code hashCode()}.
          * @param o  Object to compare, or {@code null}
-         * @return  True if {@code o} is a {@code QueueEntry} whose fields all have the same values as this object.
+         * @return  True if {@code o} is a {@code EventEntry} whose fields all have the same values as this object.
          *     Uses {@link Arrays#equals(int[], int[])} for {@link #excludedPN},
          *     {@link String#equals(Object)} for {@link #comment}.
          */
@@ -548,10 +548,10 @@ public class GameEventLog
         {
             if (o == this)
                 return true;
-            if (! (o instanceof QueueEntry))
+            if (! (o instanceof EventEntry))
                 return false;
 
-            final QueueEntry oe = (QueueEntry) o;
+            final EventEntry oe = (EventEntry) o;
 
             if ((oe.pn != this.pn) || (oe.isFromClient != this.isFromClient)
                 || ! Arrays.equals(oe.excludedPN, this.excludedPN))
@@ -646,19 +646,19 @@ public class GameEventLog
         }
 
         /**
-         * Try to parse a QueueEntry from the format created by {@link #toString()}.
+         * Try to parse a EventEntry from the format created by {@link #toString()}.
          * @param str Entry string to parse, or "" or null; trim before calling
-         * @return Parsed QueueEntry, or {@code null} if {@code str} is "" or null
+         * @return Parsed EventEntry, or {@code null} if {@code str} is "" or null
          * @throws ParseException
          */
-        public static QueueEntry parse(final String str)
+        public static EventEntry parse(final String str)
             throws ParseException
         {
             if ((str == null) || str.isEmpty())
                 return null;
 
             if (str.charAt(0) == '#')
-                return new QueueEntry(str.substring(1));
+                return new EventEntry(str.substring(1));
 
             int pos = str.indexOf(':');
             if (pos < 1)
@@ -683,7 +683,7 @@ public class GameEventLog
             // parse users, make the entry
 
             if (users.equals("all"))
-                return new QueueEntry(event, -1, false);
+                return new EventEntry(event, -1, false);
 
             if (users.charAt(0) == 'f')
             {
@@ -698,7 +698,7 @@ public class GameEventLog
                     }
                 }
 
-                return new QueueEntry(event, fromPN, true);
+                return new EventEntry(event, fromPN, true);
             }
 
             if (users.startsWith("!p"))
@@ -739,7 +739,7 @@ public class GameEventLog
                     throw new ParseException("Can't parse event user spec preceding ':'", 2);
                 }
 
-                return new QueueEntry(event, excludedPN);
+                return new EventEntry(event, excludedPN);
             }
 
             final int toPN;
@@ -757,7 +757,7 @@ public class GameEventLog
             else
                 throw new ParseException("Can't parse event user spec preceding ':'", 0);
 
-            return new QueueEntry(event, toPN, false);
+            return new EventEntry(event, toPN, false);
         }
 
     }
