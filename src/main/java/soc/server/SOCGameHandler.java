@@ -1649,13 +1649,16 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
-        /**
-         * Send chat recap; same sequence is in SOCServerMessageHandler.handleJOINCHANNEL_postAuth with
-         * different message type
-         */
-        final SOCChatRecentBuffer buf = srv.gameList.getChatBuffer(gameName);
+        if ((! gameData.isBoardReset()) || (gameData.getGameState() >= SOCGame.START1A) || (cliVers < 1118))
         {
-            List<SOCChatRecentBuffer.Entry> recents;
+            /**
+             * Send chat recap; same sequence is in SOCServerMessageHandler.handleJOINCHANNEL_postAuth with
+             * different message type.
+             * Not sent during game reset: Chat text is still in player clients' game windows in v1.1.18 and newer.
+             */
+
+            final SOCChatRecentBuffer buf = srv.gameList.getChatBuffer(gameName);
+            final List<SOCChatRecentBuffer.Entry> recents;
             synchronized(buf)
             {
                 recents = buf.getAll();

@@ -33,7 +33,9 @@ When preparing to release a new version, testing should include:
     - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
+    - Server shouldn't recap the reset game's chat to current players (they already have that chat text in their windows)
     - Have a client rejoin and take over for a bot
+    - Joining client should see chat recap
     - Lock the only remaining bot seat (use lock button's "Marked" state, or "Locked" if client is v1.x)
       and reset game: no bots in new game, it begins immediately
 - Game play: (as debug user or in practice game)
