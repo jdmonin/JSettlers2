@@ -798,7 +798,9 @@ public class SOCGameMessageHandler
             else
             {
                 srv.messageToPlayerKeyed
-                    (c, gn, pl.getPlayerNumber(), "reply.rolldice.cannot.now");  // "You can't roll right now."
+                    (c, gn,
+                     (pl != null) ? pl.getPlayerNumber() : SOCServer.PN_OBSERVER,
+                     "reply.rolldice.cannot.now");  // "You can't roll right now."
             }
         }
         catch (Exception e)

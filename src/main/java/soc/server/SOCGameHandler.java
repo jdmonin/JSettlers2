@@ -3824,12 +3824,17 @@ public class SOCGameHandler extends GameHandler
                                  PEType.STARTING_LANDAREAS, ga.getPlayer(pn).getStartingLandAreasEncoded()));
                 }
             }
+
+            sendTurn(ga, false);
+
+            return;
         }
 
-        if (pl.isRobot() && ga.isInitialPlacementRoundDone(prevGameState))
+        if (ga.isInitialPlacementRoundDone(prevGameState))
         {
-            // Player didn't change, but bot must be prompted to
-            // place its next settlement or roll its first turn
+            // Player didn't change, but it's a new round and turn;
+            // also, standard bot must be prompted to place its next settlement or roll its first turn
+
             sendTurn(ga, false);
         }
         else
@@ -3861,7 +3866,8 @@ public class SOCGameHandler extends GameHandler
      * during and after initial placement.
      *
      * @param ga  the game
-     * @param sendRollPrompt  If true, also send a {@code RollDicePrompt} message after {@code Turn}
+     * @param sendRollPrompt  If true, also send a {@link SOCRollDicePrompt} message after {@link SOCTurn};
+     *     won't send during initial placement (gameState &lt; {@link SOCGame#ROLL_OR_CARD}).
      */
     void sendTurn(final SOCGame ga, boolean sendRollPrompt)
     {
@@ -3912,7 +3918,7 @@ public class SOCGameHandler extends GameHandler
 
         srv.messageToGame(gname, true, new SOCTurn(gname, cpn, gaState));
 
-        if (sendRollPrompt)
+        if (sendRollPrompt && (gaState >= SOCGame.ROLL_OR_CARD))
             srv.messageToGame(gname, true, new SOCRollDicePrompt(gname, cpn));
     }
 

@@ -365,7 +365,6 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p0's turn to build a settlement.",
             "all:SOCTurn:game=test|playerNumber=0|gameState=5",
-            "all:SOCRollDicePrompt:game=test|playerNumber=0",
 
             "f0:SOCPutPiece:game=test|playerNumber=0|pieceType=1|coord=c9",
             "all:SOCGameServerText:game=test|text=p0 built a settlement.",
@@ -379,7 +378,6 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p1's turn to build a settlement.",
             "all:SOCTurn:game=test|playerNumber=1|gameState=5",
-            "all:SOCRollDicePrompt:game=test|playerNumber=1",
 
             "f1:SOCPutPiece:game=test|playerNumber=1|pieceType=1|coord=87",
             "all:SOCGameServerText:game=test|text=p1 built a settlement.",
@@ -408,7 +406,6 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p0's turn to build a settlement.",
             "all:SOCTurn:game=test|playerNumber=0|gameState=10",
-            "all:SOCRollDicePrompt:game=test|playerNumber=0",
 
             "f0:SOCPutPiece:game=test|playerNumber=0|pieceType=1|coord=ba",
             "all:SOCGameServerText:game=test|text=p0 built a settlement.",
@@ -422,7 +419,6 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
             "all:SOCTurn:game=test|playerNumber=3|gameState=10",
-            "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=b6",
             "all:SOCGameServerText:game=test|text=p3 built a settlement.",
@@ -433,7 +429,6 @@ public class TestGameActionExtractor
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a6",
             "all:SOCGameServerText:game=test|text=p3 built a road.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a6",
-            "all:SOCGameState:game=test|state=15",
 
             // start of first player's first turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
@@ -485,7 +480,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(4);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.START1A, act.endingGameState);
         assertEquals(0, act.param1);
 
@@ -507,7 +502,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(7);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.START1A, act.endingGameState);
         assertEquals(1, act.param1);
 
@@ -553,7 +548,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(13);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.START2A, act.endingGameState);
         assertEquals(0, act.param1);
 
@@ -575,7 +570,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(16);
         assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(3, act.eventSequence.size());
+        assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.START2A, act.endingGameState);
         assertEquals(3, act.param1);
 
@@ -589,8 +584,8 @@ public class TestGameActionExtractor
 
         act = actionLog.get(18);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(5, act.eventSequence.size());
-        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.START2B, act.endingGameState);
         assertEquals(SOCPlayingPiece.ROAD, act.param1);
         assertEquals("built at 0xa6", 0xa6, act.param2);
         assertEquals(3, act.param3);

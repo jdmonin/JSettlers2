@@ -37,6 +37,13 @@ import soc.game.SOCPlayer;  // for javadocs only
  * before {@code SOCTurn}. Server v2.5.00 and newer still send that playerelement message
  * to clients older than 2.5.00.)
  *<P>
+ * In v2.5.00 and newer, is also sent to game during initial placement when a round ends
+ * and the direction of play changes, since player has just placed a road or ship and should now place
+ * the next settlement or roll the dice as first player.
+ * (In v2.0.00 - 2.4.00, that was sent only when a robot was current player.
+ * v1.x versions didn't send this message during init placement; there were fewer possible state transitions,
+ * and the client's SOCGame had enough info to advance the gamestate and player number.)
+ *<P>
  * In v2.0.00 and newer, this message optionally includes a {@link #getGameState()} field instead of
  * a separate {@link SOCGameState} message, since the state and turn are part of the same transition.
  *<P>
@@ -44,12 +51,6 @@ import soc.game.SOCPlayer;  // for javadocs only
  * There were a few minor messages like {@link SOCSetPlayedDevCard} sent between them.  Client would
  * set current game state based on that GAMESTATE message.  Then, when this TURN message changed the
  * player number, the game would have a known state to inform the new player's options and actions.
- *<P>
- * In v2.0.00 and newer, is also sent to robot players during initial placement when a round ends
- * and the direction of play changes, and bot has just placed a road or ship and should now place
- * the next settlement or roll the dice as first player. (In earlier versions with fewer possible
- * state transitions, the client's SOCGame had enough info to advance the gamestate and player
- * number.)
  *<P>
  * Before v2.0.00 the server didn't send a TURN message to human players after the final road or ship is placed
  * at the end of initial placement and start of regular gameplay, only a {@link SOCGameState}
