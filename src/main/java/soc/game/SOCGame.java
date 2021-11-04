@@ -2580,6 +2580,7 @@ public class SOCGame implements Serializable, Cloneable
      * calls {@link #updateAtGameFirstTurn()}.
      *
      * @param gs  the game state
+     * @see #updateAtTurn()
      */
     public void setGameState(final int gs)
     {
@@ -3975,7 +3976,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * During {@link #isInitialPlacement()}, only the server advances game state; when client's game calls
      * this method it returns immediately. In {@link #START2B} or {@link #START3B} after the last initial
-     * road/ship placement, this method calls {@link #updateAtGameFirstTurn()} which includes {@link #updateAtTurn()}.
+     * road/ship placement, at server this method calls {@link #updateAtGameFirstTurn()}
+     * which includes {@link #updateAtTurn()}.
      *<P>
      * If {@link #debugFreePlacement}, does nothing unless current player's
      * {@link SOCPlayer#getNeedToPickGoldHexResources()} &gt; 0 and so the state should
@@ -4104,8 +4106,15 @@ public class SOCGame implements Serializable, Cloneable
                         // Begin play.
                         // Player number is unchanged; "virtual" endTurn here.
                         // Don't clear forcingEndTurn flag, if it's set.
-                        gameState = ROLL_OR_CARD;
-                        updateAtGameFirstTurn();
+                        //
+                        // Not done if at client; instead, server will send a TURN message
+                        // from which client will call updateAtTurn and setGameState
+                        // in order to call updateAtGameFirstTurn.
+                        if (isAtServer)
+                        {
+                            gameState = ROLL_OR_CARD;
+                            updateAtGameFirstTurn();
+                        }
                     } else {
                         // Begin third placement.
                         gameState = START3A;
@@ -4161,9 +4170,16 @@ public class SOCGame implements Serializable, Cloneable
                     // Begin play.  The first player to roll is firstPlayerNumber.
                     // "virtual" endTurn here.
                     // Don't clear forcingEndTurn flag, if it's set.
-                    currentPlayerNumber = firstPlayerNumber;
-                    gameState = ROLL_OR_CARD;
-                    updateAtGameFirstTurn();
+                    //
+                    // Not done if at client; instead, server will send a TURN message
+                    // from which client will call updateAtTurn and setGameState
+                    // in order to call updateAtGameFirstTurn.
+                    if (isAtServer)
+                    {
+                        currentPlayerNumber = firstPlayerNumber;
+                        gameState = ROLL_OR_CARD;
+                        updateAtGameFirstTurn();
+                    }
                 }
                 else
                 {
@@ -4890,7 +4906,8 @@ public class SOCGame implements Serializable, Cloneable
      *     new potential settlements yet.  Does call each player's
      *     {@link SOCPlayer#addLegalSettlement(int, boolean) pl.addLegalSettlement(coord, true)}.
      *
-     *<LI> Calls {@link #updateAtTurn()}.
+     *<LI> At server, calls {@link #updateAtTurn()}. Client will instead receive a {@link soc.message.SOCTurn}
+     *     message which will call that (always in v2.5+, sometimes in v2.0+).
      *</UL>
      *<P>
      * Called at server by {@link #advanceTurnStateAfterPutPiece()}, and at client by first
@@ -4968,10 +4985,11 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         // Begin play.
-        // Player number is unchanged; "virtual" endTurn here.
+        // Player number is unchanged; "virtual" endTurn here if at server.
         // This code formerly in advanceTurnStateAfterPutPiece() when last initial piece has been placed.
 
-        updateAtTurn();
+        if (isAtServer)
+            updateAtTurn();
     }
 
     /**
@@ -9375,19 +9393,25 @@ public class SOCGame implements Serializable, Cloneable
                 currentPlayerNumber = firstPlayerNumber;
                 if (! has3rdInitPlace)
                 {
-                    gameState = ROLL_OR_CARD;
-                    updateAtGameFirstTurn();  // "virtual" endTurn here,
-                      // just like advanceTurnStateAfterPutPiece().
+                    if (isAtServer)
+                    {
+                        gameState = ROLL_OR_CARD;
+                        updateAtGameFirstTurn();  // "virtual" endTurn here,
+                          // just like advanceTurnStateAfterPutPiece().
+                    }
                 } else {
                     gameState = START3A;
                 }
             }
             else if (npiece == 6)
             {
-                currentPlayerNumber = firstPlayerNumber;
-                gameState = ROLL_OR_CARD;
-                updateAtGameFirstTurn();  // "virtual" endTurn here,
-                  // just like advanceTurnStateAfterPutPiece().
+                if (isAtServer)
+                {
+                    currentPlayerNumber = firstPlayerNumber;
+                    gameState = ROLL_OR_CARD;
+                    updateAtGameFirstTurn();  // "virtual" endTurn here,
+                      // just like advanceTurnStateAfterPutPiece().
+                }
             }
         }
 

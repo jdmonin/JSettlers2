@@ -41,6 +41,8 @@ JARs for recent JSettlers versions can be downloaded from
 		- Don't send SOCRollDicePrompt
 		- Always send SOCTurn (not just to bots) at start of each placement round
 		  and end of initial placement/start of first regular turn
+		- To fix cosmetic off-by-one bug for rounds-played count in v2.0 - 2.4, at start of first regular turn
+		  clients v2.4 and older are sent SOCGameState instead of SOCTurn unless current player is changing
 	- In dice roll result message sequence, new game state is sent only after resources or other gains/losses by players
 	  to indicate end of sequence
 	- Bank Trade and Accept Offer messages have resource info, so server no longer sends redundant `SOCPlayerElement`s

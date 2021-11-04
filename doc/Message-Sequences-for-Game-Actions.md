@@ -549,22 +549,18 @@ Give 1 resource, get 2 or 3 or 4; otherwise same as usual bank trade sequence.
 
 ## End turn or Special Building, start of next player's turn or SBP
 
-### First turn after initial placement
+### Start of first turn after initial placement
 
-Special case: Since the last player to place is the first player to roll,
-server doesn't send the usual SOCTurn sequence listed in "Next player's usual turn begins",
-only SOCGameState and the roll prompt.
+The last player to place is the first player to roll, unless there are 3 initial placements (Cloth Trade scenario, etc).
+Even though the current player isn't changing, server still sends the usual SOCTurn sequence
+listed in "Next player's usual turn begins":
 
 - all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=d05
 - all:SOCGameServerText:game=test|text=p3 built a ship.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=d05
-- all:SOCGameState:game=test|state=15  // ROLL_OR_CARD
+- all:SOCTurn:game=test|playerNumber=3|gameState=15  // ROLL_OR_CARD
 - all:SOCRollDicePrompt:game=test|playerNumber=3
-
-For scenarios where there's a 3rd initial settlement, like `SC_CLVI` Cloth Trade, the
-last initial placement is followed by the usual "Next player's usual turn begins" sequence
-because the current player changes.
 
 ### End usual turn
 

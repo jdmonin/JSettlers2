@@ -161,7 +161,7 @@ all:SOCGameServerText:game=test|text=It's debug's turn to build a road or ship.
 f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a08
 all:SOCGameServerText:game=test|text=debug built a road.
 all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a08
-all:SOCGameState:game=test|state=15
+all:SOCTurn:game=test|playerNumber=3|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 f3:SOCRollDice:game=test
 all:SOCDiceResult:game=test|param=7

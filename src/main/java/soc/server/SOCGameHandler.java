@@ -3825,7 +3825,29 @@ public class SOCGameHandler extends GameHandler
                 }
             }
 
-            sendTurn(ga, false);
+            if (ga.clientVersionLowest >= SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN)
+            {
+                sendTurn(ga, false);
+            } else {
+                // Compat: pre=2.5 clients should be sent SOCGameState instead of SOCTurn,
+                // so their rounds-played count won't be off by 1.
+                // Bots are same version as server, so they'll be sent the SOCTurn they're expecting.
+
+                final String gaName = ga.getName();
+                final int cpn = ga.getCurrentPlayerNumber();
+                final SOCTurn turnMsg = new SOCTurn(gaName, cpn, SOCGame.ROLL_OR_CARD);
+                srv.recordGameEvent(gaName, turnMsg);
+                srv.messageToGameForVersions
+                    (ga, SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN - 1, Integer.MAX_VALUE,
+                     turnMsg, true);
+
+                srv.messageToGameForVersions
+                    (ga, -1, SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN - 1,
+                     new SOCGameState(gaName, SOCGame.ROLL_OR_CARD), true);
+                srv.messageToGameForVersions
+                    (ga, -1, SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN - 1,
+                     new SOCRollDicePrompt(gaName, cpn), true);
+            }
 
             return;
         }

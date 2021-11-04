@@ -37,10 +37,11 @@ import soc.game.SOCPlayer;  // for javadocs only
  * before {@code SOCTurn}. Server v2.5.00 and newer still send that playerelement message
  * to clients older than 2.5.00.)
  *<P>
- * In v2.5.00 and newer, is also sent to game during initial placement when a round ends
+ * In v2.5.00 and newer ({@link #VERSION_FOR_SEND_BEGIN_FIRST_TURN}),
+ * is also sent to game during initial placement when a round ends
  * and the direction of play changes, since player has just placed a road or ship and should now place
- * the next settlement or roll the dice as first player.
- * (In v2.0.00 - 2.4.00, that was sent only when a robot was current player.
+ * the next settlement, or should roll the dice as first player because the game's first turn is starting.
+ * (In v2.0.00 - 2.4.00, that SOCTurn was sent only when a robot was current player.
  * v1.x versions didn't send this message during init placement; there were fewer possible state transitions,
  * and the client's SOCGame had enough info to advance the gamestate and player number.)
  *<P>
@@ -69,6 +70,14 @@ public class SOCTurn extends SOCMessage
      * @since 2.5.00
      */
     public static final int VERSION_FOR_DEV_CARD_FLAG_CLEAR = 2500;
+
+    /**
+     * First version (2.5.00) where {@code SOCTurn} from server
+     * is always sent at the end of initial placement / start of the first normal turn.
+     * See {@link SOCTurn} class javadoc for message sequence in earlier 1.x and 2.x versions.
+     * @since 2.5.00
+     */
+    public static final int VERSION_FOR_SEND_BEGIN_FIRST_TURN = 2500;
 
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
