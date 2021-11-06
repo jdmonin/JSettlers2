@@ -3835,18 +3835,17 @@ public class SOCGameHandler extends GameHandler
 
                 final String gaName = ga.getName();
                 final int cpn = ga.getCurrentPlayerNumber();
+
                 final SOCTurn turnMsg = new SOCTurn(gaName, cpn, SOCGame.ROLL_OR_CARD);
                 srv.recordGameEvent(gaName, turnMsg);
                 srv.messageToGameForVersions
-                    (ga, SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN - 1, Integer.MAX_VALUE,
+                    (ga, SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN, Integer.MAX_VALUE,
                      turnMsg, true);
-
                 srv.messageToGameForVersions
                     (ga, -1, SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN - 1,
                      new SOCGameState(gaName, SOCGame.ROLL_OR_CARD), true);
-                srv.messageToGameForVersions
-                    (ga, -1, SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN - 1,
-                     new SOCRollDicePrompt(gaName, cpn), true);
+
+                srv.messageToGame(gaName, true, new SOCRollDicePrompt(gaName, cpn));
             }
 
             return;
