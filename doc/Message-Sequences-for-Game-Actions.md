@@ -581,11 +581,11 @@ listed in "Next player's usual turn begins":
 ### Next player's SBP begins
 
 - all:SOCTurn:game=test|playerNumber=2|gameState=100  // SPECIAL_BUILDING
-- all:SOCGameServerText:game=test|text=Special building phase: p2's turn to place.
 
 ## Game over
 
 Preceding messages are:
+
 - If winning points gained during the player's turn:
     - all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
     - all:SOCGameState:game=test|state=1000  // OVER

@@ -51,6 +51,7 @@ import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPickResources;  // for reason code constants
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
+import soc.message.SOCTurn;  // for server version check
 import soc.util.SOCStringManager;
 
 import java.awt.Color;
@@ -2866,7 +2867,8 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Game's current player has changed.  Update displays.
+     * Game's current player and state has changed: Update displays.
+     * Called after game data has been updated.
      *
      * @param pnum New current player number; should match game.getCurrentPlayerNumber()
      * @since 1.1.00
@@ -2896,6 +2898,11 @@ public class SOCPlayerInterface extends Frame
         buildingPanel.updateButtonStatus();
 
         bankTradeWasFromTradePanel = false;
+
+        if ((game.getGameState() == SOCGame.SPECIAL_BUILDING)
+            && (client.getServerVersion(game) >= SOCTurn.VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT))
+            printKeyed("action.sbp.turn.to.place.common", game.getPlayer(game.getCurrentPlayerNumber()).getName());
+                // "Special building phase: {0}''s turn to place."
 
         // play Begin Turn sound here, not updateAtRollPrompt() which
         // isn't called for first player during initial placement
@@ -4398,8 +4405,10 @@ public class SOCPlayerInterface extends Frame
         }
 
         /**
-         * Game's current player has changed. Update displays.
-         * Repaint board panel, update buttons' status, etc.
+         * Game's current player and state has changed.
+         * Update displays: Repaint board panel, update buttons' status, etc.
+         * (Caller has already called {@link SOCGame#setGameState(int)}, {@link SOCGame#setCurrentPlayerNumber(int)},
+         * {@link SOCGame#updateAtTurn()}.)
          */
         public void playerTurnSet(int playerNumber)
         {

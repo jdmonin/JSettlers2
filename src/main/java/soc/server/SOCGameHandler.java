@@ -786,8 +786,9 @@ public class SOCGameHandler extends GameHandler
          */
         sendTurn(ga, false);
         if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
-            srv.messageToGameKeyed
-                (ga, true, true, "action.sbp.turn.to.place", ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
+            srv.messageToGameForVersionsKeyed
+                (ga, -1, SOCTurn.VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT - 1, true, false,
+                 "action.sbp.turn.to.place.common", ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
                 // "Special building phase: {0}''s turn to place."
     }
 
@@ -3929,9 +3930,9 @@ public class SOCGameHandler extends GameHandler
                  new SOCGameState(gname, gaState), true);
         sendRollPrompt |= sendGameState(ga, true, false, false);  // send related messages/prompts
 
-        if (ga.clientVersionLowest < SOCTurn.VERSION_FOR_DEV_CARD_FLAG_CLEAR)
+        if (ga.clientVersionLowest < SOCTurn.VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT)
             srv.messageToGameForVersions
-                (ga, -1, SOCTurn.VERSION_FOR_DEV_CARD_FLAG_CLEAR - 1,
+                (ga, -1, SOCTurn.VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT - 1,
                  ((ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                   ? new SOCPlayerElement(gname, cpn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 0)
                   : new SOCSetPlayedDevCard(gname, cpn, false)),

@@ -26,21 +26,25 @@ import soc.game.SOCPlayer;  // for javadocs only
 
 
 /**
- * This message from server to client signals end of the current player's turn.
+ * This message from server to client signals start of a new player's turn.
  * Client should end current turn, set current player number and game state,
  * then clear dice, reset votes, etc by calling {@link SOCGame#updateAtTurn()}.
  *<P>
- * In v2.5.00 and newer ({@link #VERSION_FOR_DEV_CARD_FLAG_CLEAR}), when client receives this message
+ * In v2.5.00 and newer ({@link #VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT}), when client receives this message
  * {@link SOCGame#updateAtTurn()} will clear the new player's {@link SOCPlayer#hasPlayedDevCard()} flag.
  * (Previous server versions sent {@link SOCSetPlayedDevCard} or
  * {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG})
  * before {@code SOCTurn}. Server v2.5.00 and newer still send that playerelement message
  * to clients older than 2.5.00.)
  *<P>
- * In v2.5.00 and newer ({@link #VERSION_FOR_SEND_BEGIN_FIRST_TURN}),
- * is also sent to game during initial placement when a round ends
- * and the direction of play changes, since player has just placed a road or ship and should now place
- * the next settlement, or should roll the dice as first player because the game's first turn is starting.
+ * Also in v2.5.00 and newer, during Special Building (SBP) server doesn't follow this message
+ * with {@link SOCGameServerText}("Special building phase: Lily's turn to place"); client should print
+ * a prompt like that when it receives {@code SOCTurn}({@link SOCGame#SPECIAL_BUILDING}).
+ *<P>
+ * Also in v2.5.00 and newer ({@link #VERSION_FOR_SEND_BEGIN_FIRST_TURN}),
+ * is also sent to game during initial placement when a round ends,
+ * since the direction of play changes, and player has just placed a road or ship and should now place
+ * the next settlement or roll the dice to start the game's first turn of regular play.
  * (In v2.0.00 - 2.4.00, that SOCTurn was sent only when a robot was current player.
  * v1.x versions didn't send this message during init placement; there were fewer possible state transitions,
  * and the client's SOCGame had enough info to advance the gamestate and player number.)
@@ -66,10 +70,12 @@ public class SOCTurn extends SOCMessage
     /**
      * First version (2.5.00) where {@code SOCTurn} from server
      * also tells the client to clear the new player's "dev card played" flag
-     * as if <tt>{@link SOCSetPlayedDevCard}(pn, false)</tt> was sent.
+     * as if <tt>{@link SOCSetPlayedDevCard}(pn, false)</tt> was sent,
+     * and where during Special Building Phase (SBP) server doesn't follow
+     * this message with {@link SOCGameServerText}("Lily's turn to place").
      * @since 2.5.00
      */
-    public static final int VERSION_FOR_DEV_CARD_FLAG_CLEAR = 2500;
+    public static final int VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT = 2500;
 
     /**
      * First version (2.5.00) where {@code SOCTurn} from server

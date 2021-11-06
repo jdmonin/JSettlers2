@@ -1773,7 +1773,6 @@ public class TestActionsMessages
                 {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=16|amount=1"},  // ASK_SPECIAL_BUILD
                 {"all:SOCClearOffer:game=", "|playerNumber=-1"},
                 {"all:SOCTurn:game=", "|playerNumber=5|gameState=100"},
-                {"all:SOCGameServerText:game=", "|text=Special building phase: " + CLIENT1_NAME + "'s turn to place."},
                 {"all:SOCPlayerElements:game=", "|playerNum=5|actionType=LOSE|e1=1,e5=1"},
                 {"all:SOCGameServerText:game=", "|text="+ CLIENT1_NAME + " built a road."},
                 {"all:SOCPutPiece:game=", "|playerNumber=5|pieceType=0|coord=82"},

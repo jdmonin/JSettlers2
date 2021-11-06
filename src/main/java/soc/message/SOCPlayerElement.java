@@ -217,7 +217,7 @@ public class SOCPlayerElement extends SOCMessage
          * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
          *<P>
          * This element is sent as part of start-of-turn sequence, preceding {@link SOCTurn},
-         * by servers older than v2.5.00 ({@link SOCTurn#VERSION_FOR_DEV_CARD_FLAG_CLEAR}).
+         * by servers older than v2.5.00 ({@link SOCTurn#VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT}).
          * Clients of that version and newer must instead clear the dev card flag when they receive {@link SOCTurn}.
          *
          * @since 2.0.00

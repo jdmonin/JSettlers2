@@ -132,7 +132,9 @@ public interface PlayerClientListener
     void playerSitdown(int playerNumber, String nickname);
 
     /**
-     * Game's current player has changed. Update displays.
+     * Game's current player and state has changed. Update displays.
+     * (Caller has already called {@link SOCGame#setGameState(int)}, {@link SOCGame#setCurrentPlayerNumber(int)},
+     * {@link SOCGame#updateAtTurn()}.)
      * @param playerNumber  New current player number whose turn it is.
      */
     void playerTurnSet(int playerNumber);

@@ -758,11 +758,6 @@ public class TestGameActionExtractor
             // start of SBP: p4's turn:
             "all:SOCTurn:game=test|playerNumber=4|gameState=100",
 
-            // this prompt text goes with SOCTurn,
-            // but since servertext are ignored, it's collected as part of
-            // the next sequence:
-            "all:SOCGameServerText:game=test|text=Special building phase: p4's turn to place.",
-
             // buy dev card:
             "f4:SOCBuyDevCardRequest:game=test",
             "all:SOCPlayerElements:game=test|playerNum=4|actionType=LOSE|e2=1,e3=1,e4=1",
@@ -786,8 +781,6 @@ public class TestGameActionExtractor
 
             // start of p1's SBP:
             "all:SOCTurn:game=test|playerNumber=1|gameState=100",
-
-            "all:SOCGameServerText:game=test|text=Special building phase: p1's turn to place.",
 
             // buy & place a road, starting with buildrequest:
             "f1:SOCBuildRequest:game=test|pieceType=0",
@@ -858,7 +851,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(7);
         assertEquals(ActionType.BUY_DEV_CARD, act.actType);
-        assertEquals(8, act.eventSequence.size());
+        assertEquals(7, act.eventSequence.size());
         assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
         assertEquals("dev card type", SOCDevCardConstants.KNIGHT, act.param1);
         assertEquals("remaining cards", 32, act.param2);
@@ -885,7 +878,7 @@ public class TestGameActionExtractor
 
         act = actionLog.get(11);
         assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(8, act.eventSequence.size());
+        assertEquals(7, act.eventSequence.size());
         assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
         assertEquals("built road", SOCPlayingPiece.ROAD, act.param1);
         assertEquals("built at 0xa8", 0xa8, act.param2);
