@@ -765,5 +765,5 @@ un:SOCGameServerText:game=test|text=Saved game to test-over.game.json
 f3:SOCGameTextMsg:game=test|nickname=-|text=*savelog* test-all-basic-actions
 # End of log; final game state is 1000
 # Final player info:
-# - pn 2: visible score 2: p2
-# - pn 3: visible score 10: debug, Largest Army, Longest Road, Winner
+# - pn 2: total score 2: p2
+# - pn 3: total score 10: debug, Largest Army, Longest Road, Winner

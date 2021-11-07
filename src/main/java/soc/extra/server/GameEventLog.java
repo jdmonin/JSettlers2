@@ -239,15 +239,21 @@ public class GameEventLog
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
                 final SOCPlayer pl = ga.getPlayer(pn);
-                int vp = (winner != null) ? pl.getTotalVP() : pl.getPublicVP();
+                final int vp = (winner != null) ? pl.getTotalVP() : pl.getPublicVP();
                 if ((vp == 0) && ga.isSeatVacant(pn))
                     continue;
+                final int totalVP = (winner != null) ? vp : pl.getTotalVP();
 
                 String plName = pl.getName();
                 if (plName == null)
                     plName = "(vacant)";
-                writer.append
-                    ("# - pn " + pn + ": visible score " + vp + ": " + plName);
+
+                writer.append("# - pn " + pn);
+                if (totalVP != vp)
+                    writer.append(": visible score " + vp + ", total score " + totalVP + ": " + plName);
+                else
+                    writer.append(": total score " + vp + ": " + plName);
+
                 if (pl.hasLargestArmy())
                     writer.append(", Largest Army");
                 if (pl.hasLongestRoad())
