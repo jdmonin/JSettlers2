@@ -28,8 +28,12 @@ import java.util.NoSuchElementException;
 import java.util.Properties;
 
 import soc.game.SOCGame;
+import soc.game.SOCGameOptionSet;
+import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
+import soc.message.SOCNewGame;
+import soc.message.SOCNewGameWithOptions;
 import soc.message.SOCServerPing;
 import soc.message.SOCVersion;
 import soc.server.SOCChannelList;
@@ -146,7 +150,7 @@ public class RecordingSOCServer
     }
 
     @Override
-    public void startLog(final String gameName)
+    public void startLog(final String gameName, final boolean isReset)
     {
         final GameEventLog log = records.get(gameName);
         if (log != null)
@@ -156,6 +160,19 @@ public class RecordingSOCServer
 
         recordGameEvent(gameName, new SOCVersion
             (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
+        if (isReset)
+        {
+            // server won't send SOCNewGame announcement for a reset, so make one
+            final SOCGame ga = getGame(gameName);
+            if (ga == null)
+                return;  // shouldn't happen for a reset
+            final SOCGameOptionSet gameOpts = ga.getGameOptions();
+            recordGameEvent(gameName,
+                ((gameOpts == null)
+                 ? new SOCNewGame(gameName)
+                 : new SOCNewGameWithOptions
+                     (gameName, gameOpts, SOCVersionedItem.itemsMinimumVersion(gameOpts.getAll()), -2)));
+        }
     }
 
     private void recordEvent(final String gameName, GameEventLog.EventEntry entry)

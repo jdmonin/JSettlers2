@@ -3107,7 +3107,7 @@ public class SOCServer extends Server
                 // Add this (creating) player to the game
                 gameList.addMember(c, gaName);
 
-            startLog(gaName);
+            startLog(gaName, false);
 
             // should release monitor before we broadcast
             if (! hasGameListMonitor)
@@ -9355,7 +9355,10 @@ public class SOCServer extends Server
      *   <P>
      *    <b>This ends this method.</b>  Step 3 and the rest are in
      *    {@link #resetBoardAndNotify_finish(SOCGameBoardReset, SOCGame)}.
-     * <LI value=3> Send messages as if each human player has clicked "join" (except JoinGameAuth)
+     * <LI value=3> Send messages as if each human player has clicked "join" (except JoinGameAuth).
+     *   <P>
+     *    If {@link #recordGameEventsIsActive()}, clears the game log first
+     *    by calling {@link #startLog(String, boolean) startLog(gameName, true)}.
      * <LI value=4> Send as if each human player has clicked "sit here"
      * <LI value=5a> If no robots, send to game as if someone else has
      *              clicked "start game", and set up state to begin game play.
@@ -9454,6 +9457,9 @@ public class SOCServer extends Server
      * Complete steps 3 - n of the board-reset process
      * outlined in {@link #resetBoardAndNotify(String, int)},
      * after any robots have left the old game.
+     * If {@link #recordGameEventsIsActive()}, clears the game log first
+     * by calling {@link #startLog(String, boolean) startLog(gameName, true)}.
+     *
      * @param reBoard  Board reset data, from {@link SOCGameListAtServer#resetBoard(String)}
      *                   or {@link SOCGame#boardResetOngoingInfo reGame.boardResetOngoingInfo}
      * @param reGame   The new game created by the reset, with gamestate {@link SOCGame#NEW NEW}
@@ -9462,9 +9468,18 @@ public class SOCServer extends Server
      */
     void resetBoardAndNotify_finish(SOCGameBoardReset reBoard, SOCGame reGame)
     {
+        final String gaName = reGame.getName();
         final boolean resetWithShuffledBots =
             (reBoard.oldGameState < SOCGame.ROLL_OR_CARD) || (reBoard.oldGameState == SOCGame.OVER);
         Connection[] huConns = reBoard.humanConns;
+
+        if (recordGameEventsIsActive())
+            try
+            {
+                startLog(gaName, true);
+            } catch (IOException e) {
+                D.ebugPrintStackTrace(e, "IOException in resetBoardAndNotify_finish calling startLog");
+            }
 
         /**
          * 3. Send messages as if each human player has clicked "join" (except JoinGameAuth)
@@ -9491,7 +9506,7 @@ public class SOCServer extends Server
              *     clicked "start game", and set up state to begin game play.
              */
 
-            final GameHandler hand = gameList.getGameTypeHandler(reGame.getName());
+            final GameHandler hand = gameList.getGameTypeHandler(gaName);
             if (hand != null)
                 hand.startGame(reGame);
         } else {
@@ -9510,7 +9525,7 @@ public class SOCServer extends Server
                 // Unlikely, since we were just playing this game with bots
 
                 reGame.setGameState(SOCGame.OVER);
-                final GameHandler hand = gameList.getGameTypeHandler(reGame.getName());
+                final GameHandler hand = gameList.getGameTypeHandler(gaName);
                 if (hand != null)
                     hand.sendGameState(reGame);
                 messageToGameKeyed(reGame, true, true, "member.bot.join.cantfind");  // "*** Can't find a robot! ***"
@@ -9666,7 +9681,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * If {@link #recordGameEventsIsActive()}, set up logging for the specified game.
+     * If {@link #recordGameEventsIsActive()}, set up logging for the specified game
+     * or reset the log after a board reset.
      * Should be called before {@link #recordGameEvent(String, SOCMessage)} or similar methods.
      * Later at end of game, caller should call {@link #endLog(String)}.
      *<P>
@@ -9676,12 +9692,16 @@ public class SOCServer extends Server
      *<P>
      * If a previous game with the same name had unsaved logs in memory,
      * discard them before setting up the new game's logs.
+     *<P>
+     * If {@code isReset}, the reset game's log must still begin with {@link SOCVersion}
+     * and {@link SOCNewGame} or {@link SOCNewGameWithOptions}.
      *
      * @param gameName  Name of the game to start logging for
+     * @param isReset  True if instead of a new game, this is a board reset of an existing game
      * @throws IOException if the implementation must create a file or does other I/O, and a problem occurs
      * @since 2.5.00
      */
-    public void startLog(final String gameName)
+    public void startLog(final String gameName, final boolean isReset)
         throws IOException
     {
     }
@@ -9814,7 +9834,7 @@ public class SOCServer extends Server
      * Any exception must be caught here; the caller doesn't need to deal with that detail of ending the game.
      *
      * @param gameName  Name of the game to end logging for
-     * @see #startLog(String)
+     * @see #startLog(String, boolean)
      * @since 2.5.00
      */
     public void endLog(final String gameName)

@@ -107,7 +107,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     * @param opts Requested game options, as a read-only map
+     * @param opts Requested game options as a read-only map, or {@code null} if none
      * @param minVers Minimum client version required for this game, or -1
      * @param cliVers  Client version, if any game's options need adjustment for an older client.
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.

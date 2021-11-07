@@ -654,6 +654,8 @@ In any game you're playing or observing, logs can be saved at any time with the 
 which will save to `filename.soclog` in the server's current directory.
 To save only messages from the server, not also from clients, use its `-s` flag.
 
+Resetting the board will clear the log.
+
 For log file format, see `soc.extra.server.GameEventLog` javadocs.
 
 RecordingSOCServer also enables the `*SAVEGAME*` command; games are saved to the current directory.
