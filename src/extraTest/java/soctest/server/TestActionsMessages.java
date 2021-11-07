@@ -272,8 +272,8 @@ public class TestActionsMessages
         /* move a different ship */
 
         records.clear();
-        final int MOVESHIP_EDGE_FROM = 3078,  // 0xc06
-            MOVESHIP_EDGE_TO = 3846;  // 0xf06
+        final int MOVESHIP_EDGE_FROM = 0xc06,
+            MOVESHIP_EDGE_TO = 0xf06;
         assertTrue("moving ship from here", board.roadOrShipAtEdge(MOVESHIP_EDGE_FROM) instanceof SOCShip);
         assertNull("no ship here yet", board.roadOrShipAtEdge(MOVESHIP_EDGE_TO));
         tcli.movePieceRequest(ga, cliPl.getPlayerNumber(), SOCPlayingPiece.SHIP, MOVESHIP_EDGE_FROM, MOVESHIP_EDGE_TO);
@@ -287,7 +287,7 @@ public class TestActionsMessages
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCMovePiece:", "|pn=3|pieceType=3|fromCoord=3078|toCoord=3846"}
+                {"all:SOCMovePiece:", "|pn=3|pieceType=3|fromCoord=c06|toCoord=f06"}
             }, false);
 
         /* build settlement (on small island) */

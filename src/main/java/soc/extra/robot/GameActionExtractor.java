@@ -763,13 +763,13 @@ public class GameActionExtractor
      */
     private Action extract_MOVE_PIECE(GameEventLog.EventEntry e)
     {
-        // f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
+        // f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
         if (! e.isFromClient)
             return null;
         SOCMovePiece mp = (SOCMovePiece) e.event;
         final int pType = mp.getPieceType(), fromCoord = mp.getFromCoord(), toCoord = mp.getToCoord();
 
-        // If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=3342|hexType=7|diceNum=6
+        // If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=d0e|hexType=7|diceNum=6
         e = next();
         if ((e == null) || ! e.isToAll())
             return null;
@@ -786,7 +786,7 @@ public class GameActionExtractor
                 return null;
         }
 
-        // all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
+        // all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
         if (! (e.event instanceof SOCMovePiece))
             return null;
         mp = (SOCMovePiece) e.event;

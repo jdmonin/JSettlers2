@@ -724,9 +724,9 @@ public class TestToCmdToStringParse
             "SOCMakeOffer:game=ga|offer=game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"
         },
         {
-            new SOCMovePiece("ga", 1, SOCPlayingPiece.SHIP, 3078, 3846),
+            new SOCMovePiece("ga", 1, SOCPlayingPiece.SHIP, 0xc06, 0xf06),
             "1093|ga,1,3,3078,3846",
-            "SOCMovePiece:game=ga|pn=1|pieceType=3|fromCoord=3078|toCoord=3846"
+            "SOCMovePiece:game=ga|pn=1|pieceType=3|fromCoord=c06|toCoord=f06"
         },
         {new SOCMoveRobber("ga", 3, 0x305), "1034|ga,3,773", "SOCMoveRobber:game=ga|playerNumber=3|coord=305"},
         {new SOCNewChannel("ch name"), "1001|ch name", "SOCNewChannel:channel=ch name"},
@@ -757,7 +757,7 @@ public class TestToCmdToStringParse
         {new SOCPickResourceType("ga", SOCResourceConstants.SHEEP), "1053|ga,3", "SOCPickResourceType:game=ga|resType=3"},
             // v1.x was SOCMonopolyPick:
         {new SOCPickResourceType("ga", SOCResourceConstants.WHEAT), "1053|ga,4", "SOCMonopolyPick:game=ga|resource=4", OPT_PARSE_ONLY},
-        {new SOCPieceValue("ga", SOCPlayingPiece.VILLAGE, 0xa06, 4, 0), "1095|ga,5,2566,4,0", "SOCPieceValue:game=ga|pieceType=5|coord=2566|pv1=4|pv2=0"},
+        {new SOCPieceValue("ga", SOCPlayingPiece.VILLAGE, 0xa06, 4, 0), "1095|ga,5,2566,4,0", "SOCPieceValue:game=ga|pieceType=5|coord=a06|pv1=4|pv2=0"},
         {new SOCPlayDevCardRequest("ga", SOCDevCardConstants.KNIGHT), "1049|ga,9", "SOCPlayDevCardRequest:game=ga|devCard=9"},
         {new SOCPlayerElement("ga", 1, SOCPlayerElement.SET, 105, 1), "1024|ga,1,100,105,1", "SOCPlayerElement:game=ga|playerNum=1|actionType=SET|elementType=105|amount=1"},
         {new SOCPlayerElement("ga", 2, SOCPlayerElement.LOSE, 4, 1, true), "1024|ga,2,102,4,1,Y", "SOCPlayerElement:game=ga|playerNum=2|actionType=LOSE|elementType=4|amount=1|news=Y"},
@@ -936,7 +936,7 @@ public class TestToCmdToStringParse
         {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNum=3|count=11"},
             // parse from old pre-2.5.00 field names, which are in some STACSettlers soclog files:
         {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11", OPT_PARSE_ONLY},
-        {new SOCRevealFogHex("ga", 3340, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|hexCoord=3340|hexType=5|diceNum=12"},
+        {new SOCRevealFogHex("ga", 0xd0c, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|hexCoord=d0c|hexType=5|diceNum=12"},
         {new SOCRobotDismiss("ga"), "1056|ga", "SOCRobotDismiss:game=ga"},
         {new SOCRollDice("ga"), "1031|ga", "SOCRollDice:game=ga"},
         {new SOCRollDicePrompt("ga", 3), "1072|ga,3", "SOCRollDicePrompt:game=ga|playerNumber=3"},

@@ -579,8 +579,8 @@ all:SOCDiceResult:game=test|param=9
 all:SOCDiceResultResources:game=test|p=1|p=3|p=5|p=2|p=4
 p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=0,e4=2,e5=0
 all:SOCGameState:game=test|state=20
-f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1538|toCoord=1283
-all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1538|toCoord=1283
+f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=602|toCoord=503
+all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=602|toCoord=503
 f3:SOCPlayDevCardRequest:game=test|devCard=3
 all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=3
 all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1

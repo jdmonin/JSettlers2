@@ -647,12 +647,12 @@ public class TestGameActionExtractor
             "all:SOCGameState:game=test|state=20",
 
             // move piece (ship):
-            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1538|toCoord=1283",
-            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1538|toCoord=1283",
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=602|toCoord=503",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=602|toCoord=503",
 
             // move ship and gain longest route (actual game rules don't allow 2 moves/turn):
-            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1026|toCoord=2818",
-            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1026|toCoord=2818",
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=402|toCoord=b02",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=402|toCoord=b02",
             "all:SOCGameElements:game=test|e6=3",
 
             // end turn:
@@ -705,16 +705,16 @@ public class TestGameActionExtractor
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("moved a ship", SOCPlayingPiece.SHIP, act.param1);
-        assertEquals("moved from", 1538, act.param2);
-        assertEquals("moved to", 1283, act.param3);
+        assertEquals("moved from", 0x602, act.param2);
+        assertEquals("moved to", 0x503, act.param3);
 
         act = actionLog.get(6);
         assertEquals(ActionType.MOVE_PIECE, act.actType);
         assertEquals(3, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("moved a ship", SOCPlayingPiece.SHIP, act.param1);
-        assertEquals("moved from", 1026, act.param2);
-        assertEquals("moved to", 2818, act.param3);
+        assertEquals("moved from", 0x402, act.param2);
+        assertEquals("moved to", 0xb02, act.param3);
 
         act = actionLog.get(7);
         assertEquals(ActionType.END_TURN, act.actType);
@@ -1762,7 +1762,7 @@ public class TestGameActionExtractor
             // build road, reveal non-gold fog hex:
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=406",
             "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1",
-            "all:SOCRevealFogHex:game=test|hexCoord=773|hexType=5|diceNum=6",
+            "all:SOCRevealFogHex:game=test|hexCoord=305|hexType=5|diceNum=6",
             "all:SOCGameServerText:game=test|text=p3 built a road.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=406",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=1|news=Y",
@@ -1772,7 +1772,7 @@ public class TestGameActionExtractor
             // build road, reveal gold fog hex:
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=708",
             "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1",
-            "all:SOCRevealFogHex:game=test|hexCoord=1288|hexType=7|diceNum=5",
+            "all:SOCRevealFogHex:game=test|hexCoord=508|hexType=7|diceNum=5",
             "all:SOCGameServerText:game=test|text=p3 built a road.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=708",
             "all:SOCGameState:game=test|state=56",
@@ -1801,18 +1801,18 @@ public class TestGameActionExtractor
             "all:SOCDiceResult:game=test|param=12",
             "all:SOCGameState:game=test|state=20",
 
-            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3082|toCoord=3333",
-            "all:SOCRevealFogHex:game=test|hexCoord=3845|hexType=4|diceNum=9",
-            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3082|toCoord=3333",
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c0a|toCoord=d05",
+            "all:SOCRevealFogHex:game=test|hexCoord=f05|hexType=4|diceNum=9",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c0a|toCoord=d05",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y",
 
             "all:SOCGameServerText:game=test|text=p3 gets 1 wheat by revealing the fog hex.",
 
             // reveal non-gold and gain longest route
 
-            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3333|toCoord=3595",
-            "all:SOCRevealFogHex:game=test|hexCoord=3853|hexType=2|diceNum=3",
-            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3333|toCoord=3595",
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=d05|toCoord=e0b",
+            "all:SOCRevealFogHex:game=test|hexCoord=f0d|hexType=2|diceNum=3",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=d05|toCoord=e0b",
             "all:SOCGameElements:game=test|e6=3",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=2|amount=1|news=Y",
 
@@ -1820,9 +1820,9 @@ public class TestGameActionExtractor
 
             // reveal gold
 
-            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1804|toCoord=3084",
-            "all:SOCRevealFogHex:game=test|hexCoord=3342|hexType=7|diceNum=6",
-            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1804|toCoord=3084",
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=70c|toCoord=c0c",
+            "all:SOCRevealFogHex:game=test|hexCoord=d0e|hexType=7|diceNum=6",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=70c|toCoord=c0c",
             "all:SOCGameState:game=test|state=56",
             "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1",
@@ -1835,9 +1835,9 @@ public class TestGameActionExtractor
 
             // reveal gold and gain longest route
 
-            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1804|toCoord=3084",
-            "all:SOCRevealFogHex:game=test|hexCoord=3342|hexType=7|diceNum=6",
-            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=1804|toCoord=3084",
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=70c|toCoord=c0c",
+            "all:SOCRevealFogHex:game=test|hexCoord=d0e|hexType=7|diceNum=6",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=70c|toCoord=c0c",
             "all:SOCGameElements:game=test|e6=3",
             "all:SOCGameState:game=test|state=56",
             "all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.",
@@ -1851,9 +1851,9 @@ public class TestGameActionExtractor
 
             // reveal gold and win by gaining longest route
 
-            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=521|toCoord=2570",
-            "all:SOCRevealFogHex:game=test|hexCoord=2825|hexType=7|diceNum=9",
-            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=521|toCoord=2570",
+            "f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=209|toCoord=a0a",
+            "all:SOCRevealFogHex:game=test|hexCoord=b09|hexType=7|diceNum=9",
+            "all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=209|toCoord=a0a",
             "all:SOCGameElements:game=test|e6=3",
             "all:SOCGameElements:game=test|e4=3",
             "all:SOCGameState:game=test|state=1000",
@@ -1875,7 +1875,7 @@ public class TestGameActionExtractor
             "f1:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
             "all:SOCChangeFace:game=test|playerNumber=1|faceId=-1",
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=408",
-            "all:SOCRevealFogHex:game=test|hexCoord=775|hexType=5|diceNum=2",
+            "all:SOCRevealFogHex:game=test|hexCoord=307|hexType=5|diceNum=2",
             "all:SOCGameServerText:game=test|text=p3 built a settlement.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=408",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=1|news=Y",
@@ -1889,8 +1889,8 @@ public class TestGameActionExtractor
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=80a",
-            "all:SOCRevealFogHex:game=test|hexCoord=2314|hexType=4|diceNum=10",
-            "all:SOCRevealFogHex:game=test|hexCoord=1803|hexType=1|diceNum=8",
+            "all:SOCRevealFogHex:game=test|hexCoord=90a|hexType=4|diceNum=10",
+            "all:SOCRevealFogHex:game=test|hexCoord=70b|hexType=1|diceNum=8",
             "all:SOCGameServerText:game=test|text=p3 built a settlement.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=80a",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y",
@@ -1909,7 +1909,7 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=808",
-            "all:SOCRevealFogHex:game=test|hexCoord=1801|hexType=7|diceNum=4",
+            "all:SOCRevealFogHex:game=test|hexCoord=709|hexType=7|diceNum=4",
             "all:SOCGameServerText:game=test|text=p3 built a settlement.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=808",
             "all:SOCGameState:game=test|state=14",
@@ -1929,8 +1929,8 @@ public class TestGameActionExtractor
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=408",
-            "all:SOCRevealFogHex:game=test|hexCoord=775|hexType=7|diceNum=2",
-            "all:SOCRevealFogHex:game=test|hexCoord=777|hexType=7|diceNum=6",
+            "all:SOCRevealFogHex:game=test|hexCoord=307|hexType=7|diceNum=2",
+            "all:SOCRevealFogHex:game=test|hexCoord=309|hexType=7|diceNum=6",
             "all:SOCGameServerText:game=test|text=p3 built a settlement.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=408",
             "all:SOCGameState:game=test|state=14",
@@ -1950,8 +1950,8 @@ public class TestGameActionExtractor
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805",
-            "all:SOCRevealFogHex:game=test|hexCoord=2308|hexType=3|diceNum=11",
-            "all:SOCRevealFogHex:game=test|hexCoord=2310|hexType=7|diceNum=6",
+            "all:SOCRevealFogHex:game=test|hexCoord=904|hexType=3|diceNum=11",
+            "all:SOCRevealFogHex:game=test|hexCoord=906|hexType=7|diceNum=6",
             "all:SOCGameServerText:game=test|text=p3 built a settlement.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=805",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=1|news=Y",
@@ -1981,7 +1981,7 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p3 turn to build a road or ship.",
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=604",
-            "all:SOCRevealFogHex:game=test|hexCoord=1286|hexType=4|diceNum=12",
+            "all:SOCRevealFogHex:game=test|hexCoord=506|hexType=4|diceNum=12",
             "all:SOCGameServerText:game=test|text=p3 built a ship.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=604",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=4|amount=1|news=Y",
@@ -2004,7 +2004,7 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.",
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06",
-            "all:SOCRevealFogHex:game=test|hexCoord=2312|hexType=5|diceNum=6",
+            "all:SOCRevealFogHex:game=test|hexCoord=908|hexType=5|diceNum=6",
             "all:SOCGameServerText:game=test|text=p3 built a ship.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06",
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=5|amount=1|news=Y",
@@ -2027,7 +2027,7 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.",
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805",
-            "all:SOCRevealFogHex:game=test|hexCoord=1799|hexType=7|diceNum=8",
+            "all:SOCRevealFogHex:game=test|hexCoord=707|hexType=7|diceNum=8",
             "all:SOCGameServerText:game=test|text=p3 built a ship.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805",
             "all:SOCGameState:game=test|state=14",
@@ -2056,7 +2056,7 @@ public class TestGameActionExtractor
 
             "all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.",
             "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805",
-            "all:SOCRevealFogHex:game=test|hexCoord=1799|hexType=7|diceNum=10",
+            "all:SOCRevealFogHex:game=test|hexCoord=707|hexType=7|diceNum=10",
             "all:SOCGameServerText:game=test|text=p3 built a ship.",
             "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805",
             "all:SOCGameState:game=test|state=14",
@@ -2151,8 +2151,8 @@ public class TestGameActionExtractor
         assertEquals(4, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("moved a ship", SOCPlayingPiece.SHIP, act.param1);
-        assertEquals("moved from", 3082, act.param2);
-        assertEquals("moved to", 3333, act.param3);
+        assertEquals("moved from", 0xc0a, act.param2);
+        assertEquals("moved to", 0xd05, act.param3);
 
         // reveal non-gold and gain longest route
 
@@ -2161,8 +2161,8 @@ public class TestGameActionExtractor
         assertEquals(6, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("moved a ship", SOCPlayingPiece.SHIP, act.param1);
-        assertEquals(3333, act.param2);
-        assertEquals(3595, act.param3);
+        assertEquals(0xd05, act.param2);
+        assertEquals(0xe0b, act.param3);
 
         // reveal gold
 
@@ -2171,8 +2171,8 @@ public class TestGameActionExtractor
         assertEquals(8, act.eventSequence.size());
         assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
         assertEquals(SOCPlayingPiece.SHIP, act.param1);
-        assertEquals(1804, act.param2);
-        assertEquals(3084, act.param3);
+        assertEquals(0x70c, act.param2);
+        assertEquals(0xc0c, act.param3);
 
         act = actionLog.get(13);
         assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -2187,8 +2187,8 @@ public class TestGameActionExtractor
         assertEquals(8, act.eventSequence.size());
         assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
         assertEquals(SOCPlayingPiece.SHIP, act.param1);
-        assertEquals(1804, act.param2);
-        assertEquals(3084, act.param3);
+        assertEquals(0x70c, act.param2);
+        assertEquals(0xc0c, act.param3);
 
         act = actionLog.get(15);
         assertEquals(ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -2203,8 +2203,8 @@ public class TestGameActionExtractor
         assertEquals(6, act.eventSequence.size());
         assertEquals(SOCGame.OVER, act.endingGameState);
         assertEquals(SOCPlayingPiece.SHIP, act.param1);
-        assertEquals(521, act.param2);
-        assertEquals(2570, act.param3);
+        assertEquals(0x209, act.param2);
+        assertEquals(0xa0a, act.param3);
 
         act = actionLog.get(17);
         assertEquals(ActionType.GAME_OVER, act.actType);

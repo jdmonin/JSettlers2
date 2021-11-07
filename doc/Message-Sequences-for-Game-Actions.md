@@ -123,7 +123,7 @@ Or:
 - all:SOCDiceResultResources:game=test|p=2|p=2|p=8|p=1|p=2|p=2|p=4|p=0|p=3|p=4|p=2|p=2
 - p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=3,e3=2,e4=3,e5=0
 - p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=3,e3=0,e4=0,e5=1
-- all:SOCPieceValue:game=test|pieceType=5|coord=2057|pv1=1|pv2=0
+- all:SOCPieceValue:game=test|pieceType=5|coord=809|pv1=1|pv2=0
 - all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=106|amount=5  // SCENARIO_CLOTH_COUNT
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=106|amount=7
 - all:SOCGameServerText:game=test|text=robot 5 and p3 each received cloth from the villages.
@@ -155,7 +155,7 @@ and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won'
 #### Building ship (or settlement) reveals non-gold hex from fog
 
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
-- all:SOCRevealFogHex:game=test|hexCoord=2312|hexType=3|diceNum=4
+- all:SOCRevealFogHex:game=test|hexCoord=908|hexType=3|diceNum=4
 - all:SOCGameServerText:game=test|text=p3 built a ship.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=1|news=Y
@@ -170,7 +170,7 @@ and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won'
 - all:SOCGameState:game=test|state=6  // START1B
 - all:SOCGameServerText:game=test|text=It's p3's turn to build a road or ship.
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805
-- all:SOCRevealFogHex:game=test|hexCoord=1799|hexType=7|diceNum=12
+- all:SOCRevealFogHex:game=test|hexCoord=707|hexType=7|diceNum=12
 - all:SOCGameServerText:game=test|text=p3 built a ship.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=805
 - all:SOCGameState:game=test|state=14  // STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
@@ -237,7 +237,7 @@ Or if client starts with build request:
 
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=809
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1
-- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=2312|hexType=4|diceNum=12
+- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=908|hexType=4|diceNum=12
 - all:SOCGameServerText:game=test|text=p3 built a road.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=809
 - If Longest Route player changes: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
@@ -259,7 +259,7 @@ Or if client sends build request:
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1
 - all:SOCGameState:game=test|state=30
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=56
-- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=1288|hexType=5|diceNum=10
+- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=508|hexType=5|diceNum=10
 - all:SOCGameServerText:game=test|text=p3 built a road.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=56
 - If Longest Route player changes: all:SOCGameElements:game=test|e6=3
@@ -276,7 +276,7 @@ Or if client sends build request:
 
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=80a
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e3=1,e5=1
-- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=1801|hexType=7|diceNum=9
+- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=709|hexType=7|diceNum=9
 - all:SOCGameServerText:game=test|text=p3 built a ship.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=80a
 - If gaining Longest Route: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
@@ -296,7 +296,7 @@ Or if client sends build request:
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e3=1,e5=1
 - all:SOCGameState:game=test|state=35
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=602
-- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=1539|hexType=1|diceNum=5
+- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=603|hexType=1|diceNum=5
 - all:SOCGameServerText:game=test|text=p3 built a ship.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=602
 - If gaining Longest Route: all:SOCGameElements:game=test|e6=3
@@ -311,9 +311,9 @@ Or if client sends build request:
 
 ## Move piece (move ship)
 
-- f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
-- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=3342|hexType=7|diceNum=6
-- all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=3078|toCoord=3846
+- f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
+- If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=d0e|hexType=7|diceNum=6
+- all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
 - If gaining Longest Route: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
 - If won game with that Longest Route:
     - all:SOCGameElements:game=test|e4=3

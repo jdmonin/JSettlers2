@@ -100,16 +100,41 @@ public class SOCPieceValue extends SOCMessageTemplate4i
     public int getMinimumVersion() { return 2000; }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
+     * Converts {@code coord} to decimal from hexadecimal format.
+     * @param messageStrParams  Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return  Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.5.00
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        String s = SOCMessage.stripAttribNames(messageStrParams);
+        if (s == null)
+            return null;
+        String[] pieces = s.split(SOCMessage.sep2);
+        pieces[2] = Integer.toString(Integer.parseInt(pieces[2], 16));
+
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0; i < 4; i++)
+            ret.append(pieces[i]).append(sep2_char);
+        ret.append(pieces[4]);
+
+        return ret.toString();
+    }
+
+    /**
      * Build a human-readable form of the message, with this class's field names
      * instead of generic names from {@link SOCMessageTemplate4i}.
-     * @return a human readable form of the message
+     * {@code coord} is hexadecimal like those in {@link SOCPutPiece}.
+     * @return a human-readable form of the message
      * @since 2.5.00
      */
     @Override
     public String toString()
     {
         return "SOCPieceValue:game=" + game
-            + "|pieceType=" + p1 + "|coord=" + p2
+            + "|pieceType=" + p1 + "|coord=" + Integer.toHexString(p2)
             + "|pv1=" + p3 + "|pv2=" + p4;
     }
 
