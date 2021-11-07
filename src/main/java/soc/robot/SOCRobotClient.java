@@ -735,6 +735,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.DICERESULT:
             case SOCMessage.DICERESULTRESOURCES:
             case SOCMessage.DISCARDREQUEST:
+            case SOCMessage.GAMESTATS:
             case SOCMessage.MAKEOFFER:
             case SOCMessage.MOVEPIECE:   // move a previously placed ship; will update game data and player trackers
             case SOCMessage.MOVEROBBER:
@@ -764,7 +765,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.GAMES:
             case SOCMessage.GAMESERVERTEXT:  // SOCGameServerText contents are ignored by bots
                                              // (but not SOCGameTextMsg, which is used solely for debug commands)
-            case SOCMessage.GAMESTATS:
             case SOCMessage.JOINCHANNEL:
             case SOCMessage.JOINCHANNELAUTH:
             case SOCMessage.LEAVECHANNEL:
