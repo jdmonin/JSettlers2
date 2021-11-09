@@ -60,6 +60,8 @@ import soc.game.SOCPlayer;  // for javadocs only
  * Before v2.0.00 the server didn't send a TURN message to human players after the final road or ship is placed
  * at the end of initial placement and start of regular gameplay, only a {@link SOCGameState}
  * message (state START2 -> PLAY/ROLL_OR_CARD).
+ *<P>
+ * In v1.1.20 and 1.2.00 only, at start of game this {@code SOCTurn} was followed by a {@link SOCGameState}.
  *
  * @author Robert S. Thomas
  * @see SOCSetTurn
