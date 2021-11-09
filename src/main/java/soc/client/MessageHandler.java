@@ -1514,19 +1514,17 @@ public class MessageHandler
     }
 
     /**
-     * handle the "start game" message
+     * handle the "start game" message; calls {@link #handleGAMESTATE(SOCGame, int)}
+     * which will call {@link PlayerClientListener#gameStarted()} if needed.
      * @param mes  the message
      */
     protected void handleSTARTGAME(SOCStartGame mes)
     {
-        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         final SOCGame ga = client.games.get(mes.getGame());
-        if ((pcl == null) || (ga == null))
+        if (ga == null)
             return;
 
-        if (ga.getGameState() == SOCGame.NEW)
-            // skip gameStarted call if handleGAMESTATE already called it
-            pcl.gameStarted();
+        handleGAMESTATE(ga, mes.getGameState());
     }
 
     /**
@@ -1570,7 +1568,7 @@ public class MessageHandler
 
         if (gameStarted)
         {
-            // call here, not just in handleSTARTGAME, in case we joined a game in progress
+            // call here, not in handleSTARTGAME, in case we joined a game in progress
             pcl.gameStarted();
         }
         pcl.gameStateChanged(newState);
