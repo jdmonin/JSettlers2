@@ -2575,7 +2575,7 @@ public class SOCGame implements Serializable, Cloneable
      * This method is generally called at the client, due to messages from the server
      * based on the server's complete game data.
      *<P>
-     * At the client if this is the first time {@code gs) == {@link #ROLL_OR_CARD} during this game,
+     * At the client if this is the first time {@code gs} == {@link #ROLL_OR_CARD} during this game,
      * and state is currently in initial placement ({@link #START1A} to {@link #START3B}),
      * calls {@link #updateAtGameFirstTurn()}.
      *
@@ -4910,6 +4910,7 @@ public class SOCGame implements Serializable, Cloneable
      *     message which will call that (always in v2.5+, sometimes in v2.0+).
      *</UL>
      *<P>
+     * Called after gameState is set to {@link #ROLL_OR_CARD}.
      * Called at server by {@link #advanceTurnStateAfterPutPiece()}, and at client by first
      * {@link #setGameState(int) setGameState}({@link #ROLL_OR_CARD}).
      *<P>
@@ -5009,7 +5010,8 @@ public class SOCGame implements Serializable, Cloneable
      *     to mark their new dev cards as old and clear other flags
      *<LI> Clear any "x happened this turn" flags/lists
      *<LI> Clear any votes to reset the board
-     *<LI> If game state is {@link #ROLL_OR_CARD}, increment turnCount (and roundCount if necessary).
+     *<LI> If game state is {@link #ROLL_OR_CARD}, increment {@link #getTurnCount()}
+     *     (and {@link #getRoundCount()} if necessary).
      *     These include the current turn; they both are 1 during the first player's first turn.
      *</UL>
      * Called by server and client.

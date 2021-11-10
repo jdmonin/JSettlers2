@@ -2648,8 +2648,9 @@ import javax.swing.UIManager;
      * Handpanel interface updates at start of each turn (not just our turn).
      * Calls {@link #updateTakeOverButton()}, and checks if current player (for hilight).
      * Called from client when server sends {@link soc.message.SOCMessage#TURN}.
+     *<P>
      * Called also at start of game by {@link SOCPlayerInterface#updateAtGameState()},
-     * because the server sends no TURN between the last road (gamestate START2B)
+     * because servers older than v2.5.00 sometimes send no TURN between the last road (gamestate START2B)
      * and the first player's turn (state ROLL_OR_CARD).
      * @since 1.1.00
      */

@@ -1514,7 +1514,7 @@ public class MessageHandler
     }
 
     /**
-     * handle the "start game" message; calls {@link #handleGAMESTATE(SOCGame, int)}
+     * handle the "start game" message; calls {@link #handleGAMESTATE(SOCGame, int, boolean)}
      * which will call {@link PlayerClientListener#gameStarted()} if needed.
      * @param mes  the message
      */
@@ -1524,11 +1524,11 @@ public class MessageHandler
         if (ga == null)
             return;
 
-        handleGAMESTATE(ga, mes.getGameState());
+        handleGAMESTATE(ga, mes.getGameState(), false);
     }
 
     /**
-     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int)}.
+     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int, boolean)}.
      * @param mes  the message
      */
     protected void handleGAMESTATE(SOCGameState mes)
@@ -1537,7 +1537,7 @@ public class MessageHandler
         if (ga == null)
             return;
 
-        handleGAMESTATE(ga, mes.getState());
+        handleGAMESTATE(ga, mes.getState(), false);
     }
 
     /**
@@ -1547,26 +1547,42 @@ public class MessageHandler
      * Checks current {@link SOCGame#getGameState()}; if current state is {@link SOCGame#NEW NEW}
      * and {@code newState != NEW}, calls {@link PlayerClientListener#gameStarted()} before
      * its usual {@link PlayerClientListener#gameStateChanged(int)} call.
+     *<P>
+     * If current state is &lt; {@link SOCGame#ROLL_OR_CARD} and {@code newState == ROLL_OR_CARD},
+     * and server older than v2.5.00 hasn't sent {@link SOCTurn} to increment {@link SOCGame#getRoundCount()} from 0,
+     * calls {@link SOCGame#updateAtTurn()} to do so.
      *
      * @param ga  Game to update state; not null
      * @param newState  New state from message, like {@link SOCGame#ROLL_OR_CARD}, or 0. Does nothing if 0.
+     * @param isForTurn  True if being called from {@link #handleTURN(SOCTurn)}.
+     *     If true, won't possibly call {@link SOCGame#updateAtTurn()}; caller does so instead.
      * @see #handleGAMESTATE(SOCGameState)
      * @since 2.0.00
      */
-    protected void handleGAMESTATE(final SOCGame ga, final int newState)
+    protected void handleGAMESTATE(final SOCGame ga, final int newState, final boolean isForTurn)
     {
         if (newState == 0)
             return;
 
-        final boolean gameStarted = (ga.getGameState() == SOCGame.NEW) && (newState != SOCGame.NEW);
+        final int gaState = ga.getGameState();
+        final boolean gameStarting = (gaState == SOCGame.NEW) && (newState != SOCGame.NEW);
 
         ga.setGameState(newState);
+
+        if ((! (gameStarting || isForTurn))
+            && (gaState < SOCGame.ROLL_OR_CARD) && (newState == SOCGame.ROLL_OR_CARD)
+            && (ga.getRoundCount() == 0))
+        {
+            // Servers older than v2.5.00 didn't always send SOCTurn before game's first turn
+            // (SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN)
+            ga.updateAtTurn();
+        }
 
         PlayerClientListener pcl = client.getClientListener(ga.getName());
         if (pcl == null)
             return;
 
-        if (gameStarted)
+        if (gameStarting)
         {
             // call here, not in handleSTARTGAME, in case we joined a game in progress
             pcl.gameStarted();
@@ -1585,7 +1601,7 @@ public class MessageHandler
         if (ga == null)
             return;
 
-        handleGAMESTATE(ga, mes.getGameState());
+        handleGAMESTATE(ga, mes.getGameState(), true);
 
         final int pnum = mes.getPlayerNumber();
         ga.setCurrentPlayerNumber(pnum);
