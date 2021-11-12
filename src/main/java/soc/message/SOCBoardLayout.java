@@ -347,7 +347,10 @@ public class SOCBoardLayout extends SOCMessage
         }
 
         // robber hex: need to convert from hex string to int - strip 0x and parse with radix=16
-        int robber = Integer.parseInt(pieces[3].substring(2), 16);
+        // If robber hex is -1, will be 0xffffffff
+        long robber = Long.parseLong(pieces[3].substring(2), 16);  // TODO java 8: use Integer.parseUnsignedInt
+        if (robber >= 0x80000000L)  // 2^31
+            robber -= 0x100000000L;  // 0xffffffff -> -1
         ret.append(robber);
 
         return ret.toString();
