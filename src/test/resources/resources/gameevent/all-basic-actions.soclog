@@ -8,6 +8,7 @@ SOC game event log: version=2500, created_at=1633920526, now=1633921260, game_na
 # move robber and pirate, choose player and rob, Special Building phase.
 # Starts with debug player and 1 robot; human player p2 takes over for bot just after initial placement.
 # Uses debug comands rsrcs, devnext.
+# For a log with the optional timestamp field, see has-timestamps.soclog.
 all:SOCVersion:2500|str=2.5.00|verBuild=JM20211010|feats=;ch;|cliLocale=(null)
 all:SOCNewGameWithOptions:game=test|param1=2000|param2=BC=t4,N7=f7,RD=f,SBL=t,PL=4
 ob:SOCJoinGameAuth:game=test|bh=20|bw=21|vs=[-2, 1, 3, 0]

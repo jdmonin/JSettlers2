@@ -83,6 +83,12 @@ import soctest.server.savegame.TestLoadgame;
  */
 public class TestRecorder
 {
+    /**
+     * Server to use for most tests. If your test requires a different server:
+     * To avoid interfering with other tests, start it on a different stringport
+     * than {@link RecordingSOCServer#STRINGPORT_NAME} by using the
+     * {@link RecordingSOCServer#RecordingSOCServer(String, java.util.Properties)} constructor.
+     */
     private static RecordingSOCServer srv;
 
     /**
@@ -415,9 +421,9 @@ public class TestRecorder
         List<EventEntry> entries = new ArrayList<>();
         final SOCBuildRequest event = new SOCBuildRequest("testgame", 1);
 
-        entries.add(new GameEventLog.EventEntry(event, 2, false));
-        entries.add(new GameEventLog.EventEntry(event, 3, true));
-        entries.add(new GameEventLog.EventEntry(event, 3, false));
+        entries.add(new GameEventLog.EventEntry(event, 2, false, -1));
+        entries.add(new GameEventLog.EventEntry(event, 3, true, -1));
+        entries.add(new GameEventLog.EventEntry(event, 3, false, -1));
 
         StringBuilder compares = compareRecordsToExpected
             (entries, new String[][]
@@ -712,6 +718,55 @@ public class TestRecorder
         srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
         obsCli.destroy();
+    }
+
+    /**
+     * Test timestamp method {@link RecordingSOCServer#makeElapsedMS(GameEventLog)} and
+     * {@link RecordingSOCServer#isRecordingWithTimestamps} vs {@link RecordingSOCServer#startLog(SOCGame, boolean)}.
+     */
+    @Test
+    public void testMakeElapsedMS()
+    {
+        final String GAME_NAME = "testMakeElapsedMS";
+
+        // nothing if no game
+        GameEventLog log = new GameEventLog(null, true);
+        assertEquals(-1, RecordingSOCServer.makeElapsedMS(log));
+
+        // nothing if active game, but GameEventLog's flag is false
+        log = new GameEventLog(new SOCGame("test"), false);
+        assertEquals(-1, RecordingSOCServer.makeElapsedMS(log));
+
+        // timestamp if active game, and GameEventLog's flag is true
+        log = new GameEventLog(new SOCGame("test"), true);
+        assertNotEquals(-1, RecordingSOCServer.makeElapsedMS(log));
+
+        // nothing if game has no start time (not active)
+        log = new GameEventLog(new SOCGame("test", false), true);
+        assertEquals(-1, RecordingSOCServer.makeElapsedMS(log));
+
+        // nothing from startLog because server's timestamps off by default
+        assertNotNull(srv);
+        assertFalse(srv.isRecordingWithTimestamps);
+        assertNull(srv.records.get(GAME_NAME));
+        srv.startLog(new SOCGame(GAME_NAME), false);
+        log = srv.records.get(GAME_NAME);
+        assertNotNull(log);
+        assertFalse(log.hasTimestamps);
+        assertEquals(-1, RecordingSOCServer.makeElapsedMS(log));
+        srv.records.remove(GAME_NAME);
+
+        // timestamp from startLog in new server where isRecordingWithTimestamps
+        final RecordingSOCServer srvWithTimes = new RecordingSOCServer(GAME_NAME, RecordingSOCServer.PROPS);
+        srvWithTimes.isRecordingWithTimestamps = true;
+        assertNull(srvWithTimes.records.get(GAME_NAME));
+        srvWithTimes.startLog(new SOCGame(GAME_NAME), false);
+        log = srvWithTimes.records.get(GAME_NAME);
+        assertNotNull(log);
+        assertTrue(log.hasTimestamps);
+        assertNotEquals(-1, RecordingSOCServer.makeElapsedMS(log));
+        srvWithTimes.records.remove(GAME_NAME);
+        srvWithTimes.stopServer();
     }
 
     /**

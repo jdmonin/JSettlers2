@@ -31,6 +31,7 @@ import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCDiceResult;
+import soc.message.SOCGameTextMsg;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCPutPiece;
@@ -98,7 +99,7 @@ public class TestGameEventLog
     {
         final SOCBuildRequest event = new SOCBuildRequest("testgame", 2);
 
-        EventEntry qe = new EventEntry(event, -1, false);
+        EventEntry qe = new EventEntry(event, -1, false, -1);
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
@@ -107,33 +108,35 @@ public class TestGameEventLog
         assertEquals("all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
         assertEquals(qe, EventEntry.parse("all:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new EventEntry(event, new int[]{3});
+        qe = new EventEntry(event, new int[]{3}, -1);
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{3}, qe.excludedPN);
+        assertEquals(-1, qe.timeElapsedMS);
         assertNull(qe.comment);
         assertEquals("!p3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
         assertEquals(qe, EventEntry.parse("!p3:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new EventEntry(event, new int[]{2,3,4});
+        qe = new EventEntry(event, new int[]{2,3,4}, 77);
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
         assertArrayEquals(new int[]{2,3,4}, qe.excludedPN);
+        assertEquals(77, qe.timeElapsedMS);
         assertNull(qe.comment);
-        assertEquals("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, EventEntry.parse("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals("0:00.077:!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        assertEquals(qe, EventEntry.parse("0:00.077:!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new EventEntry(event, SOCServer.PN_OBSERVER, false);
+        qe = new EventEntry(event, SOCServer.PN_OBSERVER, false, 61077);
         assertFalse(qe.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, qe.pn);
         assertEquals(event, qe.event);
         assertNull(qe.excludedPN);
-        assertEquals("ob:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
-        assertEquals(qe, EventEntry.parse("ob:SOCBuildRequest:game=testgame|pieceType=2"));
+        assertEquals("1:01.077:ob:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        assertEquals(qe, EventEntry.parse("1:01.077:ob:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new EventEntry(event, SOCServer.PN_REPLY_TO_UNDETERMINED, false);
+        qe = new EventEntry(event, SOCServer.PN_REPLY_TO_UNDETERMINED, false, -1);
         assertFalse(qe.isFromClient);
         assertEquals(SOCServer.PN_REPLY_TO_UNDETERMINED, qe.pn);
         assertEquals(event, qe.event);
@@ -141,7 +144,7 @@ public class TestGameEventLog
         assertEquals("un:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
         assertEquals(qe, EventEntry.parse("un:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new EventEntry(event, 3, true);
+        qe = new EventEntry(event, 3, true, -1);
         assertTrue(qe.isFromClient);
         assertEquals(3, qe.pn);
         assertEquals(event, qe.event);
@@ -150,7 +153,7 @@ public class TestGameEventLog
         assertEquals("f3:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
         assertEquals(qe, EventEntry.parse("f3:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new EventEntry(event, SOCServer.PN_OBSERVER, true);
+        qe = new EventEntry(event, SOCServer.PN_OBSERVER, true, -1);
         assertTrue(qe.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, qe.pn);
         assertEquals(event, qe.event);
@@ -159,7 +162,7 @@ public class TestGameEventLog
         assertEquals(qe, EventEntry.parse("fo:SOCBuildRequest:game=testgame|pieceType=2"));
 
         // Should use PN_OBSERVER not -1 for observer client, so make sure -1 doesn't result in "fo:" or "all:"
-        qe = new EventEntry(event, -1, true);
+        qe = new EventEntry(event, -1, true, -1);
         assertTrue(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertEquals(event, qe.event);
@@ -167,7 +170,7 @@ public class TestGameEventLog
         assertEquals("f-1:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
         assertEquals(qe, EventEntry.parse("f-1:SOCBuildRequest:game=testgame|pieceType=2"));
 
-        qe = new EventEntry(null, -1, false);
+        qe = new EventEntry(null, -1, false, -1);
         assertFalse(qe.isFromClient);
         assertEquals(-1, qe.pn);
         assertNull(qe.event);
@@ -175,7 +178,7 @@ public class TestGameEventLog
         assertEquals("all:null", qe.toString());
         assertEquals(qe, EventEntry.parse("all:null"));
 
-        qe = new EventEntry(null, 3, false);
+        qe = new EventEntry(null, 3, false, -1);
         assertFalse(qe.isFromClient);
         assertEquals(3, qe.pn);
         assertNull(qe.event);
@@ -197,9 +200,71 @@ public class TestGameEventLog
         assertEquals("# abcde ", qe.toString());
         assertEquals(qe, EventEntry.parse("# abcde "));
 
+        // timestamp formatting and parsing (leading 0s, etc)
+
+        qe = new EventEntry(event, -1, false, 0);
+        assertEquals("0:00.000:all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        EventEntry pe = EventEntry.parse("0:00.000:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(0, pe.timeElapsedMS);
+        assertEquals(qe, pe);
+
+        qe = new EventEntry(event, -1, false, 1);
+        assertEquals("0:00.001:all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        pe = EventEntry.parse("0:00.001:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(1, pe.timeElapsedMS);
+        assertEquals(qe, pe);
+
+        qe = new EventEntry(event, -1, false, 31);
+        assertEquals("0:00.031:all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        pe = EventEntry.parse("0:00.031:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(31, pe.timeElapsedMS);
+        assertEquals(qe, pe);
+
+        qe = new EventEntry(event, -1, false, 770);
+        assertEquals("0:00.770:all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        pe = EventEntry.parse("0:00.770:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(770, pe.timeElapsedMS);
+        assertEquals(qe, pe);
+
+        qe = new EventEntry(event, -1, false, 1770);
+        assertEquals("0:01.770:all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        pe = EventEntry.parse("0:01.770:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(1770, pe.timeElapsedMS);
+        assertEquals(qe, pe);
+
+        qe = new EventEntry(event, -1, false, 61770);
+        assertEquals("1:01.770:all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        pe = EventEntry.parse("1:01.770:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(61770, pe.timeElapsedMS);
+        assertEquals(qe, pe);
+
+        qe = new EventEntry(event, -1, false, 90001);
+        assertEquals("1:30.001:all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        pe = EventEntry.parse("1:30.001:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(90001, pe.timeElapsedMS);
+        assertEquals(qe, pe);
+
+        qe = new EventEntry(event, -1, false, 600001);
+        assertEquals("10:00.001:all:SOCBuildRequest:game=testgame|pieceType=2", qe.toString());
+        pe = EventEntry.parse("10:00.001:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(600001, pe.timeElapsedMS);
+        assertEquals(qe, pe);
+
+        pe = EventEntry.parse("35791:23.646:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(Integer.MAX_VALUE - 1, pe.timeElapsedMS);
+
+        pe = EventEntry.parse("35791:23.647:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(Integer.MAX_VALUE, pe.timeElapsedMS);
+
+        // clip to MAX_VALUE instead of overflow/going negative
+        pe = EventEntry.parse("35791:23.648:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertEquals(Integer.MAX_VALUE, pe.timeElapsedMS);
+
+        // exceptions
+
         try
         {
-            qe = new EventEntry(null, 3, true);
+            qe = new EventEntry(null, 3, true, -1);
             fail("Should throw IllegalArgumentException if isFromClient and event=null");
         } catch (IllegalArgumentException e) {}
 
@@ -207,7 +272,7 @@ public class TestGameEventLog
         {
             final SOCVersion vmsg = new SOCVersion(1100, "1.1.00", "", null, null);
             assertFalse(vmsg instanceof SOCMessageForGame);
-            qe = new EventEntry(vmsg, 3, true);
+            qe = new EventEntry(vmsg, 3, true, -1);
             fail("Should throw IllegalArgumentException if isFromClient and event not SOCMessageForGame");
         } catch (IllegalArgumentException e) {}
 
@@ -237,6 +302,29 @@ public class TestGameEventLog
             // Detailed parsing of that is done in testEventEntry;
             // here we just want to show what successfully parses,
             // to narrow down why these next parses should fail
+
+        // Optional timestamp field:
+
+        qe = EventEntry.parse("7:31.123:all:SOCBuildRequest:game=testgame|pieceType=2");
+        assertNotNull(qe);
+        assertEquals(7 * 60000 + 31123, qe.timeElapsedMS);
+
+        for (String badTS : new String[]{
+            "7", "7XYZ", "7:XYZ",
+            "7:31:all:SOCBuildRequest:game=testgame|pieceType=2",
+            "7:31.1:all:SOCBuildRequest:game=testgame|pieceType=2",
+            "7:31.12:all:SOCBuildRequest:game=testgame|pieceType=2",
+            "7:31.-12:all:SOCBuildRequest:game=testgame|pieceType=2",
+            "7:-5.123:all:SSOCBuildRequest:game=testgame|pieceType=2"
+            } )
+            try
+            {
+                qe = EventEntry.parse(badTS);
+                fail("Should throw ParseException for bad timestamp: " + badTS);
+            } catch (ParseException e) {}
+
+
+        // Rest of the fields:
 
         try
         {
@@ -305,13 +393,14 @@ public class TestGameEventLog
     /**
      * Test {@link GameEventLog#load(File, boolean, boolean)}
      * on the known-good {@code all-basic-actions.soclog} artifact.
+     * @see #testLoadWithTimestamps()
      */
     @Test
     public void testLoadKnownGood()
         throws NoSuchElementException, IOException, ParseException
     {
         final GameEventLog log = load("all-basic-actions.soclog", false, false);
-        final int EXPECTED_FILE_LINE_COUNT = 769;  // length from wc -l
+        final int EXPECTED_FILE_LINE_COUNT = 770;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
@@ -326,8 +415,8 @@ public class TestGameEventLog
 
         // spot-check a couple of parsed messages:
 
-        SOCMessage msg = log.entries.get(17).event;
-        assertTrue("Line 19 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+        SOCMessage msg = log.entries.get(18).event;
+        assertTrue("Line 20 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCDiceResult);
         assertEquals("test", ((SOCDiceResult) msg).getGame());
         assertEquals(-1, ((SOCDiceResult) msg).getResult());
@@ -339,6 +428,66 @@ public class TestGameEventLog
              msg instanceof SOCPutPiece);
         assertEquals("test", ((SOCPutPiece) msg).getGame());
         assertEquals(2, ((SOCPutPiece) msg).getPieceType());
+    }
+
+    /**
+     * Test {@link GameEventLog#load(File, boolean, boolean)}
+     * on the known-good {@code has-timestamps.soclog} artifact.
+     * @see #testLoadKnownGood()
+     */
+    @Test
+    public void testLoadWithTimestamps()
+        throws NoSuchElementException, IOException, ParseException
+    {
+        final GameEventLog log = load("has-timestamps.soclog", false, false);
+        final int EXPECTED_FILE_LINE_COUNT = 223;  // length from wc -l
+
+        assertNotNull(log);
+        assertEquals("g", log.gameName);
+        assertEquals(2500, log.version);
+        assertEquals("BC=t4,N7=f7,RD=f,PL=4", log.optsStr);
+        assertFalse(log.entries.isEmpty());
+        assertEquals(EXPECTED_FILE_LINE_COUNT, log.numLines);
+        assertEquals(log.numLines, 1 + log.entries.size());  // true if no blank lines
+
+        // comment-line parsing
+        assertEquals(" Game created at: 2021-11-12 08:47:58 -0500", log.entries.get(0).comment);
+
+        // Spot-check timestamps in a few parsed messages:
+
+        // 0:05.211:f3:SOCPutPiece:game=g|playerNumber=3|pieceType=1|coord=43
+        EventEntry entry = log.entries.get(100);
+        SOCMessage msg = entry.event;
+        assertEquals(5211, entry.timeElapsedMS);
+        assertTrue(entry.isFromClient);
+        assertEquals(3, entry.pn);
+        assertTrue
+            ("Line 102 expected SOCPutPiece, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+             msg instanceof SOCPutPiece);
+        assertEquals("g", ((SOCPutPiece) msg).getGame());
+        assertEquals(1, ((SOCPutPiece) msg).getPieceType());
+        assertEquals(0x43, ((SOCPutPiece) msg).getCoordinates());
+
+        // 0:31.165:all:SOCDiceResult:game=g|param=5
+        entry = log.entries.get(170);
+        msg = entry.event;
+        assertEquals(31165, entry.timeElapsedMS);
+        assertFalse(entry.isFromClient);
+        assertEquals(-1, entry.pn);
+        assertTrue("Line 172 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCDiceResult);
+        assertEquals("g", ((SOCDiceResult) msg).getGame());
+        assertEquals(5, ((SOCDiceResult) msg).getResult());
+
+        // 1:14.429:fo:SOCGameTextMsg:game=g|nickname=-|text=*savelog* has-timestamps
+        entry = log.entries.get(EXPECTED_FILE_LINE_COUNT - 5 - 2);
+        msg = entry.event;
+        assertEquals(74429, entry.timeElapsedMS);
+        assertTrue(entry.isFromClient);
+        assertEquals(SOCServer.PN_OBSERVER, entry.pn);
+        assertTrue("Line " + (EXPECTED_FILE_LINE_COUNT - 5) + " expected SOCGameTextMsg, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCGameTextMsg);
+        assertEquals("g", ((SOCGameTextMsg) msg).getGame());
     }
 
     /**

@@ -3107,7 +3107,7 @@ public class SOCServer extends Server
                 // Add this (creating) player to the game
                 gameList.addMember(c, gaName);
 
-            startLog(gaName, false);
+            startLog(newGame, false);
 
             // should release monitor before we broadcast
             if (! hasGameListMonitor)
@@ -3757,7 +3757,7 @@ public class SOCServer extends Server
         Vector<Connection> members = null;
         members = gameList.getMembers(gm);
 
-        endLog(gm);
+        endLog(cg);
 
         gameList.deleteGame(gm);  // also calls SOCGame.destroyGame
 
@@ -9358,7 +9358,7 @@ public class SOCServer extends Server
      * <LI value=3> Send messages as if each human player has clicked "join" (except JoinGameAuth).
      *   <P>
      *    If {@link #recordGameEventsIsActive()}, clears the game log first
-     *    by calling {@link #startLog(String, boolean) startLog(gameName, true)}.
+     *    by calling {@link #startLog(SOCGame, boolean) startLog(resetGame, true)}.
      * <LI value=4> Send as if each human player has clicked "sit here"
      * <LI value=5a> If no robots, send to game as if someone else has
      *              clicked "start game", and set up state to begin game play.
@@ -9458,7 +9458,7 @@ public class SOCServer extends Server
      * outlined in {@link #resetBoardAndNotify(String, int)},
      * after any robots have left the old game.
      * If {@link #recordGameEventsIsActive()}, clears the game log first
-     * by calling {@link #startLog(String, boolean) startLog(gameName, true)}.
+     * by calling {@link #startLog(SOCGame, boolean) startLog(reGame, true)}.
      *
      * @param reBoard  Board reset data, from {@link SOCGameListAtServer#resetBoard(String)}
      *                   or {@link SOCGame#boardResetOngoingInfo reGame.boardResetOngoingInfo}
@@ -9476,7 +9476,7 @@ public class SOCServer extends Server
         if (recordGameEventsIsActive())
             try
             {
-                startLog(gaName, true);
+                startLog(reGame, true);
             } catch (IOException e) {
                 D.ebugPrintStackTrace(e, "IOException in resetBoardAndNotify_finish calling startLog");
             }
@@ -9684,7 +9684,7 @@ public class SOCServer extends Server
      * If {@link #recordGameEventsIsActive()}, set up logging for the specified game
      * or reset the log after a board reset.
      * Should be called before {@link #recordGameEvent(String, SOCMessage)} or similar methods.
-     * Later at end of game, caller should call {@link #endLog(String)}.
+     * Later at end of game, caller should call {@link #endLog(SOCGame)}.
      *<P>
      * May open files, set up queues, etc, depending on implementation. This stub does nothing.
      * If overriding, should record a {@link SOCVersion} message as game's first log entry to help parsing later,
@@ -9696,14 +9696,17 @@ public class SOCServer extends Server
      * If {@code isReset}, the reset game's log must still begin with {@link SOCVersion}
      * and {@link SOCNewGame} or {@link SOCNewGameWithOptions}.
      *
-     * @param gameName  Name of the game to start logging for
+     * @param game  Game to start logging for; not {@code null}
      * @param isReset  True if instead of a new game, this is a board reset of an existing game
+     * @throws IllegalArgumentException if game {@code null}
      * @throws IOException if the implementation must create a file or does other I/O, and a problem occurs
      * @since 2.5.00
      */
-    public void startLog(final String gameName, final boolean isReset)
-        throws IOException
+    public void startLog(final SOCGame game, final boolean isReset)
+        throws IllegalArgumentException, IOException
     {
+        if (game == null)
+            throw new IllegalArgumentException("game");
     }
 
     /**
@@ -9833,12 +9836,16 @@ public class SOCServer extends Server
      * May close files, remove queues, etc, depending on implementation. This stub does nothing.
      * Any exception must be caught here; the caller doesn't need to deal with that detail of ending the game.
      *
-     * @param gameName  Name of the game to end logging for
-     * @see #startLog(String, boolean)
+     * @param game  Game to end logging for; not {@code null}
+     * @throws IllegalArgumentException if game {@code null}
+     * @see #startLog(SOCGame, boolean)
      * @since 2.5.00
      */
-    public void endLog(final String gameName)
+    public void endLog(final SOCGame game)
+        throws IllegalArgumentException
     {
+        if (game == null)
+            throw new IllegalArgumentException("game");
     }
 
     /**

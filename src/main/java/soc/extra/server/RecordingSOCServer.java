@@ -22,6 +22,7 @@ package soc.extra.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -58,7 +59,8 @@ import soc.util.Version;
  * When a game ends its log stays in memory, in case tester wants to run through games first and check them later.
  *<P>
  * This server can also run standalone on the usual TCP {@link SOCServer#PROP_JSETTLERS_PORT} port number,
- * to connect from a client and generate a log, which by default also includes messages from the clients.
+ * to connect from a client and generate a log, which by default also includes timestamps and messages from the clients:
+ * See {@link #RecordingSOCServer(int, Properties)}.
  * Server JAR and compiled test classes must be on the classpath.
  * Use debug command {@code *SAVELOG* [-s] [-f] filename} to save to {@code filename.soclog} in the current directory.
  *
@@ -79,6 +81,12 @@ public class RecordingSOCServer
      * Returned by {@link #isRecordGameEventsFromClientsActive()}.
      */
     public volatile boolean isRecordingFromClients;
+
+    /**
+     * Should logs include timestamps ({@link GameEventLog#hasTimestamps} field)?
+     * False by default.
+     */
+    public volatile boolean isRecordingWithTimestamps;
 
     /** Number of bots to start up: 5 (basic default is 7: {@link SOCServer#SOC_STARTROBOTS_DEFAULT}) */
     public static final int NUM_STARTROBOTS = 5;
@@ -113,28 +121,46 @@ public class RecordingSOCServer
 
     /**
      * Stringport server for automated tests.
-     * To add or change server properties, update {@link #PROPS} before calling this constructor.
+     * To add or change server properties, update {@link #PROPS} before calling this constructor
+     * or use {@link #RecordingSOCServer(String, Properties)} instead.
+     *
      * @see #RecordingSOCServer(int, Properties)
      */
     public RecordingSOCServer()
         throws IllegalStateException
     {
-        super(STRINGPORT_NAME, PROPS);
+        this(STRINGPORT_NAME, PROPS);
+    }
+
+    /**
+     * Customized stringport server for automated tests.
+     * For details, see parent {@link SOCServer#SOCServer(String, Properties)}.
+     *
+     * @param stringPort  Stringport to use instead of {@link #STRINGPORT_NAME}
+     * @param props  Properties to set; can be {@link #PROPS} to use defaults, or {@code null}
+     * @see #RecordingSOCServer()
+     * @see #RecordingSOCServer(int, Properties)
+     */
+    public RecordingSOCServer(String stringPort, final Properties props)
+    {
+        super(stringPort, props);
     }
 
     /**
      * TCP server for manual tests.
-     * Unlike the stringport server, turns on {@link #isRecordingFromClients}
+     * Unlike the stringport server, turns on {@link #isRecordingFromClients} and {@link #isRecordingWithTimestamps}
      * to capture more data by default when saving logs to disk.
      *
      * For parameters and exceptions, see parent {@link SOCServer#SOCServer(int, Properties)}.
      * @see #RecordingSOCServer()
+     * @see #RecordingSOCServer(String, Properties)
      */
     public RecordingSOCServer(final int port, final Properties props)
         throws Exception
     {
         super(port, props);
         isRecordingFromClients = true;
+        isRecordingWithTimestamps = true;
     }
 
     @Override
@@ -150,13 +176,25 @@ public class RecordingSOCServer
     }
 
     @Override
-    public void startLog(final String gameName, final boolean isReset)
+    public void startLog(final SOCGame game, final boolean isReset)
+        throws IllegalArgumentException
     {
-        final GameEventLog log = records.get(gameName);
-        if (log != null)
-            log.clear();
+        if (game == null)
+            throw new IllegalArgumentException("game");
 
-        // Log gets created by first call to recordGameEvent
+        final String gameName = game.getName();
+        GameEventLog log;
+        synchronized(records)
+        {
+            log = records.get(gameName);
+            if (log == null)
+            {
+                log = new GameEventLog(game, isRecordingWithTimestamps);
+                records.put(gameName, log);
+            }
+        }
+        if (! log.entries.isEmpty())
+            log.clear();
 
         recordGameEvent(gameName, new SOCVersion
             (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
@@ -175,18 +213,37 @@ public class RecordingSOCServer
         }
     }
 
-    private void recordEvent(final String gameName, GameEventLog.EventEntry entry)
+    /**
+     * If {@link GameEventLog#hasTimestamps} true,
+     * calculate the elapsed time from its game start until now.
+     * @param log  Log to get elapsed time for
+     * @return  Milliseconds elapsed from log's {@link SOCGame#getStartTime()} to {@link System#currentTimeMillis()}
+     *     if can be calculated, otherwise -1.
+     *     If somehow this is greater than {@link Integer#MAX_VALUE}, returns {@code MAX_VALUE}.
+     */
+    public static int makeElapsedMS(final GameEventLog log)
+    {
+        if (! log.hasTimestamps)
+            return -1;
+        SOCGame game = log.game;
+        if (game == null)
+            return -1;
+        final Date gameStart = game.getStartTime();
+        if (gameStart == null)
+            return -1;
+
+        final long elapsedMS = System.currentTimeMillis() - gameStart.getTime();
+        if ((elapsedMS >= 0) && (elapsedMS <= Integer.MAX_VALUE))
+            return (int) elapsedMS;
+        else
+            return Integer.MAX_VALUE;
+    }
+
+    private void recordEvent(final GameEventLog log, GameEventLog.EventEntry entry)
     {
         if (entry.event instanceof SOCServerPing)
             // ignore unrelated administrative message which has unpredictable timing
             return;
-
-        GameEventLog log = records.get(gameName);
-        if (log == null)
-        {
-            log = new GameEventLog();
-            records.put(gameName, log);
-        }
 
         log.add(entry);
     }
@@ -194,26 +251,41 @@ public class RecordingSOCServer
     @Override
     public void recordGameEvent(final String gameName, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.EventEntry(event, -1, false));
+        final GameEventLog log = records.get(gameName);
+        if (log == null)
+            return;
+
+        recordEvent(log, new GameEventLog.EventEntry(event, -1, false, makeElapsedMS(log)));
     }
 
     @Override
     public void recordGameEventTo(final String gameName, final int pn, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.EventEntry(event, pn, false));
+        final GameEventLog log = records.get(gameName);
+        if (log == null)
+            return;
 
+        recordEvent(log, new GameEventLog.EventEntry(event, pn, false, makeElapsedMS(log)));
     }
 
     @Override
     public void recordGameEventNotTo(final String gameName, final int excludedPN, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.EventEntry(event, new int[]{excludedPN}));
+        final GameEventLog log = records.get(gameName);
+        if (log == null)
+            return;
+
+        recordEvent(log, new GameEventLog.EventEntry(event, new int[]{excludedPN}, makeElapsedMS(log)));
     }
 
     @Override
     public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
     {
-        recordEvent(gameName, new GameEventLog.EventEntry(event, excludedPN));
+        final GameEventLog log = records.get(gameName);
+        if (log == null)
+            return;
+
+        recordEvent(log, new GameEventLog.EventEntry(event, excludedPN, makeElapsedMS(log)));
     }
 
     @Override
@@ -224,7 +296,12 @@ public class RecordingSOCServer
 
         if (fromPN == -1)
             fromPN = SOCServer.PN_OBSERVER;
-        recordEvent(gameName, new GameEventLog.EventEntry((SOCMessage) event, fromPN, true));
+
+        final GameEventLog log = records.get(gameName);
+        if (log == null)
+            return;
+
+        recordEvent(log, new GameEventLog.EventEntry((SOCMessage) event, fromPN, true, makeElapsedMS(log)));
     }
 
     // No need to override endLog: No file to close, etc.
@@ -243,7 +320,7 @@ public class RecordingSOCServer
      * @param saveFilename  Filename to save to; not validated for format or security.
      *     Recommended suffix is {@link GameEventLog#FILENAME_EXTENSION} for consistency.
      * @param serverOnly  If true, don't write entries having {@link GameEventLog.EventEntry#isFromClient} true
-     * @throws NoSuchElementException if no logs found for game
+     * @throws NoSuchElementException if no logs or log entries found for game
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
      * @throws IOException if an I/O problem or {@link SecurityException} occurs
      */
@@ -253,10 +330,10 @@ public class RecordingSOCServer
         final String gameName = ga.getName();
 
         final GameEventLog gameLog = records.get(gameName);
-        if (gameLog == null)
+        if ((gameLog == null) || (gameLog.game == null))
             throw new NoSuchElementException(gameName);
 
-        gameLog.save(ga, saveDir, saveFilename, serverOnly);
+        gameLog.save(saveDir, saveFilename, serverOnly);
     }
 
     @Override

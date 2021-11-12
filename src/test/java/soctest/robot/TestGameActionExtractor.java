@@ -76,12 +76,12 @@ public class TestGameActionExtractor
      */
     private static GameEventLog makeEmptyEventLog()
     {
-        GameEventLog log = new GameEventLog();
+        GameEventLog log = new GameEventLog(null, false);
         log.add(new EventEntry(new SOCVersion
-            (Version.versionNumber(), Version.version(), "-", null, null), -1, false));
-        log.add(new EventEntry(new SOCNewGame("test"), -1, false));
+            (Version.versionNumber(), Version.version(), "-", null, null), -1, false, -1));
+        log.add(new EventEntry(new SOCNewGame("test"), -1, false, -1));
         log.add(new EventEntry("Extractor expects to see version, newgame, and startgame"));
-        log.add(new EventEntry(new SOCStartGame("test", EMPTYEVENTLOG_STARTGAME_GAME_STATE), -1, false));
+        log.add(new EventEntry(new SOCStartGame("test", EMPTYEVENTLOG_STARTGAME_GAME_STATE), -1, false, -1));
 
         return log;
     }
@@ -123,11 +123,11 @@ public class TestGameActionExtractor
         assertNotEquals(state, prevState);
 
         // add a few entries
-        events.add(new EventEntry(new SOCGameState("test", SOCGame.START1B), -1, false));
+        events.add(new EventEntry(new SOCGameState("test", SOCGame.START1B), -1, false, -1));
         events.add(new EventEntry("next() ignores comments"));
-        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
-        events.add(new EventEntry(new SOCGameServerText("test", "should ignore during next()"), -1, false));
-        events.add(new EventEntry(new SOCTurn("test", 3, SOCGame.ROLL_OR_CARD), -1, false));
+        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false, -1));
+        events.add(new EventEntry(new SOCGameServerText("test", "should ignore during next()"), -1, false, -1));
+        events.add(new EventEntry(new SOCTurn("test", 3, SOCGame.ROLL_OR_CARD), -1, false, -1));
 
         // read through those:
 
@@ -191,7 +191,7 @@ public class TestGameActionExtractor
 
         // add another entry, test nextIfType:
 
-        events.add(new EventEntry(new SOCRollDiceRequest("test"), -1, false));
+        events.add(new EventEntry(new SOCRollDiceRequest("test"), -1, false, -1));
 
         e = nextIfType(SOCMessage.BANKTRADE);
         assertNull(e);
@@ -238,7 +238,7 @@ public class TestGameActionExtractor
 
         // Recognize typical gamestate
 
-        events.add(new EventEntry(new SOCGameState("test", SOCGame.PLAY1), -1, false));
+        events.add(new EventEntry(new SOCGameState("test", SOCGame.PLAY1), -1, false, -1));
         EventEntry e = nextIfGamestateOrOver();
         assertNotNull(e);
         assertTrue(e.event instanceof SOCGameState);
@@ -251,7 +251,7 @@ public class TestGameActionExtractor
         // Negative tests: if isn't the expected sequence, return null and backtrack
 
         // not the expected GameElement
-        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
+        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false, -1));
         assertNull(nextIfGamestateOrOver());
         assertEquals(1, currentSequence.size());
         assertEquals(SOCGame.PLAY1, state.currentGameState);
@@ -259,8 +259,8 @@ public class TestGameActionExtractor
         events.remove(currentEvSize);
 
         // gameelement + another gamestate(not OVER)
-        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
-        events.add(new EventEntry(new SOCGameState("test", SOCGame.ROLL_OR_CARD), -1, false));
+        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false, -1));
+        events.add(new EventEntry(new SOCGameState("test", SOCGame.ROLL_OR_CARD), -1, false, -1));
         assertNull(nextIfGamestateOrOver());
         assertEquals(1, currentSequence.size());
         assertEquals(SOCGame.PLAY1, state.currentGameState);  // not ROLL_OR_CARD
@@ -269,7 +269,7 @@ public class TestGameActionExtractor
         events.remove(currentEvSize);
 
         // gameelement + end of log
-        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
+        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false, -1));
         assertNull(nextIfGamestateOrOver());
         assertEquals(1, currentSequence.size());
         assertEquals(SOCGame.PLAY1, state.currentGameState);
@@ -277,8 +277,8 @@ public class TestGameActionExtractor
         events.remove(currentEvSize);
 
         // gameelement + non-gamestate message
-        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
-        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false));
+        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false, -1));
+        events.add(new EventEntry(new SOCPutPiece("test", 3, SOCPlayingPiece.SETTLEMENT, 11), -1, false, -1));
         assertNull(nextIfGamestateOrOver());
         assertEquals(1, currentSequence.size());
         assertEquals(SOCGame.PLAY1, state.currentGameState);
@@ -289,8 +289,8 @@ public class TestGameActionExtractor
         // Recognize SOCPlayerElement + gstate(OVER)
 
         assertEquals(-1, state.currentPlayerNumber);
-        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false));
-        events.add(new EventEntry(new SOCGameState("test", SOCGame.OVER), -1, false));
+        events.add(new EventEntry(new SOCGameElements("test", SOCGameElements.GEType.CURRENT_PLAYER, 5), -1, false, -1));
+        events.add(new EventEntry(new SOCGameState("test", SOCGame.OVER), -1, false, -1));
         e = nextIfGamestateOrOver();
         assertNotNull(e);
         assertTrue(e.event instanceof SOCGameState);

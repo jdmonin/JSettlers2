@@ -59,7 +59,7 @@ import soc.util.Version;
  *
  *<H3>Log file format</H3>
  *
- * {@link #save(SOCGame, File, String, boolean)} saves files in this format:
+ * {@link #save(File, String, boolean)} saves files in this format:
  *<UL>
  *  <LI> File starts with this header line:<BR>
  *    <tt>SOC game event log: version=2500, created_at=</tt>timestamp<tt>, now=</tt>timestamp<tt>, game_name=</tt>game name <BR>
@@ -89,7 +89,7 @@ public class GameEventLog
 {
     /**
      * Standard suffix/extension for {@link GameEventLog} files: {@code ".soclog"}
-     * @see #save(SOCGame, File, String, boolean)
+     * @see #save(File, String, boolean)
      */
     public static final String FILENAME_EXTENSION = ".soclog";
 
@@ -111,7 +111,15 @@ public class GameEventLog
     public final Vector<EventEntry> entries = new Vector<>();
 
     /**
+     * Game data in a log that's currently being recorded;
+     * null if log was loaded by {@link #load(File, boolean, boolean)}.
+     * @see #gameName
+     */
+    public final SOCGame game;
+
+    /**
      * Name of game seen in a log that's been loaded by {@link #load(File, boolean, boolean)}. Otherwise {@code null}.
+     * @see #game
      */
     public String gameName;
 
@@ -120,6 +128,14 @@ public class GameEventLog
      * in same format as {@link Version#versionNumber()}. Otherwise 0.
      */
     public int version;
+
+    /**
+     * Should our {@link #game}'s log have timestamps?
+     * If true, entries should use their {@link EventEntry#timeElapsedMS} field.
+     * Not set when loading; some entries in loaded log may or may not have timestamps,
+     * and {@code game} is {@code null}.
+     */
+    public final boolean hasTimestamps;
 
     /**
      * The game options, or {@code null} if none, seen in a log that's been loaded
@@ -132,6 +148,19 @@ public class GameEventLog
      * Number of lines read by {@link #load(File, boolean, boolean)}, including blank and comment lines. Otherwise 0.
      */
     public int numLines;
+
+    /**
+     * Create a new GameEventLog.
+     * @param ga  Active game to create log for, or {@code null} for an empty log
+     *     or one being reloaded with {@link #load(File, boolean, boolean)}.
+     * @param hasTimestamps  True if {@code ga != null} and server should set the timestamp
+     *     in each {@link EventEntry} it adds to this log.
+     */
+    public GameEventLog(final SOCGame ga, final boolean hasTimestamps)
+    {
+        game = ga;
+        this.hasTimestamps = hasTimestamps;
+    }
 
     /**
      * Add an entry to this game's log {@link #entries}.
@@ -151,7 +180,7 @@ public class GameEventLog
     }
 
     /**
-     * Save this game's current event message logs to a file.
+     * Save our {@link #game}'s current event message logs to a file.
      * Overwrites file if it already exists.
      *
      * @param ga  This log's game, to get its basic info; not null
@@ -159,16 +188,20 @@ public class GameEventLog
      * @param saveFilename  Filename to save to; not validated for format or security.
      *     Recommended suffix is {@link #FILENAME_EXTENSION} for consistency.
      * @param serverOnly  If true, don't write entries where {@link GameEventLog.EventEntry#isFromClient} true
-     * @throws IllegalStateException  if {@link #entries} doesn't start with {@link SOCVersion}
+     * @throws IllegalStateException  if {@link #game} is {@code null}
+     * @throws NoSuchElementException  unless {@link #entries} starts with {@link SOCVersion}
      *     followed by {@link SOCNewGame} or {@link SOCNewGameWithOptions} where
-     *     {@link SOCNewGame#getGame()} equals {@link SOCGame#getName() ga.getName()}
+     *     {@link SOCNewGame#getGame()} equals {@link #game}{@link SOCGame#getName() .getName()}
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
      * @throws IOException if an I/O problem or {@link SecurityException} occurs
      * @see #load(File, boolean, boolean)
      */
-    public void save(final SOCGame ga, final File saveDir, final String saveFilename, final boolean serverOnly)
-        throws IllegalStateException, IllegalArgumentException, IOException
+    public void save(final File saveDir, final String saveFilename, final boolean serverOnly)
+        throws IllegalStateException, NoSuchElementException, IllegalArgumentException, IOException
     {
+        if (game == null)
+            throw new IllegalStateException("game null");
+
         // check for required start-of-log entry messages
         {
             boolean allOK = false;
@@ -176,7 +209,7 @@ public class GameEventLog
             {
                 SOCMessage msg = entries.get(0).event;
                 if (! (msg instanceof SOCVersion))
-                    throw new IllegalStateException("First entry must be SOCVersion");
+                    throw new NoSuchElementException("First entry must be SOCVersion");
 
                 msg = entries.get(1).event;
                 String gaName = null;
@@ -187,15 +220,15 @@ public class GameEventLog
 
                 if (gaName != null)
                 {
-                    if (! gaName.equals(ga.getName()))
-                        throw new IllegalStateException("Game name mismatch: event message has " + gaName);
+                    if (! gaName.equals(game.getName()))
+                        throw new NoSuchElementException("Game name mismatch: event message has " + gaName);
                     else
                         allOK = true;
                 }
             }
 
             if (! allOK)
-                throw new IllegalStateException("First entries must be SOCVersion, SOCNewGame[WithOptions]");
+                throw new NoSuchElementException("First entries must be SOCVersion, SOCNewGame[WithOptions]");
         }
 
         // GameSaverJSON.saveGame uses similar logic to check status before saving.
@@ -212,7 +245,7 @@ public class GameEventLog
         try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
                 (new FileOutputStream(new File(saveDir, saveFilename)), "UTF-8")))
         {
-            final Date createdAt = ga.getStartTime(), now = new Date();
+            final Date createdAt = game.getStartTime(), now = new Date();
             final String createdStr, nowStr;
             synchronized (TIMESTAMP_SDF)
             {
@@ -224,7 +257,7 @@ public class GameEventLog
                 ("SOC game event log: version=" + Version.versionNumber()
                  + ", created_at=" + (createdAt.getTime() / 1000)
                  + ", now=" + (now.getTime() / 1000)
-                 + ", game_name=" + ga.getName() + '\n');
+                 + ", game_name=" + game.getName() + '\n');
             writer.append("# Game created at: " + createdStr + '\n');
             writer.append("# Log written at:  " + nowStr + '\n');
 
@@ -233,14 +266,14 @@ public class GameEventLog
                     writer.append(entry.toString()).append('\n');
 
             writer.append("# End of log; final game state is ")
-                .append(Integer.toString(ga.getGameState())).append('\n');
+                .append(Integer.toString(game.getGameState())).append('\n');
             writer.append("# Final player info:\n");
-            final SOCPlayer winner = ga.getPlayerWithWin();  // null if still playing
-            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            final SOCPlayer winner = game.getPlayerWithWin();  // null if still playing
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
-                final SOCPlayer pl = ga.getPlayer(pn);
+                final SOCPlayer pl = game.getPlayer(pn);
                 final int vp = (winner != null) ? pl.getTotalVP() : pl.getPublicVP();
-                if ((vp == 0) && ga.isSeatVacant(pn))
+                if ((vp == 0) && game.isSeatVacant(pn))
                     continue;
                 final int totalVP = (winner != null) ? vp : pl.getTotalVP();
 
@@ -271,7 +304,7 @@ public class GameEventLog
     }
 
     /**
-     * Load and parse a log from a file in the format saved by {@link #save(SOCGame, File, String, boolean)}.
+     * Load and parse a log from a file in the format saved by {@link #save(File, String, boolean)}.
      * Adds its entries to {@link #entries}. Sets {@link #gameName}, {@link #version}, {@link #optsStr},
      * and {@link #numLines}.
      *
@@ -295,7 +328,7 @@ public class GameEventLog
         (final File loadFrom, final boolean ignoreComments, final boolean serverOnly)
         throws IOException, ParseException, NoSuchElementException
     {
-        final GameEventLog ret = new GameEventLog();
+        final GameEventLog ret = new GameEventLog(null, false);
         final Vector<EventEntry> entries = ret.entries;
         boolean sawVers = false, sawNewGame = false;  // required first messages
 
@@ -429,6 +462,14 @@ public class GameEventLog
     public static final class EventEntry
     {
         /**
+         * Optional timestamp of event, in milliseconds since {@link SOCGame#getStartTime()}, or -1.
+         *<P>
+         * {@link Integer#MAX_VALUE} millis is 24.855 days, which is reasonably long enough,
+         * so for efficiency we use {@code int} not {@code long}.
+         */
+        public final int timeElapsedMS;
+
+        /**
          * Event message data; can be {@code null} if ! {@link #isFromClient}.
          * If {@link #isFromClient}, can be cast to {@link SOCMessageForGame}.
          */
@@ -473,12 +514,13 @@ public class GameEventLog
          *     Can also be {@link SOCServer#PN_OBSERVER} or {@link SOCServer#PN_REPLY_TO_UNDETERMINED}.
          *     From client, the player number sent from, or {@link SOCServer#PN_OBSERVER} (not -1).
          * @param isFromClient  True if is from client instead of from server to member client(s)
+         * @param timeElapsedMS  Relative timestamp or -1; see {@link EventEntry#timeElapsedMS} for format
          * @throws IllegalArgumentException if {@code isFromClient} but {@code event} is {@code null}
          *     or in't a {@link SOCMessageForGame}
-         * @see #EventEntry(SOCMessage, int[])
+         * @see #EventEntry(SOCMessage, int[], int)
          * @see #EventEntry(String)
          */
-        public EventEntry(SOCMessage event, int pn, boolean isFromClient)
+        public EventEntry(final SOCMessage event, final int pn, final boolean isFromClient, final int timeElapsedMS)
             throws IllegalArgumentException
         {
             this.event = event;
@@ -490,6 +532,7 @@ public class GameEventLog
                     ((event != null)
                      ? "isFromClient but not SOCMessageForGame: " + event.getClass().getSimpleName()
                      : "can't be null when isFromClient");
+            this.timeElapsedMS = timeElapsedMS;
             this.comment = null;
         }
 
@@ -497,15 +540,17 @@ public class GameEventLog
          * EventEntry sent to all players except specific ones, or to all if {@code excludedPN} null.
          * @param event  Event message to record
          * @param excludedPN  Player number(s) excluded, or all players if null
-         * @see #EventEntry(SOCMessage, int, boolean)
+         * @param timeElapsedMS  Relative timestamp or -1; see {@link EventEntry#timeElapsedMS} for format
+         * @see #EventEntry(SOCMessage, int, boolean, int)
          * @see #EventEntry(String)
          */
-        public EventEntry(SOCMessage event, int[] excludedPN)
+        public EventEntry(final SOCMessage event, final int[] excludedPN, final int timeElapsedMS)
         {
             this.event = event;
             this.pn = -1;
             this.excludedPN = excludedPN;
             this.isFromClient = false;
+            this.timeElapsedMS = timeElapsedMS;
             this.comment = null;
         }
 
@@ -514,8 +559,8 @@ public class GameEventLog
          * Other fields will be set to java default values, except {@link #pn} = -1.
          * @param comment  Contents of comment, not {@code null}; see {@link #comment}.
          * @throws IllegalArgumentException if {@code comment} null
-         * @see #EventEntry(SOCMessage, int, boolean)
-         * @see #EventEntry(SOCMessage, int[])
+         * @see #EventEntry(SOCMessage, int, boolean, int)
+         * @see #EventEntry(SOCMessage, int[], int)
          */
         public EventEntry(String comment)
             throws IllegalArgumentException
@@ -527,6 +572,7 @@ public class GameEventLog
             this.event = null;
             this.pn = -1;
             this.excludedPN = null;
+            this.timeElapsedMS = -1;
             this.isFromClient = false;
         }
 
@@ -571,6 +617,9 @@ public class GameEventLog
             else if (! oe.comment.equals(this.comment))
                 return false;
 
+            if (oe.timeElapsedMS != this.timeElapsedMS)
+                return false;
+
             if (oe.event == null)
             {
                 if (this.event != null)
@@ -592,7 +641,11 @@ public class GameEventLog
          * for any third-party recorder implementers that use that format.
          *<P>
          * Shows message audience and human-readable but delimited {@link SOCMessage#toString()}.
-         * Possible formats:
+         *<P>
+         * Preceded by {@link #timeElapsedMS} if set, as minutes:seconds.millis + ":":
+         * {@code "m:ss.ddd:"}
+         *<P>
+         * Possible formats for rest of the fields:
          *<UL>
          * <LI> To all players: {@code all:MessageClassName:param=value|param=value|...}
          * <LI> To a single player number: {@code p3:MessageClassName:param=value|param=value|...}
@@ -615,6 +668,23 @@ public class GameEventLog
             {
                 sb.append('#').append(comment);
                 return sb.toString();
+            }
+
+            if (timeElapsedMS >= 0)
+            {
+                int msec = timeElapsedMS % 1000, sec = timeElapsedMS / 1000;
+                int min = sec / 60;
+                sec %= 60;
+
+                sb.append(min).append(':');
+                if (sec < 10)
+                    sb.append('0');
+                sb.append(sec).append('.');
+                if (msec < 100)
+                    sb.append('0');
+                if (msec < 10)
+                    sb.append('0');
+                sb.append(msec).append(':');
             }
 
             if (isFromClient)
@@ -657,7 +727,7 @@ public class GameEventLog
          * @return Parsed EventEntry, or {@code null} if {@code str} is "" or null
          * @throws ParseException
          */
-        public static EventEntry parse(final String str)
+        public static EventEntry parse(String str)
             throws ParseException
         {
             if ((str == null) || str.isEmpty())
@@ -665,6 +735,54 @@ public class GameEventLog
 
             if (str.charAt(0) == '#')
                 return new EventEntry(str.substring(1));
+
+            int elapsedMS = -1;
+            if (Character.isDigit(str.charAt(0)))
+            {
+                // try to parse 'm:ss.ddd:' relative timestamp
+                int pos = str.indexOf(':');
+                if (pos == -1)
+                    throw new ParseException("Expected start to be \"digits:\"", 1);
+                int min;
+                try
+                {
+                    min = Integer.parseInt(str.substring(0, pos));
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Couldn't parse minutes", 0);
+                }
+                int pos2 = str.indexOf('.', pos + 1);
+                if (pos2 == -1)
+                    throw new ParseException("Missing . after seconds", pos);
+                ++pos;
+                int sec;
+                try
+                {
+                    sec = Integer.parseInt(str.substring(pos, pos2));
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Couldn't parse seconds", pos);
+                }
+                pos = str.indexOf(':', pos2 + 1);
+                if (pos != (pos2 + 4))
+                    throw new ParseException("msec: Expected 3 digits + :", pos2);
+                ++pos2;
+                int msec;
+                try
+                {
+                    msec = Integer.parseInt(str.substring(pos2, pos));
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Couldn't parse msec", pos);
+                }
+
+                if ((sec < 0) || (msec < 0))
+                    throw new ParseException("Negative time", pos2);
+                long elapsed = (1000 * ((60L * min) + sec)) + msec;
+                elapsedMS = (elapsed <= Integer.MAX_VALUE) ? ((int) elapsed) : Integer.MAX_VALUE;
+
+                // pos points to ':' after timestamp
+                str = str.substring(pos + 1);
+                if (str.isEmpty())
+                    throw new ParseException("Expected users after timestamp", pos);
+            }
 
             int pos = str.indexOf(':');
             if (pos < 1)
@@ -689,7 +807,7 @@ public class GameEventLog
             // parse users, make the entry
 
             if (users.equals("all"))
-                return new EventEntry(event, -1, false);
+                return new EventEntry(event, -1, false, elapsedMS);
 
             if (users.charAt(0) == 'f')
             {
@@ -704,7 +822,7 @@ public class GameEventLog
                     }
                 }
 
-                return new EventEntry(event, fromPN, true);
+                return new EventEntry(event, fromPN, true, elapsedMS);
             }
 
             if (users.startsWith("!p"))
@@ -745,7 +863,7 @@ public class GameEventLog
                     throw new ParseException("Can't parse event user spec preceding ':'", 2);
                 }
 
-                return new EventEntry(event, excludedPN);
+                return new EventEntry(event, excludedPN, elapsedMS);
             }
 
             final int toPN;
@@ -763,7 +881,7 @@ public class GameEventLog
             else
                 throw new ParseException("Can't parse event user spec preceding ':'", 0);
 
-            return new EventEntry(event, toPN, false);
+            return new EventEntry(event, toPN, false, elapsedMS);
         }
 
     }
