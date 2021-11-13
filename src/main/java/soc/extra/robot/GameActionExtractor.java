@@ -127,12 +127,28 @@ public class GameActionExtractor
     protected final GameActionLog actLog;
 
     /**
-     * If true, {@link #eventLog} doesn't contain entries where {@link GameEventLog.EventEntry#isFromClient} true.
-     * If false, is the full log. Set from {@link #eventLog}{@link GameEventLog#isServerOnly .isServerOnly}.
+     * If true, {@link #eventLog} doesn't contain entries where {@link GameEventLog.EventEntry#isFromClient} true;
+     * {@link #serverOnlyToClientPN} will also be set.
+     *<P>
+     * If false, is the full log.
+     *<P>
+     * Set from {@link #eventLog}{@link GameEventLog#isServerOnly .isServerOnly}.
      * Selection for {@link #seqStartMsgTypes} is based on this flag.
      * @see GameEventLog#save(java.io.File, String, boolean)
      */
     protected final boolean hasServerOnlyLog;
+
+    /**
+     * When {@link #hasServerOnlyLog}, the client player number:
+     * A specific player number is needed or the extraction won't recognize sequences.
+     * Server's messages sent only to other clients have been filtered out
+     * by {@link GameEventLog#load(java.io.File, boolean, int)}
+     * or {@link GameEventLog#GameEventLog(GameEventLog, int)}.
+     *<P>
+     * When used, is a player number &gt= 0, not -1 or {@link soc.server.SOCServer#PN_OBSERVER}.<BR>
+     * When ! {@link #hasServerOnlyLog}, is -1.
+     */
+    protected final int serverOnlyToClientPN;
 
     protected final ExtractorState state = new ExtractorState();
 
@@ -154,14 +170,21 @@ public class GameActionExtractor
      * Checks log's required initial events for consistency,
      * fast-forwards past {@link SOCStartGame} if found, otherwise to end of log.
      * Once ready to parse the rest, call {@link #extract()}.
+     *<P>
+     * If the event log being extracted from has {@link GameEventLog#isServerOnly} set,
+     * it must be for a specific client player number or the extraction won't recognize sequences.
+     * So, its {@link GameEventLog#serverOnlyToClientPN} must be &gt;= 0.
+     * {@link GameEventLog#load(java.io.File, boolean, int)} and {@link GameEventLog#GameEventLog(GameEventLog, int)}
+     * can filter to do so.
      *
      * @param eventLog  Log to recognize and extract {@link GameActionLog.Action}s from event sequences
      * @param keepEntriesBeforeInitPlacement  If true, keep the {@link GameEventLog} entries from start of log,
-     * up to and including {@link SOCStartGame}, instead of skipping them.
-     * Adds them to a {@link GameActionLog.Action} of type
-     * {@link GameActionLog.Action.ActionType#LOG_START_TO_STARTGAME LOG_START_TO_STARTGAME}.
-     *
+     *     up to and including {@link SOCStartGame}, instead of skipping them.
+     *     Adds them to a {@link GameActionLog.Action} of type
+     *     {@link GameActionLog.Action.ActionType#LOG_START_TO_STARTGAME LOG_START_TO_STARTGAME}.
      * @throws IllegalArgumentException if {@code eventLog} is null or empty
+     *     or if it has {@link GameEventLog#isServerOnly}
+     *     but its {@link GameEventLog#serverOnlyToClientPN} &lt; 0
      * @throws NoSuchElementException if {@code eventLog} doesn't start with {@link SOCVersion}
      *     followed by {@link SOCNewGame} or {@link SOCNewGameWithOptions}
      * @throws IllegalStateException if {@code eventLog} doesn't contain a {@link SOCStartGame}
@@ -176,8 +199,12 @@ public class GameActionExtractor
         this.eventLog = eventLog;
         actLog = new GameActionLog();
         hasServerOnlyLog = eventLog.isServerOnly;
+        serverOnlyToClientPN = (hasServerOnlyLog) ? eventLog.serverOnlyToClientPN : -1;
         seqStartMsgTypes = (hasServerOnlyLog) ? SEQ_START_MSG_TYPES_SERVER_ONLY : SEQ_START_MSG_TYPES_FULL;
 
+        if (hasServerOnlyLog && (serverOnlyToClientPN < 0))
+            throw new IllegalArgumentException
+                ("eventLog serverOnly but serverOnlyToClientPN < 0: " + serverOnlyToClientPN);
         if (keepEntriesBeforeInitPlacement)
             currentSequence = new ArrayList<>(70);  // approx. message count before startgame for a 2-player game
 
@@ -687,8 +714,22 @@ public class GameActionExtractor
      */
     private Action extract_from_REVEALFOGHEX(GameEventLog.EventEntry e)
     {
-        // TODO implement: check next, call extract_build_ or _move_piece
-        return null;
+        // all:SOCRevealFogHex:game=test|hexCoord=908|hexType=3|diceNum=4
+        if (! e.isToAll())
+            return null;
+
+        // all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
+        // or
+        // all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
+        e = next();
+        if ((e == null) || ! e.isToAll())
+            return null;
+        if (e.event instanceof SOCPutPiece)
+            return extract_BUILD_PIECE(e, false);
+        else if (e.event instanceof SOCMovePiece)
+            return extract_MOVE_PIECE(e);
+        else
+            return null;
     }
 
     /**
@@ -959,17 +1000,22 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#BUY_DEV_CARD} from the current message sequence.
+     * First entry is {@link SOCPlayerElements} if {@link #hasServerOnlyLog}, otherwise {@link SOCBuyDevCardRequest}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
     private Action extract_BUY_DEV_CARD(GameEventLog.EventEntry e)
     {
-        // f3:SOCBuyDevCardRequest:game=test
-        if (! e.isFromClient)
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            // f3:SOCBuyDevCardRequest:game=test
+            if (! e.isFromClient)
+                return null;
+
+            e = next();
+        }
 
         // all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCPlayerElements)))
             return null;
 
@@ -986,22 +1032,31 @@ public class GameActionExtractor
             count = ge.getValues()[0];
         }
 
+        final int cardType;
+
         // p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=5
         e = next();
-        if ((e == null) || e.isFromClient || (e.pn < 0) || ! (e.event instanceof SOCDevCardAction))
-            return null;
-        final int cardType;
+        if (! (hasServerOnlyLog && (state.currentPlayerNumber != serverOnlyToClientPN)))
         {
-            final SOCDevCardAction dca = (SOCDevCardAction) e.event;
-            if (dca.getAction() != SOCDevCardAction.DRAW)
+            if ((e == null) || e.isFromClient || (e.pn < 0) || ! (e.event instanceof SOCDevCardAction))
                 return null;
-            cardType = dca.getCardType();
+            {
+                final SOCDevCardAction dca = (SOCDevCardAction) e.event;
+                if (dca.getAction() != SOCDevCardAction.DRAW)
+                    return null;
+                cardType = dca.getCardType();
+            }
+        } else {
+            cardType = 0;  // unknown, since this client didn't see the event
         }
 
         // !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
         e = next();
-        if ((e == null) || e.isFromClient || (e.excludedPN == null) || ! (e.event instanceof SOCDevCardAction))
-            return null;
+        if (! (hasServerOnlyLog && (state.currentPlayerNumber == serverOnlyToClientPN)))
+        {
+            if ((e == null) || e.isFromClient || (e.excludedPN == null) || ! (e.event instanceof SOCDevCardAction))
+                return null;
+        }
 
         // all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0
         e = next();

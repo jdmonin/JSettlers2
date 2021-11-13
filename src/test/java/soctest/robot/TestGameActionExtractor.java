@@ -1043,7 +1043,7 @@ public class TestGameActionExtractor
      * {@link ActionType#ROB_PLAYER}, {@link ActionType#CHOOSE_MOVE_ROBBER_OR_PIRATE},
      * {@link ActionType#CHOOSE_ROB_CLOTH_OR_RESOURCE}, {@link ActionType#END_TURN}.
      *
-     * @see #testBuyPlayDevCards()
+     * @see #testPlayDevCards()
      */
     @Test
     public void testRoll7DiscardsMoveRobberSteal()
@@ -1311,17 +1311,15 @@ public class TestGameActionExtractor
     }
 
     /**
-     * Test extraction of a turn with buying and playing dev cards:
+     * Test extraction of a turn with buying a dev card:
      * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE} without gains,
-     * {@link ActionType#BUY_DEV_CARD}, various {@link ActionType#PLAY_DEV_CARD},
-     * {@link ActionType#END_TURN}.
+     * {@link ActionType#BUY_DEV_CARD}, {@link ActionType#END_TURN}.
      * Sequences based on {@code all-basic-actions.soclog}.
-     *<P>
-     * {@code PLAY_DEV_CARD} for Knight/Soldier is tested in {@link #testRoll7DiscardsMoveRobberSteal()},
-     * for Road Building in {@link #testPlayDevCardRoadBuilding()}.
+     *
+     * @see #testPlayDevCards()
      */
     @Test
-    public void testBuyPlayDevCards()
+    public void testBuyDevCard()
     {
         final List<EventEntry> events = eventLog.entries;
 
@@ -1344,6 +1342,76 @@ public class TestGameActionExtractor
             "p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9",
             "!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0",
             "all:SOCSimpleAction:game=test|pn=3|actType=1|v1=15|v2=0",
+            "all:SOCGameState:game=test|state=20",
+
+            // end turn:
+            "f3:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+            });
+
+        final GameActionLog actionLog = extract();
+
+        assertEquals("at end of event log", events.size(), state.nextLogIndex);
+        assertNull(next());  // at end of log again
+        assertNotNull(actionLog);
+        assertEquals(5, actionLog.size());
+
+        GameActionLog.Action act = actionLog.get(0);
+        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
+        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+        act = actionLog.get(1);
+        assertEquals(ActionType.TURN_BEGINS, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
+        assertEquals("new current player number", 3, act.param1);
+
+        act = actionLog.get(2);
+        assertEquals(ActionType.ROLL_DICE, act.actType);
+        assertEquals(4, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("dice roll sum", 12, act.param1);
+
+        act = actionLog.get(3);
+        assertEquals(ActionType.BUY_DEV_CARD, act.actType);
+        assertEquals(7, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("dev card type", SOCDevCardConstants.KNIGHT, act.param1);
+        assertEquals("remaining cards", 15, act.param2);
+
+        act = actionLog.get(4);
+        assertEquals(ActionType.END_TURN, act.actType);
+        assertEquals(2, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+    }
+
+    /**
+     * Test extraction of a turn with playing dev cards:
+     * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE} without gains,
+     * various {@link ActionType#PLAY_DEV_CARD}, {@link ActionType#END_TURN}.
+     * Sequences based on {@code all-basic-actions.soclog}.
+     *<P>
+     * {@code PLAY_DEV_CARD} for Knight/Soldier is tested in {@link #testRoll7DiscardsMoveRobberSteal()},
+     * for Road Building in {@link #testPlayDevCardRoadBuilding()}.
+     *
+     * @see #testBuyDevCard()
+     */
+    @Test
+    public void testPlayDevCards()
+    {
+        final List<EventEntry> events = eventLog.entries;
+
+        addEventLogEntries(events, new String[]
+            {
+            // start of turn:
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // roll dice:
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameServerText:game=test|text=No player gets anything.",
             "all:SOCGameState:game=test|state=20",
 
             // Play dev cards:
@@ -1411,7 +1479,7 @@ public class TestGameActionExtractor
         assertEquals("at end of event log", events.size(), state.nextLogIndex);
         assertNull(next());  // at end of log again
         assertNotNull(actionLog);
-        assertEquals(9, actionLog.size());
+        assertEquals(8, actionLog.size());
 
         GameActionLog.Action act = actionLog.get(0);
         assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -1431,41 +1499,34 @@ public class TestGameActionExtractor
         assertEquals("dice roll sum", 12, act.param1);
 
         act = actionLog.get(3);
-        assertEquals(ActionType.BUY_DEV_CARD, act.actType);
-        assertEquals(7, act.eventSequence.size());
-        assertEquals(SOCGame.PLAY1, act.endingGameState);
-        assertEquals("dev card type", SOCDevCardConstants.KNIGHT, act.param1);
-        assertEquals("remaining cards", 15, act.param2);
-
-        act = actionLog.get(4);
         assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
         assertEquals(12, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("played mono card", SOCDevCardConstants.MONO, act.param1);
         assertEquals("resources from mono", new SOCResourceSet(0, 0, 1, 0, 0, 0), act.rset1);
 
-        act = actionLog.get(5);
+        act = actionLog.get(4);
         assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
         assertEquals(9, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("played mono card", SOCDevCardConstants.MONO, act.param1);
         assertNull("nothing gained from mono", act.rset1);
 
-        act = actionLog.get(6);
+        act = actionLog.get(5);
         assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
         assertEquals(15, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("played mono card", SOCDevCardConstants.MONO, act.param1);
         assertEquals("resources from mono", new SOCResourceSet(0, 0, 6, 0, 0, 0), act.rset1);
 
-        act = actionLog.get(7);
+        act = actionLog.get(6);
         assertEquals(ActionType.PLAY_DEV_CARD, act.actType);
         assertEquals(8, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("played discov card", SOCDevCardConstants.DISC, act.param1);
         assertEquals("resources from discov", new SOCResourceSet(0, 2, 0, 0, 0, 0), act.rset1);
 
-        act = actionLog.get(8);
+        act = actionLog.get(7);
         assertEquals(ActionType.END_TURN, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
@@ -1476,7 +1537,7 @@ public class TestGameActionExtractor
      * ({@link ActionType#PLAY_DEV_CARD}) in different conditions,
      * including win game ({@link ActionType#GAME_OVER}) by gaining Longest Route.
      *<P>
-     * @see #testBuyPlayDevCards()
+     * @see #testPlayDevCards()
      */
     @Test
     public void testPlayDevCardRoadBuilding()

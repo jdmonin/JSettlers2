@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
+import soc.game.SOCGame;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCDiceResult;
 import soc.message.SOCGameTextMsg;
@@ -38,6 +39,7 @@ import soc.message.SOCPutPiece;
 import soc.message.SOCReportRobbery;
 import soc.message.SOCVersion;
 import soc.server.SOCServer;
+import soc.util.Version;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -53,7 +55,7 @@ public class TestGameEventLog
 {
     /**
      * Attempt to load a {@code .soclog} game event test artifact
-     * by calling {@link GameEventLog#load(File, boolean, boolean)}.
+     * by calling {@link GameEventLog#load(File, boolean, int)}.
      * If not found, will fail an {@code assertNotNull}. Doesn't try to catch
      * {@code load(..)}'s declared runtime exceptions, but does declare them here
      * as {@code throws} for caller to optionally catch.
@@ -61,7 +63,7 @@ public class TestGameEventLog
      * @param testResFilename  Base name of test artifact, like {@code "classic-botturn.game.json"},
      *     to be loaded from {@code /src/test/resources/resources/gameevent/}
      * @param ignoreComments  Parameter to pass to {@code GameEventLog.load(..)}
-     * @param serverOnly  Parameter to pass to {@code GameEventLog.load(..)}
+     * @param filterServerOnlyToClientPN  Parameter to pass to {@code GameEventLog.load(..)}
      * @return loaded and parsed log file
      * @throws IOException if file can't be loaded
      * @throws ParseException if thrown by {@code GameEventLog.load(..)}
@@ -69,7 +71,7 @@ public class TestGameEventLog
      * @see soctest.server.savegame.TestLoadgame#load(String, SOCServer)
      */
     public static GameEventLog load
-        (final String testRsrcFilename, final boolean ignoreComments, final boolean serverOnly)
+        (final String testRsrcFilename, final boolean ignoreComments, final int filterServerOnlyToClientPN)
         throws IOException, ParseException, NoSuchElementException
     {
         final String rsrcPath = "/resources/gameevent/" + testRsrcFilename;
@@ -83,7 +85,7 @@ public class TestGameEventLog
             throw new RuntimeException("unlikely internal error", e);
         }
 
-        return GameEventLog.load(f, ignoreComments, serverOnly);
+        return GameEventLog.load(f, ignoreComments, filterServerOnlyToClientPN);
     }
 
     /**
@@ -392,7 +394,105 @@ public class TestGameEventLog
     }
 
     /**
-     * Test {@link GameEventLog#load(File, boolean, boolean)}
+     * Test {@link GameEventLog#GameEventLog(GameEventLog, int)} copy constructor
+     * with and without {@code filterServerOnlyToClientPN}.
+     * @see #testLoadWithFilterToClientPN()
+     */
+    @Test
+    public void testFilteringCopyConstructor()
+        throws ParseException
+    {
+        final String GAME_NAME = "testFiltering";
+        final SOCGame game = new SOCGame(GAME_NAME);
+        final GameEventLog source = new GameEventLog(game, false);
+        assertTrue(game == source.game);
+        assertNull(source.gameName);
+        source.gameName = GAME_NAME;  // to test copying; an actual log would have either game or gameName, not both
+        assertFalse(source.isServerOnly);
+        assertEquals(-1, source.serverOnlyToClientPN);
+        assertEquals(0, source.version);
+        source.version = Version.versionNumber();  // to test copying
+        assertFalse(source.hasTimestamps);
+        assertNull(source.optsStr);
+        source.optsStr = "PL=4";  // to test copying
+        assertEquals(0, source.numLines);
+
+        // Fill contents:
+        source.entries.add(EventEntry.parse("all:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("p1:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("p3:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("!p3:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("!p[2, 3, 4]:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("!p[2, 4]:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("un:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("f3:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("fo:SOCBuildRequest:game=testgame|pieceType=2"));
+        source.entries.add(EventEntry.parse("all:null"));
+        source.entries.add(EventEntry.parse("p3:null"));
+        source.entries.add(EventEntry.parse("#abcde"));
+        source.numLines = 1 + source.entries.size();
+
+        // Exact copy constructor without filtering:
+        GameEventLog copied = new GameEventLog(source, -1);
+        assertTrue(game == copied.game);
+        assertEquals(source.gameName, copied.gameName);
+        assertEquals(source.isServerOnly, copied.isServerOnly);
+        assertEquals(source.serverOnlyToClientPN, copied.serverOnlyToClientPN);
+        assertEquals(source.version, copied.version);
+        assertFalse(copied.hasTimestamps);
+        assertEquals(source.optsStr, copied.optsStr);
+        assertEquals(source.numLines, copied.numLines);
+        int S = source.entries.size();
+        assertEquals(S, copied.entries.size());
+        for (int i = 0; i < S; ++i)
+            assertTrue(source.entries.get(i) == copied.entries.get(i));
+
+        // Now call the filter copy constructor, check results:
+        final int TO_PN = 3;
+        final GameEventLog filtered = new GameEventLog(source, TO_PN);
+        assertTrue(game == filtered.game);
+        assertEquals(source.gameName, filtered.gameName);
+        assertTrue(filtered.isServerOnly);
+        assertEquals(TO_PN, filtered.serverOnlyToClientPN);
+        assertEquals(source.version, filtered.version);
+        assertFalse(filtered.hasTimestamps);
+        assertEquals(source.optsStr, filtered.optsStr);
+        assertEquals(source.numLines, filtered.numLines);
+        // check filtered contents of entries
+        assertEquals(12, source.entries.size());
+        assertEquals(6, filtered.entries.size());
+        assertTrue(filtered.entries.get(0) == source.entries.get(0));
+        assertTrue(filtered.entries.get(1) == source.entries.get(2));
+        assertTrue(filtered.entries.get(2) == source.entries.get(5));
+        assertTrue(filtered.entries.get(3) == source.entries.get(9));
+        assertTrue(filtered.entries.get(4) == source.entries.get(10));
+        assertTrue(filtered.entries.get(5) == source.entries.get(11));
+
+        // Exact copy doesn't reject when already filtered:
+        copied = new GameEventLog(filtered, -1);
+        assertTrue(game == copied.game);
+        assertEquals(filtered.gameName, copied.gameName);
+        assertEquals(filtered.isServerOnly, copied.isServerOnly);
+        assertEquals(filtered.serverOnlyToClientPN, copied.serverOnlyToClientPN);
+        assertEquals(filtered.version, copied.version);
+        assertEquals(filtered.optsStr, copied.optsStr);
+        assertEquals(filtered.numLines, copied.numLines);
+        S = filtered.entries.size();
+        assertEquals(S, copied.entries.size());
+        for (int i = 0; i < S; ++i)
+            assertTrue(filtered.entries.get(i) == copied.entries.get(i));
+
+        // Test bad parameters:
+        try
+        {
+            assertEquals(TO_PN, filtered.serverOnlyToClientPN);
+            GameEventLog log = new GameEventLog(filtered, TO_PN + 1);
+            fail("Should throw IllegalArgumentException when already filtered: " + log.serverOnlyToClientPN);
+        } catch (IllegalArgumentException e) {}
+    }
+
+    /**
+     * Test {@link GameEventLog#load(File, boolean, int)}
      * on the known-good {@code all-basic-actions.soclog} artifact.
      * @see #testLoadWithTimestamps()
      * @see #testLoadWithServerOnly()
@@ -401,12 +501,13 @@ public class TestGameEventLog
     public void testLoadKnownGood()
         throws NoSuchElementException, IOException, ParseException
     {
-        final GameEventLog log = load("all-basic-actions.soclog", false, false);
+        final GameEventLog log = load("all-basic-actions.soclog", false, -1);
         final int EXPECTED_FILE_LINE_COUNT = 776;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
         assertFalse(log.isServerOnly);
+        assertEquals(-1, log.serverOnlyToClientPN);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,SBL=t,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
@@ -414,12 +515,17 @@ public class TestGameEventLog
         assertEquals(log.numLines, 1 + log.entries.size());  // true if no blank lines
 
         // comment-line parsing
-        assertEquals(" Game created at: 2021-10-10 22:48:46 -0400", log.entries.get(0).comment);
+        EventEntry entry = log.entries.get(0);
+        assertEquals(" Game created at: 2021-10-10 22:48:46 -0400", entry.comment);
+        assertNull(entry.event);
+        assertFalse(entry.isFromClient);
+        assertEquals(-1, entry.pn);
+        assertNull(entry.excludedPN);
 
         // spot-check a few parsed messages:
 
         // ob:SOCDiceResult:game=test|param=-1
-        EventEntry entry = log.entries.get(18);
+        entry = log.entries.get(18);
         SOCMessage msg = entry.event;
         assertFalse(entry.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, entry.pn);
@@ -454,26 +560,30 @@ public class TestGameEventLog
         assertEquals(2, ((SOCPutPiece) msg).getPieceType());
     }
 
+    /** Artifact {@code has-timestamps.soclog}'s length from {@code wc -l} */
+    private static final int HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT = 223;
+
     /**
-     * Test {@link GameEventLog#load(File, boolean, boolean)}
+     * Test {@link GameEventLog#load(File, boolean, int)}
      * on the known-good {@code has-timestamps.soclog} artifact.
      * @see #testLoadKnownGood()
      * @see #testLoadWithServerOnly()
+     * @see #testLoadWithFilterToClientPN()
      */
     @Test
     public void testLoadWithTimestamps()
         throws NoSuchElementException, IOException, ParseException
     {
-        final GameEventLog log = load("has-timestamps.soclog", false, false);
-        final int EXPECTED_FILE_LINE_COUNT = 223;  // length from wc -l
+        final GameEventLog log = load("has-timestamps.soclog", false, -1);
 
         assertNotNull(log);
         assertEquals("g", log.gameName);
         assertFalse(log.isServerOnly);
+        assertEquals(-1, log.serverOnlyToClientPN);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
-        assertEquals(EXPECTED_FILE_LINE_COUNT, log.numLines);
+        assertEquals(HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT, log.numLines);
         assertEquals(log.numLines, 1 + log.entries.size());  // true if no blank lines
 
         // comment-line parsing
@@ -508,33 +618,90 @@ public class TestGameEventLog
         assertEquals(5, ((SOCDiceResult) msg).getResult());
 
         // 1:04.429:fo:SOCGameTextMsg:game=g|nickname=-|text=entry with timestamp >= 1 minute
-        entry = log.entries.get(EXPECTED_FILE_LINE_COUNT - 5 - 2);
+        entry = log.entries.get(HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT - 5 - 2);
         msg = entry.event;
         assertEquals(64429, entry.timeElapsedMS);
         assertTrue(entry.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, entry.pn);
         assertNull(entry.excludedPN);
-        assertTrue("Line " + (EXPECTED_FILE_LINE_COUNT - 5) + " expected SOCGameTextMsg, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+        assertTrue("Line " + (HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT - 5)
+            + " expected SOCGameTextMsg, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCGameTextMsg);
         assertEquals("g", ((SOCGameTextMsg) msg).getGame());
     }
 
     /**
-     * Test {@link GameEventLog#load(File, boolean, boolean)}
+     * Test {@link GameEventLog#load(File, boolean, int)} with {@code filterServerOnlyToClientPN}
+     * on the known-good {@code has-timestamps.soclog} artifact, against separately-tested
+     * {@link GameEventLog#GameEventLog(soc.game.SOCGame, boolean)} filtering copy constructor.
+     * @see #testFilteringCopyConstructor()
+     * @see #testLoadWithTimestamps()
+     * @see #testLoadWithServerOnly()
+     */
+    @Test
+    public void testLoadWithFilterToClientPN()
+        throws NoSuchElementException, IOException, ParseException
+    {
+        final int TO_PN = 3,
+            EXPECTED_ORIG_NUM_ENTRIES = HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT - 1;  // true if no blank lines
+
+        // First, load the whole log, filter it with independently tested GameEventLog(log, TO_PN)
+        GameEventLog log = load("has-timestamps.soclog", false, -1);
+        assertNotNull(log);
+        assertEquals("g", log.gameName);
+        assertFalse(log.isServerOnly);
+        assertEquals(-1, log.serverOnlyToClientPN);
+        assertEquals(2500, log.version);
+        assertFalse(log.entries.isEmpty());
+        assertEquals(HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT, log.numLines);
+        assertEquals(EXPECTED_ORIG_NUM_ENTRIES, log.entries.size());
+
+        // Filter: none from clients, none sent only to other players/observer
+        final int EXPECTED_FROM_CLIENTS = 34,  // from grep -c '[0-9]:f[o0-5]:' has-timestamps.soclog
+            EXPECTED_FROM_OBSERVER = 54,    // grep -c '[0-9]:ob:'
+            EXPECTED_TO_OTHER_PLAYERS = 7,  // grep -c '[0-9]:p[0-2]:'
+            EXPECTED_EXCLUDE_PLAYERS = 0;   // grep -c '[0-9]:!p'
+        final GameEventLog filteredHereLog = new GameEventLog(log, TO_PN);
+        assertEquals(EXPECTED_ORIG_NUM_ENTRIES -
+            (EXPECTED_FROM_CLIENTS + EXPECTED_FROM_OBSERVER + EXPECTED_TO_OTHER_PLAYERS + EXPECTED_EXCLUDE_PLAYERS),
+            filteredHereLog.entries.size());
+
+        // Now reload with filtering
+        log = load("has-timestamps.soclog", false, TO_PN);
+        assertNotNull(log);
+        assertEquals("g", log.gameName);
+        assertTrue(log.isServerOnly);
+        assertEquals(TO_PN, log.serverOnlyToClientPN);
+        assertEquals(2500, log.version);
+        assertFalse(log.entries.isEmpty());
+        assertEquals(HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT, log.numLines);
+        final int S = filteredHereLog.entries.size();
+        assertEquals(S, log.entries.size());
+        synchronized(log.entries)  // avoid some locking overhead
+        {
+            for (int i = 0; i < S; ++i)
+                assertEquals(filteredHereLog.entries.get(i), log.entries.get(i));
+        }
+    }
+
+    /**
+     * Test {@link GameEventLog#load(File, boolean, int)}
      * on the known-good {@code is-server-only.soclog} artifact.
      * @see #testLoadKnownGood()
      * @see #testLoadWithTimestamps()
+     * @see #testLoadWithFilterToClientPN()
      */
     @Test
     public void testLoadWithServerOnly()
         throws NoSuchElementException, IOException, ParseException
     {
-        final GameEventLog log = load("is-server-only.soclog", false, false);
+        final GameEventLog log = load("is-server-only.soclog", false, -1);
         final int EXPECTED_FILE_LINE_COUNT = 198;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
         assertTrue(log.isServerOnly);
+        assertEquals(-1, log.serverOnlyToClientPN);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
@@ -571,7 +738,7 @@ public class TestGameEventLog
     }
 
     /**
-     * Test {@link GameEventLog#load(File, boolean, boolean)}
+     * Test {@link GameEventLog#load(File, boolean, int)}
      * on soclog artifacts missing various required items:
      *<UL>
      * <LI> {@code test-missing-header.soclog}: missing required header line
@@ -595,7 +762,7 @@ public class TestGameEventLog
     {
         try
         {
-            load("test-missing-header.soclog", false, false);
+            load("test-missing-header.soclog", false, -1);
             fail("test-missing-header.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
             assertTrue(e.getMessage().contains("header line"));
@@ -603,7 +770,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-header-type-missing.soclog", false, false);
+            load("test-header-type-missing.soclog", false, -1);
             fail("test-header-type-missing.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
             assertTrue(e.getMessage().contains("must start with \"SOC game event log\" header"));
@@ -611,7 +778,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-header-type-invalid.soclog", false, false);
+            load("test-header-type-invalid.soclog", false, -1);
             fail("test-header-type-invalid.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("unknown log type"));
@@ -619,7 +786,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-header-type-length.soclog", false, false);
+            load("test-header-type-length.soclog", false, -1);
             fail("test-header-type-length.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("unknown log type, must be 1 character"));
@@ -627,7 +794,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-missing-header-version.soclog", false, false);
+            load("test-missing-header-version.soclog", false, -1);
             fail("test-missing-header-version.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
             assertTrue(e.getMessage().contains("Header missing required version"));
@@ -635,7 +802,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-missing-header-version-numparse.soclog", false, false);
+            load("test-missing-header-version-numparse.soclog", false, -1);
             fail("test-missing-header-version-numparse.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().equals("Couldn't parse version number in header"));
@@ -643,7 +810,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-missing-header-gamename.soclog", false, false);
+            load("test-missing-header-gamename.soclog", false, -1);
             fail("test-missing-header.gamename: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("missing required game_name"));
@@ -651,7 +818,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-missing-header-gamename-empty.soclog", false, false);
+            load("test-missing-header-gamename-empty.soclog", false, -1);
             fail("test-missing-header.gamename-empty: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("Empty game_name"));
@@ -659,7 +826,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-missing-header-gamename-invalid.soclog", false, false);
+            load("test-missing-header-gamename-invalid.soclog", false, -1);
             fail("test-missing-header.gamename-invalid: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("Invalid game_name"));
@@ -667,7 +834,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-version-too-old.soclog", false, false);
+            load("test-version-too-old.soclog", false, -1);
             fail("test-version-too-old.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
             assertTrue(e.getMessage().startsWith("Minimum version for format is "));
@@ -675,7 +842,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-missing-socversion.soclog", false, false);
+            load("test-missing-socversion.soclog", false, -1);
             fail("test-missing-socversion.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
             assertTrue(e.getMessage().equals("First event message must be SOCVersion"));
@@ -683,7 +850,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-missing-socnewgame.soclog", false, false);
+            load("test-missing-socnewgame.soclog", false, -1);
             fail("test-missing-socnewgame.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
             assertTrue(e.getMessage().equals("Second event message must be SOCNewGame or SOCNewGameWithOptions"));
@@ -691,7 +858,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-version-mismatch.soclog", false, false);
+            load("test-version-mismatch.soclog", false, -1);
             fail("test-version-mismatch.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("in SOCVersion differs from header"));
@@ -699,7 +866,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-gamename-mismatch-newgame.soclog", false, false);
+            load("test-gamename-mismatch-newgame.soclog", false, -1);
             fail("test-gamename-mismatch-newgame.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("Game name differs from header"));
@@ -707,7 +874,7 @@ public class TestGameEventLog
 
         try
         {
-            load("test-gamename-mismatch-newgamewithopts.soclog", false, false);
+            load("test-gamename-mismatch-newgamewithopts.soclog", false, -1);
             fail("test-gamename-mismatch-newgamewithopts.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("Game name differs from header"));
@@ -716,7 +883,7 @@ public class TestGameEventLog
     }
 
     /**
-     * Tests {@link GameEventLog#load(File, boolean, boolean)} behavior
+     * Tests {@link GameEventLog#load(File, boolean, int)} behavior
      * when given a logfile in STAC v1 format {@code test-stac-legacy-human-league1-sample.soclog}:
      * Should refuse to parse, but throw {@link NoSuchElementException} instead of generic {@link ParseException}.
      */
@@ -726,7 +893,7 @@ public class TestGameEventLog
     {
         try
         {
-            load("test-stac-legacy-human-league1-sample.soclog", false, false);
+            load("test-stac-legacy-human-league1-sample.soclog", false, -1);
             fail("test-stac-legacy-human-league1-sample.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
             assertTrue(e.getMessage().contains("must start with \"SOC game event log\" header"));

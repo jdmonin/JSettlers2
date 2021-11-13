@@ -275,7 +275,7 @@ public class GameActionLog
             /**
              * Buy a development card.
              *<BR>
-             * {@code p1} = dev card type bought, like {@link SOCDevCardConstants#ROADS}.
+             * {@code p1} = dev card type bought, like {@link SOCDevCardConstants#ROADS}, or 0 if type was hidden.
              * {@code p2} = number of cards remaining in deck after purchase.
              * @see #PLAY_DEV_CARD
              */
