@@ -564,10 +564,14 @@ listed in "Next player's usual turn begins":
 
 ### End usual turn
 
+In gameState PLAY1:
+
 - f3:SOCEndTurn:game=test
 - all:SOCClearOffer:game=test|playerNumber=-1
 
 ### End special building "turn"
+
+In gameState SPECIAL_BUILDING:
 
 - f3:SOCEndTurn:game=test
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=0  // ASK_SPECIAL_BUILD

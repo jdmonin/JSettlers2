@@ -29,6 +29,8 @@ Will want to track current player, current game state.
 
 Message sequence beginnings, roughly in same order as in [Message-Sequences-for-Game-Actions.md](../Message-Sequences-for-Game-Actions.md):
 
+### When messages from all clients to server are visible: (server-side view)
+
 - all:SOCTurn
     - SOCTurn's gameState=15 -> Begin regular turn
     - SOCTurn's gameState=100 -> Begin SBP
@@ -58,3 +60,42 @@ Message sequence beginnings, roughly in same order as in [Message-Sequences-for-
 - all:SOCGameStats -> Game Over
 - all:SOCDevCardAction(ADD_OLD)
     - gameState 1000 -> Game Over
+
+### When only messages from server are visible: (client-side view)
+
+As seen by a human player client or robot player.
+
+- SOCDiceResult -> Roll Dice
+- SOCPutPiece -> Build Piece
+- SOCRevealFogHex:
+    - Next is SOCPutPiece -> Build Piece
+    - Next is SOCMovePiece -> Move Piece
+- SOCPlayerElements or SOCPlayerElement:
+    - SOCPlayerElement:actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=1 -> Ask Special Building during another player's turn
+    - In gameState PLAY1 or SPECIAL_BUILDING:
+        - actionType=LOSE|news=N|(resource types) -> Build Piece or Buy dev card
+            - If next is SOCGameElements:DEV_CARD_COUNT=... -> Buy dev card
+            - Otherwise -> assume Build Piece
+    - In other gameStates:
+        - actionType=LOSE|news=(any)|(resource types) -> Discard
+- SOCMovePiece -> Move Piece
+- SOCDevCardAction:
+    - In gameState OVER: actionType=ADD_OLD -> Game over
+    - Otherwise: actionType=PLAY|cardType=... -> Play dev card
+- SOCPickResources:reason=3 -> Choose free resources (gold hex gains)
+- SOCMoveRobber:
+    - In gameState PLACING_ROBBER -> Move robber
+    - In gameState PLACING_PIRATE -> Move pirate
+- SOCReportRobbery -> Robbery results
+- SOCBankTrade -> Bank trade or Undo bank trade
+- SOCMakeOffer -> Player trade: Make offer or counteroffer
+- SOCRejectOffer -> Player trade: Reject
+- SOCAcceptOffer -> Player trade: Accept
+- SOCTurn:
+    - new gameState=ROLL_OR_CARD -> Start next turn
+    - new gameState=SPECIAL_BUILDING -> Special Building turn
+    - new gameState=OVER -> Game over
+- SOCPlayerElement:playerNum=(current player)|actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=0 -> End special building "turn"
+- SOCClearOffer(playerNumber=-1):
+    - In gameState PLAY1 -> End turn
+- SOCGameStats -> Game over
