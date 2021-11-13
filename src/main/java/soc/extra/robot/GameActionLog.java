@@ -387,6 +387,13 @@ public class GameActionLog
             TRADE_MAKE_OFFER,
 
             /**
+             * Clear/cancel player's own trade offer.
+             *<BR>
+             * {@code p1} = player number canceling their offer.
+             */
+            TRADE_CLEAR_OFFER,
+
+            /**
              * Reject a player's trade offer.
              *<BR>
              * {@code p1} = player number rejecting all offers made to them.

@@ -64,8 +64,8 @@ public class GameActionExtractor
                 SOCMessage.TURN, SOCMessage.ROLLDICE, SOCMessage.PUTPIECE, SOCMessage.BUILDREQUEST,
                 SOCMessage.MOVEPIECE, SOCMessage.BUYDEVCARDREQUEST, SOCMessage.PLAYDEVCARDREQUEST,
                 SOCMessage.DISCARD, SOCMessage.PICKRESOURCES, SOCMessage.CHOOSEPLAYER, SOCMessage.MOVEROBBER,
-                SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.REPORTROBBERY,
-                SOCMessage.BANKTRADE, SOCMessage.MAKEOFFER, SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
+                SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.REPORTROBBERY, SOCMessage.BANKTRADE,
+                SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER, SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
                 SOCMessage.ENDTURN, SOCMessage.GAMESTATS, SOCMessage.DEVCARDACTION
             })
             SEQ_START_MSG_TYPES.add(msgtype);
@@ -449,6 +449,10 @@ public class GameActionExtractor
 
                 case SOCMessage.MAKEOFFER:
                     extractedAct = extract_TRADE_MAKE_OFFER(e);
+                    break;
+
+                case SOCMessage.CLEAROFFER:
+                    extractedAct = extract_TRADE_CLEAR_OFFER(e);
                     break;
 
                 case SOCMessage.REJECTOFFER:
@@ -1584,6 +1588,34 @@ public class GameActionExtractor
         return new Action
             (ActionType.TRADE_MAKE_OFFER, state.currentGameState, resetCurrentSequence(), prevStart,
              offerFromPN, 0, 0, offer.getGiveSet(), offer.getGetSet());
+    }
+
+    /**
+     * Extract {@link ActionType#TRADE_CLEAR_OFFER} from the current message sequence.
+     * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
+     * @return extracted action, or {@code null} if sequence incomplete
+     */
+    private Action extract_TRADE_CLEAR_OFFER(GameEventLog.EventEntry e)
+    {
+        // f3:SOCClearOffer:game=test|playerNumber=0
+        if (! (e.isFromClient && (e.pn != -1)))
+            return null;
+
+        // all:SOCClearOffer:game=test|playerNumber=3
+        e = next();
+        if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCClearOffer)))
+            return null;
+        final int clearingPN = ((SOCClearOffer) e.event).getPlayerNumber();
+
+        // all:SOCClearTradeMsg:game=test|playerNumber=-1
+        e = next();
+        if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCClearTradeMsg)))
+            return null;
+
+        int prevStart = currentSequenceStartIndex;
+        return new Action
+            (ActionType.TRADE_CLEAR_OFFER, state.currentGameState, resetCurrentSequence(), prevStart,
+             clearingPN, 0, 0);
     }
 
     /**

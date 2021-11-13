@@ -329,6 +329,12 @@ f2:SOCMoveRobber:game=test|playerNumber=2|coord=-50c
 all:SOCMoveRobber:game=test|playerNumber=2|coord=-50c
 all:SOCGameServerText:game=test|text=p2 moved the pirate.
 all:SOCGameState:game=test|state=20
+f2:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=1|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=1|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCClearTradeMsg:game=test|playerNumber=-1
+f2:SOCClearOffer:game=test|playerNumber=0
+all:SOCClearOffer:game=test|playerNumber=2
+all:SOCClearTradeMsg:game=test|playerNumber=-1
 f2:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
 all:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
 all:SOCClearTradeMsg:game=test|playerNumber=-1

@@ -54,6 +54,7 @@ Message sequence beginnings, roughly in same order as in [Message-Sequences-for-
 - p3:SOCReportRobbery -> Rob a player
 - f3:SOCBankTrade -> Bank trade (usual or undo previous)
 - f3:SOCMakeOffer -> Make trade offer
+- f3:SOCClearOffer -> Clear own trade offer
 - f3:SOCRejectOffer -> Reject trade offer
 - f3:SOCAcceptOffer -> Accept trade offer
 - f3:SOCEndTurn -> End turn (usual or Special Building)
@@ -88,7 +89,10 @@ As seen by a human player client or robot player.
     - In gameState PLACING_PIRATE -> Move pirate
 - SOCReportRobbery -> Robbery results
 - SOCBankTrade -> Bank trade or Undo bank trade
-- SOCMakeOffer -> Player trade: Make offer or counteroffer
+- SOCMakeOffer -> Player trade: Make trade offer or counteroffer
+- SOCClearOffer(playerNumber >= 0) -> Clear own trade offer
+- SOCClearOffer(playerNumber = -1):
+    - In gameState PLAY1 -> End turn
 - SOCRejectOffer -> Player trade: Reject
 - SOCAcceptOffer -> Player trade: Accept
 - SOCTurn:
@@ -96,6 +100,4 @@ As seen by a human player client or robot player.
     - new gameState=SPECIAL_BUILDING -> Special Building turn
     - new gameState=OVER -> Game over
 - SOCPlayerElement:playerNum=(current player)|actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=0 -> End special building "turn"
-- SOCClearOffer(playerNumber=-1):
-    - In gameState PLAY1 -> End turn
 - SOCGameStats -> Game over

@@ -900,7 +900,7 @@ public class TestGameActionExtractor
     /**
      * Test extraction of a turn with bank trades and player trades:
      * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE} without gains,
-     * {@link ActionType#TRADE_BANK}, {@link ActionType#TRADE_MAKE_OFFER},
+     * {@link ActionType#TRADE_BANK}, {@link ActionType#TRADE_MAKE_OFFER}, {@link ActionType#TRADE_CLEAR_OFFER},
      * {@link ActionType#TRADE_REJECT_OFFER}, {@link ActionType#TRADE_ACCEPT_OFFER},
      * {@link ActionType#END_TURN}.
      * Sequences based on {@code all-basic-actions.soclog}.
@@ -935,6 +935,11 @@ public class TestGameActionExtractor
             "all:SOCMakeOffer:game=test|offer=game=test|from=3|to=false,true,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0",
             "all:SOCClearTradeMsg:game=test|playerNumber=-1",
 
+            // p2 clears their own previous offer:
+            "f2:SOCClearOffer:game=test|playerNumber=0",
+            "all:SOCClearOffer:game=test|playerNumber=2",
+            "all:SOCClearTradeMsg:game=test|playerNumber=-1",
+
             // p1 rejects:
             "f1:SOCRejectOffer:game=test|playerNumber=0",
             "all:SOCRejectOffer:game=test|playerNumber=1",
@@ -954,7 +959,7 @@ public class TestGameActionExtractor
         assertEquals("at end of event log", events.size(), state.nextLogIndex);
         assertNull(next());  // at end of log again
         assertNotNull(actionLog);
-        assertEquals(9, actionLog.size());
+        assertEquals(10, actionLog.size());
 
         GameActionLog.Action act = actionLog.get(0);
         assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -1002,12 +1007,18 @@ public class TestGameActionExtractor
         assertEquals("player 3 offering", 3, act.param1);
 
         act = actionLog.get(6);
+        assertEquals(ActionType.TRADE_CLEAR_OFFER, act.actType);
+        assertEquals(3, act.eventSequence.size());
+        assertEquals(SOCGame.PLAY1, act.endingGameState);
+        assertEquals("player 2 clearing", 2, act.param1);
+
+        act = actionLog.get(7);
         assertEquals(ActionType.TRADE_REJECT_OFFER, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
         assertEquals("player 1 rejecting", 1, act.param1);
 
-        act = actionLog.get(7);
+        act = actionLog.get(8);
         assertEquals(ActionType.TRADE_ACCEPT_OFFER, act.actType);
         assertEquals(3, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
@@ -1016,7 +1027,7 @@ public class TestGameActionExtractor
         assertEquals("player 3 offering", 3, act.param1);
         assertEquals("player 2 accepting", 2, act.param2);
 
-        act = actionLog.get(8);
+        act = actionLog.get(9);
         assertEquals(ActionType.END_TURN, act.actType);
         assertEquals(2, act.eventSequence.size());
         assertEquals(SOCGame.PLAY1, act.endingGameState);
