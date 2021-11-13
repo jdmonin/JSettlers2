@@ -54,10 +54,12 @@ import soc.message.*;
 public class GameActionExtractor
 {
     /**
-     * All {@link SOCMessage} types which start a possible sequence in the decision tree top level,
-     * as documented in {@code GameActionExtractor.md}.
+     * For a "full mode" log, all {@link SOCMessage} types which start a possible sequence in the
+     * decision tree top level, as documented in {@code GameActionExtractor.md}.
+     * @see #SEQ_START_MSG_TYPES_SERVER_ONLY
+     * @see #seqStartMsgTypes
      */
-    protected static final Set<Integer> SEQ_START_MSG_TYPES = new HashSet<>();
+    protected static final Set<Integer> SEQ_START_MSG_TYPES_FULL = new HashSet<>();
     static {
         for (int msgtype : new int[]
             {
@@ -68,7 +70,28 @@ public class GameActionExtractor
                 SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER, SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
                 SOCMessage.ENDTURN, SOCMessage.GAMESTATS, SOCMessage.DEVCARDACTION
             })
-            SEQ_START_MSG_TYPES.add(msgtype);
+            SEQ_START_MSG_TYPES_FULL.add(msgtype);
+    }
+
+    /**
+     * For a "server messages only mode" log, all {@link SOCMessage} types which start a possible sequence in the
+     * decision tree top level, as documented in {@code GameActionExtractor.md}.
+     * @see #SEQ_START_MSG_TYPES_FULL
+     * @see #seqStartMsgTypes
+     */
+    protected static final Set<Integer> SEQ_START_MSG_TYPES_SERVER_ONLY = new HashSet<>();
+    static {
+        for (int msgtype : new int[]
+            {
+                SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX,
+                SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
+                SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.PICKRESOURCES,
+                SOCMessage.MOVEROBBER, SOCMessage.REPORTROBBERY,
+                SOCMessage.BANKTRADE, SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER,
+                SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
+                SOCMessage.TURN, SOCMessage.GAMESTATS
+            })
+            SEQ_START_MSG_TYPES_SERVER_ONLY.add(msgtype);
     }
 
     /**
@@ -83,8 +106,34 @@ public class GameActionExtractor
             IGNORE_MSG_TYPES.add(msgtype);
     }
 
+    /**
+     * All {@link SOCMessage} types which start a possible sequence in the decision tree top level,
+     * as documented in {@code GameActionExtractor.md}:
+     * Either {@link #SEQ_START_MSG_TYPES_FULL} or {@link #SEQ_START_MSG_TYPES_SERVER_ONLY},
+     * depending on {@link #hasServerOnlyLog}.
+     */
+    protected final Set<Integer> seqStartMsgTypes;
+
+    /**
+     * The event log being extracted into {@link #actLog}.
+     * @see #hasServerOnlyLog
+     */
     protected final GameEventLog eventLog;
+
+    /**
+     * The action log being extracted from {@link #eventLog}.
+     * @see #hasServerOnlyLog
+     */
     protected final GameActionLog actLog;
+
+    /**
+     * If true, {@link #eventLog} doesn't contain entries where {@link GameEventLog.EventEntry#isFromClient} true.
+     * If false, is the full log. Set from {@link #eventLog}{@link GameEventLog#isServerOnly .isServerOnly}.
+     * Selection for {@link #seqStartMsgTypes} is based on this flag.
+     * @see GameEventLog#save(java.io.File, String, boolean)
+     */
+    protected final boolean hasServerOnlyLog;
+
     protected final ExtractorState state = new ExtractorState();
 
     /**
@@ -126,6 +175,8 @@ public class GameActionExtractor
 
         this.eventLog = eventLog;
         actLog = new GameActionLog();
+        hasServerOnlyLog = eventLog.isServerOnly;
+        seqStartMsgTypes = (hasServerOnlyLog) ? SEQ_START_MSG_TYPES_SERVER_ONLY : SEQ_START_MSG_TYPES_FULL;
 
         if (keepEntriesBeforeInitPlacement)
             currentSequence = new ArrayList<>(70);  // approx. message count before startgame for a 2-player game
@@ -365,6 +416,7 @@ public class GameActionExtractor
             // Invariant: Just finished extracting the previous message sequence.
             // nextLogIndex points at what's hopefully the start of the next message sequence.
             // currentSequence is empty, currentSequenceStartIndex == nextLogIndex.
+            // Next message is expected to be one of the seqStartMsgTypes.
 
             GameEventLog.EventEntry e = next();
             if (e == null)
@@ -374,9 +426,10 @@ public class GameActionExtractor
 
             SOCMessage event = e.event;
             int eventType = event.getType();
-            if (SEQ_START_MSG_TYPES.contains(eventType))
+            if (seqStartMsgTypes.contains(eventType))
             {
                 // Events here are mostly in same order as in Message-Sequences-for-Game-Actions.md
+                // and GameActionExtractor.md
 
                 switch (eventType)
                 {
@@ -385,7 +438,13 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.ROLLDICE:
-                    extractedAct = extract_ROLL_DICE(e);
+                    if (! hasServerOnlyLog)
+                        extractedAct = extract_ROLL_DICE(e);
+                    break;
+
+                case SOCMessage.DICERESULT:
+                    if (hasServerOnlyLog)
+                        extractedAct = extract_ROLL_DICE(e);
                     break;
 
                 case SOCMessage.PUTPIECE:
@@ -394,7 +453,7 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.BUILDREQUEST:
-                    if (e.isFromClient)
+                    if (e.isFromClient && ! hasServerOnlyLog)
                     {
                         if (e.pn == state.currentPlayerNumber)
                             extractedAct = extract_BUILD_PIECE(e, true);
@@ -403,20 +462,35 @@ public class GameActionExtractor
                     }
                     break;
 
+                case SOCMessage.REVEALFOGHEX:
+                    if (hasServerOnlyLog)
+                        extractedAct = extract_from_REVEALFOGHEX(e);
+                    break;
+
+                case SOCMessage.PLAYERELEMENT:
+                    // fall through
+                case SOCMessage.PLAYERELEMENTS:
+                    if (hasServerOnlyLog)
+                        extractedAct = extract_from_PLAYERELEMENTS(e);
+                    break;
+
                 case SOCMessage.MOVEPIECE:
                     extractedAct = extract_MOVE_PIECE(e);
                     break;
 
                 case SOCMessage.BUYDEVCARDREQUEST:
-                    extractedAct = extract_BUY_DEV_CARD(e);
+                    if (! hasServerOnlyLog)
+                        extractedAct = extract_BUY_DEV_CARD(e);
                     break;
 
                 case SOCMessage.PLAYDEVCARDREQUEST:
-                    extractedAct = extract_PLAY_DEV_CARD(e);
+                    if (! hasServerOnlyLog)
+                        extractedAct = extract_PLAY_DEV_CARD(e);
                     break;
 
                 case SOCMessage.DISCARD:
-                    extractedAct = extract_DISCARD(e);
+                    if (! hasServerOnlyLog)
+                        extractedAct = extract_DISCARD(e);
                     break;
 
                 case SOCMessage.PICKRESOURCES:
@@ -424,10 +498,13 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.CHOOSEPLAYER:
-                    if (state.currentGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE)
-                        extractedAct = extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(e);
-                    else if (state.currentGameState == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
-                        extractedAct = extract_CHOOSE_ROB_CLOTH_OR_RESOURCE(e);
+                    if (! hasServerOnlyLog)
+                    {
+                        if (state.currentGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE)
+                            extractedAct = extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(e);
+                        else if (state.currentGameState == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
+                            extractedAct = extract_CHOOSE_ROB_CLOTH_OR_RESOURCE(e);
+                    }
                     break;
 
                 case SOCMessage.MOVEROBBER:
@@ -435,7 +512,7 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.CHOOSEPLAYERREQUEST:
-                    if (state.currentGameState == SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER)
+                    if ((! hasServerOnlyLog) && (state.currentGameState == SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER))
                         extractedAct = extract_CHOOSE_ROBBERY_VICTIM(e);
                     break;
 
@@ -464,7 +541,8 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.ENDTURN:
-                    extractedAct = extract_END_TURN(e);
+                    if (! hasServerOnlyLog)
+                        extractedAct = extract_END_TURN(e);
                     break;
 
                 case SOCMessage.GAMESTATS:
@@ -474,11 +552,14 @@ public class GameActionExtractor
                 case SOCMessage.DEVCARDACTION:
                     if (state.currentGameState == SOCGame.OVER)
                         extractedAct = extract_GAME_OVER(e);
+                    else if (hasServerOnlyLog)
+                        extractedAct = extract_PLAY_DEV_CARD(e);
                     break;
 
                 default:
                     System.err.println
-                        ("Internal error: message type " + eventType + " not handled, but is in SEQ_START_MSG_TYPES");
+                        ("Internal error: message type " + eventType
+                         + " not handled, but is in seqStartMsgTypes; hasServerOnlyLog=" + hasServerOnlyLog);
                 }
             }
 
@@ -497,7 +578,7 @@ public class GameActionExtractor
                         break;
 
                     event = e.event;
-                    if (SEQ_START_MSG_TYPES.contains(event.getType()))
+                    if (seqStartMsgTypes.contains(event.getType()))
                     {
                         // don't include this sequence-starting message in the UNKNOWN "sequence"
                         backtrackTo(eState);
@@ -523,6 +604,7 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#TURN_BEGINS} from the current message sequence.
+     * First entry is {@link SOCTurn}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
@@ -545,6 +627,7 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#ROLL_DICE} from the current message sequence.
+     * First entry is {@link SOCDiceResult} if {@link #hasServerOnlyLog}, otherwise {@link SOCRollDice}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
@@ -580,7 +663,7 @@ public class GameActionExtractor
             if (e == null)
                 break;
 
-            if (SEQ_START_MSG_TYPES.contains(e.event.getType()))
+            if (seqStartMsgTypes.contains(e.event.getType()))
             {
                 // don't include this sequence-starting message in the ROLL_DICE sequence
                 backtrackTo(eState);
@@ -594,6 +677,32 @@ public class GameActionExtractor
         return new Action
             (ActionType.ROLL_DICE, state.currentGameState, resetCurrentSequence(), prevStart,
              diceTotal, 0, 0);
+    }
+
+    /**
+     * Extract {@link ActionType#BUILD_PIECE} or {@link ActionType#MOVE_PIECE} from the current message sequence.
+     * First entry is {@link SOCRevealFogHex}; assumes {@link #hasServerOnlyLog}.
+     * @param e First entry of current sequence, already validated and added to {@link #currentSequence}; not null
+     * @return extracted action, or {@code null} if sequence incomplete
+     */
+    private Action extract_from_REVEALFOGHEX(GameEventLog.EventEntry e)
+    {
+        // TODO implement: check next, call extract_build_ or _move_piece
+        return null;
+    }
+
+    /**
+     * Extract various {@link ActionType}s from the current message sequence.
+     * First entry is {@link SOCPlayerElement} or {@link SOCPlayerElements}; assumes {@link #hasServerOnlyLog}.
+     * @param e First entry of current sequence, already validated and added to {@link #currentSequence}; not null
+     * @return extracted action, or {@code null} if sequence incomplete
+     */
+    private Action extract_from_PLAYERELEMENTS(GameEventLog.EventEntry e)
+    {
+        final boolean firstIsElements = (currentSequence.get(0).event instanceof SOCPlayerElements);
+
+        // TODO implement
+        return null;
     }
 
     /**
@@ -913,6 +1022,7 @@ public class GameActionExtractor
     /**
      * Extract {@link ActionType#PLAY_DEV_CARD} from the current message sequence.
      * Calls {@link #extract_PLAY_DEV_CARD_ROADS()}, {@link #extract_PLAY_DEV_CARD_MONOPOLY()}, etc.
+     * First entry is {@link SOCDevCardAction} if {@link #hasServerOnlyLog}, otherwise {@link SOCPlayDevCardRequest}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
@@ -941,19 +1051,19 @@ public class GameActionExtractor
         switch (cardType)
         {
         case SOCDevCardConstants.ROADS:
-            seq = extract_PLAY_DEV_CARD_ROADS();
+            seq = finish_extract_PLAY_DEV_CARD_ROADS();
             break;
 
         case SOCDevCardConstants.DISC:
-            seq = extract_PLAY_DEV_CARD_DISCOVERY();
+            seq = finish_extract_PLAY_DEV_CARD_DISCOVERY();
             break;
 
         case SOCDevCardConstants.MONO:
-            seq = extract_PLAY_DEV_CARD_MONOPOLY();
+            seq = finish_extract_PLAY_DEV_CARD_MONOPOLY();
             break;
 
         case SOCDevCardConstants.KNIGHT:
-            seq = extract_PLAY_DEV_CARD_KNIGHT();
+            seq = finish_extract_PLAY_DEV_CARD_KNIGHT();
             break;
 
         default:
@@ -980,7 +1090,7 @@ public class GameActionExtractor
      * from the rest of the current sequence.
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_PLAY_DEV_CARD_ROADS()
+    private Action finish_extract_PLAY_DEV_CARD_ROADS()
     {
         GameEventLog.EventEntry e = next();
         if (! (e.isToAll() && (e.event instanceof SOCGameState)))
@@ -1088,7 +1198,7 @@ public class GameActionExtractor
      * from the rest of the current sequence.
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_PLAY_DEV_CARD_DISCOVERY()
+    private Action finish_extract_PLAY_DEV_CARD_DISCOVERY()
     {
         // all:SOCGameState:game=test|state=52
         GameEventLog.EventEntry e = next();
@@ -1124,7 +1234,7 @@ public class GameActionExtractor
      * from the rest of the current sequence.
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_PLAY_DEV_CARD_MONOPOLY()
+    private Action finish_extract_PLAY_DEV_CARD_MONOPOLY()
     {
         // all:SOCGameState:game=test|state=53
         GameEventLog.EventEntry e = next();
@@ -1200,7 +1310,7 @@ public class GameActionExtractor
      * from the rest of the current sequence.
      * @return extracted action, or {@code null} if sequence incomplete
      */
-    private Action extract_PLAY_DEV_CARD_KNIGHT()
+    private Action finish_extract_PLAY_DEV_CARD_KNIGHT()
     {
         // all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1  // NUMKNIGHTS
         GameEventLog.EventEntry e = next();

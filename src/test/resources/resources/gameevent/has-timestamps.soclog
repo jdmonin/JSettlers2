@@ -1,4 +1,4 @@
-SOC game event log: version=2500, created_at=1636724878, now=1636724953, game_name=g
+SOC game event log: type=F, version=2500, created_at=1636724878, now=1636724953, game_name=g
 # Game created at: 2021-11-12 08:47:58 -0500
 # Log written at:  2021-11-12 08:49:13 -0500
 # Added comments are (C) Jeremy D Monin 2021 (GPLv3)
@@ -215,7 +215,7 @@ SOC game event log: version=2500, created_at=1636724878, now=1636724953, game_na
 0:44.867:all:SOCGameServerText:game=g|text=j built a road.
 0:44.867:all:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=89
 0:44.867:all:SOCGameState:game=g|state=20
-1:14.429:fo:SOCGameTextMsg:game=g|nickname=-|text=*savelog* has-timestamps
+1:04.429:fo:SOCGameTextMsg:game=g|nickname=-|text=entry with timestamp >= 1 minute
 # End of log; final game state is 20
 # Final player info:
 # - pn 1: total score 2: robot 3

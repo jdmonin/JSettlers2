@@ -73,12 +73,13 @@ As seen by a human player client or robot player.
     - Next is SOCMovePiece -> Move Piece
 - SOCPlayerElements or SOCPlayerElement:
     - SOCPlayerElement:actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=1 -> Ask Special Building during another player's turn
+    - SOCPlayerElement:playerNum=(current player)|actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=0 -> End special building "turn"
     - In gameState PLAY1 or SPECIAL_BUILDING:
-        - actionType=LOSE|news=N|(resource types) -> Build Piece or Buy dev card
+        - SOCPlayerElements:actionType=LOSE|news=N|(resource types) -> Build Piece or Buy dev card
             - If next is SOCGameElements:DEV_CARD_COUNT=... -> Buy dev card
             - Otherwise -> assume Build Piece
     - In other gameStates:
-        - actionType=LOSE|news=(any)|(resource types) -> Discard
+        - SOCPlayerElement or SOCPlayerElements:actionType=LOSE|(resource types) -> Discard
 - SOCMovePiece -> Move Piece
 - SOCDevCardAction:
     - In gameState OVER: actionType=ADD_OLD -> Game over
@@ -90,14 +91,13 @@ As seen by a human player client or robot player.
 - SOCReportRobbery -> Robbery results
 - SOCBankTrade -> Bank trade or Undo bank trade
 - SOCMakeOffer -> Player trade: Make trade offer or counteroffer
-- SOCClearOffer(playerNumber >= 0) -> Clear own trade offer
-- SOCClearOffer(playerNumber = -1):
-    - In gameState PLAY1 -> End turn
+- SOCClearOffer:
+    - (playerNumber >= 0) -> Clear own trade offer
+    - (playerNumber = -1) in gameState PLAY1 -> End turn
 - SOCRejectOffer -> Player trade: Reject
 - SOCAcceptOffer -> Player trade: Accept
 - SOCTurn:
     - new gameState=ROLL_OR_CARD -> Start next turn
     - new gameState=SPECIAL_BUILDING -> Special Building turn
     - new gameState=OVER -> Game over
-- SOCPlayerElement:playerNum=(current player)|actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=0 -> End special building "turn"
 - SOCGameStats -> Game over

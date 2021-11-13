@@ -418,7 +418,7 @@ Or if client sends build request:
 ### Discard
 
 - f2:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0
-- p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=3|amount=2
+- p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=3|amount=2  // a future version might combine this + next to 1 SOCPlayerElements
 - p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=5|amount=3
 - !p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=6|amount=5|news=Y
 - all:SOCGameServerText:game=test|text=p2 discarded 5 resources.

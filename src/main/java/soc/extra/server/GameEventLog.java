@@ -54,17 +54,23 @@ import soc.util.Version;
  * but aren't used by the standard SOCServer.
  *<P>
  * Use {@link #load(File, boolean, boolean)} to parse from a {@code .soclog} file,
- * creating a new {@code GameEventLog} with {@link #entries}, {@link #gameName}, {@link #version},
- * {@link #optsStr}, and {@link #numLines} from the parsed entries.
+ * creating a new {@code GameEventLog} with {@link #entries} from the parsed entries,
+ * setting the {@link #gameName}, {@link #isServerOnly}, {@link #version}, {@link #optsStr},
+ * and {@link #numLines} fields.
  *
  *<H3>Log file format</H3>
  *
  * {@link #save(File, String, boolean)} saves files in this format:
  *<UL>
  *  <LI> File starts with this header line:<BR>
- *    <tt>SOC game event log: version=2500, created_at=</tt>timestamp<tt>, now=</tt>timestamp<tt>, game_name=</tt>game name <BR>
+ *    <tt>SOC game event log: type=</tt>type<tt>, version=2500, created_at=</tt>timestamp<tt>, now=</tt>timestamp<tt>, game_name=</tt>game name <BR>
  *    <UL>
- *      <LI> <tt>version</tt> is the current {@link Version#versionNumber()}, always first in this list of properties
+ *      <LI> {@code type} is {@code F} for a full log (all messages from and to server),
+ *           or {@code S} if contains only messages from the server, not from the clients;
+ *           based on {@code serverOnly} parameter when calling {@code save(..)}.
+ *           Is always first in this list of properties.
+ *      <LI> {@code version} is the current {@link Version#versionNumber()}.
+ *           Always follows {@code type} in this list of properties.
  *      <LI> Header timestamps use unix epoch time in seconds: {@link System#currentTimeMillis()} / 1000
  *      <LI> Other field may be added in the future; {@code version} will always be first in the list
  *      <LI> Game name must pass {@link SOCMessage#isSingleLineAndSafe(String)}
@@ -122,6 +128,15 @@ public class GameEventLog
      * @see #game
      */
     public String gameName;
+
+    /**
+     * True if a log that's been loaded by {@link #load(File, boolean, boolean)} has {@code log_type=S} in header.
+     * Otherwise false.
+     *<P>
+     * {@code log_type=S} is written by a call to
+     * {@link #save(File, String, boolean) save(File, String, serverOnly=true)}.
+     */
+    public boolean isServerOnly;
 
     /**
      * The game data version seen in a log that's been loaded by {@link #load(File, boolean, boolean)},
@@ -187,7 +202,8 @@ public class GameEventLog
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save to; not validated for format or security.
      *     Recommended suffix is {@link #FILENAME_EXTENSION} for consistency.
-     * @param serverOnly  If true, don't write entries where {@link GameEventLog.EventEntry#isFromClient} true
+     * @param serverOnly  If true, don't write entries where {@link GameEventLog.EventEntry#isFromClient} true;
+     *     log will be {@code type=S} instead of {@code type=F}.
      * @throws IllegalStateException  if {@link #game} is {@code null}
      * @throws NoSuchElementException  unless {@link #entries} starts with {@link SOCVersion}
      *     followed by {@link SOCNewGame} or {@link SOCNewGameWithOptions} where
@@ -254,7 +270,8 @@ public class GameEventLog
             }
 
             writer.append
-                ("SOC game event log: version=" + Version.versionNumber()
+                ("SOC game event log: type=" + (serverOnly ? 'S' : 'F')
+                 + ", version=" + Version.versionNumber()
                  + ", created_at=" + (createdAt.getTime() / 1000)
                  + ", now=" + (now.getTime() / 1000)
                  + ", game_name=" + game.getName() + '\n');
@@ -305,13 +322,15 @@ public class GameEventLog
 
     /**
      * Load and parse a log from a file in the format saved by {@link #save(File, String, boolean)}.
-     * Adds its entries to {@link #entries}. Sets {@link #gameName}, {@link #version}, {@link #optsStr},
-     * and {@link #numLines}.
+     * Adds its entries to {@link #entries}. Sets {@link #gameName}, {@link #version}, {@link #isServerOnly},
+     * {@link #optsStr}, and {@link #numLines}.
      *
      * @param loadFrom  File to load from; filename usually ends with {@link #FILENAME_EXTENSION}
      * @param ignoreComments  If true, ignore comment lines instead of calling
      *     {@link EventEntry#EventEntry(String) new EventEntry(String)} constructor
-     * @param serverOnly  If true, ignore log entries which have {@link EventEntry#isFromClient} set true
+     * @param serverOnly  If true, ignore/filter out log entries which have {@link EventEntry#isFromClient} set true.
+     *     This can be used by client-side code or tests.
+     *     If {@code log_type=S}, the log is already server-only and this parameter is ignored.
      * @throws IOException  if a problem occurs while loading
      * @throws ParseException  if a log line can't be parsed. Exception text will start with line number: "Line 5: ...".
      *     {@link ParseException#getErrorOffset()} will be the offset within that trimmed line,
@@ -320,7 +339,7 @@ public class GameEventLog
      *     differs from that in header, or game name doesn't pass
      *     {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @throws NoSuchElementException if log file doesn't start with the required header line
-     *     {@code "SOC game event log: version=..."}, or its first 2 event messages aren't the required
+     *     {@code "SOC game event log: type=., version=..."}, or its first 2 event messages aren't the required
      *     {@link SOCVersion} and either {@link SOCNewGame} or {@link SOCNewGameWithOptions},
      *     or if header's {@code version} number &lt; 2500 ({@link #MIN_VERSION})
      */
@@ -337,20 +356,37 @@ public class GameEventLog
              final BufferedReader reader = new BufferedReader(new InputStreamReader(fis, "UTF-8")); )
         {
             String line = reader.readLine();
-            if ((line == null) || ! line.startsWith("SOC game event log: version="))
+            if ((line == null) || ! line.startsWith("SOC game event log: type="))
                 throw new NoSuchElementException("File must start with \"SOC game event log\" header line");
 
-            // parse version, game name from header fields
+            // parse type, version, game name from header fields
             for (String field : line.substring(20).split(", "))
             {
-                if (field.startsWith("version="))
+                if (field.startsWith("type="))
+                {
+                    if (field.length() != 6)
+                        throw new ParseException("unknown log type, must be 1 character: " + field, 26);
+                    final char logType = field.charAt(5);
+                    switch(logType)
+                    {
+                    case 'F':
+                        // GameEventLog is full by default
+                        break;
+                    case 'S':
+                        ret.isServerOnly = true;
+                        break;
+                    default:
+                        throw new ParseException("unknown log type: " + logType, 26);
+                    }
+                }
+                else if (field.startsWith("version="))
                 {
                     int vers;
                     try
                     {
                          vers = Integer.parseInt(field.substring(8));
                     } catch (NumberFormatException e) {
-                        throw new ParseException("Couldn't parse version number in header", 21 + 8);
+                        throw new ParseException("Couldn't parse version number in header", 21 + 7 + 8);
                     }
                     if (vers < MIN_VERSION)
                         throw new NoSuchElementException
@@ -370,7 +406,7 @@ public class GameEventLog
                 }
             }
             if (ret.version == 0)
-                throw new ParseException("Header missing required version field", 20);
+                throw new NoSuchElementException("Header missing required version field");
             if (ret.gameName == null)
                 throw new ParseException("Header missing required game_name field", 20);
 

@@ -35,6 +35,7 @@ import soc.message.SOCGameTextMsg;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCPutPiece;
+import soc.message.SOCReportRobbery;
 import soc.message.SOCVersion;
 import soc.server.SOCServer;
 
@@ -394,6 +395,7 @@ public class TestGameEventLog
      * Test {@link GameEventLog#load(File, boolean, boolean)}
      * on the known-good {@code all-basic-actions.soclog} artifact.
      * @see #testLoadWithTimestamps()
+     * @see #testLoadWithServerOnly()
      */
     @Test
     public void testLoadKnownGood()
@@ -404,6 +406,7 @@ public class TestGameEventLog
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
+        assertFalse(log.isServerOnly);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,SBL=t,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
@@ -413,15 +416,36 @@ public class TestGameEventLog
         // comment-line parsing
         assertEquals(" Game created at: 2021-10-10 22:48:46 -0400", log.entries.get(0).comment);
 
-        // spot-check a couple of parsed messages:
+        // spot-check a few parsed messages:
 
-        SOCMessage msg = log.entries.get(18).event;
+        // ob:SOCDiceResult:game=test|param=-1
+        EventEntry entry = log.entries.get(18);
+        SOCMessage msg = entry.event;
+        assertFalse(entry.isFromClient);
+        assertEquals(SOCServer.PN_OBSERVER, entry.pn);
+        assertNull(entry.excludedPN);
         assertTrue("Line 20 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCDiceResult);
         assertEquals("test", ((SOCDiceResult) msg).getGame());
         assertEquals(-1, ((SOCDiceResult) msg).getResult());
 
-        msg = log.entries.get(EXPECTED_FILE_LINE_COUNT - 16 - 2).event;
+        // !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+        entry = log.entries.get(313);
+        msg = entry.event;
+        assertFalse(entry.isFromClient);
+        assertEquals(-1, entry.pn);
+        assertArrayEquals(new int[]{3, 2}, entry.excludedPN);
+        assertTrue("Line 315 expected SOCReportRobbery, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCReportRobbery);
+        assertEquals(3, ((SOCReportRobbery) msg).perpPN);
+        assertEquals(2, ((SOCReportRobbery) msg).victimPN);
+
+        // all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=603
+        entry = log.entries.get(EXPECTED_FILE_LINE_COUNT - 16 - 2);
+        msg = entry.event;
+        assertFalse(entry.isFromClient);
+        assertEquals(-1, entry.pn);
+        assertNull(entry.excludedPN);
         assertTrue
             ("Line " + (EXPECTED_FILE_LINE_COUNT - 16) + " expected SOCPutPiece, got " +
                  ((msg != null) ? msg.getClass().getSimpleName() : "null"),
@@ -434,6 +458,7 @@ public class TestGameEventLog
      * Test {@link GameEventLog#load(File, boolean, boolean)}
      * on the known-good {@code has-timestamps.soclog} artifact.
      * @see #testLoadKnownGood()
+     * @see #testLoadWithServerOnly()
      */
     @Test
     public void testLoadWithTimestamps()
@@ -444,6 +469,7 @@ public class TestGameEventLog
 
         assertNotNull(log);
         assertEquals("g", log.gameName);
+        assertFalse(log.isServerOnly);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
@@ -461,6 +487,7 @@ public class TestGameEventLog
         assertEquals(5211, entry.timeElapsedMS);
         assertTrue(entry.isFromClient);
         assertEquals(3, entry.pn);
+        assertNull(entry.excludedPN);
         assertTrue
             ("Line 102 expected SOCPutPiece, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
              msg instanceof SOCPutPiece);
@@ -474,20 +501,73 @@ public class TestGameEventLog
         assertEquals(31165, entry.timeElapsedMS);
         assertFalse(entry.isFromClient);
         assertEquals(-1, entry.pn);
+        assertNull(entry.excludedPN);
         assertTrue("Line 172 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCDiceResult);
         assertEquals("g", ((SOCDiceResult) msg).getGame());
         assertEquals(5, ((SOCDiceResult) msg).getResult());
 
-        // 1:14.429:fo:SOCGameTextMsg:game=g|nickname=-|text=*savelog* has-timestamps
+        // 1:04.429:fo:SOCGameTextMsg:game=g|nickname=-|text=entry with timestamp >= 1 minute
         entry = log.entries.get(EXPECTED_FILE_LINE_COUNT - 5 - 2);
         msg = entry.event;
-        assertEquals(74429, entry.timeElapsedMS);
+        assertEquals(64429, entry.timeElapsedMS);
         assertTrue(entry.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, entry.pn);
+        assertNull(entry.excludedPN);
         assertTrue("Line " + (EXPECTED_FILE_LINE_COUNT - 5) + " expected SOCGameTextMsg, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCGameTextMsg);
         assertEquals("g", ((SOCGameTextMsg) msg).getGame());
+    }
+
+    /**
+     * Test {@link GameEventLog#load(File, boolean, boolean)}
+     * on the known-good {@code is-server-only.soclog} artifact.
+     * @see #testLoadKnownGood()
+     * @see #testLoadWithTimestamps()
+     */
+    @Test
+    public void testLoadWithServerOnly()
+        throws NoSuchElementException, IOException, ParseException
+    {
+        final GameEventLog log = load("is-server-only.soclog", false, false);
+        final int EXPECTED_FILE_LINE_COUNT = 198;  // length from wc -l
+
+        assertNotNull(log);
+        assertEquals("test", log.gameName);
+        assertTrue(log.isServerOnly);
+        assertEquals(2500, log.version);
+        assertEquals("BC=t4,N7=f7,RD=f,PL=4", log.optsStr);
+        assertFalse(log.entries.isEmpty());
+        assertEquals(EXPECTED_FILE_LINE_COUNT, log.numLines);
+        assertEquals(log.numLines, 1 + log.entries.size());  // true if no blank lines
+
+        // Spot-check a few parsed messages:
+
+        // 0:48.650:all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a6
+        EventEntry entry = log.entries.get(102);
+        SOCMessage msg = entry.event;
+        assertEquals(48650, entry.timeElapsedMS);
+        assertFalse(entry.isFromClient);
+        assertEquals(-1, entry.pn);
+        assertNull(entry.excludedPN);
+        assertTrue
+            ("Line 104 expected SOCPutPiece, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+             msg instanceof SOCPutPiece);
+        assertEquals("test", ((SOCPutPiece) msg).getGame());
+        assertEquals(0, ((SOCPutPiece) msg).getPieceType());
+        assertEquals(0xa6, ((SOCPutPiece) msg).getCoordinates());
+
+        // 2:04.365:!p[2, 1]:SOCReportRobbery:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
+        entry = log.entries.get(182);
+        msg = entry.event;
+        assertEquals(124365, entry.timeElapsedMS);
+        assertFalse(entry.isFromClient);
+        assertEquals(-1, entry.pn);
+        assertArrayEquals(new int[]{2, 1}, entry.excludedPN);
+        assertTrue("Line 184 expected SOCReportRobbery, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCReportRobbery);
+        assertEquals(2, ((SOCReportRobbery) msg).perpPN);
+        assertEquals(1, ((SOCReportRobbery) msg).victimPN);
     }
 
     /**
@@ -523,10 +603,34 @@ public class TestGameEventLog
 
         try
         {
+            load("test-header-type-missing.soclog", false, false);
+            fail("test-header-type-missing.soclog: Expected NoSuchElementException");
+        } catch (NoSuchElementException e) {
+            assertTrue(e.getMessage().contains("must start with \"SOC game event log\" header"));
+        }
+
+        try
+        {
+            load("test-header-type-invalid.soclog", false, false);
+            fail("test-header-type-invalid.soclog: Expected ParseException");
+        } catch (ParseException e) {
+            assertTrue(e.getMessage().contains("unknown log type"));
+        }
+
+        try
+        {
+            load("test-header-type-length.soclog", false, false);
+            fail("test-header-type-length.soclog: Expected ParseException");
+        } catch (ParseException e) {
+            assertTrue(e.getMessage().contains("unknown log type, must be 1 character"));
+        }
+
+        try
+        {
             load("test-missing-header-version.soclog", false, false);
             fail("test-missing-header-version.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
-            assertTrue(e.getMessage().contains("header line"));
+            assertTrue(e.getMessage().contains("Header missing required version"));
         }
 
         try
