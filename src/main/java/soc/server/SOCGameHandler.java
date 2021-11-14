@@ -4098,33 +4098,39 @@ public class SOCGameHandler extends GameHandler
      */
     private final void debugGiveDevCard(Connection c, String mes, SOCGame game)
     {
-        StringTokenizer st = new StringTokenizer(mes.substring(5));
+        boolean parseError = false;
         String name = "";
         int cardType = -1;
-        boolean parseError = false;
 
-        while (st.hasMoreTokens())
+        if (mes.length() <= 5)
+            parseError = true;
+        else
         {
-            if (cardType < 0)
+            StringTokenizer st = new StringTokenizer(mes.substring(5));
+
+            while (st.hasMoreTokens())
             {
-                try
+                if (cardType < 0)
                 {
-                    cardType = Integer.parseInt(st.nextToken());
-                    if ((cardType < SOCDevCardConstants.MIN_KNOWN) || (cardType >= SOCDevCardConstants.MAXPLUSONE))
-                        parseError = true;  // Can't give unknown dev cards
+                    try
+                    {
+                        cardType = Integer.parseInt(st.nextToken());
+                        if ((cardType < SOCDevCardConstants.MIN_KNOWN) || (cardType >= SOCDevCardConstants.MAXPLUSONE))
+                            parseError = true;  // Can't give unknown dev cards
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        parseError = true;
+                        break;
+                    }
                 }
-                catch (NumberFormatException e)
+                else
                 {
-                    parseError = true;
+                    // get all of the line, in case there's a space in the player name ("robot 7"),
+                    //  by choosing an unlikely separator character
+                    name = st.nextToken(Character.toString( (char) 1 )).trim();
                     break;
                 }
-            }
-            else
-            {
-                // get all of the line, in case there's a space in the player name ("robot 7"),
-                //  by choosing an unlikely separator character
-                name = st.nextToken(Character.toString( (char) 1 )).trim();
-                break;
             }
         }
 
