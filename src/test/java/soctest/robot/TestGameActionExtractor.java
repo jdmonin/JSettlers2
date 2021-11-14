@@ -48,6 +48,7 @@ import soc.util.Version;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static soc.server.SOCServer.PN_OBSERVER;
 
 /**
  * A few tests for {@link GameActionLog} and {@link GameActionExtractor}.
@@ -87,7 +88,7 @@ public class TestGameActionExtractor
     }
 
     /**
-     * Test basic extractor read methods {@code next()}, {@code pushbackTo(...)}, {@code nextIfType()},
+     * Test basic extractor read methods {@code next()}, {@code backtrackTo(...)}, {@code nextIfType()},
      * {@code resetCurrentSequence()}, and {@link ExtractorState#equals(Object)}.
      * @see #testBasicsNextIfGameStateOrOver()
      */
@@ -103,6 +104,7 @@ public class TestGameActionExtractor
         assertEquals(1, actLog.size());
         assertEquals(ActionType.LOG_START_TO_STARTGAME, actLog.get(0).actType);
         assertEquals(4, actLog.get(0).eventSequence.size());
+        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, actLog.get(0).endingGameState);
         assertEquals(-1, state.currentPlayerNumber);
         assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, state.currentGameState);  // was read in next() from SOCStartGame
         assertEquals("at end of event log so far", events.size(), state.nextLogIndex);
@@ -730,9 +732,7 @@ public class TestGameActionExtractor
     @Test
     public void testSpecialBuildingPhase()
     {
-        final List<EventEntry> events = eventLog.entries;
-
-        addEventLogEntries(events, new String[]
+        testExtractEventSequence(new String[]
             {
             // start of p3's turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
@@ -799,102 +799,106 @@ public class TestGameActionExtractor
             // start of p4's normal turn:
             "all:SOCTurn:game=test|playerNumber=4|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=4",
+            },
+            3, 99,
+            new ExtractResultsChecker()
+            {
+                public void check(GameActionLog actionLog, int toClientPN)
+                {
+                    final String desc = "for clientPN=" + toClientPN + ":";
+
+                    assertEquals(desc, 14, actionLog.size());
+
+                    GameActionLog.Action act = actionLog.get(0);
+                    assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
+                    assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+                    assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+                    act = actionLog.get(1);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc + " new current player number", 3, act.param1);
+
+                    act = actionLog.get(2);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 12, act.param1);
+
+                    act = actionLog.get(3);
+                    assertEquals(desc, ActionType.ASK_SPECIAL_BUILDING, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc, 1, act.param1);
+
+                    act = actionLog.get(4);
+                    assertEquals(desc, ActionType.ASK_SPECIAL_BUILDING, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc, 4, act.param1);
+
+                    act = actionLog.get(5);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+
+                    // start of SBP: p4
+                    act = actionLog.get(6);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " new current player number", 4, act.param1);
+
+                    act = actionLog.get(7);
+                    assertEquals(desc, ActionType.BUY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " dev card type",
+                        (toClientPN == -1) ? SOCDevCardConstants.KNIGHT : 0, act.param1);
+                    assertEquals(desc + " remaining cards", 32, act.param2);
+
+                    act = actionLog.get(8);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " built road", SOCPlayingPiece.ROAD, act.param1);
+                    assertEquals(desc + " built at 0x76", 0x76, act.param2);
+                    assertEquals(desc + " built by player 4", 4, act.param3);
+
+                    act = actionLog.get(9);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+
+                    // start of SBP: p1
+                    act = actionLog.get(10);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " new current player number", 1, act.param1);
+
+                    act = actionLog.get(11);
+                    assertEquals(ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " built road", SOCPlayingPiece.ROAD, act.param1);
+                    assertEquals(desc + " built at 0xa8", 0xa8, act.param2);
+                    assertEquals(desc + " built by player 1", 1, act.param3);
+
+                    act = actionLog.get(12);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+
+                    // start of p4's normal turn
+                    act = actionLog.get(13);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc + " new current player number", 4, act.param1);
+                }
             });
-
-        final GameActionLog actionLog = extract();
-
-        assertEquals("at end of event log", events.size(), state.nextLogIndex);
-        assertNull(next());  // at end of log again
-        assertNotNull(actionLog);
-        assertEquals(14, actionLog.size());
-
-        GameActionLog.Action act = actionLog.get(0);
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
-
-        act = actionLog.get(1);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(2, act.eventSequence.size());
-        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
-        assertEquals("new current player number", 3, act.param1);
-
-        act = actionLog.get(2);
-        assertEquals(ActionType.ROLL_DICE, act.actType);
-        assertEquals(3, act.eventSequence.size());
-        assertEquals(SOCGame.PLAY1, act.endingGameState);
-        assertEquals("dice roll sum", 12, act.param1);
-
-        act = actionLog.get(3);
-        assertEquals(ActionType.ASK_SPECIAL_BUILDING, act.actType);
-        assertEquals(2, act.eventSequence.size());
-        assertEquals(SOCGame.PLAY1, act.endingGameState);
-        assertEquals(1, act.param1);
-
-        act = actionLog.get(4);
-        assertEquals(ActionType.ASK_SPECIAL_BUILDING, act.actType);
-        assertEquals(2, act.eventSequence.size());
-        assertEquals(SOCGame.PLAY1, act.endingGameState);
-        assertEquals(4, act.param1);
-
-        act = actionLog.get(5);
-        assertEquals(ActionType.END_TURN, act.actType);
-        assertEquals(2, act.eventSequence.size());
-        assertEquals(SOCGame.PLAY1, act.endingGameState);
-
-        // start of SBP: p4
-        act = actionLog.get(6);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(1, act.eventSequence.size());
-        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
-        assertEquals("new current player number", 4, act.param1);
-
-        act = actionLog.get(7);
-        assertEquals(ActionType.BUY_DEV_CARD, act.actType);
-        assertEquals(7, act.eventSequence.size());
-        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
-        assertEquals("dev card type", SOCDevCardConstants.KNIGHT, act.param1);
-        assertEquals("remaining cards", 32, act.param2);
-
-        act = actionLog.get(8);
-        assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(5, act.eventSequence.size());
-        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
-        assertEquals("built road", SOCPlayingPiece.ROAD, act.param1);
-        assertEquals("built at 0x76", 0x76, act.param2);
-        assertEquals("built by player 4", 4, act.param3);
-
-        act = actionLog.get(9);
-        assertEquals(ActionType.END_TURN, act.actType);
-        assertEquals(3, act.eventSequence.size());
-        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
-
-        // start of SBP: p1
-        act = actionLog.get(10);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(1, act.eventSequence.size());
-        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
-        assertEquals("new current player number", 1, act.param1);
-
-        act = actionLog.get(11);
-        assertEquals(ActionType.BUILD_PIECE, act.actType);
-        assertEquals(7, act.eventSequence.size());
-        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
-        assertEquals("built road", SOCPlayingPiece.ROAD, act.param1);
-        assertEquals("built at 0xa8", 0xa8, act.param2);
-        assertEquals("built by player 1", 1, act.param3);
-
-        act = actionLog.get(12);
-        assertEquals(ActionType.END_TURN, act.actType);
-        assertEquals(3, act.eventSequence.size());
-        assertEquals(SOCGame.SPECIAL_BUILDING, act.endingGameState);
-
-        // start of p4's normal turn
-        act = actionLog.get(13);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(2, act.eventSequence.size());
-        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
-        assertEquals("new current player number", 4, act.param1);
     }
 
     /**
@@ -1321,9 +1325,7 @@ public class TestGameActionExtractor
     @Test
     public void testBuyDevCard()
     {
-        final List<EventEntry> events = eventLog.entries;
-
-        addEventLogEntries(events, new String[]
+        testExtractEventSequence(new String[]
             {
             // start of turn:
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
@@ -1347,43 +1349,47 @@ public class TestGameActionExtractor
             // end turn:
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
+            },
+            3, 99,
+            new ExtractResultsChecker()
+            {
+                public void check(GameActionLog actionLog, int toClientPN)
+                {
+                    final String desc = "for clientPN=" + toClientPN + ":";
+
+                    assertEquals(desc, 5, actionLog.size());
+
+                    GameActionLog.Action act = actionLog.get(0);
+                    assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
+                    assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+                    assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+                    act = actionLog.get(1);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc + " new current player number", 3, act.param1);
+
+                    act = actionLog.get(2);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 12, act.param1);
+
+                    act = actionLog.get(3);
+                    assertEquals(desc, ActionType.BUY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dev card type",
+                        (toClientPN != 99) ? SOCDevCardConstants.KNIGHT : 0, act.param1);
+                    assertEquals(desc + " remaining cards", 15, act.param2);
+
+                    act = actionLog.get(4);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                }
             });
-
-        final GameActionLog actionLog = extract();
-
-        assertEquals("at end of event log", events.size(), state.nextLogIndex);
-        assertNull(next());  // at end of log again
-        assertNotNull(actionLog);
-        assertEquals(5, actionLog.size());
-
-        GameActionLog.Action act = actionLog.get(0);
-        assertEquals(ActionType.LOG_START_TO_STARTGAME, act.actType);
-        assertEquals(EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
-        assertEquals(EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
-
-        act = actionLog.get(1);
-        assertEquals(ActionType.TURN_BEGINS, act.actType);
-        assertEquals(2, act.eventSequence.size());
-        assertEquals(SOCGame.ROLL_OR_CARD, act.endingGameState);
-        assertEquals("new current player number", 3, act.param1);
-
-        act = actionLog.get(2);
-        assertEquals(ActionType.ROLL_DICE, act.actType);
-        assertEquals(4, act.eventSequence.size());
-        assertEquals(SOCGame.PLAY1, act.endingGameState);
-        assertEquals("dice roll sum", 12, act.param1);
-
-        act = actionLog.get(3);
-        assertEquals(ActionType.BUY_DEV_CARD, act.actType);
-        assertEquals(7, act.eventSequence.size());
-        assertEquals(SOCGame.PLAY1, act.endingGameState);
-        assertEquals("dev card type", SOCDevCardConstants.KNIGHT, act.param1);
-        assertEquals("remaining cards", 15, act.param2);
-
-        act = actionLog.get(4);
-        assertEquals(ActionType.END_TURN, act.actType);
-        assertEquals(2, act.eventSequence.size());
-        assertEquals(SOCGame.PLAY1, act.endingGameState);
     }
 
     /**
@@ -2978,6 +2984,77 @@ public class TestGameActionExtractor
         assertEquals(ActionType.GAME_OVER, act.actType);
         assertEquals(4, act.eventSequence.size());
         assertEquals("winning player", 3, act.param1);
+    }
+
+    /**
+     * Test extraction from a sequence from full event log (for server), optionally from server-only log
+     * for a client player number or two. After testing, restores event log position to where it was at start of test.
+     * Creates and uses new {@link GameActionExtractor}s.
+     *
+     * @param events  Event sequence to check; will call {@link EventEntry#parse(String)} on each
+     * @param testToClientPN  Client player number to filter logs to, or -1 if none
+     * @param testToOtherPN  Other client player number, or -1 if none; instead of
+     *     {@link soc.server.SOCServer#PN_OBSERVER}, use {@code 99} here because extractor's PN must be &gt;= 0
+     * @param checker  Test code to call for each test
+     */
+    protected void testExtractEventSequence
+        (final String[] events, final int testToClientPN, int testToOtherPN,
+         final ExtractResultsChecker checker)
+    {
+        // note event-log position before starting
+        ExtractorState prevState = new ExtractorState(state);
+
+        // parse and add to event log
+        final List<EventEntry> eventEntries = eventLog.entries;
+        addEventLogEntries(eventEntries, events);
+
+        // test for server
+        final GameActionLog actionLog = extract();
+        assertEquals("at end of event log", eventEntries.size(), state.nextLogIndex);
+        assertNull(next());  // at end of log again
+        assertNotNull(actionLog);
+        checker.check(actionLog, -1);
+
+        // for clientPN
+        if (testToClientPN != -1)
+        {
+            final GameEventLog clientEventLog = new GameEventLog(eventLog, testToClientPN);
+            assertEquals(testToClientPN, clientEventLog.serverOnlyToClientPN);
+            GameActionExtractor ext = new GameActionExtractor(clientEventLog, true);
+            GameActionLog clientActLog = ext.extract();
+            assertNotNull(clientActLog);
+            checker.check(clientActLog, testToClientPN);
+        }
+
+        // for otherPN
+        if (testToOtherPN != -1)
+        {
+            final GameEventLog clientEventLog = new GameEventLog(eventLog, testToOtherPN);
+            assertEquals(testToOtherPN, clientEventLog.serverOnlyToClientPN);
+            GameActionExtractor ext = new GameActionExtractor(clientEventLog, true);
+            GameActionLog clientActLog = ext.extract();
+            assertNotNull(clientActLog);
+            checker.check(clientActLog, testToOtherPN);
+        }
+
+        backtrackTo(prevState);
+    }
+
+    /**
+     * Callback {@link #check(GameActionLog, int)} to check results from an extracted message sequence
+     * from {@link TestGameActionExtractor#testExtractEventSequence(String[], int, int, ExtractResultsChecker)}.
+     */
+    public interface ExtractResultsChecker
+    {
+        /**
+         * Check contents of {@code actionLog} after extracting the {@link GameEventLog} sequence being checked
+         * for the server or for a client player.
+         * Should call assert methods.
+         * @param actionLog  Extracted actions to check; not {@code null}
+         * @param toClientPN  -1 if testing at server, or the client player number being tested,
+         *     from {@link GameEventLog#serverOnlyToClientPN}; can be {@link soc.server.SOCServer#PN_OBSERVER}
+         */
+        public void check(final GameActionLog actionLog, final int toClientPN);
     }
 
 }

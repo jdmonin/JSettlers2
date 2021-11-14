@@ -367,6 +367,39 @@ Or if client sends build request:
 - If played before dice roll:
 - all:SOCRollDicePrompt:game=test|playerNumber=3
 
+#### Cancelling free road building
+
+This card can be cancelled before placing the first or second free road.
+
+If cancelled by clicking Cancel, turn continues with state PLAY1:
+
+- f3:SOCPlayDevCardRequest:game=g|devCard=1
+- all:SOCDevCardAction:game=g|playerNum=3|actionType=PLAY|cardType=1
+- all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=1
+- all:SOCGameServerText:game=g|text=p3 played a Road Building card.
+- all:SOCGameState:game=g|state=40
+- p3:SOCGameServerText:game=g|text=You may place 2 roads.
+- f3:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=66
+- all:SOCGameServerText:game=g|text=p3 built a road.
+- all:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=66
+- all:SOCGameState:game=g|state=41
+- f3:SOCCancelBuildRequest:game=g|pieceType=0
+- all:SOCGameServerText:game=g|text=p3 skipped placing the second road.
+- all:SOCGameState:game=g|state=20  // PLAY1
+
+If cancelled by clicking End Turn, goes directly from placement gameState to next player's turn:
+
+- f3:SOCPlayDevCardRequest:game=g|devCard=1
+- all:SOCDevCardAction:game=g|playerNum=3|actionType=PLAY|cardType=1
+- all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=1
+- all:SOCGameServerText:game=g|text=p3 played a Road Building card.
+- all:SOCGameState:game=g|state=40
+- p3:SOCGameServerText:game=g|text=You may place 2 roads.
+- f3:SOCEndTurn:game=g
+- all:SOCGameServerText:game=g|text=p3 cancelled the Road Building card.
+- all:SOCClearOffer:game=g|playerNumber=-1
+- all:SOCTurn:game=g|playerNumber=2|gameState=15
+
 ### Year of Plenty/Discovery (see also "Gold hex gains" sequence)
 
 - f3:SOCPlayDevCardRequest:game=test|devCard=2
@@ -570,7 +603,7 @@ listed in "Next player's usual turn begins":
 
 ### End usual turn
 
-In gameState PLAY1:
+In gameState PLAY1, PLACING_FREE_ROAD1, or PLACING_FREE_ROAD2:
 
 - f3:SOCEndTurn:game=test
 - all:SOCClearOffer:game=test|playerNumber=-1

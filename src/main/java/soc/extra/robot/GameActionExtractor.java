@@ -34,6 +34,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.message.*;
@@ -173,7 +174,8 @@ public class GameActionExtractor
      *<P>
      * If the event log being extracted from has {@link GameEventLog#isServerOnly} set,
      * it must be for a specific client player number or the extraction won't recognize sequences.
-     * So, its {@link GameEventLog#serverOnlyToClientPN} must be &gt;= 0.
+     * So, its {@link GameEventLog#serverOnlyToClientPN} must be &gt;= 0. (To see messages sent to all players and
+     * observers, use a high player number like 99 instead of {@link soc.server.SOCServer#PN_OBSERVER}.)
      * {@link GameEventLog#load(java.io.File, boolean, int)} and {@link GameEventLog#GameEventLog(GameEventLog, int)}
      * can filter to do so.
      *
@@ -254,6 +256,7 @@ public class GameActionExtractor
      *
      * @return next non-ignored event log message, or {@code null} if reached end of {@link #eventLog}.
      *     If not {@code null}, its {@code event} field won't be null either.
+     * @see #peekNext()
      * @see #nextIfType(int)
      * @see #nextIfGamestateOrOver()
      * @see #backtrackTo(ExtractorState)
@@ -304,10 +307,26 @@ public class GameActionExtractor
     }
 
     /**
+     * Save current state, call {@link #next()} to see the next event, then backtrack to that saved state.
+     * @return  next non-ignored event log message, or {@code null} if reached end of {@link #eventLog}.
+     *     If not {@code null}, its {@code event} field won't be null either.
+     * @see #nextIfType(int)
+     */
+    protected GameEventLog.EventEntry peekNext()
+    {
+        final ExtractorState prevState = new ExtractorState(state);
+        GameEventLog.EventEntry e = next();
+        backtrackTo(prevState);
+
+        return e;
+    }
+
+    /**
      * Read the next event in our {@link GameEventLog} if it's this {@code msgType}.
      * If not found, backtrack as if {@link #next()} was never called.
      * @param msgType  Message type expected to be found, from {@link SOCMessage#getType()}
      * @return  Event log entry of expected type, or {@code null} if end of log or next entry was another type
+     * @see #peekNext()
      * @see #nextIfGamestateOrOver()
      */
     protected GameEventLog.EventEntry nextIfType(final int msgType)
@@ -430,6 +449,8 @@ public class GameActionExtractor
     /**
      * Main loop of this class: Finds starts of each sequence, tries to recognize and extract them.
      * Goes until end of our {@link GameEventLog}.
+     * After this method returns, can add entries to event log and call it again.
+     * Does nothing if already at end of log.
      *<P>
      * Assumes constructor has checked contents of start of log
      * and skipped to just past {@link SOCStartGame}.
@@ -556,7 +577,10 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.CLEAROFFER:
-                    extractedAct = extract_TRADE_CLEAR_OFFER(e);
+                    if (hasServerOnlyLog && (((SOCClearOffer) event).getPlayerNumber() == -1))
+                        extractedAct = extract_END_TURN(e);
+                    else
+                        extractedAct = extract_TRADE_CLEAR_OFFER(e);
                     break;
 
                 case SOCMessage.REJECTOFFER:
@@ -661,11 +685,15 @@ public class GameActionExtractor
     private Action extract_ROLL_DICE(GameEventLog.EventEntry e)
     {
         // f3:SOCRollDice:game=test
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
+                return null;
+
+            e = next();
+        }
 
         // all:SOCDiceResult:game=test|param=9
-        e = next();
         if (! (e.isToAll() && (e.event instanceof SOCDiceResult)))
             return null;
         final int diceTotal = ((SOCDiceResult) e.event).getResult();
@@ -733,16 +761,64 @@ public class GameActionExtractor
     }
 
     /**
-     * Extract various {@link ActionType}s from the current message sequence.
-     * First entry is {@link SOCPlayerElement} or {@link SOCPlayerElements}; assumes {@link #hasServerOnlyLog}.
+     * Extract various {@link ActionType}s from the current message sequence; assumes {@link #hasServerOnlyLog}.
+     * First entry is {@link SOCPlayerElement} or {@link SOCPlayerElements}.
      * @param e First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
     private Action extract_from_PLAYERELEMENTS(GameEventLog.EventEntry e)
     {
-        final boolean firstIsElements = (currentSequence.get(0).event instanceof SOCPlayerElements);
+        SOCMessage event = currentSequence.get(0).event;
+        final boolean firstIsElements = (event instanceof SOCPlayerElements);
+        boolean isLoseRsrc;
 
-        // TODO implement
+        if (firstIsElements)
+        {
+            final SOCPlayerElements pe = (SOCPlayerElements) event;
+            int etype0 = pe.getElementTypes()[0];
+            isLoseRsrc = (pe.getAction() == SOCPlayerElement.LOSE)
+                && (etype0 >= SOCResourceConstants.CLAY) && (etype0 <= SOCResourceConstants.WOOD);
+            if (isLoseRsrc
+                && ((state.currentGameState == SOCGame.PLAY1) || (state.currentGameState == SOCGame.SPECIAL_BUILDING)))
+            {
+                // Lose known resources: is likely buy piece (build) or buy dev card
+                GameEventLog.EventEntry eNext = peekNext();
+                if (eNext == null)
+                    return null;
+                final boolean nextIsDevCardCount = ((eNext.event instanceof SOCGameElements)
+                    && ((SOCGameElements) eNext.event).getElementTypes()[0]
+                        == SOCGameElements.GEType.DEV_CARD_COUNT.getValue());
+
+                if (nextIsDevCardCount)
+                    return extract_BUY_DEV_CARD(e);
+                else
+                    return extract_BUILD_PIECE(e, false);
+            }
+        } else {
+            final SOCPlayerElement pe = (SOCPlayerElement) event;
+            int etype = pe.getElementType();
+            if (etype == SOCPlayerElement.PEType.ASK_SPECIAL_BUILD.getValue())
+            {
+                boolean isSet = (pe.getAmount() != 0);
+                if (isSet)
+                {
+                    if (pe.getPlayerNumber() != state.currentPlayerNumber)
+                        return extract_ASK_SPECIAL_BUILDING(e);
+                } else {
+                    if (pe.getPlayerNumber() == state.currentPlayerNumber)
+                        return extract_END_TURN(e);
+                }
+                isLoseRsrc = false;
+            } else {
+                isLoseRsrc = (pe.getAction() == SOCPlayerElement.LOSE)
+                    && (etype >= SOCResourceConstants.CLAY) && (etype <= SOCResourceConstants.WOOD);
+            }
+        }
+
+        if (isLoseRsrc
+            && (state.currentGameState != SOCGame.PLAY1) && (state.currentGameState != SOCGame.SPECIAL_BUILDING))
+            return extract_DISCARD(e);
+
         return null;
     }
 
@@ -758,8 +834,13 @@ public class GameActionExtractor
         // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804
         // or
         // f3:SOCBuildRequest:game=test|pieceType=1
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
+                return null;
+
+            e = next();
+        }
 
         final boolean isInitPlacement = (state.currentGameState < SOCGame.ROLL_OR_CARD);
 
@@ -767,17 +848,17 @@ public class GameActionExtractor
         // all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1 (elems vary by type)
         if (! isInitPlacement)
         {
-            e = next();
             if ((e == null)
                 || ! (e.isToAll() && (e.event instanceof SOCPlayerElements)
                       && (((SOCPlayerElements) e.event).getAction() == SOCPlayerElement.LOSE)))
                 return null;
+
+            e = next();
         }
 
         if (startsWithBuildReq)
         {
             // all:SOCGameState:game=test|state=31
-            e = next();
             if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCGameState)))
                 return null;
             switch (state.currentGameState)
@@ -792,22 +873,25 @@ public class GameActionExtractor
                 return null;
             }
 
-            // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=67
             e = next();
-            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
-                   && (e.event instanceof SOCPutPiece)))
-                return null;
+
+            // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=67
+            if (! hasServerOnlyLog)
+            {
+                if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
+                       && (e.event instanceof SOCPutPiece)))
+                    return null;
+
+                e = next();
+            }
         }
 
         // Optional: Occasionally extra messages here, depending on game options/scenario
         // (SOCSVPTextMessage, SOCPlayerElement, etc)
         boolean hasFogGold = false, hasFogNonGold = false;
             // reminder: Placing initial settlement can reveal more than 1 fog hex
-        do
+        for(;;)
         {
-            e = next();
-            if (e == null)
-                return null;
             if (e.event instanceof SOCRevealFogHex)
             {
                 if (((SOCRevealFogHex) e.event).getParam2() == SOCBoardLarge.GOLD_HEX)
@@ -815,7 +899,15 @@ public class GameActionExtractor
                 else
                     hasFogNonGold = true;
             }
-        } while (! (e.event instanceof SOCPutPiece));
+            else if (e.event instanceof SOCPutPiece)
+            {
+                break;
+            }
+
+            e = next();
+            if (e == null)
+                return null;
+        }
 
         // all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=60a
         if (! e.isToAll())
@@ -1018,9 +1110,9 @@ public class GameActionExtractor
         // all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCPlayerElements)))
             return null;
+        e = next();
 
         // all:SOCGameElements:game=test|e2=22  // DEV_CARD_COUNT
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCGameElements)))
             return null;
         final int count;
@@ -1031,11 +1123,11 @@ public class GameActionExtractor
                 return null;
             count = ge.getValues()[0];
         }
+        e = next();
 
         final int cardType;
 
         // p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=5
-        e = next();
         if (! (hasServerOnlyLog && (state.currentPlayerNumber != serverOnlyToClientPN)))
         {
             if ((e == null) || e.isFromClient || (e.pn < 0) || ! (e.event instanceof SOCDevCardAction))
@@ -1046,25 +1138,27 @@ public class GameActionExtractor
                     return null;
                 cardType = dca.getCardType();
             }
+
+            e = next();
         } else {
             cardType = 0;  // unknown, since this client didn't see the event
         }
 
         // !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
-        e = next();
         if (! (hasServerOnlyLog && (state.currentPlayerNumber == serverOnlyToClientPN)))
         {
             if ((e == null) || e.isFromClient || (e.excludedPN == null) || ! (e.event instanceof SOCDevCardAction))
                 return null;
+
+            e = next();
         }
 
         // all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCSimpleAction)))
             return null;
+        e = next();
 
         // all:SOCGameState:game=test|state=20  // or others
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
 
@@ -1412,8 +1506,9 @@ public class GameActionExtractor
         final int discardPN = e.pn;
         final SOCResourceSet discards = ((SOCDiscard) e.event).getResources();
 
-        // p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=3|amount=2
         e = next();
+
+        // p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=3|amount=2
         if ((e == null) || e.isFromClient || (e.pn != discardPN)
             || (! (e.event instanceof SOCPlayerElement))
             || (((SOCPlayerElement) e.event).getPlayerNumber() != discardPN))
@@ -1429,11 +1524,13 @@ public class GameActionExtractor
         } while (e.pn == discardPN);
         // Postcondition: e is a SOCPlayerElement from server with playerNum=discardPN, but not sent to "p2:"
         // So check if its audience is exclusive like:
+
         // !p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=6|amount=5|news=Y
         if (e.excludedPN == null)
             return null;
 
         // (an ignored) all:SOCGameServerText:game=test|text=p2 discarded 5 resources.
+
         // If no other players need to discard:
         //     all:SOCGameState:game=test|state=33  // or other: choose robber or pirate, etc
         // If other players still need to discard:
@@ -1763,17 +1860,21 @@ public class GameActionExtractor
     private Action extract_TRADE_CLEAR_OFFER(GameEventLog.EventEntry e)
     {
         // f3:SOCClearOffer:game=test|playerNumber=0
-        if (! (e.isFromClient && (e.pn != -1)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn != -1)))
+                return null;
+
+            e = next();
+        }
 
         // all:SOCClearOffer:game=test|playerNumber=3
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCClearOffer)))
             return null;
         final int clearingPN = ((SOCClearOffer) e.event).getPlayerNumber();
+        e = next();
 
         // all:SOCClearTradeMsg:game=test|playerNumber=-1
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCClearTradeMsg)))
             return null;
 
@@ -1845,17 +1946,21 @@ public class GameActionExtractor
     private Action extract_ASK_SPECIAL_BUILDING(GameEventLog.EventEntry e)
     {
         // f3:SOCBuildRequest:game=test|pieceType=-1  // or a defined piece type
-        if (! e.isFromClient)
-            return null;
-        final int requestingPN = e.pn;
+        if (! hasServerOnlyLog)
+        {
+            if (! e.isFromClient)
+                return null;
+
+            e = next();
+        }
 
         // all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=1  // ASK_SPECIAL_BUILD
-        e = next();
         if ((e == null)
             || ! (e.isToAll() && (e.event instanceof SOCPlayerElement)))
             return null;
         SOCPlayerElement pe = (SOCPlayerElement) e.event;
-        if ((pe.getAction() != SOCPlayerElement.SET) || (pe.getPlayerNumber() != requestingPN) || (pe.getAmount() != 1)
+        final int requestingPN = pe.getPlayerNumber();
+        if ((pe.getAction() != SOCPlayerElement.SET) || (pe.getAmount() != 1)
             || (pe.getElementType() != SOCPlayerElement.PEType.ASK_SPECIAL_BUILD.getValue()))
             return null;
 
@@ -1867,17 +1972,23 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#END_TURN} from the current message sequence.
+     * First entry is {@link SOCPlayerElement} or {@link SOCClearOffer} if {@link #hasServerOnlyLog},
+     * otherwise {@link SOCEndTurn}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
     private Action extract_END_TURN(GameEventLog.EventEntry e)
     {
         // f3:SOCEndTurn:game=test
-        if (! e.isFromClient)
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! e.isFromClient)
+                return null;
+
+            e = next();
+        }
 
         // If from special building: all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=0  // ASK_SPECIAL_BUILD
-        e = next();
         if (state.currentGameState == SOCGame.SPECIAL_BUILDING)
         {
             if (! (e.isToAll() && (e.event instanceof SOCPlayerElement)

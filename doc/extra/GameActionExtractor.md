@@ -75,7 +75,7 @@ As seen by a human player client or robot player.
     - SOCPlayerElement:actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=1 -> Ask Special Building during another player's turn
     - SOCPlayerElement:playerNum=(current player)|actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=0 -> End special building "turn"
     - In gameState PLAY1 or SPECIAL_BUILDING:
-        - SOCPlayerElements:actionType=LOSE|news=N|(resource types) -> Build Piece or Buy dev card
+        - SOCPlayerElements:actionType=LOSE|(resource types) -> Build Piece or Buy dev card
             - If next is SOCGameElements:DEV_CARD_COUNT=... -> Buy dev card
             - Otherwise -> assume Build Piece
     - In other gameStates:
@@ -93,7 +93,7 @@ As seen by a human player client or robot player.
 - SOCMakeOffer -> Player trade: Make trade offer or counteroffer
 - SOCClearOffer:
     - (playerNumber >= 0) -> Clear own trade offer
-    - (playerNumber = -1) in gameState PLAY1 -> End turn
+    - (playerNumber = -1) in gameState PLAY1, PLACING_FREE_ROAD1, or PLACING_FREE_ROAD2: -> End turn
 - SOCRejectOffer -> Player trade: Reject
 - SOCAcceptOffer -> Player trade: Accept
 - SOCTurn:
