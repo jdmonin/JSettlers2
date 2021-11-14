@@ -69,6 +69,7 @@ As seen by a human player client or robot player.
 - SOCDiceResult -> Roll Dice
 - SOCPutPiece -> Build Piece
 - SOCRevealFogHex:
+    - Next is SOCRevealFogHex -> Build Piece (initial settlement)
     - Next is SOCPutPiece -> Build Piece
     - Next is SOCMovePiece -> Move Piece
 - SOCPlayerElements or SOCPlayerElement:
@@ -88,6 +89,7 @@ As seen by a human player client or robot player.
 - SOCMoveRobber:
     - In gameState PLACING_ROBBER -> Move robber
     - In gameState PLACING_PIRATE -> Move pirate
+- SOCChoosePlayerRequest -> Choose player to rob from
 - SOCReportRobbery -> Robbery results
 - SOCBankTrade -> Bank trade or Undo bank trade
 - SOCMakeOffer -> Player trade: Make trade offer or counteroffer

@@ -87,7 +87,7 @@ public class GameActionExtractor
                 SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX,
                 SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
                 SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.PICKRESOURCES,
-                SOCMessage.MOVEROBBER, SOCMessage.REPORTROBBERY,
+                SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.REPORTROBBERY,
                 SOCMessage.BANKTRADE, SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER,
                 SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
                 SOCMessage.TURN, SOCMessage.GAMESTATS
@@ -496,7 +496,8 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.PUTPIECE:
-                    if (e.isFromClient && (e.pn == state.currentPlayerNumber))
+                    if ((e.isFromClient && (e.pn == state.currentPlayerNumber))
+                        || (hasServerOnlyLog && e.isToAll() && (state.currentGameState < SOCGame.ROLL_OR_CARD)))
                         extractedAct = extract_BUILD_PIECE(e, false);
                     break;
 
@@ -560,7 +561,7 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.CHOOSEPLAYERREQUEST:
-                    if ((! hasServerOnlyLog) && (state.currentGameState == SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER))
+                    if (state.currentGameState == SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER)
                         extractedAct = extract_CHOOSE_ROBBERY_VICTIM(e);
                     break;
 
@@ -749,12 +750,15 @@ public class GameActionExtractor
         // all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
         // or
         // all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
-        e = next();
-        if ((e == null) || ! e.isToAll())
+        // or
+        // another SOCRevealFogHex (settlement placement)
+        GameEventLog.EventEntry eNext = peekNext();
+        if ((eNext == null) || ! eNext.isToAll())
             return null;
-        if (e.event instanceof SOCPutPiece)
+        if ((eNext.event instanceof SOCPutPiece)
+            || ((eNext.event instanceof SOCRevealFogHex) && (state.currentGameState < SOCGame.ROLL_OR_CARD)))
             return extract_BUILD_PIECE(e, false);
-        else if (e.event instanceof SOCMovePiece)
+        else if (eNext.event instanceof SOCMovePiece)
             return extract_MOVE_PIECE(e);
         else
             return null;
@@ -768,11 +772,11 @@ public class GameActionExtractor
      */
     private Action extract_from_PLAYERELEMENTS(GameEventLog.EventEntry e)
     {
-        SOCMessage event = currentSequence.get(0).event;
-        final boolean firstIsElements = (event instanceof SOCPlayerElements);
+        SOCMessage event = currentSequence.get(currentSequence.size() - 1).event;
+        final boolean isElements = (event instanceof SOCPlayerElements);
         boolean isLoseRsrc;
 
-        if (firstIsElements)
+        if (isElements)
         {
             final SOCPlayerElements pe = (SOCPlayerElements) event;
             int etype0 = pe.getElementTypes()[0];
@@ -989,11 +993,14 @@ public class GameActionExtractor
                 return null;
 
             // p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
-            e = next();
-            if (e.isFromClient
-                || ! ((e.pn == state.currentPlayerNumber) && (e.event instanceof SOCSimpleRequest)
-                      && (((SOCSimpleRequest) e.event).getRequestType() == SOCSimpleRequest.PROMPT_PICK_RESOURCES)))
-                return null;
+            if ((! hasServerOnlyLog) || (state.currentPlayerNumber == serverOnlyToClientPN))
+            {
+                e = next();
+                if (e.isFromClient
+                    || ! ((e.pn == state.currentPlayerNumber) && (e.event instanceof SOCSimpleRequest)
+                          && (((SOCSimpleRequest) e.event).getRequestType() == SOCSimpleRequest.PROMPT_PICK_RESOURCES)))
+                    return null;
+            }
         }
 
         int prevStart = currentSequenceStartIndex;
@@ -1010,13 +1017,19 @@ public class GameActionExtractor
     private Action extract_MOVE_PIECE(GameEventLog.EventEntry e)
     {
         // f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
-        if (! e.isFromClient)
-            return null;
-        SOCMovePiece mp = (SOCMovePiece) e.event;
-        final int pType = mp.getPieceType(), fromCoord = mp.getFromCoord(), toCoord = mp.getToCoord();
+        SOCMovePiece mpCli;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
+                return null;
+            mpCli = (SOCMovePiece) e.event;
+
+            e = next();
+        } else {
+            mpCli = null;
+        }
 
         // If revealing a fog hex: all:SOCRevealFogHex:game=test|hexCoord=d0e|hexType=7|diceNum=6
-        e = next();
         if ((e == null) || ! e.isToAll())
             return null;
         boolean hasFogGold = false, hasFogNonGold = false;
@@ -1035,11 +1048,14 @@ public class GameActionExtractor
         // all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
         if (! (e.event instanceof SOCMovePiece))
             return null;
-        mp = (SOCMovePiece) e.event;
-        if ((pType != mp.getPieceType()) || (fromCoord != mp.getFromCoord()) || (toCoord != mp.getToCoord()))
+        SOCMovePiece mp = (SOCMovePiece) e.event;
+        final int pType = mp.getPieceType(), fromCoord = mp.getFromCoord(), toCoord = mp.getToCoord();
+        if ((mpCli != null)
+            && ((pType != mpCli.getPieceType()) || (fromCoord != mpCli.getFromCoord())
+                || (toCoord != mpCli.getToCoord())))
             return null;
 
-        // optional: SOCGameElements(LONGEST_ROAD_PLAYER)
+        // optional: all:SOCGameElements(LONGEST_ROAD_PLAYER)
         final ExtractorState eState = new ExtractorState(state);
         e = nextIfType(SOCMessage.GAMEELEMENTS);
         if (e != null)
@@ -1069,19 +1085,23 @@ public class GameActionExtractor
                     return null;
 
                 // p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
-                e = next();
-                if (e.isFromClient
-                    || ! ((e.pn == state.currentPlayerNumber) && (e.event instanceof SOCSimpleRequest)
-                          && (((SOCSimpleRequest) e.event).getRequestType() == SOCSimpleRequest.PROMPT_PICK_RESOURCES)))
-                    return null;
+                if (! (hasServerOnlyLog && (serverOnlyToClientPN != state.currentPlayerNumber)))
+                {
+                    e = next();
+                    if (e.isFromClient
+                        || ! ((e.pn == state.currentPlayerNumber) && (e.event instanceof SOCSimpleRequest)
+                              && (((SOCSimpleRequest) e.event).getRequestType()
+                                  == SOCSimpleRequest.PROMPT_PICK_RESOURCES)))
+                        return null;
+                }
             }
         } else if (hasFogNonGold) {
             // all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=2|amount=1|news=Y
             e = next();
             if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCPlayerElement)
-                    && ((SOCPlayerElement) e.event).isNews()
-                    && (((SOCPlayerElement) e.event).getAction() == SOCPlayerElement.GAIN)))
-                 return null;
+                                  && ((SOCPlayerElement) e.event).isNews()
+                                  && (((SOCPlayerElement) e.event).getAction() == SOCPlayerElement.GAIN)))
+                return null;
         }
 
         int prevStart = currentSequenceStartIndex;
@@ -1178,18 +1198,22 @@ public class GameActionExtractor
     private Action extract_PLAY_DEV_CARD(GameEventLog.EventEntry e)
     {
         // f3:SOCPlayDevCardRequest:game=test|devCard=2
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
+                return null;
+
+            e = next();
+        }
 
         // all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=2
-        e = next();
         if (! (e.isToAll() && (e.event instanceof SOCDevCardAction)
                && (((SOCDevCardAction) e.event).getAction() == SOCDevCardAction.PLAY)))
             return null;
         final int cardType = ((SOCDevCardAction) e.event).getCardType();
+        e = next();
 
         // all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1  // PLAYED_DEV_CARD_FLAG
-        e = next();
         if (! (e.isToAll() && (e.event instanceof SOCPlayerElement)
                && ((SOCPlayerElement) e.event).getElementType()
                    == SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG.getValue()))
@@ -1252,10 +1276,13 @@ public class GameActionExtractor
             //     (is validated above)
 
             // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704  // or pieceType=3 for ship
-            e = next();
-            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
-                   && (e.event instanceof SOCPutPiece)))
-                return null;
+            if (! hasServerOnlyLog)
+            {
+                e = next();
+                if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
+                       && (e.event instanceof SOCPutPiece)))
+                    return null;
+            }
 
             // all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704
             e = next();
@@ -1301,9 +1328,12 @@ public class GameActionExtractor
             return null;
 
         // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
-        e = next();
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPutPiece)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            e = next();
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPutPiece)))
+                return null;
+        }
 
         // all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
         e = next();
@@ -1357,9 +1387,12 @@ public class GameActionExtractor
             return null;
 
         // f3:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0
-        e = next();
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPickResources)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            e = next();
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPickResources)))
+                return null;
+        }
 
         // all:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=2
         e = next();
@@ -1393,9 +1426,12 @@ public class GameActionExtractor
             return null;
 
         // f3:SOCPickResourceType:game=test|resType=3
-        e = next();
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPickResourceType)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            e = next();
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPickResourceType)))
+                return null;
+        }
 
         SOCPlayerElement pe;
 
@@ -1553,14 +1589,18 @@ public class GameActionExtractor
     private Action extract_CHOOSE_FREE_RESOURCES(GameEventLog.EventEntry e)
     {
         // f3:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-        if (! e.isFromClient)
-            return null;
-        final SOCResourceSet picks = ((SOCPickResources) e.event).getResources();
+        if (! hasServerOnlyLog)
+        {
+            if (! e.isFromClient)
+                return null;
+
+            e = next();
+        }
 
         // all:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=3
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCPickResources)))
             return null;
+        final SOCResourceSet picks = ((SOCPickResources) e.event).getResources();
 
         // all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0  // NUM_PICK_GOLD_HEX_RESOURCES
         e = next();
@@ -1629,11 +1669,15 @@ public class GameActionExtractor
             return null;
 
         // f3:SOCMoveRobber:game=test|playerNumber=3|coord=504
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
+                return null;
+
+            e = next();
+        }
 
         // all:SOCMoveRobber:game=test|playerNumber=3|coord=504
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCMoveRobber)))
             return null;
         int hexCoord = ((SOCMoveRobber) e.event).getCoordinates();
@@ -1758,29 +1802,54 @@ public class GameActionExtractor
                 return null;
         } else {
             // Stealing a resource:
-            // p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-            if (e.isFromClient || (e.pn < 0) || (rr.peType != null))
-                return null;
-            if (rr.resSet != null)
+            // If hasServerOnlyLog, each client will see 1 of these,
+            // so the log won't have all 3
+
+            if ((! hasServerOnlyLog) || (e.excludedPN == null))
             {
-                stolenRes = rr.resSet;
-            } else {
-                stolenRes = new SOCResourceSet();
-                stolenRes.add(rr.amount, rr.resType);
+                // p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+                if (e.isFromClient || (e.pn < 0) || (rr.peType != null))
+                    return null;
+                if (rr.resSet != null)
+                {
+                    stolenRes = rr.resSet;
+                } else {
+                    stolenRes = new SOCResourceSet();
+                    stolenRes.add(rr.amount, rr.resType);
+                }
+
+                if (! hasServerOnlyLog)
+                {
+                    e = next();
+
+                    // p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+                    if (e.isFromClient || (e.pn < 0) || ! (e.event instanceof SOCReportRobbery))
+                        return null;
+
+                    e = next();
+                }
             }
 
-            // p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-            e = next();
-            if (e.isFromClient || (e.pn < 0) || ! (e.event instanceof SOCReportRobbery))
-                return null;
-
             // !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
-            e = next();
-            if ((e.excludedPN == null) || ! (e.event instanceof SOCReportRobbery))
-                return null;
+            if ((! hasServerOnlyLog) || (stolenRes == null))
+            {
+                if ((e.excludedPN == null) || ! (e.event instanceof SOCReportRobbery))
+                    return null;
+
+                if (stolenRes == null)
+                {
+                    if (rr.resSet != null)
+                    {
+                        stolenRes = rr.resSet;
+                    } else {
+                        stolenRes = new SOCResourceSet();
+                        stolenRes.add(rr.amount, rr.resType);
+                    }
+                }
+            }
         }
 
-        // Common to both:
+        // Common to resources and cloth:
         // all:SOCGameState:game=test|state=20
         //     or =15 + all:SOCRollDicePrompt if hasn't rolled yet, or all:GameElement + state=1000 if OVER
         e = nextIfGamestateOrOver();
@@ -1806,11 +1875,15 @@ public class GameActionExtractor
     private Action extract_TRADE_BANK(GameEventLog.EventEntry e)
     {
         // f3:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
+                return null;
+
+            e = next();
+        }
 
         // all:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3
-        e = next();
         if ((e == null) || ! e.isToAll())
             return null;
         SOCBankTrade bt = ((SOCBankTrade) e.event);
@@ -1829,18 +1902,22 @@ public class GameActionExtractor
     private Action extract_TRADE_MAKE_OFFER(GameEventLog.EventEntry e)
     {
         // f2:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-        if (! (e.isFromClient && (e.pn != -1)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn != -1)))
+                return null;
+
+            e = next();
+        }
 
         // all:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCMakeOffer)))
             return null;
         SOCTradeOffer offer = ((SOCMakeOffer) e.event).getOffer();
         final int offerFromPN = offer.getFrom();
+        e = next();
 
         // all:SOCClearTradeMsg:game=test|playerNumber=-1
-        e = next();
         if ((e == null)
             || ! (e.isToAll() && (e.event instanceof SOCClearTradeMsg)
                   && (-1 == ((SOCClearTradeMsg) e.event).getPlayerNumber())))
@@ -1892,11 +1969,15 @@ public class GameActionExtractor
     private Action extract_TRADE_REJECT_OFFER(GameEventLog.EventEntry e)
     {
         // f3:SOCRejectOffer:game=test|playerNumber=0
-        if (! (e.isFromClient && (e.pn != -1)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn != -1)))
+                return null;
+
+            e = next();
+        }
 
         // all:SOCRejectOffer:game=test|playerNumber=3
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCRejectOffer)))
             return null;
         final int rejectingPN = ((SOCRejectOffer) e.event).getPlayerNumber();
@@ -1915,17 +1996,21 @@ public class GameActionExtractor
     private Action extract_TRADE_ACCEPT_OFFER(GameEventLog.EventEntry e)
     {
         // f2:SOCAcceptOffer:game=test|accepting=0|offering=3
-        if (! (e.isFromClient && (e.pn != -1)))
-            return null;
+        if (! hasServerOnlyLog)
+        {
+            if (! (e.isFromClient && (e.pn != -1)))
+                return null;
+
+            e = next();
+        }
 
         // all:SOCAcceptOffer:game=test|accepting=2|offering=3|toAccepting=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCAcceptOffer)))
             return null;
         SOCAcceptOffer ao = (SOCAcceptOffer) e.event;
+        e = next();
 
         // all:SOCClearOffer:game=test|playerNumber=-1
-        e = next();
         if ((e == null)
             || ! (e.isToAll() && (e.event instanceof SOCClearOffer)
                   && (-1 == ((SOCClearOffer) e.event).getPlayerNumber())))

@@ -155,7 +155,7 @@ and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won'
 #### Building ship (or settlement) reveals non-gold hex from fog
 
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
-- all:SOCRevealFogHex:game=test|hexCoord=908|hexType=3|diceNum=4
+- all:SOCRevealFogHex:game=test|hexCoord=908|hexType=3|diceNum=4  // can be multiple if settlement
 - all:SOCGameServerText:game=test|text=p3 built a ship.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=1|news=Y
