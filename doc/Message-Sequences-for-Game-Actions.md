@@ -491,7 +491,7 @@ In gameState 33 (PLACING_ROBBER):
 - f3:SOCMoveRobber:game=test|playerNumber=3|coord=504
 - all:SOCMoveRobber:game=test|playerNumber=3|coord=504
 - all:SOCGameServerText:game=test|text=p3 moved the robber.
-- If any choices to be made:
+- If no possible victims, or if any choices to be made:
     - all:SOCGameState:game=test|state=20  // or choose-player, choose-resource-or-cloth, etc
 - Else, if there's no possible victim to rob from, and player just won by gaining largest army:
     - all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER

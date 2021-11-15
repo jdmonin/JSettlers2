@@ -89,7 +89,11 @@ As seen by a human player client or robot player.
 - SOCMoveRobber:
     - In gameState PLACING_ROBBER -> Move robber
     - In gameState PLACING_PIRATE -> Move pirate
+- SOCGameState:
+    - In gameState WAITING_FOR_ROBBER_OR_PIRATE -> Choose to move robber or pirate
 - SOCChoosePlayerRequest -> Choose player to rob from
+- p3:SOCChoosePlayer:
+     - In gameState WAITING_FOR_ROB_CLOTH_OR_RESOURCE -> Choose whether to steal cloth or a resource
 - SOCReportRobbery -> Robbery results
 - SOCBankTrade -> Bank trade or Undo bank trade
 - SOCMakeOffer -> Player trade: Make trade offer or counteroffer

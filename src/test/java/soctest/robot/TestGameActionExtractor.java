@@ -440,7 +440,7 @@ public class TestGameActionExtractor
             "p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=1,e4=3,e5=1",
             "all:SOCGameState:game=test|state=20",
             },
-            -1, -1,
+            3, 99,
             new ExtractResultsChecker()
             {
                 public void check(GameActionLog actionLog, int toClientPN)
@@ -464,7 +464,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(2);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 8, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 8 : 5, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START1B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x34", 0x34, act.param2);
@@ -472,7 +472,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(3);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START1B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0x34", 0x34, act.param2);
@@ -486,7 +486,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(5);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START1B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0xc9", 0xc9, act.param2);
@@ -494,7 +494,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(6);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START1B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0xb8", 0xb8, act.param2);
@@ -508,7 +508,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(8);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START1B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x87", 0x87, act.param2);
@@ -516,7 +516,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(9);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START1B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0x87", 0x87, act.param2);
@@ -532,7 +532,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(11);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START2B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x43", 0x43, act.param2);
@@ -540,7 +540,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(12);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START2B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0x43", 0x43, act.param2);
@@ -554,7 +554,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(14);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START2B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0xba", 0xba, act.param2);
@@ -562,7 +562,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(15);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START2B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0xba", 0xba, act.param2);
@@ -576,7 +576,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(17);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START2B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0xb6", 0xb6, act.param2);
@@ -584,7 +584,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(18);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.START2B, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0xa6", 0xa6, act.param2);
@@ -600,7 +600,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(20);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
-                    assertEquals(desc, 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 4 : 3), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " dice roll sum", 8, act.param1);
                 }
@@ -2731,14 +2731,14 @@ public class TestGameActionExtractor
             "all:SOCGameStats:game=test|0|2|2|10|false|true|true|false",
             "p3:SOCPlayerStats:game=test|p=1|p=0|p=0|p=5|p=2|p=0",
             },
-            -1, -1,
+            3, 99,
             new ExtractResultsChecker()
             {
                 public void check(GameActionLog actionLog, int toClientPN)
                 {
                     final String desc = "for clientPN=" + toClientPN + ":";
 
-                    assertEquals(desc, 39, actionLog.size());
+                    assertEquals(desc, (toClientPN != 99) ? 39 : 38, actionLog.size());
 
                     GameActionLog.Action act = actionLog.get(0);
                     assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -2755,13 +2755,13 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(2);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, 12, act.param1);
 
                     act = actionLog.get(3);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 6, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 5, act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x72", 0x72, act.param2);
@@ -2769,26 +2769,26 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(4);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc + " winning player", 3, act.param1);
 
                     // win by upgrade to city:
 
                     act = actionLog.get(5);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 2 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
 
                     act = actionLog.get(6);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, 12, act.param1);
 
                     act = actionLog.get(7);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 6, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 5, act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.CITY, act.param1);
                     assertEquals(desc + " built at 0xb8", 0xb8, act.param2);
@@ -2796,26 +2796,26 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(8);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc + " winning player", 3, act.param1);
 
                     // win by longest route (build road):
 
                     act = actionLog.get(9);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 2 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
 
                     act = actionLog.get(10);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, 12, act.param1);
 
                     act = actionLog.get(11);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 7, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 6, act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0x87", 0x87, act.param2);
@@ -2823,26 +2823,26 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(12);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc + " winning player", 3, act.param1);
 
                     // win by longest route (build ship):
 
                     act = actionLog.get(13);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 2 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
 
                     act = actionLog.get(14);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, 12, act.param1);
 
                     act = actionLog.get(15);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
-                    assertEquals(desc, 7, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 6, act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc + " built at 0x702", 0x702, act.param2);
@@ -2850,149 +2850,163 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(16);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc + " winning player", 3, act.param1);
 
                     // win by largest army (move robber, no victim):
 
                     act = actionLog.get(17);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 2 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
 
                     act = actionLog.get(18);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, 12, act.param1);
 
                     act = actionLog.get(19);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
-                    assertEquals(desc, 7, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 6, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_ROBBER, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.KNIGHT, act.param1);
 
                     act = actionLog.get(20);
                     assertEquals(desc, ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 6, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 5, act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
                     assertEquals(desc + " moved robber to 0x99", 0x99, act.param2);
 
                     act = actionLog.get(21);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc + " winning player", 3, act.param1);
 
                     // win by largest army (rob victim):
 
                     act = actionLog.get(22);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 2 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
 
                     act = actionLog.get(23);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
-                    assertEquals(desc, 7, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 6, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_ROBBER, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.KNIGHT, act.param1);
 
                     act = actionLog.get(24);
                     assertEquals(desc, ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_ROBBER, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
                     assertEquals(desc + " moved robber to 0x79", 0x79, act.param2);
 
                     act = actionLog.get(25);
                     assertEquals(desc, ActionType.ROB_PLAYER, act.actType);
-                    assertEquals(desc, 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
-                    assertEquals(desc, new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
+                    assertEquals(desc,
+                        new SOCResourceSet(0, 0, 0, 0, (toClientPN != 99) ? 1 : 0, (toClientPN != 99) ? 0 : 1),
+                        act.rset1);
 
                     act = actionLog.get(26);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc + " winning player", 3, act.param1);
 
                     // win by VP from stealing cloth (SC_CLVI scenario):
 
                     act = actionLog.get(27);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 2 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
 
                     act = actionLog.get(28);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
-                    assertEquals(desc, 6, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 5, act.eventSequence.size());
                     assertEquals(desc, SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.KNIGHT, act.param1);
 
                     act = actionLog.get(29);
                     assertEquals(desc, ActionType.CHOOSE_MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_PIRATE, act.endingGameState);
                     assertEquals(desc + " chose pirate", 2, act.param1);
 
                     act = actionLog.get(30);
                     assertEquals(desc, ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
                     assertEquals(desc, 2, act.param1);
                     assertEquals(desc + " moved pirate to 0xb0d", 0xb0d, act.param2);
 
-                    act = actionLog.get(31);
-                    assertEquals(desc, ActionType.CHOOSE_ROB_CLOTH_OR_RESOURCE, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
-                    assertEquals(desc, SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
-                    assertEquals(desc, 2, act.param1);
+                    int idx = 31;  // observer doesn't see CHOOSE_ROB_CLOTH_OR_RESOURCE
+                    if (toClientPN != 99)
+                    {
+                        act = actionLog.get(idx);
+                        assertEquals(desc, ActionType.CHOOSE_ROB_CLOTH_OR_RESOURCE, act.actType);
+                        assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                        assertEquals(desc, SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
+                        assertEquals(desc, (toClientPN == -1) ? 2 : 0, act.param1);
+                        ++idx;
+                    }
 
-                    act = actionLog.get(32);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.ROB_PLAYER, act.actType);
                     assertEquals(desc, 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertNull(desc, act.rset1);
                     assertEquals(desc, 1, act.param1);
                     assertEquals(desc + " steal cloth", SOCPlayerElement.PEType.SCENARIO_CLOTH_COUNT.getValue(), act.param2);
+                    ++idx;
 
-                    act = actionLog.get(33);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc + " winning player", 3, act.param1);
+                    ++idx;
 
                     // win at start of turn after gaining 10 VP on an earlier player's turn:
 
-                    act = actionLog.get(34);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
                     assertEquals(desc, 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, 2, act.param1);
+                    ++idx;
 
-                    act = actionLog.get(35);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, 12, act.param1);
+                    ++idx;
 
-                    act = actionLog.get(36);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    ++idx;
 
-                    act = actionLog.get(37);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
                     assertEquals(desc, 1, act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
+                    ++idx;
 
-                    act = actionLog.get(38);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN != 99) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc + " winning player", 3, act.param1);
+                    ++idx;
                 }
             });
     }

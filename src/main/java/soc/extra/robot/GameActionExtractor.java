@@ -87,7 +87,8 @@ public class GameActionExtractor
                 SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX,
                 SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
                 SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.PICKRESOURCES,
-                SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.REPORTROBBERY,
+                SOCMessage.GAMESTATE, SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST,
+                SOCMessage.CHOOSEPLAYER, SOCMessage.REPORTROBBERY,
                 SOCMessage.BANKTRADE, SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER,
                 SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
                 SOCMessage.TURN, SOCMessage.GAMESTATS
@@ -466,6 +467,8 @@ public class GameActionExtractor
             // currentSequence is empty, currentSequenceStartIndex == nextLogIndex.
             // Next message is expected to be one of the seqStartMsgTypes.
 
+            int prevGameState = state.currentGameState;
+                // needed only when next() sees a SOCGameState or other state-changing message
             GameEventLog.EventEntry e = next();
             if (e == null)
                 break;
@@ -546,14 +549,16 @@ public class GameActionExtractor
                     extractedAct = extract_CHOOSE_FREE_RESOURCES(e);
                     break;
 
+                case SOCMessage.GAMESTATE:
+                    if (hasServerOnlyLog && (prevGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE))
+                        extractedAct = extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(e);
+                    break;
+
                 case SOCMessage.CHOOSEPLAYER:
-                    if (! hasServerOnlyLog)
-                    {
-                        if (state.currentGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE)
-                            extractedAct = extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(e);
-                        else if (state.currentGameState == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
-                            extractedAct = extract_CHOOSE_ROB_CLOTH_OR_RESOURCE(e);
-                    }
+                    if (state.currentGameState == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
+                        extractedAct = extract_CHOOSE_ROB_CLOTH_OR_RESOURCE(e);
+                    else if ((! hasServerOnlyLog) && (state.currentGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE))
+                        extractedAct = extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(e);
                     break;
 
                 case SOCMessage.MOVEROBBER:
@@ -1636,17 +1641,30 @@ public class GameActionExtractor
      */
     private Action extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(GameEventLog.EventEntry e)
     {
+        int choice = 0;
+
         // f3:SOCChoosePlayer:game=test|choice=-2  // or -3
-        if (! e.isFromClient)
-            return null;
-        final int choice = (((SOCChoosePlayer) e.event).getChoice() == SOCChoosePlayer.CHOICE_MOVE_ROBBER)
-            ? 1
-            : 2;
+        if (! hasServerOnlyLog)
+        {
+            if (! e.isFromClient)
+                return null;
+            choice = (((SOCChoosePlayer) e.event).getChoice() == SOCChoosePlayer.CHOICE_MOVE_ROBBER)
+                ? 1
+                : 2;
+
+            e = next();
+        }
 
         // all:SOCGameState:game=test|state=33  // or another state
-        e = next();
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
+        if (choice == 0)
+            switch(state.currentGameState)
+            {
+            case SOCGame.PLACING_ROBBER: choice = 1; break;
+            case SOCGame.PLACING_PIRATE: choice = 2; break;
+            // if other states, remains unknown
+            }
 
         int prevStart = currentSequenceStartIndex;
         return new Action
@@ -1768,16 +1786,21 @@ public class GameActionExtractor
             return null;
 
         // f3:SOCChoosePlayer:game=test|choice=-3  // negative pn -> rob cloth, not resource
-        e = next();
-        if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
-               && (e.event instanceof SOCChoosePlayer)))
-            return null;
-        boolean choseCloth = (((SOCChoosePlayer) e.event).getChoice() < 0);
+        int choice = 0;
+        if (! hasServerOnlyLog)
+        {
+            e = next();
+            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
+                   && (e.event instanceof SOCChoosePlayer)))
+                return null;
+            boolean choseCloth = (((SOCChoosePlayer) e.event).getChoice() < 0);
+            choice = (choseCloth) ? 2 : 1;
+        }
 
         int prevStart = currentSequenceStartIndex;
         return new Action
             (ActionType.CHOOSE_ROB_CLOTH_OR_RESOURCE, state.currentGameState, resetCurrentSequence(), prevStart,
-             (choseCloth ? 2 : 1), 0, 0);
+             choice, 0, 0);
     }
 
     /**

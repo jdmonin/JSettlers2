@@ -314,6 +314,9 @@ public class GameActionLog
              * gameState before action should be {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}.
              *<BR>
              * {@code p1} = 1 for robber or 2 for pirate.
+             *<P>
+             * If extracted from a {@link GameEventLog} with {@link GameEventLog#isServerOnly} flag set,
+             * choice may be hidden; {@code p1} = 0 if so.
              */
             CHOOSE_MOVE_ROBBER_OR_PIRATE,
 
@@ -347,6 +350,11 @@ public class GameActionLog
              * Choose whether to steal resources or cloth from robbery victim.
              *<BR>
              * {@code p1} = 1 for resources as usual, or 2 for cloth in the Cloth Trade scenario.
+             *<P>
+             * If extracted from a {@link GameEventLog} with {@link GameEventLog#isServerOnly} flag set,
+             * choice may be hidden; {@code p1} = 0 if so.
+             * Because this action is between server and 1 player client, it may be completely hidden
+             * in the {@code isServerOnly} log to a different player/observer.
              */
             CHOOSE_ROB_CLOTH_OR_RESOURCE,
 
