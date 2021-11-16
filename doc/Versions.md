@@ -43,14 +43,17 @@ JARs for recent JSettlers versions can be downloaded from
 		  and end of initial placement/start of first regular turn
 		- To fix cosmetic off-by-one bug for rounds-played count in v2.0 - 2.4, at start of first regular turn
 		  clients v2.4 and older are sent SOCGameState instead of SOCTurn unless current player is changing
-	- In dice roll result message sequence, new game state is sent only after resources or other gains/losses by players
-	  to indicate end of sequence
 	- Bank Trade and Accept Offer messages have resource info, so server no longer sends redundant `SOCPlayerElement`s
 	- Begin Turn sequence:
 		- `SOCTurn` no longer preceded by SOCPlayerElement(PLAYED_DEV_CARD_FLAG) except to older clients
 		- `SOCTurn` uses game state field even when game has v1.x clients
 		- If a player gains winning points during another player's turn, and wins when it becomes their own turn,
 		  send `SOCTurn` instead of SOCGameElements(CURRENT_PLAYER) and SOCGameState(OVER)
+	- Dice roll results:
+		- New game state is sent only after resources or other gains/losses by players, to indicate end of sequence
+		- When game contains v1.x and v2.x clients, no longer sends v1.x-compatible SOCPlayerElement(pn, GAIN, ...)
+		  or SOCResourceCounts to v2.x clients. Those clients are already sent SOCDiceResultResources,
+		  and the extra messages could lead to incorrect resource tracking.
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)

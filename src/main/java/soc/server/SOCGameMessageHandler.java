@@ -579,8 +579,10 @@ public class SOCGameMessageHandler
                                     // "{0} gets {1,rsrcs}."
                                     // get it from any connection's StringManager, because that string is never localized
 
-                                // Announce SOCPlayerElement.GAIN messages
-                                handler.reportRsrcGainLoss(ga, rsrcs, false, false, pn, -1, null);
+                                // Announce SOCPlayerElement.GAIN messages to v1.x
+                                handler.reportRsrcGainLossForVersions
+                                    (ga, rsrcs, false, true, pn, -1, null,
+                                     SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1);
                             }
                         }
                     }
@@ -649,12 +651,14 @@ public class SOCGameMessageHandler
                                              (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
 
                                 if (srv.recordGameEventsIsActive())
-                                    srv.recordGameEvent(gn, new SOCPlayerElements
+                                    srv.recordGameEventTo(gn, pn, new SOCPlayerElements
                                         (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
                             }
 
                             if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                                srv.messageToGame(gn, false, new SOCResourceCount(gn, pn, resources.getTotal()));
+                                srv.messageToGameForVersions
+                                    (ga, -1, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1,
+                                     new SOCResourceCount(gn, pn, resources.getTotal()), true);
                             // else, already-sent SOCDiceResultResources included players' new resource totals
 
                             // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)

@@ -22,6 +22,7 @@ package soc.message;
 
 import java.util.StringTokenizer;
 import soc.game.SOCGame;  // for javadocs only
+import soc.game.SOCResourceConstants;  // for javadocs only
 
 
 /**
@@ -47,15 +48,15 @@ import soc.game.SOCGame;  // for javadocs only
  * be sent {@link SOCPlayerElement SOCPlayerElement(GAIN, resType, amount)}
  * and a text message such as "Joe gets 3 sheep. Mike gets 1 clay."
  *<P>
- * Players who gain resources on the roll will be individually sent
- * {@link SOCPlayerElement SOCPlayerElement(SET, resType, amount)} messages
- * for all their new resource counts.  (Before v2.0.00 those were sent to each
- * player in the game after a roll, not just those who gained resources, followed by
- * sending the game a {@link SOCResourceCount} with their new total resource count.)
+ * Each player who gained resources on the roll (any client version) is sent their currently
+ * held amounts for each resource as <tt>{@link SOCPlayerElements}(pn, {@link SOCPlayerElement#SET SET}, ...)</tt>
+ * or a group of <tt>{@link SOCPlayerElement}(pn, SET, ...)</tt> messages.
+ * When client receives such a 5-element {@code SOCPlayerElements} in state {@link SOCGame#ROLL_OR_CARD},
+ * they may want to clear their {@link SOCResourceConstants#UNKNOWN} amount to 0 in case it has drifted.
  *<P>
- * Afterwards each gaining player (any client version) is sent their currently
- * held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt>
- * messages.
+ * Before v2.0.00 those were sent as a {@link SOCPlayerElement} group
+ * to each player in the game after a roll, not just those who gained resources, followed by
+ * sending the game a {@link SOCResourceCount} with their new total resource count.
  *<P>
  * When 7 is rolled and players must discard, then instead, {@code SOCDiceResult}
  * is followed by a {@link SOCGameState}({@link SOCGame#WAITING_FOR_DISCARDS}) announcement,

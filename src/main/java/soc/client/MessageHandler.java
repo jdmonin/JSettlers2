@@ -1631,6 +1631,11 @@ public class MessageHandler
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT
                 (pcl, ga, pl, pn, action, PEType.valueOf(etypes[i]), amounts[i], false);
+
+        if ((action == SOCPlayerElement.SET) && (etypes.length == 5) && (etypes[0] == SOCResourceConstants.CLAY)
+            && (pl != null) && (ga.getGameState() == SOCGame.ROLL_OR_CARD))
+            // dice roll results: when sent all known resources, clear UNKNOWN to 0
+            pl.getResources().setAmount(0, SOCResourceConstants.UNKNOWN);
     }
 
     /**
