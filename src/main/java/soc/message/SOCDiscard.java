@@ -35,7 +35,7 @@ import java.util.StringTokenizer;
  * resend {@code SOCDiscardRequest} with the required resource count.
  *<P>
  * If this is the right total amount to discard, server will respond to player
- * with {@link SOCPlayerElement} LOSE messages to confirm the details,
+ * with a {@link SOCPlayerElements} or {@link SOCPlayerElement} LOSE messages to confirm the details,
  * then report only the discard's resource total to the other players
  * via {@code SOCPlayerElement} and text. See {@link SOCPlayerElement}
  * class javadoc for more details.

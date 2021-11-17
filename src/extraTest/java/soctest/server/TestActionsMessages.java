@@ -1074,12 +1074,8 @@ public class TestActionsMessages
                                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
                                 {"p3:SOCDiscardRequest:", "|numDiscards=8"},
                                 {
-                                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
-                                    "|playerNum=3|actionType=LOSE|elementType=4|amount=4"
-                                },
-                                {
-                                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
-                                    "|playerNum=3|actionType=LOSE|elementType=5|amount=4"
+                                    ((observabilityMode != 2) ? "p3:SOCPlayerElements:" : "all:SOCPlayerElements:"),
+                                    "|playerNum=3|actionType=LOSE|e4=4,e5=4"
                                 },
                                 ((observabilityMode != 2)
                                     ? new String[]{"!p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=6|amount=8|news=Y"}
@@ -1181,8 +1177,8 @@ public class TestActionsMessages
 
         // reminder: message-seqs.game.json has "N7" option to prevent 7s from being rolled
         // but just in case: clear debug player's resources to prevent discard on 7 from accumulated rolls
-        final int[] RS_KNOWN_AMOUNTS_ARR = {0, 3, 1, 2, 0}, RS_KNOWN_PLUS_CLAY = {1, 3, 1, 2, 0},
-            CLI2_RS_KNOWN_AMOUNTS_ARR = {1, 0, 3, 0, 2}, CLI2_RS_KNOWN_PLUS_WHEAT = {1, 0, 3, 1, 2};
+        final int[] RS_KNOWN_AMOUNTS_ARR = {0, 3, 1, 2, 0}, RS_KNOWN_PLUS_2_CLAY = {2, 3, 1, 2, 0},
+            CLI2_RS_KNOWN_AMOUNTS_ARR = {1, 0, 3, 0, 2}, CLI2_RS_KNOWN_PLUS_SHEEP_WHEAT = {1, 0, 4, 1, 2};
         final SOCResourceSet RS_KNOWN = new SOCResourceSet(RS_KNOWN_AMOUNTS_ARR),
             CLI2_RS_KNOWN = new SOCResourceSet(CLI2_RS_KNOWN_AMOUNTS_ARR);
         cliPl.getResources().setAmounts(RS_KNOWN);
@@ -1202,18 +1198,20 @@ public class TestActionsMessages
 
         ga.putPiece(new SOCShip(cliPl, SHIP_EDGE, board));
         ga.putPiece(new SOCSettlement(cliPl, ISLAND_SETTLE_NODE, board));
+        ga.putPiece(new SOCCity(cliPl, ISLAND_SETTLE_NODE, board));
 
         for (int edge : CLI2_SHIPS_EDGE)
             ga.putPiece(new SOCShip(cli2Pl, edge, board));
         ga.putPiece(new SOCSettlement(cli2Pl, CLI2_ISLAND_SETTLE_NODE, board));
+        ga.putPiece(new SOCCity(cli2Pl, CLI2_ISLAND_SETTLE_NODE, board));
 
         assertTrue(board.roadOrShipAtEdge(SHIP_EDGE) instanceof SOCShip);
-        assertTrue(board.settlementAtNode(ISLAND_SETTLE_NODE) instanceof SOCSettlement);
+        assertTrue(board.settlementAtNode(ISLAND_SETTLE_NODE) instanceof SOCCity);
         for (int edge : CLI2_SHIPS_EDGE)
             assertTrue(board.roadOrShipAtEdge(edge) instanceof SOCShip);
-        assertTrue(board.settlementAtNode(CLI2_ISLAND_SETTLE_NODE) instanceof SOCSettlement);
+        assertTrue(board.settlementAtNode(CLI2_ISLAND_SETTLE_NODE) instanceof SOCCity);
 
-        final int[] EXPECTED_GOLD_GAINS = {0, 1, 0, 1};
+        final int[] EXPECTED_GOLD_GAINS = {0, 2, 0, 2};
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
             assertEquals
                 ("pn[" + pn + "] gains", EXPECTED_GOLD_GAINS[pn],
@@ -1242,29 +1240,29 @@ public class TestActionsMessages
             if (diceNumber != GOLD_DICE_NUM)
                 continue;
 
-            assertEquals(1, cliPl.getNeedToPickGoldHexResources());
-            assertEquals(1, cli2Pl.getNeedToPickGoldHexResources());
+            assertEquals(2, cliPl.getNeedToPickGoldHexResources());
+            assertEquals(2, cli2Pl.getNeedToPickGoldHexResources());
             assertArrayEquals(RS_KNOWN_AMOUNTS_ARR, cliPl.getResources().getAmounts(false));
             assertArrayEquals(CLI2_RS_KNOWN_AMOUNTS_ARR, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, ga.getGameState());
 
-            tcli.pickResources(ga, new SOCResourceSet(1, 0, 0, 0, 0, 0));
+            tcli.pickResources(ga, new SOCResourceSet(2, 0, 0, 0, 0, 0));  // 2 of same type
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(0, cliPl.getNeedToPickGoldHexResources());
-            assertEquals(1, cli2Pl.getNeedToPickGoldHexResources());
-            assertArrayEquals(RS_KNOWN_PLUS_CLAY, cliPl.getResources().getAmounts(false));
+            assertEquals(2, cli2Pl.getNeedToPickGoldHexResources());
+            assertArrayEquals(RS_KNOWN_PLUS_2_CLAY, cliPl.getResources().getAmounts(false));
             assertArrayEquals(CLI2_RS_KNOWN_AMOUNTS_ARR, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, ga.getGameState());
 
-            tcli2.pickResources(ga, new SOCResourceSet(0, 0, 0, 1, 0, 0));
+            tcli2.pickResources(ga, new SOCResourceSet(0, 0, 1, 1, 0, 0));  // 1 each of 2 different types
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(0, cliPl.getNeedToPickGoldHexResources());
             assertEquals(0, cli2Pl.getNeedToPickGoldHexResources());
-            assertArrayEquals(CLI2_RS_KNOWN_PLUS_WHEAT, cli2Pl.getResources().getAmounts(false));
+            assertArrayEquals(CLI2_RS_KNOWN_PLUS_SHEEP_WHEAT, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.PLAY1, ga.getGameState());
 
             compares = TestRecorder.compareRecordsToExpected
@@ -1273,15 +1271,15 @@ public class TestActionsMessages
                     {"all:SOCDiceResult:game=", "|param=" + GOLD_DICE_NUM},
                     {"all:SOCGameServerText:game=", "|text=No player gets anything."},
                     {"all:SOCGameServerText:game=", "|text=" + CLIENT2_NAME + " and " + CLIENT_NAME + " need to pick resources from the gold hex."},
-                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=1"},  // NUM_PICK_GOLD_HEX_RESOURCES
-                    {"p1:SOCSimpleRequest:game=", "|pn=1|reqType=1|v1=1|v2=0"},
-                    {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=1"},
-                    {"p3:SOCSimpleRequest:game=", "|pn=3|reqType=1|v1=1|v2=0"},
+                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=2"},  // NUM_PICK_GOLD_HEX_RESOURCES
+                    {"p1:SOCSimpleRequest:game=", "|pn=1|reqType=1|v1=2|v2=0"},
+                    {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=2"},
+                    {"p3:SOCSimpleRequest:game=", "|pn=3|reqType=1|v1=2|v2=0"},
                     {"all:SOCGameState:game=", "|state=56"},
-                    {"all:SOCPickResources:game=", "|resources=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=3"},
+                    {"all:SOCPickResources:game=", "|resources=clay=2|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=3"},
                     {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=0"},
                     {"all:SOCGameState:game=", "|state=56"},
-                    {"all:SOCPickResources:game=", "|resources=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|pn=1|reason=3"},
+                    {"all:SOCPickResources:game=", "|resources=clay=0|ore=0|sheep=1|wheat=1|wood=0|unknown=0|pn=1|reason=3"},
                     {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=0"},
                     {"all:SOCGameState:game=", "|state=20"}
                 }, false);

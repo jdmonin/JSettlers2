@@ -49,6 +49,9 @@ JARs for recent JSettlers versions can be downloaded from
 		- `SOCTurn` uses game state field even when game has v1.x clients
 		- If a player gains winning points during another player's turn, and wins when it becomes their own turn,
 		  send `SOCTurn` instead of SOCGameElements(CURRENT_PLAYER) and SOCGameState(OVER)
+	- Resource changes sent as 1 `SOCPlayerElements` instead of group of `SOCPlayerElement`s
+		- Still sends `SOCPlayerElement` when only 1 resource type changing
+		- Sequences: Discard, gold hex gain, build a Wonder, client v2.0 - 2.4 bank/player trades
 	- Dice roll results:
 		- New game state is sent only after resources or other gains/losses by players, to indicate end of sequence
 		- When game contains v1.x and v2.x clients, no longer sends v1.x-compatible SOCPlayerElement(pn, GAIN, ...)

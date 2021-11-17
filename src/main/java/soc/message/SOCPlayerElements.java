@@ -21,6 +21,7 @@ package soc.message;
 import java.util.ArrayList;
 import java.util.List;
 
+import soc.game.ResourceSet;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.message.SOCPlayerElement.PEType;
@@ -142,7 +143,7 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * @throws NullPointerException if {@code rs} null
      * @since 2.0.00
      */
-    public SOCPlayerElements(String ga, int pn, int ac, final SOCResourceSet rs)
+    public SOCPlayerElements(String ga, int pn, int ac, final ResourceSet rs)
         throws NullPointerException
     {
         super(PLAYERELEMENTS, ga, null);

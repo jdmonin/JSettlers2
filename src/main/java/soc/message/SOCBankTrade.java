@@ -41,6 +41,7 @@ import java.util.StringTokenizer;
  *      then {@link SOCPlayerElement#GAIN} for those given to the player.
  * <LI> This {@code SOCBankTrade} to announce the trade details to clients v2.0.00 or higher;
  *      older clients are sent a {@link SOCGameTextMsg} instead.
+ *      Clients v2.5.00 and newer use the {@code SOCBankTrade} fields to update player's resources.
  *</UL>
  *
  * The server disallows any unacceptable trade by sending the client a

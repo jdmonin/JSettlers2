@@ -3391,7 +3391,7 @@ public class SOCGameHandler extends GameHandler
      *                If not -1, PLAYERELEMENT messages will also be sent about this player.
      * @param playerConn     Null to announce to the entire game, or {@code mainPlayer}'s connection to send messages
      *                there instead of sending to all players in game.  Because trades are public, there is no
-     *                such parameter for tradingPlayer.
+     *                such parameter for tradingPlayer: If not null, assumes tradingPlayer == -1.
      *
      * @see #reportRsrcGainLossForVersions(SOCGame, ResourceSet, boolean, boolean, int, int, Connection, int)
      * @see #reportTrade(SOCGame, int, int)
@@ -3442,7 +3442,7 @@ public class SOCGameHandler extends GameHandler
      *                If not -1, PLAYERELEMENT messages will also be sent about this player.
      * @param playerConn  Null to announce to the entire game, or {@code mainPlayer}'s connection to send messages
      *                there instead of sending to all players in game.  Because trades are public, there is no
-     *                such parameter for tradingPlayer.
+     *                such parameter for tradingPlayer: If not null, assumes tradingPlayer == -1.
      * @param vmax  Maximum client version to send to.
      *                Same format as {@link Version#versionNumber()} and {@link Connection#getVersion()}.
      *
@@ -3456,48 +3456,156 @@ public class SOCGameHandler extends GameHandler
         // Note: For benefit of external callers, javadoc says this method doesn't record any events.
         // reportRsrcGainLoss internally calls this with vmax = 0, for which this method does record events.
 
+        final int playerConnVersion = ((playerConn != null) ? playerConn.getVersion() : 0);
+        if ((playerConn != null) && (vmax != 0) && (playerConnVersion > vmax))
+            return;
+
         final String gaName = ga.getName();
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for mainPlayer
         final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for tradingPlayer
-
-        srv.gameList.takeMonitorForGame(gaName);
-
+        final int[] resAmounts = new int[6];  // unused, CLAY, ORE, ..., WOOD
+        int resTypeCount = 0;
         for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
         {
-            // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
-
             final int amt = resourceSet.getAmount(res);
             if (amt <= 0)
                 continue;
+            resAmounts[res] = amt;
+            ++resTypeCount;
+        }
+        final boolean isRecording = (vmax == 0) && srv.recordGameEventsIsActive();
+
+        srv.gameList.takeMonitorForGame(gaName);
+        try
+        {
+            final int clientVersionHighest = ((playerConn != null) ? playerConnVersion : ga.clientVersionHighest);
+            final boolean sendAsElementsMessage = (! isNews)
+                && ((vmax == 0) || (vmax >= SOCPlayerElements.MIN_VERSION))
+                && (resTypeCount > 1)
+                && ((clientVersionHighest >= SOCPlayerElements.MIN_VERSION) || isRecording);
+            final SOCPlayerElements elementsMessage =
+                (sendAsElementsMessage)
+                ? new SOCPlayerElements(gaName, mainPlayer, losegain, resourceSet)
+                : null;
+            final SOCPlayerElements elementsMessage2 =
+                (sendAsElementsMessage && (tradingPlayer != -1))
+                ? new SOCPlayerElements(gaName, tradingPlayer, gainlose, resourceSet)
+                : null;
 
             if (playerConn != null)
             {
-                if ((vmax == 0) || (playerConn.getVersion() <= vmax))
+                // Sending to 1 player client:
+
+                if (sendAsElementsMessage && (playerConnVersion >= SOCPlayerElements.MIN_VERSION))
+                {
                     srv.messageToPlayer
-                        (playerConn, gaName, ((vmax == 0) ? mainPlayer : SOCServer.PN_NON_EVENT),
-                         new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
-            } else {
-                final SOCMessage elemMsg = new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews);
-                if (vmax == 0)
-                    srv.messageToGameWithMon(gaName, true, elemMsg);
-                else
-                    srv.messageToGameForVersions(ga, -1, vmax, elemMsg, false);
-            }
+                        (playerConn, gaName, ((isRecording) ? mainPlayer : SOCServer.PN_NON_EVENT), elementsMessage);
+                } else {
+                    if (isRecording && sendAsElementsMessage)
+                        srv.recordGameEventTo(gaName, mainPlayer, elementsMessage);
 
-            if (tradingPlayer != -1)
+                    for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+                    {
+                        // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
+
+                        final int amt = resAmounts[res];
+                        if (amt <= 0)
+                            continue;
+
+                        srv.messageToPlayer
+                            (playerConn, gaName,
+                             ((isRecording && ! sendAsElementsMessage) ? mainPlayer : SOCServer.PN_NON_EVENT),
+                             new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews));
+                        if (isNews)
+                            isNews = false;  // if sending several here, only the first needs isNews attention flag
+                    }
+                }
+            }
+            else if (sendAsElementsMessage
+                && (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
+                && ((vmax == 0) || (clientVersionHighest <= vmax)))
             {
-                final SOCMessage elemMsg = new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews);
-                if (vmax == 0)
-                    srv.messageToGameWithMon(gaName, true, elemMsg);
-                else
-                    srv.messageToGameForVersions(ga, -1, vmax, elemMsg, false);
+                // Can send SOCPlayerElements to all game members:
+
+                srv.messageToGameWithMon(gaName, isRecording, elementsMessage);
+                if (elementsMessage2 != null)
+                    srv.messageToGameWithMon(gaName, isRecording, elementsMessage2);
             }
+            else
+            {
+                // Sending to some game members:
 
-            if (isNews)
-                isNews = false;  // if sending several here, only the first needs isNews attention flag
+                int vmaxSend = (vmax == 0) ? Integer.MAX_VALUE : vmax;
+
+                if (sendAsElementsMessage)
+                {
+                    srv.messageToGameForVersions
+                        (ga, SOCPlayerElements.MIN_VERSION, vmaxSend, elementsMessage, false);
+                    if (elementsMessage2 != null)
+                        srv.messageToGameForVersions
+                            (ga, SOCPlayerElements.MIN_VERSION, vmaxSend, elementsMessage2, false);
+                    if (isRecording)
+                    {
+                        srv.recordGameEvent(gaName, elementsMessage);
+                        if (elementsMessage2 != null)
+                            srv.recordGameEvent(gaName, elementsMessage2);
+                    }
+
+                    if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
+                    {
+                        // Example: vmax 2.4, cli range 2.0 - 2.5.
+                        // try/finally will releaseMonitorForGame before returning
+
+                        return;  // <--- Early return: no v1.x clients ---
+                    }
+                }
+
+                // If sendAsElementsMessage, we should send SOCPlayerElement to v1.x clients (< PEs.MIN_VERSION).
+                // Otherwise should send SOCPlayerElement to all clients <= vmax,
+                // which is all clients if vmax == 0.
+
+                if (sendAsElementsMessage)
+                    vmaxSend = SOCPlayerElements.MIN_VERSION - 1;
+                // else
+                //  vmaxSend is already vmax or Integer.MAX_VALUE
+
+                for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+                {
+                    // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
+
+                    final int amt = resAmounts[res];
+                    if (amt <= 0)
+                        continue;
+
+                    final SOCMessage elemMsg = new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt, isNews),
+                        elemMsg2 =
+                            (tradingPlayer != -1)
+                            ? new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt, isNews)
+                            : null;
+                    if (vmaxSend == Integer.MAX_VALUE)
+                    {
+                        srv.messageToGameWithMon(gaName, isRecording, elemMsg);
+                        if (elemMsg2 != null)
+                            srv.messageToGameWithMon(gaName, isRecording, elemMsg2);
+                    } else {
+                        srv.messageToGameForVersions(ga, -1, vmaxSend, elemMsg, false);
+                        if (elemMsg2 != null)
+                            srv.messageToGameForVersions(ga, -1, vmaxSend, elemMsg2, false);
+                        if (isRecording)
+                        {
+                            srv.recordGameEvent(gaName, elemMsg);
+                            if (elemMsg2 != null)
+                                srv.recordGameEvent(gaName, elemMsg2);
+                        }
+                    }
+
+                    if (isNews)
+                        isNews = false;  // if sending several here, only the first needs isNews attention flag
+                }
+            }
+        } finally {
+            srv.gameList.releaseMonitorForGame(gaName);
         }
-
-        srv.gameList.releaseMonitorForGame(gaName);
     }
 
     /**

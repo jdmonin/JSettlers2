@@ -70,8 +70,17 @@ import soc.game.SOCScenario;  // for javadocs only
  * newer client versions are sent a more specific message instead of
  * several {@code SOCPlayerElement} and {@link SOCGameServerText}s:
  *<UL>
- * <LI> {@link SOCDiceResultResources}: v2.0.00 and newer
- * <LI> {@link SOCReportRobbery}: v2.5.00 and newer
+ * <LI> v2.0.00 and newer:
+ *  <UL>
+ *   <LI> {@link SOCDiceResultResources}
+ *  </UL>
+ * <LI> v2.5.00 and newer:
+ *  <UL>
+ *   <LI> {@link SOCAcceptOffer}
+ *   <LI> {@link SOCBankTrade}
+ *   <LI> {@link SOCPickResources}
+ *   <LI> {@link SOCReportRobbery}
+ *  </UL>
  *</UL>
  *
  * @author Robert S Thomas
