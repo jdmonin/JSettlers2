@@ -79,7 +79,7 @@ As seen by a human player client or robot player.
         - SOCPlayerElements:actionType=LOSE|(resource types) -> Build Piece or Buy dev card
             - If next is SOCGameElements:DEV_CARD_COUNT=... -> Buy dev card
             - Otherwise -> assume Build Piece
-    - In other gameStates:
+    - In gameState WAITING_FOR_DISCARDS:
         - SOCPlayerElement or SOCPlayerElements:actionType=LOSE|(resource types) -> Discard
 - SOCMovePiece -> Move Piece
 - SOCDevCardAction:

@@ -85,7 +85,10 @@ import soc.game.SOCGame;  // for javadoc's use
  * <LI>{@link SOCGame#WAITING_FOR_DISCARDS WAITING_FOR_DISCARDS}: Server sends game a "x, y, and z need to discard"
  *     prompt text. Players who must discard are sent {@link SOCDiscardRequest} and must
  *     respond with {@link SOCDiscard}. After each client response, if still waiting for other players to discard,
- *     server sends game another prompt text. Otherwise sends game its new {@link SOCGameState}
+ *     server sends game the same <tt>{@link SOCGameState}(WAITING_FOR_DISCARDS)</tt> and another prompt text.
+ *     Otherwise sends game its new {@code SOCGameState}.
+ *     <BR>
+ *     (Server v2.0 - 2.4 sent the prompt text, but not {@code SOCGameState}, if still waiting.)
  * <LI>{@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER WAITING_FOR_ROB_CHOOSE_PLAYER}:
  *     Server sends current player {@link SOCChoosePlayerRequest} listing possible victims.
  *     Current player: Choose a victim to rob, send {@link SOCChoosePlayer}

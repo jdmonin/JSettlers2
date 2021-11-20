@@ -875,10 +875,25 @@ public class SOCGameMessageHandler
                 if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
                     if (gstate == SOCGame.WAITING_FOR_DISCARDS)
-                        handler.sendGameState(ga, true, false, false);  // send only text prompt, not redundant GAMESTATE
-                    else
+                    {
+                        // send redundant GAMESTATE to v2.5+ for clarity,
+                        // send text prompt to all versions
+
+                        final SOCGameState gstateMsg = new SOCGameState(gn, gstate);
+                        if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_ALWAYS_SEND_GAMESTATE)
+                        {
+                            srv.messageToGame(gn, true, gstateMsg);
+                        } else {
+                            srv.recordGameEvent(gn, gstateMsg);
+                            srv.messageToGameForVersions
+                                (ga, SOCDiscard.VERSION_FOR_ALWAYS_SEND_GAMESTATE, Integer.MAX_VALUE,
+                                 gstateMsg, true);
+                        }
+                        handler.sendGameState(ga, true, false, false);
+                    } else {
                         handler.sendGameState(ga);
                             // if state is WAITING_FOR_ROB_CHOOSE_PLAYER (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
+                    }
                 } else {
                     handler.endGameTurn(ga, player, true);  // already did ga.takeMonitor()
                 }

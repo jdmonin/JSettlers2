@@ -21,6 +21,7 @@
  **/
 package soc.message;
 
+import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 
@@ -35,16 +36,22 @@ import java.util.StringTokenizer;
  * resend {@code SOCDiscardRequest} with the required resource count.
  *<P>
  * If this is the right total amount to discard, server will respond to player
- * with a {@link SOCPlayerElements} or {@link SOCPlayerElement} LOSE messages to confirm the details,
+ * with a {@link SOCPlayerElement} or {@link SOCPlayerElements} LOSE message to confirm the details,
  * then report only the discard's resource total to the other players
  * via {@code SOCPlayerElement} and text. See {@link SOCPlayerElement}
  * class javadoc for more details.
  *<P>
- * If no other players need to discard, server will then send the new {@link SOCGameState}.
- * If waiting for others to discard, server sends the game a {@link SOCGameServerText} that lists
- * who we're still waiting for. Before v2.0.00, in that case server also sent a redundant
- * {@link SOCGameState}({@link soc.game.SOCGame#WAITING_FOR_DISCARDS WAITING_FOR_DISCARDS}).
- * Client v1.x.xx correctly displays progress of the discards without that SOCGameState.
+ * Server will then send the new {@link SOCGameState}.
+ * If waiting for others to discard, server then sends the game a {@link SOCGameServerText} that lists
+ * who we're still waiting for. The {@link SOCGameState}({@link SOCGame#WAITING_FOR_DISCARDS WAITING_FOR_DISCARDS})
+ * sent is redundant in that case, but server sends it anyway in order to regularize the message sequence
+ * to make it easier for bots to understand.
+ *<P>
+ * Server v2.0.00 through v2.4.00 didn't send that {@code SOCGameState(WAITING_FOR_DISCARDS)},
+ * to be a bit more efficient. So for compatibility, server won't send that redundant message to
+ * clients older than v2.5 ({@link #VERSION_FOR_ALWAYS_SEND_GAMESTATE}).
+ * All client versions including v1.x.xx correctly display progress of the discards
+ * without needing that {@code SOCGameState}.
  *
  * @author Robert S. Thomas
  */
@@ -52,6 +59,17 @@ public class SOCDiscard extends SOCMessage
     implements SOCMessageForGame
 {
     private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
+
+    /**
+     * First server version (v2.5.00) where after a player discards, if other players still must discard,
+     * server sends {@link SOCGameState}({@link SOCGame#WAITING_FOR_DISCARDS}) for clarity
+     * and to mark end of message sequence, although state hasn't changed.
+     *<P>
+     * That redundant {@code SOCGameState} was also sent in v1.x, but not v2.0 - v2.4.
+     *
+     * @since 2.5.00
+     */
+    public static final int VERSION_FOR_ALWAYS_SEND_GAMESTATE = 2500;
 
     /**
      * Name of game

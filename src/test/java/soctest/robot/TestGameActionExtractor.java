@@ -1076,10 +1076,11 @@ public class TestGameActionExtractor
             "p1:SOCPlayerElement:game=test|playerNum=1|actionType=LOSE|elementType=4|amount=1",
             "p1:SOCPlayerElement:game=test|playerNum=1|actionType=LOSE|elementType=5|amount=2",
             "!p1:SOCPlayerElement:game=test|playerNum=1|actionType=LOSE|elementType=6|amount=6|news=Y",
-
-            // these are from p1 discard, but since extractor ignores SOCGameServerText
-            // they'll be included as part of next sequence:
             "all:SOCGameServerText:game=test|text=p1 discarded 6 resources.",
+            "all:SOCGameState:game=test|state=50",
+
+            // this prompt follows p1 discard, but since extractor ignores SOCGameServerText
+            // it'll be included as part of next sequence:
             "all:SOCGameServerText:game=test|text=p3 needs to discard.",
 
             // p3 discards:
@@ -1215,14 +1216,14 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(3);
                     assertEquals(desc, ActionType.DISCARD, act.actType);
-                    assertEquals(desc, 5, act.eventSequence.size());
+                    assertEquals(desc, 7, act.eventSequence.size());
                     assertEquals(desc, SOCGame.WAITING_FOR_DISCARDS, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
                     assertEquals(desc, new SOCResourceSet(0, 0, 3, 1, 2, 0), act.rset1);
 
                     act = actionLog.get(4);
                     assertEquals(desc, ActionType.DISCARD, act.actType);
-                    assertEquals(desc, 10, act.eventSequence.size());
+                    assertEquals(desc, 9, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_ROBBER, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
                     assertEquals(desc, new SOCResourceSet(0, 2, 2, 2, 3, 0), act.rset1);

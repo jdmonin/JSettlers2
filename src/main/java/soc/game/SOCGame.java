@@ -6026,6 +6026,8 @@ public class SOCGame implements Serializable, Cloneable
      * If {@link #isForcingEndTurn()}, and no one else needs to discard,
      * gameState becomes {@link #PLAY1} but the caller must call
      * {@link #endTurn()} as soon as possible.
+     *<P>
+     * Called only at server.
      *
      * @param pn   the number of the player
      * @param rs   the resources that are being discarded

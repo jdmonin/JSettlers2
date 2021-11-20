@@ -450,23 +450,25 @@ If cancelled by clicking End Turn, goes directly from placement gameState to nex
 
 ### Discard
 
+In gameState WAITING_FOR_DISCARDS:
+
+If this is the only player who needed to discard:
+
 - f2:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0
-- p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=3|amount=2  // a future version might combine this + next to 1 SOCPlayerElements
-- p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=5|amount=3
+- p2:SOCPlayerElements:game=test|playerNum=2|actionType=LOSE|e3=2,e5=3  // v2.4 and older sent this as multiple SOCPlayerElement, 1 per resource type
 - !p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=6|amount=5|news=Y
 - all:SOCGameServerText:game=test|text=p2 discarded 5 resources.
 - all:SOCGameState:game=test|state=33  // or other: choose robber or pirate, etc
 - all:SOCGameServerText:game=test|text=p2 will move the robber.  // optional, varies based on new game state
 
-Or if other players still need to discard:
+Or if still waiting for other players to discard:
 
-- f3:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=5|wheat=0|wood=1|unknown=0
-- p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=3|amount=5
-- p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=5|amount=1
-- !p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=6|amount=6|news=Y
-- all:SOCGameServerText:game=test|text=p3 discarded 6 resources.
+- f3:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=7|wheat=0|wood=0|unknown=0
+- p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|e3=7  // SOCPlayerElement (not SOCPlayerElements) because 1 resource type
+- !p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=6|amount=7|news=Y
+- all:SOCGameServerText:game=test|text=p3 discarded 7 resources.
+- all:SOCGameState:game=test|state=50  // still WAITING_FOR_DISCARDS
 - all:SOCGameServerText:game=test|text=p2 needs to discard.
-- No final SOCGameState message, since state is still 50 (WAITING_FOR_DISCARDS)
 
 ### Choose free resources (Gold hex gains; see also "Year of Plenty/Discovery" sequence)
 

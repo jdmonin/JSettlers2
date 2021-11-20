@@ -848,25 +848,32 @@ public class TestActionsMessages
         (final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IOException
     {
+        // CLIENT will always be the current player. CLIENT2 will be used only to test 2 players discarding.
         final String CLIENT_NAME
-            = "testRollDice_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
-        final int CLIENT_PN = 3;
+            = "testRollDice_"  + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h"),
+            CLIENT2_NAME
+            = "testRollDice2_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
+        final int CLIENT_PN = 3, CLIENT2_PN = 1;
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT_NAME, null, 0, null, false, observabilityMode, clientAsRobot, othersAsRobot);
-        final DisplaylessTesterClient tcli = objs.tcli;
+                (srv, CLIENT_NAME, CLIENT2_NAME, CLIENT2_PN,
+                 null, false, observabilityMode, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
         final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
-        final SOCPlayer cliPl = objs.clientPlayer;
+        final SOCPlayer cliPl = objs.clientPlayer, cli2Pl = objs.client2Player;
         final Vector<EventEntry> records = objs.records;
 
         assertTrue(ga.isSeatVacant(0));
+        assertFalse(ga.isSeatVacant(CLIENT2_PN));
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
+        assertEquals(CLIENT2_PN, cli2Pl.getPlayerNumber());
 
         // clear debug player's resources so no one needs to discard on 7;
-        // once that sequence is validated, will change so must discard on 7
+        // once that sequence is validated, will change so client and CLIENT2 must discard on 7
+        assertEquals(new SOCResourceSet(1, 2, 1, 3, 0, 0), ga.getPlayer(CLIENT2_PN).getResources());
         cliPl.getResources().setAmounts(new SOCResourceSet(0, 3, 1, 2, 0, 0));
 
         // allow 7s to be rolled
@@ -1050,16 +1057,20 @@ public class TestActionsMessages
 
                     tested7 = true;
 
-                    // adjust player resources so will have to discard at next 7
-                    savedRsrcs[CLIENT_PN] = new SOCResourceSet(3, 3, 3, 4, 4, 0);
+                    // adjust player resources so CLIENT_PN, CLIENT2_PN will have to discard at next 7
+                    savedRsrcs[CLIENT_PN]  = new SOCResourceSet(3, 3, 3, 4, 4, 0);
+                    savedRsrcs[CLIENT2_PN] = new SOCResourceSet(0, 8, 0, 0, 0, 0);
                 }
                 else if (! tested7Discard)
                 {
                     assertEquals(SOCGame.WAITING_FOR_DISCARDS, ga.getGameState());
                     assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
 
+                    // send a discard message from CLIENT2 first
+                    tcli2.discard(ga, new SOCResourceSet(0, 4, 0, 0, 0, 0));
                     try { Thread.sleep(60); }
                     catch(InterruptedException e) {}
+
                     tcli.discard(ga, new SOCResourceSet(0, 0, 0, 4, 4, 0));
 
                     try { Thread.sleep(60); }
@@ -1071,8 +1082,19 @@ public class TestActionsMessages
                             {
                                 {"all:SOCDiceResult:", "|param=7"},
                                 {"all:SOCGameState:", "|state=50"},
-                                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
+                                {"all:SOCGameServerText:", "|text=" + CLIENT2_NAME + " and " + CLIENT_NAME + " need to discard."},
+                                {"p1:SOCDiscardRequest:", "|numDiscards=4"},
                                 {"p3:SOCDiscardRequest:", "|numDiscards=8"},
+                                {
+                                    ((observabilityMode != 2) ? "p1:SOCPlayerElement:" : "all:SOCPlayerElement:"),
+                                    "|playerNum=1|actionType=LOSE|elementType=2|amount=4"
+                                },
+                                ((observabilityMode != 2)
+                                    ? new String[]{"!p1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=4|news=Y"}
+                                    : null),
+                                {"all:SOCGameServerText:", "|text=" + CLIENT2_NAME + " discarded 4 resources."},
+                                {"all:SOCGameState:", "|state=50"},
+                                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
                                 {
                                     ((observabilityMode != 2) ? "p3:SOCPlayerElements:" : "all:SOCPlayerElements:"),
                                     "|playerNum=3|actionType=LOSE|e4=4,e5=4"

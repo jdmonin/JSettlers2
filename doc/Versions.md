@@ -57,6 +57,9 @@ JARs for recent JSettlers versions can be downloaded from
 		- When game contains v1.x and v2.x clients, no longer sends v1.x-compatible SOCPlayerElement(pn, GAIN, ...)
 		  or SOCResourceCounts to v2.x clients. Those clients are already sent SOCDiceResultResources,
 		  and the extra messages could lead to incorrect resource tracking.
+	- Discard:
+		- After a player discards, if others still must discard, server sends SOCGameState(WAITING_FOR_DISCARDS) for clarity although state hasn't changed
+			- Not sent to clients older than v2.5
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)

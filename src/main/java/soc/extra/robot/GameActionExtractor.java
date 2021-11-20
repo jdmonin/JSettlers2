@@ -1575,10 +1575,11 @@ public class GameActionExtractor
         // If no other players need to discard:
         //     all:SOCGameState:game=test|state=33  // or other: choose robber or pirate, etc
         // If other players still need to discard:
+        //     all:SOCGameState:game=test|state=50  // WAITING_FOR_DISCARDS
         //     an ignored all:SOCGameServerText:game=test|text=p2 needs to discard.
-        //     and no final SOCGameState message, since state is still 50 (WAITING_FOR_DISCARDS)
-        // So, include and move past an optional SOCGameState:
-        nextIfType(SOCMessage.GAMESTATE);
+        e = next();
+        if (! (e.isToAll() && (e.event instanceof SOCGameState)))
+            return null;
 
         int prevStart = currentSequenceStartIndex;
         return new Action

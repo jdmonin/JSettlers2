@@ -377,13 +377,20 @@ all:SOCTurn:game=test|playerNumber=2|gameState=15
 all:SOCRollDicePrompt:game=test|playerNumber=2
 f2:SOCRollDice:game=test
 all:SOCDiceResult:game=test|param=7
+# Changed afterwards to have 2 players discard instead of 1, to document that sequence
+all:SOCGameState:game=test|state=50
+all:SOCGameServerText:game=test|text=p2 and debug need to discard.
+p2:SOCDiscardRequest:game=test|numDiscards=4
+p3:SOCDiscardRequest:game=test|numDiscards=4
+f2:SOCDiscard:game=test|resources=clay=2|ore=0|sheep=0|wheat=2|wood=0|unknown=0
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=LOSE|e1=2,e4=2
+!p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=6|amount=4|news=Y
+all:SOCGameServerText:game=test|text=p2 discarded 4 resources.
+# End of added section
 all:SOCGameState:game=test|state=50
 all:SOCGameServerText:game=test|text=debug needs to discard.
-p3:SOCDiscardRequest:game=test|numDiscards=4
 f3:SOCDiscard:game=test|resources=clay=1|ore=1|sheep=0|wheat=2|wood=0|unknown=0
-p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=1|amount=1
-p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=2|amount=1
-p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=4|amount=2
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e2=1,e4=2
 !p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=6|amount=4|news=Y
 all:SOCGameServerText:game=test|text=debug discarded 4 resources.
 all:SOCGameState:game=test|state=54

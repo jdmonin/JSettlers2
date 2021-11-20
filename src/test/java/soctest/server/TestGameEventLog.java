@@ -502,7 +502,7 @@ public class TestGameEventLog
         throws NoSuchElementException, IOException, ParseException
     {
         final GameEventLog log = load("all-basic-actions.soclog", false, -1);
-        final int EXPECTED_FILE_LINE_COUNT = 776;  // length from wc -l
+        final int EXPECTED_FILE_LINE_COUNT = 783;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
