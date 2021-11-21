@@ -3309,15 +3309,18 @@ public class SOCPlayerInterface extends Frame
         {
             // Set timer.  If still waiting for discards after 2 seconds,
             // show balloons on-screen. (hands[i].setDiscardOrPickMsg)
-            discardOrPickTimerSet(true);
-        } else if ((gs == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                   || (gs == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
+            if (! showingPlayerDiscardOrPick)
+                discardOrPickTimerSet(true);
+        }
+        else if ((gs == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                 || (gs == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
         {
             // Set timer.  If still waiting for resource picks after 2 seconds,
             // show balloons on-screen. (hands[i].setDiscardOrPickMsg)
-            discardOrPickTimerSet(false);
-        } else if (showingPlayerDiscardOrPick &&
-                   ((gs == SOCGame.PLAY1) || (gs == SOCGame.START2B) || (gs == SOCGame.START3B)))
+            if (! showingPlayerDiscardOrPick)
+                discardOrPickTimerSet(false);
+        }
+        else if (showingPlayerDiscardOrPick)
         {
             // If not all players' discard status balloons were cleared by
             // PLAYERELEMENT messages, clean up now.
@@ -3644,10 +3647,12 @@ public class SOCPlayerInterface extends Frame
                 showingPlayerDiscardOrPick_task.cancel();  // cancel any previous
                 showingPlayerDiscardOrPick_task = null;
             }
+
             if (showingPlayerDiscardOrPick)
             {
                 for (int i = hands.length - 1; i >= 0; --i)
                     hands[i].clearDiscardOrPickMsg();
+
                 showingPlayerDiscardOrPick = false;
             }
         }
