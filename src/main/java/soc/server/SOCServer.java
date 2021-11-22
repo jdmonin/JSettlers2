@@ -2623,8 +2623,10 @@ public class SOCServer extends Server
     public final int getRobotCount() { return robots.size(); }
 
     /**
-     * Get a connected robot client, from server's list of bots
+     * Get a connected robot client's connection, from server's list of bots
      * (clients which have auth'd using {@link SOCImARobot}).
+     * If bot was started by the server, you can get the actual client from {@link #getRobotClient(String)}.
+     *
      * @param botName Case-sensitive bot name key, from {@link Connection#getData()}; if null, returns null
      * @return That bot's connection, or {@code null} if not found
      * @see Server#getConnection(String)
@@ -2647,6 +2649,22 @@ public class SOCServer extends Server
         }
 
         return null;
+    }
+
+    /**
+     * Get client of a robot started by the server.
+     *
+     * @param botName Case-sensitive bot name key, from {@link Connection#getData()}; if null, returns null
+     * @return That local bot's client, or {@code null} if not found or not started by server
+     * @see #getRobotConnection(String)
+     * @since 2.5.00
+     */
+    public final SOCRobotClient getRobotClient(final String botName)
+    {
+        if (botName == null)
+            return null;
+
+        return SOCLocalRobotClient.robotClients.get(botName);
     }
 
     /**
