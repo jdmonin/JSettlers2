@@ -4311,7 +4311,7 @@ public class SOCServer extends Server
         if ((c == null) || (mes == null))
             return;
 
-        if (eventGameName != null)
+        if ((eventGameName != null) && (eventPN != PN_NON_EVENT))
             recordGameEventTo(eventGameName, eventPN, mes);
 
         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", c.getData()));
@@ -4366,7 +4366,7 @@ public class SOCServer extends Server
                 recordGameEventTo(gameName, eventPN, msg);
         } else {
             c.put(new SOCGameTextMsg(gameName, SERVERNAME, txt));
-            if (eventPN != PN_NON_EVENT)
+            if ((eventPN != PN_NON_EVENT) && recordGameEventsIsActive())
                 recordGameEventTo(gameName, eventPN, new SOCGameServerText(gameName, txt));
         }
     }
