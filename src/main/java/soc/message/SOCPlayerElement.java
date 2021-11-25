@@ -78,6 +78,7 @@ import soc.game.SOCScenario;  // for javadocs only
  *  <UL>
  *   <LI> {@link SOCAcceptOffer}
  *   <LI> {@link SOCBankTrade}
+ *   <LI> {@link SOCDiscard}
  *   <LI> {@link SOCPickResources}
  *   <LI> {@link SOCReportRobbery}
  *  </UL>

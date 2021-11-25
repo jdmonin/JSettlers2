@@ -734,6 +734,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.DEVCARDACTION:  // either draw, play, or add to hand, or cannot play our requested dev card
             case SOCMessage.DICERESULT:
             case SOCMessage.DICERESULTRESOURCES:
+            case SOCMessage.DISCARD:        // added 2021-11-26 for v2.5.00
             case SOCMessage.DISCARDREQUEST:
             case SOCMessage.GAMESTATS:
             case SOCMessage.MAKEOFFER:

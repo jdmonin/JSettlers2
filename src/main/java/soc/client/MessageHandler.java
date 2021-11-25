@@ -448,6 +448,14 @@ public class MessageHandler
                 break;
 
             /**
+             * A player has discarded resources.
+             * Added 2021-11-26 for v2.5.00.
+             */
+            case SOCMessage.DISCARD:
+                handleDISCARD((SOCDiscard) mes);
+                break;
+
+            /**
              * a player has made a bank/port trade
              */
             case SOCMessage.BANKTRADE:
@@ -2062,6 +2070,28 @@ public class MessageHandler
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.buildRequestCanceled(pl);
+    }
+
+    /**
+     * A player has discarded resources. Update player data and announce the discard.
+     * @param mes  the message
+     * @since 2.5.00
+     */
+    protected void handleDISCARD(final SOCDiscard mes)
+    {
+        final String gaName = mes.getGame();
+        final SOCGame ga = client.games.get(gaName);
+        if (ga == null)
+            return;
+
+        final SOCPlayer pl = SOCDisplaylessPlayerClient.handleDISCARD(mes, ga);
+        if (pl == null)
+            return;
+
+        final PlayerClientListener pcl = client.getClientListener(gaName);
+        if (pcl == null)
+            return;
+        pcl.playerDiscarded(pl, mes.getResources());
     }
 
     /**

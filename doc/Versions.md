@@ -58,6 +58,7 @@ JARs for recent JSettlers versions can be downloaded from
 		  or SOCResourceCounts to v2.x clients. Those clients are already sent SOCDiceResultResources,
 		  and the extra messages could lead to incorrect resource tracking.
 	- Discard:
+		- Server sends SOCDiscard instead of SOCPlayerElement to clients v2.5 and newer
 		- After a player discards, if others still must discard, server sends SOCGameState(WAITING_FOR_DISCARDS) for clarity although state hasn't changed
 			- Not sent to clients older than v2.5
 	- When Monopoly card played:
@@ -148,6 +149,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Game window:
 	    - Hand Panel: Shrink unused space above trading squares
 	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
+	    - Discards: List resources you discarded, not just total amount, in game action textarea
 	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
 	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
 	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour

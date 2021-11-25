@@ -561,14 +561,24 @@ public class TestToCmdToStringParse
             new HashSet<String>(Arrays.asList("playerNum", "playerRsrc", "playerResTotal"))
         },
         {
-            new SOCDiscard("ga", 3, new SOCResourceSet(2, 1, 3, 1, 2, 0)),
+            new SOCDiscard("ga", -1, new SOCResourceSet(2, 1, 3, 1, 2, 0)),
             "1033|ga,2,1,3,1,2,0",
             "SOCDiscard:game=ga|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
+        },
+        {
+            new SOCDiscard("ga", 3, new SOCResourceSet(2, 1, 3, 1, 2, 0)),
+            "1033|ga,p3,2,1,3,1,2,0",
+            "SOCDiscard:game=ga|playerNum=3|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
         },
         {
             new SOCDiscard("ga", 2, 1, 3, 1, 2, 0),
             "1033|ga,2,1,3,1,2,0",
             "SOCDiscard:game=ga|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
+        },
+        {
+            new SOCDiscard("ga", 3, 2, 1, 3, 1, 2, 0),
+            "1033|ga,p3,2,1,3,1,2,0",
+            "SOCDiscard:game=ga|playerNum=3|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
         },
         {new SOCDiscardRequest("ga", 4), "1029|ga,4", "SOCDiscardRequest:game=ga|numDiscards=4"},
         {new SOCEndTurn("ga"), "1032|ga", "SOCEndTurn:game=ga"},

@@ -342,7 +342,7 @@ import soc.message.SOCStartGame;
      */
     public void discard(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCDiscard.toCmd(ga.getName(), rs), ga.isPractice);
+        put(new SOCDiscard(ga.getName(), -1, rs), ga.isPractice);
     }
 
     /**

@@ -23,6 +23,7 @@ package soc.baseclient;
 
 import soc.disableDebug.D;
 
+import soc.game.ResourceSet;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -704,6 +705,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.CANCELBUILDREQUEST:
                 handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
+                break;
+
+            /**
+             * A player has discarded resources.
+             * Added 2021-11-26 for v2.5.00.
+             */
+            case SOCMessage.DISCARD:
+                handleDISCARD((SOCDiscard) mes, games.get(((SOCDiscard) mes).getGame()));
                 break;
 
             /**
@@ -1854,9 +1863,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     then remove mes's unknown resources from player.
      *</ul>
      *<P>
-     * To avoid code duplication, also called from
-     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
-     * and {@link soc.robot.SOCRobotBrain#run()}.
+     * For consistent resource management and to avoid code duplication, is also called from
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)},
+     * {@link #handleDISCARD(SOCDiscard, SOCGame)}, and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
      * {@code action} and {@code amount} fields.
@@ -2100,6 +2109,40 @@ public class SOCDisplaylessPlayerClient implements Runnable
         SOCPlayer pl = ga.getPlayer(ga.getCurrentPlayerNumber());
         SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
         ga.undoPutInitSettlement(pp);
+    }
+
+    /**
+     * A player has discarded resources. Update player data by calling
+     * {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
+     * for each resource type in the message.
+     *
+     * @param mes  the message
+     * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}; if {@code null}, message is ignored
+     * @return  the player discarding, for convenience of player client,
+     *     or {@code null} if {@link SOCDiscard#getPlayerNumber()} out of range
+     * @since 2.5.00
+     */
+    public static SOCPlayer handleDISCARD(final SOCDiscard mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return null;
+        final int pn = mes.getPlayerNumber();
+        if ((pn < 0) || (pn >= ga.maxPlayers))
+            return null;
+
+        // for consistent resource management, calls handlePLAYERELEMENT_numRsrc
+        // instead of SOCResourceSet.subtract directly
+
+        final SOCPlayer pl = ga.getPlayer(pn);
+        final ResourceSet res = mes.getResources();
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.UNKNOWN; ++rtype)
+        {
+            int amount = res.getAmount(rtype);
+            if (amount != 0)
+                handlePLAYERELEMENT_numRsrc(pl, SOCPlayerElement.LOSE, rtype, amount);
+        }
+
+        return pl;
     }
 
     /**
@@ -3215,7 +3258,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void discard(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCDiscard.toCmd(ga.getName(), rs));
+        put(new SOCDiscard(ga.getName(), -1, rs).toCmd());
     }
 
     /**

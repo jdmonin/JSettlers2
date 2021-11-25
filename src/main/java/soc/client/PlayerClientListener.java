@@ -27,6 +27,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import soc.game.ResourceSet;
 import soc.game.SOCGame;
 import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCInventory;   // for javadocs only
@@ -267,6 +268,15 @@ public interface PlayerClientListener
      * @param countToSelect  Number of free resources they must pick, or 0 if they've just picked them
      */
     void requestedGoldResourceCountUpdated(SOCPlayer player, int countToPick);
+
+    /**
+     * This player has just discarded some resources. Player data has been updated.
+     * Announce the discard and update displays.
+     * @param player  Player discarding resources; not {@code null}
+     * @param discards  The known or unknown resources discarded; not {@code null}
+     * @since 2.5.00
+     */
+    void playerDiscarded(SOCPlayer player, ResourceSet discards);
 
     /**
      * This player must choose a player for robbery.

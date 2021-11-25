@@ -1284,8 +1284,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *<P>
      * For {@link SOCMessageMulti} subclasses, use or override {@link #stripAttribsToList(String)} instead.
      *
-     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
-     * @return Message parameters without attribute names, or {@code null} if params are malformed.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()},
+     *     typically delimited by {@code '|'}; not {@code null}
+     * @return Comma-delimited message parameters ({@link #sep2_char}) without attribute names,
+     *     or {@code null} if params are malformed.
      *     If {@code messageStrParams} is "", returns "".
      * @see #stripAttribsToList(String)
      * @since 2.5.00

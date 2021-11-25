@@ -56,6 +56,7 @@ import soc.message.SOCClearOffer;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDiceResult;
 import soc.message.SOCDiceResultResources;
+import soc.message.SOCDiscard;
 import soc.message.SOCDiscardRequest;
 import soc.message.SOCGameState;
 import soc.message.SOCGameStats;
@@ -1542,6 +1543,10 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.CANCELBUILDREQUEST:
                         handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
+                        break;
+
+                    case SOCMessage.DISCARD:
+                        SOCDisplaylessPlayerClient.handleDISCARD((SOCDiscard) mes, game);
                         break;
 
                     case SOCMessage.MOVEROBBER:

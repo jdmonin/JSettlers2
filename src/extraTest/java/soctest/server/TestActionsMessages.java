@@ -1086,23 +1086,21 @@ public class TestActionsMessages
                                 {"p1:SOCDiscardRequest:", "|numDiscards=4"},
                                 {"p3:SOCDiscardRequest:", "|numDiscards=8"},
                                 {
-                                    ((observabilityMode != 2) ? "p1:SOCPlayerElement:" : "all:SOCPlayerElement:"),
-                                    "|playerNum=1|actionType=LOSE|elementType=2|amount=4"
+                                    ((observabilityMode != 2) ? "p1:SOCDiscard:" : "all:SOCDiscard:"),
+                                    "|playerNum=1|resources=clay=0|ore=4|sheep=0|wheat=0|wood=0|unknown=0"
                                 },
                                 ((observabilityMode != 2)
-                                    ? new String[]{"!p1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=4|news=Y"}
+                                    ? new String[]{"!p1:SOCDiscard:", "|playerNum=1|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=4"}
                                     : null),
-                                {"all:SOCGameServerText:", "|text=" + CLIENT2_NAME + " discarded 4 resources."},
                                 {"all:SOCGameState:", "|state=50"},
                                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
                                 {
-                                    ((observabilityMode != 2) ? "p3:SOCPlayerElements:" : "all:SOCPlayerElements:"),
-                                    "|playerNum=3|actionType=LOSE|e4=4,e5=4"
+                                    ((observabilityMode != 2) ? "p3:SOCDiscard:" : "all:SOCDiscard:"),
+                                    "|playerNum=3|resources=clay=0|ore=0|sheep=0|wheat=4|wood=4|unknown=0"
                                 },
                                 ((observabilityMode != 2)
-                                    ? new String[]{"!p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=6|amount=8|news=Y"}
-                                    : null),
-                                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " discarded 8 resources."}
+                                    ? new String[]{"!p3:SOCDiscard:", "|playerNum=3|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=8"}
+                                    : null)
                             });
 
                     tested7Discard = true;

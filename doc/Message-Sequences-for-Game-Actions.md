@@ -455,18 +455,16 @@ In gameState WAITING_FOR_DISCARDS:
 If this is the only player who needed to discard:
 
 - f2:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0
-- p2:SOCPlayerElements:game=test|playerNum=2|actionType=LOSE|e3=2,e5=3  // v2.4 and older sent this as multiple SOCPlayerElement, 1 per resource type
-- !p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=6|amount=5|news=Y
-- all:SOCGameServerText:game=test|text=p2 discarded 5 resources.
+- p2:SOCDiscard:game=test|playerNum=2|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0  // to `all:` if game is Fully Observable
+- !p2:SOCDiscard:game=test|playerNum=2|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=5  // not sent if Fully Observable
 - all:SOCGameState:game=test|state=33  // or other: choose robber or pirate, etc
 - all:SOCGameServerText:game=test|text=p2 will move the robber.  // optional, varies based on new game state
 
 Or if still waiting for other players to discard:
 
 - f3:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=7|wheat=0|wood=0|unknown=0
-- p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|e3=7  // SOCPlayerElement (not SOCPlayerElements) because 1 resource type
-- !p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=6|amount=7|news=Y
-- all:SOCGameServerText:game=test|text=p3 discarded 7 resources.
+- p3:SOCDiscard:game=test|playerNum=3|resources=clay=0|ore=0|sheep=7|wheat=0|wood=0|unknown=0  // to `all:` if game is Fully Observable
+- !p3:SOCDiscard:game=test|playerNum=3|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=7  // not sent if Fully Observable
 - all:SOCGameState:game=test|state=50  // still WAITING_FOR_DISCARDS
 - all:SOCGameServerText:game=test|text=p2 needs to discard.
 

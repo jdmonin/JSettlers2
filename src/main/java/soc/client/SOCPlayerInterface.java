@@ -25,6 +25,7 @@ package soc.client;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
+import soc.game.ResourceSet;
 import soc.game.SOCBoard;
 import soc.game.SOCCity;
 import soc.game.SOCFortress;
@@ -3043,6 +3044,31 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * This player has just discarded some resources. Player data has been updated.
+     * Announce the discard and update displays.
+     * @param player  Player discarding resources; not {@code null}
+     * @param discards  The known or unknown resources discarded; not {@code null}
+     * @since 2.5.00
+     */
+    public void reportDiscard(final SOCPlayer player, final ResourceSet discards)
+    {
+        final int pn = player.getPlayerNumber();
+        hands[pn].updateValue
+            (PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+
+        if (isGameFullyObservable || (discards.getAmount(SOCResourceConstants.UNKNOWN) == 0))
+            printKeyedSpecial
+                ((pn != clientHandPlayerNum) ? "action.discarded.rsrcs" : "action.discarded.rsrcs.you",
+                 player.getName(), discards);
+                // "{0} discarded {1,rsrcs}."
+                // or "You discarded {1,rsrcs}."
+        else
+            printKeyedSpecial
+                ("action.discarded.total.common", player.getName(), discards.getTotal());
+                // "{0} discarded {1} resources."
+    }
+
+    /**
      * show the {@link SOCChoosePlayerDialog} to choose a player for robbery.
      *<P>
      * Before v2.0.00, this was <tt>choosePlayer</tt>.
@@ -5047,6 +5073,11 @@ public class SOCPlayerInterface extends Frame
         public void promptPickResources(int countToPick)
         {
             pi.showDiscardOrGainDialog(countToPick, false);
+        }
+
+        public void playerDiscarded(final SOCPlayer player, final ResourceSet discards)
+        {
+            pi.reportDiscard(player, discards);
         }
 
         public void requestedChoosePlayer(final List<SOCPlayer> choices, final boolean isNoneAllowed)

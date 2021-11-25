@@ -3372,6 +3372,9 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Messages sent by this method are always treated as "events":
      * Indirectly calls {@link SOCServer#recordGameEvent(String, SOCMessage)} or similar methods.
+     * To avoid recording as an event, call
+     * {@link #reportRsrcGainLossForVersions(SOCGame, ResourceSet, boolean, boolean, int, int, Connection, int)}
+     * instead.
      *<P>
      * Takes and releases the gameList monitor for this game.
      *
@@ -3393,7 +3396,6 @@ public class SOCGameHandler extends GameHandler
      *                there instead of sending to all players in game.  Because trades are public, there is no
      *                such parameter for tradingPlayer: If not null, assumes tradingPlayer == -1.
      *
-     * @see #reportRsrcGainLossForVersions(SOCGame, ResourceSet, boolean, boolean, int, int, Connection, int)
      * @see #reportTrade(SOCGame, int, int)
      * @see #reportBankTrade(SOCGame, SOCResourceSet, SOCResourceSet)
      * @see #reportRsrcGainGold(SOCGame, SOCPlayer, int, SOCResourceSet, boolean, boolean)
@@ -3443,7 +3445,7 @@ public class SOCGameHandler extends GameHandler
      * @param playerConn  Null to announce to the entire game, or {@code mainPlayer}'s connection to send messages
      *                there instead of sending to all players in game.  Because trades are public, there is no
      *                such parameter for tradingPlayer: If not null, assumes tradingPlayer == -1.
-     * @param vmax  Maximum client version to send to.
+     * @param vmax  Maximum client version to send to, or {@link Integer#MAX_VALUE}.
      *                Same format as {@link Version#versionNumber()} and {@link Connection#getVersion()}.
      *
      * @see #reportRsrcGainLoss(SOCGame, ResourceSet, boolean, boolean, int, int, Connection)
