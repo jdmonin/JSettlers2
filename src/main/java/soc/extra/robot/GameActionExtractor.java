@@ -137,7 +137,7 @@ public class GameActionExtractor
      *<P>
      * Set from {@link #eventLog}{@link GameEventLog#isServerOnly .isServerOnly}.
      * Selection for {@link #seqStartMsgTypes} is based on this flag.
-     * @see GameEventLog#save(java.io.File, String, boolean)
+     * @see GameEventLog#save(java.io.File, String, boolean, boolean)
      */
     protected final boolean hasServerOnlyLog;
 

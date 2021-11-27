@@ -60,7 +60,7 @@ import soc.util.Version;
  *
  *<H3>Log file format</H3>
  *
- * {@link #save(File, String, boolean)} saves files in this format:
+ * {@link #save(File, String, boolean, boolean)} saves files in this format:
  *<UL>
  *  <LI> File starts with this header line:<BR>
  *    <tt>SOC game event log: type=</tt>type<tt>, version=2500, created_at=</tt>timestamp<tt>, now=</tt>timestamp<tt>, game_name=</tt>game name <BR>
@@ -95,7 +95,7 @@ public class GameEventLog
 {
     /**
      * Standard suffix/extension for {@link GameEventLog} files: {@code ".soclog"}
-     * @see #save(File, String, boolean)
+     * @see #save(File, String, boolean, boolean)
      */
     public static final String FILENAME_EXTENSION = ".soclog";
 
@@ -137,7 +137,7 @@ public class GameEventLog
      * (see {@link #serverOnlyToClientPN}). Otherwise false.
      *<P>
      * {@code log_type=S} is written by a call to
-     * {@link #save(File, String, boolean) save(File, String, serverOnly=true)}.
+     * {@link #save(File, String, boolean, boolean) save(.., serverOnly=true)}.
      */
     public boolean isServerOnly;
 
@@ -285,6 +285,8 @@ public class GameEventLog
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save to; not validated for format or security.
      *     Recommended suffix is {@link #FILENAME_EXTENSION} for consistency.
+     * @param untimed  If true, omit the optional {@link GameEventLog.EventEntry#timeElapsedMS} timestamp field
+     *     when writing entries to file
      * @param serverOnly  If true, don't write entries where {@link GameEventLog.EventEntry#isFromClient} true;
      *     log will be {@code type=S} instead of {@code type=F}.
      * @throws IllegalStateException  if {@link #game} is {@code null}
@@ -295,7 +297,8 @@ public class GameEventLog
      * @throws IOException if an I/O problem or {@link SecurityException} occurs
      * @see #load(File, boolean, int)
      */
-    public void save(final File saveDir, final String saveFilename, final boolean serverOnly)
+    public void save
+        (final File saveDir, final String saveFilename, final boolean untimed, final boolean serverOnly)
         throws IllegalStateException, NoSuchElementException, IllegalArgumentException, IOException
     {
         if (game == null)
@@ -363,7 +366,7 @@ public class GameEventLog
 
             for (GameEventLog.EventEntry entry : entries)
                 if (! (entry.isFromClient && serverOnly))
-                    writer.append(entry.toString()).append('\n');
+                    writer.append(entry.toString(untimed)).append('\n');
 
             writer.append("# End of log; final game state is ")
                 .append(Integer.toString(game.getGameState())).append('\n');
@@ -404,7 +407,7 @@ public class GameEventLog
     }
 
     /**
-     * Load and parse a log from a file in the format saved by {@link #save(File, String, boolean)}.
+     * Load and parse a log from a file in the format saved by {@link #save(File, String, boolean, boolean)}.
      * Adds its entries to {@link #entries}. Sets {@link #gameName}, {@link #version}, {@link #isServerOnly},
      * {@link #optsStr}, and {@link #numLines}.
      *
@@ -783,7 +786,10 @@ public class GameEventLog
         }
 
         /**
-         * Basic delimited contents, suitable for comparisons in unit tests.
+         * Formats this entry's fields.
+         * Call {@link #parse(String)} to parse the returned string.
+         * To omit optional {@link #timeElapsedMS} timestamp field, call {@link #toString(boolean)} instead.
+         *<P>
          * Calls {@link SOCMessage#toString()}, not {@link SOCMessage#toCmd()},
          * for class/field name label strings and to help test stable SOCMessage.toString results
          * for any third-party recorder implementers that use that format.
@@ -806,9 +812,22 @@ public class GameEventLog
          * <LI> From an observing client: {@code fo:MessageClassName:param=value|param=value|...}
          *</UL>
          * Non-playing game observers are also sent all messages, except those to a single player.
+         *
+         * @return Formatted delimited contents of this entry's fields
          */
         @Override
         public String toString()
+        {
+            return toString(false);
+        }
+
+        /**
+         * Formats this entry's fields, optionally without {@link #timeElapsedMS} timestamp.
+         * See {@link #toString()} for format details.
+         * @param untimed  If true, omit the optional {@link #timeElapsedMS} timestamp field if present
+         * @return Formatted delimited contents of this entry's fields
+         */
+        public String toString(final boolean untimed)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -818,7 +837,7 @@ public class GameEventLog
                 return sb.toString();
             }
 
-            if (timeElapsedMS >= 0)
+            if ((timeElapsedMS >= 0) && ! untimed)
             {
                 int msec = timeElapsedMS % 1000, sec = timeElapsedMS / 1000;
                 int min = sec / 60;

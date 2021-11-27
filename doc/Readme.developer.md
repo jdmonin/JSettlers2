@@ -652,7 +652,12 @@ Launch RecordingSOCServer and log in as `debug` with the standard client.
 In any game you're playing or observing, logs can be saved at any time with the debug command  
 `*savelog* filename`  
 which will save to `filename.soclog` in the server's current directory.
-To save only messages from the server, not also from clients, use its `-s` flag.
+
+Optional flags for `*SAVELOG*` command:
+
+- `-s`: Save only messages from the server, not also from clients to server
+- `-u`: Untimed; don't write the elapsed-time field if present in log entries
+- `-f`: Force overwrite an existing log
 
 Resetting the board will clear the log.
 
