@@ -255,7 +255,7 @@ public class GameActionLog
              * Build a piece (place a piece).
              *<BR>
              * {@code p1} = piece type like {@link SOCPlayingPiece#SETTLEMENT},
-             * {@code p2} = coordinate to build at.
+             * {@code p2} = coordinate it was built at,
              * {@code p3} = player number who built the piece; helpful during initial placement.
              *<P>
              * When player changes during initial placement,
@@ -263,6 +263,15 @@ public class GameActionLog
              * but during the {@link #TURN_BEGINS} action which follows it.
              */
             BUILD_PIECE,
+
+            /**
+             * Cancel current player's just-built piece (like during initial settlement placement).
+             *<BR>
+             * {@code p1} = piece type like {@link SOCPlayingPiece#SETTLEMENT},
+             * {@code p2} = 0; reserved for coordinate it was built at, in case future extraction can add that,
+             * {@code p3} = player number who built and canceled the piece; helpful during initial placement.
+             */
+            CANCEL_BUILT_PIECE,
 
             /**
              * Move a piece (move a ship).

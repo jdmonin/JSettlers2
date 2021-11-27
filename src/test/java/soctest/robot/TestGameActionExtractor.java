@@ -336,6 +336,8 @@ public class TestGameActionExtractor
 
     /**
      * Test extraction of basic initial placement with 3 players: p3 (first player), p0, and p1.
+     *<P>
+     * Initial placement with a settlement canceled/re-placed is tested in {@link #testInitialPlacementCancelSettlement()}.
      * Initial placement with gold hexes and revealed fog hexes is tested in {@link #testGoldHexFogHex()}.
      */
     @Test
@@ -603,6 +605,85 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 4 : 3), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " dice roll sum", 8, act.param1);
+                }
+            });
+    }
+
+    /**
+     * Test initial placement with a settlement canceled/re-placed.
+     * @see #testInitialPlacement()
+     */
+    @Test
+    public void testInitialPlacementCancelSettlement()
+    {
+        testExtractEventSequence(new String[]
+            {
+                "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+                "all:SOCTurn:game=test|playerNumber=3|gameState=10",
+
+                "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=58",
+                "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+                "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=58",
+                "all:SOCGameState:game=test|state=11",
+                "all:SOCGameServerText:game=test|text=It's p3's turn to build a road.",
+
+                "f3:SOCCancelBuildRequest:game=test|pieceType=1",
+                "all:SOCCancelBuildRequest:game=test|pieceType=1",
+                "all:SOCGameServerText:game=test|text=p3 cancelled this settlement placement.",
+                "all:SOCGameState:game=test|state=10",
+                "all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.",
+
+                "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=74",
+                "all:SOCGameServerText:game=test|text=p3 built a settlement.",
+                "all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=74",
+                "all:SOCGameState:game=test|state=11",
+                "all:SOCGameServerText:game=test|text=It's p3's turn to build a road."
+            },
+            3, 99,
+            new ExtractResultsChecker()
+            {
+                public void check(GameActionLog actionLog, int toClientPN)
+                {
+                    final String desc = "for clientPN=" + toClientPN + ":";
+
+                    assertEquals(desc, 5, actionLog.size());
+
+                    GameActionLog.Action act = actionLog.get(0);
+                    assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
+                    assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+                    assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+                    // Start of 2st initial placements
+
+                    act = actionLog.get(1);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.START2A, act.endingGameState);
+                    assertEquals(desc + " new current player number", 3, act.param1);
+
+                    act = actionLog.get(2);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                    assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                    assertEquals(desc + " built at 0x58", 0x58, act.param2);
+                    assertEquals(desc, 3, act.param3);
+
+                    act = actionLog.get(3);
+                    assertEquals(desc, ActionType.CANCEL_BUILT_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.START2A, act.endingGameState);
+                    assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                    assertEquals(0, act.param2);
+                    assertEquals(desc, 3, act.param3);
+
+                    act = actionLog.get(4);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                    assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                    assertEquals(desc + " built at 0x74", 0x74, act.param2);
+                    assertEquals(desc, 3, act.param3);
                 }
             });
     }

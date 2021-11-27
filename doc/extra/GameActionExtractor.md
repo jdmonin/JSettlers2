@@ -39,6 +39,7 @@ Message sequence beginnings, roughly in same order as in [Message-Sequences-for-
 - f3:SOCBuildRequest
     - Own turn -> Build piece
     - Another player's turn -> Ask Special Building
+- f3:SOCCancelBuildRequest -> Cancel built piece (like initial settlement)
 - f3:SOCMovePiece -> Move ship
 - f3:SOCBuyDevCardRequest -> Buy dev card
 - f3:SOCPlayDevCardRequest -> Play dev card
@@ -72,6 +73,7 @@ As seen by a human player client or robot player.
     - Next is SOCRevealFogHex -> Build Piece (initial settlement)
     - Next is SOCPutPiece -> Build Piece
     - Next is SOCMovePiece -> Move Piece
+- SOCCancelBuildRequest -> Cancel built piece (like initial settlement)
 - SOCPlayerElements or SOCPlayerElement:
     - SOCPlayerElement:actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=1 -> Ask Special Building during another player's turn
     - SOCPlayerElement:playerNum=(current player)|actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=0 -> End special building "turn"

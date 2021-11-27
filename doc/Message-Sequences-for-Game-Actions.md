@@ -152,6 +152,22 @@ and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won'
 - all:SOCGameState:game=test|state=11  // START2B
 - all:SOCGameServerText:game=test|text=It's p2's turn to build a road or ship.
 
+#### Cancel and re-place initial settlement location
+
+- all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.
+- all:SOCTurn:game=test|playerNumber=3|gameState=10
+- f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=58
+- all:SOCGameServerText:game=test|text=p3 built a settlement.
+- all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=58
+- all:SOCGameState:game=test|state=11
+- all:SOCGameServerText:game=test|text=It's p3's turn to build a road.
+- f3:SOCCancelBuildRequest:game=test|pieceType=1
+- all:SOCCancelBuildRequest:game=test|pieceType=1
+- all:SOCGameServerText:game=test|text=p3 cancelled this settlement placement.
+- all:SOCGameState:game=test|state=10
+- all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.
+
+
 #### Building ship (or settlement) reveals non-gold hex from fog
 
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=a06
@@ -421,12 +437,12 @@ If cancelled by clicking End Turn, goes directly from placement gameState to nex
 - all:SOCGameServerText:game=test|text=p3 played a Monopoly card.
 - all:SOCGameState:game=test|state=53  // WAITING_FOR_MONOPOLY
 - f3:SOCPickResourceType:game=test|resType=3
-- From the victim players, if any:
+- Announce resources taken from the victim players, if any:
 - all:SOCPlayerElement:game=test|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y
 - all:SOCResourceCount:game=test|playerNum=1|count=7
 - all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y
 - all:SOCResourceCount:game=test|playerNum=2|count=2
-- To the current player:
+- And taken by the current player:
 - all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=6  // or amount=0 if none gained
 - all:SOCSimpleAction:game=test|pn=3|actType=3|v1=6|v2=3  // RSRC_TYPE_MONOPOLIZED
 - p1:SOCGameServerText:game=test|text=p3's Monopoly took your 5 sheep.

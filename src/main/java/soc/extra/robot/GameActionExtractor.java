@@ -65,8 +65,9 @@ public class GameActionExtractor
     static {
         for (int msgtype : new int[]
             {
-                SOCMessage.TURN, SOCMessage.ROLLDICE, SOCMessage.PUTPIECE, SOCMessage.BUILDREQUEST,
-                SOCMessage.MOVEPIECE, SOCMessage.BUYDEVCARDREQUEST, SOCMessage.PLAYDEVCARDREQUEST,
+                SOCMessage.TURN, SOCMessage.ROLLDICE,
+                SOCMessage.PUTPIECE, SOCMessage.BUILDREQUEST, SOCMessage.CANCELBUILDREQUEST, SOCMessage.MOVEPIECE,
+                SOCMessage.BUYDEVCARDREQUEST, SOCMessage.PLAYDEVCARDREQUEST,
                 SOCMessage.DISCARD, SOCMessage.PICKRESOURCES, SOCMessage.CHOOSEPLAYER, SOCMessage.MOVEROBBER,
                 SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.REPORTROBBERY, SOCMessage.BANKTRADE,
                 SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER, SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
@@ -85,7 +86,7 @@ public class GameActionExtractor
     static {
         for (int msgtype : new int[]
             {
-                SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX,
+                SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX, SOCMessage.CANCELBUILDREQUEST,
                 SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
                 SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.DISCARD, SOCMessage.PICKRESOURCES,
                 SOCMessage.GAMESTATE, SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST,
@@ -518,6 +519,10 @@ public class GameActionExtractor
                 case SOCMessage.REVEALFOGHEX:
                     if (hasServerOnlyLog)
                         extractedAct = extract_from_REVEALFOGHEX(e);
+                    break;
+
+                case SOCMessage.CANCELBUILDREQUEST:
+                    extractedAct = extract_CANCEL_BUILT_PIECE(e);
                     break;
 
                 case SOCMessage.PLAYERELEMENT:
@@ -1002,6 +1007,42 @@ public class GameActionExtractor
         return new Action
             (ActionType.BUILD_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
              pType, buildCoord, playerNumber);
+    }
+
+    /**
+     * Extract {@link ActionType#CANCEL_BUILT_PIECE} from the current message sequence.
+     * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
+     * @return extracted action, or {@code null} if sequence incomplete
+     */
+    private Action extract_CANCEL_BUILT_PIECE(GameEventLog.EventEntry e)
+    {
+        // f3:SOCCancelBuildRequest:game=test|pieceType=1
+        if (! hasServerOnlyLog)
+        {
+            if (! e.isFromClient)
+                return null;
+
+            e = next();
+        }
+
+        // all:SOCCancelBuildRequest:game=test|pieceType=1
+        if (! (e.isToAll() && (e.event instanceof SOCCancelBuildRequest)))
+            return null;
+        final int pType = ((SOCCancelBuildRequest) (e.event)).getPieceType();
+        e = next();
+        if (e == null)
+            return null;
+
+        // all:SOCGameServerText:game=test|text=p3 cancelled this settlement placement.
+        // all:SOCGameState:game=test|state=10
+        // all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.
+        if (! (e.isToAll() && (e.event instanceof SOCGameState)))
+            return null;
+
+        int prevStart = currentSequenceStartIndex;
+        return new Action
+            (ActionType.CANCEL_BUILT_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
+             pType, 0, state.currentPlayerNumber);
     }
 
     /**
