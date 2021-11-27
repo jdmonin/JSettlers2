@@ -30,6 +30,7 @@ import soc.extra.robot.GameActionLog.Action;
 import soc.extra.robot.GameActionLog.Action.ActionType;
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
+import soc.game.ResourceSet;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -86,7 +87,7 @@ public class GameActionExtractor
             {
                 SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX,
                 SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
-                SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.PICKRESOURCES,
+                SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.DISCARD, SOCMessage.PICKRESOURCES,
                 SOCMessage.GAMESTATE, SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST,
                 SOCMessage.CHOOSEPLAYER, SOCMessage.REPORTROBBERY,
                 SOCMessage.BANKTRADE, SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER,
@@ -541,8 +542,7 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.DISCARD:
-                    if (! hasServerOnlyLog)
-                        extractedAct = extract_DISCARD(e);
+                    extractedAct = extract_DISCARD(e);
                     break;
 
                 case SOCMessage.PICKRESOURCES:
@@ -779,15 +779,13 @@ public class GameActionExtractor
     {
         SOCMessage event = currentSequence.get(currentSequence.size() - 1).event;
         final boolean isElements = (event instanceof SOCPlayerElements);
-        boolean isLoseRsrc;
 
         if (isElements)
         {
             final SOCPlayerElements pe = (SOCPlayerElements) event;
             int etype0 = pe.getElementTypes()[0];
-            isLoseRsrc = (pe.getAction() == SOCPlayerElement.LOSE)
-                && (etype0 >= SOCResourceConstants.CLAY) && (etype0 <= SOCResourceConstants.WOOD);
-            if (isLoseRsrc
+            if ((pe.getAction() == SOCPlayerElement.LOSE)
+                && (etype0 >= SOCResourceConstants.CLAY) && (etype0 <= SOCResourceConstants.WOOD)
                 && ((state.currentGameState == SOCGame.PLAY1) || (state.currentGameState == SOCGame.SPECIAL_BUILDING)))
             {
                 // Lose known resources: is likely buy piece (build) or buy dev card
@@ -817,16 +815,8 @@ public class GameActionExtractor
                     if (pe.getPlayerNumber() == state.currentPlayerNumber)
                         return extract_END_TURN(e);
                 }
-                isLoseRsrc = false;
-            } else {
-                isLoseRsrc = (pe.getAction() == SOCPlayerElement.LOSE)
-                    && (etype >= SOCResourceConstants.CLAY) && (etype <= SOCResourceConstants.WOOD);
             }
         }
-
-        if (isLoseRsrc
-            && (state.currentGameState != SOCGame.PLAY1) && (state.currentGameState != SOCGame.SPECIAL_BUILDING))
-            return extract_DISCARD(e);
 
         return null;
     }
@@ -1542,35 +1532,29 @@ public class GameActionExtractor
     private Action extract_DISCARD(GameEventLog.EventEntry e)
     {
         // f2:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0
-        if (! e.isFromClient)
+        if (! hasServerOnlyLog)
+        {
+            if (! e.isFromClient)
+                return null;
+
+            e = next();
+        }
+
+        // If hasServerOnlyLog, will see only 1 or the other of these SOCDiscards
+
+        // p2:SOCDiscard:game=test|playerNum=2|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0
+        if ((e == null) || e.isFromClient || ! (e.event instanceof SOCDiscard))
             return null;
-        final int discardPN = e.pn;
-        final SOCResourceSet discards = ((SOCDiscard) e.event).getResources();
+        final int discardPN = ((SOCDiscard) e.event).getPlayerNumber();
+        final ResourceSet discards = ((SOCDiscard) e.event).getResources();
 
-        e = next();
-
-        // p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=3|amount=2
-        if ((e == null) || e.isFromClient || (e.pn != discardPN)
-            || (! (e.event instanceof SOCPlayerElement))
-            || (((SOCPlayerElement) e.event).getPlayerNumber() != discardPN))
-            return null;
-
-        // Might be more of: p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=5|amount=3
-        do
+        // !p2:SOCDiscard:game=test|playerNum=2|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=5
+        if (! hasServerOnlyLog)
         {
             e = next();
-            if ((e == null) || e.isFromClient || (! (e.event instanceof SOCPlayerElement))
-                || (((SOCPlayerElement) e.event).getPlayerNumber() != discardPN))
+            if (e.isFromClient || (e.excludedPN == null) || ! (e.event instanceof SOCDiscard))
                 return null;
-        } while (e.pn == discardPN);
-        // Postcondition: e is a SOCPlayerElement from server with playerNum=discardPN, but not sent to "p2:"
-        // So check if its audience is exclusive like:
-
-        // !p2:SOCPlayerElement:game=test|playerNum=2|actionType=LOSE|elementType=6|amount=5|news=Y
-        if (e.excludedPN == null)
-            return null;
-
-        // (an ignored) all:SOCGameServerText:game=test|text=p2 discarded 5 resources.
+        }
 
         // If no other players need to discard:
         //     all:SOCGameState:game=test|state=33  // or other: choose robber or pirate, etc
@@ -1759,14 +1743,21 @@ public class GameActionExtractor
         if (e.isFromClient || (e.pn != state.currentPlayerNumber))
             return null;
 
-        // f3:SOCChoosePlayer:game=test|choice=2
-        e = next();
-        if ((e == null) || (! e.isFromClient) || (e.pn != state.currentPlayerNumber))
-            return null;
-        int chosenPN = ((SOCChoosePlayer) e.event).getChoice();
+        int chosenPN = -1;
 
-        if (chosenPN == SOCChoosePlayer.CHOICE_NO_PLAYER)
-            chosenPN = -2;
+        // f3:SOCChoosePlayer:game=test|choice=2
+        e = nextIfType(SOCMessage.CHOOSEPLAYER);
+        if (e != null)
+        {
+            if ((! e.isFromClient) || (e.pn != state.currentPlayerNumber))
+                return null;
+            chosenPN = ((SOCChoosePlayer) e.event).getChoice();
+
+            if (chosenPN == SOCChoosePlayer.CHOICE_NO_PLAYER)
+                chosenPN = -2;
+        } else if (! hasServerOnlyLog) {
+            return null;
+        }
 
         int prevStart = currentSequenceStartIndex;
         return new Action

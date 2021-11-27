@@ -1072,11 +1072,8 @@ public class TestGameActionExtractor
 
             // p1 discards:
             "f1:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=3|wheat=1|wood=2|unknown=0",
-            "p1:SOCPlayerElement:game=test|playerNum=1|actionType=LOSE|elementType=3|amount=3",
-            "p1:SOCPlayerElement:game=test|playerNum=1|actionType=LOSE|elementType=4|amount=1",
-            "p1:SOCPlayerElement:game=test|playerNum=1|actionType=LOSE|elementType=5|amount=2",
-            "!p1:SOCPlayerElement:game=test|playerNum=1|actionType=LOSE|elementType=6|amount=6|news=Y",
-            "all:SOCGameServerText:game=test|text=p1 discarded 6 resources.",
+            "p1:SOCDiscard:game=test|playerNum=1|resources=clay=0|ore=0|sheep=3|wheat=1|wood=2|unknown=0",
+            "!p1:SOCDiscard:game=test|playerNum=1|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=6",
             "all:SOCGameState:game=test|state=50",
 
             // this prompt follows p1 discard, but since extractor ignores SOCGameServerText
@@ -1085,12 +1082,8 @@ public class TestGameActionExtractor
 
             // p3 discards:
             "f3:SOCDiscard:game=test|resources=clay=0|ore=2|sheep=2|wheat=2|wood=3|unknown=0",
-            "p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=2|amount=2",
-            "p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=3|amount=2",
-            "p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=4|amount=2",
-            "p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=5|amount=3",
-            "!p3:SOCPlayerElement:game=test|playerNum=3|actionType=LOSE|elementType=6|amount=9|news=Y",
-            "all:SOCGameServerText:game=test|text=p3 discarded 9 resources.",
+            "p3:SOCDiscard:game=test|playerNum=3|resources=clay=0|ore=2|sheep=2|wheat=2|wood=3|unknown=0",
+            "!p3:SOCDiscard:game=test|playerNum=3|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=9",
             "all:SOCGameState:game=test|state=33",
 
             // move robber:
@@ -1188,14 +1181,14 @@ public class TestGameActionExtractor
             "f3:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
             },
-            -1, -1,
+            3, 99,
             new ExtractResultsChecker()
             {
                 public void check(GameActionLog actionLog, int toClientPN)
                 {
                     final String desc = "for clientPN=" + toClientPN + ":";
 
-                    assertEquals(desc, 19, actionLog.size());
+                    assertEquals(desc, (toClientPN != 99) ? 19 : 17, actionLog.size());
 
                     GameActionLog.Action act = actionLog.get(0);
                     assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -1210,111 +1203,129 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(2);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
-                    assertEquals(desc, 6, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : (toClientPN == 3) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.WAITING_FOR_DISCARDS, act.endingGameState);
                     assertEquals(desc + " dice roll sum", 7, act.param1);
 
                     act = actionLog.get(3);
                     assertEquals(desc, ActionType.DISCARD, act.actType);
-                    assertEquals(desc, 7, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : (toClientPN == 3) ? 2 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.WAITING_FOR_DISCARDS, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
-                    assertEquals(desc, new SOCResourceSet(0, 0, 3, 1, 2, 0), act.rset1);
+                    assertEquals(desc, (toClientPN == -1) ? new SOCResourceSet(0, 0, 3, 1, 2, 0) : new SOCResourceSet(0, 0, 0, 0, 0, 6), act.rset1);
 
                     act = actionLog.get(4);
                     assertEquals(desc, ActionType.DISCARD, act.actType);
-                    assertEquals(desc, 9, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_ROBBER, act.endingGameState);
                     assertEquals(desc, 3, act.param1);
-                    assertEquals(desc, new SOCResourceSet(0, 2, 2, 2, 3, 0), act.rset1);
+                    assertEquals(desc, (toClientPN != 99) ? new SOCResourceSet(0, 2, 2, 2, 3, 0) : new SOCResourceSet(0, 0, 0, 0, 0, 9), act.rset1);
 
                     act = actionLog.get(5);
                     assertEquals(desc, ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_ROBBER, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
                     assertEquals(desc + " moved robber to 0xb9", 0xb9, act.param2);
 
                     act = actionLog.get(6);
                     assertEquals(desc, ActionType.ROB_PLAYER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
 
                     act = actionLog.get(7);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
-                    assertEquals(desc, 6, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 5, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_ROBBER, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.KNIGHT, act.param1);
 
                     act = actionLog.get(8);
                     assertEquals(desc, ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
                     assertEquals(desc + " moved robber to 0x75", 0x75, act.param2);
 
-                    act = actionLog.get(9);
-                    assertEquals(desc, ActionType.CHOOSE_ROBBERY_VICTIM, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
-                    assertEquals(desc, SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER, act.endingGameState);
-                    assertEquals(desc, 1, act.param1);
+                    int idx = 9;  // observer doesn't see CHOOSE_ROBBERY_VICTIM
+                    act = actionLog.get(idx);
+                    if (toClientPN != 99)
+                    {
+                        assertEquals(desc, ActionType.CHOOSE_ROBBERY_VICTIM, act.actType);
+                        assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                        assertEquals(desc, SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER, act.endingGameState);
+                        assertEquals(desc, (toClientPN == -1) ? 1 : -1, act.param1);
+                        ++idx;
+                    }
 
-                    act = actionLog.get(10);
+                    act = actionLog.get(idx);  // 10 or 9
                     assertEquals(desc, ActionType.ROB_PLAYER, act.actType);
-                    assertEquals(desc, 4, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
-                    assertEquals(desc, new SOCResourceSet(0, 1, 0, 0, 0, 0), act.rset1);
+                    assertEquals(desc,
+                        (toClientPN != 99) ? new SOCResourceSet(0, 1, 0, 0, 0, 0) : new SOCResourceSet(0, 0, 0, 0, 0, 1),
+                         act.rset1);
+                    ++idx;
 
-                    act = actionLog.get(11);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
-                    assertEquals(desc, 6, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 5, act.eventSequence.size());
                     assertEquals(desc, SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.KNIGHT, act.param1);
+                    ++idx;
 
-                    act = actionLog.get(12);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.CHOOSE_MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_PIRATE, act.endingGameState);
                     assertEquals(desc + " chose pirate", 2, act.param1);
+                    ++idx;
 
-                    act = actionLog.get(13);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
                     assertEquals(desc, 2, act.param1);
                     assertEquals(desc + " moved pirate to 0xb07", 0xb07, act.param2);
+                    ++idx;
 
-                    act = actionLog.get(14);
-                    assertEquals(desc, ActionType.CHOOSE_ROB_CLOTH_OR_RESOURCE, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
-                    assertEquals(desc, SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
-                    assertEquals(desc, 2, act.param1);
+                    if (toClientPN != 99)
+                    {
+                        act = actionLog.get(idx);
+                        assertEquals(desc, ActionType.CHOOSE_ROB_CLOTH_OR_RESOURCE, act.actType);
+                        assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                        assertEquals(desc, SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE, act.endingGameState);
+                        assertEquals(desc, (toClientPN == -1) ? 2 : 0, act.param1);
+                        ++idx;
+                    }
 
-                    act = actionLog.get(15);
+                    act = actionLog.get(idx);  // 15 or 13
                     assertEquals(desc, ActionType.ROB_PLAYER, act.actType);
                     assertEquals(desc, 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertNull(desc, act.rset1);
                     assertEquals(desc, 2, act.param1);
                     assertEquals(desc + " steal cloth", SOCPlayerElement.PEType.SCENARIO_CLOTH_COUNT.getValue(), act.param2);
+                    ++idx;
 
-                    act = actionLog.get(16);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
-                    assertEquals(desc, 7, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 6, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_ROBBER, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.KNIGHT, act.param1);
+                    ++idx;
 
-                    act = actionLog.get(17);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.MOVE_ROBBER_OR_PIRATE, act.actType);
-                    assertEquals(desc, 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, 1, act.param1);
                     assertEquals(desc + " moved robber to 0x57", 0x57, act.param2);
+                    ++idx;
 
-                    act = actionLog.get(18);
+                    act = actionLog.get(idx);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
-                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                 }
             });
