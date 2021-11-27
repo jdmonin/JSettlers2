@@ -24,11 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import soc.extra.server.GameEventLog;
+import soc.game.ResourceSet;
 import soc.game.SOCDevCardConstants;  // for javadocs only
 import soc.game.SOCGame;    // javadocs only
 import soc.game.SOCPlayingPiece;      // javadocs only
 import soc.game.SOCResourceConstants; // javadocs only
-import soc.game.SOCResourceSet;
 import soc.message.SOCGameState;      // javadocs only
 import soc.message.SOCPlayerElement;  // javadocs only
 
@@ -72,7 +72,7 @@ public class GameActionLog
         public final int param1, param2, param3;
 
         /** {@link ActionType}-specific resource set parameter value, or null. */
-        public final SOCResourceSet rset1, rset2;
+        public final ResourceSet rset1, rset2;
 
         /** Event sequence from which this Action is extracted. */
         public final List<GameEventLog.EventEntry> eventSequence;
@@ -88,8 +88,8 @@ public class GameActionLog
          * @param startIndex  Index of first event within its {@link GameEventLog}
          * @throws IllegalArgumentException if {@code aType} is null, or {@code seq} is null or empty
          * @see #Action(ActionType, int, List, int, int, int, int)
-         * @see #Action(ActionType, int, List, int, SOCResourceSet, SOCResourceSet)
-         * @see #Action(ActionType, int, List, int, int, int, int, SOCResourceSet, SOCResourceSet)
+         * @see #Action(ActionType, int, List, int, ResourceSet, ResourceSet)
+         * @see #Action(ActionType, int, List, int, int, int, int, ResourceSet, ResourceSet)
          */
         public Action
             (ActionType aType, final int endGState, List<GameEventLog.EventEntry> seq, final int startIndex)
@@ -109,8 +109,8 @@ public class GameActionLog
          * @param p3  Third action-specific parameter, or 0
          * @throws IllegalArgumentException if {@code aType} is null, or {@code seq} is null or empty
          * @see #Action(ActionType, int, List, int)
-         * @see #Action(ActionType, int, List, int, SOCResourceSet, SOCResourceSet)
-         * @see #Action(ActionType, int, List, int, int, int, int, SOCResourceSet, SOCResourceSet)
+         * @see #Action(ActionType, int, List, int, ResourceSet, ResourceSet)
+         * @see #Action(ActionType, int, List, int, int, int, int, ResourceSet, ResourceSet)
          */
         public Action
             (ActionType aType, final int endGState, List<GameEventLog.EventEntry> seq, final int startIndex,
@@ -131,11 +131,11 @@ public class GameActionLog
          * @throws IllegalArgumentException if {@code aType} is null, or {@code seq} is null or empty
          * @see #Action(ActionType, int, List, int)
          * @see #Action(ActionType, int, List, int, int, int, int)
-         * @see #Action(ActionType, int, List, int, int, int, int, SOCResourceSet, SOCResourceSet)
+         * @see #Action(ActionType, int, List, int, int, int, int, ResourceSet, ResourceSet)
          */
         public Action
             (ActionType aType, final int endGState, List<GameEventLog.EventEntry> seq, final int startIndex,
-             final SOCResourceSet rs1, final SOCResourceSet rs2)
+             final ResourceSet rs1, final ResourceSet rs2)
         {
             this(aType, endGState, seq, startIndex, 0, 0, 0, rs1, rs2);
         }
@@ -154,11 +154,11 @@ public class GameActionLog
          * @throws IllegalArgumentException if {@code aType} is null, or {@code seq} is null or empty
          * @see #Action(ActionType, int, List, int)
          * @see #Action(ActionType, int, List, int, int, int, int)
-         * @see #Action(ActionType, int, List, int, SOCResourceSet, SOCResourceSet)
+         * @see #Action(ActionType, int, List, int, ResourceSet, ResourceSet)
          */
         public Action
             (ActionType aType, final int endGState, List<GameEventLog.EventEntry> seq, final int startIndex,
-             final int p1, final int p2, final int p3, final SOCResourceSet rs1, final SOCResourceSet rs2)
+             final int p1, final int p2, final int p3, final ResourceSet rs1, final ResourceSet rs2)
             throws IllegalArgumentException
         {
             if (aType == null)

@@ -9745,7 +9745,7 @@ public class SOCServer extends Server
      * Before v2.0.00, {@link event} parameter was a String from {@link SOCMessage#toCmd()}.
      *
      * @param gameName   the game name
-     * @param event      the event data
+     * @param event      the event data, or {@code null}
      * @see #recordGameEventTo(String, int, SOCMessage)
      * @see #recordGameEventNotTo(String, int, SOCMessage)
      * @see #recordClientMessage(String, int, SOCMessage)
@@ -9781,7 +9781,7 @@ public class SOCServer extends Server
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
      *
      * @param gameName   the game name
-     * @param event      the event data
+     * @param event      the event data, or {@code null}
      * @param pn Player number who is audience of this non-broadcast event; if &lt; 0, event is for all game members.
      *     Can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}.
      * @see #recordGameEvent(String, SOCMessage)
@@ -9803,7 +9803,7 @@ public class SOCServer extends Server
      *
      * @param gameName   the game name
      * @param excludedPN Player number excluded from audience of this event; if &lt; 0, event is for all game members.
-     * @param event      the event data
+     * @param event      the event data, or {@code null}
      * @see #recordGameEventNotTo(String, int[], SOCMessage)
      * @see #recordGameEvent(String, SOCMessage)
      * @see #recordGameEventTo(String, int, SOCMessage)
@@ -9823,7 +9823,7 @@ public class SOCServer extends Server
      *
      * @param gameName   the game name
      * @param excludedPN Player numbers excluded from audience of this event; if {@code null} or empty, event is for all.
-     * @param event      the event data
+     * @param event      the event data, or {@code null}
      * @see #recordGameEventNotTo(String, int, SOCMessage)
      * @see #recordGameEvent(String, SOCMessage)
      * @see #recordGameEventTo(String, int, SOCMessage)
@@ -9840,7 +9840,7 @@ public class SOCServer extends Server
      * @param gameName  the game name
      * @param fromPN Player number from a client player, or {@link #PN_OBSERVER} from an observer.
      *     Can also be -1 for an observer's message; the recorded event will use {@link #PN_OBSERVER}.
-     * @param event  the message
+     * @param event  the message, or {@code null}
      * @see #recordGameEventTo(String, int, SOCMessage)
      * @since 2.5.00
      */

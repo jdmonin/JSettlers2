@@ -252,7 +252,7 @@ public class RecordingSOCServer
     public void recordGameEvent(final String gameName, SOCMessage event)
     {
         final GameEventLog log = records.get(gameName);
-        if (log == null)
+        if ((log == null) || (event == null))
             return;
 
         recordEvent(log, new GameEventLog.EventEntry(event, -1, false, makeElapsedMS(log)));
@@ -262,7 +262,7 @@ public class RecordingSOCServer
     public void recordGameEventTo(final String gameName, final int pn, SOCMessage event)
     {
         final GameEventLog log = records.get(gameName);
-        if (log == null)
+        if ((log == null) || (event == null))
             return;
 
         recordEvent(log, new GameEventLog.EventEntry(event, pn, false, makeElapsedMS(log)));
@@ -272,7 +272,7 @@ public class RecordingSOCServer
     public void recordGameEventNotTo(final String gameName, final int excludedPN, SOCMessage event)
     {
         final GameEventLog log = records.get(gameName);
-        if (log == null)
+        if ((log == null) || (event == null))
             return;
 
         recordEvent(log, new GameEventLog.EventEntry(event, new int[]{excludedPN}, makeElapsedMS(log)));
@@ -282,7 +282,7 @@ public class RecordingSOCServer
     public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
     {
         final GameEventLog log = records.get(gameName);
-        if (log == null)
+        if ((log == null) || (event == null))
             return;
 
         recordEvent(log, new GameEventLog.EventEntry(event, excludedPN, makeElapsedMS(log)));
@@ -291,7 +291,7 @@ public class RecordingSOCServer
     @Override
     public void recordClientMessage(final String gameName, int fromPN, SOCMessageForGame event)
     {
-        if (! isRecordingFromClients)
+        if ((! isRecordingFromClients) || (event == null))
             return;
 
         if (fromPN == -1)
