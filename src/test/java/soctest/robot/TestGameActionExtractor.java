@@ -612,6 +612,8 @@ public class TestGameActionExtractor
      * {@link ActionType#TURN_BEGINS}, {@link ActionType#ROLL_DICE} with gains,
      * {@link ActionType#BUILD_PIECE}, {@link ActionType#MOVE_PIECE}, {@link ActionType#END_TURN}.
      * Sequences based on {@code all-basic-actions.soclog}.
+     *<P>
+     * An uncommon roll dice sequence is tested in {@link #testRollGainCloth()}.
      * Some uncommon build piece sequences are also tested in {@link #testGoldHexFogHex()}.
      */
     @Test
@@ -2537,6 +2539,85 @@ public class TestGameActionExtractor
     }
 
     /**
+     * Test extraction of a turn where cloth is gained during dice roll
+     * in the {@link SOCScenario#K_SC_CLVI SC_CLVI} Cloth Trade scenario.
+     */
+    @Test
+    public void testRollGainCloth()
+    {
+        testExtractEventSequence(new String[]
+            {
+            // start of turn:
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // roll dice: gain cloth from roll 5
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=5",
+            "all:SOCDiceResultResources:game=test|p=1|p=2|p=8|p=2|p=1",
+            "p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=3,e2=1,e3=3,e4=0,e5=1",
+            "all:SOCPieceValue:game=test|pieceType=5|coord=a0c|pv1=0|pv2=0",
+            "all:SOCPlayerElement:game=test|playerNum=-1|actionType=SET|elementType=106|amount=9",
+            "all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=106|amount=5",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=106|amount=7",
+            "all:SOCGameServerText:game=test|text=robot 2 and p3 each received cloth from the villages.",
+            "all:SOCGameState:game=test|state=20",
+
+            // end turn:
+            "f3:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+            },
+            3, 99,
+            new ExtractResultsChecker()
+            {
+                public void check(GameActionLog actionLog, int toClientPN)
+                {
+                    final String desc = "for clientPN=" + toClientPN + ":";
+
+                    assertEquals(desc, 4, actionLog.size());
+
+                    GameActionLog.Action act = actionLog.get(0);
+                    assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
+                    assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+                    assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+                    act = actionLog.get(1);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc + " new current player number", 3, act.param1);
+
+                    act = actionLog.get(2);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 10 : 8, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 5, act.param1);
+                    // search action's messages for SOCPlayerElement(SET, SCENARIO_CLOTH_COUNT)
+                    int foundSetCloth[] = new int[4];
+                    for (EventEntry ee : act.eventSequence)
+                    {
+                        if (! (ee.event instanceof SOCPlayerElement))
+                            continue;
+                        SOCPlayerElement pe = (SOCPlayerElement) ee.event;
+                        if ((pe.getAction() != SOCPlayerElement.SET)
+                            && (pe.getElementType() == SOCPlayerElement.PEType.SCENARIO_CLOTH_COUNT.getValue()))
+                            continue;
+                        int pn = pe.getPlayerNumber();
+                        if (pn >= 0)
+                            foundSetCloth[pn] = pe.getAmount();
+                    }
+                    assertEquals(desc + " new cloth total for pn 2", 5, foundSetCloth[2]);
+                    assertEquals(desc + " new cloth total for pn 3", 7, foundSetCloth[3]);
+
+                    act = actionLog.get(3);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                }
+            });
+    }
+
+    /**
      * Test sequences for various ways to win ({@link ActionType#GAME_OVER}):
      * Building settlement/city, largest army, longest road/route, etc.
      * Some win conditions are also tested in {@link #testTurnWithBuilding()}, {@link #testPlayDevCardRoadBuilding()}.
@@ -2667,6 +2748,7 @@ public class TestGameActionExtractor
             "all:SOCTurn:game=test|playerNumber=3|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=3",
 
+            // as part of that win, play soldier card before rolling dice
             "f3:SOCPlayDevCardRequest:game=test|devCard=9",
             "all:SOCGameServerText:game=test|text=p3 played a Soldier card.",
             "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9",
