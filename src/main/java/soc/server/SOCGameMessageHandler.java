@@ -542,14 +542,14 @@ public class SOCGameMessageHandler
                     /**
                      * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
                      * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
-                     * rollRsrcMsg is generated if srv.recordGameEventsIsActive() even if there aren't
+                     * rollRsrcMsg is generated if srv.isRecordGameEventsActive() even if there aren't
                      * new-enough clients, because recording uses current-version message sequences.
                      */
                     String rollRsrcTxtToV1 = null;
                     SOCDiceResultResources rollRsrcMsg = null;
 
                     if ((ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                        || srv.recordGameEventsIsActive())
+                        || srv.isRecordGameEventsActive())
                     {
                         rollRsrcMsg = SOCDiceResultResources.buildForGame(ga);
                         noPlayersGained = (rollRsrcMsg == null);
@@ -651,7 +651,7 @@ public class SOCGameMessageHandler
                                          new SOCPlayerElement
                                              (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
 
-                                if (srv.recordGameEventsIsActive())
+                                if (srv.isRecordGameEventsActive())
                                     srv.recordGameEventTo(gn, pn, new SOCPlayerElements
                                         (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
                             }
@@ -852,7 +852,7 @@ public class SOCGameMessageHandler
                 final boolean cliVersionsSendDiscard =
                     (ga.clientVersionHighest >= SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE);
                 final SOCDiscard disMsg =
-                    (cliVersionsSendDiscard || srv.recordGameEventsIsActive())
+                    (cliVersionsSendDiscard || srv.isRecordGameEventsActive())
                     ? new SOCDiscard(gn, pn, res)
                     : null;
 
@@ -880,7 +880,7 @@ public class SOCGameMessageHandler
                     // tell everyone else that the player discarded unknown resources
 
                     final SOCDiscard disUnknownMsg =
-                        (cliVersionsSendDiscard || srv.recordGameEventsIsActive())
+                        (cliVersionsSendDiscard || srv.isRecordGameEventsActive())
                         ? new SOCDiscard(gn, pn, 0, 0, 0, 0, 0, numRes)
                         : null;
 
@@ -1480,7 +1480,7 @@ public class SOCGameMessageHandler
                     for (int i = 0; i < ga.maxPlayers; i++)
                         srv.messageToGameWithMon(gaName, false, new SOCClearTradeMsg(gaName, i));
 
-                    if (srv.recordGameEventsIsActive())
+                    if (srv.isRecordGameEventsActive())
                         srv.recordGameEvent(gaName, new SOCClearTradeMsg(gaName, -1));
                 }
             } finally {
@@ -1587,7 +1587,7 @@ public class SOCGameMessageHandler
                         for (int i = 0; i < ga.maxPlayers; i++)
                             srv.messageToGameWithMon(gaName, false, new SOCClearOffer(gaName, i));
 
-                        if (srv.recordGameEventsIsActive())
+                        if (srv.isRecordGameEventsActive())
                             srv.recordGameEvent(gaName, new SOCClearOffer(gaName, -1));
                     }
                 } finally {
@@ -1822,7 +1822,7 @@ public class SOCGameMessageHandler
                     srv.messageToGame(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
 
-                    if (srv.recordGameEventsIsActive())
+                    if (srv.isRecordGameEventsActive())
                         srv.recordGameEvent(gaName, new SOCPlayerElements
                             (gaName, pn, SOCPlayerElement.LOSE, SOCRoad.COST));
                 }
@@ -1857,7 +1857,7 @@ public class SOCGameMessageHandler
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
                     srv.gameList.releaseMonitorForGame(gaName);
 
-                    if (srv.recordGameEventsIsActive())
+                    if (srv.isRecordGameEventsActive())
                         srv.recordGameEvent(gaName, new SOCPlayerElements
                             (gaName, pn, SOCPlayerElement.LOSE, SOCSettlement.COST));
                 }
@@ -1886,7 +1886,7 @@ public class SOCGameMessageHandler
                     srv.messageToGame(ga.getName(), false, new SOCPlayerElement
                         (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.WHEAT, 2));
 
-                    if (srv.recordGameEventsIsActive())
+                    if (srv.isRecordGameEventsActive())
                         srv.recordGameEvent(gaName, new SOCPlayerElements
                             (gaName, pn, SOCPlayerElement.LOSE, SOCCity.COST));
                 }
@@ -1915,7 +1915,7 @@ public class SOCGameMessageHandler
                     srv.messageToGame(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
 
-                    if (srv.recordGameEventsIsActive())
+                    if (srv.isRecordGameEventsActive())
                         srv.recordGameEvent(gaName, new SOCPlayerElements
                             (gaName, pn, SOCPlayerElement.LOSE, SOCShip.COST));
                 }
@@ -1981,7 +1981,7 @@ public class SOCGameMessageHandler
                                 srv.messageToGame(gaName, false, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
 
-                                if (srv.recordGameEventsIsActive())
+                                if (srv.isRecordGameEventsActive())
                                     srv.recordGameEvent(gaName, new SOCPlayerElements
                                         (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
                             }
@@ -2017,7 +2017,7 @@ public class SOCGameMessageHandler
                                 (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
                             srv.gameList.releaseMonitorForGame(gaName);
 
-                            if (srv.recordGameEventsIsActive())
+                            if (srv.isRecordGameEventsActive())
                                 srv.recordGameEvent(gaName, new SOCPlayerElements
                                     (gaName, pn, SOCPlayerElement.GAIN, SOCSettlement.COST));
 
@@ -2055,7 +2055,7 @@ public class SOCGameMessageHandler
                                 (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 2));
 
 
-                            if (srv.recordGameEventsIsActive())
+                            if (srv.isRecordGameEventsActive())
                                 srv.recordGameEvent(gaName, new SOCPlayerElements
                                     (gaName, pn, SOCPlayerElement.GAIN, SOCCity.COST));
                         }
@@ -2083,7 +2083,7 @@ public class SOCGameMessageHandler
                                 srv.messageToGame(gaName, false, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
 
-                                if (srv.recordGameEventsIsActive())
+                                if (srv.isRecordGameEventsActive())
                                     srv.recordGameEvent(gaName, new SOCPlayerElements
                                         (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
                             }
@@ -2725,7 +2725,7 @@ public class SOCGameMessageHandler
                             srv.messageToGameWithMon
                                 (gaName, false, new SOCDevCardCount(gaName, devCount));
 
-                            if (srv.recordGameEventsIsActive())
+                            if (srv.isRecordGameEventsActive())
                             {
                                 srv.recordGameEvent(gaName, new SOCPlayerElements
                                     (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
@@ -2747,7 +2747,7 @@ public class SOCGameMessageHandler
                             (gaName, pn, SOCDevCardAction.DRAW, card);
                         srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, drawMsg);
 
-                        if (srv.recordGameEventsIsActive())
+                        if (srv.isRecordGameEventsActive())
                         {
                             if (card == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
                                 drawMsg = new SOCDevCardAction
@@ -2778,7 +2778,7 @@ public class SOCGameMessageHandler
                              c, new SOCDevCardAction
                                  (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
 
-                        if (srv.recordGameEventsIsActive())
+                        if (srv.isRecordGameEventsActive())
                             srv.recordGameEventNotTo(gaName, pn, new SOCDevCardAction
                                 (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN));
                     }
@@ -2942,7 +2942,7 @@ public class SOCGameMessageHandler
                                  new SOCDevCardAction
                                      (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
 
-                            if (srv.recordGameEventsIsActive())
+                            if (srv.isRecordGameEventsActive())
                                 srv.recordGameEvent(gaName, new SOCDevCardAction
                                 (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
                         }

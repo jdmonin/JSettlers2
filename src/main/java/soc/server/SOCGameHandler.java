@@ -744,7 +744,7 @@ public class SOCGameHandler extends GameHandler
                 for (int i = 0; i < ga.maxPlayers; i++)
                     srv.messageToGameWithMon(gname, false, new SOCClearOffer(gname, i));
 
-                if (srv.recordGameEventsIsActive())
+                if (srv.isRecordGameEventsActive())
                     srv.recordGameEvent(gname, new SOCClearOffer(gname, -1));
             }
         } finally {
@@ -1953,7 +1953,7 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, new SOCPlayerElement
                     (gaName, pn, SOCPlayerElement.SET, ELEM_RESOURCES_WITH_UNKNOWN[i], counts[i]));
 
-            if (srv.recordGameEventsIsActive())
+            if (srv.isRecordGameEventsActive())
                 srv.recordGameEventTo(gaName, pn, new SOCPlayerElements
                     (gaName, pn, SOCPlayerElement.SET, ELEM_RESOURCES_WITH_UNKNOWN, counts));
         }
@@ -1977,7 +1977,7 @@ public class SOCGameHandler extends GameHandler
             for (int i = nCards; i > 0; --i)
                 srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, cardUnknown);
 
-            if (srv.recordGameEventsIsActive())
+            if (srv.isRecordGameEventsActive())
             {
                 if (cardUnknown.getCardType() != SOCDevCardConstants.UNKNOWN)
                     // msg was to client v1.x: unmap type from UNKNOWN_FOR_VERS_1_X
@@ -1997,7 +1997,7 @@ public class SOCGameHandler extends GameHandler
             {
                 srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, msg);
 
-                if (srv.recordGameEventsIsActive())
+                if (srv.isRecordGameEventsActive())
                 {
                     if (cliVersionRecent
                         || ! ((msg instanceof SOCDevCardAction)
@@ -2518,7 +2518,7 @@ public class SOCGameHandler extends GameHandler
             } else {
                 srv.messageToGame(gname, false, new SOCSetTurn(gname, cpn));
 
-                if (srv.recordGameEventsIsActive())
+                if (srv.isRecordGameEventsActive())
                     srv.recordGameEvent(gname, new SOCGameElements(gname, GEType.CURRENT_PLAYER, cpn));
             }
         }
@@ -3236,7 +3236,7 @@ public class SOCGameHandler extends GameHandler
                     srv.messageToGameWithMon(gaName, false, new SOCClearTradeMsg(gaName, i));
                 srv.gameList.releaseMonitorForGame(gaName);
 
-                if (srv.recordGameEventsIsActive())
+                if (srv.isRecordGameEventsActive())
                     srv.recordGameEvent(gaName, new SOCClearTradeMsg(gaName, -1));
             }
         }
@@ -3326,7 +3326,7 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGameForVersions
                     (ga, SOCStringManager.VERSION_FOR_I18N, Integer.MAX_VALUE, bt, true);
 
-            if (srv.recordGameEventsIsActive())
+            if (srv.isRecordGameEventsActive())
             {
                 if (bt == null)
                     bt = new SOCBankTrade(gaName, give, get, cpn);
@@ -3475,7 +3475,7 @@ public class SOCGameHandler extends GameHandler
             resAmounts[res] = amt;
             ++resTypeCount;
         }
-        final boolean isRecording = (vmax == 0) && srv.recordGameEventsIsActive();
+        final boolean isRecording = (vmax == 0) && srv.isRecordGameEventsActive();
 
         srv.gameList.takeMonitorForGame(gaName);
         try

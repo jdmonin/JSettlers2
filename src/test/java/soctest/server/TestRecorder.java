@@ -206,7 +206,7 @@ public class TestRecorder
      * Test the basics, to rule out problems with that if other tests fail:
      *<UL>
      * <LI> {@link RecordingSOCServer} is up
-     * <LI> {@link SOCServer#recordGameEventsIsActive()} is true
+     * <LI> {@link SOCServer#isRecordGameEventsActive()} is true
      * <LI> Bots are connected to test server
      * <LI> {@link DisplaylessTesterClient} can connect and see server's version
      * <LI> Server sees test client connection
@@ -221,7 +221,7 @@ public class TestRecorder
         assertNotNull(srv);
         assertEquals(RecordingSOCServer.STRINGPORT_NAME, srv.getLocalSocketName());
 
-        assertTrue("recordGameEvents shouldn't be stubbed out", srv.recordGameEventsIsActive());
+        assertTrue("recordGameEvents shouldn't be stubbed out", srv.isRecordGameEventsActive());
 
         final int nConn = srv.getNamedConnectionCount();
         assertTrue

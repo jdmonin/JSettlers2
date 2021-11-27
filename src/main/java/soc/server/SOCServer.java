@@ -3293,7 +3293,7 @@ public class SOCServer extends Server
                         (newGame, gaOpts, gVers, gVersMinGameOptsNoChange,
                          unnamedConns, cliLimited, msgCacheForVersion, cannotJoinMsg);
                 }
-                if (recordGameEventsIsActive())
+                if (isRecordGameEventsActive())
                     recordGameEvent(gaName, new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2));
             }
         }
@@ -4366,7 +4366,7 @@ public class SOCServer extends Server
                 recordGameEventTo(gameName, eventPN, msg);
         } else {
             c.put(new SOCGameTextMsg(gameName, SERVERNAME, txt));
-            if ((eventPN != PN_NON_EVENT) && recordGameEventsIsActive())
+            if ((eventPN != PN_NON_EVENT) && isRecordGameEventsActive())
                 recordGameEventTo(gameName, eventPN, new SOCGameServerText(gameName, txt));
         }
     }
@@ -4477,7 +4477,7 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        if ((eventPN != PN_NON_EVENT) && recordGameEventsIsActive()
+        if ((eventPN != PN_NON_EVENT) && isRecordGameEventsActive()
             && ! "en_US".equals(c.getI18NLocale()))
         {
             // make sure event is recorded in en_US for consistency
@@ -4522,7 +4522,7 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        if ((eventPN != PN_NON_EVENT) && recordGameEventsIsActive()
+        if ((eventPN != PN_NON_EVENT) && isRecordGameEventsActive()
             && ! "en_US".equals(c.getI18NLocale()))
         {
             // make sure event is recorded in en_US for consistency
@@ -4776,7 +4776,7 @@ public class SOCServer extends Server
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
         boolean rsrcMissing = false;
-        SOCMessage msgForRecord = null;  // needed only if isEvent && recordGameEventsIsActive()
+        SOCMessage msgForRecord = null;  // needed only if isEvent && isRecordGameEventsActive()
 
         if (takeMon)
             gameList.takeMonitorForGame(gaName);
@@ -4820,7 +4820,7 @@ public class SOCServer extends Server
                         gameLocalMsg = msg.localize(localText);
                         gameTxtLocale = cliLocale;
 
-                        if (isEvent && (msgForRecord == null) && recordGameEventsIsActive()
+                        if (isEvent && (msgForRecord == null) && isRecordGameEventsActive()
                             && ("en_US".equals(cliLocale)))
                             msgForRecord = gameLocalMsg;
                     }
@@ -4832,7 +4832,7 @@ public class SOCServer extends Server
                 if (rsrcMissing)
                     D.ebugPrintlnINFO("Missing string key in messageToGameKeyedType: " + msgKey);
 
-                if (isEvent && recordGameEventsIsActive())
+                if (isEvent && isRecordGameEventsActive())
                 {
                     if (msgForRecord == null)
                     {
@@ -5205,7 +5205,7 @@ public class SOCServer extends Server
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
-        SOCMessage msgForRecord = null;  // needed only if isEvent && recordGameEventsIsActive()
+        SOCMessage msgForRecord = null;  // needed only if isEvent && isRecordGameEventsActive()
 
         if (takeMon)
             gameList.takeMonitorForGame(gaName);
@@ -5237,7 +5237,7 @@ public class SOCServer extends Server
                         gameTextMsg = new SOCGameServerText(gaName, gameText);
                         gameTxtLocale = cliLocale;
 
-                        if (isEvent && (msgForRecord == null) && recordGameEventsIsActive()
+                        if (isEvent && (msgForRecord == null) && isRecordGameEventsActive()
                             && ("en_US".equals(cliLocale)))
                             msgForRecord = gameTextMsg;
                     }
@@ -5250,7 +5250,7 @@ public class SOCServer extends Server
                             (gaName, SERVERNAME, gameText));
                 }
 
-                if (isEvent && recordGameEventsIsActive())
+                if (isEvent && isRecordGameEventsActive())
                 {
                     if (msgForRecord == null)
                     {
@@ -5498,7 +5498,7 @@ public class SOCServer extends Server
      * Used for backwards compatibility.
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *
      * @param ga  the game
@@ -5524,7 +5524,7 @@ public class SOCServer extends Server
      * Used for backwards compatibility.
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *
      * @param ga  the game
@@ -5563,7 +5563,7 @@ public class SOCServer extends Server
      * Used for backwards compatibility.
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *
      * @param ga  the game
@@ -5642,7 +5642,7 @@ public class SOCServer extends Server
      * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
@@ -5693,7 +5693,7 @@ public class SOCServer extends Server
      * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
@@ -9375,7 +9375,7 @@ public class SOCServer extends Server
      *    {@link #resetBoardAndNotify_finish(SOCGameBoardReset, SOCGame)}.
      * <LI value=3> Send messages as if each human player has clicked "join" (except JoinGameAuth).
      *   <P>
-     *    If {@link #recordGameEventsIsActive()}, clears the game log first
+     *    If {@link #isRecordGameEventsActive()}, clears the game log first
      *    by calling {@link #startLog(SOCGame, boolean) startLog(resetGame, true)}.
      * <LI value=4> Send as if each human player has clicked "sit here"
      * <LI value=5a> If no robots, send to game as if someone else has
@@ -9475,7 +9475,7 @@ public class SOCServer extends Server
      * Complete steps 3 - n of the board-reset process
      * outlined in {@link #resetBoardAndNotify(String, int)},
      * after any robots have left the old game.
-     * If {@link #recordGameEventsIsActive()}, clears the game log first
+     * If {@link #isRecordGameEventsActive()}, clears the game log first
      * by calling {@link #startLog(SOCGame, boolean) startLog(reGame, true)}.
      *
      * @param reBoard  Board reset data, from {@link SOCGameListAtServer#resetBoard(String)}
@@ -9491,7 +9491,7 @@ public class SOCServer extends Server
             (reBoard.oldGameState < SOCGame.ROLL_OR_CARD) || (reBoard.oldGameState == SOCGame.OVER);
         Connection[] huConns = reBoard.humanConns;
 
-        if (recordGameEventsIsActive())
+        if (isRecordGameEventsActive())
             try
             {
                 startLog(reGame, true);
@@ -9681,7 +9681,7 @@ public class SOCServer extends Server
      * @see #isRecordGameEventsFromClientsActive()
      * @since 2.5.00
      */
-    public boolean recordGameEventsIsActive()
+    public boolean isRecordGameEventsActive()
     {
         return false;
     }
@@ -9690,7 +9690,7 @@ public class SOCServer extends Server
      * Are game events also recording messages from game member clients?
      * If so, server will call {@link #recordClientMessage(String, int, SOCMessageForGame)}
      * for messages from players and game observers.
-     * @return true if recording from clients is active and {@link #recordGameEventsIsActive()}
+     * @return true if recording from clients is active and {@link #isRecordGameEventsActive()}
      * @since 2.5.00
      */
     public boolean isRecordGameEventsFromClientsActive()
@@ -9699,7 +9699,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * If {@link #recordGameEventsIsActive()}, set up logging for the specified game
+     * If {@link #isRecordGameEventsActive()}, set up logging for the specified game
      * or reset the log after a board reset.
      * Should be called before {@link #recordGameEvent(String, SOCMessage)} or similar methods.
      * Later at end of game, caller should call {@link #endLog(SOCGame)}.
@@ -9735,7 +9735,7 @@ public class SOCServer extends Server
      * {@link #messageToGame(String, boolean, SOCMessage)} with parameters to request recording.
      *<P>
      * This stub can be overridden.
-     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
      * For a sample implementation, see unit test helper {@link soc.extra.server.RecordingSOCServer}
      * and its {@link soc.extra.server.GameEventLog} format.
      *<P>
@@ -9775,7 +9775,7 @@ public class SOCServer extends Server
      * {@link #messageToPlayer(Connection, String, int, SOCMessage)} with parameters to request recording.
      *<P>
      * This stub can be overridden.
-     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
@@ -9796,7 +9796,7 @@ public class SOCServer extends Server
     /**
      * Record non-broadcast events that happen during the game and are sent to all but one player in that game.
      * This stub can be overridden.
-     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
@@ -9816,7 +9816,7 @@ public class SOCServer extends Server
     /**
      * Record non-broadcast events that happen during the game and are sent to most but not all players in that game.
      * This stub can be overridden.
-     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
@@ -9849,7 +9849,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * If {@link #recordGameEventsIsActive()}, finish and close out logging for the specified game.
+     * If {@link #isRecordGameEventsActive()}, finish and close out logging for the specified game.
      *<P>
      * May close files, remove queues, etc, depending on implementation. This stub does nothing.
      * Any exception must be caught here; the caller doesn't need to deal with that detail of ending the game.

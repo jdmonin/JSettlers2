@@ -165,7 +165,7 @@ public class RecordingSOCServer
     }
 
     @Override
-    public boolean recordGameEventsIsActive()
+    public boolean isRecordGameEventsActive()
     {
         return true;
     }
