@@ -268,7 +268,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Set the amount of a resource.
-     * To set all resources from another set, use {@link #add(SOCResourceSet)},
+     * To set all resources from another set, use {@link #add(ResourceSet)},
      * {@link #subtract(ResourceSet)} or {@link #setAmounts(SOCResourceSet)}.
      *
      * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
@@ -362,7 +362,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *
      * @param toAdd  the resource set
      */
-    public void add(SOCResourceSet toAdd)
+    public void add(ResourceSet toAdd)
     {
         resources[SOCResourceConstants.CLAY]    += toAdd.getAmount(SOCResourceConstants.CLAY);
         resources[SOCResourceConstants.ORE]     += toAdd.getAmount(SOCResourceConstants.ORE);
@@ -375,7 +375,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * subtract an entire resource set.
      *<P>
-     * Loops for each resource type in {@code toReduce}, including {@link SOCResourceConstants#UNKNOWN}.
+     * Loops for each resource type in {@code toSubtract}, including {@link SOCResourceConstants#UNKNOWN}.
      * If any type's amount would go below 0, clips it to 0.
      * Treats {@code UNKNOWN} no differently than the known types.
      *<P>
@@ -383,11 +383,11 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * like {@link #subtract(int, int, boolean)} does,
      * call {@link #subtract(ResourceSet, boolean)}.
      *
-     * @param toReduce  the resource set to subtract
+     * @param toSubtract  the resource set to subtract
      */
-    public void subtract(ResourceSet toReduce)
+    public void subtract(ResourceSet toSubtract)
     {
-        subtract(toReduce, false);
+        subtract(toSubtract, false);
     }
 
     /**
@@ -398,26 +398,26 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * <LI> If subtracting {@link SOCResourceConstants#UNKNOWN},
      *      first converts this set's known resources to {@code UNKNOWN}
      *      by calling {@link #convertToUnknown()}.
-     * <LI> Loops for each resource type in {@code toReduce}, including {@link SOCResourceConstants#UNKNOWN}.
+     * <LI> Loops for each resource type in {@code toSubtract}, including {@link SOCResourceConstants#UNKNOWN}.
      *      If any known type's amount would go below 0, clips it to 0 and subtracts the "excess"
      *      from the {@code UNKNOWN} field, which can become less than 0.
      *</UL>
      * If false, behaves like {@link #subtract(ResourceSet)}.
      *
-     * @param toReduce  the resource set to subtract
+     * @param toSubtract  the resource set to subtract
      * @param asUnknown  If true: Removes excess amounts from this set's {@link SOCResourceConstants#UNKNOWN}
      *     field instead of clipping to 0; if subtracting {@code UNKNOWN},
      *     calls {@link #convertToUnknown() this.convertToUnknown()} first
      * @since 2.5.00
      */
-    public void subtract(final ResourceSet toReduce, final boolean asUnknown)
+    public void subtract(final ResourceSet toSubtract, final boolean asUnknown)
     {
-        final int amountReduceUnknown = toReduce.getAmount(SOCResourceConstants.UNKNOWN);
+        final int amountSubtractUnknown = toSubtract.getAmount(SOCResourceConstants.UNKNOWN);
 
-        if (asUnknown && (amountReduceUnknown > 0))
+        if (asUnknown && (amountSubtractUnknown > 0))
             convertToUnknown();
 
-        resources[SOCResourceConstants.CLAY] -= toReduce.getAmount(SOCResourceConstants.CLAY);
+        resources[SOCResourceConstants.CLAY] -= toSubtract.getAmount(SOCResourceConstants.CLAY);
         if (resources[SOCResourceConstants.CLAY] < 0)
         {
             if (asUnknown)
@@ -427,7 +427,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
             resources[SOCResourceConstants.CLAY] = 0;
         }
 
-        resources[SOCResourceConstants.ORE] -= toReduce.getAmount(SOCResourceConstants.ORE);
+        resources[SOCResourceConstants.ORE] -= toSubtract.getAmount(SOCResourceConstants.ORE);
         if (resources[SOCResourceConstants.ORE] < 0)
         {
             if (asUnknown)
@@ -436,7 +436,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
             resources[SOCResourceConstants.ORE] = 0;
         }
 
-        resources[SOCResourceConstants.SHEEP] -= toReduce.getAmount(SOCResourceConstants.SHEEP);
+        resources[SOCResourceConstants.SHEEP] -= toSubtract.getAmount(SOCResourceConstants.SHEEP);
         if (resources[SOCResourceConstants.SHEEP] < 0)
         {
             if (asUnknown)
@@ -445,7 +445,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
             resources[SOCResourceConstants.SHEEP] = 0;
         }
 
-        resources[SOCResourceConstants.WHEAT] -= toReduce.getAmount(SOCResourceConstants.WHEAT);
+        resources[SOCResourceConstants.WHEAT] -= toSubtract.getAmount(SOCResourceConstants.WHEAT);
         if (resources[SOCResourceConstants.WHEAT] < 0)
         {
             if (asUnknown)
@@ -454,7 +454,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
             resources[SOCResourceConstants.WHEAT] = 0;
         }
 
-        resources[SOCResourceConstants.WOOD] -= toReduce.getAmount(SOCResourceConstants.WOOD);
+        resources[SOCResourceConstants.WOOD] -= toSubtract.getAmount(SOCResourceConstants.WOOD);
         if (resources[SOCResourceConstants.WOOD] < 0)
         {
             if (asUnknown)
@@ -463,7 +463,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
             resources[SOCResourceConstants.WOOD] = 0;
         }
 
-        resources[SOCResourceConstants.UNKNOWN] -= amountReduceUnknown;
+        resources[SOCResourceConstants.UNKNOWN] -= amountSubtractUnknown;
         if ((resources[SOCResourceConstants.UNKNOWN] < 0) && ! asUnknown)
         {
             resources[SOCResourceConstants.UNKNOWN] = 0;

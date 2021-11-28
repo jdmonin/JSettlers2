@@ -515,8 +515,8 @@ ideas.
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
 - Refactor: Rework ShadowedBox, SpeechBalloon to use a custom-drawn Swing Border
 - Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
-- Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(SOCResourceSet),
-  subtract(SOCResourceSet) with playing piece `COST` constants
+- Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(ResourceSet),
+  subtract(ResourceSet) with playing piece `COST` constants
 - Refactor `SOCGameOptionSet`:
   Create SOCGameOptionSetAtServer for methods used only there, like optionsNotSupported and optionsTrimmedForSupport
 - Refactor: name of dev-cards consolidate
