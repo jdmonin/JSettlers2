@@ -624,9 +624,20 @@ public class SOCGame implements Serializable, Cloneable
     private static final int NUM_DEVCARDS_6PLAYER = 9 + NUM_DEVCARDS_STANDARD;
 
     /**
+     * Minimum version (2.5.00) that supports canceling the second free road or ship placement
+     * without ending player's turn.
+     * @see #cancelBuildRoad(int)
+     * @see #cancelBuildShip(int)
+     * @see #VERSION_FOR_CANCEL_FREE_ROAD2
+     * @since 2.5.00
+     */
+    public static final int VERSION_FOR_CANCEL_FREE_ROAD1 = 2500;
+
+    /**
      * Minimum version (1.1.17) that supports canceling the second free road or ship placement.
      * @see #cancelBuildRoad(int)
      * @see #cancelBuildShip(int)
+     * @see #VERSION_FOR_CANCEL_FREE_ROAD1
      * @since 1.1.17
      */
     public static final int VERSION_FOR_CANCEL_FREE_ROAD2 = 1117;
@@ -4835,12 +4846,19 @@ public class SOCGame implements Serializable, Cloneable
      * In 1.1.09 and later, player is allowed to Special Build at start of their
      * own turn, only if they haven't yet rolled or played a dev card.
      * To do so, call {@link #askSpecialBuild(int, boolean)} and then {@link #endTurn()}.
+     *<P>
+     * In 2.5.00 and later, if ending turn during {@link PLACING_FREE_ROAD1}
+     * this method calls {@link #cancelBuildRoad(int)} to return the dev card
+     * to current player's inventory.
      *
      * @see #forceEndTurn()
      * @see #isForcingEndTurn()
      */
     public void endTurn()
     {
+        if (gameState == SOCGame.PLACING_FREE_ROAD1)
+            cancelBuildRoad(currentPlayerNumber);
+
         if (! advanceTurnToSpecialBuilding())
         {
             // "Normal" end-turn:
@@ -7804,11 +7822,13 @@ public class SOCGame implements Serializable, Cloneable
      * Can the current player cancel building a piece in this game state?
      * True for each piece's normal placing state ({@link #PLACING_ROAD}, etc),
      * and for initial settlement placement.
+     * In v2.5.00+, also true in {@link #PLACING_FREE_ROAD1} to cancel playing Road Building dev card.
      * In v1.1.17+, also true in {@link #PLACING_FREE_ROAD2} to skip the second placement.
      *
      * @param buildType  Piece type ({@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#CITY CITY}, etc)
      * @return  true if current game state allows it
      * @see #cancelBuildRoad(int)
+     * @see #cancelBuildShip(int)
      * @since 1.1.17
      */
     public boolean canCancelBuildPiece(final int buildType)
@@ -7820,13 +7840,15 @@ public class SOCGame implements Serializable, Cloneable
                 || (gameState == START2B) || (gameState == START3B);
 
         case SOCPlayingPiece.ROAD:
-            return (gameState == PLACING_ROAD) || (gameState == PLACING_FREE_ROAD2);
+            return (gameState == PLACING_ROAD)
+                || (gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2);
 
         case SOCPlayingPiece.CITY:
             return (gameState == PLACING_CITY);
 
         case SOCPlayingPiece.SHIP:
-            return (gameState == PLACING_SHIP) || (gameState == PLACING_FREE_ROAD2);
+            return (gameState == PLACING_SHIP)
+                || (gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2);
 
         default:
             return false;
@@ -7837,27 +7859,38 @@ public class SOCGame implements Serializable, Cloneable
      * a player is UNbuying a road; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
      *<P>
+     * Assumes {@link #canCancelBuildPiece(int)} has been called already.
+     *<P>
      * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
      * can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
      * sets gameState to ROLL_OR_CARD or PLAY1 as if the free road was placed.<BR>
      * In v1.2.01 and newer, player can also end their turn from state
      * {@link #PLACING_FREE_ROAD1} or {@link #PLACING_FREE_ROAD2}.<BR>
-     * In v2.0.00 and newer, can similarly call {@link #cancelBuildShip(int)} in that state.
+     * In v2.0.00 and newer, can similarly call {@link #cancelBuildShip(int)} in those states.
+     *<P>
+     * In v2.5.00 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD1}),
+     * in {@link #PLACING_FREE_ROAD1} the Road Building card is returned to player's inventory
+     * because they haven't built anything from it.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
      */
     public boolean cancelBuildRoad(final int pn)
     {
-        if (gameState == PLACING_FREE_ROAD2)
+        if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
         {
+            if (gameState == PLACING_FREE_ROAD1)
+            {
+                players[pn].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
+                gameState = PLACING_FREE_ROAD2;
+            }
+
             advanceTurnStateAfterPutPiece();
             return false;  // <--- Special case: Not returning resources ---
         }
 
         SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, SOCResourceConstants.CLAY);
-        resources.add(1, SOCResourceConstants.WOOD);
+        resources.add(SOCRoad.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7877,10 +7910,7 @@ public class SOCGame implements Serializable, Cloneable
     public void cancelBuildSettlement(int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, SOCResourceConstants.CLAY);
-        resources.add(1, SOCResourceConstants.SHEEP);
-        resources.add(1, SOCResourceConstants.WHEAT);
-        resources.add(1, SOCResourceConstants.WOOD);
+        resources.add(SOCSettlement.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7896,8 +7926,7 @@ public class SOCGame implements Serializable, Cloneable
     public void cancelBuildCity(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
-        resources.add(3, SOCResourceConstants.ORE);
-        resources.add(2, SOCResourceConstants.WHEAT);
+        resources.add(SOCCity.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7908,9 +7937,16 @@ public class SOCGame implements Serializable, Cloneable
      * a player is UNbuying a ship; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
      *<P>
-     * Can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2};
+     * Assumes {@link #canCancelBuildPiece(int)} has been called already.
+     *<P>
+     * Can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2},
+     * or cancel playing the Road Building card in {@link #PLACING_FREE_ROAD1};
      * sets gameState to ROLL_OR_CARD or PLAY1 as if the free ship was placed.
-     * Can similarly call {@link #cancelBuildRoad(int)} in that state.
+     * Can similarly call {@link #cancelBuildRoad(int)} in those states.
+     *<P>
+     * In v2.5.00 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD1}),
+     * in {@link #PLACING_FREE_ROAD1} the Road Building card is returned to player's inventory
+     * because they haven't built anything from it.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
@@ -7918,15 +7954,20 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean cancelBuildShip(final int pn)
     {
-        if (gameState == PLACING_FREE_ROAD2)
+        if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
         {
+            if (gameState == PLACING_FREE_ROAD1)
+            {
+                players[pn].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
+                gameState = PLACING_FREE_ROAD2;
+            }
+
             advanceTurnStateAfterPutPiece();
             return false;  // <--- Special case: Not returning resources ---
         }
 
         SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, SOCResourceConstants.SHEEP);
-        resources.add(1, SOCResourceConstants.WOOD);
+        resources.add(SOCShip.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else

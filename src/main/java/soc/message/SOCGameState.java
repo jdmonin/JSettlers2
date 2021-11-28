@@ -71,8 +71,8 @@ import soc.game.SOCGame;  // for javadoc's use
  * <LI>{@link SOCGame#PLACING_ROBBER PLACING_ROBBER}: Current player: Choose a new robber hex and send {@link SOCMoveRobber}
  * <LI>{@link SOCGame#PLACING_PIRATE PLACING_PIRATE}: Current player: Choose a new pirate hex and send {@link SOCMoveRobber}
  * <LI>{@link SOCGame#PLACING_SHIP PLACING_SHIP}: Current player: Place a ship
- * <LI>{@link SOCGame#PLACING_FREE_ROAD1 PLACING_FREE_ROAD1}: Current player: Place a road
- * <LI>{@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}: Current player: Place a road
+ * <LI>{@link SOCGame#PLACING_FREE_ROAD1 PLACING_FREE_ROAD1}: Current player: Place a road or ship
+ * <LI>{@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}: Current player: Place a road or ship
  * <LI>{@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}: Current player: Place the previously-designated
  *     {@link soc.game.SOCInventoryItem}. Their placement message to server depends on the scenario and item type,
  *     documented at {@link SOCInventoryItemAction}. For example, in scenario SC_FTRI the player sends a

@@ -1231,16 +1231,7 @@ public class SOCGameMessageHandler
             } else if (handler.checkTurn(c, ga)) {
                 SOCPlayer pl = ga.getPlayer(plName);
                 if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
-                {
-                    if (gaState == SOCGame.PLACING_FREE_ROAD1)
-                        srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", pl.getName());
-                            // "{0} cancelled the Road Building card."
-                    else if (gaState == SOCGame.PLACING_FREE_ROAD2)
-                        srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.r", pl.getName());
-                            // "{0} skipped placing the second road."
-
                     handler.endGameTurn(ga, pl, true);
-                }
                 else
                     srv.messageToPlayerKeyed(c, gname, pl.getPlayerNumber(), "reply.endturn.cannot");  // "You can't end your turn yet."
             } else {
@@ -1966,7 +1957,8 @@ public class SOCGameMessageHandler
                 {
                 case SOCPlayingPiece.ROAD:
 
-                    if ((gstate == SOCGame.PLACING_ROAD) || (gstate == SOCGame.PLACING_FREE_ROAD2))
+                    if ((gstate == SOCGame.PLACING_ROAD)
+                        || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                     {
                         ga.cancelBuildRoad(pn);
                         if (gstate == SOCGame.PLACING_ROAD)
@@ -1985,7 +1977,17 @@ public class SOCGameMessageHandler
                                     srv.recordGameEvent(gaName, new SOCPlayerElements
                                         (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
                             }
-                        } else {
+                        }
+                        else if (gstate == SOCGame.PLACING_FREE_ROAD1)
+                        {
+                            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", player.getName());
+                                // "{0} cancelled the Road Building card."
+                            srv.messageToGame
+                                (gaName, true, new SOCDevCardAction
+                                    (gaName, pn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
+                        }
+                        else
+                        {
                             srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.r", player.getName());
                                 // "{0} skipped placing the second road."
                         }
@@ -2068,7 +2070,8 @@ public class SOCGameMessageHandler
 
                 case SOCPlayingPiece.SHIP:
 
-                    if ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2))
+                    if ((gstate == SOCGame.PLACING_SHIP)
+                        || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                     {
                         ga.cancelBuildShip(pn);
                         if (gstate == SOCGame.PLACING_SHIP)
@@ -2087,7 +2090,17 @@ public class SOCGameMessageHandler
                                     srv.recordGameEvent(gaName, new SOCPlayerElements
                                         (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
                             }
-                        } else {
+                        }
+                        else if (gstate == SOCGame.PLACING_FREE_ROAD1)
+                        {
+                            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", player.getName());
+                                // "{0} cancelled the Road Building card."
+                            srv.messageToGame
+                                (gaName, true, new SOCDevCardAction
+                                    (gaName, pn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
+                        }
+                        else
+                        {
                             srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.s", player.getName());
                                 // "{0} skipped placing the second ship."
                         }

@@ -106,6 +106,22 @@ When preparing to release a new version, testing should include:
           - Move pirate to a hex with 2 players' ships, choose 1 who has only resources not cloth;
             shouldn't be asked whether to steal cloth or resources
         - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
+    - Road Building dev card
+        - In a 2-player game, give debug player 4 Road Building cards:  
+          `dev: 1 debug` (4 times)
+        - Test these situations, 1 per turn:
+        - Build 2 free roads
+        - Build 1 free road, right-click board, choose Cancel, continue to end of turn; should see "skipped placing the second road" in game text area
+        - Build 1 free road, end turn; should see "skipped placing the second road" again
+        - Play card but instead of placing a free road, in Build panel click Cancel; should see "cancelled the Road Building card" in game text area, dev card returned to player's inventory in hand panel
+        - Play card, end turn; should see "cancelled the Road Building card" and card returned to inventory
+        - In a new 2-player game on 6-player board, give debug player 2 Road Building cards:  
+          `dev: 1 debug` (2 times)
+        - Join again as other player
+        - Other player: Request Special Build
+        - Debug player: Play card, build 1 free road, end turn; other player's Special Build should start as usual
+        - Other player: Request Special Build
+        - Debug player: Play card, end turn instead of building; card should be returned to debug's inventory, other player's Special Build should start as usual
     - Gain Longest Road/Route
         - To save time with these tests, run the test server with Savegame feature enabled:
           - Pick any directory/folder where you want your server to look for savegames

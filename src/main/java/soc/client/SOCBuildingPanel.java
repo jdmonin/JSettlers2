@@ -188,14 +188,15 @@ import javax.swing.SwingConstants;
 
     /**
      * Piece-purchase button status; either all "Buy", or when placing a piece, 1 type "Cancel" and the rest disabled.
-     * When placing the second free road or free ship, this placement can be canceled, and the Road and Ship
+     * When placing a free road or free ship, this placement can be canceled, and the Road and Ship
      * buttons both say "Cancel".
      *<P>
      * Updated in {@link #updateButtonStatus()}.
      * Value is 0 for "Buy", or when placing a piece, a borrowed SOCGameState constant with the piece type:
      * {@link SOCGame#PLACING_ROAD PLACING_ROAD}, {@link SOCGame#PLACING_SETTLEMENT PLACING_SETTLEMENT},
      * {@link SOCGame#PLACING_CITY PLACING_CITY}, or {@link SOCGame#PLACING_SHIP PLACING_SHIP}.
-     * When placing the second free road or ship, {@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}.
+     * When placing a free road or ship, {@link SOCGame#PLACING_FREE_ROAD1 PLACING_FREE_ROAD1}
+     * or {@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}.
      *<P>
      * Before v2.0.00 and i18n, button state was checked by comparing the button text to "Buy" or "Cancel".
      * @since 2.0.00
@@ -893,7 +894,9 @@ import javax.swing.SwingConstants;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if ((pieceButtonsState == SOCGame.PLACING_ROAD) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
+            else if ((pieceButtonsState == SOCGame.PLACING_ROAD)
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1)
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.ROAD);
             }
@@ -946,7 +949,9 @@ import javax.swing.SwingConstants;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if ((pieceButtonsState == SOCGame.PLACING_SHIP) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
+            else if ((pieceButtonsState == SOCGame.PLACING_SHIP)
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1)
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
@@ -1015,7 +1020,15 @@ import javax.swing.SwingConstants;
             boolean currentCanBuy = (! isDebugFreePlacement)
                 && game.canBuyOrAskSpecialBuild(pnum);
 
-            if (isCurrent && ((gstate == SOCGame.PLACING_ROAD)
+            if (isCurrent && (gstate == SOCGame.PLACING_FREE_ROAD1)
+                && (game.isPractice
+                    || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
+            {
+                roadBut.setEnabled(true);
+                roadBut.setText(strings.get("base.cancel"));  // "Cancel"
+                pieceButtonsState = SOCGame.PLACING_FREE_ROAD1;
+            }
+            else if (isCurrent && ((gstate == SOCGame.PLACING_ROAD)
                     || ((gstate == SOCGame.PLACING_FREE_ROAD2)
                         && (game.isPractice
                             || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
@@ -1084,13 +1097,15 @@ import javax.swing.SwingConstants;
 
             if (shipBut != null)
             {
-                if (isCurrent && ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2)))
+                if (isCurrent &&
+                    ((gstate == SOCGame.PLACING_SHIP)
+                     || (gstate == SOCGame.PLACING_FREE_ROAD2)
+                     || ((gstate == SOCGame.PLACING_FREE_ROAD1)
+                         && (game.isPractice || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))))
                 {
                     shipBut.setEnabled(true);
                     shipBut.setText(strings.get("base.cancel"));
-                    pieceButtonsState = gstate;  // PLACING_SHIP or PLACING_FREE_ROAD2
-                    // ships were added after VERSION_FOR_CANCEL_FREE_ROAD2, so no need to check server version
-                    // to make sure the server supports canceling.
+                    pieceButtonsState = gstate;  // PLACING_SHIP or PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2
                 }
                 else if (game.couldBuildShip(pnum))
                 {

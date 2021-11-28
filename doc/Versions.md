@@ -16,6 +16,8 @@ JARs for recent JSettlers versions can be downloaded from
 ## `2.5.00` (build JM20210xxx)
 - Currently being developed
 - Gameplay:
+	- Road Building: If player cancels placement or ends turn before placing the first free road or ship,
+	  the dev card is returned to their hand
 	- Recalc Longest Route when building coastal settlement to connect a player's roads to ships
 	  (thanks kotc for reporting issue #95)
 	- Pirate Islands scenario: Ship placement: Fix client bug where placing a coastal ship

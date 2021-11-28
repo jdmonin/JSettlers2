@@ -413,6 +413,7 @@ If cancelled by clicking End Turn, goes directly from placement gameState to nex
 - p3:SOCGameServerText:game=g|text=You may place 2 roads.
 - f3:SOCEndTurn:game=g
 - all:SOCGameServerText:game=g|text=p3 cancelled the Road Building card.
+- all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1  // only if hasn't placed 1st road/ship yet
 - all:SOCClearOffer:game=g|playerNumber=-1
 - all:SOCTurn:game=g|playerNumber=2|gameState=15
 

@@ -8973,7 +8973,15 @@ import javax.swing.JComponent;
                   buildShipItem.setLabel(strings.get("board.build.ship"));  // "Build Ship"
               }
           }
-          cancelBuildItem.setEnabled(menuPlayerIsCurrent && game.canCancelBuildPiece(buildType));
+          boolean enableCancel = menuPlayerIsCurrent && game.canCancelBuildPiece(buildType);
+          if (enableCancel && ! game.isPractice)
+          {
+              final int gameState = game.getGameState(), sVersion = playerInterface.client.sVersion;
+              if (((gameState == SOCGame.PLACING_FREE_ROAD1) && (sVersion < SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
+                  || ((gameState == SOCGame.PLACING_FREE_ROAD2) && (sVersion < SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2)))
+                  enableCancel = false;
+          }
+          cancelBuildItem.setEnabled(enableCancel);
 
           // Check for initial placement (for different cancel message)
           isInitialPlacement = game.isInitialPlacement();
@@ -9029,7 +9037,6 @@ import javax.swing.JComponent;
        *             <tt>hSh &lt; 0</tt> is the only time this method trusts the caller's
        *             game state checks, instead of doing its own checking.
        */
-      @SuppressWarnings("fallthrough")
       public void showBuild(int x, int y, int hR, int hSe, int hC, int hSh)
       {
           wantsCancel = false;
@@ -9104,15 +9111,17 @@ import javax.swing.JComponent;
                   }
                   break;
 
+              case SOCGame.PLACING_FREE_ROAD1:
               case SOCGame.PLACING_FREE_ROAD2:
-                  if (game.isPractice || (playerInterface.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))
+                  if (game.isPractice
+                      || ((gs == SOCGame.PLACING_FREE_ROAD1)
+                          && (playerInterface.client.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
+                      || ((gs == SOCGame.PLACING_FREE_ROAD2)
+                          && (playerInterface.client.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2)))
                   {
                       cancelBuildItem.setEnabled(true);
                       cancelBuildItem.setLabel(strings.get("board.build.skip.road.ship"));  // "Skip road or ship"
                   }
-                  // Fall through to enable/disable building menu items
-
-              case SOCGame.PLACING_FREE_ROAD1:
                   buildRoadItem.setEnabled(hR != 0);
                   buildSettleItem.setEnabled(false);
                   upgradeCityItem.setEnabled(false);

@@ -670,11 +670,15 @@ public class SOCGameHandler extends GameHandler
      * Otherwise, calls {@link #sendTurn(SOCGame, boolean)} and begins
      * the next player's turn.
      *<P>
+     * From game state {@link SOCGame#PLACING_FREE_ROAD1}, the call to {@code ga.endTurn()} will
+     * return that dev card to the player's inventory.
+     *<P>
      * Assumes:
      * <UL>
-     * <LI> ga.canEndTurn already called, to validate player
-     * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
-     * <LI> gamelist.takeMonitorForGame is NOT called, we do NOT have that monitor
+     * <LI> {@link SOCGame#canEndTurn(int)} already called to validate player, returned true
+     * <LI> {@link SOCGame#takeMonitor()} already called
+     *      (not the same as {@link SOCGameList#takeMonitorForGame(String)})
+     * <LI> {@link SOCGameList#takeMonitorForGame(String)} is NOT called, we do NOT have that monitor
      * </UL>
      *<P>
      * As a special case, endTurn is used to begin the Special Building Phase during the
@@ -684,12 +688,12 @@ public class SOCGameHandler extends GameHandler
      * {@link SOCGameMessageHandler#handlePUTPIECE(SOCGame, Connection, SOCPutPiece)}.
      *
      * @param ga Game to end turn
-     * @param currPlayer Current player in {@code ga}, or null. Not needed except in SPECIAL_BUILDING.
-     *           If null, will be determined within this method.
+     * @param currPlayer Current player in {@code ga}, or null to determine within this method.
      * @param callEndTurn  Almost always true; if false, don't call {@link SOCGame#endTurn()}
      *           because it was called before calling this method.
      *           If false, be sure to set {@code currPlayer} to the player whose turn it was
      *           before {@code endTurn()} was called.
+     * @see #forceEndGameTurn(SOCGame, String)
      * @since 1.1.00
      */
     void endGameTurn(SOCGame ga, SOCPlayer currPlayer, final boolean callEndTurn)
@@ -700,14 +704,30 @@ public class SOCGameHandler extends GameHandler
         // updated.
 
         final String gname = ga.getName();
+        int gaState = ga.getGameState(), cpn = ga.getCurrentPlayerNumber();
+        if (currPlayer == null)
+            currPlayer = ga.getPlayer(cpn);
 
-        if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
+        if (gaState == SOCGame.PLACING_FREE_ROAD1)
         {
-            if (currPlayer == null)
-                currPlayer = ga.getPlayer(ga.getCurrentPlayerNumber());
+            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", currPlayer.getName());
+                // "{0} cancelled the Road Building card."
+            srv.messageToGame
+                (gname, true, new SOCDevCardAction
+                    (gname, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
+            if (! callEndTurn)
+                ga.cancelBuildRoad(cpn);
+        }
+        else if (gaState == SOCGame.PLACING_FREE_ROAD2)
+        {
+            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.r", currPlayer.getName());
+                // "{0} skipped placing the second road."
+        }
+        else if (gaState == SOCGame.SPECIAL_BUILDING)
+        {
             currPlayer.setAskedSpecialBuild(false);
             srv.messageToGame(gname, true, new SOCPlayerElement
-                (gname, currPlayer.getPlayerNumber(), SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 0));
+                (gname, cpn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 0));
         }
 
         final boolean hadBoardResetRequest = (-1 != ga.getResetVoteRequester());
@@ -718,7 +738,9 @@ public class SOCGameHandler extends GameHandler
         if (callEndTurn)
         {
             ga.endTurn();  // May set state to OVER, if new player has enough points to win.
+                           // From state PLACING_FREE_ROAD1, calls ga.cancelBuildRoad.
                            // May begin or continue the Special Building Phase.
+            gaState = ga.getGameState();
         }
 
         /**
@@ -803,9 +825,10 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} does:
      * <UL>
-     * <LI> ga.canEndTurn already called, returned false
-     * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
-     * <LI> gamelist.takeMonitorForGame is NOT called, we do NOT have that monitor
+     * <LI> {@link SOCGame#canEndTurn(int)} already called, returned false
+     * <LI> {@link SOCGame#takeMonitor()} already called
+     *      (not the same as {@link SOCGameList#takeMonitorForGame(String)})
+     * <LI> {@link SOCGameList#takeMonitorForGame(String)} is NOT called, we do NOT have that monitor
      * </UL>
      * @param ga Game to force end turn
      * @param plName Current player's name. Needed because if they have been disconnected by
@@ -4530,7 +4553,7 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGameWithMon(gaName, true, new SOCCancelBuildRequest(gaName, SOCSettlement.SETTLEMENT));
             }
 
-            if (ga.canEndTurn(plNumber) && (gameState != SOCGame.PLACING_FREE_ROAD1))
+            if (ga.canEndTurn(plNumber))
             {
                 srv.gameList.releaseMonitorForGame(gaName);
                 ga.takeMonitor();
@@ -4548,8 +4571,6 @@ public class SOCGameHandler extends GameHandler
                  * of forceEndGameTurn and game.forceEndTurn.
                  * All start phases are covered here (START1A..START2B)
                  * because canEndTurn returns false in those gameStates.
-                 * Also includes PLACING_FREE_ROAD1 so the dev card is returned to player
-                 * (unlike when a player actively decides to end their turn in that state).
                  */
                 srv.gameList.releaseMonitorForGame(gaName);
                 ga.takeMonitor();
