@@ -335,6 +335,109 @@ public class TestGameActionExtractor
     }
 
     /**
+     * Test recovering from an unknown sequence, recognizing the actions after it.
+     */
+    @Test
+    public void testUnknownSequenceRecovery()
+    {
+        testExtractEventSequence(new String[]
+            {
+                // start of turn:
+                "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+                "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+                // roll dice:
+                "f3:SOCRollDice:game=test",
+                "all:SOCDiceResult:game=test|param=8",
+                "all:SOCDiceResultResources:game=test|p=1|p=3|p=8|p=1|p=1",
+                "p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=1,e4=3,e5=1",
+                "all:SOCGameState:game=test|state=20",
+
+                // build piece starting with buildrequest:
+                "f3:SOCBuildRequest:game=test|pieceType=3",
+                "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e3=1,e5=1",
+                "all:SOCGameState:game=test|state=35",
+                "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=602",
+                "all:SOCGameServerText:game=test|text=p3 built a ship.",
+                "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=602",
+                "all:SOCGameState:game=test|state=20",
+
+                // the unknown sequence (middle section of play dev card):
+                "f3:SOCPickResourceType:game=test|resType=3",
+                "all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y",
+                "all:SOCResourceCount:game=test|playerNum=2|count=2",
+
+                // buy dev card:
+                "f3:SOCBuyDevCardRequest:game=test",
+                "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1",
+                "all:SOCGameElements:game=test|e2=15",
+                "p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9",
+                "!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0",
+                "all:SOCSimpleAction:game=test|pn=3|actType=1|v1=15|v2=0",
+                "all:SOCGameState:game=test|state=20",
+
+                // end turn:
+                "f3:SOCEndTurn:game=test",
+                "all:SOCClearOffer:game=test|playerNumber=-1",
+            },
+            3, 99,
+            new ExtractResultsChecker()
+            {
+                public void check(GameActionLog actionLog, int toClientPN)
+                {
+                    final String desc = "for clientPN=" + toClientPN + ":";
+
+                    assertEquals(desc, 7, actionLog.size());
+
+                    GameActionLog.Action act = actionLog.get(0);
+                    assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
+                    assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+                    assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+                    act = actionLog.get(1);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc + " new current player number", 3, act.param1);
+
+                    act = actionLog.get(2);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc,
+                        (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 4 : 3),
+                        act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 8, act.param1);
+
+                    act = actionLog.get(3);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " built ship", SOCPlayingPiece.SHIP, act.param1);
+                    assertEquals(desc + " built at 0x602", 0x602, act.param2);
+                    assertEquals(desc + " built by player 3", 3, act.param3);
+
+                    act = actionLog.get(4);
+                    assertEquals(desc, ActionType.UNKNOWN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+
+                    act = actionLog.get(5);
+                    assertEquals(desc, ActionType.BUY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dev card type",
+                        (toClientPN != 99) ? SOCDevCardConstants.KNIGHT : 0, act.param1);
+                    assertEquals(desc + " remaining cards", 15, act.param2);
+
+                    act = actionLog.get(6);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                }
+            });
+    }
+
+    /**
      * Test extraction of basic initial placement with 3 players: p3 (first player), p0, and p1.
      *<P>
      * Initial placement with a settlement canceled/re-placed is tested in {@link #testInitialPlacementCancelSettlement()}.
