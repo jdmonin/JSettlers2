@@ -49,7 +49,32 @@ public class GameActionLog
 {
     private static final long serialVersionUID = 2500;  // No change since v2.5.00
 
-    // No constructor needed yet; parameterized superclass ArrayList handles it
+    /**
+     * True if this action log is from a {@link GameEventLog} which includes only messages from the server,
+     * not also from clients to server: See {@link GameEventLog#isServerOnly}.
+     * @see #serverOnlyToClientPN
+     */
+    public final boolean isServerOnly;
+
+    /**
+     * If not -1, this action log is from a {@link GameEventLog} filtered to include
+     * only messages to a certain client player number.
+     * @see GameEventLog#serverOnlyToClientPN
+     * @see #isServerOnly
+     */
+    public final int serverOnlyToClientPN;
+
+    /**
+     * Create a new empty {@link GameActionLog}.
+     * @param isServerOnly  Value for {@link #isServerOnly} field
+     * @param serverOnlyToClientPN  Value for {@link #serverOnlyToClientPN} field
+     */
+    public GameActionLog(final boolean isServerOnly, final int serverOnlyToClientPN)
+    {
+        super();
+        this.isServerOnly = isServerOnly;
+        this.serverOnlyToClientPN = serverOnlyToClientPN;
+    }
 
     /**
      * One action in a {@link GameActionLog}.

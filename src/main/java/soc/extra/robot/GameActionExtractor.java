@@ -202,9 +202,9 @@ public class GameActionExtractor
             throw new IllegalArgumentException("eventLog");
 
         this.eventLog = eventLog;
-        actLog = new GameActionLog();
         hasServerOnlyLog = eventLog.isServerOnly;
         serverOnlyToClientPN = (hasServerOnlyLog) ? eventLog.serverOnlyToClientPN : -1;
+        actLog = new GameActionLog(hasServerOnlyLog, serverOnlyToClientPN);
         seqStartMsgTypes = (hasServerOnlyLog) ? SEQ_START_MSG_TYPES_SERVER_ONLY : SEQ_START_MSG_TYPES_FULL;
 
         if (hasServerOnlyLog && (serverOnlyToClientPN < 0))
