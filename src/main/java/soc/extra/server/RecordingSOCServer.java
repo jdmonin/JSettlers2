@@ -188,7 +188,7 @@ public class RecordingSOCServer
         synchronized(records)
         {
             log = records.get(gameName);
-            if (log == null)
+            if ((log == null) || (log.game != game))
             {
                 log = new GameEventLog(game, isRecordingWithTimestamps);
                 records.put(gameName, log);
@@ -201,7 +201,7 @@ public class RecordingSOCServer
             (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
         if (isReset)
         {
-            // server won't send SOCNewGame announcement for a reset, so make one
+            // server won't send SOCNewGame announcement for a reset, so put one in the log here
             final SOCGame ga = getGame(gameName);
             if (ga == null)
                 return;  // shouldn't happen for a reset
