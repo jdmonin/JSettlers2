@@ -1901,6 +1901,182 @@ public class TestGameActionExtractor
             "all:SOCGameServerText:game=test|text=>>> p3 has won the game with 11 points.",
             "all:SOCGameStats:game=test|0|2|0|11|false|true|false|false",
             "p3:SOCPlayerStats:game=test|p=1|p=2|p=5|p=0|p=0|p=0",
+
+            //
+            // Cancel road building after 0 or 1 free placements:
+            //
+
+            // build 0 before roll, cancel & continue play
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCCancelBuildRequest:game=test|pieceType=3",
+            "all:SOCGameServerText:game=test|text=p3 cancelled the Road Building card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1",
+            "all:SOCGameState:game=test|state=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=3",
+            "all:SOCDiceResultResources:game=test|p=1|p=5|p=6|p=1|p=1",
+            "p5:SOCPlayerElements:game=test|playerNum=5|actionType=SET|e1=3,e2=3,e3=0,e4=0,e5=0",
+            "all:SOCGameState:game=test|state=20",
+
+            // build 0 after roll, cancel & continue play
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCCancelBuildRequest:game=test|pieceType=3",
+            "all:SOCGameServerText:game=test|text=p3 cancelled the Road Building card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1",
+            "all:SOCGameState:game=test|state=20",
+            "f3:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // build 1 before roll, cancel & continue play
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60e",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60e",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCCancelBuildRequest:game=test|pieceType=3",
+            "all:SOCGameServerText:game=test|text=p3 skipped placing the second ship.",
+            "all:SOCGameState:game=test|state=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=5",
+            "all:SOCDiceResultResources:game=test|p=1|p=3|p=6|p=1|p=1",
+            "p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=2,e2=0,e3=3,e4=0,e5=1",
+            "all:SOCGameState:game=test|state=20",
+
+            // build 1 after roll, cancel & continue play
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60f",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60f",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCCancelBuildRequest:game=test|pieceType=3",
+            "all:SOCGameServerText:game=test|text=p3 skipped placing the second ship.",
+            "all:SOCGameState:game=test|state=20",
+
+            // build 0, cancel by end turn
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=2",
+            "all:SOCGameServerText:game=test|text=No player gets anything.",
+            "all:SOCGameState:game=test|state=20",
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCEndTurn:game=test",
+            "all:SOCGameServerText:game=test|text=p3 cancelled the Road Building card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // build 0, cancel by end turn, other player SBP
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=5",
+            "all:SOCDiceResultResources:game=test|p=1|p=3|p=7|p=1|p=1",
+            "p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=3,e2=0,e3=3,e4=0,e5=1",
+            "all:SOCGameState:game=test|state=20",
+            "f5:SOCBuildRequest:game=test|pieceType=-1",
+            "all:SOCPlayerElement:game=test|playerNum=5|actionType=SET|elementType=16|amount=1",
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCEndTurn:game=test",
+            "all:SOCGameServerText:game=test|text=p3 cancelled the Road Building card.",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+            "all:SOCTurn:game=test|playerNumber=5|gameState=100",
+            "f5:SOCBuyDevCardRequest:game=test",
+            "all:SOCPlayerElements:game=test|playerNum=5|actionType=LOSE|e2=1,e3=1,e4=1",
+            "all:SOCGameElements:game=test|e2=33",
+            "p5:SOCDevCardAction:game=test|playerNum=5|actionType=DRAW|cardType=1",
+            "!p5:SOCDevCardAction:game=test|playerNum=5|actionType=DRAW|cardType=0",
+            "all:SOCSimpleAction:game=test|pn=5|actType=1|v1=33|v2=0",
+            "all:SOCGameState:game=test|state=100",
+            "f5:SOCEndTurn:game=test",
+            "all:SOCPlayerElement:game=test|playerNum=5|actionType=SET|elementType=16|amount=0",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // build 1, cancel by end turn
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=4",
+            "all:SOCGameServerText:game=test|text=No player gets anything.",
+            "all:SOCGameState:game=test|state=20",
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=e06",
+            "all:SOCGameServerText:game=test|text=p3 built a road.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=e06",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCEndTurn:game=test",
+            "all:SOCGameServerText:game=test|text=p3 skipped placing the second road.",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            // build 1, cancel by end turn, other player SBP
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=8",
+            "all:SOCDiceResultResources:game=test|p=1|p=3|p=9|p=2|p=5",
+            "p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=3,e2=0,e3=3,e4=0,e5=3",
+            "all:SOCGameState:game=test|state=20",
+            "f5:SOCBuildRequest:game=test|pieceType=-1",
+            "all:SOCPlayerElement:game=test|playerNum=5|actionType=SET|elementType=16|amount=1",
+            "f3:SOCPlayDevCardRequest:game=test|devCard=1",
+            "all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1",
+            "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1",
+            "all:SOCGameServerText:game=test|text=p3 played a Road Building card.",
+            "all:SOCGameState:game=test|state=40",
+            "p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.",
+            "f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=50d",
+            "all:SOCGameServerText:game=test|text=p3 built a ship.",
+            "all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=50d",
+            "all:SOCGameState:game=test|state=41",
+            "f3:SOCEndTurn:game=test",
+            "all:SOCGameServerText:game=test|text=p3 skipped placing the second road.",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+            "all:SOCTurn:game=test|playerNumber=5|gameState=100",
+            "f5:SOCEndTurn:game=test",
+            "all:SOCPlayerElement:game=test|playerNum=5|actionType=SET|elementType=16|amount=0",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
             },
             3, 99,
             new ExtractResultsChecker()
@@ -1909,7 +2085,7 @@ public class TestGameActionExtractor
                 {
                     final String desc = "for clientPN=" + toClientPN + ":";
 
-                    assertEquals(desc, 16, actionLog.size());
+                    assertEquals(desc, 48, actionLog.size());
 
                     GameActionLog.Action act = actionLog.get(0);
                     assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -2006,6 +2182,212 @@ public class TestGameActionExtractor
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
                     assertEquals(desc, (toClientPN != 99) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, 3, act.param1);
+
+                    //
+                    // Cancel road building after 0 or 1 free placements:
+                    //
+
+                    // build 0 before roll, cancel & continue play:
+
+                    act = actionLog.get(16);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc, 3, act.param1);
+
+                    act = actionLog.get(17);
+                    assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 11 : ((toClientPN == 3) ? 9 : 8), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+
+                    // build 0 after roll, cancel & continue play:
+
+                    act = actionLog.get(18);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 3, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 3, act.param1);
+
+                    act = actionLog.get(19);
+                    assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 10 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+
+                    act = actionLog.get(20);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+
+                    // build 1 before roll, cancel & continue play:
+
+                    act = actionLog.get(21);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc, 3, act.param1);
+
+                    act = actionLog.get(22);
+                    assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 14 : ((toClientPN == 3) ? 11 : 10), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+
+                    // build 1 after roll, cancel & continue play:
+
+                    act = actionLog.get(23);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 4 : 3), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 5, act.param1);
+
+                    act = actionLog.get(24);
+                    assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 13 : ((toClientPN == 3) ? 10 : 9), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+
+                    // build 0, cancel by end turn:
+
+                    act = actionLog.get(25);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc, 3, act.param1);
+
+                    act = actionLog.get(26);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 2, act.param1);
+
+                    act = actionLog.get(27);
+                    assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 7 : 6), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLACING_FREE_ROAD1, act.endingGameState);
+                    assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+
+                    act = actionLog.get(28);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLACING_FREE_ROAD1, act.endingGameState);
+
+                    // build 0, cancel by end turn, other player SBP:
+
+                    act = actionLog.get(29);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc, 3, act.param1);
+
+                    act = actionLog.get(30);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 4 : 3), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 5, act.param1);
+
+                    act = actionLog.get(31);
+                    assertEquals(desc, ActionType.ASK_SPECIAL_BUILDING, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc, 5, act.param1);
+
+                    act = actionLog.get(32);
+                    assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 7 : 6), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLACING_FREE_ROAD1, act.endingGameState);
+                    assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+
+                    act = actionLog.get(33);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLACING_FREE_ROAD1, act.endingGameState);
+
+                    act = actionLog.get(34);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc, 5, act.param1);
+
+                    act = actionLog.get(35);
+                    assertEquals(desc, ActionType.BUY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " dev card type",
+                        (toClientPN == -1) ? SOCDevCardConstants.ROADS : 0, act.param1);
+
+                    act = actionLog.get(36);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+
+                    // build 1, cancel by end turn:
+
+                    act = actionLog.get(37);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc, 3, act.param1);
+
+                    act = actionLog.get(38);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 4, act.param1);
+
+                    act = actionLog.get(39);
+                    assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 10 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLACING_FREE_ROAD2, act.endingGameState);
+                    assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+
+                    act = actionLog.get(40);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLACING_FREE_ROAD2, act.endingGameState);
+
+                    // build 1, cancel by end turn, other player SBP:
+
+                    act = actionLog.get(41);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc, 3, act.param1);
+
+                    act = actionLog.get(42);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 4 : 3), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 8, act.param1);
+
+                    act = actionLog.get(43);
+                    assertEquals(desc, ActionType.ASK_SPECIAL_BUILDING, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc, 5, act.param1);
+
+                    act = actionLog.get(44);
+                    assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 10 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLACING_FREE_ROAD2, act.endingGameState);
+                    assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+
+                    act = actionLog.get(45);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLACING_FREE_ROAD2, act.endingGameState);
+
+                    act = actionLog.get(46);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc, 5, act.param1);
+
+                    act = actionLog.get(47);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
                 }
             });
     }

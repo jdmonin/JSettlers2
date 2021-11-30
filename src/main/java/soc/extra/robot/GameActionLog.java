@@ -323,6 +323,10 @@ public class GameActionLog
              *<P>
              * For knight/soldier ({@link SOCDevCardConstants#KNIGHT}),
              * see note at {@link #MOVE_ROBBER_OR_PIRATE} about when Largest Army can win the game.
+             *<P>
+             * If Road Building ({@link SOCDevCardConstants#ROADS}) is cancelled by ending turn,
+             * gameState will still be {@link SOCGame#PLACING_FREE_ROAD1} or {@link SOCGame#PLACING_FREE_ROAD2}
+             * at end of action; next action will be {@link #END_TURN}.
              *
              * @see #BUY_DEV_CARD
              */

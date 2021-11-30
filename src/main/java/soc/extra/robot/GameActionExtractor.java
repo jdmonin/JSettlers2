@@ -1226,7 +1226,7 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#PLAY_DEV_CARD} from the current message sequence.
-     * Calls {@link #extract_PLAY_DEV_CARD_ROADS()}, {@link #extract_PLAY_DEV_CARD_MONOPOLY()}, etc.
+     * Calls {@link #finish_extract_PLAY_DEV_CARD_ROADS()}, {@link #finish_extract_PLAY_DEV_CARD_KNIGHT()}, etc.
      * First entry is {@link SOCDevCardAction} if {@link #hasServerOnlyLog}, otherwise {@link SOCPlayDevCardRequest}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
@@ -1295,12 +1295,13 @@ public class GameActionExtractor
     }
 
     /**
-     * Extract the {@link ActionType#PLAY_DEV_CARD}({@link SOCDevCardConstants#ROADS}) action
+     * Extract the {@link ActionType#PLAY_DEV_CARD}({@link SOCDevCardConstants#ROADS}) action (Road Building)
      * from the rest of the current sequence.
      * @return extracted action, or {@code null} if sequence incomplete
      */
     private Action finish_extract_PLAY_DEV_CARD_ROADS()
     {
+        // all:SOCGameState:game=g|state=40  // PLACING_FREE_ROAD1, or 41 PLACING_FREE_ROAD2
         GameEventLog.EventEntry e = next();
         if (! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
@@ -1311,28 +1312,98 @@ public class GameActionExtractor
             // all:SOCGameState:game=test|state=40
             //     (is validated above)
 
-            // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704  // or pieceType=3 for ship
             if (! hasServerOnlyLog)
             {
+                // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704  // or pieceType=3 for ship
+                // Or if canceling placement, one of:
+                //   f3:SOCCancelBuildRequest:game=g|pieceType=0
+                //   f3:SOCEndTurn:game=g
+                ExtractorState prevState = new ExtractorState(state);
                 e = next();
-                if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
-                       && (e.event instanceof SOCPutPiece)))
+                if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
+                    return null;
+
+                if (e.event instanceof SOCPutPiece)
+                {
+                    // OK, will continue sequence
+                }
+                else if (e.event instanceof SOCEndTurn)
+                {
+                    backtrackTo(prevState);
+                    // extract_END_TURN will handle all:SOCDevCardAction to return dev card
+
+                    int prevStart = currentSequenceStartIndex;
+                    return new Action
+                        (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                         SOCDevCardConstants.ROADS, -1, -1);
+                }
+                else if (e.event instanceof SOCCancelBuildRequest)
+                {
+                    // all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1
+                    e = next();
+                    if (! ((e != null) && e.isToAll() && (e.event instanceof SOCDevCardAction)
+                           && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD)))
+                       return null;
+
+                    // all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
+                    e = next();
+                    if (! ((e != null) && e.isToAll() && (e.event instanceof SOCGameState)))
+                        return null;
+
+                    int prevStart = currentSequenceStartIndex;
+                    return new Action
+                        (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                         SOCDevCardConstants.ROADS, -1, -1);
+                }
+                else
                     return null;
             }
 
             // all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704
+            // Or if hasServerOnlyLog and client player canceled placement:
+            // all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1
             e = next();
-            if (! (e.isToAll() && (e.event instanceof SOCPutPiece)))
+            if (! ((e != null) && e.isToAll()))
                 return null;
+            if (e.event instanceof SOCPutPiece)
+            {
+                // OK, will continue sequence
+            }
+            else if (hasServerOnlyLog && (e.event instanceof SOCDevCardAction)
+                     && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
+            {
+                ExtractorState prevState = new ExtractorState(state);
+                e = next();
+                if ((e == null) || ! e.isToAll())
+                    return null;
+
+                // If ending turn:
+                //   all:SOCClearOffer:game=g|playerNumber=-1
+                if (e.event instanceof SOCClearOffer)
+                    backtrackTo(prevState);
+                // Otherwise:
+                //   all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
+                else if (! (e.event instanceof SOCGameState))
+                    return null;
+
+                int prevStart = currentSequenceStartIndex;
+                return new Action
+                    (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                     SOCDevCardConstants.ROADS, -1, -1);
+            }
 
             // If gains Longest Route after 1st placement: all:SOCGameElements:game=test|e6=(PN)
             e = next();
+            if (e == null)
+                return null;
             if (e.event instanceof SOCGameElements)
             {
                 if (! e.isToAll())
                     return null;
 
                 e = next();
+                if (e == null)
+                    return null;
             }
 
             // If won due to Longest Route: all:SOCGameElements:game=test|e4=(winner PN)
@@ -1345,12 +1416,15 @@ public class GameActionExtractor
                     return null;
 
                 e = next();
+                if (e == null)
+                    return null;
             }
 
+            // all:SOCGameState:game=test|state=41
             if (! (e.isToAll() && (e.event instanceof SOCGameState)))
                 return null;
 
-            if (state.currentGameState == SOCGame.OVER)
+            if (state.currentGameState != SOCGame.PLACING_FREE_ROAD2)
             {
                 int prevStart = currentSequenceStartIndex;
                 return new Action
@@ -1359,31 +1433,92 @@ public class GameActionExtractor
             }
         }
 
-        // all:SOCGameState:game=test|state=41
         if (state.currentGameState != SOCGame.PLACING_FREE_ROAD2)
             return null;
 
-        // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
         if (! hasServerOnlyLog)
         {
+            // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
+            // Or if canceling placement, one of:
+            //   f3:SOCCancelBuildRequest:game=g|pieceType=0
+            //   f3:SOCEndTurn:game=g
+            ExtractorState prevState = new ExtractorState(state);
             e = next();
-            if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPutPiece)))
+            if (! ((e != null) && e.isFromClient && (e.pn == state.currentPlayerNumber)))
+                return null;
+
+            if (e.event instanceof SOCPutPiece)
+            {
+                // OK, will continue sequence
+            }
+            else if (e.event instanceof SOCEndTurn)
+            {
+                backtrackTo(prevState);
+
+                int prevStart = currentSequenceStartIndex;
+                return new Action
+                    (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                     SOCDevCardConstants.ROADS, 0, -1);
+            }
+            else if (e.event instanceof SOCCancelBuildRequest)
+            {
+                // all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
+                e = next();
+                if (! ((e != null) && e.isToAll() && (e.event instanceof SOCGameState)))
+                    return null;
+
+                int prevStart = currentSequenceStartIndex;
+                return new Action
+                    (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                     SOCDevCardConstants.ROADS, 0, -1);
+            }
+            else
                 return null;
         }
 
         // all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
+        // Or if client player canceled placement and hasServerOnlyLog, one of:
+        //   all:SOCClearOffer:game=g|playerNumber=-1
+        //   all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
+        ExtractorState prevState = new ExtractorState(state);
         e = next();
-        if (! (e.isToAll() && (e.event instanceof SOCPutPiece)))
+        if (! ((e != null) && e.isToAll()))
+            return null;
+        if (e.event instanceof SOCPutPiece)
+        {
+            // OK, will continue sequence
+        }
+        else if (hasServerOnlyLog && (e.event instanceof SOCClearOffer))
+        {
+            backtrackTo(prevState);
+
+            int prevStart = currentSequenceStartIndex;
+            return new Action
+                (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                 SOCDevCardConstants.ROADS, 0, -1);
+        }
+        else if (hasServerOnlyLog && (e.event instanceof SOCGameState))
+        {
+            int prevStart = currentSequenceStartIndex;
+            return new Action
+                (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                 SOCDevCardConstants.ROADS, 0, -1);
+        }
+        else
             return null;
 
         // If gains Longest Route after 2nd placement: all:SOCGameElements:game=test|e6=(PN)
         e = next();
+        if (e == null)
+            return null;
         if (e.event instanceof SOCGameElements)
         {
             if (! e.isToAll())
                 return null;
 
             e = next();
+            if (e == null)
+                return null;
         }
 
         // If won due to Longest Route: all:SOCGameElements:game=test|e4=(winner PN)
@@ -1396,6 +1531,8 @@ public class GameActionExtractor
                 return null;
 
             e = next();
+            if (e == null)
+                return null;
         }
 
         // all:SOCGameState:game=test|state=20  // or 15 or 1000
@@ -1409,7 +1546,7 @@ public class GameActionExtractor
     }
 
     /**
-     * Extract the {@link ActionType#PLAY_DEV_CARD}({@link SOCDevCardConstants#DISC}) action
+     * Extract the {@link ActionType#PLAY_DEV_CARD}({@link SOCDevCardConstants#DISC}) action (Discovery/Year of Plenty)
      * from the rest of the current sequence.
      * @return extracted action, or {@code null} if sequence incomplete
      */
@@ -1527,7 +1664,7 @@ public class GameActionExtractor
     }
 
     /**
-     * Extract the {@link ActionType#PLAY_DEV_CARD}({@link SOCDevCardConstants#KNIGHT}) action
+     * Extract the {@link ActionType#PLAY_DEV_CARD}({@link SOCDevCardConstants#KNIGHT}) action (Knight/Soldier)
      * from the rest of the current sequence.
      * @return extracted action, or {@code null} if sequence incomplete
      */
@@ -2127,6 +2264,13 @@ public class GameActionExtractor
                 return null;
 
             e = next();
+
+            // If from Road Building and hasn't placed 1st road/ship yet:
+            // all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1
+            if ((state.currentGameState == SOCGame.PLACING_FREE_ROAD1)
+                && e.isToAll() && (e.event instanceof SOCDevCardAction)
+                && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
+                e = next();
         }
 
         // If from special building: all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=0  // ASK_SPECIAL_BUILD
