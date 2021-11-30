@@ -518,22 +518,22 @@ public class GameEventLog
                             throw new NoSuchElementException("First event message must be SOCVersion");
                     }
 
-                    EventEntry qe;
+                    EventEntry ee;
                     try
                     {
-                        qe = EventEntry.parse(line);
+                        ee = EventEntry.parse(line);
                     } catch (ParseException e) {
                         throw new ParseException
                             ("Line " + lnum + ": " + e.getMessage() + "\n  for line: " + line, e.getErrorOffset());
                     }
-                    if (qe == null)
+                    if (ee == null)
                         continue;
-                    if (ignoreComments && (qe.comment != null))
+                    if (ignoreComments && (ee.comment != null))
                         continue;
 
-                    if ((! sawVers) && (qe.event instanceof SOCVersion))
+                    if ((! sawVers) && (ee.event instanceof SOCVersion))
                     {
-                        int vers = ((SOCVersion) qe.event).getVersionNumber();
+                        int vers = ((SOCVersion) ee.event).getVersionNumber();
                         if (vers != ret.version)
                             throw new ParseException
                                 ("Line " + lnum + ": Version " + vers
@@ -541,20 +541,20 @@ public class GameEventLog
 
                         sawVers = true;
                     }
-                    else if ((! sawNewGame) && (qe.event != null))
+                    else if ((! sawNewGame) && (ee.event != null))
                     {
-                        if (qe.event instanceof SOCNewGameWithOptions)
+                        if (ee.event instanceof SOCNewGameWithOptions)
                         {
-                            String gameName = ((SOCNewGameWithOptions) qe.event).getGame();
+                            String gameName = ((SOCNewGameWithOptions) ee.event).getGame();
                             if (! ret.gameName.equals(gameName))
                                 throw new ParseException("Line " + lnum + ": Game name differs from header", 1);
 
-                            String ostr = ((SOCNewGameWithOptions) qe.event).getOptionsString();
+                            String ostr = ((SOCNewGameWithOptions) ee.event).getOptionsString();
                             if ((ostr != null) && (ostr.charAt(0) == ','))
                                 ostr = ostr.substring(1);
                             ret.optsStr = ostr;
-                        } else if (qe.event instanceof SOCNewGame) {
-                            String gameName = ((SOCNewGame) qe.event).getGame();
+                        } else if (ee.event instanceof SOCNewGame) {
+                            String gameName = ((SOCNewGame) ee.event).getGame();
                             if (! ret.gameName.equals(gameName))
                                 throw new ParseException("Line " + lnum + ": Game name differs from header", 1);
                         } else {
@@ -567,13 +567,13 @@ public class GameEventLog
 
                     if (filterServerOnlyToClientPN != -1)
                     {
-                        if (qe.isFromClient || ((qe.pn != -1) && (qe.pn != filterServerOnlyToClientPN)))
+                        if (ee.isFromClient || ((ee.pn != -1) && (ee.pn != filterServerOnlyToClientPN)))
                             continue;
 
-                        if (qe.excludedPN != null)
+                        if (ee.excludedPN != null)
                         {
                             boolean exclude = false;
-                            for (int pn : qe.excludedPN)
+                            for (int pn : ee.excludedPN)
                             {
                                 if (pn == filterServerOnlyToClientPN)
                                 {
@@ -587,7 +587,7 @@ public class GameEventLog
                         }
                     }
 
-                    entries.add(qe);
+                    entries.add(ee);
                 }
 
                 ret.numLines = lnum - 1;
