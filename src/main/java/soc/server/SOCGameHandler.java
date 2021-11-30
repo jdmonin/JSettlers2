@@ -23,7 +23,7 @@
  **/
 package soc.server;
 
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -1741,8 +1742,7 @@ public class SOCGameHandler extends GameHandler
             sendGameStateOVER(gameData, c);
 
         if (D.ebugOn)
-            D.ebugPrintlnINFO("*** " + cliName + " joined the game " + gameName + " at "
-                + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
+            D.ebugPrintlnINFO("*** " + cliName + " joined the game " + gameName + " at " + formatTimeHHMMSS(null));
 
         if (isRejoinOrLoadgame && (gameState != SOCGame.LOADING))
         {
@@ -2180,8 +2180,7 @@ public class SOCGameHandler extends GameHandler
         srv.messageToGameWithMon(gm, true, leaveMessage);
 
         if (D.ebugOn)
-            D.ebugPrintlnINFO("*** " + plName + " left the game " + gm + " at "
-                + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
+            D.ebugPrintlnINFO("*** " + plName + " left the game " + gm + " at " + formatTimeHHMMSS(null));
         srv.messageToGameKeyed(ga, true, false, "member.left.game", plName);  // "{0} left the game"
 
         /**
@@ -5077,6 +5076,21 @@ public class SOCGameHandler extends GameHandler
 
         if (takeMon)
             srv.gameList.releaseMonitorForGame(gaName);
+    }
+
+    /**
+     * Format this time as 24-hour local HH:mm:ss.
+     * @param time Time to format, or {@code null} for current time via <tt>new {@link Date#Date() Date()}</tt>
+     * @return {@code time} formatted as 24-hour local "HH:mm:ss"
+     * @since 2.5.00
+     */
+    private static String formatTimeHHMMSS(Date time)
+    {
+        if (time == null)
+            time = new Date();
+
+        return new SimpleDateFormat("HH:mm:ss", Locale.US).format(time);
+            // always make a new one, because SimpleDateFormat isn't thread-safe
     }
 
 }
