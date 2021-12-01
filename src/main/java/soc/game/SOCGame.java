@@ -1126,12 +1126,25 @@ public class SOCGame implements Serializable, Cloneable
      * the robber or pirate is being moved because a knight card
      * has just been played: {@link #playKnight()}.
      * If {@link #forceEndTurn()} is called, the knight card
-     * should be returned to the player's hand.
+     * should be returned to the player's inventory.
      *
      * @see #robberyWithPirateNotRobber
+     * @see #playingRoadBuildingCardForLastRoad
      * @since 1.1.00
      */
     private boolean placingRobberForKnightCard;
+
+    /**
+     * If true, and state is {@link #PLACING_FREE_ROAD2}, the Road Building dev card was played when
+     * player had only 1 road or ship remaining: {@link #playRoadBuilding()}.
+     * Checked by {@link #doesCancelRoadBuildingReturnCard()}.
+     * If {@link #cancelBuildRoad(int)}, {@link #cancelBuildShip(int)}, {@link #endTurn()} or
+     * {@link #forceEndTurn()} is called, the road building card should be returned to the player's inventory.
+     *
+     * @see #placingRobberForKnightCard
+     * @since 2.5.00
+     */
+    private boolean playingRoadBuildingCardForLastRoad;
 
     /**
      * If true, this turn is being ended. Controller of game (server) should call {@link #endTurn()}
@@ -1558,9 +1571,11 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> robberyWithPirateNotRobber (also available from {@link #getRobberyPirateFlag()})
      * <LI> askedSpecialBuildPhase
      * <LI> movedShipThisTurn
+     * <LI> playingRoadBuildingCardForLastRoad (added in v2.5.00;
+     *      related to {@link #doesCancelRoadBuildingReturnCard()})
      *</UL>
      * For some other fields to save, see
-     * {@link #setFieldsForLoad(List, int, List, boolean, boolean, boolean, boolean)}.
+     * {@link #setFieldsForLoad(List, int, List, boolean, boolean, boolean, boolean, boolean)}.
      *
      * @return an array with the current values of those fields, in the order listed here
      * @since 2.3.00
@@ -1570,7 +1585,8 @@ public class SOCGame implements Serializable, Cloneable
         return new boolean[]
         {
             placingRobberForKnightCard, robberyWithPirateNotRobber,
-            askedSpecialBuildPhase, movedShipThisTurn
+            askedSpecialBuildPhase, movedShipThisTurn,
+            playingRoadBuildingCardForLastRoad
         };
     }
 
@@ -1593,7 +1609,8 @@ public class SOCGame implements Serializable, Cloneable
     public void setFieldsForLoad
         (final List<Integer> cards, final int oldGameState, final List<Integer> shipsPlacedThisTurn,
          final boolean placingRobberForKnightCard, final boolean robberyWithPirateNotRobber,
-         final boolean askedSpecialBuildPhase, final boolean movedShipThisTurn)
+         final boolean askedSpecialBuildPhase, final boolean movedShipThisTurn,
+         final boolean playingRoadBuildingCardForLastRoad)
         throws IllegalArgumentException
     {
         if (cards == null)
@@ -1627,6 +1644,7 @@ public class SOCGame implements Serializable, Cloneable
         this.robberyWithPirateNotRobber = robberyWithPirateNotRobber;
         this.askedSpecialBuildPhase = askedSpecialBuildPhase;
         this.movedShipThisTurn = movedShipThisTurn;
+        this.playingRoadBuildingCardForLastRoad = playingRoadBuildingCardForLastRoad;
     }
 
     /**
@@ -4261,6 +4279,8 @@ public class SOCGame implements Serializable, Cloneable
                 } else {
                     gameState = nextState;
                 }
+
+                playingRoadBuildingCardForLastRoad = false;
             }
             break;
 
@@ -4847,7 +4867,8 @@ public class SOCGame implements Serializable, Cloneable
      * own turn, only if they haven't yet rolled or played a dev card.
      * To do so, call {@link #askSpecialBuild(int, boolean)} and then {@link #endTurn()}.
      *<P>
-     * In 2.5.00 and later, if ending turn during {@link PLACING_FREE_ROAD1}
+     * In 2.5.00 and later, if ending turn during {@link #PLACING_FREE_ROAD1}
+     * or if {@link #doesCancelRoadBuildingReturnCard()},
      * this method calls {@link #cancelBuildRoad(int)} to return the dev card
      * to current player's inventory.
      *
@@ -4856,7 +4877,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void endTurn()
     {
-        if (gameState == SOCGame.PLACING_FREE_ROAD1)
+        if ((gameState == SOCGame.PLACING_FREE_ROAD1)
+            || (playingRoadBuildingCardForLastRoad && (gameState == SOCGame.PLACING_FREE_ROAD2)))
             cancelBuildRoad(currentPlayerNumber);
 
         if (! advanceTurnToSpecialBuilding())
@@ -5264,16 +5286,23 @@ public class SOCGame implements Serializable, Cloneable
             }
 
         case PLACING_FREE_ROAD1:
-            gameState = PLAY1;
-            itemCard = new SOCDevCard(SOCDevCardConstants.ROADS, false);
-            currPlayer.getInventory().addItem(itemCard);
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
-
         case PLACING_FREE_ROAD2:
-            gameState = PLAY1;
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE);
+            {
+                final boolean retDevCard =
+                    (gameState == PLACING_FREE_ROAD1)
+                    || (playingRoadBuildingCardForLastRoad && (gameState == PLACING_FREE_ROAD2));
+                gameState = PLAY1;
+                if (retDevCard)
+                {
+                    itemCard = new SOCDevCard(SOCDevCardConstants.ROADS, false);
+                    currPlayer.getInventory().addItem(itemCard);
+                    return new SOCForceEndTurnResult
+                        (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
+                } else {
+                    return new SOCForceEndTurnResult
+                        (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE);
+                }
+            }
 
         case WAITING_FOR_DISCARDS:
             return forceEndTurnChkDiscardOrGain(currentPlayerNumber, true);  // sets gameState, discards randomly
@@ -7822,7 +7851,8 @@ public class SOCGame implements Serializable, Cloneable
      * Can the current player cancel building a piece in this game state?
      * True for each piece's normal placing state ({@link #PLACING_ROAD}, etc),
      * and for initial settlement placement.
-     * In v2.5.00+, also true in {@link #PLACING_FREE_ROAD1} to cancel playing Road Building dev card.
+     * In v2.5.00+, also true in {@link #PLACING_FREE_ROAD1} to cancel playing Road Building dev card:
+     * See {@link #doesCancelRoadBuildingReturnCard()}.
      * In v1.1.17+, also true in {@link #PLACING_FREE_ROAD2} to skip the second placement.
      *
      * @param buildType  Piece type ({@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#CITY CITY}, etc)
@@ -7856,6 +7886,21 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * In game state {@link #PLACING_FREE_ROAD1} canceling the Road Building card
+     * ({@link #cancelBuildRoad(int)} or {@link #cancelBuildShip(int)})
+     * returns it to the player's inventory because they haven't built anything from it.
+     * Also happens in {@link #PLACING_FREE_ROAD2} if card was played with 1 road or ship left.
+     *
+     * @return true if canceling the Road Building card will return it to the player's inventory
+     * @since 2.5.00
+     */
+    public boolean doesCancelRoadBuildingReturnCard()
+    {
+        return ((gameState == PLACING_FREE_ROAD1)
+            || ((gameState == PLACING_FREE_ROAD2) && playingRoadBuildingCardForLastRoad));
+    }
+
+    /**
      * a player is UNbuying a road; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
      *<P>
@@ -7871,6 +7916,8 @@ public class SOCGame implements Serializable, Cloneable
      * In v2.5.00 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD1}),
      * in {@link #PLACING_FREE_ROAD1} the Road Building card is returned to player's inventory
      * because they haven't built anything from it.
+     * Also happens in {@link #PLACING_FREE_ROAD2} if card was played with 1 road or ship left:
+     * See {@link #doesCancelRoadBuildingReturnCard()}.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
@@ -7879,7 +7926,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
         {
-            if (gameState == PLACING_FREE_ROAD1)
+            if ((gameState == PLACING_FREE_ROAD1) || playingRoadBuildingCardForLastRoad)
             {
                 players[pn].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
                 gameState = PLACING_FREE_ROAD2;
@@ -7947,6 +7994,8 @@ public class SOCGame implements Serializable, Cloneable
      * In v2.5.00 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD1}),
      * in {@link #PLACING_FREE_ROAD1} the Road Building card is returned to player's inventory
      * because they haven't built anything from it.
+     * Also happens in {@link #PLACING_FREE_ROAD2} if card was played with 1 road or ship left:
+     * see {@link #doesCancelRoadBuildingReturnCard()}.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
@@ -7956,7 +8005,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
         {
-            if (gameState == PLACING_FREE_ROAD1)
+            if ((gameState == PLACING_FREE_ROAD1) || playingRoadBuildingCardForLastRoad)
             {
                 players[pn].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
                 gameState = PLACING_FREE_ROAD2;
@@ -8437,7 +8486,8 @@ public class SOCGame implements Serializable, Cloneable
 
         final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
             + player.getNumPieces(SOCPlayingPiece.SHIP);
-        if (roadShipCount > 1)
+        playingRoadBuildingCardForLastRoad = (roadShipCount <= 1);
+        if (! playingRoadBuildingCardForLastRoad)
         {
             gameState = PLACING_FREE_ROAD1;  // First of 2 free roads / ships
         } else {

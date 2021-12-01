@@ -128,6 +128,7 @@ public class SavedGameModel
      *<H4>2.5.00</H4>
      *<UL>
      * <LI> Model version is still 2400
+     * <LI> Adds game field {@link #playingRoadBuildingCardForLastRoad}
      * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
      *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_DISC NUM_PLAYED_DEV_CARD_DISC},
      *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
@@ -289,9 +290,18 @@ public class SavedGameModel
     @JsonAdapter(DevCardEnumListAdapter.class)
     public ArrayList<Integer> devCardDeck;
 
-    /** Flag fields, from {@link SOCGame#getFlagFieldsForSave()} */
+    /**
+     * Original set of Flag fields from {@link SOCGame#getFlagFieldsForSave()}.
+     * @see #playingRoadBuildingCardForLastRoad
+     */
     public boolean placingRobberForKnightCard, robberyWithPirateNotRobber,
         askedSpecialBuildPhase, movedShipThisTurn;
+
+    /**
+     * A flag field from {@link SOCGame#getFlagFieldsForSave()}.
+     * @since 2.5.00
+     */
+    public boolean playingRoadBuildingCardForLastRoad;
 
     /** Ships placed this turn if {@link SOCGame#hasSeaBoard}, from {@link SOCGame#getShipsPlacedThisTurn()}, or null */
     public List<Integer> shipsPlacedThisTurn;
@@ -454,6 +464,7 @@ public class SavedGameModel
         robberyWithPirateNotRobber = flags[1];
         askedSpecialBuildPhase = flags[2];
         movedShipThisTurn = flags[3];
+        playingRoadBuildingCardForLastRoad = flags[4];
 
         shipsPlacedThisTurn = ga.getShipsPlacedThisTurn();
 
@@ -690,7 +701,8 @@ public class SavedGameModel
                     }
             ga.setFieldsForLoad
                 (devCardDeck, oldGameState, shipsPlacedThisTurn,
-                 placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn);
+                 placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn,
+                 playingRoadBuildingCardForLastRoad);
             if (elements != null)
                 for (GEType elem : elements.keySet())
                     SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, elem, elements.get(elem));

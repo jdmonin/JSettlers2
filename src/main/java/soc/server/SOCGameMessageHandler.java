@@ -1960,7 +1960,9 @@ public class SOCGameMessageHandler
                     if ((gstate == SOCGame.PLACING_ROAD)
                         || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                     {
+                        final boolean wasDevCardRet = ga.doesCancelRoadBuildingReturnCard();
                         ga.cancelBuildRoad(pn);
+
                         if (gstate == SOCGame.PLACING_ROAD)
                         {
                             if (usePlayerElements)
@@ -1978,7 +1980,7 @@ public class SOCGameMessageHandler
                                         (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
                             }
                         }
-                        else if (gstate == SOCGame.PLACING_FREE_ROAD1)
+                        else if (wasDevCardRet)
                         {
                             srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", player.getName());
                                 // "{0} cancelled the Road Building card."
@@ -2073,7 +2075,9 @@ public class SOCGameMessageHandler
                     if ((gstate == SOCGame.PLACING_SHIP)
                         || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                     {
+                        final boolean wasDevCardRet = ga.doesCancelRoadBuildingReturnCard();
                         ga.cancelBuildShip(pn);
+
                         if (gstate == SOCGame.PLACING_SHIP)
                         {
                             if (usePlayerElements)
@@ -2091,7 +2095,7 @@ public class SOCGameMessageHandler
                                         (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
                             }
                         }
-                        else if (gstate == SOCGame.PLACING_FREE_ROAD1)
+                        else if (wasDevCardRet)
                         {
                             srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", player.getName());
                                 // "{0} cancelled the Road Building card."

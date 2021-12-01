@@ -750,6 +750,8 @@ When preparing to release a new version, testing should include:
         - Exit clients and server
 - Saving and loading games at server
     - Basics
+        - Setup: Needs `gson.jar` in same directory as server jar
+          - For details, search [Readme.developer.md](Readme.developer.md) for `gson.jar`
         - Start server with debug user enabled, but not savegame feature: command-line arg `-Djsettlers.allow.debug=Y`
           - Log in as debug user, start a game
           - Try command `*SAVEGAME* tmp`

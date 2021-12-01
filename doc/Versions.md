@@ -101,6 +101,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Load: If must add a suffix for unique game name, but that makes it longer than max length,
 	      shorten name instead of failing to resume game play
 	    - SavedGameModel:
+	        - Game: add field playingRoadBuildingCardForLastRoad
 	        - PlayerInfo: add fields for number of Discovery, Monopoly, Road Building cards played,
 	          list of dev cards played; TradeOffer add timestamp
 	        - MODEL_VERSION still 2400; earlier server versions will ignore these added fields while loading a savegame

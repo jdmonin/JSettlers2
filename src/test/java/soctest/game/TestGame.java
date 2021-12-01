@@ -80,7 +80,7 @@ public class TestGame
         for (int ctype : ORIG_CARDS)
             cardList.add(ctype);
         ga.initAtServer();
-        ga.setFieldsForLoad(cardList, SOCGame.ROLL_OR_CARD, null, false, false, false, false);
+        ga.setFieldsForLoad(cardList, SOCGame.ROLL_OR_CARD, null, false, false, false, false, false);
 
         // verify cardList before any moves
         assertArrayEquals(ORIG_CARDS, ga.getDevCardDeck());
