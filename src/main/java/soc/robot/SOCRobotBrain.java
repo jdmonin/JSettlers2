@@ -3725,7 +3725,7 @@ public class SOCRobotBrain extends Thread
 
         case SOCDevCardAction.PLAY:
             cardsInv.removeDevCard(SOCInventory.OLD, cardType);
-            pl.updateDevCardsPlayed(cardType);
+            pl.updateDevCardsPlayed(cardType, false);
             break;
 
         case SOCDevCardAction.ADD_OLD:

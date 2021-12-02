@@ -7932,7 +7932,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 player.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
                 player.setPlayedDevCard(false);
-                // TODO player.updateDevCardsPlayed
+                player.updateDevCardsPlayed(SOCDevCardConstants.ROADS, true);
                 gameState = PLACING_FREE_ROAD2;
             }
 
@@ -8012,7 +8012,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 player.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
                 player.setPlayedDevCard(false);
-                // TODO player.updateDevCardsPlayed
+                player.updateDevCardsPlayed(SOCDevCardConstants.ROADS, true);
                 gameState = PLACING_FREE_ROAD2;
             }
 
@@ -8434,7 +8434,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
         pl.setPlayedDevCard(true);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.KNIGHT);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.KNIGHT, false);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
 
         if (! isWarshipConvert)
@@ -8486,7 +8486,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer player = players[currentPlayerNumber];
         player.setPlayedDevCard(true);
         player.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.ROADS);
-        player.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
+        player.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
 
         final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
             + player.getNumPieces(SOCPlayingPiece.SHIP);
@@ -8516,7 +8516,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer pl = players[currentPlayerNumber];
         pl.setPlayedDevCard(true);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.DISC);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC, false);
         oldGameState = gameState;
         gameState = WAITING_FOR_DISCOVERY;
     }
@@ -8538,7 +8538,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer pl = players[currentPlayerNumber];
         pl.setPlayedDevCard(true);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.MONO);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, false);
         oldGameState = gameState;
         gameState = WAITING_FOR_MONOPOLY;
     }

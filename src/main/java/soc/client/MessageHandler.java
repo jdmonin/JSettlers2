@@ -2384,7 +2384,7 @@ public class MessageHandler
      * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
      * In case this is part of a list of cards, does not call
      * {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}: Caller must do so afterwards.
-     * For {@link SOCDevCardAction#PLAY}, calls {@link SOCPlayer#updateDevCardsPlayed(int)}.
+     * For {@link SOCDevCardAction#PLAY}, calls {@link SOCPlayer#updateDevCardsPlayed(int, boolean)}.
      *
      * @param ga  Game being updated
      * @param player  Player in {@code ga} being updated
@@ -2407,7 +2407,7 @@ public class MessageHandler
 
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
-            player.updateDevCardsPlayed(ctype);
+            player.updateDevCardsPlayed(ctype, false);
             break;
 
         case SOCDevCardAction.ADD_OLD:

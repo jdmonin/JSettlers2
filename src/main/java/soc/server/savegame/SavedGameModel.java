@@ -1102,7 +1102,7 @@ public class SavedGameModel
 
             if (playedDevCards != null)
                 for (final int ctype : playedDevCards)
-                    pl.updateDevCardsPlayed(ctype);
+                    pl.updateDevCardsPlayed(ctype, false);
 
             // Set some elements for scenario info before any putpiece,
             // so they know their starting land areas and scenario events

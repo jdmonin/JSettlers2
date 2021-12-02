@@ -241,16 +241,16 @@ public class TestSavegame
         ga.setGameState(SOCGame.ROLL_OR_CARD);  // no pieces placed, but can't save during initial placement
 
         SOCPlayer pl = ga.getPlayer(0);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
         assertEquals(2, pl.numRBCards);
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
         assertEquals(Arrays.asList(SOCDevCardConstants.ROADS, SOCDevCardConstants.ROADS), pl.getDevCardsPlayed());
 
         pl = ga.getPlayer(3);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, false);
         assertEquals(0, pl.numRBCards);
         assertEquals(1, pl.numDISCCards);
         assertEquals(1, pl.numMONOCards);

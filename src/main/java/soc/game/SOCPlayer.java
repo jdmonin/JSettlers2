@@ -300,7 +300,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * How many Road Building cards ({@link SOCDevCardConstants#ROADS}) this player has played.
      * @see #getDevCardsPlayed()
-     * @see #updateDevCardsPlayed(int)
+     * @see #updateDevCardsPlayed(int, boolean)
      * @since 2.5.00
      */
     public int numRBCards = 0;
@@ -308,7 +308,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * How many Discovery/Year of Plenty cards ({@link SOCDevCardConstants#DISC}) this player has played.
      * @see #getDevCardsPlayed()
-     * @see #updateDevCardsPlayed(int)
+     * @see #updateDevCardsPlayed(int, boolean)
      * @since 2.5.00
      */
     public int numDISCCards = 0;
@@ -316,7 +316,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * How many Monopoly cards ({@link SOCDevCardConstants#MONO}) this player has played.
      * @see #getDevCardsPlayed()
-     * @see #updateDevCardsPlayed(int)
+     * @see #updateDevCardsPlayed(int, boolean)
      * @since 2.5.00
      */
     public int numMONOCards = 0;
@@ -1043,7 +1043,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set or clear the {@link #hasPlayedDevCard()} flag.
      *
      * @param value  new value of the flag
-     * @see #updateDevCardsPlayed(int)
+     * @see #updateDevCardsPlayed(int, boolean)
      */
     public void setPlayedDevCard(boolean value)
     {
@@ -1052,13 +1052,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Update player's {@link #getDevCardsPlayed()} list, and stats for Discovery/Year of Plenty, Monopoly,
-     * or Road Building dev cards when such a card is played: Increment {@link #numDISCCards}, {@link #numMONOCards},
-     * or {@link #numRBCards}.
+     * or Road Building dev cards when such a card is played or canceled:
+     * Increment or decrement {@link #numDISCCards}, {@link #numMONOCards}, or {@link #numRBCards}.
      *
      * @param ctype  Any development card type such as {@link SOCDevCardConstants#ROADS},
      *     {@link SOCDevCardConstants#UNIV}, or {@link SOCDevCardConstants#UNKNOWN}.
      *     Out-of-range values are allowed, not rejected with an Exception,
      *     for compatibility if range is expanded in a later version.
+     * @param isCancel  If true, the card just played is being canceled and returned to hand.
+     *     Decrement instead of increment its counter field.
      * @see #setPlayedDevCard(boolean)
      * @see SOCGame#playDiscovery()
      * @see SOCGame#playKnight()
@@ -1066,26 +1068,48 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see SOCGame#playRoadBuilding()
      * @since 2.5.00
      */
-    public synchronized void updateDevCardsPlayed(final int ctype)
+    public synchronized void updateDevCardsPlayed(final int ctype, final boolean isCancel)
     {
         switch (ctype)
         {
         case SOCDevCardConstants.DISC:
-            ++numDISCCards;
+            if (isCancel)
+                --numDISCCards;
+            else
+                ++numDISCCards;
             break;
 
         case SOCDevCardConstants.MONO:
-            ++numMONOCards;
+            if (isCancel)
+                --numMONOCards;
+            else
+                ++numMONOCards;
             break;
 
         case SOCDevCardConstants.ROADS:
-            ++numRBCards;
+            if (isCancel)
+                --numRBCards;
+            else
+                ++numRBCards;
             break;
         }
 
         if (devCardsPlayed == null)
             devCardsPlayed = new ArrayList<>();
-        devCardsPlayed.add(Integer.valueOf(ctype));
+        if (isCancel)
+        {
+            // remove most recent
+            for (int i = devCardsPlayed.size() - 1; i >= 0; --i)
+            {
+                if (devCardsPlayed.get(i) == ctype)
+                {
+                    devCardsPlayed.remove(i);
+                    break;
+                }
+            }
+        } else {
+            devCardsPlayed.add(Integer.valueOf(ctype));
+        }
     }
 
     /**
@@ -1093,7 +1117,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Elements are card type constants: {@link SOCDevCardConstants#ROADS}, {@link SOCDevCardConstants#UNIV}, etc.,
      * but can be any int value (for upwards compatibility).
      *<P>
-     * {@link #updateDevCardsPlayed(int)} adds to this list.
+     * {@link #updateDevCardsPlayed(int, boolean)} adds to or removes from this list.
      *<P>
      * At client, may be incomplete or null: Updated during game play, but not sent from server as client joins mid-game.
      *

@@ -2405,7 +2405,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
-     * For {@link SOCDevCardAction#PLAY}, calls {@link SOCPlayer#updateDevCardsPlayed(int)}.
+     * For {@link SOCDevCardAction#PLAY}, calls {@link SOCPlayer#updateDevCardsPlayed(int, boolean)}.
      *
      * @param ga  Game being updated
      * @param player  Player in {@code ga} being updated
@@ -2428,7 +2428,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
-            player.updateDevCardsPlayed(ctype);
+            player.updateDevCardsPlayed(ctype, false);
             break;
 
         case SOCDevCardAction.ADD_OLD:
