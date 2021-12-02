@@ -1345,6 +1345,14 @@ public class GameActionExtractor
                            && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD)))
                        return null;
 
+                    // all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=0
+                    e = next();
+                    if (! ((e != null) && e.isToAll() && (e.event instanceof SOCPlayerElement)
+                           && (((SOCPlayerElement) (e.event)).getAction() == SOCPlayerElement.SET)
+                           && (((SOCPlayerElement) (e.event)).getElementType()
+                               == SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG.getValue())))
+                       return null;
+
                     // all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
                     e = next();
                     if (! ((e != null) && e.isToAll() && (e.event instanceof SOCGameState)))
@@ -1372,6 +1380,14 @@ public class GameActionExtractor
             else if (hasServerOnlyLog && (e.event instanceof SOCDevCardAction)
                      && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
             {
+                // all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=0
+                e = next();
+                if (! ((e != null) && e.isToAll() && (e.event instanceof SOCPlayerElement)
+                       && (((SOCPlayerElement) (e.event)).getAction() == SOCPlayerElement.SET)
+                       && (((SOCPlayerElement) (e.event)).getElementType()
+                           == SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG.getValue())))
+                   return null;
+
                 ExtractorState prevState = new ExtractorState(state);
                 e = next();
                 if ((e == null) || ! e.isToAll())
@@ -1462,8 +1478,25 @@ public class GameActionExtractor
             }
             else if (e.event instanceof SOCCancelBuildRequest)
             {
-                // all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
                 e = next();
+
+                // if canceling with 1 road/ship left:
+                // all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1
+                if ((e != null) && e.isToAll() && (e.event instanceof SOCDevCardAction)
+                    && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
+                {
+                    // - all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=0
+                    e = next();
+                    if (! ((e != null) && e.isToAll() && (e.event instanceof SOCPlayerElement)
+                           && (((SOCPlayerElement) (e.event)).getAction() == SOCPlayerElement.SET)
+                           && (((SOCPlayerElement) (e.event)).getElementType()
+                               == SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG.getValue())))
+                       return null;
+
+                    e = next();
+                }
+
+                // all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
                 if (! ((e != null) && e.isToAll() && (e.event instanceof SOCGameState)))
                     return null;
 
@@ -1480,6 +1513,7 @@ public class GameActionExtractor
         // Or if client player canceled placement and hasServerOnlyLog, one of:
         //   all:SOCClearOffer:game=g|playerNumber=-1
         //   all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
+        //   all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1
         ExtractorState prevState = new ExtractorState(state);
         e = next();
         if (! ((e != null) && e.isToAll()))
@@ -1504,8 +1538,33 @@ public class GameActionExtractor
                 (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
                  SOCDevCardConstants.ROADS, 0, -1);
         }
-        else
-            return null;
+        else if (hasServerOnlyLog && (e.event instanceof SOCDevCardAction)
+                 && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
+        {
+            // all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=0
+            e = next();
+            if (! ((e != null) && e.isToAll() && (e.event instanceof SOCPlayerElement)
+                   && (((SOCPlayerElement) (e.event)).getAction() == SOCPlayerElement.SET)
+                   && (((SOCPlayerElement) (e.event)).getElementType()
+                       == SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG.getValue())))
+               return null;
+
+            // all:SOCClearOffer:game=g|playerNumber=-1
+            // or all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
+            prevState.snapshotFrom(state);
+            e = next();
+            if ((e == null) || ! e.isToAll())
+                return null;
+            if (e.event instanceof SOCClearOffer)
+                backtrackTo(prevState);
+            else if (! (e.event instanceof SOCGameState))
+                return null;
+
+            int prevStart = currentSequenceStartIndex;
+            return new Action
+                (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
+                 SOCDevCardConstants.ROADS, -1, -1);
+        }
 
         // If gains Longest Route after 2nd placement: all:SOCGameElements:game=test|e6=(PN)
         e = next();
@@ -2264,13 +2323,29 @@ public class GameActionExtractor
                 return null;
 
             e = next();
+            if (e == null)
+                return null;
 
             // If from Road Building and hasn't placed 1st road/ship yet:
             // all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1
-            if ((state.currentGameState == SOCGame.PLACING_FREE_ROAD1)
+            if (((state.currentGameState == SOCGame.PLACING_FREE_ROAD1)
+                 || (state.currentGameState == SOCGame.PLACING_FREE_ROAD2))
                 && e.isToAll() && (e.event instanceof SOCDevCardAction)
                 && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
+            {
                 e = next();
+
+                // all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=0
+                if (! ((e != null) && e.isToAll() && (e.event instanceof SOCPlayerElement)
+                       && (((SOCPlayerElement) (e.event)).getAction() == SOCPlayerElement.SET)
+                       && (((SOCPlayerElement) (e.event)).getElementType()
+                           == SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG.getValue())))
+                   return null;
+
+                e = next();
+                if (e == null)
+                    return null;
+            }
         }
 
         // If from special building: all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=0  // ASK_SPECIAL_BUILD
