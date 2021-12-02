@@ -45,9 +45,13 @@ import soc.game.SOCDevCardConstants;
  *   to cancel playing the card or to use just one road or ship piece. Server will reply with new game state.
  *   (Cancel 2nd free road was added in v1.1.17; cancel 1st free road added in v2.5.00.)
  *   Or, player can end their turn ({@link SOCEndTurn}) to cancel free road placement.
+ *   <P>
  *   If canceled before placing the 1st free road or ship, server first sends
  *   {@link SOCDevCardAction}(playerNum, action={@link SOCDevCardAction#ADD_OLD},
- *   cardType={@link SOCDevCardConstants#ROADS}) to return the card to player's inventory.
+ *   cardType={@link SOCDevCardConstants#ROADS}) to return the card to player's inventory
+ *   and <tt>{@link SOCPlayerElement}(SET,
+ *   {@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}, false)</tt>
+ *   so they can still play a dev card this turn.
  *
  *<LI> Not sent from client during other game states. Server will reply with {@link SOCGameServerText}
  *   instead.

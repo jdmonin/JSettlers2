@@ -1931,7 +1931,12 @@ public class SOCGameMessageHandler
 
     /**
      * handle "cancel build request" message.
-     * Cancel placement and send new game state, if cancel is allowed.
+     * Cancels placement and sends new game state, if cancel is allowed.
+     *<P>
+     * If canceling Road Building before the first free road/ship is placed,
+     * announces return of dev card to player's hand and clears their
+     * {@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}:
+     * See {@link SOCCancelBuildRequest} javadoc.
      *
      * @param c  the connection that sent the message
      * @param mes  the message
@@ -1987,6 +1992,9 @@ public class SOCGameMessageHandler
                             srv.messageToGame
                                 (gaName, true, new SOCDevCardAction
                                     (gaName, pn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
+                            srv.messageToGame
+                                (gaName, true, new SOCPlayerElement
+                                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
                         }
                         else
                         {

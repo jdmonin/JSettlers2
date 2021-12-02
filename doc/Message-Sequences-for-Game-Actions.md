@@ -385,7 +385,9 @@ Or if client sends build request:
 
 #### Cancelling free road building
 
-This card can be cancelled before placing the first or second free road.
+This card can be cancelled before placing the first or second free road or ship.
+If cancelled before placing first one, dev card is returned to player's inventory
+and their PLAYED_DEV_CARD_FLAG flag is cleared so they can still play a card.
 
 If cancelled by clicking Cancel, turn continues with state PLAY1:
 
@@ -407,13 +409,14 @@ If cancelled by clicking End Turn, goes directly from placement gameState to nex
 
 - f3:SOCPlayDevCardRequest:game=g|devCard=1
 - all:SOCDevCardAction:game=g|playerNum=3|actionType=PLAY|cardType=1
-- all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=1
+- all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=1  // PLAYED_DEV_CARD_FLAG
 - all:SOCGameServerText:game=g|text=p3 played a Road Building card.
 - all:SOCGameState:game=g|state=40
 - p3:SOCGameServerText:game=g|text=You may place 2 roads.
 - f3:SOCEndTurn:game=g
 - all:SOCGameServerText:game=g|text=p3 cancelled the Road Building card.
 - all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1  // only if hasn't placed 1st road/ship yet
+- all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=0  // only if hasn't placed 1st one yet
 - all:SOCClearOffer:game=g|playerNumber=-1
 - all:SOCTurn:game=g|playerNumber=2|gameState=15
 

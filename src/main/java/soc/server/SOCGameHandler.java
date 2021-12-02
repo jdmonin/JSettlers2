@@ -673,7 +673,9 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * From game state {@link SOCGame#PLACING_FREE_ROAD1}, the call to {@code ga.endTurn()} will
      * return that dev card to the player's inventory: Checks {@link SOCGame#doesCancelRoadBuildingReturnCard()}
-     * and if true, announces <tt>{@link SOCDevCardAction}(ADD_OLD)</tt> for that card.
+     * and if true, announces <tt>{@link SOCDevCardAction}(ADD_OLD)</tt> for that card
+     * and <tt>{@link SOCPlayerElement}(SET,
+     * {@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}, false)</tt>.
      *<P>
      * Assumes:
      * <UL>
@@ -717,6 +719,9 @@ public class SOCGameHandler extends GameHandler
             srv.messageToGame
                 (gname, true, new SOCDevCardAction
                     (gname, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
+            srv.messageToGame
+                (gname, true, new SOCPlayerElement
+                    (gname, cpn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
             if (! callEndTurn)
                 ga.cancelBuildRoad(cpn);
         }

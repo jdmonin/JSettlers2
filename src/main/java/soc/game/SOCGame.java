@@ -7924,11 +7924,15 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean cancelBuildRoad(final int pn)
     {
+        final SOCPlayer player = players[currentPlayerNumber];
+
         if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
         {
             if ((gameState == PLACING_FREE_ROAD1) || playingRoadBuildingCardForLastRoad)
             {
-                players[pn].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
+                player.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
+                player.setPlayedDevCard(false);
+                // TODO player.updateDevCardsPlayed
                 gameState = PLACING_FREE_ROAD2;
             }
 
@@ -7936,8 +7940,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;  // <--- Special case: Not returning resources ---
         }
 
-        SOCResourceSet resources = players[pn].getResources();
-        resources.add(SOCRoad.COST);
+        player.getResources().add(SOCRoad.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7956,8 +7959,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void cancelBuildSettlement(int pn)
     {
-        SOCResourceSet resources = players[pn].getResources();
-        resources.add(SOCSettlement.COST);
+        players[pn].getResources().add(SOCSettlement.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7972,8 +7974,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void cancelBuildCity(final int pn)
     {
-        SOCResourceSet resources = players[pn].getResources();
-        resources.add(SOCCity.COST);
+        players[pn].getResources().add(SOCCity.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -8003,11 +8004,15 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean cancelBuildShip(final int pn)
     {
+        final SOCPlayer player = players[currentPlayerNumber];
+
         if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
         {
             if ((gameState == PLACING_FREE_ROAD1) || playingRoadBuildingCardForLastRoad)
             {
-                players[pn].getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
+                player.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
+                player.setPlayedDevCard(false);
+                // TODO player.updateDevCardsPlayed
                 gameState = PLACING_FREE_ROAD2;
             }
 
@@ -8015,8 +8020,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;  // <--- Special case: Not returning resources ---
         }
 
-        SOCResourceSet resources = players[pn].getResources();
-        resources.add(SOCShip.COST);
+        player.getResources().add(SOCShip.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else

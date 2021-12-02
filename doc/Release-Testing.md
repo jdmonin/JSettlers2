@@ -107,13 +107,16 @@ When preparing to release a new version, testing should include:
             shouldn't be asked whether to steal cloth or resources
         - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
     - Road Building dev card
-        - In a 2-player game, give debug player 4 Road Building cards:  
-          `dev: 1 debug` (4 times)
+        - In a 2-player game, give debug player 4 Road Building cards and a Year of Plenty card:  
+          `dev: 1 debug` (4 times)  
+          `dev: 2 debug`
         - Test these situations, 1 per turn:
         - Build 2 free roads
         - Build 1 free road, right-click board, choose Cancel, continue to end of turn; should see "skipped placing the second road" in game text area
         - Build 1 free road, end turn; should see "skipped placing the second road" again
-        - Play card but instead of placing a free road, in Build panel click Cancel; should see "cancelled the Road Building card" in game text area, dev card returned to player's inventory in hand panel
+        - Play card but instead of placing a free road, in Build panel click Cancel
+            - Should see "cancelled the Road Building card" in game text area, dev card returned to player's inventory in hand panel
+            - Should be able to play Year of Plenty card on same turn
         - Play card, end turn; should see "cancelled the Road Building card" and card returned to inventory
         - In a new 2-player game on 6-player board, give debug player 2 Road Building cards:  
           `dev: 1 debug` (2 times)
