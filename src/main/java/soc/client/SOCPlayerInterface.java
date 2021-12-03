@@ -49,6 +49,7 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCMessage;
 import soc.message.SOCPlayerElement.PEType;
+import soc.message.SOCDevCardAction;
 import soc.message.SOCPickResources;  // for reason code constants
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
@@ -4871,6 +4872,10 @@ public class SOCPlayerInterface extends Frame
             {
             case SOCSimpleAction.DEVCARD_BOUGHT:
                 {
+                    if (pi.getClient().getServerVersion(pi.game)
+                        >= SOCDevCardAction.VERSION_FOR_BUY_OMITS_GE_DEV_CARD_COUNT)
+                        pi.updateDevCardCount();
+
                     pi.printKeyed("game.devcard.bought", plName);
                     final String remainKey;
                     switch (value1)

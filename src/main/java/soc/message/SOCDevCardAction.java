@@ -85,6 +85,17 @@ public class SOCDevCardAction extends SOCMessage
     public static final int VERSION_FOR_SITDOWN_CLEARS_INVENTORY = 2300;
 
     /**
+     * Version number (2.5.00) where when buying a dev card, the server no longer sends
+     * {@link SOCGameElements}(gaName, {@link SOCGameElements.GEType#DEV_CARD_COUNT}, remainingUnboughtCount).
+     *<P>
+     * Starting with v2.5, the client uses {@link SOCSimpleAction#DEVCARD_BOUGHT}'s remaining-card count field
+     * instead. See {@link SOCBuyDevCardRequest} for full message sequence.
+     *
+     * @since 2.5.00
+     */
+    public static final int VERSION_FOR_BUY_OMITS_GE_DEV_CARD_COUNT = 2500;
+
+    /**
      * Maximum number of cards to send in a reasonable message: 100.
      * @since 2.0.00
      */

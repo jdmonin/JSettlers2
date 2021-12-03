@@ -53,7 +53,8 @@ JARs for recent JSettlers versions can be downloaded from
 		  send `SOCTurn` instead of SOCGameElements(CURRENT_PLAYER) and SOCGameState(OVER)
 	- Resource changes sent as 1 `SOCPlayerElements` instead of group of `SOCPlayerElement`s
 		- Still sends `SOCPlayerElement` when only 1 resource type changing
-		- Sequences: Discard, gold hex gain, build a Wonder, client v2.0 - 2.4 bank/player trades
+		- Sequences: Discard, buy playing piece, buy dev card, gold hex gain,
+		  client v2.0 - 2.4 bank/player trades, build a Wonder
 	- Dice roll results:
 		- New game state is sent only after resources or other gains/losses by players, to indicate end of sequence
 		- When game contains v1.x and v2.x clients, no longer sends v1.x-compatible SOCPlayerElement(pn, GAIN, ...)
@@ -63,6 +64,8 @@ JARs for recent JSettlers versions can be downloaded from
 		- Server sends SOCDiscard instead of SOCPlayerElement to clients v2.5 and newer
 		- After a player discards, if others still must discard, server sends SOCGameState(WAITING_FOR_DISCARDS) for clarity although state hasn't changed
 			- Not sent to clients older than v2.5
+	- Buy Dev card:
+		- Server omits redundant SOCGameElements(DEV_CARD_COUNT) to clients v2.5 and newer
 	- When Monopoly card played:
 		- Server announces amount gained instead of player's total amount of that resource
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)

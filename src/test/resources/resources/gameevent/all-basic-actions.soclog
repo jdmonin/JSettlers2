@@ -183,35 +183,30 @@ all:SOCPlayerElements:game=test|playerNum=3|actionType=GAIN|e2=5,e3=5,e4=5
 all:SOCGameServerText:game=test|text=### debug gets 0 5 5 5 0
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=24
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=24|v2=0
 all:SOCGameState:game=test|state=20
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=23
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=23|v2=0
 all:SOCGameState:game=test|state=20
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=22
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0
 all:SOCGameState:game=test|state=20
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=21
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=21|v2=0
 all:SOCGameState:game=test|state=20
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=20
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=20|v2=0
@@ -223,7 +218,6 @@ f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 1
 all:SOCGameServerText:game=test|text=### Next dev card is set to a Road Building.
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=19
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=1
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=19|v2=0
@@ -232,7 +226,6 @@ f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 2
 all:SOCGameServerText:game=test|text=### Next dev card is set to a Year of Plenty.
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=18
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=2
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=18|v2=0
@@ -241,7 +234,6 @@ f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 3
 all:SOCGameServerText:game=test|text=### Next dev card is set to a Monopoly.
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=17
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=3
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=17|v2=0
@@ -250,7 +242,6 @@ f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 4
 all:SOCGameServerText:game=test|text=### Next dev card is set to a Gov.House (+1VP).
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=16
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=4
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=16|v2=0
@@ -491,7 +482,6 @@ all:SOCTurn:game=test|playerNumber=3|gameState=100
 all:SOCGameServerText:game=test|text=Special building phase: debug's turn to place.
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=31
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=4
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=31|v2=0
@@ -607,7 +597,6 @@ p2:SOCGameServerText:game=test|text=debug's Monopoly took your 1 sheep.
 all:SOCGameState:game=test|state=20
 f3:SOCBuyDevCardRequest:game=test
 all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-all:SOCGameElements:game=test|e2=15
 p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
 !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 all:SOCSimpleAction:game=test|pn=3|actType=1|v1=15|v2=0

@@ -1099,7 +1099,6 @@ public class TestRecorder
             (records, new String[][]
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1"},
-                {"all:SOCGameElements:", "|e2=22"},
                 {"p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
                 {"!p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=0"},
                 {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},

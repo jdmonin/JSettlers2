@@ -347,10 +347,9 @@ Or if client sends build request:
 
 - f3:SOCBuyDevCardRequest:game=test
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
-- all:SOCGameElements:game=test|e2=22  // DEV_CARD_COUNT; amount varies
 - p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=5 // type varies
 - !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
-- all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0  // v1 amount same as in SOCGameElements(e2)
+- all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0  // DEVCARD_BOUGHT; v1 = remaining amount of unbought cards
 - all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
 
 ## Use/Play each dev card type

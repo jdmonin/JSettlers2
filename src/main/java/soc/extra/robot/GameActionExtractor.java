@@ -797,11 +797,10 @@ public class GameActionExtractor
                 GameEventLog.EventEntry eNext = peekNext();
                 if (eNext == null)
                     return null;
-                final boolean nextIsDevCardCount = ((eNext.event instanceof SOCGameElements)
-                    && ((SOCGameElements) eNext.event).getElementTypes()[0]
-                        == SOCGameElements.GEType.DEV_CARD_COUNT.getValue());
+                final boolean nextIsDevCardDraw = ((eNext.event instanceof SOCDevCardAction)
+                    && ((SOCDevCardAction) eNext.event).getAction() == SOCDevCardAction.DRAW);
 
-                if (nextIsDevCardCount)
+                if (nextIsDevCardDraw)
                     return extract_BUY_DEV_CARD(e);
                 else
                     return extract_BUILD_PIECE(e, false);
@@ -1168,19 +1167,6 @@ public class GameActionExtractor
             return null;
         e = next();
 
-        // all:SOCGameElements:game=test|e2=22  // DEV_CARD_COUNT
-        if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCGameElements)))
-            return null;
-        final int count;
-        {
-            final SOCGameElements ge = (SOCGameElements) e.event;
-            final int[] et = ge.getElementTypes();
-            if ((et.length != 1) || (et[0] != SOCGameElements.GEType.DEV_CARD_COUNT.getValue()))
-                return null;
-            count = ge.getValues()[0];
-        }
-        e = next();
-
         final int cardType;
 
         // p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=5
@@ -1210,8 +1196,10 @@ public class GameActionExtractor
         }
 
         // all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0
-        if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCSimpleAction)))
+        if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCSimpleAction)
+                              && ((SOCSimpleAction) e.event).getActionType() == SOCSimpleAction.DEVCARD_BOUGHT))
             return null;
+        final int count = ((SOCSimpleAction) e.event).getValue1();
         e = next();
 
         // all:SOCGameState:game=test|state=20  // or others
@@ -1565,6 +1553,8 @@ public class GameActionExtractor
                 (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
                  SOCDevCardConstants.ROADS, -1, -1);
         }
+        else
+            return null;
 
         // If gains Longest Route after 2nd placement: all:SOCGameElements:game=test|e6=(PN)
         e = next();

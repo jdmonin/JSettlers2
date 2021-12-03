@@ -370,7 +370,6 @@ public class TestGameActionExtractor
                 // buy dev card:
                 "f3:SOCBuyDevCardRequest:game=test",
                 "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1",
-                "all:SOCGameElements:game=test|e2=15",
                 "p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9",
                 "!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0",
                 "all:SOCSimpleAction:game=test|pn=3|actType=1|v1=15|v2=0",
@@ -423,7 +422,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(5);
                     assertEquals(desc, ActionType.BUY_DEV_CARD, act.actType);
-                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " dev card type",
                         (toClientPN != 99) ? SOCDevCardConstants.KNIGHT : 0, act.param1);
@@ -950,7 +949,6 @@ public class TestGameActionExtractor
             // buy dev card:
             "f4:SOCBuyDevCardRequest:game=test",
             "all:SOCPlayerElements:game=test|playerNum=4|actionType=LOSE|e2=1,e3=1,e4=1",
-            "all:SOCGameElements:game=test|e2=32",
             "p4:SOCDevCardAction:game=test|playerNum=4|actionType=DRAW|cardType=9",
             "!p4:SOCDevCardAction:game=test|playerNum=4|actionType=DRAW|cardType=0",
             "all:SOCSimpleAction:game=test|pn=4|actType=1|v1=32|v2=0",
@@ -1041,7 +1039,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(7);
                     assertEquals(desc, ActionType.BUY_DEV_CARD, act.actType);
-                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
                     assertEquals(desc + " dev card type",
                         (toClientPN == -1) ? SOCDevCardConstants.KNIGHT : 0, act.param1);
@@ -1543,7 +1541,6 @@ public class TestGameActionExtractor
             // buy dev card:
             "f3:SOCBuyDevCardRequest:game=test",
             "all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1",
-            "all:SOCGameElements:game=test|e2=15",
             "p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9",
             "!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0",
             "all:SOCSimpleAction:game=test|pn=3|actType=1|v1=15|v2=0",
@@ -1581,7 +1578,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(3);
                     assertEquals(desc, ActionType.BUY_DEV_CARD, act.actType);
-                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " dev card type",
                         (toClientPN != 99) ? SOCDevCardConstants.KNIGHT : 0, act.param1);
@@ -2023,7 +2020,6 @@ public class TestGameActionExtractor
             "all:SOCTurn:game=test|playerNumber=5|gameState=100",
             "f5:SOCBuyDevCardRequest:game=test",
             "all:SOCPlayerElements:game=test|playerNum=5|actionType=LOSE|e2=1,e3=1,e4=1",
-            "all:SOCGameElements:game=test|e2=33",
             "p5:SOCDevCardAction:game=test|playerNum=5|actionType=DRAW|cardType=1",
             "!p5:SOCDevCardAction:game=test|playerNum=5|actionType=DRAW|cardType=0",
             "all:SOCSimpleAction:game=test|pn=5|actType=1|v1=33|v2=0",
@@ -2385,7 +2381,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(35);
                     assertEquals(desc, ActionType.BUY_DEV_CARD, act.actType);
-                    assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
                     assertEquals(desc + " dev card type",
                         (toClientPN == -1) ? SOCDevCardConstants.ROADS : 0, act.param1);

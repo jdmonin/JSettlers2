@@ -71,9 +71,13 @@ public class SOCGameElements extends SOCMessageTemplateMi
          * Number of development cards remaining in the deck to be bought,
          * from {@link SOCGame#getNumDevCards()}.
          *<P>
-         * Sent to clients during game join/start. When a dev card is bought,
-         * is sent to clients as part of game data before action announcement/display:
-         * See {@link SOCBuyDevCardRequest} javadoc.
+         * Sent to clients during game join/start.
+         *<P>
+         * When a dev card is bought, is sent to clients older than v2.5.00
+         * ({@link SOCDevCardAction#VERSION_FOR_BUY_OMITS_GE_DEV_CARD_COUNT})
+         * as part of game data before action announcement/display:
+         * See {@link SOCBuyDevCardRequest} javadoc. Clients v2.5 and newer
+         * use {@link SOCSimpleAction#DEVCARD_BOUGHT}'s remaining-card count field instead.
          *<P>
          * Versions before v2.0.00 sent {@link SOCDevCardCount} instead.
          */

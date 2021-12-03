@@ -2925,11 +2925,10 @@ public class MessageHandler
             // fall through: displayless sets game data, pcl.simpleAction displays updated board layout
 
         case SOCSimpleAction.TRADE_PORT_REMOVED:
-            SOCDisplaylessPlayerClient.handleSIMPLEACTION(mes, client.games.get(gaName));  // calls ga.removePort(..)
-            // fall through so pcl.simpleAction updates displayed board
-
         case SOCSimpleAction.DEVCARD_BOUGHT:
-            // fall through
+            SOCDisplaylessPlayerClient.handleSIMPLEACTION(mes, client.games.get(gaName));
+            // fall through so pcl.simpleAction updates displayed board and game data
+
         case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;

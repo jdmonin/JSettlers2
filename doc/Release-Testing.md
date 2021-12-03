@@ -414,6 +414,7 @@ When preparing to release a new version, testing should include:
             - Join 1st game, take over for a robot
             - Should see all info for the player (resources, cards, etc)
             - Play at least 2 rounds; trade, build something, buy and use a soldier card
+                - Development Card count should update in Build Panel when buying a card
             - When server >= 2.4:
                 - Have an observing client join game right after a player offers a trade; should see current trade offer
                 - A few turns later, have an observing client join game; shouldn't see trade offer from a previous turn

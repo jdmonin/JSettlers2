@@ -2731,36 +2731,14 @@ public class SOCGameMessageHandler
 
                     // Note: If this message sequence changes, update SOCBuyDevCardRequest javadoc
 
-                    srv.gameList.takeMonitorForGame(gaName);
-                    try
-                    {
-                        if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
-                        {
-                            srv.messageToGameWithMon(gaName, true, new SOCPlayerElements
-                                (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
-                            srv.messageToGameWithMon
-                                (gaName, true, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
-                        } else {
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.LOSE, PEType.ORE, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
-                            srv.messageToGameWithMon
-                                (gaName, false, new SOCDevCardCount(gaName, devCount));
+                    handler.reportRsrcGainLoss(ga, SOCDevCard.COST, true, false, pn, -1, null);
 
-                            if (srv.isRecordGameEventsActive())
-                            {
-                                srv.recordGameEvent(gaName, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
-                                srv.recordGameEvent
-                                    (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
-                            }
-                        }
-                    } finally {
-                        srv.gameList.releaseMonitorForGame(gaName);
-                    }
+                    srv.messageToGameForVersions
+                        (ga, -1, SOCDevCardAction.VERSION_FOR_BUY_OMITS_GE_DEV_CARD_COUNT - 1,
+                         (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
+                             ? new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount)
+                             : new SOCDevCardCount(gaName, devCount),
+                         true);
 
                     // Let the player know, and record that event
                     {

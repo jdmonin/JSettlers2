@@ -418,7 +418,6 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1"},
-                {"all:SOCGameElements:", "|e2=22"},  // DEV_CARD_COUNT
                 {"p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
                 {
                     "!p3:SOCDevCardAction:",
@@ -426,7 +425,7 @@ public class TestActionsMessages
                         ? "|playerNum=3|actionType=DRAW|cardType=0"
                         : "|playerNum=3|actionType=DRAW|cardType=5"
                 },
-                {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},
+                {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},  // DEVCARD_BOUGHT
                 {"all:SOCGameState:", "|state=20"}
             }, false);
 

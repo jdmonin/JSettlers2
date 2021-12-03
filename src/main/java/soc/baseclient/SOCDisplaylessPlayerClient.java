@@ -2789,10 +2789,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 ga.removePort(null, mes.getValue1());
             break;
 
+        case SOCSimpleAction.DEVCARD_BOUGHT:
+            ga.setNumDevCards(mes.getValue1());
+            break;
+
         // Known types with no game data update:
         // Catch these before default case, so 'unknown type' won't be printed
 
-        case SOCSimpleAction.DEVCARD_BOUGHT:
         case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
         case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
             // game data updates are sent in preceding or following messages, can ignore this one
