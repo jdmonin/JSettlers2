@@ -3393,7 +3393,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * Report the resources gained/lost by a player, and optionally (for trading)
      * lost/gained by a second player.
-     * Sends PLAYERELEMENT messages, either to entire game, or to player only.
+     * Sends PLAYERELEMENTS or PLAYERELEMENT message, either to entire game, or to player only.
      *<P>
      * Used to report the resources gained from a roll, discard, or discovery (year-of-plenty) pick.
      * Also used to report the "give" or "get" half of a resource trade.
@@ -3403,6 +3403,10 @@ public class SOCGameHandler extends GameHandler
      * To avoid recording as an event, call
      * {@link #reportRsrcGainLossForVersions(SOCGame, ResourceSet, boolean, boolean, int, int, Connection, int)}
      * instead.
+     *<P>
+     * Always sends {@link SOCPlayerElement} messages to v1 clients.
+     * v2.0 and higher ({@link SOCPlayerElements#MIN_VERSION}) are sent a single {@link SOCPlayerElements}
+     * when more than 1 resource type is gained/lost.
      *<P>
      * Takes and releases the gameList monitor for this game.
      *
@@ -3444,7 +3448,7 @@ public class SOCGameHandler extends GameHandler
      * Report the resources gained/lost by a player, and optionally (for trading)
      * lost/gained by a second player, to older client version connections in a game.
      * Useful for backwards compatibility after introducing newer message types like {@link SOCReportRobbery}.
-     * Sends PLAYERELEMENT messages, either to entire game, or to player only.
+     * Sends PLAYERELEMENTS or PLAYERELEMENT message, either to entire game, or to player only.
      *<P>
      * Used to report the resources gained from a roll, discard, or discovery (year-of-plenty) pick.
      * Also used to report the "give" or "get" half of a resource trade.
@@ -3453,6 +3457,10 @@ public class SOCGameHandler extends GameHandler
      * because they probably aren't using the latest-version message sequence.
      * For such events, caller should call {@link SOCServer#recordGameEvent(String, SOCMessage)} or similar methods
      * with the latest-version sequence.
+     *<P>
+     * Always sends {@link SOCPlayerElement} messages to v1 clients.
+     * v2.0 and higher ({@link SOCPlayerElements#MIN_VERSION}) are sent a single {@link SOCPlayerElements}
+     * when more than 1 resource type is gained/lost.
      *<P>
      * Takes and releases the gameList monitor for this game.
      *
@@ -3621,7 +3629,7 @@ public class SOCGameHandler extends GameHandler
                         srv.messageToGameForVersions(ga, -1, vmaxSend, elemMsg, false);
                         if (elemMsg2 != null)
                             srv.messageToGameForVersions(ga, -1, vmaxSend, elemMsg2, false);
-                        if (isRecording)
+                        if (isRecording && (resTypeCount == 1))
                         {
                             srv.recordGameEvent(gaName, elemMsg);
                             if (elemMsg2 != null)
@@ -4200,32 +4208,19 @@ public class SOCGameHandler extends GameHandler
         }
 
         SOCResourceSet rset = new SOCResourceSet();
-        int pnum = pl.getPlayerNumber();
-        final boolean hasOldClients = (game.clientVersionLowest < SOCPlayerElements.MIN_VERSION);
         StringBuilder outTxt = new StringBuilder("### " + pl.getName() + " gets");  // I18N OK: debug only
 
         for (resourceType = SOCResourceConstants.CLAY;
              resourceType <= SOCResourceConstants.WOOD; ++resourceType)
         {
             final int amt = resources[resourceType];
-            outTxt.append(' ');
-            outTxt.append(amt);
-            if (amt == 0)
-                continue;
-
-            rset.add(amt, resourceType);
-
-            // SOCResourceConstants.CLAY == SOCPlayerElement.CLAY
-            if (hasOldClients)
-                srv.messageToGame
-                    (gaName, true, new SOCPlayerElement(gaName, pnum, SOCPlayerElement.GAIN, resourceType, amt));
+            outTxt.append(' ').append(amt);
+            if (amt != 0)
+                rset.add(amt, resourceType);
         }
-        if (! hasOldClients)
-            srv.messageToGame
-                (gaName, true, new SOCPlayerElements(gaName, pnum, SOCPlayerElement.GAIN, rset));
 
         pl.getResources().add(rset);
-
+        reportRsrcGainLoss(game, rset, false, false, pl.getPlayerNumber(), -1, null);
         srv.messageToGame(gaName, true, outTxt.toString());
     }
 

@@ -1793,7 +1793,6 @@ public class SOCGameMessageHandler
         final String gaName = ga.getName();
         final int pn = player.getPlayerNumber();
 
-        final boolean usePlayerElements = (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION);
         boolean sendDenyReply = false;
 
         switch (pieceType)
@@ -1803,20 +1802,7 @@ public class SOCGameMessageHandler
             if (ga.couldBuildRoad(pn))
             {
                 ga.buyRoad(pn);
-                if (usePlayerElements)
-                {
-                    srv.messageToGame(gaName, true, new SOCPlayerElements
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCRoad.COST));
-                } else {
-                    srv.messageToGame(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.CLAY, 1));
-                    srv.messageToGame(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
-
-                    if (srv.isRecordGameEventsActive())
-                        srv.recordGameEvent(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCRoad.COST));
-                }
+                handler.reportRsrcGainLoss(ga, SOCRoad.COST, true, false, pn, -1, null);
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
@@ -1832,26 +1818,7 @@ public class SOCGameMessageHandler
             if (ga.couldBuildSettlement(pn))
             {
                 ga.buySettlement(pn);
-                if (usePlayerElements)
-                {
-                    srv.messageToGame(gaName, true, new SOCPlayerElements
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCSettlement.COST));
-                } else {
-                    srv.gameList.takeMonitorForGame(gaName);
-                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.CLAY, 1));
-                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
-                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
-                    srv.gameList.releaseMonitorForGame(gaName);
-
-                    if (srv.isRecordGameEventsActive())
-                        srv.recordGameEvent(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCSettlement.COST));
-                }
+                handler.reportRsrcGainLoss(ga, SOCSettlement.COST, true, false, pn, -1, null);
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
@@ -1867,20 +1834,7 @@ public class SOCGameMessageHandler
             if (ga.couldBuildCity(pn))
             {
                 ga.buyCity(pn);
-                if (usePlayerElements)
-                {
-                    srv.messageToGame(gaName, true, new SOCPlayerElements
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCCity.COST));
-                } else {
-                    srv.messageToGame(ga.getName(), false, new SOCPlayerElement
-                        (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.ORE, 3));
-                    srv.messageToGame(ga.getName(), false, new SOCPlayerElement
-                        (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.WHEAT, 2));
-
-                    if (srv.isRecordGameEventsActive())
-                        srv.recordGameEvent(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCCity.COST));
-                }
+                handler.reportRsrcGainLoss(ga, SOCCity.COST, true, false, pn, -1, null);
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
@@ -1896,20 +1850,7 @@ public class SOCGameMessageHandler
             if (ga.couldBuildShip(pn))
             {
                 ga.buyShip(pn);
-                if (usePlayerElements)
-                {
-                    srv.messageToGame(gaName, true, new SOCPlayerElements
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCShip.COST));
-                } else {
-                    srv.messageToGame(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                    srv.messageToGame(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
-
-                    if (srv.isRecordGameEventsActive())
-                        srv.recordGameEvent(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCShip.COST));
-                }
+                handler.reportRsrcGainLoss(ga, SOCShip.COST, true, false, pn, -1, null);
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
@@ -1954,7 +1895,6 @@ public class SOCGameMessageHandler
                 final SOCPlayer player = ga.getPlayer(c.getData());
                 final int pn = player.getPlayerNumber();
                 final int gstate = ga.getGameState();
-                final boolean usePlayerElements = (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION);
 
                 boolean noAction = false;  // If true, there was nothing cancelable: Don't call handler.sendGameState
 
@@ -1970,20 +1910,7 @@ public class SOCGameMessageHandler
 
                         if (gstate == SOCGame.PLACING_ROAD)
                         {
-                            if (usePlayerElements)
-                            {
-                                srv.messageToGame(gaName, true, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
-                            } else {
-                                srv.messageToGame(gaName, false, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.CLAY, 1));
-                                srv.messageToGame(gaName, false, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
-
-                                if (srv.isRecordGameEventsActive())
-                                    srv.recordGameEvent(gaName, new SOCPlayerElements
-                                        (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
-                            }
+                            handler.reportRsrcGainLoss(ga, SOCRoad.COST, false, false, pn, -1, null);
                         }
                         else if (wasDevCardRet)
                         {
@@ -2013,27 +1940,7 @@ public class SOCGameMessageHandler
                     if (gstate == SOCGame.PLACING_SETTLEMENT)
                     {
                         ga.cancelBuildSettlement(pn);
-                        if (usePlayerElements)
-                        {
-                            srv.messageToGame(gaName, true, new SOCPlayerElements
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCSettlement.COST));
-                        } else {
-                            srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.CLAY, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.SHEEP, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
-                            srv.gameList.releaseMonitorForGame(gaName);
-
-                            if (srv.isRecordGameEventsActive())
-                                srv.recordGameEvent(gaName, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCSettlement.COST));
-
-                        }
+                        handler.reportRsrcGainLoss(ga, SOCSettlement.COST, false, false, pn, -1, null);
                     }
                     else if ((gstate == SOCGame.START1B) || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B))
                     {
@@ -2056,21 +1963,7 @@ public class SOCGameMessageHandler
                     if (gstate == SOCGame.PLACING_CITY)
                     {
                         ga.cancelBuildCity(pn);
-                        if (usePlayerElements)
-                        {
-                            srv.messageToGame(gaName, true, new SOCPlayerElements
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCCity.COST));
-                        } else {
-                            srv.messageToGame(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.ORE, 3));
-                            srv.messageToGame(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 2));
-
-
-                            if (srv.isRecordGameEventsActive())
-                                srv.recordGameEvent(gaName, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCCity.COST));
-                        }
+                        handler.reportRsrcGainLoss(ga, SOCCity.COST, false, false, pn, -1, null);
                     } else {
                         srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a city."/*18N*/ );
                         noAction = true;
@@ -2088,20 +1981,7 @@ public class SOCGameMessageHandler
 
                         if (gstate == SOCGame.PLACING_SHIP)
                         {
-                            if (usePlayerElements)
-                            {
-                                srv.messageToGame(gaName, true, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
-                            } else {
-                                srv.messageToGame(gaName, false, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.SHEEP, 1));
-                                srv.messageToGame(gaName, false, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
-
-                                if (srv.isRecordGameEventsActive())
-                                    srv.recordGameEvent(gaName, new SOCPlayerElements
-                                        (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
-                            }
+                            handler.reportRsrcGainLoss(ga, SOCShip.COST, false, false, pn, -1, null);
                         }
                         else if (wasDevCardRet)
                         {
