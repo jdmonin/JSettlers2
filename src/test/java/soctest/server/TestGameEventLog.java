@@ -742,11 +742,11 @@ public class TestGameEventLog
      * on soclog artifacts missing various required items:
      *<UL>
      * <LI> {@code test-missing-header.soclog}: missing required header line
-     * <LI> {@code test-missing-header-version.soclog}: header is missing version=
-     * <LI> {@code test-missing-header-version-numparse.soclog}: header's version= isn't a parseable number
-     * <LI> {@code test-missing-header-gamename.soclog}: header is missing game_name=
-     * <LI> {@code test-missing-header-gamename-empty.soclog}: header's game_name= has no value
-     * <LI> {@code test-missing-header-gamename-invalid.soclog}: header's game_name= fails
+     * <LI> {@code test-header-version-missing.soclog}: header is missing version=
+     * <LI> {@code test-header-version-numparse.soclog}: header's version= isn't a parseable number
+     * <LI> {@code test-header-gamename-missing.soclog}: header is missing game_name=
+     * <LI> {@code test-header-gamename-empty.soclog}: header's game_name= has no value
+     * <LI> {@code test-header-gamename-invalid.soclog}: header's game_name= fails
      *      {@link soc.message.SOCMessage#isSingleLineAndSafe(String)}
      * <LI> {@code test-version-too-old.soclog}: version too old (nonexistent 2.4.99)
      * <LI> {@code test-missing-socversion.soclog}: Missing required SOCVersion message
@@ -794,40 +794,40 @@ public class TestGameEventLog
 
         try
         {
-            load("test-missing-header-version.soclog", false, -1);
-            fail("test-missing-header-version.soclog: Expected NoSuchElementException");
+            load("test-header-version-missing.soclog", false, -1);
+            fail("test-header-version-missing.soclog: Expected NoSuchElementException");
         } catch (NoSuchElementException e) {
             assertTrue(e.getMessage().contains("Header missing required version"));
         }
 
         try
         {
-            load("test-missing-header-version-numparse.soclog", false, -1);
-            fail("test-missing-header-version-numparse.soclog: Expected ParseException");
+            load("test-header-version-numparse.soclog", false, -1);
+            fail("test-header-version-numparse.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().equals("Couldn't parse version number in header"));
         }
 
         try
         {
-            load("test-missing-header-gamename.soclog", false, -1);
-            fail("test-missing-header.gamename: Expected ParseException");
+            load("test-header-gamename-missing.soclog", false, -1);
+            fail("test-header-gamename-missing.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("missing required game_name"));
         }
 
         try
         {
-            load("test-missing-header-gamename-empty.soclog", false, -1);
-            fail("test-missing-header.gamename-empty: Expected ParseException");
+            load("test-header-gamename-empty.soclog", false, -1);
+            fail("test-header-gamename-empty.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("Empty game_name"));
         }
 
         try
         {
-            load("test-missing-header-gamename-invalid.soclog", false, -1);
-            fail("test-missing-header.gamename-invalid: Expected ParseException");
+            load("test-header-gamename-invalid.soclog", false, -1);
+            fail("test-header-gamename-invalid.soclog: Expected ParseException");
         } catch (ParseException e) {
             assertTrue(e.getMessage().contains("Invalid game_name"));
         }
