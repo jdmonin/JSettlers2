@@ -282,6 +282,7 @@ public class GameActionLog
              * {@code p1} = piece type like {@link SOCPlayingPiece#SETTLEMENT},
              * {@code p2} = coordinate it was built at,
              * {@code p3} = player number who built the piece; helpful during initial placement.
+             * {@code rs1} = free resources gained from revealing any non-gold land hexes from fog; null otherwise
              *<P>
              * When player changes during initial placement,
              * {@link Action#endingGameState} won't change during the {@code BUILD_PIECE},
@@ -303,6 +304,7 @@ public class GameActionLog
              *<BR>
              * {@code p1} = piece type like {@link SOCPlayingPiece#SHIP},
              * {@code p2} = coordinate to move from, {@code p3} = coordinate to move to.
+             * {@code rs1} = free resources gained from revealing any non-gold land hex from fog; null otherwise
              */
             MOVE_PIECE,
 

@@ -414,6 +414,8 @@ public class TestGameActionExtractor
                     assertEquals(desc + " built ship", SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc + " built at 0x602", 0x602, act.param2);
                     assertEquals(desc + " built by player 3", 3, act.param3);
+                    assertNull(desc + " no fog hex revealed", act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(4);
                     assertEquals(desc, ActionType.UNKNOWN, act.actType);
@@ -573,6 +575,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x34", 0x34, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(desc + " no fog hex revealed", act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(3);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
@@ -2816,7 +2820,7 @@ public class TestGameActionExtractor
             "all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=0",
             "all:SOCGameState:game=test|state=6",
 
-            // Initial Placement: Place settlement and ship, reveal hex from fog:
+            // Initial Placement tests: Place settlement and ship, reveal hex from fog:
 
             // reveal non-gold hex, current player doesn't change afterwards:
 
@@ -2961,6 +2965,8 @@ public class TestGameActionExtractor
                     assertEquals(desc + " built road", SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0x406", 0x406, act.param2);
                     assertEquals(desc + " built by player 3", 3, act.param3);
+                    assertEquals(desc + " reveal wood hex from fog", new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(5);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
@@ -2969,6 +2975,8 @@ public class TestGameActionExtractor
                     assertEquals(desc + " built road", SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0x708", 0x708, act.param2);
                     assertEquals(desc + " built by player 3", 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(6);
                     assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -3004,6 +3012,8 @@ public class TestGameActionExtractor
                     assertEquals(desc + " moved a ship", SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc + " moved from", 0xc0a, act.param2);
                     assertEquals(desc + " moved to", 0xd05, act.param3);
+                    assertEquals(desc + " reveal wheat hex from fog", new SOCResourceSet(0, 0, 0, 1, 0, 0), act.rset1);
+                    assertNull(act.rset2);
 
                     // reveal non-gold and gain longest route
 
@@ -3014,6 +3024,8 @@ public class TestGameActionExtractor
                     assertEquals(desc + " moved a ship", SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc, 0xd05, act.param2);
                     assertEquals(desc, 0xe0b, act.param3);
+                    assertEquals(desc + " reveal ore hex from fog", new SOCResourceSet(0, 1, 0, 0, 0, 0), act.rset1);
+                    assertNull(act.rset2);
 
                     // reveal gold
 
@@ -3024,6 +3036,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc, 0x70c, act.param2);
                     assertEquals(desc, 0xc0c, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(13);
                     assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -3040,6 +3054,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc, 0x70c, act.param2);
                     assertEquals(desc, 0xc0c, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(15);
                     assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -3056,6 +3072,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc, 0x209, act.param2);
                     assertEquals(desc, 0xa0a, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(17);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
@@ -3081,6 +3099,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x408", 0x408, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
+                    assertNull(act.rset2);
 
                     // 2 non-gold:
 
@@ -3097,6 +3117,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x80a", 0x80a, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertEquals(new SOCResourceSet(1, 0, 0, 1, 0, 0), act.rset1);
+                    assertNull(act.rset2);
 
                     // gold:
 
@@ -3107,6 +3129,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
                     assertEquals(desc + " built at 0x905", 0x905, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(23);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
@@ -3115,6 +3139,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x808", 0x808, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(24);
                     assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -3137,6 +3163,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x408", 0x408, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(27);
                     assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -3159,6 +3187,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x805", 0x805, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertEquals(new SOCResourceSet(0, 0, 1, 0, 0, 0), act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(30);
                     assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -3183,6 +3213,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x604", 0x604, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(33);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
@@ -3191,6 +3223,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc + " built at 0x604", 0x604, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertEquals(new SOCResourceSet(0, 0, 0, 1, 0, 0), act.rset1);
+                    assertNull(act.rset2);
 
                     // reveal non-gold hex, player changes afterwards:
 
@@ -3207,6 +3241,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0xa06", 0xa06, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(36);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
@@ -3215,6 +3251,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc + " built at 0xa06", 0xa06, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(37);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
@@ -3237,6 +3275,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x805", 0x805, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(40);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
@@ -3245,6 +3285,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc + " built at 0x805", 0x805, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(41);
                     assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);
@@ -3267,6 +3309,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
                     assertEquals(desc + " built at 0x805", 0x805, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(44);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
@@ -3275,6 +3319,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc + " built at 0x805", 0x805, act.param2);
                     assertEquals(desc, 3, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
 
                     act = actionLog.get(45);
                     assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);

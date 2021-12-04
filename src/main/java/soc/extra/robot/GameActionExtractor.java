@@ -31,6 +31,7 @@ import soc.extra.robot.GameActionLog.Action.ActionType;
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.game.ResourceSet;
+import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -892,15 +893,26 @@ public class GameActionExtractor
         // Optional: Occasionally extra messages here, depending on game options/scenario
         // (SOCSVPTextMessage, SOCPlayerElement, etc)
         boolean hasFogGold = false, hasFogNonGold = false;
+        SOCResourceSet fogRevealedGains = null;
             // reminder: Placing initial settlement can reveal more than 1 fog hex
         for(;;)
         {
             if (e.event instanceof SOCRevealFogHex)
             {
-                if (((SOCRevealFogHex) e.event).getParam2() == SOCBoardLarge.GOLD_HEX)
+                final int hexType = ((SOCRevealFogHex) e.event).getParam2();
+                if (hexType == SOCBoardLarge.GOLD_HEX)
+                {
                     hasFogGold = true;
-                else
+                } else {
                     hasFogNonGold = true;
+
+                    if ((hexType >= SOCBoard.CLAY_HEX) && (hexType <= SOCBoard.WOOD_HEX))
+                    {
+                        if (fogRevealedGains == null)
+                            fogRevealedGains = new SOCResourceSet();
+                        fogRevealedGains.add(1, hexType);
+                    }
+                }
             }
             else if (e.event instanceof SOCPutPiece)
             {
@@ -968,7 +980,7 @@ public class GameActionExtractor
             int prevStart = currentSequenceStartIndex;
             return new Action
                 (ActionType.BUILD_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
-                 pType, buildCoord, playerNumber);
+                 pType, buildCoord, playerNumber, fogRevealedGains, null);
         }
         if (e.event instanceof SOCGameElements)
         {
@@ -1005,7 +1017,7 @@ public class GameActionExtractor
         int prevStart = currentSequenceStartIndex;
         return new Action
             (ActionType.BUILD_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
-             pType, buildCoord, playerNumber);
+             pType, buildCoord, playerNumber, fogRevealedGains, null);
     }
 
     /**
@@ -1068,12 +1080,23 @@ public class GameActionExtractor
         if ((e == null) || ! e.isToAll())
             return null;
         boolean hasFogGold = false, hasFogNonGold = false;
+        SOCResourceSet fogRevealedGains = null;
         if (e.event instanceof SOCRevealFogHex)
         {
-            if (((SOCRevealFogHex) e.event).getParam2() == SOCBoardLarge.GOLD_HEX)
+            final int hexType = ((SOCRevealFogHex) e.event).getParam2();
+            if (hexType == SOCBoardLarge.GOLD_HEX)
+            {
                 hasFogGold = true;
-            else
+            } else {
                 hasFogNonGold = true;
+
+                if ((hexType >= SOCBoard.CLAY_HEX) && (hexType <= SOCBoard.WOOD_HEX))
+                {
+                    if (fogRevealedGains == null)
+                        fogRevealedGains = new SOCResourceSet();
+                    fogRevealedGains.add(1, hexType);
+                }
+            }
 
             e = next();
             if ((e == null) || ! e.isToAll())
@@ -1142,7 +1165,7 @@ public class GameActionExtractor
         int prevStart = currentSequenceStartIndex;
         return new Action
             (ActionType.MOVE_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
-             pType, fromCoord, toCoord);
+             pType, fromCoord, toCoord, fogRevealedGains, null);
     }
 
     /**
