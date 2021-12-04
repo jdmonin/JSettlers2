@@ -319,6 +319,11 @@ public class GameActionLog
              * Play a development card.
              *<BR>
              * {@code p1} = dev card type played, like {@link SOCDevCardConstants#ROADS}.
+             * {@code p2} = 1st free road's edge coordinate for {@link SOCDevCardConstants#ROADS},
+             *     negative if ship, {@link Integer#MAX_VALUE} if canceled; 0 otherwise.
+             * {@code p3} = 2nd free road's edge coordinate for {@link SOCDevCardConstants#ROADS},
+             *     negative if ship, {@link Integer#MAX_VALUE} if canceled or if player had 1 remaining road/ship
+             *     when card played; 0 otherwise.
              * {@code rs1} = resources gained by Year of Plenty/Discovery or Monopoly (if none: null, not empty).
              *<P>
              * For knight/soldier ({@link SOCDevCardConstants#KNIGHT}),

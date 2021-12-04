@@ -2172,6 +2172,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 15 : ((toClientPN == 3) ? 12 : 11), act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc + " played road building", SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(desc + " road1", 0x70c, act.param2);
+                    assertEquals(desc + " ship2", -0x60c, act.param3);
 
                     act = actionLog.get(3);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
@@ -2184,30 +2186,40 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 14 : ((toClientPN == 3) ? 11 : 10), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " played road building", SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(0x704, act.param2);
+                    assertEquals(0x804, act.param3);
 
                     act = actionLog.get(5);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 10 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " played road building", SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(-0xa8, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(6);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 11 : ((toClientPN == 3) ? 9 : 8), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " played road building", SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(0xa8, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(7);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 15 : ((toClientPN == 3) ? 12 : 11), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " played road building", SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(0x509, act.param2);
+                    assertEquals(-0x50d, act.param3);
 
                     act = actionLog.get(8);
                     assertEquals(desc, ActionType.PLAY_DEV_CARD, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 15 : ((toClientPN == 3) ? 12 : 11), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " played road building", SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(-0x60c, act.param2);
+                    assertEquals(-0x50d, act.param3);
 
                     act = actionLog.get(9);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
@@ -2227,6 +2239,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 12 : ((toClientPN == 3) ? 10 : 9), act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(0xa04, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(12);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
@@ -2246,6 +2260,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 16 : ((toClientPN == 3) ? 13 : 12), act.eventSequence.size());
                     assertEquals(desc, SOCGame.OVER, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(0x76, act.param2);
+                    assertEquals(0x74, act.param3);
 
                     act = actionLog.get(15);
                     assertEquals(desc, ActionType.GAME_OVER, act.actType);
@@ -2269,6 +2285,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 12 : ((toClientPN == 3) ? 10 : 9), act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(Integer.MAX_VALUE, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(18);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
@@ -2283,6 +2301,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 11 : ((toClientPN == 3) ? 9 : 8), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(Integer.MAX_VALUE, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(20);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
@@ -2302,6 +2322,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 14 : ((toClientPN == 3) ? 11 : 10), act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(-0x60e, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     // build 1 after roll, cancel & continue play:
 
@@ -2316,6 +2338,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 13 : ((toClientPN == 3) ? 10 : 9), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(-0x60f, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     // build 0, cancel by end turn:
 
@@ -2336,6 +2360,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_FREE_ROAD1, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(Integer.MAX_VALUE, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(28);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
@@ -2367,6 +2393,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_FREE_ROAD1, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(Integer.MAX_VALUE, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(33);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
@@ -2410,6 +2438,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 10 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_FREE_ROAD2, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(0xe06, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(40);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
@@ -2441,6 +2471,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 10 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_FREE_ROAD2, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(-0x50d, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(45);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
@@ -2471,6 +2503,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 12 : ((toClientPN == 3) ? 10 : 9), act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(Integer.MAX_VALUE, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(50);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
@@ -2485,6 +2519,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 11 : ((toClientPN == 3) ? 9 : 8), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(Integer.MAX_VALUE, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     // with 1 road left: build 0, cancel by end turn:
 
@@ -2493,6 +2529,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_FREE_ROAD2, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(Integer.MAX_VALUE, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(53);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
@@ -2524,6 +2562,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 5 : ((toClientPN == 3) ? 8 : 7), act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLACING_FREE_ROAD2, act.endingGameState);
                     assertEquals(desc, SOCDevCardConstants.ROADS, act.param1);
+                    assertEquals(Integer.MAX_VALUE, act.param2);
+                    assertEquals(Integer.MAX_VALUE, act.param3);
 
                     act = actionLog.get(58);
                     assertEquals(desc, ActionType.END_TURN, act.actType);

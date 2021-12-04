@@ -1294,6 +1294,8 @@ public class GameActionExtractor
         if (! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
 
+        int edge1 = Integer.MAX_VALUE;
+
         if (state.currentGameState == SOCGame.PLACING_FREE_ROAD1)
         {
             // If player has only 1 remaining road/ship, skips this section:
@@ -1323,7 +1325,7 @@ public class GameActionExtractor
                     int prevStart = currentSequenceStartIndex;
                     return new Action
                         (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                         SOCDevCardConstants.ROADS, -1, -1);
+                         SOCDevCardConstants.ROADS, Integer.MAX_VALUE, Integer.MAX_VALUE);
                 }
                 else if (e.event instanceof SOCCancelBuildRequest)
                 {
@@ -1349,7 +1351,7 @@ public class GameActionExtractor
                     int prevStart = currentSequenceStartIndex;
                     return new Action
                         (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                         SOCDevCardConstants.ROADS, -1, -1);
+                         SOCDevCardConstants.ROADS, Integer.MAX_VALUE, Integer.MAX_VALUE);
                 }
                 else
                     return null;
@@ -1364,6 +1366,9 @@ public class GameActionExtractor
             if (e.event instanceof SOCPutPiece)
             {
                 // OK, will continue sequence
+                edge1 = ((SOCPutPiece) e.event).getCoordinates();
+                if (((SOCPutPiece) e.event).getPieceType() == SOCPlayingPiece.SHIP)
+                    edge1 = -edge1;
             }
             else if (hasServerOnlyLog && (e.event instanceof SOCDevCardAction)
                      && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
@@ -1393,7 +1398,7 @@ public class GameActionExtractor
                 int prevStart = currentSequenceStartIndex;
                 return new Action
                     (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                     SOCDevCardConstants.ROADS, -1, -1);
+                     SOCDevCardConstants.ROADS, Integer.MAX_VALUE, Integer.MAX_VALUE);
             }
 
             // If gains Longest Route after 1st placement: all:SOCGameElements:game=test|e6=(PN)
@@ -1433,7 +1438,7 @@ public class GameActionExtractor
                 int prevStart = currentSequenceStartIndex;
                 return new Action
                     (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                     SOCDevCardConstants.ROADS, 0, 0);
+                     SOCDevCardConstants.ROADS, edge1, Integer.MAX_VALUE);
             }
         }
 
@@ -1462,7 +1467,7 @@ public class GameActionExtractor
                 int prevStart = currentSequenceStartIndex;
                 return new Action
                     (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                     SOCDevCardConstants.ROADS, 0, -1);
+                     SOCDevCardConstants.ROADS, edge1, Integer.MAX_VALUE);
             }
             else if (e.event instanceof SOCCancelBuildRequest)
             {
@@ -1491,11 +1496,13 @@ public class GameActionExtractor
                 int prevStart = currentSequenceStartIndex;
                 return new Action
                     (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                     SOCDevCardConstants.ROADS, 0, -1);
+                     SOCDevCardConstants.ROADS, edge1, Integer.MAX_VALUE);
             }
             else
                 return null;
         }
+
+        int edge2 = Integer.MAX_VALUE;
 
         // all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
         // Or if client player canceled placement and hasServerOnlyLog, one of:
@@ -1509,6 +1516,14 @@ public class GameActionExtractor
         if (e.event instanceof SOCPutPiece)
         {
             // OK, will continue sequence
+            int edge = ((SOCPutPiece) e.event).getCoordinates();
+            if (((SOCPutPiece) e.event).getPieceType() == SOCPlayingPiece.SHIP)
+                edge = -edge;
+
+            if (edge1 == Integer.MAX_VALUE)
+                edge1 = edge;
+            else
+                edge2 = edge;
         }
         else if (hasServerOnlyLog && (e.event instanceof SOCClearOffer))
         {
@@ -1517,14 +1532,14 @@ public class GameActionExtractor
             int prevStart = currentSequenceStartIndex;
             return new Action
                 (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                 SOCDevCardConstants.ROADS, 0, -1);
+                 SOCDevCardConstants.ROADS, edge1, Integer.MAX_VALUE);
         }
         else if (hasServerOnlyLog && (e.event instanceof SOCGameState))
         {
             int prevStart = currentSequenceStartIndex;
             return new Action
                 (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                 SOCDevCardConstants.ROADS, 0, -1);
+                 SOCDevCardConstants.ROADS, edge1, Integer.MAX_VALUE);
         }
         else if (hasServerOnlyLog && (e.event instanceof SOCDevCardAction)
                  && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
@@ -1551,7 +1566,7 @@ public class GameActionExtractor
             int prevStart = currentSequenceStartIndex;
             return new Action
                 (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-                 SOCDevCardConstants.ROADS, -1, -1);
+                 SOCDevCardConstants.ROADS, Integer.MAX_VALUE, Integer.MAX_VALUE);
         }
         else
             return null;
@@ -1591,7 +1606,7 @@ public class GameActionExtractor
         int prevStart = currentSequenceStartIndex;
         return new Action
             (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
-             SOCDevCardConstants.ROADS, 0, 0);
+             SOCDevCardConstants.ROADS, edge1, edge2);
     }
 
     /**
