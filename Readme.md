@@ -436,6 +436,10 @@ lists contributors by year.  A copyright year range (for example, 2007-2011)
 means the file was contributed to by that person in each year of that range.
 See individual source files for the GPL version and other details.
 
+The localization into French was contributed in 2020 by Lee Passey using
+the [CC0](https://creativecommons.org/publicdomain/zero/1.0/) license,
+and further developed by Jeremy Monin under CC0.
+
 BCrypt.java is licensed under the "new BSD" license, and is copyright
 (C) 2006 Damien Miller; see BCrypt.java for details.  jBCrypt-0.4.tar.gz
 retrieved 2017-05-27 from https://www.mindrot.org/projects/jBCrypt/
