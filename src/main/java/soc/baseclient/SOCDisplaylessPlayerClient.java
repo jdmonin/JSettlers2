@@ -49,6 +49,8 @@ import soc.message.*;
 import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
 
+import soc.robot.SOCRobotBrain;  // for javadocs only
+import soc.robot.SOCRobotClient;  // javadocs only
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCFeatureSet;
 import soc.util.Version;
@@ -1201,7 +1203,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleGAMEMEMBERS(SOCGameMembers mes) {}
 
     /**
-     * handle the "game stats" message
+     * handle the "game stats" message; stub.
+     * Instead of overriding this method, {@link SOCRobotClient#treat(SOCMessage)} bypasses it
+     * and processes stats in {@link SOCRobotBrain#handleGAMESTATS(SOCGameStats)}.
      */
     protected void handleGAMESTATS(SOCGameStats mes) {}
 

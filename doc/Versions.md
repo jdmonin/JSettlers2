@@ -111,8 +111,8 @@ JARs for recent JSettlers versions can be downloaded from
 	        - GLAS field made non-static so unit tests can safely run in parallel for quicker builds
 	- Unit tests and extraTests against running server for core game actions and message sequences
 	- Server consistently uses Properties if passed into constructors
-	- Server waits for {@code serverUp()} to return before starting to accept connections
-	- If {@code SOCServer.stopServer()} called before it's fully running, shuts down cleanly
+	- Server waits for `serverUp()` to return before starting to accept connections
+	- If `SOCServer.stopServer()` called before it's fully running, shuts down cleanly
 	  instead of NullPointerException in InboundMessageQueue.stopMessageProcessing
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
 	- Bots: When forcing end turn, omit previous/current turn messages if stubborn
