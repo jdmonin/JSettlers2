@@ -741,7 +741,17 @@ public class TestToCmdToStringParse
                  new SOCResourceSet(0, 1, 0, 1, 0, 0),
                  new SOCResourceSet(0, 0, 1, 0, 0, 0))),
             "1041|ga,3,false,false,true,false,0,1,0,1,0,0,0,1,0,0",
-            "SOCMakeOffer:game=ga|offer=game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"
+            "SOCMakeOffer:game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"
+        },
+        {
+            // parse from old "offer=" format, which is in some STACSettlers soclog files:
+            new SOCMakeOffer("ga", new SOCTradeOffer
+                ("ga", 3, new boolean[]{false,  false,  true, false},
+                 new SOCResourceSet(0, 1, 0, 1, 0, 0),
+                 new SOCResourceSet(0, 0, 1, 0, 0, 0))),
+            "1041|ga,3,false,false,true,false,0,1,0,1,0,0,0,1,0,0",
+            "SOCMakeOffer:game=ga|offer=game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0",
+            OPT_PARSE_ONLY
         },
         {
             new SOCMovePiece("ga", 1, SOCPlayingPiece.SHIP, 0xc06, 0xf06),

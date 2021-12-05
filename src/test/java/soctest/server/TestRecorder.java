@@ -1372,7 +1372,7 @@ public class TestRecorder
         StringBuilder compares = compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C1
+                {"all:SOCMakeOffer:", "|from=" + PN_C1
                  + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
                 {"all:SOCRejectOffer:", "|playerNumber=" + PN_C2}

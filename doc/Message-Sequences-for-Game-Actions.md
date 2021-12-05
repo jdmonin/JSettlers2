@@ -579,8 +579,8 @@ Give 1 resource, get 2 or 3 or 4; otherwise same as usual bank trade sequence.
 
 ### Player trade: Make offer or counteroffer
 
-- f2:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-- all:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+- f2:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+- all:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
 - all:SOCClearTradeMsg:game=test|playerNumber=-1
 
 ### Player trade: Clear/cancel own offer

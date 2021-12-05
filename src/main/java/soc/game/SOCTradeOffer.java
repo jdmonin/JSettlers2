@@ -192,12 +192,29 @@ public class SOCTradeOffer implements Serializable, Cloneable
      * omits {@link #getWaitingReply()} for brevity.
      * @return a human readable string of data, of the form:
      *     <tt>game=gname|from=pn|to=true,false,true,false|give={SOCResourceSet.toString}|get={SOCResourceSet.toString}</tt>
+     * @see #toString(boolean)
      */
     @Override
     public String toString()
     {
-        StringBuilder str = new StringBuilder
-            ("game=" + game + "|from=" + from + "|to=" + to[0]);
+        return toString(false);
+    }
+
+    /**
+     * Get a readable representation of this data for debugging, optionally without game field;
+     * omits {@link #getWaitingReply()} for brevity.
+     * @param omitGame  If true, omit <tt>"game="</tt> field
+     * @return a human readable string of data, of the form:
+     *     [<tt>game=gname|</tt>]<tt>from=pn|to=true,false,true,false|give={SOCResourceSet.toString}|get={SOCResourceSet.toString}</tt>
+     * @see #toString()
+     * @since 2.5.00
+     */
+    public String toString(final boolean omitGame)
+    {
+        StringBuilder str = new StringBuilder();
+        if (! omitGame)
+            str.append("game=" + game + '|');
+        str.append("from=" + from + "|to=" + to[0]);
         for (int pn = 1; pn < to.length; ++pn)
         {
             str.append(',');

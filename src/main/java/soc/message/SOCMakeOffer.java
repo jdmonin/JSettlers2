@@ -191,9 +191,6 @@ public class SOCMakeOffer extends SOCMessage
         return new SOCMakeOffer(ga, new SOCTradeOffer(ga, from, to, give, get));
     }
 
-    // Special handling:
-    // 1) There is a bizarre "offer=game=gameName" in the second position
-    // 2) Give and get are specified as give=clay=x|ore=y...
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
@@ -203,38 +200,38 @@ public class SOCMakeOffer extends SOCMessage
      */
     public static String stripAttribNames(String message)
     {
-        // Strip the give= and get= from the message, then do the normal strip, then strip index 1
+        final int offerFieldIdx = message.indexOf("|offer=game=");
+        if (offerFieldIdx != -1)
+        {
+            // Format is from before v2.5; remove redundant offer= field
+            final int nextIdx = message.indexOf('|', offerFieldIdx + 11);
+            if (nextIdx == -1)
+                return null;
+
+            message = message.substring(0, offerFieldIdx) + message.substring(nextIdx);
+        }
+
+        // Strip give=, get=, unknown= from the message
         message = message.replace("give=", "");
         message = message.replace("get=", "");
         // strip with leading delim (hardcode here for now)
         message = message.replaceAll("\\|unknown=0", "");
-        String s = SOCMessage.stripAttribNames(message);
-        if (s == null)
-            return null;
-        String[] pieces = s.split(SOCMessage.sep2);
 
-        StringBuilder ret = new StringBuilder();
-        int[] skipIds = new int[]{1, -1};  // Append a -1 at the end so we don't have to worry about running off the end
-        int si = 0; // Which index of skipIds are we currently looking for?
-        for (int i = 0; i < pieces.length; i++)
-        {
-            if (skipIds[si]==i)
-                // skip, but increment si
-                si++;
-            else
-                ret.append(pieces[i]).append(SOCMessage.sep2);
-        }
-
-        // trim the last separator - it interferes with the parse, which dynamically determines number of players based on number of tokens.
-        return ret.substring(0, ret.length() - 1);
+        return SOCMessage.stripAttribNames(message);
     }
 
     /**
+     * Make a human-readable form of the message:<BR>
+     * <tt>"SOCMakeOffer:game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"</tt><BR>
+     *<P>
+     * Before v2.5.00, this called {@link SOCTradeOffer#toString()} which included redundant "offer" field:<BR>
+     * <tt>"SOCMakeOffer:game=ga|offer=game=ga|from=3|to=false,false,true,false|give=..."</tt>
+     *
      * @return a human readable form of the message
      */
     public String toString()
     {
-        return "SOCMakeOffer:game=" + game + "|offer=" + offer;
+        return "SOCMakeOffer:game=" + game + '|' + offer.toString(true);
     }
 
 }

@@ -2181,7 +2181,7 @@ public class GameActionExtractor
      */
     private Action extract_TRADE_MAKE_OFFER(GameEventLog.EventEntry e)
     {
-        // f2:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+        // f2:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
         if (! hasServerOnlyLog)
         {
             if (! (e.isFromClient && (e.pn != -1)))
@@ -2190,7 +2190,7 @@ public class GameActionExtractor
             e = next();
         }
 
-        // all:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+        // all:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
         if ((e == null) || ! (e.isToAll() && (e.event instanceof SOCMakeOffer)))
             return null;
         SOCTradeOffer offer = ((SOCMakeOffer) e.event).getOffer();

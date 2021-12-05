@@ -1124,8 +1124,8 @@ public class TestGameActionExtractor
             "all:SOCBankTrade:game=test|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|pn=3",
 
             // player p3 make trade offer to players:
-            "f3:SOCMakeOffer:game=test|offer=game=test|from=3|to=false,true,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0",
-            "all:SOCMakeOffer:game=test|offer=game=test|from=3|to=false,true,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0",
+            "f3:SOCMakeOffer:game=test|from=3|to=false,true,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0",
+            "all:SOCMakeOffer:game=test|from=3|to=false,true,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0",
             "all:SOCClearTradeMsg:game=test|playerNumber=-1",
 
             // p2 clears their own previous offer:

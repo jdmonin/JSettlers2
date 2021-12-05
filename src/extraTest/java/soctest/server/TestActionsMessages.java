@@ -1578,12 +1578,12 @@ public class TestActionsMessages
         StringBuilder compares = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C1
+                {"all:SOCMakeOffer:", "|from=" + PN_C1
                  + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
                 {"all:SOCClearOffer:", "|playerNumber=" + PN_C1},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
-                {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C2
+                {"all:SOCMakeOffer:", "|from=" + PN_C2
                  + "|to=false,false,false,true|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
                 {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2

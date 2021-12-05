@@ -320,14 +320,14 @@ f2:SOCMoveRobber:game=test|playerNumber=2|coord=-50c
 all:SOCMoveRobber:game=test|playerNumber=2|coord=-50c
 all:SOCGameServerText:game=test|text=p2 moved the pirate.
 all:SOCGameState:game=test|state=20
-f2:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=1|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-all:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=1|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+f2:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=1|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=1|ore=1|sheep=0|wheat=0|wood=0|unknown=0
 all:SOCClearTradeMsg:game=test|playerNumber=-1
 f2:SOCClearOffer:game=test|playerNumber=0
 all:SOCClearOffer:game=test|playerNumber=2
 all:SOCClearTradeMsg:game=test|playerNumber=-1
-f2:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-all:SOCMakeOffer:game=test|offer=game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+f2:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
 all:SOCClearTradeMsg:game=test|playerNumber=-1
 f3:SOCRejectOffer:game=test|playerNumber=0
 all:SOCRejectOffer:game=test|playerNumber=3
@@ -340,8 +340,8 @@ all:SOCDiceResult:game=test|param=6
 all:SOCDiceResultResources:game=test|p=1|p=2|p=2|p=1|p=5
 p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=0,e3=0,e4=1,e5=1
 all:SOCGameState:game=test|state=20
-f3:SOCMakeOffer:game=test|offer=game=test|from=3|to=false,false,true,false|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
-all:SOCMakeOffer:game=test|offer=game=test|from=3|to=false,false,true,false|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
+f3:SOCMakeOffer:game=test|from=3|to=false,false,true,false|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
+all:SOCMakeOffer:game=test|from=3|to=false,false,true,false|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
 all:SOCClearTradeMsg:game=test|playerNumber=-1
 f2:SOCAcceptOffer:game=test|accepting=0|offering=3
 all:SOCAcceptOffer:game=test|accepting=2|offering=3|toAccepting=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
@@ -742,8 +742,8 @@ all:SOCDiceResult:game=test|param=10
 all:SOCDiceResultResources:game=test|p=1|p=3|p=5|p=2|p=2
 p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=2,e3=0,e4=2,e5=1
 all:SOCGameState:game=test|state=20
-f3:SOCMakeOffer:game=test|offer=game=test|from=3|to=false,false,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-all:SOCMakeOffer:game=test|offer=game=test|from=3|to=false,false,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+f3:SOCMakeOffer:game=test|from=3|to=false,false,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCMakeOffer:game=test|from=3|to=false,false,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
 all:SOCClearTradeMsg:game=test|playerNumber=-1
 f2:SOCAcceptOffer:game=test|accepting=0|offering=3
 all:SOCAcceptOffer:game=test|accepting=2|offering=3|toAccepting=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|toOffering=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
