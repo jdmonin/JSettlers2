@@ -2342,7 +2342,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * if subtracting more than the known amount of those resources
      * (which often happens for non-client players).
      *<P>
-     * Call this method only if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
+     * Call this method only if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_OMIT_PLAYERELEMENTS}).
      * Older servers send PLAYERELEMENT messages before BANKTRADE, so calling this would subtract/add resources twice.
      *
      *<H3>Threads:</H3>

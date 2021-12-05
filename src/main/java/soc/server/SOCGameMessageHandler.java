@@ -850,7 +850,7 @@ public class SOCGameMessageHandler
                 ga.discard(pn, res);  // discard, maybe change gameState
 
                 final boolean cliVersionsSendDiscard =
-                    (ga.clientVersionHighest >= SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE);
+                    (ga.clientVersionHighest >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE);
                 final SOCDiscard disMsg =
                     (cliVersionsSendDiscard || srv.isRecordGameEventsActive())
                     ? new SOCDiscard(gn, pn, res)
@@ -863,17 +863,17 @@ public class SOCGameMessageHandler
                 {
                     // fully observable: announce to everyone
 
-                    if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE)
+                    if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE)
                     {
                         srv.messageToGame(gn, true, disMsg);
                     } else {
                         srv.recordGameEvent(gn, disMsg);
                         srv.messageToGameForVersions
-                            (ga, SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE,
+                            (ga, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE,
                              disMsg, true);
                         handler.reportRsrcGainLossForVersions
                             (ga, res, true, false, pn, -1, null,
-                             SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1);
+                             SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1);
                     }
                 } else {
                     // tell the player client that the player discarded the resources
@@ -884,32 +884,32 @@ public class SOCGameMessageHandler
                         ? new SOCDiscard(gn, pn, 0, 0, 0, 0, 0, numRes)
                         : null;
 
-                    if (c.getVersion() >= SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE)
+                    if (c.getVersion() >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE)
                     {
                         srv.messageToPlayer(c, gn, pn, disMsg);
                     } else {
                         srv.recordGameEventTo(gn, pn, disMsg);
                         handler.reportRsrcGainLossForVersions
                             (ga, res, true, false, pn, -1, c,
-                             SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1);
+                             SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1);
                     }
 
-                    if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE)
+                    if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE)
                     {
                         srv.messageToGameExcept(gn, c, pn, disUnknownMsg, true);
                     } else {
                         srv.recordGameEventNotTo(gn, pn, disUnknownMsg);
                         srv.messageToGameForVersionsExcept
-                            (ga, SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE, c,
+                            (ga, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE, c,
                              disUnknownMsg, true);
                         srv.messageToGameForVersionsExcept
-                            (ga, -1, SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1, c,
+                            (ga, -1, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1, c,
                              new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
                              true);
                     }
                 }
                 srv.messageToGameForVersionsKeyed
-                    (ga, -1, SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1, true, false,
+                    (ga, -1, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1, true, false,
                      "action.discarded.total.common", player.getName(), numRes);
                         // "{0} discarded {1} resources."
 
@@ -925,13 +925,13 @@ public class SOCGameMessageHandler
                         // send text prompt to all versions
 
                         final SOCGameState gstateMsg = new SOCGameState(gn, gstate);
-                        if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE)
+                        if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE)
                         {
                             srv.messageToGame(gn, true, gstateMsg);
                         } else {
                             srv.recordGameEvent(gn, gstateMsg);
                             srv.messageToGameForVersions
-                                (ga, SOCDiscard.VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE,
+                                (ga, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE,
                                  gstateMsg, true);
                         }
                         handler.sendGameState(ga, true, false, false);

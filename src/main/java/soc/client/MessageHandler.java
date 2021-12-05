@@ -2191,7 +2191,7 @@ public class MessageHandler
     /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
      * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(SOCBankTrade, SOCGame)}
-     * if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_SKIP_PLAYERELEMENTS}).
+     * if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_OMIT_PLAYERELEMENTS}).
      *
      * @param mes  the message
      * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
@@ -2204,7 +2204,7 @@ public class MessageHandler
         if (ga == null)
             return;
 
-        if (isPractice || (client.sVersion >= SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS))
+        if (isPractice || (client.sVersion >= SOCBankTrade.VERSION_FOR_OMIT_PLAYERELEMENTS))
             SOCDisplaylessPlayerClient.handleBANKTRADE(mes, ga);
 
         PlayerClientListener pcl = client.getClientListener(gaName);

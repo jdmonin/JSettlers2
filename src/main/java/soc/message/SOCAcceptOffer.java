@@ -43,7 +43,7 @@ import soc.game.SOCResourceSet;
  * Servers before v2.5.00 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
  * sent an explanatory {@link SOCGameServerText} instead.
  *<P>
- * In v2.5 and newer ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}),
+ * In v2.5 and newer ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS}),
  * the server's {@code SOCAcceptOffer} contains the resources being traded.
  *<P>
  * Only v1.x clients are sent the {@code SOCGameTextMsg}, which conveys the same info as this {@code SOCAcceptOffer}.
@@ -65,7 +65,7 @@ public class SOCAcceptOffer extends SOCMessage
      * and server doesn't accompany this message with {@link SOCPlayerElement}s.
      * @since 2.5.00
      */
-    public static final int VERSION_FOR_SKIP_PLAYERELEMENTS = 2500;
+    public static final int VERSION_FOR_OMIT_PLAYERELEMENTS = 2500;
 
     /**
      * Name of game
@@ -103,7 +103,7 @@ public class SOCAcceptOffer extends SOCMessage
 
     /**
      * Create an AcceptOffer message which doesn't include the resources traded.
-     * Sent from client, or from server to clients older than v2.5.00 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}).
+     * Sent from client, or from server to clients older than v2.5.00 ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS}).
      *
      * @param ga  the name of the game
      * @param ac  the player number of the accepting player;
@@ -119,7 +119,7 @@ public class SOCAcceptOffer extends SOCMessage
 
     /**
      * Create an AcceptOffer message from server which can include the resources traded.
-     * Clients older than v2.5.00 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}) ignore the resource fields when parsing.
+     * Clients older than v2.5.00 ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS}) ignore the resource fields when parsing.
      *
      * @param ga  the name of the game
      * @param ac  the player number of the accepting player;
@@ -182,7 +182,7 @@ public class SOCAcceptOffer extends SOCMessage
     /**
      * In announcement from server, resources to be given to the {@link #getAcceptingNumber()} player
      * from the {@link #getOfferingNumber()} player. {@code null} from client or from servers
-     * older than v2.5 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}).
+     * older than v2.5 ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS}).
      *<P>
      * Earlier versions got the resource details by calling {@link soc.game.SOCPlayer#getCurrentOffer()} instead.
      *
@@ -198,7 +198,7 @@ public class SOCAcceptOffer extends SOCMessage
     /**
      * In announcement from server, resources to be given to the {@link #getOfferingNumber()} player
      * from the {@link #getAcceptingNumber()} player. {@code null} from client or from servers
-     * older than v2.5 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}).
+     * older than v2.5 ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS}).
      *<P>
      * Earlier versions got the resource details by calling {@link soc.game.SOCPlayer#getCurrentOffer()} instead.
      *

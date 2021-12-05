@@ -3293,14 +3293,14 @@ public class SOCGameHandler extends GameHandler
         final SOCResourceSet giveSet = offer.getGiveSet(),
                              getSet  = offer.getGetSet();
 
-        if (ga.clientVersionLowest < SOCAcceptOffer.VERSION_FOR_SKIP_PLAYERELEMENTS)
+        if (ga.clientVersionLowest < SOCAcceptOffer.VERSION_FOR_OMIT_PLAYERELEMENTS)
         {
             reportRsrcGainLossForVersions
                 (ga, giveSet, true, false, offering, accepting, null,
-                 SOCAcceptOffer.VERSION_FOR_SKIP_PLAYERELEMENTS - 1);
+                 SOCAcceptOffer.VERSION_FOR_OMIT_PLAYERELEMENTS - 1);
             reportRsrcGainLossForVersions
                 (ga, getSet, false, false, offering, accepting, null,
-                 SOCAcceptOffer.VERSION_FOR_SKIP_PLAYERELEMENTS - 1);
+                 SOCAcceptOffer.VERSION_FOR_OMIT_PLAYERELEMENTS - 1);
         }
 
         srv.messageToGame(gaName, true, new SOCAcceptOffer(gaName, accepting, offering, giveSet, getSet));
@@ -3334,12 +3334,12 @@ public class SOCGameHandler extends GameHandler
         final String gaName = ga.getName();
         final int    cpn    = ga.getCurrentPlayerNumber();
 
-        if (ga.clientVersionLowest <= SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS)
+        if (ga.clientVersionLowest <= SOCBankTrade.VERSION_FOR_OMIT_PLAYERELEMENTS)
         {
             reportRsrcGainLossForVersions
-                (ga, give, true, false, cpn, -1, null, SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS - 1);
+                (ga, give, true, false, cpn, -1, null, SOCBankTrade.VERSION_FOR_OMIT_PLAYERELEMENTS - 1);
             reportRsrcGainLossForVersions
-                (ga, get, false, false, cpn, -1, null, SOCBankTrade.VERSION_FOR_SKIP_PLAYERELEMENTS - 1);
+                (ga, get, false, false, cpn, -1, null, SOCBankTrade.VERSION_FOR_OMIT_PLAYERELEMENTS - 1);
         }
 
         SOCBankTrade bt = null;

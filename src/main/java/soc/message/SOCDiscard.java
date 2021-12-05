@@ -39,7 +39,7 @@ import java.util.StringTokenizer;
  * If this is the right total amount to discard, server will respond to player
  * with {@code SOCDiscard} to confirm the details, and report only the total amount discarded
  * to the other players via {@code SOCDiscard}(UNKNOWN=total).
- * Clients older than v2.5 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE})
+ * Clients older than v2.5 ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE})
  * are instead sent {@link SOCPlayerElement} or {@link SOCPlayerElements}(LOSE) messages and text.
  *<P>
  * Server will then send the new {@link SOCGameState}.
@@ -71,7 +71,7 @@ public class SOCDiscard extends SOCMessage
      *
      * @since 2.5.00
      */
-    public static final int VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE = 2500;
+    public static final int VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE = 2500;
 
     /**
      * Name of game
@@ -109,7 +109,7 @@ public class SOCDiscard extends SOCMessage
      *
      * @param ga  the name of the game
      * @param pn  Player number, or -1 if none; requires v2.5 or newer client/server
-     *     ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE})
+     *     ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE})
      * @param cl  the amount of clay being discarded
      * @param or  the amount of ore being discarded
      * @param sh  the amount of sheep being discarded
@@ -131,7 +131,7 @@ public class SOCDiscard extends SOCMessage
      *
      * @param ga  the name of the game
      * @param pn  Player number, or -1 if none; player number requires v2.5 or newer client/server
-     *     ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE})
+     *     ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE})
      * @param rs  the resources being discarded
      */
     public SOCDiscard(String ga, int pn, ResourceSet rs)
@@ -152,7 +152,7 @@ public class SOCDiscard extends SOCMessage
 
     /**
      * Get the optional player number discarding. Not sent from client or from server older than v2.5
-     * ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS_ALWAYS_GAMESTATE}).
+     * ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE}).
      * @return the player number, or -1 if none in message
      */
     public int getPlayerNumber()

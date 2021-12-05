@@ -36,7 +36,7 @@ import java.util.StringTokenizer;
  *<P>
  * If the client's trade request is acceptable, server responds to entire game with:
  *<UL>
- * <LI> {@link SOCPlayerElement}s to clients older than v2.5.00 ({@link #VERSION_FOR_SKIP_PLAYERELEMENTS}):
+ * <LI> {@link SOCPlayerElement}s to clients older than v2.5.00 ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS}):
  *      A {@link SOCPlayerElement#LOSE} for each resource type being traded in,
  *      then {@link SOCPlayerElement#GAIN} for those given to the player.
  * <LI> This {@code SOCBankTrade} to announce the trade details to clients v2.0.00 or higher;
@@ -68,7 +68,7 @@ public class SOCBankTrade extends SOCMessage
      * the player's resources.
      * @since 2.5.00
      */
-    public static final int VERSION_FOR_SKIP_PLAYERELEMENTS = 2500;
+    public static final int VERSION_FOR_OMIT_PLAYERELEMENTS = 2500;
 
     /**
      * Name of game
