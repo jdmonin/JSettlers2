@@ -261,7 +261,8 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed.
      * Used with some scenarios (see {@link SOCGameOptionSet#K_SC_FOG}).
-     * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
+     * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed,
+     * except the robber and pirate can't be moved onto a fog hex.
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only at the server during
      * {@link #makeNewBoard(SOCGameOptionSet)} before the board layout is finished and sent to the client.
@@ -2045,6 +2046,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this the coordinate of a land hex (not water)?
+     * Returns true for {@link #FOG_HEX} even though fog can sometimes be hidden water.
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if land, false if water or not a valid hex coordinate
      * @see #isHexOnWater(int)
@@ -2059,6 +2061,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this the coordinate of a water hex (not land)?
+     * Returns false for {@link #FOG_HEX} even though fog can sometimes be hidden water.
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if water, false if land or not a valid hex coordinate
      * @see #isHexOnLand(int)

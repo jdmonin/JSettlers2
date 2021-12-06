@@ -6303,6 +6303,7 @@ public class SOCGame implements Serializable, Cloneable
      * Must be different from current robber coordinates.
      * Must not be a desert if {@link SOCGameOption game option} RD is set to true
      * ("Robber can't return to the desert").
+     * Must not be a fog hex ({@link SOCBoardLarge#FOG_HEX} can sometimes be hidden water, not land).
      * Must be current player.  Game state must be {@link #PLACING_ROBBER}.
      *
      * @return true if the player can move the robber to the coordinates
@@ -6434,6 +6435,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player currently move the pirate ship to these coordinates?
      * Must be a water hex, per {@link SOCBoardLarge#isHexOnWater(int)}.
      * Must be different from current pirate coordinates.
+     * Must not be a fog hex ({@link SOCBoardLarge#FOG_HEX} can sometimes be hidden land, not water).
      * Game must have {@link #hasSeaBoard}.
      * Must be current player.  Game state must be {@link #PLACING_PIRATE}.
      * For scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}, the player
