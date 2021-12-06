@@ -284,10 +284,11 @@ public class SOCRobotNegotiator
     /***
      * Make an trade offer to another player, or decide to make no offer,
      * based on what we want to build and our player's current {@link SOCPlayer#getResources()}.
+     * Checks {@link SOCBuildPlan#getFirstPieceResources()}.
      *<P>
      * Before v2.5.00 this method took a {@link SOCPossiblePiece} instead of a {@link SOCBuildPlan}.
      *
-     * @param buildPlan  our build plan, or {@code null}
+     * @param buildPlan  our build plan, or {@code null} or empty
      * @return the offer we want to make, or {@code null} for no offer
      * @see #getOfferToBank(SOCBuildPlan, SOCResourceSet)
      */
@@ -299,16 +300,11 @@ public class SOCRobotNegotiator
         {
             return null;
         }
-        SOCPossiblePiece targetPiece = buildPlan.getPlannedPiece(0);
-        if (targetPiece == null)
-        {
-            return null;
-        }
 
         SOCTradeOffer offer = null;
 
-        SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
-        if (targetResources == null)
+        SOCResourceSet targetResources = buildPlan.getFirstPieceResources();
+        if (targetResources.isEmpty())
             return null;
 
         SOCResourceSet ourResources = ourPlayerData.getResources();
@@ -1133,8 +1129,11 @@ public class SOCRobotNegotiator
 
                 SOCBuildingSpeedEstimate estimate = brain.getEstimator(receiverPlayerData.getNumbers());
 
-                SOCTradeOffer receiverBatna = getOfferToBank(targetResources);
-                D.ebugPrintlnINFO("*** receiverBatna = " + receiverBatna);
+                if (D.ebugIsEnabled())
+                {
+                    SOCTradeOffer receiverBatna = getOfferToBank(targetResources);
+                    D.ebugPrintlnINFO("*** receiverBatna = " + receiverBatna);
+                }
 
                 int batnaBuildingTime = getETAToTargetResources(receiverPlayerData, targetResources, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET, estimate);
 
@@ -2530,7 +2529,7 @@ public class SOCRobotNegotiator
      *<P>
      * Calls {@link #getOfferToBank(SOCResourceSet, SOCResourceSet)}.
      *
-     * @param targetResources  what resources we want; not {@code null}
+     * @param targetResources  what resources we want; can be {@code null} or empty
      * @return the offer that we'll make to the bank/ports based on the resources we have,
      *     or {@code null} if {@code ourPlayerData.getResources()} already contains all needed {@code targetResources}
      * @see #makeOffer(SOCBuildPlan)

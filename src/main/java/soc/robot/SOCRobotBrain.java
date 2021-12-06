@@ -4994,7 +4994,7 @@ public class SOCRobotBrain extends Thread
      *
      * @param buildPlan  Build plan to look for resources to build. {@code getOfferToBank(..)}
      *     will typically call {@link SOCBuildPlan#getFirstPieceResources()} to determine
-     *     the resources we want. Can be {@code null} or an empty plan (returns false).
+     *     the resources we want. Can be {@code null} or empty (returns false).
      * @return true if we sent a request to trade, false if
      *     we already have the resources or if we don't have
      *     enough to trade in for {@code buildPlan}'s required resources.
