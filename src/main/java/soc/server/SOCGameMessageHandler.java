@@ -1229,11 +1229,15 @@ public class SOCGameMessageHandler
                     srv.messageToPlayer(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, msg);
                 }
             } else if (handler.checkTurn(c, ga)) {
-                SOCPlayer pl = ga.getPlayer(plName);
-                if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
+                final SOCPlayer pl = ga.getPlayer(plName);  // shouldn't be null, because checkTurn true
+                final int pn = (pl != null) ? pl.getPlayerNumber() : -1;
+                if ((pl != null) && ga.canEndTurn(pn))
+                {
                     handler.endGameTurn(ga, pl, true);
-                else
+                } else {
                     srv.messageToPlayerKeyed(c, gname, pl.getPlayerNumber(), "reply.endturn.cannot");  // "You can't end your turn yet."
+                    srv.messageToPlayer(c, gname, pn, new SOCGameState(gname, gaState));  // to help prompt action
+                }
             } else {
                 srv.messageToPlayerKeyed(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }

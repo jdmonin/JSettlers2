@@ -27,6 +27,10 @@ package soc.message;
  * If player does so while placing free roads/ships from the Road Building card,
  * also cancels playing that card as if they sent {@link SOCCancelBuildRequest};
  * see that message for details.
+ *<P>
+ * If player can't end their turn yet (based on gameState) because the game is waiting for them
+ * to make a choice or take action (move robber, choose a resource type, etc), server will respond with
+ * a reminder {@link SOCGameServerText} and the current {@link SOCGameState} to prompt them.
  *
  * @author Robert S. Thomas
  */
