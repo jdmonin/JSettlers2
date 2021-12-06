@@ -4809,7 +4809,8 @@ public class SOCGame implements Serializable, Cloneable
      * place both free roads. They also can call {@link #cancelBuildRoad(int)}
      * to continue their turn without placing the second free road.
      *
-     * @param pn  player number of the player who wants to end the turn
+     * @param pn  player number of the player who wants to end the turn;
+     *    returns false if out of range (-1, etc)
      * @return true if okay for this player to end the turn
      *    (They are current player; game state is {@link #PLAY1} or {@link #SPECIAL_BUILDING};
      *    or is {@link #PLACING_FREE_ROAD1} or {@link #PLACING_FREE_ROAD2} and

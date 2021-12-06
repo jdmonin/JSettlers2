@@ -1231,11 +1231,12 @@ public class SOCGameMessageHandler
             } else if (handler.checkTurn(c, ga)) {
                 final SOCPlayer pl = ga.getPlayer(plName);  // shouldn't be null, because checkTurn true
                 final int pn = (pl != null) ? pl.getPlayerNumber() : -1;
-                if ((pl != null) && ga.canEndTurn(pn))
+
+                if (ga.canEndTurn(pn))
                 {
                     handler.endGameTurn(ga, pl, true);
                 } else {
-                    srv.messageToPlayerKeyed(c, gname, pl.getPlayerNumber(), "reply.endturn.cannot");  // "You can't end your turn yet."
+                    srv.messageToPlayerKeyed(c, gname, pn, "reply.endturn.cannot");  // "You can't end your turn yet."
                     srv.messageToPlayer(c, gname, pn, new SOCGameState(gname, gaState));  // to help prompt action
                 }
             } else {
