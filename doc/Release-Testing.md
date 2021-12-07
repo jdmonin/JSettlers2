@@ -422,11 +422,19 @@ When preparing to release a new version, testing should include:
             - Start a game with robot player at seat number 2
             - Give dev cards to bot player:  
               `dev: 3 #2`  
-              `dev: 6 #2`
+              `dev: 6 #2`  
+              `dev: 9 #2`
             - Have second client join as observer (same version as first client)
             - Should see correct number of dev cards for bot
             - Sit down observer to take over bot's seat
-            - Should see correct card types in inventory (Monopoly, University); shouldn't see any unknown cards
+            - Should see correct card types in inventory (Monopoly, University, Knight); shouldn't see any unknown cards
+            - Play 1 round, so new dev cards become old
+            - Give that player another dev card:  
+              `dev: 1 #2`
+            - Have former observer exit, re-launch, rejoin and sit at bot player
+            - Should see 3 old, 1 new dev cards
+            - Optional: Do this test once with PLAY_VPO game option active
+                - A 2nd client (same version as 1st; must be v2.5+) should see those card details correctly as observer, without sitting down
         - When testing a 2.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
