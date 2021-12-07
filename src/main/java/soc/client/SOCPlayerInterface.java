@@ -3201,16 +3201,22 @@ public class SOCPlayerInterface extends Frame
                     printKeyedSpecial
                         ("robber.stole.resource.from.play_fo",  // "{0} stole {2,rsrcs} from {1}."
                          peName, viName, (amount != 1) ? amount : -1, resType);
-                else
+                else if (amount == 1)
                     printKeyed
                         ("robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+                else
+                    printKeyed
+                        ("robber.common.stole.resource.from.n",  // "{0} stole {2} resources from {1}."
+                         peName, viName, amount);
             } else {
                 if (perpPN == clientHandPlayerNum)
                     printKeyedSpecial
-                        ("robber.common.you.stole.resource.from", -1, resType, viName);  // "You stole {0,rsrcs} from {2}."
+                        ("robber.common.you.stole.resource.from",  // "You stole {0,rsrcs} from {2}."
+                         (amount != 1) ? amount : -1, resType, viName);
                 else
                     printKeyedSpecial
-                        ("robber.common.stole.resource.from.you", peName, -1, resType);  // "{0} stole {1,rsrcs} from you."
+                        ("robber.common.stole.resource.from.you",  // "{0} stole {1,rsrcs} from you."
+                         peName, (amount != 1) ? amount : -1, resType);
             }
 
             if (perpPN >= 0)
