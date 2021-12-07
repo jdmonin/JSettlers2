@@ -1482,6 +1482,8 @@ public class TestActionsMessages
     /**
      * Player trade offers: Connect with 2 clients, have one offer a trade to the other,
      * send a counter-offer, first client accepts counter-offer. Also tests clear offer.
+     * Then tests resource tracking when non-client trade partner has unknown resources
+     * (indirectly tests {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}).
      * Declining a trade offer is tested by {@link TestRecorder#testTradeDecline2Clients()}.
      */
     @Test
@@ -1571,13 +1573,98 @@ public class TestActionsMessages
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertArrayEquals(new int[]{4, 2, 3, 3, 4}, cli1Pl.getResources().getAmounts(false));
-        assertArrayEquals(new int[]{0, 2, 2, 1, 0}, cli2Pl.getResources().getAmounts(false));
+        assertArrayEquals
+            (gaName + ": cli1 res at server after trade",
+             new int[]{4, 2, 3, 3, 4}, cli1Pl.getResources().getAmounts(false));
+        assertArrayEquals
+            (gaName + ": cli2 res at server after trade",
+             new int[]{0, 2, 2, 1, 0}, cli2Pl.getResources().getAmounts(false));
         assertNull(cli2Pl.getCurrentOffer());
+
+        /* Test tracking unknown resources: */
+
+        final SOCGame gaAtCli1 = tcli1.getGame(gaName), gaAtCli2 = tcli2.getGame(gaName);
+        assertNotNull("found " + gaName + " at cli1", gaAtCli1);
+        assertNotNull("found " + gaName + " at cli2", gaAtCli2);
+        final SOCPlayer pl1AtCli1 = gaAtCli1.getPlayer(PN_C1), pl2AtCli1 = gaAtCli1.getPlayer(PN_C2),
+            pl1AtCli2 = gaAtCli2.getPlayer(PN_C1), pl2AtCli2 = gaAtCli2.getPlayer(PN_C2);
+        {
+            final String pname1 = cli1Pl.getName(), pname2 = cli2Pl.getName();
+            assertFalse(pname1.isEmpty());
+            assertFalse(pname2.isEmpty());
+            assertEquals("found " + pname1 + " in cli1 game", pname1, pl1AtCli1.getName());
+            assertEquals("found " + pname1 + " in cli2 game", pname1, pl1AtCli2.getName());
+            assertEquals("found " + pname2 + " in cli1 game", pname2, pl2AtCli1.getName());
+            assertEquals("found " + pname2 + " in cli2 game", pname2, pl2AtCli2.getName());
+        }
+
+        /* set up known and unknown resources at clients and server */
+
+        // PN_C1 will offer to give 1 ore, receive 2 wood from PN_C2:
+        // PN_C1: Start with 1 clay 3 ore, or 1 clay 3 unknown; trade away 1 non-clay resource (ore),
+        //        then afterwards have (1 clay 2 ore, or 1 clay 2 unknown) + the received 2 wood
+        // PN_C2: Start with 2 sheep 2 wood, or 1 wood 3 unknown; trade away 2 wood resources,
+        //        so will convert all to 4 unknown before trade,
+        //        then afterwards have (2 sheep, or 2 unknown) + the received 1 ore resource
+        final SOCResourceSet c1Known = new SOCResourceSet(1, 3, 0, 0, 0, 0),
+            c2Known = new SOCResourceSet(0, 0, 2, 0, 2, 0);
+        cli1Pl.getResources().setAmounts(c1Known);
+        cli2Pl.getResources().setAmounts(c2Known);
+        pl1AtCli1.getResources().setAmounts(c1Known);
+        pl2AtCli2.getResources().setAmounts(c2Known);
+        pl1AtCli2.getResources().setAmounts(new SOCResourceSet(1, 0, 0, 0, 0, 3));
+        pl2AtCli1.getResources().setAmounts(new SOCResourceSet(0, 0, 0, 0, 1, 3));
+
+        /* client 1: make offer only to client 2 */
+
+        final SOCResourceSet GIVING_2 = new SOCResourceSet(0, 1, 0, 0, 0, 0),
+            GETTING_2 = new SOCResourceSet(0, 0, 0, 0, 2, 0);
+        tcli1.offerTrade(ga, new SOCTradeOffer
+            (gaName, PN_C1, OFFERED_TO, GIVING_2, GETTING_2));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        offer = cli1Pl.getCurrentOffer();
+        assertNotNull(offer);
+        assertEquals(PN_C1, offer.getFrom());
+        assertArrayEquals(OFFERED_TO, offer.getTo());
+        assertEquals(GIVING_2, offer.getGiveSet());
+        assertEquals(GETTING_2, offer.getGetSet());
+        assertTrue(offer.isWaitingReplyFrom(PN_C2));
+
+        /* client 2: accept offer */
+
+        tcli2.acceptOffer(ga, PN_C1);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        // players at server:
+        assertArrayEquals
+            (gaName + ": cli1 res at server after trade",
+             new int[]{1, 2, 0, 0, 2}, cli1Pl.getResources().getAmounts(false));
+        assertArrayEquals
+            (gaName + ": cli2 res at server after trade",
+             new int[]{0, 1, 2, 0, 0}, cli2Pl.getResources().getAmounts(false));
+        assertNull(cli1Pl.getCurrentOffer());
+        // at tcli1:
+        assertArrayEquals
+            (gaName + ": cli1 res at cli1 after trade",
+             new int[]{1, 2, 0, 0, 2}, pl1AtCli1.getResources().getAmounts(false));
+        assertArrayEquals
+            (gaName + ": cli2 res at cli1 after trade",
+             new int[]{0, 1, 0, 0, 0, 2}, pl2AtCli1.getResources().getAmounts(true));
+        // at tcli2:
+        assertArrayEquals
+            (gaName + ": cli1 res at cli2 after trade",
+             new int[]{1, 0, 0, 0, 2, 2}, pl1AtCli2.getResources().getAmounts(true));
+        assertArrayEquals
+            (gaName + ": cli2 res at cli2 after trade",
+             new int[]{0, 1, 2, 0, 0}, pl2AtCli2.getResources().getAmounts(false));
 
         StringBuilder compares = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
+                // usual trade
                 {"all:SOCMakeOffer:", "|from=" + PN_C1
                  + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
@@ -1588,7 +1675,14 @@ public class TestActionsMessages
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
                 {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2
                     + "|toAccepting=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
-                {"all:SOCClearOffer:", "|playerNumber=-1"}
+                {"all:SOCClearOffer:", "|playerNumber=-1"},
+
+                // tracking unknown resources
+                {"all:SOCMakeOffer:", "|from=" + + PN_C1
+                 + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0"},
+                {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
+                {"all:SOCAcceptOffer:", "|accepting=2|offering=3|toAccepting=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0"},
+                {"all:SOCClearOffer:", "|playerNumber=-1"},
             }, false);
 
         /* leave game, check results */

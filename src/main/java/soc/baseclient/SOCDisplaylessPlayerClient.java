@@ -226,6 +226,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * the games we're playing
+     *<P>
+     * Games are added by {@link #handleJOINGAMEAUTH(SOCJoinGameAuth, boolean)},
+     * removed by {@link #leaveGame(String)}.
+     * @see #getGame(String)
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
@@ -264,6 +268,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public String getNickname()
     {
         return nickname;
+    }
+
+    /**
+     * Get a game that we've joined in this client.
+     * @param gaName  game name to look for
+     * @return Game if we've joined it, or {@code null} if not found or not joined
+     * @since 2.5.00
+     */
+    public SOCGame getGame(final String gaName)
+    {
+        return games.get(gaName);
     }
 
     /**
@@ -3194,9 +3209,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * user wants to leave a game.
+     * Calls {@link #leaveGame(String)}.
      *
      * @param ga   the game
-     * @see #leaveGame(String)
      */
     public void leaveGame(SOCGame ga)
     {
@@ -3205,6 +3220,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * user wants to leave a game, which they may not have been able to fully join.
+     * Also removes game from client's game list; {@link #getGame(String)} would return {@code null} for it afterwards.
      *
      * @param gaName  the game name
      * @see #leaveGame(SOCGame)
