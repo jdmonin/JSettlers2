@@ -527,9 +527,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean hasPotentialSettlesInitInFog;
 
     /**
-     * a boolean array stating wheather this player is touching a
-     * particular kind of port.
-     * Index == port type, in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
+     * Flags tracking which trade port types this player has; see {@link #getPortFlags()}.
      */
     private boolean[] ports;
 
@@ -877,11 +875,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         // buildingSpeed = new SOCBuildingSpeedEstimate(this);
         ports = new boolean[SOCBoard.WOOD_PORT + 1];
-
-        for (i = SOCBoard.MISC_PORT; i <= SOCBoard.WOOD_PORT; i++)
-        {
-            ports[i] = false;
-        }
 
         roadNodes = new Vector<Integer>(20);
         roadNodeGraph = new Hashtable<Integer, int[]>();
@@ -5269,6 +5262,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the port flags array, which tracks which trade port types this player has.
+     * Array index == port type, in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}.
      * @return the ports array
      */
     public boolean[] getPortFlags()
