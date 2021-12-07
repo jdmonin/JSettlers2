@@ -432,17 +432,32 @@ public class SOCGameMessageHandler
 
                     if (roll.sc_piri_fleetAttackVictim != null)
                     {
+                        final SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
+                        final int vpn = vic.getPlayerNumber();
+                        final String vicName = vic.getName();
+                        final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
                         final SOCResourceSet loot = roll.sc_piri_fleetAttackRsrcs;
                         final int lootTotal = (loot != null) ? loot.getTotal() : 0;
-                        if (lootTotal != 0)
+
+                        if (lootTotal == 0)
                         {
+                            // Special form of SOCReportRobbery to notify newer clients of tie
+                            SOCReportRobbery wonMsg = new SOCReportRobbery
+                                (gn, -1, vpn, 0, true, 0, 0, strength);
+                            if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+                            {
+                                srv.messageToGame(gn, true, wonMsg);
+                            } else {
+                                srv.messageToGameForVersions
+                                    (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, wonMsg, true);
+                                srv.messageToGameForVersionsKeyed
+                                    (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
+                                     false, "action.rolled.sc_piri.player.tied", vicName, strength);
+                                    // "{0} tied against the pirate fleet (strength {1})."
+                                srv.recordGameEvent(gn, wonMsg);
+                            }
+                        } else {
                             final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
-                            SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
-                            final String vicName = vic.getName();
-                            final Connection vCon = srv.getConnection(vicName);
-                            final int vVersion = (vCon != null) ? vCon.getVersion() : 0;
-                            final int vpn = vic.getPlayerNumber();
-                            final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
 
                             if (won)
                             {
@@ -472,6 +487,8 @@ public class SOCGameMessageHandler
                                         (gn, -1, vpn, loot, strength),
                                     reportUnknown = new SOCReportRobbery
                                         (gn, -1, vpn, SOCResourceConstants.UNKNOWN, true, lootTotal, 0, strength);
+                                final Connection vCon = srv.getConnection(vicName);
+                                final int vVersion = (vCon != null) ? vCon.getVersion() : 0;
 
                                 if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
                                 {
@@ -492,7 +509,8 @@ public class SOCGameMessageHandler
                                             (ga, loot, true, true, vpn, -1, null, SOCReportRobbery.MIN_VERSION - 1);
                                         if (vVersion < SOCReportRobbery.MIN_VERSION)
                                             srv.messageToPlayerKeyedSpecial
-                                                (vCon, ga, vpn, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
+                                                (vCon, ga, SOCServer.PN_NON_EVENT,
+                                                 "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
                                                 // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
                                     } else {
                                         // tell the victim which resources they lost
@@ -504,7 +522,8 @@ public class SOCGameMessageHandler
                                             handler.reportRsrcGainLossForVersions
                                                 (ga, loot, true, true, vpn, -1, vCon, SOCReportRobbery.MIN_VERSION - 1);
                                             srv.messageToPlayerKeyedSpecial
-                                                (vCon, ga, vpn, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
+                                                (vCon, ga, SOCServer.PN_NON_EVENT,
+                                                 "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
                                                 // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
                                         }
 

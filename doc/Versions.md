@@ -75,6 +75,9 @@ JARs for recent JSettlers versions can be downloaded from
 		- If client sends SOCEndTurn but player can't end turn yet, server responds with SOCGameState as a prompt
 	- Special Building Phase:
 		- When server sends SOCTurn(SPECIAL_BUILDING), no longer follows with text prompt
+	- Pirate Islands scenario: Attacks by pirate fleet:
+		- Results announced as SOCReportRobbery
+		- Also announces ties
 	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 	- When client joins a game:
 		- If any player currently picking free resources, server sends SOCPlayerElement(NUM_PICK_GOLD_HEX_RESOURCES)

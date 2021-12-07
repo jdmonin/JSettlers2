@@ -904,15 +904,15 @@ public class TestToCmdToStringParse
         },
         {
             // scenario SC_PIRI: to announce player won vs pirate attack, "rob" 0 unknown resources
-            new SOCReportRobbery("ga", -1, 3, SOCResourceConstants.UNKNOWN, true, 0, 0, 0),
-            "1102|ga,-1,3,R,6,0,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resType=6|amount=0|isGainLose=true"
+            new SOCReportRobbery("ga", -1, 3, SOCResourceConstants.UNKNOWN, true, 0, 0, 2),
+            "1102|ga,-1,3,R,6,0,T,0,2",
+            "SOCReportRobbery:game=ga|perp=-1|victim=3|resType=6|amount=0|isGainLose=true|extraValue=2"
         },
         {
             // scenario SC_PIRI: to announce pirate attack result is tied, "rob" 0 resources of type 0
-            new SOCReportRobbery("ga", -1, 3, 0, true, 0, 0, 0),
-            "1102|ga,-1,3,R,0,0,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resType=0|amount=0|isGainLose=true"
+            new SOCReportRobbery("ga", -1, 3, 0, true, 0, 0, 2),
+            "1102|ga,-1,3,R,0,0,T,0,2",
+            "SOCReportRobbery:game=ga|perp=-1|victim=3|resType=0|amount=0|isGainLose=true|extraValue=2"
         },
         {
             new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 0),  // clay != 0 to test that part of parsing

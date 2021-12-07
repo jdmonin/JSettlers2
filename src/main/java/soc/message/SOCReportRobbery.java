@@ -54,7 +54,7 @@ import soc.message.SOCPlayerElement.PEType;
  *          and send player a
  *          {@link SOCSimpleRequest}({@link SOCSimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES})
  *     <LI> If tied: {@link #amount} = 0, {@link #resType} = 0.<BR>
- *          This is optional; so far no released server version reports ties, since nothing is gained or lost.
+ *          Servers older than v2.5 didn't report ties, since nothing is gained or lost.
  *     <LI> If player lost: {@link #amount} = number of resources lost,
  *          {@link #resType} = {@link SOCResourceConstants#UNKNOWN};
  *          server will also send to player with {@link #resSet} or {@link #resType} = specific resources lost
@@ -92,7 +92,7 @@ public class SOCReportRobbery extends SOCMessage
 
     /**
      * Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
-     * or {@link SOCResourceConstants#UNKNOWN}.
+     * or {@link SOCResourceConstants#UNKNOWN}, or 0 if nothing stolen (tied pirate fleet battle).
      * Ignored if <tt>{@link #resSet} != null</tt> or <tt>{@link #peType} != null</tt>.
      */
     public final int resType;
@@ -147,7 +147,7 @@ public class SOCReportRobbery extends SOCMessage
      * @param perpPN  Perpetrator's player number, or -1 if none (for future use by scenarios/expansions)
      * @param victimPN  Victim's player number, or -1 if none (for future use by scenarios/expansions)
      * @param resType  Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
-     *     or {@link SOCResourceConstants#UNKNOWN}
+     *     or {@link SOCResourceConstants#UNKNOWN}, or 0 if nothing stolen (tied pirate fleet battle).
      * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
      * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
      * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise

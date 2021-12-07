@@ -3179,11 +3179,15 @@ public class SOCPlayerInterface extends Frame
                         // "Joe lost 3 resources to pirate fleet attack (strength 3)."
                 }
             }
-            else if ((amount == 0) && (resType == SOCResourceConstants.UNKNOWN))
+            else if (amount == 0)
             {
                 printKeyed
-                    ("action.rolled.sc_piri.player.won.pick.free", viName, extraValue);
+                    ((resType == SOCResourceConstants.UNKNOWN)
+                         ? "action.rolled.sc_piri.player.won.pick.free"
+                         : "action.rolled.sc_piri.player.tied",
+                     viName, extraValue);
                     // "{0} won against the pirate fleet (strength {1,number}) and will pick a free resource"
+                    // or "{0} tied against the pirate fleet (strength {1,number})."
             }
 
             hands[victimPN].updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
