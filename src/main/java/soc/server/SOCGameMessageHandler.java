@@ -389,194 +389,201 @@ public class SOCGameMessageHandler
         {
             final String plName = c.getData();
             final SOCPlayer pl = ga.getPlayer(plName);
-            if ((pl != null) && ga.canRollDice(pl.getPlayerNumber()))
+            if ((pl == null) || ! ga.canRollDice(pl.getPlayerNumber()))
             {
-                /**
-                 * Roll dice, distribute resources in game
-                 */
-                SOCGame.RollResult roll = ga.rollDice();
+                srv.messageToPlayerKeyed
+                    (c, gn,
+                     (pl != null) ? pl.getPlayerNumber() : SOCServer.PN_OBSERVER,
+                     "reply.rolldice.cannot.now");  // "You can't roll right now."
 
-                /**
-                 * Send roll results and then text to client.
-                 * Note that only the total is sent, not the 2 individual dice.
-                 * (Only the _SC_PIRI scenario cares about them indivdually, and
-                 * in that case it prints the result when needed.)
-                 *
-                 * If a 7 is rolled, sendGameState will also say who must discard
-                 * (in a GAMETEXTMSG).
-                 * If a gold hex is rolled, sendGameState will also say who
-                 * must pick resources to gain (in a GAMETEXTMSG).
-                 */
-                srv.messageToGame(gn, true, new SOCDiceResult(gn, ga.getCurrentDice()));
-                if (ga.clientVersionLowest < SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD)
+                return;  // <--- Early return ---
+            }
+
+            /**
+             * Roll dice, distribute resources in game
+             */
+            SOCGame.RollResult roll = ga.rollDice();
+
+            /**
+             * Send roll results and then text to client.
+             * Note that only the total is sent, not the 2 individual dice.
+             * (Only the _SC_PIRI scenario cares about them indivdually, and
+             * in that case it prints the result when needed.)
+             *
+             * If a 7 is rolled, sendGameState will also say who must discard
+             * (in a GAMETEXTMSG).
+             * If a gold hex is rolled, sendGameState will also say who
+             * must pick resources to gain (in a GAMETEXTMSG).
+             */
+            srv.messageToGame(gn, true, new SOCDiceResult(gn, ga.getCurrentDice()));
+            if (ga.clientVersionLowest < SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD)
+            {
+                // backwards-compat: this text message is redundant to v2.0.00 and newer clients
+                // because they print the roll results from SOCDiceResult.  Use SOCGameTextMsg
+                // because pre-2.0.00 clients don't understand SOCGameServerText messages.
+                srv.messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
+                    new SOCGameTextMsg
+                        (gn, SOCGameTextMsg.SERVERNAME,
+                         plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N OK: v1.x always english
+                    true);
+            }
+
+            /** if true but noPlayersGained, will change announcement wording from "No player gets anything". */
+            boolean someoneWonFreeRsrc = false;
+
+            if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
+            {
+                // pirate moves on every roll,
+                // attacks when 1 player's settlement/city is adjacent
+                srv.messageToGame(gn, true, new SOCMoveRobber
+                    (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
+
+                if (roll.sc_piri_fleetAttackVictim != null)
                 {
-                    // backwards-compat: this text message is redundant to v2.0.00 and newer clients
-                    // because they print the roll results from SOCDiceResult.  Use SOCGameTextMsg
-                    // because pre-2.0.00 clients don't understand SOCGameServerText messages.
-                    srv.messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
-                        new SOCGameTextMsg
-                            (gn, SOCGameTextMsg.SERVERNAME,
-                             plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N OK: v1.x always english
-                        true);
-                }
+                    final SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
+                    final int vpn = vic.getPlayerNumber();
+                    final String vicName = vic.getName();
+                    final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
+                    final SOCResourceSet loot = roll.sc_piri_fleetAttackRsrcs;
+                    final int lootTotal = (loot != null) ? loot.getTotal() : 0;
 
-                /** if true but noPlayersGained, will change announcement wording from "No player gets anything". */
-                boolean someoneWonFreeRsrc = false;
-
-                if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
-                {
-                    // pirate moves on every roll,
-                    // attacks when 1 player's settlement/city is adjacent
-                    srv.messageToGame(gn, true, new SOCMoveRobber
-                        (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
-
-                    if (roll.sc_piri_fleetAttackVictim != null)
+                    if (lootTotal == 0)
                     {
-                        final SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
-                        final int vpn = vic.getPlayerNumber();
-                        final String vicName = vic.getName();
-                        final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
-                        final SOCResourceSet loot = roll.sc_piri_fleetAttackRsrcs;
-                        final int lootTotal = (loot != null) ? loot.getTotal() : 0;
-
-                        if (lootTotal == 0)
+                        // Special form of SOCReportRobbery to notify newer clients of tie
+                        SOCReportRobbery wonMsg = new SOCReportRobbery
+                            (gn, -1, vpn, 0, true, 0, 0, strength);
+                        if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
                         {
-                            // Special form of SOCReportRobbery to notify newer clients of tie
-                            SOCReportRobbery wonMsg = new SOCReportRobbery
-                                (gn, -1, vpn, 0, true, 0, 0, strength);
-                            if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+                            srv.messageToGame(gn, true, wonMsg);
+                        } else {
+                            srv.messageToGameForVersions
+                                (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, wonMsg, true);
+                            srv.messageToGameForVersionsKeyed
+                                (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
+                                 false, "action.rolled.sc_piri.player.tied", vicName, strength);
+                                // "{0} tied against the pirate fleet (strength {1})."
+                            srv.recordGameEvent(gn, wonMsg);
+                        }
+                    }
+                    else if (loot.contains(SOCResourceConstants.GOLD_LOCAL))
+                    {
+                        someoneWonFreeRsrc = true;
+
+                        // Special form of SOCReportRobbery to notify newer clients of win
+                        SOCReportRobbery wonMsg = new SOCReportRobbery
+                            (gn, -1, vpn, SOCResourceConstants.UNKNOWN, true, 0, 0, strength);
+                        if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+                        {
+                            srv.messageToGame(gn, true, wonMsg);
+                        } else {
+                            srv.messageToGameForVersions
+                                (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, wonMsg, true);
+                            srv.messageToGameForVersionsKeyed
+                                (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
+                                 false, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
+                                // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
+                            srv.recordGameEvent(gn, wonMsg);
+                        }
+                    }
+                    else
+                    {
+                        // Use SOCReportRobbery if clients new enough, otherwise
+                        // use text and same resource-loss messages sent in handleDISCARD.
+                        // If fully observable (game opt PLAY_FO), announce details to everyone.
+
+                        final SOCReportRobbery reportDetails = new SOCReportRobbery
+                                (gn, -1, vpn, loot, strength),
+                            reportUnknown = new SOCReportRobbery
+                                (gn, -1, vpn, SOCResourceConstants.UNKNOWN, true, lootTotal, 0, strength);
+                        final Connection vCon = srv.getConnection(vicName);
+                        final int vVersion = (vCon != null) ? vCon.getVersion() : 0;
+
+                        if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+                        {
+                            if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
                             {
-                                srv.messageToGame(gn, true, wonMsg);
+                                srv.messageToGame(gn, true, reportDetails);
                             } else {
-                                srv.messageToGameForVersions
-                                    (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, wonMsg, true);
-                                srv.messageToGameForVersionsKeyed
-                                    (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
-                                     false, "action.rolled.sc_piri.player.tied", vicName, strength);
-                                    // "{0} tied against the pirate fleet (strength {1})."
-                                srv.recordGameEvent(gn, wonMsg);
+                                srv.messageToPlayer(vCon, gn, vpn, reportDetails);
+                                srv.messageToGameExcept(gn, vCon, vpn, reportUnknown, true);
                             }
                         } else {
-                            final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
-
-                            if (won)
+                            if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
                             {
-                                someoneWonFreeRsrc = true;
-
-                                // Special form of SOCReportRobbery to notify newer clients of win
-                                SOCReportRobbery wonMsg = new SOCReportRobbery
-                                    (gn, -1, vpn, SOCResourceConstants.UNKNOWN, true, 0, 0, strength);
-                                if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
-                                {
-                                    srv.messageToGame(gn, true, wonMsg);
-                                } else {
-                                    srv.messageToGameForVersions
-                                        (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, wonMsg, true);
-                                    srv.messageToGameForVersionsKeyed
-                                        (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
-                                         false, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
-                                        // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
-                                    srv.recordGameEvent(gn, wonMsg);
-                                }
+                                srv.recordGameEvent(gn, reportDetails);
+                                srv.messageToGameForVersions
+                                    (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, reportDetails, true);
+                                handler.reportRsrcGainLossForVersions
+                                    (ga, loot, true, true, vpn, -1, null, SOCReportRobbery.MIN_VERSION - 1);
+                                if (vVersion < SOCReportRobbery.MIN_VERSION)
+                                    srv.messageToPlayerKeyedSpecial
+                                        (vCon, ga, SOCServer.PN_NON_EVENT,
+                                         "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
+                                        // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
                             } else {
-                                // Use SOCReportRobbery if clients new enough, otherwise
-                                // use text and same resource-loss messages sent in handleDISCARD.
-                                // If fully observable (game opt PLAY_FO), announce details to everyone.
-
-                                final SOCReportRobbery reportDetails = new SOCReportRobbery
-                                        (gn, -1, vpn, loot, strength),
-                                    reportUnknown = new SOCReportRobbery
-                                        (gn, -1, vpn, SOCResourceConstants.UNKNOWN, true, lootTotal, 0, strength);
-                                final Connection vCon = srv.getConnection(vicName);
-                                final int vVersion = (vCon != null) ? vCon.getVersion() : 0;
-
-                                if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+                                // tell the victim which resources they lost
+                                if (vVersion >= SOCReportRobbery.MIN_VERSION)
                                 {
-                                    if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
-                                    {
-                                        srv.messageToGame(gn, true, reportDetails);
-                                    } else {
-                                        srv.messageToPlayer(vCon, gn, vpn, reportDetails);
-                                        srv.messageToGameExcept(gn, vCon, vpn, reportUnknown, true);
-                                    }
+                                    srv.messageToPlayer(vCon, gn, vpn, reportDetails);
                                 } else {
-                                    if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
-                                    {
-                                        srv.recordGameEvent(gn, reportDetails);
-                                        srv.messageToGameForVersions
-                                            (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, reportDetails, true);
-                                        handler.reportRsrcGainLossForVersions
-                                            (ga, loot, true, true, vpn, -1, null, SOCReportRobbery.MIN_VERSION - 1);
-                                        if (vVersion < SOCReportRobbery.MIN_VERSION)
-                                            srv.messageToPlayerKeyedSpecial
-                                                (vCon, ga, SOCServer.PN_NON_EVENT,
-                                                 "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
-                                                // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
-                                    } else {
-                                        // tell the victim which resources they lost
-                                        if (vVersion >= SOCReportRobbery.MIN_VERSION)
-                                        {
-                                            srv.messageToPlayer(vCon, gn, vpn, reportDetails);
-                                        } else {
-                                            srv.recordGameEventTo(gn, vpn, reportDetails);
-                                            handler.reportRsrcGainLossForVersions
-                                                (ga, loot, true, true, vpn, -1, vCon, SOCReportRobbery.MIN_VERSION - 1);
-                                            srv.messageToPlayerKeyedSpecial
-                                                (vCon, ga, SOCServer.PN_NON_EVENT,
-                                                 "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
-                                                // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
-                                        }
-
-                                        // tell everyone else they lost unknown resources
-                                        srv.recordGameEventNotTo(gn, vpn, reportUnknown);
-                                        srv.messageToGameForVersionsExcept
-                                            (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, vCon, reportUnknown, true);
-                                        srv.messageToGameForVersionsExcept
-                                            (ga, -1, SOCReportRobbery.MIN_VERSION - 1, vCon,
-                                             new SOCPlayerElement
-                                                 (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal),
-                                             true);
-                                    }
-
-                                    srv.messageToGameForVersionsKeyedExcept
-                                        (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
-                                         Arrays.asList(new Connection[]{vCon}), false,
-                                         "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
-                                         // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
-                                         // "Joe lost 3 resources to pirate fleet attack (strength 3)."
+                                    srv.recordGameEventTo(gn, vpn, reportDetails);
+                                    handler.reportRsrcGainLossForVersions
+                                        (ga, loot, true, true, vpn, -1, vCon, SOCReportRobbery.MIN_VERSION - 1);
+                                    srv.messageToPlayerKeyedSpecial
+                                        (vCon, ga, SOCServer.PN_NON_EVENT,
+                                         "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
+                                        // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
                                 }
+
+                                // tell everyone else they lost unknown resources
+                                srv.recordGameEventNotTo(gn, vpn, reportUnknown);
+                                srv.messageToGameForVersionsExcept
+                                    (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, vCon, reportUnknown, true);
+                                srv.messageToGameForVersionsExcept
+                                    (ga, -1, SOCReportRobbery.MIN_VERSION - 1, vCon,
+                                     new SOCPlayerElement
+                                         (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal),
+                                     true);
                             }
+
+                            srv.messageToGameForVersionsKeyedExcept
+                                (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
+                                 Arrays.asList(new Connection[]{vCon}), false,
+                                 "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
+                                 // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
+                                 // "Joe lost 3 resources to pirate fleet attack (strength 3)."
                         }
                     }
                 }
+            }
+
+            /**
+             * if the roll is not 7, tell players what they got
+             * (if 7, sendGameState already told them what they lost).
+             */
+            if (ga.getCurrentDice() != 7)
+            {
+                boolean noPlayersGained = true;  // see also someoneWonFreeRsrc
 
                 /**
-                 * if the roll is not 7, tell players what they got
-                 * (if 7, sendGameState already told them what they lost).
+                 * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
+                 * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
+                 * rollRsrcMsg is generated if srv.isRecordGameEventsActive() even if there aren't
+                 * new-enough clients, because recording uses current-version message sequences.
                  */
-                if (ga.getCurrentDice() != 7)
+                String rollRsrcTxtToV1 = null;
+                SOCDiceResultResources rollRsrcMsg = null;
+
+                if ((ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                    || srv.isRecordGameEventsActive())
                 {
-                    boolean noPlayersGained = true;  // see also someoneWonFreeRsrc
+                    rollRsrcMsg = SOCDiceResultResources.buildForGame(ga);
+                    noPlayersGained = (rollRsrcMsg == null);
+                }
 
-                    /**
-                     * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
-                     * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
-                     * rollRsrcMsg is generated if srv.isRecordGameEventsActive() even if there aren't
-                     * new-enough clients, because recording uses current-version message sequences.
-                     */
-                    String rollRsrcTxtToV1 = null;
-                    SOCDiceResultResources rollRsrcMsg = null;
-
-                    if ((ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                        || srv.isRecordGameEventsActive())
-                    {
-                        rollRsrcMsg = SOCDiceResultResources.buildForGame(ga);
-                        noPlayersGained = (rollRsrcMsg == null);
-                    }
-
-                    if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                    {
-                        // Build a string to announce to v1.x.xx clients
+                if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                {
+                    // Build a string to announce to v1.x.xx clients
                     StringBuffer gainsText = new StringBuffer();
 
                     noPlayersGained = true;  // for string spacing; might be false due to loop for new clients in game
@@ -609,222 +616,213 @@ public class SOCGameMessageHandler
 
                     if (! noPlayersGained)
                         rollRsrcTxtToV1 = gainsText.toString();
-
-                    }
-
-                    if (noPlayersGained)
-                    {
-                        String key;
-                        if (roll.cloth == null)
-                            key = (someoneWonFreeRsrc)
-                                ? "action.rolled.no_other_player_gets.anything"  // "No other player gets anything."
-                                : "action.rolled.no_player_gets.anything";       // "No player gets anything."
-                        else
-                            key = (someoneWonFreeRsrc)
-                                ? "action.rolled.no_other_player_gets.resources"  // "No other player gets resources."
-                                : "action.rolled.no_player_gets.resources";       // "No player gets resources."
-                        // debug_printPieceDiceNumbers(ga, message);
-                        srv.messageToGameKeyed(ga, true, true, key);
-                    } else {
-                        if (rollRsrcTxtToV1 == null)
-                            srv.messageToGame(gn, true, rollRsrcMsg);
-                        else if (rollRsrcMsg == null)
-                            srv.messageToGame(gn, true, rollRsrcTxtToV1);
-                        else
-                        {
-                            // neither is null: we have old and new clients
-                            srv.messageToGameForVersions
-                                (ga, 0, (SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1),
-                                 new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcTxtToV1), true);
-                            srv.messageToGameForVersions
-                                (ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
-                                 rollRsrcMsg, true);
-
-                            srv.recordGameEvent(gn, rollRsrcMsg);
-                        }
-
-                        //
-                        //  Send gaining players all their resource info for accuracy
-                        //  and announce their new resource totals to game
-                        //
-                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        {
-                            final SOCPlayer pp = ga.getPlayer(pn);
-                            if (pp.getRolledResources().getKnownTotal() == 0)
-                                continue;  // skip if player didn't gain; before v2.0.00 each player in game got these
-                            final Connection playerCon = srv.getConnection(pp.getName());
-                            if (playerCon == null)
-                                continue;
-
-                            // send CLAY, ORE, SHEEP, WHEAT, WOOD even if player's amount is 0
-                            final SOCResourceSet resources = pp.getResources();
-                            final int[] counts = resources.getAmounts(false);
-                            if (playerCon.getVersion() >= SOCPlayerElements.MIN_VERSION)
-                            {
-                                srv.messageToPlayer(playerCon, gn, pn, new SOCPlayerElements
-                                    (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
-                            } else {
-                                for (int i = 0; i < counts.length; ++i)
-                                    srv.messageToPlayer
-                                        (playerCon, null, SOCServer.PN_NON_EVENT,
-                                         new SOCPlayerElement
-                                             (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
-
-                                if (srv.isRecordGameEventsActive())
-                                    srv.recordGameEventTo(gn, pn, new SOCPlayerElements
-                                        (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
-                            }
-
-                            if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                                srv.messageToGameForVersions
-                                    (ga, -1, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1,
-                                     new SOCResourceCount(gn, pn, resources.getTotal()), true);
-                            // else, already-sent SOCDiceResultResources included players' new resource totals
-
-                            // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
-                            // after the per-player loop
-                        }
-                    }
-
-                    if (roll.cloth != null)
-                    {
-                        // Send village cloth trade distribution
-
-                        if (roll.clothVillages != null)
-                            for (final SOCVillage vi : roll.clothVillages)
-                                srv.messageToGame(gn, true, new SOCPieceValue
-                                    (gn, SOCPlayingPiece.VILLAGE, vi.getCoordinates(), vi.getCloth(), 0));
-
-                        if (roll.cloth[0] > 0)
-                            // some taken from board general supply
-                            srv.messageToGame(gn, true, new SOCPlayerElement
-                                (gn, -1, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT,
-                                 ((SOCBoardLarge) ga.getBoard()).getCloth()));
-
-                        String clplName = null;   // name of first player to receive cloth
-                        int    clplAmount = 0;
-                        ArrayList<String> clpls = null;  // names of all players receiving cloth, if more than one
-                        for (int i = 1; i < roll.cloth.length; ++i)
-                        {
-                            if (roll.cloth[i] == 0)
-                                continue;  // this player didn't receive cloth
-
-                            final int pn = i - 1;
-                            final SOCPlayer clpl = ga.getPlayer(pn);
-                            srv.messageToGame(gn, true, new SOCPlayerElement
-                                (gn, pn, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
-
-                            if (clplName == null)
-                            {
-                                // first pl to receive cloth
-                                clplName = clpl.getName();
-                                clplAmount = roll.cloth[i];
-                            } else {
-                                // second or further player
-                                if (clpls == null)
-                                {
-                                    clpls = new ArrayList<String>();
-                                    clpls.add(clplName);
-                                }
-                                clpls.add(clpl.getName());
-                            }
-                        }
-
-                        if (clpls == null)
-                            srv.messageToGameKeyed
-                                (ga, true, true, "action.rolled.sc_clvi.received.cloth.1", clplName, clplAmount);
-                                // "{0} received {1} cloth from the villages."
-                        else
-                            srv.messageToGameKeyedSpecial
-                                (ga, true, true, "action.rolled.sc_clvi.received.cloth.n", clpls);
-                                // "{0,list} each received cloth from the villages."
-                    }
-
-                    if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                        // gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)s
-                        handler.sendGameState_sendGoldPickAnnounceText(ga, gn, null, roll);
-
-                    /*
-                       if (D.ebugOn) {
-                       for (int i=0; i < SOCGame.MAXPLAYERS; i++) {
-                       SOCResourceSet rsrcs = ga.getPlayer(i).getResources();
-                       String resourceMessage = "PLAYER "+i+" RESOURCES: ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.CLAY)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.ORE)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.SHEEP)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.WHEAT)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.WOOD)+" ";
-                       resourceMessage += rsrcs.getAmount(SOCResourceConstants.UNKNOWN)+" ";
-                       messageToGame(gn, new SOCGameTextMsg(gn, SERVERNAME, resourceMessage));
-                       }
-                       }
-                     */
-
-                    handler.sendGameState(ga);  // Send game state last
                 }
-                else
+
+                if (noPlayersGained)
                 {
-                    /**
-                     * player rolled 7
-                     * Send new game state, then if anyone needs to
-                     * discard or gain gold, prompt them.
-                     */
-
-                    final int newGameState = ga.getGameState();
-                    int[] goldPicks = null;
-                    Connection[] goldPickPlayerClis = null;
-
-                    if (newGameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                    String key;
+                    if (roll.cloth == null)
+                        key = (someoneWonFreeRsrc)
+                            ? "action.rolled.no_other_player_gets.anything"  // "No other player gets anything."
+                            : "action.rolled.no_player_gets.anything";       // "No player gets anything."
+                    else
+                        key = (someoneWonFreeRsrc)
+                            ? "action.rolled.no_other_player_gets.resources"  // "No other player gets resources."
+                            : "action.rolled.no_player_gets.resources";       // "No player gets resources."
+                    // debug_printPieceDiceNumbers(ga, message);
+                    srv.messageToGameKeyed(ga, true, true, key);
+                } else {
+                    if (rollRsrcTxtToV1 == null)
+                        srv.messageToGame(gn, true, rollRsrcMsg);
+                    else if (rollRsrcMsg == null)
+                        srv.messageToGame(gn, true, rollRsrcTxtToV1);
+                    else
                     {
-                        // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
-                        // Send number of picks as part of roll result sequence before game state.
-                        // Resolving the 7 as usual (discards, robbing) will happen after the pick.
+                        // neither is null: we have old and new clients
+                        srv.messageToGameForVersions
+                            (ga, 0, (SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1),
+                             new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcTxtToV1), true);
+                        srv.messageToGameForVersions
+                            (ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
+                             rollRsrcMsg, true);
 
-                        goldPicks = new int[ga.maxPlayers];
-                        goldPickPlayerClis = new Connection[ga.maxPlayers];
-
-                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        {
-                            final SOCPlayer pp = ga.getPlayer(pn);
-                            final int numPick = pp.getNeedToPickGoldHexResources();
-
-                            if (( ! ga.isSeatVacant(pn)) && (numPick > 0))
-                            {
-                                srv.messageToGame(gn, true, new SOCPlayerElement
-                                        (gn, pn, SOCPlayerElement.SET,
-                                         PEType.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
-
-                                goldPicks[pn] = numPick;
-                                goldPickPlayerClis[pn] = srv.getConnection(pp.getName());  // null unlikely but possible
-                            }
-                        }
+                        srv.recordGameEvent(gn, rollRsrcMsg);
                     }
 
-                    handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
+                    //
+                    //  Send gaining players all their resource info for accuracy
+                    //  and announce their new resource totals to game
+                    //
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                    {
+                        final SOCPlayer pp = ga.getPlayer(pn);
+                        if (pp.getRolledResources().getKnownTotal() == 0)
+                            continue;  // skip if player didn't gain; before v2.0.00 each player in game got these
+                        final Connection playerCon = srv.getConnection(pp.getName());
+                        if (playerCon == null)
+                            continue;
 
-                    if (newGameState == SOCGame.WAITING_FOR_DISCARDS)
-                    {
-                        handler.sendGameState_sendDiscardRequests(ga, gn);
-                    }
-                    else if (goldPickPlayerClis != null)
-                    {
-                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        // send CLAY, ORE, SHEEP, WHEAT, WOOD even if player's amount is 0
+                        final SOCResourceSet resources = pp.getResources();
+                        final int[] counts = resources.getAmounts(false);
+                        if (playerCon.getVersion() >= SOCPlayerElements.MIN_VERSION)
                         {
-                            Connection con = goldPickPlayerClis[pn];
-                            if (con != null)
+                            srv.messageToPlayer(playerCon, gn, pn, new SOCPlayerElements
+                                (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
+                        } else {
+                            for (int i = 0; i < counts.length; ++i)
                                 srv.messageToPlayer
-                                    (con, gn, pn, new SOCSimpleRequest
-                                        (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, goldPicks[pn], 0));
+                                    (playerCon, null, SOCServer.PN_NON_EVENT,
+                                     new SOCPlayerElement
+                                         (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
+
+                            if (srv.isRecordGameEventsActive())
+                                srv.recordGameEventTo(gn, pn, new SOCPlayerElements
+                                    (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
                         }
+
+                        if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                            srv.messageToGameForVersions
+                                (ga, -1, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1,
+                                 new SOCResourceCount(gn, pn, resources.getTotal()), true);
+                        // else, already-sent SOCDiceResultResources included players' new resource totals
+
+                        // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
+                        // after the per-player loop
                     }
                 }
+
+                if (roll.cloth != null)
+                {
+                    // Send village cloth trade distribution
+
+                    if (roll.clothVillages != null)
+                        for (final SOCVillage vi : roll.clothVillages)
+                            srv.messageToGame(gn, true, new SOCPieceValue
+                                (gn, SOCPlayingPiece.VILLAGE, vi.getCoordinates(), vi.getCloth(), 0));
+
+                    if (roll.cloth[0] > 0)
+                        // some taken from board general supply
+                        srv.messageToGame(gn, true, new SOCPlayerElement
+                            (gn, -1, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT,
+                             ((SOCBoardLarge) ga.getBoard()).getCloth()));
+
+                    String clplName = null;   // name of first player to receive cloth
+                    int    clplAmount = 0;
+                    ArrayList<String> clpls = null;  // names of all players receiving cloth, if more than one
+                    for (int i = 1; i < roll.cloth.length; ++i)
+                    {
+                        if (roll.cloth[i] == 0)
+                            continue;  // this player didn't receive cloth
+
+                        final int pn = i - 1;
+                        final SOCPlayer clpl = ga.getPlayer(pn);
+                        srv.messageToGame(gn, true, new SOCPlayerElement
+                            (gn, pn, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
+
+                        if (clplName == null)
+                        {
+                            // first pl to receive cloth
+                            clplName = clpl.getName();
+                            clplAmount = roll.cloth[i];
+                        } else {
+                            // second or further player
+                            if (clpls == null)
+                            {
+                                clpls = new ArrayList<String>();
+                                clpls.add(clplName);
+                            }
+                            clpls.add(clpl.getName());
+                        }
+                    }
+
+                    if (clpls == null)
+                        srv.messageToGameKeyed
+                            (ga, true, true, "action.rolled.sc_clvi.received.cloth.1", clplName, clplAmount);
+                            // "{0} received {1} cloth from the villages."
+                    else
+                        srv.messageToGameKeyedSpecial
+                            (ga, true, true, "action.rolled.sc_clvi.received.cloth.n", clpls);
+                            // "{0,list} each received cloth from the villages."
+                }
+
+                if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                    // gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)s
+                    handler.sendGameState_sendGoldPickAnnounceText(ga, gn, null, roll);
+
+                /*
+                   if (D.ebugOn) {
+                   for (int i=0; i < SOCGame.MAXPLAYERS; i++) {
+                   SOCResourceSet rsrcs = ga.getPlayer(i).getResources();
+                   String resourceMessage = "PLAYER "+i+" RESOURCES: ";
+                   resourceMessage += rsrcs.getAmount(SOCResourceConstants.CLAY)+" ";
+                   resourceMessage += rsrcs.getAmount(SOCResourceConstants.ORE)+" ";
+                   resourceMessage += rsrcs.getAmount(SOCResourceConstants.SHEEP)+" ";
+                   resourceMessage += rsrcs.getAmount(SOCResourceConstants.WHEAT)+" ";
+                   resourceMessage += rsrcs.getAmount(SOCResourceConstants.WOOD)+" ";
+                   resourceMessage += rsrcs.getAmount(SOCResourceConstants.UNKNOWN)+" ";
+                   messageToGame(gn, new SOCGameTextMsg(gn, SERVERNAME, resourceMessage));
+                   }
+                   }
+                 */
+
+                handler.sendGameState(ga);  // Send game state last
             }
             else
             {
-                srv.messageToPlayerKeyed
-                    (c, gn,
-                     (pl != null) ? pl.getPlayerNumber() : SOCServer.PN_OBSERVER,
-                     "reply.rolldice.cannot.now");  // "You can't roll right now."
+                /**
+                 * player rolled 7
+                 * Send new game state, then if anyone needs to
+                 * discard or gain gold, prompt them.
+                 */
+
+                final int newGameState = ga.getGameState();
+                int[] goldPicks = null;
+                Connection[] goldPickPlayerClis = null;
+
+                if (newGameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                {
+                    // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
+                    // Send number of picks as part of roll result sequence before game state.
+                    // Resolving the 7 as usual (discards, robbing) will happen after the pick.
+
+                    goldPicks = new int[ga.maxPlayers];
+                    goldPickPlayerClis = new Connection[ga.maxPlayers];
+
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                    {
+                        final SOCPlayer pp = ga.getPlayer(pn);
+                        final int numPick = pp.getNeedToPickGoldHexResources();
+
+                        if (( ! ga.isSeatVacant(pn)) && (numPick > 0))
+                        {
+                            srv.messageToGame(gn, true, new SOCPlayerElement
+                                    (gn, pn, SOCPlayerElement.SET,
+                                     PEType.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
+
+                            goldPicks[pn] = numPick;
+                            goldPickPlayerClis[pn] = srv.getConnection(pp.getName());  // null unlikely but possible
+                        }
+                    }
+                }
+
+                handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
+
+                if (newGameState == SOCGame.WAITING_FOR_DISCARDS)
+                {
+                    handler.sendGameState_sendDiscardRequests(ga, gn);
+                }
+                else if (goldPickPlayerClis != null)
+                {
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                    {
+                        Connection con = goldPickPlayerClis[pn];
+                        if (con != null)
+                            srv.messageToPlayer
+                                (con, gn, pn, new SOCSimpleRequest
+                                    (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, goldPicks[pn], 0));
+                    }
+                }
             }
         }
         catch (Exception e)
