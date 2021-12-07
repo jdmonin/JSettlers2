@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import soc.game.ResourceSet;
 import soc.game.SOCResourceConstants;  // for javadocs only
 import soc.game.SOCResourceSet;
 import soc.message.SOCPlayerElement.PEType;
@@ -154,7 +155,7 @@ public class SOCReportRobbery extends SOCMessage
      * @param extraValue  Optional information related to the robbery, or 0; see {@link #extraValue}
      * @throws IllegalArgumentException if {@code amount}, {@code victimAmount}, or {@code resType} &lt; 0,
      *     or {@code isGainLose} but {@code victimAmount} != 0
-     * @see #SOCReportRobbery(String, int, int, SOCResourceSet, int)
+     * @see #SOCReportRobbery(String, int, int, ResourceSet, int)
      * @see #SOCReportRobbery(String, int, int, PEType, boolean, int, int, int)
      */
     public SOCReportRobbery
@@ -181,7 +182,7 @@ public class SOCReportRobbery extends SOCMessage
      * @see #SOCReportRobbery(String, int, int, PEType, boolean, int, int, int)
      */
     public SOCReportRobbery
-        (final String gaName, final int perpPN, final int victimPN, final SOCResourceSet resSet, final int extraValue)
+        (final String gaName, final int perpPN, final int victimPN, final ResourceSet resSet, final int extraValue)
         throws IllegalArgumentException
     {
         this(gaName, perpPN, victimPN, -1, resSet, null, true, 0, 0, extraValue);
@@ -202,7 +203,7 @@ public class SOCReportRobbery extends SOCMessage
      * @throws IllegalArgumentException if {@code peType} null, or {@code amount} or {@code victimAmount} &lt; 0,
      *     or {@code isGainLose} but {@code victimAmount} != 0
      * @see #SOCReportRobbery(String, int, int, int, boolean, int, int, int)
-     * @see #SOCReportRobbery(String, int, int, SOCResourceSet, int)
+     * @see #SOCReportRobbery(String, int, int, ResourceSet, int)
      */
     public SOCReportRobbery
         (final String gaName, final int perpPN, final int victimPN, final PEType peType,
@@ -214,7 +215,7 @@ public class SOCReportRobbery extends SOCMessage
 
     private SOCReportRobbery
         (final String gaName, final int perpPN, final int victimPN,
-         final int resType, final SOCResourceSet resSet, final PEType peType,
+         final int resType, final ResourceSet resSet, final PEType peType,
          final boolean isGainLose, final int amount, final int victimAmount, final int extraValue)
         throws IllegalArgumentException
     {
@@ -232,7 +233,8 @@ public class SOCReportRobbery extends SOCMessage
         this.perpPN = perpPN;
         this.victimPN = victimPN;
         this.resType = ((resSet == null) && (peType == null)) ? resType : 0;
-        this.resSet = resSet;
+        this.resSet = (resSet == null) ? null : new SOCResourceSet(resSet);
+            // deep copy in case fields change later (like reused SOCGame.RollResult.sc_piri_fleetAttackRsrcs)
         this.peType = peType;
         this.isGainLose = isGainLose;
         this.amount = amount;
