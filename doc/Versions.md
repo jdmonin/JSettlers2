@@ -39,6 +39,7 @@ JARs for recent JSettlers versions can be downloaded from
 		- Report robbery with `SOCReportRobbery`
 		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
 		- Reject disallowed trade requests with `SOCRejectOffer` reason codes
+		- Reject other disallowed requests or actions with `SOCDeclinePlayerRequest`
 	- Initial Placement:
 		- Don't send SOCRollDicePrompt
 		- Always send SOCTurn (not just to bots) at start of each placement round

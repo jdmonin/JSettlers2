@@ -37,6 +37,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;  // for javadocs only
 import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
+import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCPickResources;  // for reason codes in javadocs
 import soc.message.SOCPlayerElement.PEType;
 
@@ -589,6 +590,18 @@ public interface PlayerClientListener
      * @see #simpleRequest(int, int, int, int)
      */
     void simpleAction(int pn, int acttype, int value1, int value2);
+
+    /**
+     * Let client player know the server has declined their request or requested action.
+     * @param reasonCode  Reason the request was declined:
+     *     {@link SOCDeclinePlayerRequest#REASON_NOT_NOW}, {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, etc
+     * @param detailValue1  Optional detail, may be used by some {@code reasonCode}s
+     * @param detailValue2  Optional detail, may be used by some {@code reasonCode}s
+     * @param reasonText  Optional localized reason text, or {@code null} to print text based on {@code reasonCode}
+     * @since 2.5.00
+     */
+    void playerRequestDeclined
+        (final int reasonCode, final int detailValue1,  final int detailValue2, final String reasonText);
 
     void buildRequestCanceled(SOCPlayer player);
 

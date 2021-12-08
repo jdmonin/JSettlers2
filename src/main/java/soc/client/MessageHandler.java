@@ -754,6 +754,14 @@ public class MessageHandler
                     ((SOCPickResources) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
                 break;
 
+            /**
+             * Server has declined player's request.
+             * Added 2021-12-08 for v2.5.00.
+             */
+            case SOCMessage.DECLINEPLAYERREQUEST:
+                handleDECLINEPLAYERREQUEST((SOCDeclinePlayerRequest) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Throwable th)
@@ -3191,6 +3199,23 @@ public class MessageHandler
                 mes.coord, mes.level, mes.sv);
             break;
         }
+    }
+
+    /**
+     * Server has declined player's request.
+     * @since 2.5.00
+     */
+    private void handleDECLINEPLAYERREQUEST(final SOCDeclinePlayerRequest mes)
+    {
+        final String gaName = mes.getGame();
+        final PlayerClientListener pcl = client.getClientListener(gaName);
+        if (pcl == null)
+            return;
+        final SOCGame ga = client.games.get(gaName);
+        if (ga == null)
+            return;
+
+        pcl.playerRequestDeclined(mes.reasonCode, mes.detailValue1, mes.detailValue2, mes.reasonText);
     }
 
 }  // class MessageHandler

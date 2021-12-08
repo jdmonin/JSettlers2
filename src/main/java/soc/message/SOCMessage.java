@@ -461,6 +461,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int BOTGAMEDATACHECK = 1103;  // Bot game data consistency check, 20210930, v2.5.00
 
+    /**
+     * {@link SOCDeclinePlayerRequest} - Decline a player's request or requested action.
+     * @since 2.5.00
+     */
+    public static final int DECLINEPLAYERREQUEST = 1104;  // Decline player's request, 20211208, v2.5.00
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -1053,6 +1058,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case BOTGAMEDATACHECK:      // Bot game data consistency check, 20210930, v2.5.00
                 return SOCBotGameDataCheck.parseDataStr(multiData);
+
+            case DECLINEPLAYERREQUEST:  // Decline player's request, 20211208, v2.5.00
+                return SOCDeclinePlayerRequest.parseDataStr(data);
 
             // gametype-specific messages:
 

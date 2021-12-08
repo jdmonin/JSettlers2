@@ -548,6 +548,13 @@ public class TestToCmdToStringParse
         // TODO? SOCCreateAccount
         {new SOCDebugFreePlace("ga", 3, true), "1087|ga,3,0,1", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=0|coord=0x1"},
         {new SOCDebugFreePlace("ga", 3, SOCPlayingPiece.SETTLEMENT, 0x405), "1087|ga,3,1,1029", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=1|coord=0x405"},
+        {new SOCDeclinePlayerRequest("ga1", 0, 0, 0, null), "1104|ga1,0", "SOCDeclinePlayerRequest:game=ga1|reason=0"},
+        {new SOCDeclinePlayerRequest("ga2", 0, 0, 0, "reason,with,commas"), "1104|ga2,0,0,0,reason,with,commas", "SOCDeclinePlayerRequest:game=ga2|reason=0|detail1=0|detail2=0|text=reason,with,commas"},
+        {new SOCDeclinePlayerRequest("ga3", 1, 0, 0, null), "1104|ga3,1", "SOCDeclinePlayerRequest:game=ga3|reason=1"},
+        {new SOCDeclinePlayerRequest("ga4", 1, 0, 0, "reason"), "1104|ga4,1,0,0,reason", "SOCDeclinePlayerRequest:game=ga4|reason=1|detail1=0|detail2=0|text=reason"},
+        {new SOCDeclinePlayerRequest("ga5", -1, 7, 0, null), "1104|ga5,-1,7,0", "SOCDeclinePlayerRequest:game=ga5|reason=-1|detail1=7|detail2=0"},
+        {new SOCDeclinePlayerRequest("ga6", 4, 7, -7, null), "1104|ga6,4,7,-7", "SOCDeclinePlayerRequest:game=ga6|reason=4|detail1=7|detail2=-7"},
+        {new SOCDeclinePlayerRequest("ga7", 4, 7, -7, "reason,with,commas"), "1104|ga7,4,7,-7,reason,with,commas", "SOCDeclinePlayerRequest:game=ga7|reason=4|detail1=7|detail2=-7|text=reason,with,commas"},
         {new SOCDeleteChannel("ch name"), "1007|ch name", "SOCDeleteChannel:channel=ch name"},
         {new SOCDeleteGame("ga"), "1015|ga", "SOCDeleteGame:game=ga"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, 6), "1046|ga,3,3,6", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardType=6"},

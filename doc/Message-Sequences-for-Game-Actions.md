@@ -354,6 +354,14 @@ Or if client sends build request:
 
 ## Use/Play each dev card type
 
+If player can't play the requested card at this time, server responds to client's SOCPlayDevCardRequest:
+
+- To bots:
+    - un:SOCDevCardAction:game=test|playerNum=-1|actionType=CANNOT_PLAY|cardType=9
+- To human clients, sometimes with a specific reason:
+    - un:SOCDeclinePlayerRequest:game=test|reason=2|detail1=0|detail2=0|text=You can't play a Road Building card now.  
+      // reason code varies, text is optional
+
 ### Road Building
 
 - f3:SOCPlayDevCardRequest:game=test|devCard=1

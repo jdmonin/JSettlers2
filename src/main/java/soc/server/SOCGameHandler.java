@@ -53,6 +53,7 @@ import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
 import soc.message.SOCClearTradeMsg;
 import soc.message.SOCDebugFreePlace;
+import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDevCardCount;
 import soc.message.SOCDiceResult;
@@ -3031,6 +3032,60 @@ public class SOCGameHandler extends GameHandler
 
         if (ga.isBotsOnly && hasOnlyBotPlayers && DESTROY_BOT_ONLY_GAMES_WHEN_OVER)
             srv.destroyGameAndBroadcast(gname, "sendGameStateOVER");
+    }
+
+    public void sendDecline
+        (final Connection playerConn, final SOCGame game, final int eventPN,
+         final int reasonCode, final int detailValue1, final int detailValue2,
+         String reasonTextKey, final Object... reasonTextParams)
+        throws IllegalArgumentException
+    {
+        if (playerConn == null)
+            throw new IllegalArgumentException("playerConn");
+        if (game == null)
+            throw new IllegalArgumentException("game");
+
+        final boolean isRecentClient = (playerConn.getVersion() >= SOCDeclinePlayerRequest.MIN_VERSION);
+        final String gameName = game.getName();
+        final SOCDeclinePlayerRequest msg;
+        if (isRecentClient || ((eventPN != SOCServer.PN_NON_EVENT) && srv.isRecordGameEventsActive()))
+        {
+            String localText = (reasonTextKey != null)
+                ? (((reasonTextParams == null) || (reasonTextParams.length == 0))
+                       ? playerConn.getLocalized(reasonTextKey)
+                       : playerConn.getLocalizedSpecial(game, reasonTextKey, reasonTextParams))
+                : null;
+            msg = new SOCDeclinePlayerRequest
+                (gameName, reasonCode, detailValue1, detailValue2, localText);
+        } else {
+            msg = null;
+        }
+
+        if (isRecentClient)
+        {
+            srv.messageToPlayer(playerConn, gameName, eventPN, msg);
+        } else {
+            if (msg != null)
+                srv.recordGameEventTo(gameName, eventPN, msg);
+
+            if (reasonTextKey == null)
+                switch (reasonCode)
+                {
+                case SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN:
+                    reasonTextKey = "base.reply.not.your.turn";  // "It's not your turn."
+                    break;
+
+                default:
+                    reasonTextKey = "reply.common.cannot.right_now";  // "You can't do that right now."
+                }
+
+            if ((reasonTextParams == null) || (reasonTextParams.length == 0))
+                srv.messageToPlayerKeyed
+                    (playerConn, gameName, SOCServer.PN_NON_EVENT, reasonTextKey);
+            else
+                srv.messageToPlayerKeyedSpecial
+                    (playerConn, game, SOCServer.PN_NON_EVENT, reasonTextKey, reasonTextParams);
+        }
     }
 
     /**

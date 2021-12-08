@@ -22,6 +22,8 @@ package soc.server;
 import soc.game.SOCGame;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
+import soc.message.SOCDeclinePlayerRequest;
+import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCRollDicePrompt;
@@ -197,6 +199,34 @@ public abstract class GameHandler
      * @param ga  the game
      */
     public abstract void startGame(SOCGame ga);
+
+    /**
+     * Decline a player client's request or requested action.
+     * Sends {@link SOCDeclinePlayerRequest} to clients v2.5 and newer ({@link SOCDeclinePlayerRequest#MIN_VERSION}),
+     * {@link SOCGameServerText} to older clients.
+     *
+     * @param playerConn  Client to send decline to; not null
+     * @param game {@code playerConn}'s game; not null
+     * @param eventPN  {@code playerConn}'s player number if this is a game event which should be recorded;
+     *     can be {@link SOCServer#PN_REPLY_TO_UNDETERMINED} or {@link SOCServer#PN_OBSERVER}.
+     *     Otherwise {@link SOCServer#PN_NON_EVENT}.
+     * @param reasonCode  Reason to decline the request:
+     *     {@link SOCDeclinePlayerRequest#REASON_NOT_NOW}, {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, etc
+     * @param detailValue1  Optional detail, may be used by some {@code reasonCode}s, or 0
+     * @param detailValue2  Optional detail, may be used by some {@code reasonCode}s, or 0
+     * @param reasonTextKey  Optional reason text key to send to older clients,
+     *     like {@code "action.build.cannot.there.road"} or {@code "action.build.cannot.now.road"},
+     *     or {@code null} to send text based on {@code reasonCode}
+     * @param reasonTextParams  Any parameters to use with {@code reasonTextKey}
+     *     when calling {@link SOCServer#messageToPlayerKeyedSpecial(Connection, SOCGame, int, String, Object...)}
+     * @throws IllegalArgumentException if {@code playerConn} or {@code game} null
+     * @since 2.5.00
+     */
+    public abstract void sendDecline
+        (final Connection playerConn, final SOCGame game, final int eventPN,
+         final int reasonCode, final int detailValue1, final int detailValue2,
+         final String reasonTextKey, final Object... reasonTextParams)
+        throws IllegalArgumentException;
 
     /**
      * Announces this player's new trade offer to their game,

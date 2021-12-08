@@ -731,6 +731,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.CHOOSEPLAYER:  // server wants our player to choose to rob cloth or rob resources from victim
             case SOCMessage.CHOOSEPLAYERREQUEST:
             case SOCMessage.CLEAROFFER:
+            case SOCMessage.DECLINEPLAYERREQUEST:
             case SOCMessage.DEVCARDACTION:  // either draw, play, or add to hand, or cannot play our requested dev card
             case SOCMessage.DICERESULT:
             case SOCMessage.DICERESULTRESOURCES:

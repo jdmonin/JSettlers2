@@ -49,6 +49,7 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCMessage;
 import soc.message.SOCPlayerElement.PEType;
+import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCPickResources;  // for reason code constants
 import soc.message.SOCSimpleAction;  // for action type constants
@@ -2937,6 +2938,36 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Let client player know the server has declined their request or requested action.
+     * @param reasonCode  Reason the request was declined:
+     *     {@link SOCDeclinePlayerRequest#REASON_NOT_NOW}, {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, etc
+     * @param detailValue1  Optional detail, may be used by some {@code reasonCode}s
+     * @param detailValue2  Optional detail, may be used by some {@code reasonCode}s
+     * @param reasonText  Optional localized reason text, or {@code null} to print text based on {@code reasonCode}
+     * @since 2.5.00
+     */
+    private void showDeclinedPlayerRequest
+        (final int reasonCode, final int detailValue1,  final int detailValue2, final String reasonText)
+    {
+        if (reasonText != null)
+        {
+            print(reasonText);
+            return;
+        }
+
+        switch(reasonCode)
+        {
+        case SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN:
+            printKeyed("base.reply.not.your.turn");  // "It's not your turn."
+            break;
+
+        default:
+            printKeyed("reply.common.cannot.right_now");  // "You can't do that right now."
+        }
+    }
+
+
+    /**
      * The client player's available resources have changed. Update displays if needed.
      *<P>
      * If any trade offers are currently showing, show or hide the offer Accept button
@@ -4931,6 +4962,12 @@ public class SOCPlayerInterface extends Frame
                     ("PI.simpleAction: Ignored unknown type " + acttype + " in game " + pi.game.getName());
 
             }
+        }
+
+        public void playerRequestDeclined
+            (final int reasonCode, final int detailValue1, final int detailValue2, final String reasonText)
+        {
+            pi.showDeclinedPlayerRequest(reasonCode,  detailValue1, detailValue2, reasonText);
         }
 
         public void buildRequestCanceled(SOCPlayer player)

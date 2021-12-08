@@ -2990,7 +2990,10 @@ public class SOCGameMessageHandler
 
                 }
             } else {
-                denyTextKey = "base.reply.not.your.turn";  // "It's not your turn."
+                handler.sendDecline(c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                    SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);  // "It's not your turn."
+
+                return;  // <--- Early return ---
             }
 
             if (denyPlayCardNow || (denyTextKey != null))
@@ -2999,11 +3002,14 @@ public class SOCGameMessageHandler
                 if ((scd == null) || ! scd.isRobot)
                 {
                     if (denyTextKey != null)
-                        srv.messageToPlayerKeyed
-                            (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, denyTextKey);
+                        handler.sendDecline
+                            (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0,
+                             denyTextKey);
                     else
-                        srv.messageToPlayerKeyedSpecial
-                            (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.playdevcard.cannot.now", mes.getDevCard());
+                        handler.sendDecline
+                            (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0,
+                             "reply.playdevcard.cannot.now", mes.getDevCard());
+                                // "You can't play a [card type] card now."
                 } else {
                     srv.messageToPlayer
                         (c, null, SOCServer.PN_REPLY_TO_UNDETERMINED,
