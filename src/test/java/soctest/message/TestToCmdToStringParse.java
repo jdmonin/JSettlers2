@@ -660,7 +660,10 @@ public class TestToCmdToStringParse
         {new SOCJoinChannelAuth("m name", "ch name"), "1020|m name,ch name", "SOCJoinChannelAuth:nickname=m name|channel=ch name"},
             // v1.x was SOCJoinAuth:
         {new SOCJoinChannelAuth("m name", "ch name"), "1020|m name,ch name", "SOCJoinAuth:nickname=m name|channel=ch name", OPT_PARSE_ONLY},
-        {new SOCJoinGame("testp2", "", SOCMessage.EMPTYSTR, "ga"), "1013|testp2,\t,\t,ga", "SOCJoinGame:nickname=testp2|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp1", "", SOCMessage.EMPTYSTR, "ga"), "1013|testp1,\t,\t,ga", "SOCJoinGame:nickname=testp1|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp2", SOCMessage.EMPTYSTR, SOCMessage.EMPTYSTR, "ga"), "1013|testp2,\t,\t,ga", "SOCJoinGame:nickname=testp2|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp3", "", "-", "ga"), "1013|testp3,\t,-,ga", "SOCJoinGame:nickname=testp3|password empty|host=-|game=ga"},
+        {new SOCJoinGame("testp4", "***", SOCMessage.EMPTYSTR, "ga"), "1013|testp4,***,\t,ga", "SOCJoinGame:nickname=testp4|password=***|host=\t|game=ga"},
         {new SOCJoinGameAuth("ga"), "1021|ga", "SOCJoinGameAuth:game=ga"},
         {new SOCJoinGameAuth("ga", 20, 21, new int[]{-2, 1, 3, 0}), "1021|ga,20,21,S,-2,1,3,0", "SOCJoinGameAuth:game=ga|bh=20|bw=21|vs=[-2, 1, 3, 0]"},
         {new SOCLargestArmy("ga", 2), "1067|ga,2", "SOCLargestArmy:game=ga|playerNumber=2"},

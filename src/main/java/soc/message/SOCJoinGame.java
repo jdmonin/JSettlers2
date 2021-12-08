@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2013-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2013-2014,2016-2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -137,6 +137,27 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
         }
 
         return new SOCJoinGame(nn, pw, hn, ga);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list
+     * for {@link SOCMessage#parseMsgStr(String)}.
+     * Converts "password empty" to {@link SOCMessage#EMPTYSTR}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.5.00
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        final int pwEmptyIdx = messageStrParams.indexOf("|password empty|host=");
+        if (pwEmptyIdx > 0)
+            messageStrParams =
+                messageStrParams.substring(0, pwEmptyIdx + 1)
+                + EMPTYSTR
+                + messageStrParams.substring(pwEmptyIdx + 15);
+
+        return SOCMessage.stripAttribNames(messageStrParams);
     }
 
     /**

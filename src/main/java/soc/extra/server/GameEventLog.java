@@ -149,8 +149,10 @@ public class GameEventLog
     public int serverOnlyToClientPN = -1;
 
     /**
-     * The game data version seen in a log that's been loaded by {@link #load(File, boolean, int)},
+     * The game data version seen in an event log header that's been loaded by {@link #load(File, boolean, int)},
      * in same format as {@link Version#versionNumber()}. Otherwise 0.
+     * When a log file is written by {@link #save(File, String, boolean, boolean)},
+     * it uses {@link Version#versionNumber()} when writing the header.
      * @see #MIN_VERSION
      */
     public int version;
@@ -375,6 +377,8 @@ public class GameEventLog
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
                 final SOCPlayer pl = game.getPlayer(pn);
+                if (pl == null)
+                    continue;  // maybe game's been destroyed
                 final int vp = (winner != null) ? pl.getTotalVP() : pl.getPublicVP();
                 if ((vp == 0) && game.isSeatVacant(pn))
                     continue;

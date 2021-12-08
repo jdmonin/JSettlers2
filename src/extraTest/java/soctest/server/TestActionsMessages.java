@@ -19,11 +19,16 @@
  **/
 package soctest.server;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Vector;
 
@@ -32,6 +37,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;  // for javadocs only
+import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCBoard;
@@ -51,9 +58,11 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCChoosePlayer;
+import soc.message.SOCNewGameWithOptions;
 import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
+import soc.util.Version;
 import soctest.server.TestRecorder.StartedTestGameObjects;
 import soctest.server.savegame.TestLoadgame;
 
@@ -110,6 +119,68 @@ public class TestActionsMessages
 
         TestRecorder.testBasics_Loadgame(srv);
     }
+
+    /**
+     * Test saving and loading {@link GameEventLog} files.
+     * Re-runs unit test {@link TestRecorder#testLoadAndBasicSequences(RecordingSOCServer, String, List, boolean)},
+     * saves and loads the resulting event entries:
+     * Calls {@link GameEventLog} constructor, {@link GameEventLog#save(File, String, boolean, boolean)},
+     * {@link GameEventLog#load(File, boolean, int)}.
+     *
+     * @throws IOException if game artifact file can't be loaded, or soclog can't be saved or loaded
+     * @throws ParseException if soclog fails parsing during load
+     * @throws NoSuchElementException if soclog is missing a header during load
+     */
+    @Test
+    public void testSaveLoadBasicSequences()
+        throws IOException, NoSuchElementException, ParseException
+    {
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME = "testSaveLoadBasic";
+
+        ArrayList<EventEntry> allRecords = new ArrayList<>();
+        final SOCGame ga = TestRecorder.testLoadAndBasicSequences(srv, CLIENT_NAME, allRecords, false);
+        final int logSize = allRecords.size();
+        assertNotEquals(0, logSize);
+
+        final GameEventLog savedLog = new GameEventLog(ga, false);
+        savedLog.entries.addAll(allRecords);
+        assertEquals(logSize, savedLog.entries.size());
+
+        final Path tmpSoclogFilePath = Files.createTempFile(CLIENT_NAME, ".soclog.tmp");
+        try
+        {
+            // save:
+            final File tmpSoclogFile = tmpSoclogFilePath.toFile();
+            savedLog.save(tmpSoclogFile.getParentFile(), tmpSoclogFile.getName(), true, false);
+            final long size = tmpSoclogFile.length();
+            assertTrue("tmp soclog size >= 1k", size >= 1024);
+            srv.destroyGameAndBroadcast(ga.getName(), null);
+
+            // load:
+            final GameEventLog loadedLog = GameEventLog.load(tmpSoclogFile, true, -1);
+            assertNotNull(loadedLog);
+
+            // compare:
+            assertEquals("saved log size " + logSize + " == loaded size?", logSize, loadedLog.entries.size());
+            assertEquals(ga.getName(), loadedLog.gameName);
+            assertEquals(Version.versionNumber(), loadedLog.version);
+            assertNotNull(loadedLog.optsStr);  // to compare in detail to ga.getGameOptions(), would need to parse/sort them
+            for (int i = 0; i < logSize; ++i)
+            {
+                final GameEventLog.EventEntry eeSave = allRecords.get(i), eeLoad = loadedLog.entries.get(i);
+                if ((eeSave.event instanceof SOCNewGameWithOptions)
+                    && (eeLoad.event instanceof SOCNewGameWithOptions))
+                    continue;  // skip; game opts string match is inexact (leading ',', etc)
+
+                assertEquals("log index " + i, eeSave, eeLoad);
+            }
+        } finally {
+            // cleanup
+            Files.deleteIfExists(tmpSoclogFilePath);
+        }
+    }
+
 
     /**
      * Tests building pieces and moving ships.
@@ -1678,10 +1749,11 @@ public class TestActionsMessages
                 {"all:SOCClearOffer:", "|playerNumber=-1"},
 
                 // tracking unknown resources
-                {"all:SOCMakeOffer:", "|from=" + + PN_C1
+                {"all:SOCMakeOffer:", "|from=" + PN_C1
                  + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
-                {"all:SOCAcceptOffer:", "|accepting=2|offering=3|toAccepting=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0"},
+                {"all:SOCAcceptOffer:", "|accepting=" + PN_C2 + "|offering=" + PN_C1
+                 + "|toAccepting=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0"},
                 {"all:SOCClearOffer:", "|playerNumber=-1"},
             }, false);
 
