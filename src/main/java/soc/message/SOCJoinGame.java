@@ -67,7 +67,7 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
      *
      * @param nn  nickname when announced from server, or "-" from client if already auth'd to server;
      *     server has always ignored this field from client after auth, can send "-" but not blank
-     * @param pw  optional password, or "" if none
+     * @param pw  optional password, or "" if none; {@link SOCMessage#EMPTYSTR} or {@code null} is converted here to ""
      * @param hn  unused; optional server host name to which client is connected, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
      */

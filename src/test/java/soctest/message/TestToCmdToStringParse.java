@@ -86,6 +86,7 @@ public class TestToCmdToStringParse
             boolean parseOnly = false;  // if true, not round-trip
             boolean skipParseToString = false;  // if true, not round-trip
             Set<String> ignoreObjFields = null;
+
             // look for test options/params
             for (int i = 3; i < compareCase.length; ++i)
             {
@@ -188,18 +189,42 @@ public class TestToCmdToStringParse
         assertTrue("mExpected instanceof " + className, msgClass.isInstance(mExpected));
         assertTrue("mActual instanceof " + className, msgClass.isInstance(mActual));
 
+        ArrayList<Field> fields = new ArrayList<>();
         for (Field f : msgClass.getDeclaredFields())
         {
             if (Modifier.isStatic(f.getModifiers()))
                 continue;
-
-            final String fName = f.getName();
-            if ((ignoreObjFields != null) && ignoreObjFields.contains(fName))
+            if ((ignoreObjFields != null) && ignoreObjFields.contains(f.getName()))
                 continue;
+
+            fields.add(f);
+        }
+
+        // If message's superclass extends SOCMessage,
+        // like SOCMessageTemplateJoinGame -> SOCJoinGame,
+        // gather that super's fields too
+        for (Class<?> msgSuper = msgClass.getSuperclass();
+             ! msgSuper.equals(SOCMessage.class);
+             msgSuper = msgSuper.getSuperclass())
+        {
+            for (Field f : msgSuper.getDeclaredFields())
+            {
+                if (Modifier.isStatic(f.getModifiers()))
+                    continue;
+                if ((ignoreObjFields != null) && ignoreObjFields.contains(f.getName()))
+                    continue;
+
+                fields.add(f);
+            }
+        }
+
+        // actually compare the fields
+        for (Field f : fields)
+        {
+            final String fName = f.getName();
 
             try
             {
-
                 f.setAccessible(true);
                 Object valueExpected = f.get(mExpected),
                     valueActual = f.get(mActual);
@@ -705,7 +730,9 @@ public class TestToCmdToStringParse
                 (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "name text", null)),
             "1100|S|0|SC_FOG|name text|\t",
             "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_FOG|name text|(null)",
-            OPT_SKIP_PARSE
+            OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("pa"))
+            // TODO SOCLocalizedStrings +stripAttribNames: (null) or "" -> null, etc
         },
         {
             new SOCLocalizedStrings
@@ -767,7 +794,9 @@ public class TestToCmdToStringParse
         {
             new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToSet("BC=t4,RD=f", knownOpts), -1, 0),
             "1079|ga,-1,BC=t4,RD=f",
-            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f"
+            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f",
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("p2"))
+            // TODO +stripAttribNames
         },
         {
             new SOCNewGameWithOptionsRequest("uname", "", "-", "newgame", "N7=t7,PL=4"),
@@ -974,15 +1003,33 @@ public class TestToCmdToStringParse
         {new SOCRollDice("ga"), "1031|ga", "SOCRollDice:game=ga"},
         {new SOCRollDicePrompt("ga", 3), "1072|ga,3", "SOCRollDicePrompt:game=ga|playerNumber=3"},
         // can ignore unused SOCRollDiceRequest
-        {new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), false), "1101|[|KEY1|KEY2", "SOCScenarioInfo:p=[|p=KEY1|p=KEY2", OPT_SKIP_PARSE},
-        {new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), true), "1101|[|KEY1|KEY2|?", "SOCScenarioInfo:p=[|p=KEY1|p=KEY2|p=?", OPT_SKIP_PARSE},
-        {new SOCScenarioInfo("KEY3", true), "1101|KEY3|0|-2", "SOCScenarioInfo:key=KEY3|minVers=0|lastModVers=MARKER_KEY_UNKNOWN", OPT_SKIP_PARSE},
+        {
+            new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), false),
+            "1101|[|KEY1|KEY2",
+            "SOCScenarioInfo:p=[|p=KEY1|p=KEY2", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
+        {
+            new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), true),
+            "1101|[|KEY1|KEY2|?",
+            "SOCScenarioInfo:p=[|p=KEY1|p=KEY2|p=?", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
+        {
+            new SOCScenarioInfo("KEY3", true),
+            "1101|KEY3|0|-2",
+            "SOCScenarioInfo:key=KEY3|minVers=0|lastModVers=MARKER_KEY_UNKNOWN", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
         {
             new SOCScenarioInfo("KEY4", false),
             "1101|[|KEY4",
             "SOCScenarioInfo:p=[|p=KEY4", OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {
             new SOCScenarioInfo(SOCScenario.getScenario(SOCScenario.K_SC_NSHO), "new shores", null),  // has no long desc
@@ -990,7 +1037,7 @@ public class TestToCmdToStringParse
             "SOCScenarioInfo:key=SC_NSHO|minVers=2000|lastModVers=2000|opts=_SC_SEAC=t,SBL=t,VP=t13|title=new shores",
             OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {
             new SOCScenarioInfo(SOCScenario.getScenario(SOCScenario.K_SC_4ISL), "4 islands", "long desc, 4 islands"),
@@ -998,7 +1045,7 @@ public class TestToCmdToStringParse
             "SOCScenarioInfo:key=SC_4ISL|minVers=2000|lastModVers=2000|opts=_SC_SEAC=t,SBL=t,VP=t12|title=4 islands|desc=long desc, 4 islands",
             OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {new SOCServerPing(42), "9999|42", "SOCServerPing:sleepTime=42"},
         {new SOCSetPlayedDevCard("ga", 2, false), "1048|ga,2,false", "SOCSetPlayedDevCard:game=ga|playerNumber=2|playedDevCard=false"},
