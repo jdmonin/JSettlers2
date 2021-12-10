@@ -3071,8 +3071,16 @@ public class SOCGameHandler extends GameHandler
             if (reasonTextKey == null)
                 switch (reasonCode)
                 {
+                case SOCDeclinePlayerRequest.REASON_NOT_THIS_GAME:
+                    reasonTextKey = "reply.common.cannot.in_this_game";  // "You can't do that in this game."
+                    break;
+
                 case SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN:
                     reasonTextKey = "base.reply.not.your.turn";  // "It's not your turn."
+                    break;
+
+                case SOCDeclinePlayerRequest.REASON_LOCATION:
+                    reasonTextKey = "reply.common.cannot.at_that_location";  // "You can't do that at that location."
                     break;
 
                 default:

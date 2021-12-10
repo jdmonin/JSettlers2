@@ -54,6 +54,7 @@ import soc.game.SOCVillage;
 import soc.message.*;
 import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
+import soc.robot.SOCPossiblePiece;  // for type constants only
 import soc.server.genericServer.Connection;
 import soc.util.SOCStringManager;
 
@@ -1716,13 +1717,15 @@ public class SOCGameMessageHandler
             SOCPlayer player = ga.getPlayer(c.getData());
             final int pn = player.getPlayerNumber();
             final int pieceType = mes.getPieceType();
-            boolean sendDenyReply = false;  // for robots' benefit
+            int sendDeclineReason = -1;       // send SOCDeclinePlayerRequest if != -1
+            String sendDeclineTextKey = null;
+            boolean sendCancelReply = false;  // send SOCCancelBuildRequest for robots' benefit?
 
             if (isCurrent)
             {
                 if ((ga.getGameState() == SOCGame.PLAY1) || (ga.getGameState() == SOCGame.SPECIAL_BUILDING))
                 {
-                    sendDenyReply = ! handleBUILDREQUEST(ga, player, c, pieceType, true);
+                    sendCancelReply = ! handleBUILDREQUEST(ga, player, c, pieceType, true);
                 } else if (pieceType == -1) {
                     // 6-player board: Special Building Phase
                     // during start of own turn
@@ -1734,22 +1737,21 @@ public class SOCGameMessageHandler
                                 (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                         handler.endGameTurn(ga, player, true);  // triggers start of SBP
                     } catch (NoSuchElementException e) {
-                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.special.PLP.common");
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_THIS_GAME;
+                        sendDeclineTextKey = "action.build.cannot.special.PLP.common";
                             // "House rule: Special Building phase requires 5 or 6 players."
-                        sendDenyReply = true;
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.ask");  // "You can't ask to build now."
-                        sendDenyReply = true;
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.cannot.now.ask";  // "You can't ask to build now."
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now");  // "You can't build now."
-                    sendDenyReply = true;
+                    sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                    sendDeclineTextKey = "action.build.cannot.now";  // "You can't build now."
                 }
             } else {
                 if (ga.maxPlayers <= 4)
                 {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
-                    sendDenyReply = true;
+                    sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN;  // "It's not your turn."
                 } else {
                     // 6-player board: Special Building Phase
                     // during other player's turn
@@ -1760,19 +1762,21 @@ public class SOCGameMessageHandler
                             (gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                     } catch (NoSuchElementException e) {
-                        srv.messageToPlayerKeyed
-                            (c, gaName, pn, "action.build.cannot.special.PLP.common");
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_THIS_GAME;
+                        sendDeclineTextKey = "action.build.cannot.special.PLP.common";
                             // "House rule: Special Building phase requires 5 or 6 players."
-                        sendDenyReply = true;
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayerKeyed
-                            (c, gaName, pn, "action.build.cannot.now.ask");  // "You can't ask to build now."
-                        sendDenyReply = true;
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.cannot.now.ask";  // "You can't ask to build now."
                     }
                 }
             }
 
-            if (sendDenyReply && ga.getPlayer(pn).isRobot())
+            if (sendDeclineReason != -1)
+                handler.sendDecline(c, ga, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
+
+            if ((sendCancelReply || (sendDeclineReason != -1))
+                && ga.getPlayer(pn).isRobot())
             {
                 srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, pieceType));
             }
@@ -1794,7 +1798,7 @@ public class SOCGameMessageHandler
      * Checks player piece counts and resources, buys the piece in game,
      * announces {@link SOCPlayerElement} messages for the resources spent,
      * optionally announces new game state to game's members.
-     * If player can't buy, tells them that in a server text.
+     * If player can't buy, tells them that in a {@link SOCDeclinePlayerRequest} or server text.
      *<P>
      * <B>Locks and preconditions:</B>
      *<UL>
@@ -1817,10 +1821,10 @@ public class SOCGameMessageHandler
     private boolean handleBUILDREQUEST
         (final SOCGame ga, final SOCPlayer player, final Connection c, final int pieceType, final boolean sendGameState)
     {
-        final String gaName = ga.getName();
         final int pn = player.getPlayerNumber();
 
-        boolean sendDenyReply = false;
+        int sendDeclineReason = -1;  // send SOCDeclinePlayerRequest if != -1
+        String sendDeclineTextKey = null;
 
         switch (pieceType)
         {
@@ -1833,9 +1837,8 @@ public class SOCGameMessageHandler
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, pn, "action.build.cannot.now.road");  // "You can't build a road now."
-                sendDenyReply = true;
+                sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                sendDeclineTextKey = "action.build.cannot.now.road";  // "You can't build a road now."
             }
 
             break;
@@ -1849,9 +1852,8 @@ public class SOCGameMessageHandler
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, pn, "action.build.cannot.now.stlmt");  // "You can't build a settlement now."
-                sendDenyReply = true;
+                sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                sendDeclineTextKey = "action.build.cannot.now.stlmt";  // "You can't build a settlement now."
             }
 
             break;
@@ -1865,9 +1867,8 @@ public class SOCGameMessageHandler
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, pn, "action.build.cannot.now.city");  // "You can't build a city now."
-                sendDenyReply = true;
+                sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                sendDeclineTextKey = "action.build.cannot.now.city";  // "You can't build a city now."
             }
 
             break;
@@ -1881,20 +1882,21 @@ public class SOCGameMessageHandler
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, pn, "action.build.cannot.now.ship");  // "You can't build a ship now."
-                sendDenyReply = true;
+                sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                sendDeclineTextKey = "action.build.cannot.now.ship";  // "You can't build a ship now."
             }
 
             break;
 
         default:
-            srv.messageToPlayerKeyed
-                (c, gaName, pn, "reply.piece.type.unknown");  // "Unknown piece type."
-            sendDenyReply = true;
+            sendDeclineReason = SOCDeclinePlayerRequest.REASON_SPECIFICS;
+            sendDeclineTextKey = "reply.piece.type.unknown";  // "Unknown piece type."
         }
 
-        return ! sendDenyReply;
+        if (sendDeclineReason != -1)
+            handler.sendDecline(c, ga, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
+
+        return (sendDeclineReason == -1);
     }
 
     /**
@@ -1923,6 +1925,8 @@ public class SOCGameMessageHandler
                 final int pn = player.getPlayerNumber();
                 final int gstate = ga.getGameState();
 
+                int sendDeclineReason = -1;  // send SOCDeclinePlayerRequest if != -1
+                String sendDeclineTextKey = null;
                 boolean noAction = false;  // If true, there was nothing cancelable: Don't call handler.sendGameState
 
                 switch (mes.getPieceType())
@@ -1956,7 +1960,8 @@ public class SOCGameMessageHandler
                                 // "{0} skipped placing the second road."
                         }
                     } else {
-                        srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a road."/*18N*/ );
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.didnt.road._nolocaliz"; // "You didn't buy a road."
                         noAction = true;
                     }
 
@@ -1979,7 +1984,8 @@ public class SOCGameMessageHandler
                             //  "{0} cancelled this settlement placement."
                         // The handler.sendGameState below is redundant if client reaction changes game state
                     } else {
-                        srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a settlement."/*18N*/ );
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.didnt.stlmt._nolocaliz"; // "You didn't buy a settlement."
                         noAction = true;
                     }
 
@@ -1992,7 +1998,8 @@ public class SOCGameMessageHandler
                         ga.cancelBuildCity(pn);
                         handler.reportRsrcGainLoss(ga, SOCCity.COST, false, false, pn, -1, null);
                     } else {
-                        srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a city."/*18N*/ );
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.didnt.city._nolocaliz";  // "You didn't buy a city."
                         noAction = true;
                     }
 
@@ -2024,7 +2031,8 @@ public class SOCGameMessageHandler
                                 // "{0} skipped placing the second ship."
                         }
                     } else {
-                        srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a ship."/*18N*/ );
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.didnt.ship._nolocaliz";  // "You didn't buy a ship."
                         noAction = true;
                     }
 
@@ -2045,7 +2053,8 @@ public class SOCGameMessageHandler
                         srv.messageToGameKeyed(ga, true, true, "reply.placeitem.cancel", player.getName());
                             // "{0} canceled placement of a special item."
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, pn, "reply.placeitem.cancel.cannot");
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_OTHER;
+                        sendDeclineTextKey = "reply.placeitem.cancel.cannot";
                             // "Cannot cancel item placement."
                         noAction = true;
                     }
@@ -2054,6 +2063,9 @@ public class SOCGameMessageHandler
                 default:
                     throw new IllegalArgumentException("Unknown piece type " + mes.getPieceType());
                 }
+
+                if (sendDeclineReason != -1)
+                    handler.sendDecline(c, ga, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
 
                 if (! noAction)
                 {
@@ -2065,8 +2077,9 @@ public class SOCGameMessageHandler
                         srv.messageToPlayer(c, gaName, pn, new SOCGameState(gaName, gstate));
                 }
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
+                handler.sendDecline
+                    (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
+                    // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -2106,7 +2119,9 @@ public class SOCGameMessageHandler
              */
             if (handler.checkTurn(c, ga))
             {
-                boolean sendDenyReply = false;
+                int sendDeclineReason = -1;       // send SOCDeclinePlayerRequest if != -1
+                String sendDeclineTextKey = null;
+                boolean sendCancelReply = false;  // send SOCCancelBuildRequest for robots' benefit?
                 /*
                    if (D.ebugOn) {
                    D.ebugPrintln("BEFORE");
@@ -2207,12 +2222,14 @@ public class SOCGameMessageHandler
                                 D.ebugPrintlnINFO(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.there.road");
+                            sendDeclineReason = SOCDeclinePlayerRequest.REASON_LOCATION;
+                            sendDeclineTextKey = "action.build.cannot.there.road";
                                 // "You can't build a road there."
-                            sendDenyReply = true;
+                            sendCancelReply = true;
                         }
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.road");
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.cannot.now.road";
                             // "You can't build a road now."
                     }
 
@@ -2266,12 +2283,14 @@ public class SOCGameMessageHandler
                                 D.ebugPrintlnINFO(" - settlementAtNode: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.there.stlmt");
+                            sendDeclineReason = SOCDeclinePlayerRequest.REASON_LOCATION;
+                            sendDeclineTextKey = "action.build.cannot.there.stlmt";
                                 // "You can't build a settlement there."
-                            sendDenyReply = true;
+                            sendCancelReply = true;
                         }
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.stlmt");
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.cannot.now.stlmt";
                             // "You can't build a settlement now."
                     }
 
@@ -2326,12 +2345,14 @@ public class SOCGameMessageHandler
                                 D.ebugPrintlnINFO(" - city/settlementAtNode: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.there.city");
+                            sendDeclineReason = SOCDeclinePlayerRequest.REASON_LOCATION;
+                            sendDeclineTextKey = "action.build.cannot.there.city";
                                 // "You can't build a city there."
-                            sendDenyReply = true;
+                            sendCancelReply = true;
                         }
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.city");
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.cannot.now.city";
                             // "You can't build a city now."
                     }
 
@@ -2383,20 +2404,29 @@ public class SOCGameMessageHandler
                                 D.ebugPrintlnINFO(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.there.ship");
+                            sendDeclineReason = SOCDeclinePlayerRequest.REASON_LOCATION;
+                            sendDeclineTextKey = "action.build.cannot.there.ship";
                                 // "You can't build a ship there."
-                            sendDenyReply = true;
+                            sendCancelReply = true;
                         }
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.ship");
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.build.cannot.now.ship";
                             // "You can't build a ship now."
                     }
 
                     break;
 
+                default:
+                    sendDeclineReason = SOCDeclinePlayerRequest.REASON_SPECIFICS;
+                    sendDeclineTextKey = "reply.piece.type.unknown";
+                        // "Unknown piece type."
                 }
 
-                if (sendDenyReply)
+                if (sendDeclineReason != -1)
+                    handler.sendDecline(c, ga, pn, sendDeclineReason, pieceType, coord, sendDeclineTextKey);
+
+                if (sendCancelReply)
                 {
                     if (isBuyAndPut)
                         handler.sendGameState(ga);  // is probably now PLACING_*, was PLAY1 or SPECIAL_BUILDING
@@ -2408,8 +2438,10 @@ public class SOCGameMessageHandler
                     }
                 }
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
+                handler.sendDecline
+                    (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                     SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
+                        // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -2626,7 +2658,9 @@ public class SOCGameMessageHandler
             final String gaName = ga.getName();
             SOCPlayer player = ga.getPlayer(c.getData());
             final int pn = player.getPlayerNumber();
-            boolean sendDenyReply = false;  // for robots' benefit
+            int sendDeclineReason = -1;
+                // send SOCDeclinePlayerRequest if != -1, along with SOCCancelBuildRequest for robots' benefit
+            String sendDeclineTextKey = null;
 
             if (handler.checkTurn(c, ga))
             {
@@ -2741,21 +2775,21 @@ public class SOCGameMessageHandler
                 } else {
                     // unlikely; client should know to not send request in those conditions
 
-                    final String denyText = (ga.getNumDevCards() == 0)
-                        ? /*I*/"There are no more Development cards."/*18N*/
-                        : /*I*/"You can't buy a development card now."/*18N*/ ;
-                    srv.messageToPlayer(c, gaName, pn, denyText);
-
-                    sendDenyReply = true;
+                    if (ga.getNumDevCards() == 0)
+                    {
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_THIS_GAME;
+                        sendDeclineTextKey = "buy.dev.cards.none.common";  // "No more development cards available to buy"
+                    } else {
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "buy.dev.cards.cannot_now"; // "You can't buy a development card now."
+                    }
                 }
             } else {
                 // is asking "buy" to trigger SBP if 6-player, otherwise request not allowed at this time
 
-                sendDenyReply = true;
-
                 if (ga.maxPlayers <= 4)
                 {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
+                    sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN;  // "It's not your turn."
                 } else {
                     // 6-player board: Special Building Phase
                     try
@@ -2763,19 +2797,24 @@ public class SOCGameMessageHandler
                         ga.askSpecialBuild(pn, true);
                         srv.messageToGame(gaName, true, new SOCPlayerElement
                             (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
-                        sendDenyReply = false;
                     } catch (NoSuchElementException e) {
-                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.special.PLP.common");
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_THIS_GAME;
+                        sendDeclineTextKey = "action.build.cannot.special.PLP.common";
                             // "House rule: Special Building phase requires 5 or 6 players."
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayer(c, gaName, pn, /*I*/"You can't ask to buy a card now."/*18N*/ );
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "buy.dev.cards.cannot_now";
+                            // "You can't buy a development card now."
                     }
                 }
             }
 
-            if (sendDenyReply && ga.getPlayer(pn).isRobot())
+            if (sendDeclineReason != -1)
             {
-                srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, -2));  // == SOCPossiblePiece.CARD
+                handler.sendDecline(c, ga, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
+
+                if (ga.getPlayer(pn).isRobot())
+                    srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, SOCPossiblePiece.CARD));
             }
         }
         catch (Exception e)

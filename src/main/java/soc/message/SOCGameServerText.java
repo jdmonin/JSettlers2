@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
  * such as {@link SOCAcceptOffer}.
  *<P>
  * Occasionally, game text is sent with additional information
- * via {@link SOCSVPTextMessage} instead of using this message type.
+ * via {@link SOCSVPTextMessage} or {@link SOCDeclinePlayerRequest} instead of using this message type.
  * Some simple actions or prompts are sent by the server with {@link SOCSimpleAction}
  * or {@link SOCSimpleRequest} instead of as text.
  *<P>

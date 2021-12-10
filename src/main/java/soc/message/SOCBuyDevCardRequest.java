@@ -62,7 +62,8 @@ import soc.game.SOCGameOptionSet;  // for javadocs only
  *
  * If there are no cards remaining to buy, or player doesn't have enough resources,
  * isn't currently their turn, or the player otherwise can't buy a card right now,
- * the server will send them a text response denying the buy. Instead of that text,
+ * the server will send them a {@link SOCDeclinePlayerRequest} or {@link SOCGameServerText}
+ * text response denying the buy. Instead of that text,
  * robot clients will be sent a {@link SOCCancelBuildRequest CANCELBUILDREQUEST(-2)} message
  * (-2 == soc.robot.SOCPossiblePiece.CARD).
  *<P>

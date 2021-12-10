@@ -40,7 +40,8 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  *<P>
  * If this is a placement request from a client player: If successful, server announces {@link SOCPutPiece}
  * to the game along with the new {@link SOCGameState}. Otherwise server responds with an explanatory
- * {@link SOCGameServerText} and, if the gamestate allowed placement but resources or requested coordinates
+ * {@link SOCDeclinePlayerRequest} or {@link SOCGameServerText} and,
+ * if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link SOCGameState} and then a {@link SOCCancelBuildRequest}.
  *<BR>
  * If PutPiece leads to the Longest Route player changing, server v2.4.00 and newer announces that

@@ -131,6 +131,10 @@ Or:
 
 ## Buy and build piece
 
+Client requests build by sending SOCPutPiece or SOCBuildRequest.
+If the request isn't possible, server replies with SOCDeclinePlayerRequest
+instead of the sequences shown here.
+
 ### Initial Placement
 
 The placement message sequence is different during initial placement. Server assumes client knows the rules,
@@ -351,6 +355,9 @@ Or if client sends build request:
 - !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
 - all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0  // DEVCARD_BOUGHT; v1 = remaining amount of unbought cards
 - all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
+
+Or if player can't buy now: Server responds to client's SOCBuyDevCardRequest with SOCDeclinePlayerRequest
+and if client is robot, also SOCCancelBuildRequest(SOCPossiblePiece.CARD).
 
 ## Use/Play each dev card type
 

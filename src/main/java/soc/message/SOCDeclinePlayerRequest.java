@@ -21,6 +21,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCPlayingPiece;
+
 
 /**
  * This reply message from the server to a client means that client player's request or requested action
@@ -30,6 +32,9 @@ import java.util.StringTokenizer;
  * if mentioned in their javadocs.
  *<P>
  * Clients older than v2.5.00 ({@link #MIN_VERSION}) are instead sent {@link SOCGameServerText}.
+ *
+ *<H4>I18N:</H4>
+ * Text is localized by server when sending to the client.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.5.00
@@ -50,20 +55,35 @@ public class SOCDeclinePlayerRequest extends SOCMessage
     public static final int REASON_OTHER = 0;
 
     /**
+     * Reason code when game rules or conditions prevent the request,
+     * and will continue to do so for rest of game.
+     *<P>
+     * Examples:
+     *<UL>
+     * <LI> Ask to buy a dev card, but none are left to buy
+     * <LI> Ask for Special Build, but not enough players in game
+     *</UL>
+     */
+    public static final int REASON_NOT_THIS_GAME = 1;
+
+    /**
      * Reason code when it's not the player's turn.
      */
-    public static final int REASON_NOT_YOUR_TURN = 1;
+    public static final int REASON_NOT_YOUR_TURN = 2;
 
     /**
      * Reason code when player is current but
      * can't take the requested action right now, probably because of game state.
      */
-    public static final int REASON_NOT_NOW = 2;
+    public static final int REASON_NOT_NOW = 3;
 
     /**
-     * Reason code when the requested location/coordinate isn't permitted.
+     * Reason code when the requested location/coordinate isn't permitted ("can't build here").
+     *<P>
+     * {@link #detailValue1} = piece type like {@link SOCPlayingPiece#ROAD}, or -1 if not applicable<BR>
+     * {@link #detailValue2} = requested placement coordinate
      */
-    public static final int REASON_LOCATION = 3;
+    public static final int REASON_LOCATION = 4;
 
     /**
      * Reason code when it's the player's turn and the right game state,
@@ -72,7 +92,7 @@ public class SOCDeclinePlayerRequest extends SOCMessage
      *<P>
      * Server may choose to instead send less-specific {@link #REASON_NOT_NOW}.
      */
-    public static final int REASON_SPECIFICS = 4;
+    public static final int REASON_SPECIFICS = 5;
 
     /**
      * Name of the game.

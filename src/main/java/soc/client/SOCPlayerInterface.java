@@ -2951,19 +2951,29 @@ public class SOCPlayerInterface extends Frame
     {
         if (reasonText != null)
         {
-            print(reasonText);
+            print("* " + reasonText);
             return;
         }
 
+        final String reasonTextKey;
         switch(reasonCode)
         {
+        case SOCDeclinePlayerRequest.REASON_NOT_THIS_GAME:
+            reasonTextKey = "reply.common.cannot.in_this_game";  // "You can't do that in this game."
+            break;
+
         case SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN:
-            printKeyed("base.reply.not.your.turn");  // "It's not your turn."
+            reasonTextKey = "base.reply.not.your.turn";  // "It's not your turn."
+            break;
+
+        case SOCDeclinePlayerRequest.REASON_LOCATION:
+            reasonTextKey = "reply.common.cannot.at_that_location";  // "You can't do that at that location."
             break;
 
         default:
-            printKeyed("reply.common.cannot.right_now");  // "You can't do that right now."
+            reasonTextKey = "reply.common.cannot.right_now";  // "You can't do that right now."
         }
+        printKeyed(reasonTextKey);
     }
 
 

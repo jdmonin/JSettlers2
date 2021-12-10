@@ -310,7 +310,7 @@ import javax.swing.SwingConstants;
 
         final int sqHeight = ColorSquare.HEIGHT * pi.displayScale;
 
-        cardT = new JLabel(strings.get("build.dev.card"));  // "Dev Card: "
+        cardT = new JLabel(strings.get("buy.dev.card"));  // "Dev Card: "
         cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
         cardC = new ArrowheadPanel(costsW, costsH, costsTooltip, arrowColorsFrom);
@@ -326,9 +326,9 @@ import javax.swing.SwingConstants;
         cardCountLab = new JLabel(strings.get("build.available"), SwingConstants.LEFT);  // "available"
         add(cardCountLab);
         cardCount = new ColorSquare(ColorSquare.GREY, 0, sqHeight, sqHeight);
-        cardCount.setToolTipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
-        cardCount.setToolTipLowWarningLevel(strings.get("build.dev.cards.low"), 3);  // "Almost out of development cards to buy"
-        cardCount.setToolTipZeroText(strings.get("build.dev.cards.none"));  // "No more development cards available to buy"
+        cardCount.setToolTipText(strings.get("buy.dev.cards.available"));  // "Development cards available to buy"
+        cardCount.setToolTipLowWarningLevel(strings.get("buy.dev.cards.low"), 3);  // "Almost out of development cards to buy"
+        cardCount.setToolTipZeroText(strings.get("buy.dev.cards.none.common"));  // "No more development cards available to buy"
         add(cardCount);
 
         final SOCGame ga = pi.getGame();
