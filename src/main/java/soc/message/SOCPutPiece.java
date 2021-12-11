@@ -114,7 +114,7 @@ public class SOCPutPiece extends SOCMessage
         if (pt < 0)
             throw new IllegalArgumentException("pt: " + pt);
         if (co < 0)
-            throw new IllegalArgumentException("coord < 0");
+            throw new IllegalArgumentException("coord < 0: " + co);
 
         messageType = PUTPIECE;
         game = na;
@@ -185,7 +185,7 @@ public class SOCPutPiece extends SOCMessage
         if (pt < 0)
             throw new IllegalArgumentException("pt: " + pt);
         if (co < 0)
-            throw new IllegalArgumentException("coord < 0");
+            throw new IllegalArgumentException("coord < 0: " + co);
 
         return PUTPIECE + sep + ga + sep2 + pn + sep2 + pt + sep2 + co;
     }
