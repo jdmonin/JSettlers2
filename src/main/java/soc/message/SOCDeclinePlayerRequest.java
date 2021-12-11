@@ -21,17 +21,19 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCGame;
 import soc.game.SOCPlayingPiece;
 
 
 /**
  * This reply message from the server to a client means that client player's request or requested action
  * has been declined by the server, is not possible at this time.
- * Includes a {@link #reasonCode}, optional {@link #reasonText},
+ * Includes a {@link #reasonCode}, optional {@link #reasonText} and current {@link #gameState},
  * and optional {@link #detailValue1} and {@link #detailValue2} which may be used by some reason codes
  * if mentioned in their javadocs.
  *<P>
- * Clients older than v2.5.00 ({@link #MIN_VERSION}) are instead sent {@link SOCGameServerText}.
+ * Clients older than v2.5.00 ({@link #MIN_VERSION}) are instead sent {@link SOCGameServerText},
+ * optionally followed by {@link SOCGameState}.
  *
  *<H4>I18N:</H4>
  * Text is localized by server when sending to the client.
@@ -68,6 +70,7 @@ public class SOCDeclinePlayerRequest extends SOCMessage
 
     /**
      * Reason code when it's not the player's turn.
+     * Should not send optional {@link #gameState} with this reason.
      */
     public static final int REASON_NOT_YOUR_TURN = 2;
 
@@ -97,7 +100,13 @@ public class SOCDeclinePlayerRequest extends SOCMessage
     /**
      * Name of the game.
      */
-    public final String gaName;
+    public final String gameName;
+
+    /**
+     * Optional current game state like {@link SOCGame#WAITING_FOR_DISCARDS}, or 0.
+     * Can help prompt robots to take action if needed.
+     */
+    public final int gameState;
 
     /**
      * Reason the request was declined: {@link #REASON_NOT_NOW}, {@link #REASON_NOT_YOUR_TURN}, etc.
@@ -125,7 +134,8 @@ public class SOCDeclinePlayerRequest extends SOCMessage
     /**
      * Create a {@link SOCDeclinePlayerRequest} message.
      *
-     * @param gaName  name of the game
+     * @param gameName  name of the game
+     * @param gameState  current game state for {@link #gameState} if needed, or 0
      * @param reasonCode  Reason to decline the request:
      *     {@link SOCDeclinePlayerRequest#REASON_NOT_NOW}, {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, etc
      * @param detailValue1  message's {@link #detailValue1} if needed, or 0
@@ -133,11 +143,12 @@ public class SOCDeclinePlayerRequest extends SOCMessage
      * @param reasonText  message's {@link #reasonText} if needed, or {@code null}
      */
     public SOCDeclinePlayerRequest
-        (final String gaName, final int reasonCode,
+        (final String gameName, final int gameState, final int reasonCode,
          final int detailValue1, final int detailValue2, final String reasonText)
     {
         messageType = DECLINEPLAYERREQUEST;
-        this.gaName = gaName;
+        this.gameName = gameName;
+        this.gameState = gameState;
         this.reasonCode = reasonCode;
         this.detailValue1 = detailValue1;
         this.detailValue2 = detailValue2;
@@ -149,7 +160,7 @@ public class SOCDeclinePlayerRequest extends SOCMessage
      */
     public String getGame()
     {
-        return gaName;
+        return gameName;
     }
 
     /**
@@ -169,7 +180,7 @@ public class SOCDeclinePlayerRequest extends SOCMessage
     public String toCmd()
     {
         StringBuilder sb = new StringBuilder
-            (DECLINEPLAYERREQUEST + sep + gaName + sep2 + reasonCode);
+            (DECLINEPLAYERREQUEST + sep + gameName + sep2 + gameState + sep2 + reasonCode);
         if ((detailValue1 != 0) || (detailValue2 != 0) || (reasonText != null))
         {
             sb.append(sep2_char).append(detailValue1)
@@ -194,11 +205,12 @@ public class SOCDeclinePlayerRequest extends SOCMessage
         try
         {
             final String ga;
-            final int rcode;
+            final int gaState, rcode;
             int detail1 = 0, detail2 = 0;
             String rtext = null;
 
             ga = st.nextToken();
+            gaState = Integer.parseInt(st.nextToken());
             rcode = Integer.parseInt(st.nextToken());
             if (st.hasMoreTokens())
             {
@@ -213,7 +225,7 @@ public class SOCDeclinePlayerRequest extends SOCMessage
                 }
             }
 
-            return new SOCDeclinePlayerRequest(ga, rcode, detail1, detail2, rtext);
+            return new SOCDeclinePlayerRequest(ga, gaState, rcode, detail1, detail2, rtext);
         } catch (Exception e) {
             return null;
         }
@@ -225,7 +237,7 @@ public class SOCDeclinePlayerRequest extends SOCMessage
     public String toString()
     {
         StringBuilder sb = new StringBuilder
-            ("SOCDeclinePlayerRequest:game=" + gaName + "|reason=" + reasonCode);
+            ("SOCDeclinePlayerRequest:game=" + gameName + "|state=" + gameState + "|reason=" + reasonCode);
         if ((detailValue1 != 0) || (detailValue2 != 0) || (reasonText != null))
         {
             sb.append("|detail1=").append(detailValue1)

@@ -964,6 +964,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 handlePICKRESOURCES
                     ((SOCPickResources) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
+
+            /**
+             * Server has declined player's request.
+             * Added 2021-12-11 for v2.5.00.
+             */
+            case SOCMessage.DECLINEPLAYERREQUEST:
+                handleDECLINEPLAYERREQUEST
+                    ((SOCDeclinePlayerRequest) mes, games.get(((SOCMessageForGame) mes).getGame()));
+                break;
             }
         }
         catch (Exception e)
@@ -1479,6 +1488,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         ga.setGameState(newState);
+    }
+
+    /**
+     * Server has declined player's request.
+     * Unless {@link SOCDeclinePlayerRequest#gameState} is 0 or same as current {@link SOCGame#getGameState()},
+     * calls {@link #handleGAMESTATE(SOCGame, int)}.
+     * @since 2.5.00
+     */
+    public static void handleDECLINEPLAYERREQUEST(final SOCDeclinePlayerRequest mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return;
+
+        final int currState = mes.gameState;
+        if ((currState != 0) && (currState != ga.getGameState()))
+            handleGAMESTATE(ga, currState);
     }
 
     /**

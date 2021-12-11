@@ -207,6 +207,8 @@ public abstract class GameHandler
      *
      * @param playerConn  Client to send decline to; not null
      * @param game {@code playerConn}'s game; not null
+     * @param withGameState  If true, send the optional gameState field or {@link SOCGameState} message.
+     *     Ignored for {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, as if was false.
      * @param eventPN  {@code playerConn}'s player number if this is a game event which should be recorded;
      *     can be {@link SOCServer#PN_REPLY_TO_UNDETERMINED} or {@link SOCServer#PN_OBSERVER}.
      *     Otherwise {@link SOCServer#PN_NON_EVENT}.
@@ -223,7 +225,7 @@ public abstract class GameHandler
      * @since 2.5.00
      */
     public abstract void sendDecline
-        (final Connection playerConn, final SOCGame game, final int eventPN,
+        (final Connection playerConn, final SOCGame game, final boolean withGameState, final int eventPN,
          final int reasonCode, final int detailValue1, final int detailValue2,
          final String reasonTextKey, final Object... reasonTextParams)
         throws IllegalArgumentException;

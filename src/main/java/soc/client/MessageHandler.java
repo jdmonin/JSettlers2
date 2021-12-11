@@ -3202,7 +3202,9 @@ public class MessageHandler
     }
 
     /**
-     * Server has declined player's request.
+     * Server has declined our player's request.
+     * Calls {@link PlayerClientListener#playerRequestDeclined(int, int, int, String)}
+     * and maybe {@link #handleGAMESTATE(SOCGame, int, boolean)}.
      * @since 2.5.00
      */
     private void handleDECLINEPLAYERREQUEST(final SOCDeclinePlayerRequest mes)
@@ -3216,6 +3218,9 @@ public class MessageHandler
             return;
 
         pcl.playerRequestDeclined(mes.reasonCode, mes.detailValue1, mes.detailValue2, mes.reasonText);
+        final int currState = mes.gameState;
+        if ((currState != 0) && (currState != ga.getGameState()))
+            handleGAMESTATE(ga, currState, false);
     }
 
 }  // class MessageHandler

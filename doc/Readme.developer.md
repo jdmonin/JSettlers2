@@ -851,8 +851,8 @@ For trivial example subclasses extending `SOCRobotClient` and
 The `Sample3PClient` class javadoc mentions useful server properties such as
 `jsettlers.bots.percent3p`, `jsettlers.bots.botgames.wait_sec`, and
 `jsettlers.bots.timeout.turn`. `Sample3PBrain` demonstrates using a custom
-strategy subclass, and using the `_EXT_BOT` game option to send data to the
-bot when joining a game.
+strategy subclass, custom field, and using the `_EXT_BOT` game option to
+pass data to the bot when joining a game.
 
 For a larger change, some parts of soc.robot might still be useful for
 talking with the server and tracking the game's other players.

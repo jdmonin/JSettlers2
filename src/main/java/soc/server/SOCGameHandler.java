@@ -3035,7 +3035,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     public void sendDecline
-        (final Connection playerConn, final SOCGame game, final int eventPN,
+        (final Connection playerConn, final SOCGame game, final boolean withGameState, final int eventPN,
          final int reasonCode, final int detailValue1, final int detailValue2,
          String reasonTextKey, final Object... reasonTextParams)
         throws IllegalArgumentException
@@ -3046,6 +3046,9 @@ public class SOCGameHandler extends GameHandler
             throw new IllegalArgumentException("game");
 
         final boolean isRecentClient = (playerConn.getVersion() >= SOCDeclinePlayerRequest.MIN_VERSION);
+        final int gameState = (withGameState && (reasonCode != SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN))
+            ? game.getGameState()
+            : 0;
         final String gameName = game.getName();
         final SOCDeclinePlayerRequest msg;
         if (isRecentClient || ((eventPN != SOCServer.PN_NON_EVENT) && srv.isRecordGameEventsActive()))
@@ -3056,7 +3059,7 @@ public class SOCGameHandler extends GameHandler
                        : playerConn.getLocalizedSpecial(game, reasonTextKey, reasonTextParams))
                 : null;
             msg = new SOCDeclinePlayerRequest
-                (gameName, reasonCode, detailValue1, detailValue2, localText);
+                (gameName, gameState, reasonCode, detailValue1, detailValue2, localText);
         } else {
             msg = null;
         }
@@ -3093,6 +3096,10 @@ public class SOCGameHandler extends GameHandler
             else
                 srv.messageToPlayerKeyedSpecial
                     (playerConn, game, SOCServer.PN_NON_EVENT, reasonTextKey, reasonTextParams);
+
+            if (gameState != 0)
+                srv.messageToPlayer
+                    (playerConn, null, SOCServer.PN_NON_EVENT, new SOCGameState(gameName, gameState));
         }
     }
 
@@ -3964,8 +3971,7 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
-         * send the game state and start the game.
-         * send game state and whose turn it is.
+         * announce the start the game, new game state, and turn messages.
          */
         if (ga.clientVersionLowest >= SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD)
         {

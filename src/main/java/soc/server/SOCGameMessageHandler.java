@@ -1773,7 +1773,7 @@ public class SOCGameMessageHandler
             }
 
             if (sendDeclineReason != -1)
-                handler.sendDecline(c, ga, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
+                handler.sendDecline(c, ga, false, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
 
             if ((sendCancelReply || (sendDeclineReason != -1))
                 && ga.getPlayer(pn).isRobot())
@@ -1894,7 +1894,7 @@ public class SOCGameMessageHandler
         }
 
         if (sendDeclineReason != -1)
-            handler.sendDecline(c, ga, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
+            handler.sendDecline(c, ga, false, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
 
         return (sendDeclineReason == -1);
     }
@@ -2065,20 +2065,16 @@ public class SOCGameMessageHandler
                 }
 
                 if (sendDeclineReason != -1)
-                    handler.sendDecline(c, ga, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
+                    handler.sendDecline(c, ga, true, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
+                        // includes gamestate: the bot is waiting for one
 
                 if (! noAction)
-                {
                     handler.sendGameState(ga);
-                } else {
-                    // bot is waiting for a gamestate reply, not text
-                    final SOCClientData scd = (SOCClientData) c.getAppData();
-                    if ((scd != null) && scd.isRobot)
-                        srv.messageToPlayer(c, gaName, pn, new SOCGameState(gaName, gstate));
-                }
+
             } else {
                 handler.sendDecline
-                    (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
+                    (c, ga, false, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                     SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
                     // "It's not your turn."
             }
         }
@@ -2424,7 +2420,7 @@ public class SOCGameMessageHandler
                 }
 
                 if (sendDeclineReason != -1)
-                    handler.sendDecline(c, ga, pn, sendDeclineReason, pieceType, coord, sendDeclineTextKey);
+                    handler.sendDecline(c, ga, false, pn, sendDeclineReason, pieceType, coord, sendDeclineTextKey);
 
                 if (sendCancelReply)
                 {
@@ -2439,7 +2435,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 handler.sendDecline
-                    (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                    (c, ga, false, SOCServer.PN_REPLY_TO_UNDETERMINED,
                      SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
                         // "It's not your turn."
             }
@@ -2811,7 +2807,7 @@ public class SOCGameMessageHandler
 
             if (sendDeclineReason != -1)
             {
-                handler.sendDecline(c, ga, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
+                handler.sendDecline(c, ga, false, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
 
                 if (ga.getPlayer(pn).isRobot())
                     srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, SOCPossiblePiece.CARD));
@@ -3029,7 +3025,7 @@ public class SOCGameMessageHandler
 
                 }
             } else {
-                handler.sendDecline(c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                handler.sendDecline(c, ga, false, SOCServer.PN_REPLY_TO_UNDETERMINED,
                     SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);  // "It's not your turn."
 
                 return;  // <--- Early return ---
@@ -3042,11 +3038,13 @@ public class SOCGameMessageHandler
                 {
                     if (denyTextKey != null)
                         handler.sendDecline
-                            (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0,
+                            (c, ga, true, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                             SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0,
                              denyTextKey);
                     else
                         handler.sendDecline
-                            (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0,
+                            (c, ga, true, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                             SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0,
                              "reply.playdevcard.cannot.now", mes.getDevCard());
                                 // "You can't play a [card type] card now."
                 } else {

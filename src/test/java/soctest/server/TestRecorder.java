@@ -582,8 +582,8 @@ public class TestRecorder
         StringBuilder compares = compareRecordsToExpected
             (log.entries, new String[][]
             {
-                {"p3:SOCGameServerText:", "|text="},  // ="It's not your turn." but exact text not important here
-                {"p3:SOCGameServerText:", "|text="},
+                {"p3:SOCDeclinePlayerRequest:", "|state=0|reason=2"},  // not your turn
+                {"p3:SOCDeclinePlayerRequest:", "|state=0|reason=2"},
             }, true);
         if (compares != null)
         {
@@ -609,9 +609,9 @@ public class TestRecorder
             (log.entries, new String[][]
             {
                 {"f3:SOCBuyDevCardRequest:", ""},
-                {"p3:SOCGameServerText:", "|text="},
+                {"p3:SOCDeclinePlayerRequest:", "|state=0|reason=2"},
                 {"f3:SOCBuildRequest:", "|pieceType=0"},
-                {"p3:SOCGameServerText:", "|text="},
+                {"p3:SOCDeclinePlayerRequest:", "|state=0|reason=2"},
             }, true);
         if (compares != null)
         {
@@ -705,7 +705,7 @@ public class TestRecorder
         compares = compareRecordsToExpected
             (log.entries, new String[][]
             {
-                {"p3:SOCGameServerText:", "|text="},
+                {"p3:SOCDeclinePlayerRequest:", "|state=0|reason=2"},
             }, true);
         if (compares != null)
         {

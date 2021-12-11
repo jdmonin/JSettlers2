@@ -593,6 +593,8 @@ public interface PlayerClientListener
 
     /**
      * Let client player know the server has declined their request or requested action.
+     * Because this only updates the display, call before updating game state if was incorrect at client;
+     * that update may cause a prompt or dialog to be shown.
      * @param reasonCode  Reason the request was declined:
      *     {@link SOCDeclinePlayerRequest#REASON_NOT_NOW}, {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, etc
      * @param detailValue1  Optional detail, may be used by some {@code reasonCode}s
@@ -601,7 +603,7 @@ public interface PlayerClientListener
      * @since 2.5.00
      */
     void playerRequestDeclined
-        (final int reasonCode, final int detailValue1,  final int detailValue2, final String reasonText);
+        (final int reasonCode, final int detailValue1, final int detailValue2, final String reasonText);
 
     void buildRequestCanceled(SOCPlayer player);
 
