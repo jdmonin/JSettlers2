@@ -7108,7 +7108,7 @@ public class SOCGame implements Serializable, Cloneable
     public List<SOCPlayer> getPossibleVictims()
     {
         if ((currentRoll.sc_robPossibleVictims != null)
-            && (gameState == WAITING_FOR_ROB_CHOOSE_PLAYER))
+            && ((gameState == WAITING_FOR_ROB_CHOOSE_PLAYER) || (gameState == WAITING_FOR_ROB_CLOTH_OR_RESOURCE)))
         {
             // already computed this turn
             return currentRoll.sc_robPossibleVictims;
@@ -8548,8 +8548,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return true if the current player can
-     *         do the discovery card action and the
-     *         pick contains exactly 2 resources
+     *         do the discovery card action
+     *         (state is {@link #WAITING_FOR_DISCOVERY})
+     *         and the pick contains exactly 2 resources
      *
      * @param pick  the resources that the player wants
      */

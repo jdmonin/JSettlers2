@@ -511,9 +511,12 @@ public interface PlayerClientListener
      *   {@link #gameStarted()};
      *   {@link #gameStateChanged(int)};
      *</pre></code>
+     *
      * @param gameState One of the states from SOCGame, such as {@link soc.game.SOCGame#NEW}
+     * @param isForDecline If true, server has sent us a {@link SOCDeclinePlayerRequest};
+     *     {@code gameState} might not have changed since last call to {@code gameStateChanged(..)}.
      */
-    void gameStateChanged(int gameState);
+    void gameStateChanged(int gameState, boolean isForDecline);
 
     /**
      * Update game data and interface after game is over.

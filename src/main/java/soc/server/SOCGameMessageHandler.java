@@ -1012,6 +1012,12 @@ public class SOCGameMessageHandler
             final String gaName = ga.getName();
             final boolean isPirate = ga.getRobberyPirateFlag();
             final int pn = player.getPlayerNumber();
+            if (pn != ga.getCurrentPlayerNumber())
+            {
+                handler.sendDecline
+                    (c, ga, false, pn, SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
+                return;  // <--- Early return ---
+            }
             int coord = mes.getCoordinates();  // negative for pirate
             final boolean canDo =
                 (isPirate == (coord < 0))
@@ -1086,8 +1092,9 @@ public class SOCGameMessageHandler
                     srv.messageToPlayer(c, gaName, pn, new SOCChoosePlayer(gaName, vpn));
                 }
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, pn, ((coord < 0) ? "robber.cantmove.pirate" : "robber.cantmove"));
+                handler.sendDecline
+                    (c, ga, true, pn, SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0,
+                     ((coord < 0) ? "robber.cantmove.pirate" : "robber.cantmove"));
                     // "You can't move the pirate" / "You can't move the robber"
             }
         }
@@ -1157,6 +1164,8 @@ public class SOCGameMessageHandler
                         srv.messageToPlayerKeyed
                             (c, gaName, ga.getCurrentPlayerNumber(), "robber.cantsteal");
                             // "You can't steal from that player."
+                        // Re-prompt current player client with SOCChoosePlayerRequest listing possible victims
+                        handler.sendGameState(ga, true, true, false);
                     }
                     break;
 
@@ -1179,18 +1188,32 @@ public class SOCGameMessageHandler
                                 (ga, ga.getPlayer(c.getData()), ga.getPlayer(pn), rsrc);
                             handler.sendGameState(ga);
                             break;
+                        } else {
+                            // Re-send prompt
+                            final List<SOCPlayer> victims = ga.getPossibleVictims();
+                            if ((victims != null) && (victims.size() == 1))
+                            {
+                                final int vpn = victims.get(0).getPlayerNumber();
+                                srv.messageToPlayer
+                                    (c, gaName, ga.getCurrentPlayerNumber(), new SOCChoosePlayer(gaName, vpn));
+                                break;
+                            }
+                            // if we don't have a single victim (internal error),
+                            // fall through to default decline response.
                         }
-                        // else, fall through and send "can't steal" message
                     }
 
                 default:
-                    srv.messageToPlayerKeyed
-                        (c, gaName, ga.getCurrentPlayerNumber(), "robber.cantsteal");
+                    handler.sendDecline
+                        (c, ga, true, ga.getCurrentPlayerNumber(),
+                         SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0, "robber.cantsteal");
                         // "You can't steal from that player."
                 }
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
+                handler.sendDecline
+                    (c, ga, false, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                     SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
+                    // "It's not your turn."
             }
         }
         catch (Throwable e)
@@ -3123,12 +3146,25 @@ public class SOCGameMessageHandler
                                      // "{0} received {1,rsrcs} from the bank."
                         }
                         handler.sendGameState(ga);
-                    } else {
+                    } else if (rsrcs.getTotal() != 2) {
+                        // reply with SOCSimpleRequest prompt to re-pick
                         srv.messageToPlayerKeyed(c, gaName, pn, "action.card.discov.notlegal");
+                            // "That is not a legal Year of Plenty pick."
+                        srv.messageToPlayer(c, gaName, pn,
+                            ((c.getVersion() >= SOCGameState.VERSION_FOR_GAME_STATE_AS_FIELD)
+                                ? new SOCSimpleRequest(gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, 2)
+                                : new SOCGameState(gaName, SOCGame.WAITING_FOR_DISCOVERY)));
+                    } else {
+                        // catch-all; not sure why it failed, so don't send SOCSimpleRequest prompt
+                        handler.sendDecline
+                            (c, ga, true, pn, SOCDeclinePlayerRequest.REASON_SPECIFICS, 0, 0,
+                             "action.card.discov.notlegal");
                             // "That is not a legal Year of Plenty pick."
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
+                    handler.sendDecline
+                        (c, ga, false, pn, SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
+                        // "It's not your turn."
                 }
             } else {
                 // Message is Gold Hex picks
@@ -3345,13 +3381,17 @@ public class SOCGameMessageHandler
 
                     handler.sendGameState(ga);
                 } else {
-                    srv.messageToPlayerKeyedSpecial
-                        (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.playdevcard.cannot.now", SOCDevCardConstants.MONO);
+                    handler.sendDecline
+                        (c, ga, true, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                         SOCDeclinePlayerRequest.REASON_NOT_NOW, 0, 0,
+                         "reply.playdevcard.cannot.now", SOCDevCardConstants.MONO);
                         // "You can't play a Monopoly card now."  Before v2.0.00, was "You can't do a Monopoly pick now."
                 }
             } else {
-                srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
+                handler.sendDecline
+                    (c, ga, false, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                     SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN, 0, 0, null);
+                        // "It's not your turn."
             }
         }
         catch (Exception e)

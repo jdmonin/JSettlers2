@@ -72,6 +72,8 @@ JARs for recent JSettlers versions can be downloaded from
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)
 		  so client's game data's is updated by the time it sees that action message, and sends
 		  SOCResourceCount for clients which may have tracked some of the victims' lost resource as unknowns
+	- When Discovery card played:
+		- If client sends wrong number of resources, server responds with SOCSimpleRequest(PROMPT_PICK_RESOURCES, 2)
 	- End Turn:
 		- If client sends SOCEndTurn but player can't end turn yet, server responds with SOCGameState as a prompt
 	- Special Building Phase:

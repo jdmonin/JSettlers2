@@ -47,7 +47,8 @@ import java.util.StringTokenizer;
  *<P>
  * In either of those situations, if the resource count is wrong, the server will
  * resend {@code SOCSimpleRequest(PROMPT_PICK_RESOURCES)} with the required resource count.
- *<BR>
+ * (A v1 client will instead be sent {@code SOCGameState(WAITING_FOR_DISCOVERY)} again.)
+ *<P>
  * Otherwise, server announces a {@code SOCPickResources} to the game to give player those resources:
  * See next section for details.
  *

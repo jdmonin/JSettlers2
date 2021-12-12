@@ -1530,7 +1530,7 @@ public class MessageHandler
     }
 
     /**
-     * handle the "start game" message; calls {@link #handleGAMESTATE(SOCGame, int, boolean)}
+     * handle the "start game" message; calls {@link #handleGAMESTATE(SOCGame, int, boolean, boolean)}
      * which will call {@link PlayerClientListener#gameStarted()} if needed.
      * @param mes  the message
      */
@@ -1540,11 +1540,11 @@ public class MessageHandler
         if (ga == null)
             return;
 
-        handleGAMESTATE(ga, mes.getGameState(), false);
+        handleGAMESTATE(ga, mes.getGameState(), false, false);
     }
 
     /**
-     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int, boolean)}.
+     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int, boolean, boolean)}.
      * @param mes  the message
      */
     protected void handleGAMESTATE(SOCGameState mes)
@@ -1553,7 +1553,7 @@ public class MessageHandler
         if (ga == null)
             return;
 
-        handleGAMESTATE(ga, mes.getState(), false);
+        handleGAMESTATE(ga, mes.getState(), false, false);
     }
 
     /**
@@ -1571,11 +1571,15 @@ public class MessageHandler
      * @param ga  Game to update state; not null
      * @param newState  New state from message, like {@link SOCGame#ROLL_OR_CARD}, or 0. Does nothing if 0.
      * @param isForTurn  True if being called from {@link #handleTURN(SOCTurn)}.
-     *     If true, won't possibly call {@link SOCGame#updateAtTurn()}; caller does so instead.
+     *     If true, will avoid calling {@link SOCGame#updateAtTurn()}; caller does so instead.
+     * @param isForDecline  True if being called from {@link #handleDECLINEPLAYERREQUEST(SOCDeclinePlayerRequest)}.
+     *     If true, won't call {@link SOCGame#setGameState(int)} if {@code newState} same as current state.
+     *     Also passed to {@code PlayerClientListener.gameStateChanged(..)}.
      * @see #handleGAMESTATE(SOCGameState)
      * @since 2.0.00
      */
-    protected void handleGAMESTATE(final SOCGame ga, final int newState, final boolean isForTurn)
+    protected void handleGAMESTATE
+        (final SOCGame ga, final int newState, final boolean isForTurn, final boolean isForDecline)
     {
         if (newState == 0)
             return;
@@ -1583,7 +1587,8 @@ public class MessageHandler
         final int gaState = ga.getGameState();
         final boolean gameStarting = (gaState == SOCGame.NEW) && (newState != SOCGame.NEW);
 
-        ga.setGameState(newState);
+        if ((newState != gaState) || ! isForDecline)
+            ga.setGameState(newState);
 
         if ((! (gameStarting || isForTurn))
             && (gaState < SOCGame.ROLL_OR_CARD) && (newState == SOCGame.ROLL_OR_CARD)
@@ -1603,7 +1608,7 @@ public class MessageHandler
             // call here, not in handleSTARTGAME, in case we joined a game in progress
             pcl.gameStarted();
         }
-        pcl.gameStateChanged(newState);
+        pcl.gameStateChanged(newState, false);
     }
 
     /**
@@ -1617,7 +1622,7 @@ public class MessageHandler
         if (ga == null)
             return;
 
-        handleGAMESTATE(ga, mes.getGameState(), true);
+        handleGAMESTATE(ga, mes.getGameState(), true, false);
 
         final int pnum = mes.getPlayerNumber();
         ga.setCurrentPlayerNumber(pnum);
@@ -3204,7 +3209,7 @@ public class MessageHandler
     /**
      * Server has declined our player's request.
      * Calls {@link PlayerClientListener#playerRequestDeclined(int, int, int, String)}
-     * and maybe {@link #handleGAMESTATE(SOCGame, int, boolean)}.
+     * and maybe {@link #handleGAMESTATE(SOCGame, int, boolean, boolean)}.
      * @since 2.5.00
      */
     private void handleDECLINEPLAYERREQUEST(final SOCDeclinePlayerRequest mes)
@@ -3219,8 +3224,8 @@ public class MessageHandler
 
         pcl.playerRequestDeclined(mes.reasonCode, mes.detailValue1, mes.detailValue2, mes.reasonText);
         final int currState = mes.gameState;
-        if ((currState != 0) && (currState != ga.getGameState()))
-            handleGAMESTATE(ga, currState, false);
+        if (currState != 0)
+            handleGAMESTATE(ga, currState, false, true);
     }
 
 }  // class MessageHandler

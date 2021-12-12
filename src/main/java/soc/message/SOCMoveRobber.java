@@ -35,6 +35,10 @@ import soc.game.SOCGame;  // for javadocs only
  * {@link SOCGameState}({@link SOCGame#PLACING_ROBBER PLACING_ROBBER}
  * or {@link SOCGame#PLACING_PIRATE PLACING_PIRATE}).
  *<P>
+ * If client can't move the robber or pirate there, server responds
+ * with {@link SOCDeclinePlayerRequest}, or to an older client with
+ * {@link SOCGameServerText} and {@link SOCGameState}.
+ *<P>
  * When sent from server, this message will be followed by other messages
  * about gaining/losing resources: {@link SOCReportRobbery} or {@link SOCPlayerElement}.
  * So for this message, the client should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}

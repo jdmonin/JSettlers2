@@ -3324,9 +3324,12 @@ public class SOCPlayerInterface extends Frame
      *   playerInterface.{@link #startGame()};
      *   playerInterface.updateAtGameState();
      *</pre></code>
+     *
+     * @param isForDecline If true, server has sent us a {@link SOCDeclinePlayerRequest};
+     *     game state might not have changed since last call to {@code updateAtGameState(..)}.
      * @since 1.1.00
      */
-    public void updateAtGameState()
+    public void updateAtGameState(boolean isForDecline)
     {
         int gs = game.getGameState();
 
@@ -4828,9 +4831,9 @@ public class SOCPlayerInterface extends Frame
             pi.startGame();
         }
 
-        public void gameStateChanged(int gameState)
+        public void gameStateChanged(int gameState, boolean isForDecline)
         {
-            pi.updateAtGameState();
+            pi.updateAtGameState(isForDecline);
         }
 
         public void gameEnded(Map<SOCPlayer, Integer> scores)
