@@ -301,9 +301,9 @@ all:SOCGameState:game=test|state=51
 p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
 f3:SOCChoosePlayer:game=test|choice=2
 # End of added section
-p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
-p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
-!p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
@@ -358,9 +358,9 @@ all:SOCGameState:game=test|state=33
 all:SOCGameServerText:game=test|text=debug will move the robber.
 f3:SOCMoveRobber:game=test|playerNumber=3|coord=709
 all:SOCMoveRobber:game=test|playerNumber=3|coord=709
-p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
-p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
-!p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
@@ -389,9 +389,9 @@ all:SOCGameState:game=test|state=34
 all:SOCGameServerText:game=test|text=p2 will move the pirate ship.
 f2:SOCMoveRobber:game=test|playerNumber=2|coord=-502
 all:SOCMoveRobber:game=test|playerNumber=2|coord=-502
-p2:SOCReportRobbery:game=test|perp=2|victim=3|resType=5|amount=1|isGainLose=true
-p3:SOCReportRobbery:game=test|perp=2|victim=3|resType=5|amount=1|isGainLose=true
-!p[2, 3]:SOCReportRobbery:game=test|perp=2|victim=3|resType=6|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=2|victim=3|resType=5|amount=1|isGainLose=true
+p3:SOCRobberyResult:game=test|perp=2|victim=3|resType=5|amount=1|isGainLose=true
+!p[2, 3]:SOCRobberyResult:game=test|perp=2|victim=3|resType=6|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f2:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1
@@ -420,7 +420,7 @@ all:SOCGameServerText:game=test|text=debug moved the pirate. Must choose to stea
 all:SOCGameState:game=test|state=55
 p3:SOCChoosePlayer:game=test|choice=2
 f3:SOCChoosePlayer:game=test|choice=-3
-all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3
+all:SOCRobberyResult:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3
 # End of added section
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
@@ -445,9 +445,9 @@ all:SOCGameState:game=test|state=33
 all:SOCGameServerText:game=test|text=debug will move the robber.
 f3:SOCMoveRobber:game=test|playerNumber=3|coord=508
 all:SOCMoveRobber:game=test|playerNumber=3|coord=508
-p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
-p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
-!p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f3:SOCPlayDevCardRequest:game=test|devCard=1
 all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1
@@ -506,9 +506,9 @@ all:SOCGameServerText:game=test|text=debug moved the robber. Must choose a victi
 all:SOCGameState:game=test|state=51
 p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
 f3:SOCChoosePlayer:game=test|choice=2
-p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
-p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
-!p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=15
 all:SOCRollDicePrompt:game=test|playerNumber=3
 # End of added section
@@ -633,9 +633,9 @@ all:SOCGameState:game=test|state=33
 all:SOCGameServerText:game=test|text=debug will move the robber.
 f3:SOCMoveRobber:game=test|playerNumber=3|coord=50a
 all:SOCMoveRobber:game=test|playerNumber=3|coord=50a
-p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-!p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f3:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0
 all:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3
@@ -703,9 +703,9 @@ all:SOCGameState:game=test|state=33
 all:SOCGameServerText:game=test|text=debug will move the robber.
 f3:SOCMoveRobber:game=test|playerNumber=3|coord=508
 all:SOCMoveRobber:game=test|playerNumber=3|coord=508
-p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-!p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 all:SOCGameState:game=test|state=20
 f3:SOCEndTurn:game=test
 all:SOCClearOffer:game=test|playerNumber=-1

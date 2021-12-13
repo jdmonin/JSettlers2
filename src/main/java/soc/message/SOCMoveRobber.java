@@ -40,7 +40,7 @@ import soc.game.SOCGame;  // for javadocs only
  * {@link SOCGameServerText} and {@link SOCGameState}.
  *<P>
  * When sent from server, this message will be followed by other messages
- * about gaining/losing resources: {@link SOCReportRobbery} or {@link SOCPlayerElement}.
+ * about gaining/losing resources: {@link SOCRobberyResult} or {@link SOCPlayerElement}.
  * So for this message, the client should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
  * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
  *<P>

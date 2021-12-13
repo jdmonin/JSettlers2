@@ -52,7 +52,7 @@ Message sequence beginnings, roughly in same order as in [Message-Sequences-for-
     - gameState 33 -> Move robber
     - gameState 34 -> Move pirate
 - p3:SOCChoosePlayerRequest -> Choose player to rob from
-- p3:SOCReportRobbery -> Rob a player
+- p3:SOCRobberyResult -> Robbery results
 - f3:SOCBankTrade -> Bank trade (usual or undo previous)
 - f3:SOCMakeOffer -> Make trade offer
 - f3:SOCClearOffer -> Clear own trade offer
@@ -95,7 +95,7 @@ As seen by a human player client or robot player.
 - SOCChoosePlayerRequest -> Choose player to rob from
 - p3:SOCChoosePlayer:
      - In gameState WAITING_FOR_ROB_CLOTH_OR_RESOURCE -> Choose whether to steal cloth or a resource
-- SOCReportRobbery -> Robbery results
+- SOCRobberyResult -> Robbery results
 - SOCBankTrade -> Bank trade or Undo bank trade
 - SOCMakeOffer -> Player trade: Make trade offer or counteroffer
 - SOCClearOffer:

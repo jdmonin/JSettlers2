@@ -36,7 +36,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Added French translation (thank you Lee Passey)
 - Network/Message traffic:
 	- For efficiency and third-party bots' understanding, server sends data messages instead of text when clients are this version or newer:
-		- Report robbery with `SOCReportRobbery`
+		- Report robbery results with `SOCRobberyResult`
 		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
 		- Reject disallowed trade requests with `SOCRejectOffer` reason codes
 		- Reject other disallowed requests or actions with `SOCDeclinePlayerRequest`
@@ -79,7 +79,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Special Building Phase:
 		- When server sends SOCTurn(SPECIAL_BUILDING), no longer follows with text prompt
 	- Pirate Islands scenario: Attacks by pirate fleet:
-		- Results announced as SOCReportRobbery
+		- Results announced as SOCRobberyResult
 		- Also announces ties
 	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 	- When client joins a game:

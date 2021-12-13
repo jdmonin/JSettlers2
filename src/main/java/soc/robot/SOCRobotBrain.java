@@ -71,8 +71,8 @@ import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPlayerElements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
-import soc.message.SOCReportRobbery;
 import soc.message.SOCResourceCount;
+import soc.message.SOCRobberyResult;
 import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSimpleAction;
 import soc.message.SOCSimpleRequest;
@@ -1634,8 +1634,8 @@ public class SOCRobotBrain extends Thread
                         }
                         break;
 
-                    case SOCMessage.REPORTROBBERY:
-                        handleREPORTROBBERY((SOCReportRobbery) mes);
+                    case SOCMessage.ROBBERYRESULT:
+                        handleROBBERYRESULT((SOCRobberyResult) mes);
                         break;
 
                     case SOCMessage.BOTGAMEDATACHECK:
@@ -2621,15 +2621,15 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Update game data and any bot tracking when a player has been robbed.
-     * Calls {@link SOCDisplaylessPlayerClient#handleREPORTROBBERY(SOCReportRobbery, SOCGame)}.
-     * Third-party bots can override if needed; if so, be sure to call {@code super.handleREPORTROBBERY(..)}.
+     * Calls {@link SOCDisplaylessPlayerClient#handleROBBERYRESULT(SOCRobberyResult, SOCGame)}.
+     * Third-party bots can override if needed; if so, be sure to call {@code super.handleROBBERYRESULT(..)}.
      *
-     * @param mes  Robbery report message
+     * @param mes  Robbery result message
      * @since 2.5.00
      */
-    protected void handleREPORTROBBERY(SOCReportRobbery mes)
+    protected void handleROBBERYRESULT(SOCRobberyResult mes)
     {
-        SOCDisplaylessPlayerClient.handleREPORTROBBERY(mes, game);
+        SOCDisplaylessPlayerClient.handleROBBERYRESULT(mes, game);
 
         // Basic robot brain doesn't do anything else with this message,
         // but a third-party bot might want to.

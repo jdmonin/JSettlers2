@@ -148,7 +148,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *        and recaptures the fortress
      *</UL>
      *
-     * See also {@link SOCReportRobbery} used in this scenario to announce pirate fleet attack results.
+     * See also {@link SOCRobberyResult} used in this scenario to announce pirate fleet attack results.
      *
      * @since 2.0.00
      */

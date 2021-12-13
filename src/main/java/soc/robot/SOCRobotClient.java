@@ -745,8 +745,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
             case SOCMessage.PUTPIECE:
             case SOCMessage.REJECTOFFER:
-            case SOCMessage.REPORTROBBERY:  // added 2021-01-05 for v2.5.00
             case SOCMessage.RESOURCECOUNT:
+            case SOCMessage.ROBBERYRESULT:  // added 2021-01-05 for v2.5.00
             case SOCMessage.SIMPLEACTION:   // added 2013-09-04 for v1.1.19
             case SOCMessage.SIMPLEREQUEST:  // bot ignored these until 2015-10-10 for v2.0.00
             case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message

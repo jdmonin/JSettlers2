@@ -52,7 +52,7 @@ import soc.game.SOCGame;
  * If client is allowed but their choice is wrong (player number isn't a possible victim, etc),
  * server resends {@link SOCChoosePlayerRequest} to that client.
  *<P>
- * Otherwise server will respond with the results of the choice: {@link SOCReportRobbery}, {@link SOCGameState}, etc.
+ * Otherwise server will respond with the results of the choice: {@link SOCRobberyResult}, {@link SOCGameState}, etc.
  *<P>
  * Also sent from server to client (v2.0.00+) in game state
  * {@link SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE}

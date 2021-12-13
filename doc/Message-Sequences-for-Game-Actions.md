@@ -531,7 +531,7 @@ In gameState 33 (PLACING_ROBBER):
     - all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
     - all:SOCGameState:game=test|state=1000
 - Else:
-    - Next message is SOCReportRobbery from server, which will be start of next sequence
+    - Next message is SOCRobberyResult from server, which will be start of next sequence
 
 ### Move pirate
 
@@ -563,16 +563,16 @@ In gameState 55 (WAITING_FOR_ROB_CLOTH_OR_RESOURCE):
 Occurs after moving robber or pirate, then possibly choosing a victim,
 and (Cloth Trade scenario) choosing whether to rob cloth or resources.
 
-- p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-- p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-- !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+- p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+- p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+- !p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 - all:SOCGameState:game=test|state=20  // or 15 + all:SOCRollDicePrompt if hasn't rolled yet
     - Or if player won game by gaining Largest Army with this soldier:  
       all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
 
 ### Rob a player of cloth
 
-- all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3  // rob 1 cloth; gives new total amounts for perpetrator and victim
+- all:SOCRobberyResult:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3  // rob 1 cloth; gives new total amounts for perpetrator and victim
 - all:SOCGameState:game=test|state=20  // or 15
     - Or if player won game by gaining VP from the robbed cloth:  
       all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)

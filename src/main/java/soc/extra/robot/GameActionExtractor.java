@@ -70,7 +70,7 @@ public class GameActionExtractor
                 SOCMessage.PUTPIECE, SOCMessage.BUILDREQUEST, SOCMessage.CANCELBUILDREQUEST, SOCMessage.MOVEPIECE,
                 SOCMessage.BUYDEVCARDREQUEST, SOCMessage.PLAYDEVCARDREQUEST,
                 SOCMessage.DISCARD, SOCMessage.PICKRESOURCES, SOCMessage.CHOOSEPLAYER, SOCMessage.MOVEROBBER,
-                SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.REPORTROBBERY, SOCMessage.BANKTRADE,
+                SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.ROBBERYRESULT, SOCMessage.BANKTRADE,
                 SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER, SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
                 SOCMessage.ENDTURN, SOCMessage.GAMESTATS, SOCMessage.DEVCARDACTION
             })
@@ -91,7 +91,7 @@ public class GameActionExtractor
                 SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
                 SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.DISCARD, SOCMessage.PICKRESOURCES,
                 SOCMessage.GAMESTATE, SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST,
-                SOCMessage.CHOOSEPLAYER, SOCMessage.REPORTROBBERY,
+                SOCMessage.CHOOSEPLAYER, SOCMessage.ROBBERYRESULT,
                 SOCMessage.BANKTRADE, SOCMessage.MAKEOFFER, SOCMessage.CLEAROFFER,
                 SOCMessage.REJECTOFFER, SOCMessage.ACCEPTOFFER,
                 SOCMessage.TURN, SOCMessage.GAMESTATS
@@ -576,7 +576,7 @@ public class GameActionExtractor
                         extractedAct = extract_CHOOSE_ROBBERY_VICTIM(e);
                     break;
 
-                case SOCMessage.REPORTROBBERY:
+                case SOCMessage.ROBBERYRESULT:
                     extractedAct = extract_ROB_PLAYER(e);
                     break;
 
@@ -1956,7 +1956,7 @@ public class GameActionExtractor
         //   all:SOCGameState:game=test|state=20  // or another state
         // Or if no possible victims and winning by gaining Largest Army:
         //   all:SOCGameElements + all:SOCGameState(1000)
-        // Otherwise next message is SOCReportRobbery from server, which will be start of next sequence
+        // Otherwise next message is SOCRobberyResult from server, which will be start of next sequence
 
         ExtractorState prevState = new ExtractorState(state);
 
@@ -1982,7 +1982,7 @@ public class GameActionExtractor
                 return null;
         }
 
-        if (e.event instanceof SOCReportRobbery)
+        if (e.event instanceof SOCRobberyResult)
             backtrackTo(prevState);
         else if (! (e.isToAll() && (e.event instanceof SOCGameState)))
             return null;
@@ -2067,14 +2067,14 @@ public class GameActionExtractor
      */
     private Action extract_ROB_PLAYER(GameEventLog.EventEntry e)
     {
-        final SOCReportRobbery rr = (SOCReportRobbery) e.event;
+        final SOCRobberyResult rr = (SOCRobberyResult) e.event;
         SOCResourceSet stolenRes = null;
         SOCPlayerElement.PEType stolenPE = null;
 
         if (e.isToAll())
         {
             // Stealing cloth:
-            // all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3
+            // all:SOCRobberyResult:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3
 
             if (rr.peType != null)
                 stolenPE = rr.peType;
@@ -2087,7 +2087,7 @@ public class GameActionExtractor
 
             if ((! hasServerOnlyLog) || (e.excludedPN == null))
             {
-                // p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+                // p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
                 if (e.isFromClient || (e.pn < 0) || (rr.peType != null))
                     return null;
                 if (rr.resSet != null)
@@ -2102,18 +2102,18 @@ public class GameActionExtractor
                 {
                     e = next();
 
-                    // p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-                    if (e.isFromClient || (e.pn < 0) || ! (e.event instanceof SOCReportRobbery))
+                    // p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+                    if (e.isFromClient || (e.pn < 0) || ! (e.event instanceof SOCRobberyResult))
                         return null;
 
                     e = next();
                 }
             }
 
-            // !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+            // !p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
             if ((! hasServerOnlyLog) || (stolenRes == null))
             {
-                if ((e.excludedPN == null) || ! (e.event instanceof SOCReportRobbery))
+                if ((e.excludedPN == null) || ! (e.event instanceof SOCRobberyResult))
                     return null;
 
                 if (stolenRes == null)

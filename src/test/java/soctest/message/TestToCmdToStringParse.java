@@ -909,90 +909,6 @@ public class TestToCmdToStringParse
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
         {new SOCRejectOffer("ga", 2, -5), "1037|ga,2,-5", "SOCRejectOffer:game=ga|playerNumber=2|reasonCode=-5"},
         {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|pn=2|pieceType=3|coord=3588"},
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.UNKNOWN, true, 1, 0, 0),
-            "1102|ga,2,3,R,6,1,T",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=6|amount=1|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, true, 1, 0, 0),
-            "1102|ga,2,3,R,4,1,T",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|amount=1|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 0),
-                // pn -1 is only for future scenario/expansion use
-            "1102|ga,-1,-1,R,4,1,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 4),
-                // pn -1 is only for future scenario/expansion use
-            "1102|ga,-1,-1,R,4,1,T,0,4",
-            "SOCReportRobbery:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true|extraValue=4"
-        },
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 0),
-            "1102|ga,2,3,R,4,5,F,7",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7"
-        },
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 4),
-            "1102|ga,2,3,R,4,5,F,7,4",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
-        },
-        {
-            // scenario SC_PIRI: to announce player won vs pirate attack, "rob" 0 unknown resources
-            new SOCReportRobbery("ga", -1, 3, SOCResourceConstants.UNKNOWN, true, 0, 0, 2),
-            "1102|ga,-1,3,R,6,0,T,0,2",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resType=6|amount=0|isGainLose=true|extraValue=2"
-        },
-        {
-            // scenario SC_PIRI: to announce pirate attack result is tied, "rob" 0 resources of type 0
-            new SOCReportRobbery("ga", -1, 3, 0, true, 0, 0, 2),
-            "1102|ga,-1,3,R,0,0,T,0,2",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resType=0|amount=0|isGainLose=true|extraValue=2"
-        },
-        {
-            new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 0),  // clay != 0 to test that part of parsing
-            "1102|ga,-1,3,S,1,7,4,6,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 4),  // extraValue field
-            "1102|ga,-1,3,S,1,7,4,6,T,0,4",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true|extraValue=4"
-        },
-        {
-            new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(0, 8, 0, 6, 7, 0), 0),  // 3 resource types
-            "1102|ga,-1,3,S,2,8,4,6,5,7,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resSet=clay=0|ore=8|sheep=0|wheat=6|wood=7|unknown=0|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(0, 7, 0, 0, 0, 0), 0),  // 1 resource type
-            "1102|ga,-1,3,S,2,7,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resSet=clay=0|ore=7|sheep=0|wheat=0|wood=0|unknown=0|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 0),
-            "1102|ga,3,2,E,106,1,T",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 4),
-            "1102|ga,3,2,E,106,1,T,0,4",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true|extraValue=4"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 0),
-            "1102|ga,3,2,E,106,5,F,7",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 4),
-            "1102|ga,3,2,E,106,5,F,7,4",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
-        },
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|rejoinPN=3|requestingPN=2"},
             // parse from old field names, which are in some STACSettlers soclog files:
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|param1=3|param2=2", OPT_PARSE_ONLY},
@@ -1006,6 +922,90 @@ public class TestToCmdToStringParse
             // parse from old pre-2.5.00 field names, which are in some STACSettlers soclog files:
         {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11", OPT_PARSE_ONLY},
         {new SOCRevealFogHex("ga", 0xd0c, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|hexCoord=d0c|hexType=5|diceNum=12"},
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.UNKNOWN, true, 1, 0, 0),
+            "1102|ga,2,3,R,6,1,T",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=6|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, true, 1, 0, 0),
+            "1102|ga,2,3,R,4,1,T",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 0),
+                // pn -1 is only for future scenario/expansion use
+            "1102|ga,-1,-1,R,4,1,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 4),
+                // pn -1 is only for future scenario/expansion use
+            "1102|ga,-1,-1,R,4,1,T,0,4",
+            "SOCRobberyResult:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 0),
+            "1102|ga,2,3,R,4,5,F,7",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 4),
+            "1102|ga,2,3,R,4,5,F,7,4",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
+        },
+        {
+            // scenario SC_PIRI: to announce player won vs pirate attack, "rob" 0 unknown resources
+            new SOCRobberyResult("ga", -1, 3, SOCResourceConstants.UNKNOWN, true, 0, 0, 2),
+            "1102|ga,-1,3,R,6,0,T,0,2",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resType=6|amount=0|isGainLose=true|extraValue=2"
+        },
+        {
+            // scenario SC_PIRI: to announce pirate attack result is tied, "rob" 0 resources of type 0
+            new SOCRobberyResult("ga", -1, 3, 0, true, 0, 0, 2),
+            "1102|ga,-1,3,R,0,0,T,0,2",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resType=0|amount=0|isGainLose=true|extraValue=2"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 0),  // clay != 0 to test that part of parsing
+            "1102|ga,-1,3,S,1,7,4,6,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 4),  // extraValue field
+            "1102|ga,-1,3,S,1,7,4,6,T,0,4",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(0, 8, 0, 6, 7, 0), 0),  // 3 resource types
+            "1102|ga,-1,3,S,2,8,4,6,5,7,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=0|ore=8|sheep=0|wheat=6|wood=7|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(0, 7, 0, 0, 0, 0), 0),  // 1 resource type
+            "1102|ga,-1,3,S,2,7,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=0|ore=7|sheep=0|wheat=0|wood=0|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 0),
+            "1102|ga,3,2,E,106,1,T",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 4),
+            "1102|ga,3,2,E,106,1,T,0,4",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 0),
+            "1102|ga,3,2,E,106,5,F,7",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 4),
+            "1102|ga,3,2,E,106,5,F,7,4",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
+        },
         {new SOCRobotDismiss("ga"), "1056|ga", "SOCRobotDismiss:game=ga"},
         {new SOCRollDice("ga"), "1031|ga", "SOCRollDice:game=ga"},
         {new SOCRollDicePrompt("ga", 3), "1072|ga,3", "SOCRollDicePrompt:game=ga|playerNumber=3"},

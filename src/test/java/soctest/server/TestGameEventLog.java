@@ -36,7 +36,7 @@ import soc.message.SOCGameTextMsg;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCPutPiece;
-import soc.message.SOCReportRobbery;
+import soc.message.SOCRobberyResult;
 import soc.message.SOCVersion;
 import soc.server.SOCServer;
 import soc.util.Version;
@@ -535,16 +535,16 @@ public class TestGameEventLog
         assertEquals("test", ((SOCDiceResult) msg).getGame());
         assertEquals(-1, ((SOCDiceResult) msg).getResult());
 
-        // !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+        // !p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
         entry = log.entries.get(304);
         msg = entry.event;
         assertFalse(entry.isFromClient);
         assertEquals(-1, entry.pn);
         assertArrayEquals(new int[]{3, 2}, entry.excludedPN);
-        assertTrue("Line 306 expected SOCReportRobbery, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
-            msg instanceof SOCReportRobbery);
-        assertEquals(3, ((SOCReportRobbery) msg).perpPN);
-        assertEquals(2, ((SOCReportRobbery) msg).victimPN);
+        assertTrue("Line 306 expected SOCRobberyResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCRobberyResult);
+        assertEquals(3, ((SOCRobberyResult) msg).perpPN);
+        assertEquals(2, ((SOCRobberyResult) msg).victimPN);
 
         // all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=603
         entry = log.entries.get(EXPECTED_FILE_LINE_COUNT - 16 - 2);
@@ -724,17 +724,17 @@ public class TestGameEventLog
         assertEquals(0, ((SOCPutPiece) msg).getPieceType());
         assertEquals(0xa6, ((SOCPutPiece) msg).getCoordinates());
 
-        // 2:04.365:!p[2, 1]:SOCReportRobbery:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
+        // 2:04.365:!p[2, 1]:SOCRobberyResult:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
         entry = log.entries.get(182);
         msg = entry.event;
         assertEquals(124365, entry.timeElapsedMS);
         assertFalse(entry.isFromClient);
         assertEquals(-1, entry.pn);
         assertArrayEquals(new int[]{2, 1}, entry.excludedPN);
-        assertTrue("Line 184 expected SOCReportRobbery, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
-            msg instanceof SOCReportRobbery);
-        assertEquals(2, ((SOCReportRobbery) msg).perpPN);
-        assertEquals(1, ((SOCReportRobbery) msg).victimPN);
+        assertTrue("Line 184 expected SOCRobberyResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCRobberyResult);
+        assertEquals(2, ((SOCRobberyResult) msg).perpPN);
+        assertEquals(1, ((SOCRobberyResult) msg).victimPN);
     }
 
     /**

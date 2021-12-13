@@ -737,12 +737,12 @@ public class MessageHandler
                 break;
 
             /**
-             * Report Robbery.
+             * Report robbery result.
              * Added 2020-09-15 for v2.5.00.
              */
-            case SOCMessage.REPORTROBBERY:
-                handleREPORTROBBERY
-                    ((SOCReportRobbery) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
+            case SOCMessage.ROBBERYRESULT:
+                handleROBBERYRESULT
+                    ((SOCRobberyResult) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
                 break;
 
             /**
@@ -2185,18 +2185,18 @@ public class MessageHandler
     }
 
     /**
-     * Handle the "report robbery" message.
+     * Handle the "robbery result" message.
      * @param mes  the message
      * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}
      * @since 2.5.00
      */
-    protected void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    protected void handleROBBERYRESULT(final SOCRobberyResult mes, SOCGame ga)
     {
-        SOCDisplaylessPlayerClient.handleREPORTROBBERY(mes, ga);
+        SOCDisplaylessPlayerClient.handleROBBERYRESULT(mes, ga);
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl != null)
-            pcl.reportRobbery
+            pcl.reportRobberyResult
                 (mes.perpPN, mes.victimPN, mes.resType, mes.resSet, mes.peType,
                  mes.isGainLose, mes.amount, mes.victimAmount, mes.extraValue);
     }

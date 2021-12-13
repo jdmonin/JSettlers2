@@ -290,7 +290,7 @@ public interface PlayerClientListener
     void requestedChooseRobResourceType(SOCPlayer player);
 
     /**
-     * A robbery has just occurred; show details. Is called after game data has been updated.
+     * A robbery has just occurred; show result details. Is called after game data has been updated.
      *
      * @param perpPN  Perpetrator's player number, or -1 if none
      *     (used by {@code SC_PIRI} scenario, future use by other scenarios/expansions)
@@ -306,7 +306,7 @@ public interface PlayerClientListener
      * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
      * @since 2.5.00
      */
-    void reportRobbery
+    void reportRobberyResult
         (final int perpPN, final int victimPN, final int resType, final SOCResourceSet resSet, final PEType peType,
          final boolean isGainLose, final int amount, final int victimAmount, final int extraValue);
 

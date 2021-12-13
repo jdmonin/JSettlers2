@@ -3165,7 +3165,7 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * A robbery has just occurred; show details.
+     * A robbery has just occurred; show result details.
      * Is called after game data has been updated.
      *
      * @param perpPN  Perpetrator's player number, or -1 if none
@@ -3182,7 +3182,7 @@ public class SOCPlayerInterface extends Frame
      * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
      * @since 2.5.00
      */
-    public void reportRobbery
+    public void reportRobberyResult
         (final int perpPN, final int victimPN, final int resType, SOCResourceSet resSet, final PEType peType,
          final boolean isGainLose, final int amount, final int victimAmount, final int extraValue)
     {
@@ -5159,11 +5159,12 @@ public class SOCPlayerInterface extends Frame
             pi.showChooseRobClothOrResourceDialog(player.getPlayerNumber());
         }
 
-        public void reportRobbery
+        public void reportRobberyResult
             (final int perpPN, final int victimPN, final int resType, final SOCResourceSet resSet, final PEType peType,
              final boolean isGainLose, final int amount, final int victimAmount, final int extraValue)
         {
-            pi.reportRobbery(perpPN, victimPN, resType, resSet, peType, isGainLose, amount, victimAmount, extraValue);
+            pi.reportRobberyResult
+                (perpPN, victimPN, resType, resSet, peType, isGainLose, amount, victimAmount, extraValue);
         }
 
         public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)

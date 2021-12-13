@@ -456,7 +456,7 @@ When preparing to release a new version, testing should include:
                     - Give Soldier cards to client players:  
                       `dev: 9 #2` etc
                     - Test robbery, with each client as victim, robber, observer
-                    - Clients v2.5.00 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+                    - Clients v2.5.00 or newer are sent `SOCRobberyResult` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
                 - Discovery/Year of Plenty dev card
                     - Give Discovery cards to client players:  
                       `dev: 2 #2` etc

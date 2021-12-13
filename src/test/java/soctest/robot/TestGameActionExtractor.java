@@ -1319,9 +1319,9 @@ public class TestGameActionExtractor
             "all:SOCMoveRobber:game=test|playerNumber=3|coord=b9",
 
             // rob player 2:
-            "p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true",
-            "p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true",
-            "!p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true",
+            "p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true",
+            "p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true",
+            "!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true",
             "all:SOCGameState:game=test|state=20",
 
             // play Soldier dev card:
@@ -1348,9 +1348,9 @@ public class TestGameActionExtractor
             "f3:SOCChoosePlayer:game=test|choice=1",
 
             // rob player 1:
-            "p3:SOCReportRobbery:game=test|perp=3|victim=1|resType=2|amount=1|isGainLose=true",
-            "p1:SOCReportRobbery:game=test|perp=3|victim=1|resType=2|amount=1|isGainLose=true",
-            "!p[3, 1]:SOCReportRobbery:game=test|perp=3|victim=1|resType=6|amount=1|isGainLose=true",
+            "p3:SOCRobberyResult:game=test|perp=3|victim=1|resType=2|amount=1|isGainLose=true",
+            "p1:SOCRobberyResult:game=test|perp=3|victim=1|resType=2|amount=1|isGainLose=true",
+            "!p[3, 1]:SOCRobberyResult:game=test|perp=3|victim=1|resType=6|amount=1|isGainLose=true",
             "all:SOCGameState:game=test|state=20",
 
             // play Soldier dev card (couldn't actually happen twice in same turn),
@@ -1381,7 +1381,7 @@ public class TestGameActionExtractor
             "f3:SOCChoosePlayer:game=test|choice=-3",
 
             // steal cloth:
-            "all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=2|isGainLose=false|victimAmount=1",
+            "all:SOCRobberyResult:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=2|isGainLose=false|victimAmount=1",
             "all:SOCGameState:game=test|state=20",
 
             // play Soldier dev card "again" (but no victims) to gain largest army
@@ -3599,9 +3599,9 @@ public class TestGameActionExtractor
             "f3:SOCMoveRobber:game=test|playerNumber=3|coord=79",
             "all:SOCMoveRobber:game=test|playerNumber=3|coord=79",
 
-            "p3:SOCReportRobbery:game=test|perp=3|victim=1|resType=5|amount=1|isGainLose=true",
-            "p1:SOCReportRobbery:game=test|perp=3|victim=1|resType=5|amount=1|isGainLose=true",
-            "!p[3, 1]:SOCReportRobbery:game=test|perp=3|victim=1|resType=6|amount=1|isGainLose=true",
+            "p3:SOCRobberyResult:game=test|perp=3|victim=1|resType=5|amount=1|isGainLose=true",
+            "p1:SOCRobberyResult:game=test|perp=3|victim=1|resType=5|amount=1|isGainLose=true",
+            "!p[3, 1]:SOCRobberyResult:game=test|perp=3|victim=1|resType=6|amount=1|isGainLose=true",
             "all:SOCGameElements:game=test|e4=3",
             "all:SOCGameState:game=test|state=1000",
 
@@ -3635,7 +3635,7 @@ public class TestGameActionExtractor
             "p3:SOCChoosePlayer:game=test|choice=1",
             "f3:SOCChoosePlayer:game=test|choice=-2",
 
-            "all:SOCReportRobbery:game=test|perp=3|victim=1|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=2",
+            "all:SOCRobberyResult:game=test|perp=3|victim=1|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=2",
             "all:SOCGameElements:game=test|e4=3",
             "all:SOCGameState:game=test|state=1000",
 

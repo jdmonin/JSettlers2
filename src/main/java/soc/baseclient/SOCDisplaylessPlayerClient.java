@@ -948,12 +948,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
-             * Report Robbery.
+             * Report robbery result.
              * Added 2020-09-15 for v2.5.00.
              */
-            case SOCMessage.REPORTROBBERY:
-                handleREPORTROBBERY
-                    ((SOCReportRobbery) mes, games.get(((SOCMessageForGame) mes).getGame()));
+            case SOCMessage.ROBBERYRESULT:
+                handleROBBERYRESULT
+                    ((SOCRobberyResult) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
 
             /**
@@ -2224,11 +2224,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes) {}
 
     /**
-     * Handle the "report robbery" message.
+     * Handle the "robbery result" message.
      * Updates game data by calling {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
      * or {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
-     * Does nothing if {@link SOCReportRobbery#isGainLose mes.isGainLose} but
-     * {@link SOCReportRobbery#amount mes.amount} == 0 and {@link SOCReportRobbery#resSet} is null.
+     * Does nothing if {@link SOCRobberyResult#isGainLose mes.isGainLose} but
+     * {@link SOCRobberyResult#amount mes.amount} == 0 and {@link SOCRobberyResult#resSet} is null.
      *<P>
      * This method is public static for access by {@code SOCPlayerClient} and robot client classes.
      *
@@ -2236,7 +2236,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}; if {@code null}, message is ignored
      * @since 2.5.00
      */
-    public static void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    public static void handleROBBERYRESULT(final SOCRobberyResult mes, SOCGame ga)
     {
         if (ga == null)
             return;

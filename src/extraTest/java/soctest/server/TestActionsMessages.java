@@ -740,14 +740,14 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the pirate ship."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=-d0a"},
                 {
-                    (observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:",
+                    (observabilityMode != 2) ? "p3:SOCRobberyResult:" : "all:SOCRobberyResult:",
                     "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"
                 },
                 (observabilityMode != 2)
-                    ? new String[]{"p1:SOCReportRobbery:", "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"}
+                    ? new String[]{"p1:SOCRobberyResult:", "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"}
                     : null,
                 (observabilityMode != 2)
-                    ? new String[]{"!p[3, 1]:SOCReportRobbery:", "|perp=3|victim=1|resType=6|amount=1|isGainLose=true"}
+                    ? new String[]{"!p[3, 1]:SOCRobberyResult:", "|perp=3|victim=1|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"},
             }, false);
@@ -827,14 +827,14 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the robber."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=703"},
                 {
-                    (observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:",
+                    (observabilityMode != 2) ? "p3:SOCRobberyResult:" : "all:SOCRobberyResult:",
                     "|perp=3|victim=2|resType=" + resType + "|amount=1|isGainLose=true"
                 },
                 (observabilityMode != 2)
-                    ? new String[]{"p2:SOCReportRobbery:", "|perp=3|victim=2|resType=" + resType + "|amount=1|isGainLose=true"}
+                    ? new String[]{"p2:SOCRobberyResult:", "|perp=3|victim=2|resType=" + resType + "|amount=1|isGainLose=true"}
                     : null,
                 (observabilityMode != 2)
-                    ? new String[]{"!p[3, 2]:SOCReportRobbery:", "|perp=3|victim=2|resType=6|amount=1|isGainLose=true"}
+                    ? new String[]{"!p[3, 2]:SOCRobberyResult:", "|perp=3|victim=2|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"}
             }, false);

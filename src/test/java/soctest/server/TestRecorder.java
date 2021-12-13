@@ -1334,14 +1334,14 @@ public class TestRecorder
                 {"all:SOCGameServerText:", "|text=" + clientName + " will move the robber."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=305"},
                 {
-                    ((observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:"),
+                    ((observabilityMode != 2) ? "p3:SOCRobberyResult:" : "all:SOCRobberyResult:"),
                     "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"
                 },
                 (observabilityMode != 2)
-                    ? new String[]{"p1:SOCReportRobbery:", "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"}
+                    ? new String[]{"p1:SOCRobberyResult:", "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"}
                     : null,
                 (observabilityMode != 2)
-                    ? new String[]{"!p[3, 1]:SOCReportRobbery:", "|perp=3|victim=1|resType=6|amount=1|isGainLose=true"}
+                    ? new String[]{"!p[3, 1]:SOCRobberyResult:", "|perp=3|victim=1|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"}
             };

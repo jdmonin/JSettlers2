@@ -88,9 +88,9 @@ import soc.message.SOCPlayerElements;
 import soc.message.SOCPlayerStats;
 import soc.message.SOCPotentialSettlements;
 import soc.message.SOCPutPiece;
-import soc.message.SOCReportRobbery;
 import soc.message.SOCResetBoardReject;
 import soc.message.SOCRevealFogHex;
+import soc.message.SOCRobberyResult;
 import soc.message.SOCRollDice;
 import soc.message.SOCRollDicePrompt;
 import soc.message.SOCSVPTextMessage;
@@ -3106,7 +3106,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * The current player is stealing from another player.
      * Send messages saying what was stolen.
-     * Use {@link SOCReportRobbery} if clients are compatible.
+     * Use {@link SOCRobberyResult} if clients are compatible.
      *
      * @param ga  the game
      * @param pe  the perpetrator
@@ -3133,28 +3133,28 @@ public class SOCGameHandler extends GameHandler
             // the cloth counts, so we don't need to also send VP.
 
             final int peAmt = pe.getCloth(), viAmt = vi.getCloth();
-            final SOCReportRobbery rrMsg = new SOCReportRobbery
+            final SOCRobberyResult rrMsg = new SOCRobberyResult
                 (gaName, pePN, viPN, PEType.SCENARIO_CLOTH_COUNT, false, peAmt, viAmt, 0);
 
-            if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+            if (ga.clientVersionLowest >= SOCRobberyResult.MIN_VERSION)
             {
                 srv.messageToGame(gaName, true, rrMsg);
             } else {
                 srv.recordGameEvent(gaName, rrMsg);
 
                 srv.messageToGameForVersions
-                    (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, rrMsg, true);
+                    (ga, SOCRobberyResult.MIN_VERSION, Integer.MAX_VALUE, rrMsg, true);
 
                 srv.messageToGameForVersions
-                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1,
+                    (ga, 0, SOCRobberyResult.MIN_VERSION - 1,
                      new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, viAmt, true),
                      true);
                 srv.messageToGameForVersions
-                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1,
+                    (ga, 0, SOCRobberyResult.MIN_VERSION - 1,
                      new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, peAmt),
                      true);
                 srv.messageToGameForVersionsKeyed
-                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1, true, false,
+                    (ga, 0, SOCRobberyResult.MIN_VERSION - 1, true, false,
                      "robber.common.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
             }
 
@@ -3163,10 +3163,10 @@ public class SOCGameHandler extends GameHandler
 
         final boolean isFullyObservable = ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO);
 
-        final SOCReportRobbery reportRobb = new SOCReportRobbery(gaName, pePN, viPN, rsrc, true, 1, 0, 0),
+        final SOCRobberyResult reportRobb = new SOCRobberyResult(gaName, pePN, viPN, rsrc, true, 1, 0, 0),
             reportRobbUnknown = (isFullyObservable)
                 ? null
-                : new SOCReportRobbery(gaName, pePN, viPN, SOCResourceConstants.UNKNOWN, true, 1, 0, 0);
+                : new SOCRobberyResult(gaName, pePN, viPN, SOCResourceConstants.UNKNOWN, true, 1, 0, 0);
 
         Connection peCon = srv.getConnection(peName);
         Connection viCon = srv.getConnection(viName);
@@ -3175,7 +3175,7 @@ public class SOCGameHandler extends GameHandler
         sendNotTo.add(peCon);
         sendNotTo.add(viCon);
 
-        if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+        if (ga.clientVersionLowest >= SOCRobberyResult.MIN_VERSION)
         {
             if (isFullyObservable)
             {
@@ -3220,20 +3220,20 @@ public class SOCGameHandler extends GameHandler
 
         if (isFullyObservable)
         {
-            srv.messageToGameForVersions(ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, reportRobb, true);
-            srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, gainRsrc, true);
-            srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, loseRsrc, true);
+            srv.messageToGameForVersions(ga, SOCRobberyResult.MIN_VERSION, Integer.MAX_VALUE, reportRobb, true);
+            srv.messageToGameForVersions(ga, -1, SOCRobberyResult.MIN_VERSION - 1, gainRsrc, true);
+            srv.messageToGameForVersions(ga, -1, SOCRobberyResult.MIN_VERSION - 1, loseRsrc, true);
 
-            if (peCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+            if (peCon.getVersion() < SOCRobberyResult.MIN_VERSION)
                 srv.messageToPlayerKeyedSpecial
                     (peCon, ga, SOCServer.PN_NON_EVENT,
                      "robber.common.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
-            if (viCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+            if (viCon.getVersion() < SOCRobberyResult.MIN_VERSION)
                 srv.messageToPlayerKeyedSpecial
                     (viCon, ga, SOCServer.PN_NON_EVENT,
                      "robber.common.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
         } else {
-            if (peCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+            if (peCon.getVersion() < SOCRobberyResult.MIN_VERSION)
             {
                 srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, gainRsrc);
                 srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, loseRsrc);
@@ -3244,7 +3244,7 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, reportRobb);
             }
 
-            if (viCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+            if (viCon.getVersion() < SOCRobberyResult.MIN_VERSION)
             {
                 srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, gainRsrc);
                 srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, loseRsrc);
@@ -3258,21 +3258,21 @@ public class SOCGameHandler extends GameHandler
             // generic message to all except pe or vi
 
             srv.messageToGameForVersionsExcept
-                (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, sendNotTo, reportRobbUnknown, true);
+                (ga, SOCRobberyResult.MIN_VERSION, Integer.MAX_VALUE, sendNotTo, reportRobbUnknown, true);
 
-            if (ga.clientVersionLowest < SOCReportRobbery.MIN_VERSION)
+            if (ga.clientVersionLowest < SOCRobberyResult.MIN_VERSION)
             {
                 gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN_RESOURCE, 1);
                 loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, 1);
                 srv.messageToGameForVersionsExcept
-                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, gainUnknown, true);
+                    (ga, 0, SOCRobberyResult.MIN_VERSION - 1, sendNotTo, gainUnknown, true);
                 srv.messageToGameForVersionsExcept
-                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, loseUnknown, true);
+                    (ga, 0, SOCRobberyResult.MIN_VERSION - 1, sendNotTo, loseUnknown, true);
             }
         }
 
         srv.messageToGameForVersionsKeyedExcept
-            (ga, 0, SOCReportRobbery.MIN_VERSION - 1, true, sendNotTo,
+            (ga, 0, SOCRobberyResult.MIN_VERSION - 1, true, sendNotTo,
              true, "robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
     }
 
@@ -3517,7 +3517,7 @@ public class SOCGameHandler extends GameHandler
     /**
      * Report the resources gained/lost by a player, and optionally (for trading)
      * lost/gained by a second player, to older client version connections in a game.
-     * Useful for backwards compatibility after introducing newer message types like {@link SOCReportRobbery}.
+     * Useful for backwards compatibility after introducing newer message types like {@link SOCRobberyResult}.
      * Sends PLAYERELEMENTS or PLAYERELEMENT message, either to entire game, or to player only.
      *<P>
      * Used to report the resources gained from a roll, discard, or discovery (year-of-plenty) pick.
