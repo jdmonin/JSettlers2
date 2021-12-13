@@ -164,6 +164,7 @@ public class SOCRobotBrain extends Thread
     /**
      * If, during a turn, we make this many illegal build
      * requests that the server denies, stop trying.
+     * Also includes general ({@link SOCDeclinePlayerRequest}s).
      *
      * @see #failedBuildingAttempts
      * @since 1.1.00
@@ -380,6 +381,7 @@ public class SOCRobotBrain extends Thread
      * made this turn.  Avoid infinite turn length, by
      * preventing robot from alternately choosing two
      * wrong things when the server denies a bad build.
+     * Also includes general ({@link SOCDeclinePlayerRequest}s).
      *
      * @see #whatWeFailedToBuild
      * @see #MAX_DENIED_BUILDING_PER_TURN
@@ -1642,7 +1644,7 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.DECLINEPLAYERREQUEST:
-                        // reset bot's planning/status flags
+                        // increment failedBuildingAttempts, reset bot's planning/status flags
                         handleDECLINEPLAYERREQUEST((SOCDeclinePlayerRequest) mes);
                         break;
 
@@ -2268,6 +2270,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Server has declined our player's request.
+     * Increment {@link #failedBuildingAttempts}.
      * Call {@link #resetFieldsAndBuildingPlan()} and update game state if incorrect.
      * @param mes
      * @since 2.5.00
@@ -2275,6 +2278,8 @@ public class SOCRobotBrain extends Thread
     protected void handleDECLINEPLAYERREQUEST(SOCDeclinePlayerRequest mes)
     {
         resetFieldsAndBuildingPlan();
+
+        ++failedBuildingAttempts;
 
         final int currState = mes.gameState;
         if ((currState != 0) && (currState != game.getGameState()))
