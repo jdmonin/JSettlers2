@@ -143,7 +143,7 @@ import java.util.StringTokenizer;
  *
  *<H3>Renaming a message or improving its {@link #toString()} form:</H3>
  * For debugging purposes, it's sometimes useful to make the output of {@link #toString()} more meaningful:
- * Translating enum integers like {@code pieceType} to their strings, etc.
+ * Translating integer field values like {@code pieceType} to their declared constant names, etc.
  *<P>
  * In versions after 2.5.00: If you must make an incompatible change to a message's toString form,
  * and a previous version's {@link #parseMsgStr(String)} wouldn't be able to parse that new form,
