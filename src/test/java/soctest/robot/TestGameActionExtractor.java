@@ -21,6 +21,7 @@
 package soctest.robot;
 
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
 
 import soc.extra.robot.GameActionExtractor;
@@ -84,6 +85,34 @@ public class TestGameActionExtractor
         log.add(new EventEntry(new SOCStartGame("test", EMPTYEVENTLOG_STARTGAME_GAME_STATE), -1, false, -1));
 
         return log;
+    }
+
+    /**
+     * Test the {@link ActionType} enum's {@link ActionType#valueOf(int)} method
+     * and {@link ActionType#value} uniqueness.
+     */
+    @Test
+    public void testBasicsActionEnum()
+    {
+        assertEquals(0, ActionType.UNINITIALIZED.value);
+        assertEquals(1, ActionType.UNKNOWN.value);
+        assertEquals(40, ActionType.BUILD_PIECE.value);
+
+        assertEquals(ActionType.UNINITIALIZED, ActionType.valueOf(0));
+        assertEquals(ActionType.UNKNOWN, ActionType.valueOf(1));
+        assertEquals(ActionType.BUILD_PIECE, ActionType.valueOf(40));
+        assertNull(ActionType.valueOf(-1));
+
+        HashMap<Integer, ActionType> atypeValues = new HashMap<>();
+        for (ActionType t : ActionType.values())
+        {
+            final Integer ival = Integer.valueOf(t.value);
+            ActionType entry = atypeValues.get(ival);
+            if (entry != null)
+                fail("ActionType: dupe value " + ival + " for " + t + " and " + entry);
+            else
+                atypeValues.put(ival, t);
+        }
     }
 
     /**
