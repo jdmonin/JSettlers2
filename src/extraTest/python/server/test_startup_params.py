@@ -121,7 +121,10 @@ def env_ok():
         all_ok = False
         print_err("Test environment cannot already have a server running on tcp port 8880")
     except IOError:
-        pass
+        try:
+            s.close()
+        except:
+            pass
     except Exception as e:
         all_ok = False
         print_err("Failed to check tcp port 8880")
@@ -508,7 +511,7 @@ if __name__ == '__main__':
 
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2016-2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
