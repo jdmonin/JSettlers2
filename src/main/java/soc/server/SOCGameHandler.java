@@ -3944,21 +3944,31 @@ public class SOCGameHandler extends GameHandler
                             // but use _SEA here just in case
 
                 if (ga.clientVersionLowest < SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
-                    srv.messageToGameWithMon(gaName, true, new SOCSetPlayedDevCard(gaName, i, false));
+                    srv.messageToGameWithMon(gaName, false, new SOCSetPlayedDevCard(gaName, i, false));
             }
 
             if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                 srv.messageToGameWithMon(gaName, true, new SOCPlayerElement
+                    (gaName, -1, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 0));
+            else if (srv.isRecordGameEventsActive())
+                srv.recordGameEvent(gaName, new SOCPlayerElement
                     (gaName, -1, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 0));
 
             /**
              * send the number of dev cards.
              * needed for SC_PIRI because if PL<4, startGame() removed some cards.
              */
-            srv.messageToGameWithMon(gaName, true,
-                (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
-                ? new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, ga.getNumDevCards())
-                : new SOCDevCardCount(gaName, ga.getNumDevCards()));
+            if (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+            {
+                srv.messageToGameWithMon
+                    (gaName, true, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, ga.getNumDevCards()));
+            } else {
+                srv.messageToGameWithMon
+                    (gaName, false, new SOCDevCardCount(gaName, ga.getNumDevCards()));
+                if (srv.isRecordGameEventsActive())
+                    srv.recordGameEvent
+                        (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, ga.getNumDevCards()));
+            }
 
             /**
              * ga.startGame() picks who goes first, but feedback is nice
@@ -3980,8 +3990,10 @@ public class SOCGameHandler extends GameHandler
         } else {
             final int cpn = ga.getCurrentPlayerNumber();
             final boolean sendRoll = sendGameState(ga, false, true, false);
-            srv.messageToGame(gaName, true, new SOCStartGame(gaName, 0));
-            srv.messageToGame(gaName, true, new SOCTurn(gaName, cpn, 0));
+            srv.messageToGame(gaName, false, new SOCStartGame(gaName, 0));
+            srv.messageToGame(gaName, false, new SOCTurn(gaName, cpn, 0));
+            if (srv.isRecordGameEventsActive())
+                srv.recordGameEvent(gaName, new SOCStartGame(gaName, ga.getGameState()));
             if (sendRoll)
                 srv.messageToGame(gaName, true, new SOCRollDicePrompt(gaName, cpn));
         }
