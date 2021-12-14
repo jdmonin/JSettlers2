@@ -1,4 +1,4 @@
-SOC game event log: type=S, version=2500, created_at=1636807754, now=1636807889, game_name=test
+SOC game event log: type=C, version=2500, created_at=1636807754, now=1636807889, game_name=test
 # Game created at: 2021-11-13 07:49:14 -0500
 # Log written at:  2021-11-13 07:51:29 -0500
 0:00.012:all:SOCVersion:2500|str=2.5.00|verBuild=JM20211113|feats=;ch;|cliLocale=(null)

@@ -115,45 +115,46 @@ public class GameActionExtractor
      * All {@link SOCMessage} types which start a possible sequence in the decision tree top level,
      * as documented in {@code GameActionExtractor.md}:
      * Either {@link #SEQ_START_MSG_TYPES_FULL} or {@link #SEQ_START_MSG_TYPES_SERVER_ONLY},
-     * depending on {@link #hasServerOnlyLog}.
+     * depending on {@link #hasLogAtClient}.
      */
     protected final Set<Integer> seqStartMsgTypes;
 
     /**
      * The event log being extracted into {@link #actLog}.
-     * @see #hasServerOnlyLog
+     * @see #hasLogAtClient
      */
     protected final GameEventLog eventLog;
 
     /**
      * The action log being extracted from {@link #eventLog}.
-     * @see #hasServerOnlyLog
+     * @see #hasLogAtClient
      */
     protected final GameActionLog actLog;
 
     /**
-     * If true, {@link #eventLog} doesn't contain entries where {@link GameEventLog.EventEntry#isFromClient} true;
-     * {@link #serverOnlyToClientPN} will also be set.
+     * If true, {@link #eventLog} is as seen at one client and doesn't contain
+     * entries where {@link GameEventLog.EventEntry#isFromClient} true;
+     * {@link #atClientPN} will also be set.
      *<P>
      * If false, is the full log.
      *<P>
-     * Set from {@link #eventLog}{@link GameEventLog#isServerOnly .isServerOnly}.
+     * Set from {@link #eventLog}{@link GameEventLog#isAtClient .isAtClient}.
      * Selection for {@link #seqStartMsgTypes} is based on this flag.
      * @see GameEventLog#save(java.io.File, String, boolean, boolean)
      */
-    protected final boolean hasServerOnlyLog;
+    protected final boolean hasLogAtClient;
 
     /**
-     * When {@link #hasServerOnlyLog}, the client player number:
+     * When {@link #hasLogAtClient}, the client player number:
      * A specific player number is needed or the extraction won't recognize sequences.
      * Server's messages sent only to other clients have been filtered out
      * by {@link GameEventLog#load(java.io.File, boolean, int)}
      * or {@link GameEventLog#GameEventLog(GameEventLog, int)}.
      *<P>
      * When used, is a player number &gt= 0, not -1 or {@link soc.server.SOCServer#PN_OBSERVER}.<BR>
-     * When ! {@link #hasServerOnlyLog}, is -1.
+     * When ! {@link #hasLogAtClient}, is -1.
      */
-    protected final int serverOnlyToClientPN;
+    protected final int atClientPN;
 
     protected final ExtractorState state = new ExtractorState();
 
@@ -176,9 +177,9 @@ public class GameActionExtractor
      * fast-forwards past {@link SOCStartGame} if found, otherwise to end of log.
      * Once ready to parse the rest, call {@link #extract()}.
      *<P>
-     * If the event log being extracted from has {@link GameEventLog#isServerOnly} set,
+     * If the event log being extracted from has {@link GameEventLog#isAtClient} set,
      * it must be for a specific client player number or the extraction won't recognize sequences.
-     * So, its {@link GameEventLog#serverOnlyToClientPN} must be &gt;= 0. (To see messages sent to all players and
+     * So, its {@link GameEventLog#atClientPN} must be &gt;= 0. (To see messages sent to all players and
      * observers, use a high player number like 99 instead of {@link soc.server.SOCServer#PN_OBSERVER}.)
      * {@link GameEventLog#load(java.io.File, boolean, int)} and {@link GameEventLog#GameEventLog(GameEventLog, int)}
      * can filter to do so.
@@ -189,8 +190,8 @@ public class GameActionExtractor
      *     Adds them to a {@link GameActionLog.Action} of type
      *     {@link GameActionLog.Action.ActionType#LOG_START_TO_STARTGAME LOG_START_TO_STARTGAME}.
      * @throws IllegalArgumentException if {@code eventLog} is null or empty
-     *     or if it has {@link GameEventLog#isServerOnly}
-     *     but its {@link GameEventLog#serverOnlyToClientPN} &lt; 0
+     *     or if it has {@link GameEventLog#isAtClient}
+     *     but its {@link GameEventLog#atClientPN} &lt; 0
      * @throws NoSuchElementException if {@code eventLog} doesn't start with {@link SOCVersion}
      *     followed by {@link SOCNewGame} or {@link SOCNewGameWithOptions}
      * @throws IllegalStateException if {@code eventLog} doesn't contain a {@link SOCStartGame}
@@ -203,14 +204,14 @@ public class GameActionExtractor
             throw new IllegalArgumentException("eventLog");
 
         this.eventLog = eventLog;
-        hasServerOnlyLog = eventLog.isServerOnly;
-        serverOnlyToClientPN = (hasServerOnlyLog) ? eventLog.serverOnlyToClientPN : -1;
-        actLog = new GameActionLog(hasServerOnlyLog, serverOnlyToClientPN);
-        seqStartMsgTypes = (hasServerOnlyLog) ? SEQ_START_MSG_TYPES_SERVER_ONLY : SEQ_START_MSG_TYPES_FULL;
+        hasLogAtClient = eventLog.isAtClient;
+        atClientPN = (hasLogAtClient) ? eventLog.atClientPN : -1;
+        actLog = new GameActionLog(hasLogAtClient, atClientPN);
+        seqStartMsgTypes = (hasLogAtClient) ? SEQ_START_MSG_TYPES_SERVER_ONLY : SEQ_START_MSG_TYPES_FULL;
 
-        if (hasServerOnlyLog && (serverOnlyToClientPN < 0))
+        if (hasLogAtClient && (atClientPN < 0))
             throw new IllegalArgumentException
-                ("eventLog serverOnly but serverOnlyToClientPN < 0: " + serverOnlyToClientPN);
+                ("eventLog isAtClient but atClientPN < 0: " + atClientPN);
         if (keepEntriesBeforeInitPlacement)
             currentSequence = new ArrayList<>(70);  // approx. message count before startgame for a 2-player game
 
@@ -492,23 +493,23 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.ROLLDICE:
-                    if (! hasServerOnlyLog)
+                    if (! hasLogAtClient)
                         extractedAct = extract_ROLL_DICE(e);
                     break;
 
                 case SOCMessage.DICERESULT:
-                    if (hasServerOnlyLog)
+                    if (hasLogAtClient)
                         extractedAct = extract_ROLL_DICE(e);
                     break;
 
                 case SOCMessage.PUTPIECE:
                     if ((e.isFromClient && (e.pn == state.currentPlayerNumber))
-                        || (hasServerOnlyLog && e.isToAll() && (state.currentGameState < SOCGame.ROLL_OR_CARD)))
+                        || (hasLogAtClient && e.isToAll() && (state.currentGameState < SOCGame.ROLL_OR_CARD)))
                         extractedAct = extract_BUILD_PIECE(e, false);
                     break;
 
                 case SOCMessage.BUILDREQUEST:
-                    if (e.isFromClient && ! hasServerOnlyLog)
+                    if (e.isFromClient && ! hasLogAtClient)
                     {
                         if (e.pn == state.currentPlayerNumber)
                             extractedAct = extract_BUILD_PIECE(e, true);
@@ -518,7 +519,7 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.REVEALFOGHEX:
-                    if (hasServerOnlyLog)
+                    if (hasLogAtClient)
                         extractedAct = extract_from_REVEALFOGHEX(e);
                     break;
 
@@ -529,7 +530,7 @@ public class GameActionExtractor
                 case SOCMessage.PLAYERELEMENT:
                     // fall through
                 case SOCMessage.PLAYERELEMENTS:
-                    if (hasServerOnlyLog)
+                    if (hasLogAtClient)
                         extractedAct = extract_from_PLAYERELEMENTS(e);
                     break;
 
@@ -538,12 +539,12 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.BUYDEVCARDREQUEST:
-                    if (! hasServerOnlyLog)
+                    if (! hasLogAtClient)
                         extractedAct = extract_BUY_DEV_CARD(e);
                     break;
 
                 case SOCMessage.PLAYDEVCARDREQUEST:
-                    if (! hasServerOnlyLog)
+                    if (! hasLogAtClient)
                         extractedAct = extract_PLAY_DEV_CARD(e);
                     break;
 
@@ -556,14 +557,14 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.GAMESTATE:
-                    if (hasServerOnlyLog && (prevGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE))
+                    if (hasLogAtClient && (prevGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE))
                         extractedAct = extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(e);
                     break;
 
                 case SOCMessage.CHOOSEPLAYER:
                     if (state.currentGameState == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
                         extractedAct = extract_CHOOSE_ROB_CLOTH_OR_RESOURCE(e);
-                    else if ((! hasServerOnlyLog) && (state.currentGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE))
+                    else if ((! hasLogAtClient) && (state.currentGameState == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE))
                         extractedAct = extract_CHOOSE_MOVE_ROBBER_OR_PIRATE(e);
                     break;
 
@@ -589,7 +590,7 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.CLEAROFFER:
-                    if (hasServerOnlyLog && (((SOCClearOffer) event).getPlayerNumber() == -1))
+                    if (hasLogAtClient && (((SOCClearOffer) event).getPlayerNumber() == -1))
                         extractedAct = extract_END_TURN(e);
                     else
                         extractedAct = extract_TRADE_CLEAR_OFFER(e);
@@ -604,7 +605,7 @@ public class GameActionExtractor
                     break;
 
                 case SOCMessage.ENDTURN:
-                    if (! hasServerOnlyLog)
+                    if (! hasLogAtClient)
                         extractedAct = extract_END_TURN(e);
                     break;
 
@@ -615,14 +616,14 @@ public class GameActionExtractor
                 case SOCMessage.DEVCARDACTION:
                     if (state.currentGameState == SOCGame.OVER)
                         extractedAct = extract_GAME_OVER(e);
-                    else if (hasServerOnlyLog)
+                    else if (hasLogAtClient)
                         extractedAct = extract_PLAY_DEV_CARD(e);
                     break;
 
                 default:
                     System.err.println
                         ("Internal error: message type " + eventType
-                         + " not handled, but is in seqStartMsgTypes; hasServerOnlyLog=" + hasServerOnlyLog);
+                         + " not handled, but is in seqStartMsgTypes; hasLogAtClient=" + hasLogAtClient);
                 }
             }
 
@@ -690,14 +691,14 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#ROLL_DICE} from the current message sequence.
-     * First entry is {@link SOCDiceResult} if {@link #hasServerOnlyLog}, otherwise {@link SOCRollDice}.
+     * First entry is {@link SOCDiceResult} if {@link #hasLogAtClient}, otherwise {@link SOCRollDice}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
     private Action extract_ROLL_DICE(GameEventLog.EventEntry e)
     {
         // f3:SOCRollDice:game=test
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
                 return null;
@@ -748,7 +749,7 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#BUILD_PIECE} or {@link ActionType#MOVE_PIECE} from the current message sequence.
-     * First entry is {@link SOCRevealFogHex}; assumes {@link #hasServerOnlyLog}.
+     * First entry is {@link SOCRevealFogHex}; assumes {@link #hasLogAtClient}.
      * @param e First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
@@ -776,7 +777,7 @@ public class GameActionExtractor
     }
 
     /**
-     * Extract various {@link ActionType}s from the current message sequence; assumes {@link #hasServerOnlyLog}.
+     * Extract various {@link ActionType}s from the current message sequence; assumes {@link #hasLogAtClient}.
      * First entry is {@link SOCPlayerElement} or {@link SOCPlayerElements}.
      * @param e First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
@@ -838,7 +839,7 @@ public class GameActionExtractor
         // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804
         // or
         // f3:SOCBuildRequest:game=test|pieceType=1
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
                 return null;
@@ -880,7 +881,7 @@ public class GameActionExtractor
             e = next();
 
             // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=67
-            if (! hasServerOnlyLog)
+            if (! hasLogAtClient)
             {
                 if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
                        && (e.event instanceof SOCPutPiece)))
@@ -1004,7 +1005,7 @@ public class GameActionExtractor
                 return null;
 
             // p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
-            if ((! hasServerOnlyLog) || (state.currentPlayerNumber == serverOnlyToClientPN))
+            if ((! hasLogAtClient) || (state.currentPlayerNumber == atClientPN))
             {
                 e = next();
                 if (e.isFromClient
@@ -1028,7 +1029,7 @@ public class GameActionExtractor
     private Action extract_CANCEL_BUILT_PIECE(GameEventLog.EventEntry e)
     {
         // f3:SOCCancelBuildRequest:game=test|pieceType=1
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! e.isFromClient)
                 return null;
@@ -1065,7 +1066,7 @@ public class GameActionExtractor
     {
         // f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06
         SOCMovePiece mpCli;
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
                 return null;
@@ -1143,7 +1144,7 @@ public class GameActionExtractor
                     return null;
 
                 // p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
-                if (! (hasServerOnlyLog && (serverOnlyToClientPN != state.currentPlayerNumber)))
+                if (! (hasLogAtClient && (atClientPN != state.currentPlayerNumber)))
                 {
                     e = next();
                     if (e.isFromClient
@@ -1170,13 +1171,13 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#BUY_DEV_CARD} from the current message sequence.
-     * First entry is {@link SOCPlayerElements} if {@link #hasServerOnlyLog}, otherwise {@link SOCBuyDevCardRequest}.
+     * First entry is {@link SOCPlayerElements} if {@link #hasLogAtClient}, otherwise {@link SOCBuyDevCardRequest}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
     private Action extract_BUY_DEV_CARD(GameEventLog.EventEntry e)
     {
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             // f3:SOCBuyDevCardRequest:game=test
             if (! e.isFromClient)
@@ -1193,7 +1194,7 @@ public class GameActionExtractor
         final int cardType;
 
         // p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=5
-        if (! (hasServerOnlyLog && (state.currentPlayerNumber != serverOnlyToClientPN)))
+        if (! (hasLogAtClient && (state.currentPlayerNumber != atClientPN)))
         {
             if ((e == null) || e.isFromClient || (e.pn < 0) || ! (e.event instanceof SOCDevCardAction))
                 return null;
@@ -1210,7 +1211,7 @@ public class GameActionExtractor
         }
 
         // !p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
-        if (! (hasServerOnlyLog && (state.currentPlayerNumber == serverOnlyToClientPN)))
+        if (! (hasLogAtClient && (state.currentPlayerNumber == atClientPN)))
         {
             if ((e == null) || e.isFromClient || (e.excludedPN == null) || ! (e.event instanceof SOCDevCardAction))
                 return null;
@@ -1238,14 +1239,14 @@ public class GameActionExtractor
     /**
      * Extract {@link ActionType#PLAY_DEV_CARD} from the current message sequence.
      * Calls {@link #finish_extract_PLAY_DEV_CARD_ROADS()}, {@link #finish_extract_PLAY_DEV_CARD_KNIGHT()}, etc.
-     * First entry is {@link SOCDevCardAction} if {@link #hasServerOnlyLog}, otherwise {@link SOCPlayDevCardRequest}.
+     * First entry is {@link SOCDevCardAction} if {@link #hasLogAtClient}, otherwise {@link SOCPlayDevCardRequest}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      */
     private Action extract_PLAY_DEV_CARD(GameEventLog.EventEntry e)
     {
         // f3:SOCPlayDevCardRequest:game=test|devCard=2
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
                 return null;
@@ -1325,7 +1326,7 @@ public class GameActionExtractor
             // all:SOCGameState:game=test|state=40
             //     (is validated above)
 
-            if (! hasServerOnlyLog)
+            if (! hasLogAtClient)
             {
                 // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704  // or pieceType=3 for ship
                 // Or if canceling placement, one of:
@@ -1381,7 +1382,7 @@ public class GameActionExtractor
             }
 
             // all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704
-            // Or if hasServerOnlyLog and client player canceled placement:
+            // Or if hasLogAtClient and client player canceled placement:
             // all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1
             e = next();
             if (! ((e != null) && e.isToAll()))
@@ -1393,7 +1394,7 @@ public class GameActionExtractor
                 if (((SOCPutPiece) e.event).getPieceType() == SOCPlayingPiece.SHIP)
                     edge1 = -edge1;
             }
-            else if (hasServerOnlyLog && (e.event instanceof SOCDevCardAction)
+            else if (hasLogAtClient && (e.event instanceof SOCDevCardAction)
                      && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
             {
                 // all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=0
@@ -1468,7 +1469,7 @@ public class GameActionExtractor
         if (state.currentGameState != SOCGame.PLACING_FREE_ROAD2)
             return null;
 
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             // f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
             // Or if canceling placement, one of:
@@ -1528,7 +1529,7 @@ public class GameActionExtractor
         int edge2 = Integer.MAX_VALUE;
 
         // all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
-        // Or if client player canceled placement and hasServerOnlyLog, one of:
+        // Or if client player canceled placement and hasLogAtClient, one of:
         //   all:SOCClearOffer:game=g|playerNumber=-1
         //   all:SOCGameState:game=g|state=20  // PLAY1 or ROLL_OR_CARD or SBP
         //   all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=1
@@ -1548,7 +1549,7 @@ public class GameActionExtractor
             else
                 edge2 = edge;
         }
-        else if (hasServerOnlyLog && (e.event instanceof SOCClearOffer))
+        else if (hasLogAtClient && (e.event instanceof SOCClearOffer))
         {
             backtrackTo(prevState);
 
@@ -1557,14 +1558,14 @@ public class GameActionExtractor
                 (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
                  SOCDevCardConstants.ROADS, edge1, Integer.MAX_VALUE);
         }
-        else if (hasServerOnlyLog && (e.event instanceof SOCGameState))
+        else if (hasLogAtClient && (e.event instanceof SOCGameState))
         {
             int prevStart = currentSequenceStartIndex;
             return new Action
                 (ActionType.PLAY_DEV_CARD, state.currentGameState, resetCurrentSequence(), prevStart,
                  SOCDevCardConstants.ROADS, edge1, Integer.MAX_VALUE);
         }
-        else if (hasServerOnlyLog && (e.event instanceof SOCDevCardAction)
+        else if (hasLogAtClient && (e.event instanceof SOCDevCardAction)
                  && (((SOCDevCardAction) (e.event)).getAction() == SOCDevCardAction.ADD_OLD))
         {
             // all:SOCPlayerElement:game=g|playerNum=3|actionType=SET|elementType=19|amount=0
@@ -1647,7 +1648,7 @@ public class GameActionExtractor
             return null;
 
         // f3:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             e = next();
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPickResources)))
@@ -1686,7 +1687,7 @@ public class GameActionExtractor
             return null;
 
         // f3:SOCPickResourceType:game=test|resType=3
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             e = next();
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber) && (e.event instanceof SOCPickResourceType)))
@@ -1797,7 +1798,7 @@ public class GameActionExtractor
     private Action extract_DISCARD(GameEventLog.EventEntry e)
     {
         // f2:SOCDiscard:game=test|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! e.isFromClient)
                 return null;
@@ -1805,7 +1806,7 @@ public class GameActionExtractor
             e = next();
         }
 
-        // If hasServerOnlyLog, will see only 1 or the other of these SOCDiscards
+        // If hasLogAtClient, will see only 1 or the other of these SOCDiscards
 
         // p2:SOCDiscard:game=test|playerNum=2|resources=clay=0|ore=0|sheep=2|wheat=0|wood=3|unknown=0
         if ((e == null) || e.isFromClient || ! (e.event instanceof SOCDiscard))
@@ -1814,7 +1815,7 @@ public class GameActionExtractor
         final ResourceSet discards = ((SOCDiscard) e.event).getResources();
 
         // !p2:SOCDiscard:game=test|playerNum=2|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=5
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             e = next();
             if (e.isFromClient || (e.excludedPN == null) || ! (e.event instanceof SOCDiscard))
@@ -1844,7 +1845,7 @@ public class GameActionExtractor
     private Action extract_CHOOSE_FREE_RESOURCES(GameEventLog.EventEntry e)
     {
         // f3:SOCPickResources:game=test|resources=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! e.isFromClient)
                 return null;
@@ -1894,7 +1895,7 @@ public class GameActionExtractor
         int choice = 0;
 
         // f3:SOCChoosePlayer:game=test|choice=-2  // or -3
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! e.isFromClient)
                 return null;
@@ -1937,7 +1938,7 @@ public class GameActionExtractor
             return null;
 
         // f3:SOCMoveRobber:game=test|playerNumber=3|coord=504
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
                 return null;
@@ -2020,7 +2021,7 @@ public class GameActionExtractor
 
             if (chosenPN == SOCChoosePlayer.CHOICE_NO_PLAYER)
                 chosenPN = -2;
-        } else if (! hasServerOnlyLog) {
+        } else if (! hasLogAtClient) {
             return null;
         }
 
@@ -2044,7 +2045,7 @@ public class GameActionExtractor
 
         // f3:SOCChoosePlayer:game=test|choice=-3  // negative pn -> rob cloth, not resource
         int choice = 0;
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             e = next();
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)
@@ -2082,10 +2083,10 @@ public class GameActionExtractor
                 return null;
         } else {
             // Stealing a resource:
-            // If hasServerOnlyLog, each client will see 1 of these,
+            // If hasLogAtClient, each client will see 1 of these,
             // so the log won't have all 3
 
-            if ((! hasServerOnlyLog) || (e.excludedPN == null))
+            if ((! hasLogAtClient) || (e.excludedPN == null))
             {
                 // p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
                 if (e.isFromClient || (e.pn < 0) || (rr.peType != null))
@@ -2098,7 +2099,7 @@ public class GameActionExtractor
                     stolenRes.add(rr.amount, rr.resType);
                 }
 
-                if (! hasServerOnlyLog)
+                if (! hasLogAtClient)
                 {
                     e = next();
 
@@ -2111,7 +2112,7 @@ public class GameActionExtractor
             }
 
             // !p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
-            if ((! hasServerOnlyLog) || (stolenRes == null))
+            if ((! hasLogAtClient) || (stolenRes == null))
             {
                 if ((e.excludedPN == null) || ! (e.event instanceof SOCRobberyResult))
                     return null;
@@ -2155,7 +2156,7 @@ public class GameActionExtractor
     private Action extract_TRADE_BANK(GameEventLog.EventEntry e)
     {
         // f3:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn == state.currentPlayerNumber)))
                 return null;
@@ -2182,7 +2183,7 @@ public class GameActionExtractor
     private Action extract_TRADE_MAKE_OFFER(GameEventLog.EventEntry e)
     {
         // f2:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn != -1)))
                 return null;
@@ -2217,7 +2218,7 @@ public class GameActionExtractor
     private Action extract_TRADE_CLEAR_OFFER(GameEventLog.EventEntry e)
     {
         // f3:SOCClearOffer:game=test|playerNumber=0
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn != -1)))
                 return null;
@@ -2249,7 +2250,7 @@ public class GameActionExtractor
     private Action extract_TRADE_REJECT_OFFER(GameEventLog.EventEntry e)
     {
         // f3:SOCRejectOffer:game=test|playerNumber=0
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn != -1)))
                 return null;
@@ -2276,7 +2277,7 @@ public class GameActionExtractor
     private Action extract_TRADE_ACCEPT_OFFER(GameEventLog.EventEntry e)
     {
         // f2:SOCAcceptOffer:game=test|accepting=0|offering=3
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! (e.isFromClient && (e.pn != -1)))
                 return null;
@@ -2311,7 +2312,7 @@ public class GameActionExtractor
     private Action extract_ASK_SPECIAL_BUILDING(GameEventLog.EventEntry e)
     {
         // f3:SOCBuildRequest:game=test|pieceType=-1  // or a defined piece type
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! e.isFromClient)
                 return null;
@@ -2337,7 +2338,7 @@ public class GameActionExtractor
 
     /**
      * Extract {@link ActionType#END_TURN} from the current message sequence.
-     * First entry is {@link SOCPlayerElement} or {@link SOCClearOffer} if {@link #hasServerOnlyLog},
+     * First entry is {@link SOCPlayerElement} or {@link SOCClearOffer} if {@link #hasLogAtClient},
      * otherwise {@link SOCEndTurn}.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
@@ -2345,7 +2346,7 @@ public class GameActionExtractor
     private Action extract_END_TURN(GameEventLog.EventEntry e)
     {
         // f3:SOCEndTurn:game=test
-        if (! hasServerOnlyLog)
+        if (! hasLogAtClient)
         {
             if (! e.isFromClient)
                 return null;

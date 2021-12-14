@@ -655,7 +655,7 @@ which will save to `filename.soclog` in the server's current directory.
 
 Optional flags for `*SAVELOG*` command:
 
-- `-s`: Save only messages from the server, not also from clients to server
+- `-c`: Save only messages to clients from the server, not also from all clients to server
 - `-u`: Untimed; don't write the elapsed-time field if present in log entries
 - `-f`: Force overwrite an existing log
 

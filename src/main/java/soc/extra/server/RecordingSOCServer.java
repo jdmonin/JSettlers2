@@ -322,14 +322,14 @@ public class RecordingSOCServer
      *     Recommended suffix is {@link GameEventLog#FILENAME_EXTENSION} for consistency.
      * @param untimed  If true, omit the optional {@link GameEventLog.EventEntry#timeElapsedMS} timestamp field
      *     when writing entries to file
-     * @param serverOnly  If true, don't write entries having {@link GameEventLog.EventEntry#isFromClient} true
+     * @param atClient  If true, don't write entries having {@link GameEventLog.EventEntry#isFromClient} true
      * @throws NoSuchElementException if no logs or log entries found for game
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
      * @throws IOException if an I/O problem or {@link SecurityException} occurs
      */
     public void saveLogToFile
         (final SOCGame ga, final File saveDir, final String saveFilename,
-         final boolean untimed, final boolean serverOnly)
+         final boolean untimed, final boolean atClient)
         throws NoSuchElementException, IllegalArgumentException, IOException
     {
         final String gameName = ga.getName();
@@ -338,7 +338,7 @@ public class RecordingSOCServer
         if ((gameLog == null) || (gameLog.game == null))
             throw new NoSuchElementException(gameName);
 
-        gameLog.save(saveDir, saveFilename, untimed, serverOnly);
+        gameLog.save(saveDir, saveFilename, untimed, atClient);
     }
 
     @Override
@@ -421,7 +421,7 @@ public class RecordingSOCServer
          */
         private void processDebugCommand_saveLog(final Connection c, final SOCGame ga, String argsStr)
         {
-            final String USAGE = "Usage: *SAVELOG* [-s] [-u] [-f] filename";  // I18N OK: debug only
+            final String USAGE = "Usage: *SAVELOG* [-c] [-u] [-f] filename";  // I18N OK: debug only
             final String gaName = ga.getName();
 
             if (argsStr.isEmpty())
@@ -434,15 +434,15 @@ public class RecordingSOCServer
             // very basic flag parsing, until something better is needed
             String fname = null;
             boolean askedForce = false;
-            boolean serverOnly = false;
+            boolean atClient = false;
             boolean untimed = false;  // omit timestamps
             boolean argsOK = true;
             for (String arg : argsStr.split("\\s+"))
             {
                 if (arg.startsWith("-"))
                 {
-                    if (arg.equals("-s"))
-                        serverOnly = true;
+                    if (arg.equals("-c"))
+                        atClient = true;
                     else if (arg.equals("-u"))
                         untimed = true;
                     else if (arg.equals("-f"))
@@ -504,7 +504,7 @@ public class RecordingSOCServer
             try
             {
                 ((RecordingSOCServer) srv).saveLogToFile
-                    (ga, new File("."), fname, untimed, serverOnly);  // <--- The actual log save method ---
+                    (ga, new File("."), fname, untimed, atClient);  // <--- The actual log save method ---
 
                 srv.messageToPlayerKeyed
                     (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,

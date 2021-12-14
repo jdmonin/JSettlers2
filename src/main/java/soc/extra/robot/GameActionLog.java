@@ -50,30 +50,30 @@ public class GameActionLog
     private static final long serialVersionUID = 2500;  // No change since v2.5.00
 
     /**
-     * True if this action log is from a {@link GameEventLog} which includes only messages from the server,
-     * not also from clients to server: See {@link GameEventLog#isServerOnly}.
-     * @see #serverOnlyToClientPN
+     * True if this action log is from a {@link GameEventLog} which includes only messages from the server
+     * to one client, not also from all clients to server: See {@link GameEventLog#isAtClient}.
+     * @see #atClientPN
      */
-    public final boolean isServerOnly;
+    public final boolean isAtClient;
 
     /**
-     * If not -1, this action log is from a {@link GameEventLog} filtered to include
-     * only messages to a certain client player number.
-     * @see GameEventLog#serverOnlyToClientPN
-     * @see #isServerOnly
+     * If not -1, this action log is from a {@link GameEventLog} which includes
+     * only messages from server to this one client player number, as if log was recorded at that client.
+     * @see GameEventLog#atClientPN
+     * @see #isAtClient
      */
-    public final int serverOnlyToClientPN;
+    public final int atClientPN;
 
     /**
      * Create a new empty {@link GameActionLog}.
-     * @param isServerOnly  Value for {@link #isServerOnly} field
-     * @param serverOnlyToClientPN  Value for {@link #serverOnlyToClientPN} field
+     * @param isAtClient  Value for {@link #isAtClient} field
+     * @param atClientPN  Value for {@link #atClientPN} field
      */
-    public GameActionLog(final boolean isServerOnly, final int serverOnlyToClientPN)
+    public GameActionLog(final boolean isAtClient, final int atClientPN)
     {
         super();
-        this.isServerOnly = isServerOnly;
-        this.serverOnlyToClientPN = serverOnlyToClientPN;
+        this.isAtClient = isAtClient;
+        this.atClientPN = atClientPN;
     }
 
     /**
@@ -372,7 +372,7 @@ public class GameActionLog
              *<BR>
              * {@code p1} = 1 for robber or 2 for pirate.
              *<P>
-             * If extracted from a {@link GameEventLog} with {@link GameEventLog#isServerOnly} flag set,
+             * If extracted from a {@link GameEventLog} with {@link GameEventLog#isAtClient} flag set,
              * choice may be hidden; {@code p1} = 0 if so.
              */
             CHOOSE_MOVE_ROBBER_OR_PIRATE(110),
@@ -408,10 +408,10 @@ public class GameActionLog
              *<BR>
              * {@code p1} = 1 for resources as usual, or 2 for cloth in the Cloth Trade scenario.
              *<P>
-             * If extracted from a {@link GameEventLog} with {@link GameEventLog#isServerOnly} flag set,
+             * If extracted from a {@link GameEventLog} with {@link GameEventLog#isAtClient} flag set,
              * choice may be hidden; {@code p1} = 0 if so.
              * Because this action is between server and 1 player client, it may be completely hidden
-             * in the {@code isServerOnly} log to a different player/observer.
+             * in the {@code isAtClient} log to a different player/observer.
              */
             CHOOSE_ROB_CLOTH_OR_RESOURCE(140),
 

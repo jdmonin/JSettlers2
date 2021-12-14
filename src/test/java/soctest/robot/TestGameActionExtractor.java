@@ -3976,7 +3976,7 @@ public class TestGameActionExtractor
         if (testToClientPN != -1)
         {
             final GameEventLog clientEventLog = new GameEventLog(eventLog, testToClientPN);
-            assertEquals(testToClientPN, clientEventLog.serverOnlyToClientPN);
+            assertEquals(testToClientPN, clientEventLog.atClientPN);
             GameActionExtractor ext = new GameActionExtractor(clientEventLog, true);
             GameActionLog clientActLog = ext.extract();
             assertNotNull(clientActLog);
@@ -3987,7 +3987,7 @@ public class TestGameActionExtractor
         if (testToOtherPN != -1)
         {
             final GameEventLog clientEventLog = new GameEventLog(eventLog, testToOtherPN);
-            assertEquals(testToOtherPN, clientEventLog.serverOnlyToClientPN);
+            assertEquals(testToOtherPN, clientEventLog.atClientPN);
             GameActionExtractor ext = new GameActionExtractor(clientEventLog, true);
             GameActionLog clientActLog = ext.extract();
             assertNotNull(clientActLog);
@@ -4009,7 +4009,7 @@ public class TestGameActionExtractor
          * Should call assert methods.
          * @param actionLog  Extracted actions to check; not {@code null}
          * @param toClientPN  -1 if testing at server, or the client player number being tested,
-         *     from {@link GameEventLog#serverOnlyToClientPN}; can be {@link soc.server.SOCServer#PN_OBSERVER}
+         *     from {@link GameEventLog#atClientPN}; can be {@link soc.server.SOCServer#PN_OBSERVER}
          */
         public void check(final GameActionLog actionLog, final int toClientPN);
     }
