@@ -269,6 +269,7 @@ its `build.gradle` into other IDEs.
         - Buildship 3.x runs on JDK 8 or newer, eclipse 4.3 or newer
     - Install
     - If prompted to restart Eclipse, do so
+- Eclipse preferences -> Gradle -> Gradle distribution: Specific gradle version: 5.6.4, or 6.4
 - Choose File -> Import -> Gradle -> Existing Gradle Project
 - Browse to the jsettlers git checkout's top-level directory (containing `build.gradle`)
 - Hit Finish
@@ -439,8 +440,8 @@ in the "Network Communication and interop" section.
 
 Here are some brief notes:
 
-- Development and the JSettlers build require `protobuf-java-3.4.0.jar`,
-  `protobuf-java-util-3.4.0.jar`, and other JARs.
+- Development and the JSettlers build require `protobuf-java-3.11.3.jar`,
+  `protobuf-java-util-3.11.3.jar`, and other JARs.
   Running `gradle test` can download them for you, or see above under
   "Download required library JARs" for download URLs.
 - `build.gradle` can generate Java classes from the *.proto files.
@@ -455,14 +456,14 @@ Here are some brief notes:
 - To run the JSettlers server JAR with protobuf support, instead of the usual
   `-jar` command line argument (which ignores CLASSPATH), use this style:
 
-      export CLASSPATH=$CLASSPATH:/path/to/protobuf-java-3.4.0.jar:/path/to/protobuf-java-util-3.4.0.jar  # <-- run this just once
+      export CLASSPATH=$CLASSPATH:/path/to/protobuf-java-3.11.3.jar:/path/to/protobuf-java-util-3.11.3.jar  # <-- run this just once
 
       java -cp $CLASSPATH:JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
 
   On Windows, place the JARs in the same folder as the
   JSettlers JAR and run a command prompt in that folder:
 
-      java -cp protobuf-java-3.4.0.jar;protobuf-java-util-3.4.0.jar;JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
+      java -cp protobuf-java-3.11.3.jar;protobuf-java-util-3.11.3.jar;JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
 
   Once the server starts up, you should see a line like this in the console:
 
@@ -477,7 +478,7 @@ Here are some brief notes:
 - For very basic testing, see the sample protobuf robot client class `soc.robot.protobuf.DummyProtoClient`.
      - So that the standalone proto bot can connect, start the server with the flag property to print its random
        cookie: `-Djsettlers.bots.showcookie=Y` or set a specific cookie like `-Djsettlers.bots.cookie=PRO`.
-     - Make sure `protobuf-java-3.4.0.jar` is in the client's $CLASSPATH
+     - Make sure `protobuf-java-3.11.3.jar` is in the client's $CLASSPATH
      - Start the sample client with a command line like:
 
            java -cp $CLASSPATH:JSettlers.jar soc.robot.protobuf.DummyProtoClient localhost PRO
@@ -495,7 +496,7 @@ you will need to build `socweb.war` and `socserver.war` and copy related runtime
   but not its runtime-dependency JARs, and socweb.war the HTML5 client.
 - Copy `build/libs/socserver.war` and `socweb.war` to $JETTY_HOME/webapps/
 - Copy the runtime JARs to $JETTY_HOME/lib/ext/  
-  gson-2.7.jar, guava-19.0.jar, protobuf-java-3.4.0.jar, protobuf-java-util-3.4.0.jar
+  gson-2.8.6.jar, guava-28.1-android.jar, protobuf-java-3.11.3.jar, protobuf-java-util-3.11.3.jar
 - To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`
 - The server listens on endpoint path `/socserver/apisock` for JSON over websockets,
   port `4000` for Protobuf, and port `8880` for the classic SOCMessage protocol
