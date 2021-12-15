@@ -418,6 +418,8 @@ Admin Users let you manage your server without the debug user. They authenticate
 stored in a SQLite file or a database system. To set up Admin Users, see
 section "Security, Admin Users, Admin Commands" of [doc/Database.md](doc/Database.md).
 
+JSettlers does not use `log4j`, and all released versions are not vulnerable to CVE-2021-44228.
+
 
 ## Development and Building JSettlers
 
