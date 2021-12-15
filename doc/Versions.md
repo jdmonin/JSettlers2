@@ -123,8 +123,10 @@ JARs for recent JSettlers versions can be downloaded from
 	- If `SOCServer.stopServer()` called before it's fully running, shuts down cleanly
 	  instead of NullPointerException in InboundMessageQueue.stopMessageProcessing
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
-	- Bots: When forcing end turn, omit previous/current turn messages if stubborn
-	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
+	- Bots:
+	    - When forcing end turn, omit previous/current turn messages if stubborn
+	    - Added server property `jsettlers.debug.bots.datacheck.rsrc` to check bot resource accuracy every turn
+	    - For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
 	- Server extensibility:
 	    - Added public `createGameAndBroadcast` method
 	    - Added factory methods like `buildServerMessageHandler`
