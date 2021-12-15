@@ -452,6 +452,8 @@ When preparing to release a new version, testing should include:
                 - Trade between players
                     - Do a trade where a player gives 1, receives 2; total resource counts should be accurate before and after
                     - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCAcceptOffer` message
+                - Discard
+                    - Total resource counts should be accurate before and after
                 - Soldier dev card
                     - Give Soldier cards to client players:  
                       `dev: 9 #2` etc
@@ -1071,6 +1073,30 @@ Start with a recently-created database with latest schema/setup scripts.
     - Start a new client and connect as that same username
       - Should allow connect after appropriate number of seconds
       - Player's private info should be correct
+- `*SAVELOG*` debug command:
+    - In IDE or command line (see [Readme.developer.md](Readme.developer.md)),
+      launch RecordingSOCServer and log in as `debug` with the standard client
+    - As debug player, start a game and play at least 1 round past initial placement
+    - In chat text field, enter and send: `*SAVELOG* testsave`
+    - Should create file `testsave.soclog` in server's current directory, with header and messages to/from server
+    - Repeat command: `*SAVELOG* testsave`
+    - Should see text like: "Log file already exists: Add -f flag to force, or use a different name"
+    - Send command: `*SAVELOG* -f testsave`
+    - Should overwrite testsave.soclog; this is same game, so new contents are previous contents + the savelog commands
+    - Send command: `*SAVELOG* -f -u testsave`
+    - Should overwrite testsave.soclog; new contents should not have the timestamp field
+    - Send command: `*SAVELOG* -f -c testsave`
+    - Should overwrite testsave.soclog; new contents should have only messages to clients, not from clients
+    - Send command: `*SAVELOG* -f -c -u testsave`
+    - Should overwrite testsave.soclog; only messages to clients, no timestamps
+    - Reset the board and play at least 1 round
+    - Send command: `*SAVELOG* -f testsave`
+    - Should overwrite testsave.soclog; contents are the new game, nothing from before the reset
+    - Make note of game name
+    - Leave game, make sure it disappears from client's list of server games
+    - Make new game with same name, start initial placement
+    - Send command: `*SAVELOG* -f testsave`
+    - Should overwrite testsave.soclog; contents are the new game, nothing from the previous one of same name
 - Idle games, timeout behaviors:
     - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
     - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
