@@ -1447,6 +1447,8 @@ public class SOCRobotBrain extends Thread
                      * When reading the main flow of this method, skip past here;
                      * search for "it's time to decide to build or take other normal actions".
                      */
+                    boolean isDataUpdateOnly = false;
+                        // true if only updating game data in rbrain thread, not taking any actions based on message
                     switch (mesType)
                     {
                     case SOCMessage.PLAYERELEMENT:
@@ -1479,6 +1481,7 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.DICERESULTRESOURCES:
                         SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES
                             ((SOCDiceResultResources) mes, game, ourPlayerName, false);
+                        isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.PUTPIECE:
@@ -1501,6 +1504,7 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.DISCARD:
                         SOCDisplaylessPlayerClient.handleDISCARD((SOCDiscard) mes, game);
+                        isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.MOVEROBBER:
@@ -1510,6 +1514,8 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.MAKEOFFER:
                         if (robotParameters.getTradeFlag() == 1)
                             handleMAKEOFFER((SOCMakeOffer) mes);
+                        else
+                            isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.CLEAROFFER:
@@ -1523,6 +1529,8 @@ public class SOCRobotBrain extends Thread
                                 for (int i = 0; i < game.maxPlayers; ++i)
                                     game.getPlayer(i).setCurrentOffer(null);
                             }
+                        } else {
+                            isDataUpdateOnly = true;
                         }
                         break;
 
@@ -1545,6 +1553,8 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.REJECTOFFER:
                         if (robotParameters.getTradeFlag() == 1)
                             handleREJECTOFFER((SOCRejectOffer) mes);
+                        else
+                            isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.DEVCARDACTION:
@@ -1568,6 +1578,7 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.SIMPLEREQUEST:
                         // For any player's request, update game data in our thread
                         SOCDisplaylessPlayerClient.handleSIMPLEREQUEST((SOCSimpleRequest) mes, game);
+                        isDataUpdateOnly = true;
 
                         // These messages can almost always be ignored by bots,
                         // unless we've just sent a request to attack a pirate fortress.
@@ -1588,6 +1599,8 @@ public class SOCRobotBrain extends Thread
                                 waitingForSC_PIRI_FortressRequest = false;
                                 resetFieldsAtEndTurn();
                                 client.endTurn(game);
+
+                                isDataUpdateOnly = false;
                             }
                             // else, from another player; we can ignore it
                         }
@@ -1596,6 +1609,8 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.SIMPLEACTION:
                         // For any player's action, update game data in our thread
                         SOCDisplaylessPlayerClient.handleSIMPLEACTION((SOCSimpleAction) mes, game);
+                        if (((SOCSimpleAction) mes).getPlayerNumber() != ourPlayerNumber)
+                            isDataUpdateOnly = true;
 
                         // Most action types are handled later in the loop body;
                         // search for SOCMessage.SIMPLEACTION
@@ -1614,6 +1629,8 @@ public class SOCRobotBrain extends Thread
                                 waitingForSC_PIRI_FortressRequest = false;
                                 resetFieldsAtEndTurn();
                                 // client.endTurn not needed; making the attack implies sending endTurn
+
+                                isDataUpdateOnly = false;
                             }
                             // else, from another player; we can ignore it
 
@@ -1631,16 +1648,21 @@ public class SOCRobotBrain extends Thread
 
                             waitingForGameState = false;
                             expectPLACING_INV_ITEM = false;  // in case was rejected placement (SC_FTRI gift port, etc)
+                        } else {
+                            isDataUpdateOnly = true;
                         }
                         break;
 
                     case SOCMessage.ROBBERYRESULT:
                         handleROBBERYRESULT((SOCRobberyResult) mes);
+                        if (((SOCRobberyResult) mes).victimPN != ourPlayerNumber)
+                            isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.BOTGAMEDATACHECK:
                         handleBOTGAMEDATACHECK
                             (((SOCBotGameDataCheck) mes).getDataType(), ((SOCBotGameDataCheck) mes).getValues());
+                        isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.DECLINEPLAYERREQUEST:
@@ -1649,6 +1671,11 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     }  // switch(mesType)
+
+                    if (isDataUpdateOnly)
+                    {
+                        continue;  // <--- no further actions or planning needed for this message ---
+                    }
 
                     debugInfo();
 
