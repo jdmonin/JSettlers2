@@ -371,9 +371,9 @@ public class GameEventLog
                 if (! (entry.isFromClient && atClient))
                     writer.append(entry.toString(untimed)).append('\n');
 
-            writer.append("# End of log; final game state is ")
+            writer.append("# End of log. Game state ")
                 .append(Integer.toString(game.getGameState())).append('\n');
-            writer.append("# Final player info:\n");
+            writer.append("# Player info:\n");
             final SOCPlayer winner = game.getPlayerWithWin();  // null if still playing
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {

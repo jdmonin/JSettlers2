@@ -191,8 +191,8 @@ SOC game event log: type=C, version=2500, created_at=1636807754, now=1636807889,
 2:08.815:p1:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e1=1,e2=1,e3=0,e4=0,e5=0
 2:08.815:p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=3,e3=0,e4=0,e5=0
 2:08.815:all:SOCGameState:game=test|state=20
-# End of log; final game state is 20
-# Final player info:
+# End of log. Game state 20
+# Player info:
 # - pn 1: total score 2: droid 1
 # - pn 2: visible score 2, total score 3: robot 3
 # - pn 3: total score 2: p3

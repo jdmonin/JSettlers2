@@ -58,12 +58,13 @@ import soc.util.Version;
  * Logs are kept in memory, and can be written to a file with
  * {@link #saveLogToFile(SOCGame, File, String, boolean, boolean)}.
  * When a game ends its log stays in memory, in case tester wants to run through games first and check them later.
+ * Resetting the game, or creating a new one later with the same name, discards that previous log.
  *<P>
  * This server can also run standalone on the usual TCP {@link SOCServer#PROP_JSETTLERS_PORT} port number,
  * to connect from a client and generate a log, which by default also includes timestamps and messages from the clients:
  * See {@link #RecordingSOCServer(int, Properties)}.
  * Server JAR and compiled test classes must be on the classpath.
- * Use debug command {@code *SAVELOG* [-s] [-u] [-f] filename} to save to {@code filename.soclog} in the current directory.
+ * Use debug command {@code *SAVELOG* [-c] [-u] [-f] filename} to save to {@code filename.soclog} in the current directory.
  *
  * @since 2.5.00
  */

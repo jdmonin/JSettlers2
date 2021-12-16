@@ -764,7 +764,7 @@ f3:SOCGameTextMsg:game=test|nickname=-|text=*savegame* test-over
 un:SOCGameServerText:game=test|text=Saved game to test-over.game.json
 # note: ^ committed as artifact ../savegame/all-basic-actions-over.game.json
 f3:SOCGameTextMsg:game=test|nickname=-|text=*savelog* test-all-basic-actions
-# End of log; final game state is 1000
-# Final player info:
+# End of log. Game state 1000
+# Player info:
 # - pn 2: total score 2: p2
 # - pn 3: total score 10: debug, Largest Army, Longest Road, Winner
