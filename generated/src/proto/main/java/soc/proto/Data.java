@@ -179,6 +179,10 @@ public final class Data {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -351,6 +355,10 @@ public final class Data {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -561,6 +569,10 @@ public final class Data {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -710,6 +722,10 @@ public final class Data {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -991,6 +1007,10 @@ public final class Data {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -1508,6 +1528,10 @@ public final class Data {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -1673,6 +1697,10 @@ public final class Data {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -1736,7 +1764,7 @@ public final class Data {
    *
    * Protobuf type {@code _IntArray}
    */
-  public  static final class _IntArray extends
+  public static final class _IntArray extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:_IntArray)
       _IntArrayOrBuilder {
@@ -1842,6 +1870,7 @@ public final class Data {
      * <code>repeated int32 arr = 1;</code>
      * @return A list containing the arr.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
         getArrList() {
       return arr_;
@@ -2359,7 +2388,7 @@ public final class Data {
    *
    * Protobuf type {@code _SIntArray}
    */
-  public  static final class _SIntArray extends
+  public static final class _SIntArray extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:_SIntArray)
       _SIntArrayOrBuilder {
@@ -2465,6 +2494,7 @@ public final class Data {
      * <code>repeated sint32 arr = 1;</code>
      * @return A list containing the arr.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
         getArrList() {
       return arr_;
@@ -2980,7 +3010,7 @@ public final class Data {
    *
    * Protobuf type {@code NodeCoord}
    */
-  public  static final class NodeCoord extends
+  public static final class NodeCoord extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:NodeCoord)
       NodeCoordOrBuilder {
@@ -3070,6 +3100,7 @@ public final class Data {
      * <code>int32 row = 1;</code>
      * @return The row.
      */
+    @java.lang.Override
     public int getRow() {
       return row_;
     }
@@ -3080,6 +3111,7 @@ public final class Data {
      * <code>int32 column = 2;</code>
      * @return The column.
      */
+    @java.lang.Override
     public int getColumn() {
       return column_;
     }
@@ -3416,6 +3448,7 @@ public final class Data {
        * <code>int32 row = 1;</code>
        * @return The row.
        */
+      @java.lang.Override
       public int getRow() {
         return row_;
       }
@@ -3446,6 +3479,7 @@ public final class Data {
        * <code>int32 column = 2;</code>
        * @return The column.
        */
+      @java.lang.Override
       public int getColumn() {
         return column_;
       }
@@ -3548,7 +3582,7 @@ public final class Data {
    *
    * Protobuf type {@code EdgeCoord}
    */
-  public  static final class EdgeCoord extends
+  public static final class EdgeCoord extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:EdgeCoord)
       EdgeCoordOrBuilder {
@@ -3638,6 +3672,7 @@ public final class Data {
      * <code>int32 row = 1;</code>
      * @return The row.
      */
+    @java.lang.Override
     public int getRow() {
       return row_;
     }
@@ -3648,6 +3683,7 @@ public final class Data {
      * <code>int32 column = 2;</code>
      * @return The column.
      */
+    @java.lang.Override
     public int getColumn() {
       return column_;
     }
@@ -3982,6 +4018,7 @@ public final class Data {
        * <code>int32 row = 1;</code>
        * @return The row.
        */
+      @java.lang.Override
       public int getRow() {
         return row_;
       }
@@ -4012,6 +4049,7 @@ public final class Data {
        * <code>int32 column = 2;</code>
        * @return The column.
        */
+      @java.lang.Override
       public int getColumn() {
         return column_;
       }
@@ -4112,7 +4150,7 @@ public final class Data {
    *
    * Protobuf type {@code HexCoord}
    */
-  public  static final class HexCoord extends
+  public static final class HexCoord extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:HexCoord)
       HexCoordOrBuilder {
@@ -4202,6 +4240,7 @@ public final class Data {
      * <code>int32 row = 1;</code>
      * @return The row.
      */
+    @java.lang.Override
     public int getRow() {
       return row_;
     }
@@ -4212,6 +4251,7 @@ public final class Data {
      * <code>int32 column = 2;</code>
      * @return The column.
      */
+    @java.lang.Override
     public int getColumn() {
       return column_;
     }
@@ -4544,6 +4584,7 @@ public final class Data {
        * <code>int32 row = 1;</code>
        * @return The row.
        */
+      @java.lang.Override
       public int getRow() {
         return row_;
       }
@@ -4574,6 +4615,7 @@ public final class Data {
        * <code>int32 column = 2;</code>
        * @return The column.
        */
+      @java.lang.Override
       public int getColumn() {
         return column_;
       }
@@ -4713,7 +4755,7 @@ public final class Data {
    *
    * Protobuf type {@code BoardCoord}
    */
-  public  static final class BoardCoord extends
+  public static final class BoardCoord extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BoardCoord)
       BoardCoordOrBuilder {
@@ -4877,6 +4919,7 @@ public final class Data {
      * <code>.NodeCoord node_coord = 1;</code>
      * @return Whether the nodeCoord field is set.
      */
+    @java.lang.Override
     public boolean hasNodeCoord() {
       return coordTypeCase_ == 1;
     }
@@ -4884,6 +4927,7 @@ public final class Data {
      * <code>.NodeCoord node_coord = 1;</code>
      * @return The nodeCoord.
      */
+    @java.lang.Override
     public soc.proto.Data.NodeCoord getNodeCoord() {
       if (coordTypeCase_ == 1) {
          return (soc.proto.Data.NodeCoord) coordType_;
@@ -4893,6 +4937,7 @@ public final class Data {
     /**
      * <code>.NodeCoord node_coord = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.NodeCoordOrBuilder getNodeCoordOrBuilder() {
       if (coordTypeCase_ == 1) {
          return (soc.proto.Data.NodeCoord) coordType_;
@@ -4905,6 +4950,7 @@ public final class Data {
      * <code>.EdgeCoord edge_coord = 2;</code>
      * @return Whether the edgeCoord field is set.
      */
+    @java.lang.Override
     public boolean hasEdgeCoord() {
       return coordTypeCase_ == 2;
     }
@@ -4912,6 +4958,7 @@ public final class Data {
      * <code>.EdgeCoord edge_coord = 2;</code>
      * @return The edgeCoord.
      */
+    @java.lang.Override
     public soc.proto.Data.EdgeCoord getEdgeCoord() {
       if (coordTypeCase_ == 2) {
          return (soc.proto.Data.EdgeCoord) coordType_;
@@ -4921,6 +4968,7 @@ public final class Data {
     /**
      * <code>.EdgeCoord edge_coord = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.EdgeCoordOrBuilder getEdgeCoordOrBuilder() {
       if (coordTypeCase_ == 2) {
          return (soc.proto.Data.EdgeCoord) coordType_;
@@ -4933,6 +4981,7 @@ public final class Data {
      * <code>.HexCoord hex_coord = 3;</code>
      * @return Whether the hexCoord field is set.
      */
+    @java.lang.Override
     public boolean hasHexCoord() {
       return coordTypeCase_ == 3;
     }
@@ -4940,6 +4989,7 @@ public final class Data {
      * <code>.HexCoord hex_coord = 3;</code>
      * @return The hexCoord.
      */
+    @java.lang.Override
     public soc.proto.Data.HexCoord getHexCoord() {
       if (coordTypeCase_ == 3) {
          return (soc.proto.Data.HexCoord) coordType_;
@@ -4949,6 +4999,7 @@ public final class Data {
     /**
      * <code>.HexCoord hex_coord = 3;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.HexCoordOrBuilder getHexCoordOrBuilder() {
       if (coordTypeCase_ == 3) {
          return (soc.proto.Data.HexCoord) coordType_;
@@ -5365,6 +5416,7 @@ public final class Data {
        * <code>.NodeCoord node_coord = 1;</code>
        * @return Whether the nodeCoord field is set.
        */
+      @java.lang.Override
       public boolean hasNodeCoord() {
         return coordTypeCase_ == 1;
       }
@@ -5372,6 +5424,7 @@ public final class Data {
        * <code>.NodeCoord node_coord = 1;</code>
        * @return The nodeCoord.
        */
+      @java.lang.Override
       public soc.proto.Data.NodeCoord getNodeCoord() {
         if (nodeCoordBuilder_ == null) {
           if (coordTypeCase_ == 1) {
@@ -5465,6 +5518,7 @@ public final class Data {
       /**
        * <code>.NodeCoord node_coord = 1;</code>
        */
+      @java.lang.Override
       public soc.proto.Data.NodeCoordOrBuilder getNodeCoordOrBuilder() {
         if ((coordTypeCase_ == 1) && (nodeCoordBuilder_ != null)) {
           return nodeCoordBuilder_.getMessageOrBuilder();
@@ -5503,6 +5557,7 @@ public final class Data {
        * <code>.EdgeCoord edge_coord = 2;</code>
        * @return Whether the edgeCoord field is set.
        */
+      @java.lang.Override
       public boolean hasEdgeCoord() {
         return coordTypeCase_ == 2;
       }
@@ -5510,6 +5565,7 @@ public final class Data {
        * <code>.EdgeCoord edge_coord = 2;</code>
        * @return The edgeCoord.
        */
+      @java.lang.Override
       public soc.proto.Data.EdgeCoord getEdgeCoord() {
         if (edgeCoordBuilder_ == null) {
           if (coordTypeCase_ == 2) {
@@ -5603,6 +5659,7 @@ public final class Data {
       /**
        * <code>.EdgeCoord edge_coord = 2;</code>
        */
+      @java.lang.Override
       public soc.proto.Data.EdgeCoordOrBuilder getEdgeCoordOrBuilder() {
         if ((coordTypeCase_ == 2) && (edgeCoordBuilder_ != null)) {
           return edgeCoordBuilder_.getMessageOrBuilder();
@@ -5641,6 +5698,7 @@ public final class Data {
        * <code>.HexCoord hex_coord = 3;</code>
        * @return Whether the hexCoord field is set.
        */
+      @java.lang.Override
       public boolean hasHexCoord() {
         return coordTypeCase_ == 3;
       }
@@ -5648,6 +5706,7 @@ public final class Data {
        * <code>.HexCoord hex_coord = 3;</code>
        * @return The hexCoord.
        */
+      @java.lang.Override
       public soc.proto.Data.HexCoord getHexCoord() {
         if (hexCoordBuilder_ == null) {
           if (coordTypeCase_ == 3) {
@@ -5741,6 +5800,7 @@ public final class Data {
       /**
        * <code>.HexCoord hex_coord = 3;</code>
        */
+      @java.lang.Override
       public soc.proto.Data.HexCoordOrBuilder getHexCoordOrBuilder() {
         if ((coordTypeCase_ == 3) && (hexCoordBuilder_ != null)) {
           return hexCoordBuilder_.getMessageOrBuilder();
@@ -5860,7 +5920,7 @@ public final class Data {
    *
    * Protobuf type {@code _EdgeList}
    */
-  public  static final class _EdgeList extends
+  public static final class _EdgeList extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:_EdgeList)
       _EdgeListOrBuilder {
@@ -5953,12 +6013,14 @@ public final class Data {
     /**
      * <code>repeated .EdgeCoord edge = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data.EdgeCoord> getEdgeList() {
       return edge_;
     }
     /**
      * <code>repeated .EdgeCoord edge = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.Data.EdgeCoordOrBuilder> 
         getEdgeOrBuilderList() {
       return edge_;
@@ -5966,18 +6028,21 @@ public final class Data {
     /**
      * <code>repeated .EdgeCoord edge = 1;</code>
      */
+    @java.lang.Override
     public int getEdgeCount() {
       return edge_.size();
     }
     /**
      * <code>repeated .EdgeCoord edge = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.EdgeCoord getEdge(int index) {
       return edge_.get(index);
     }
     /**
      * <code>repeated .EdgeCoord edge = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.EdgeCoordOrBuilder getEdgeOrBuilder(
         int index) {
       return edge_.get(index);
@@ -6656,7 +6721,7 @@ public final class Data {
    *
    * Protobuf type {@code _HexList}
    */
-  public  static final class _HexList extends
+  public static final class _HexList extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:_HexList)
       _HexListOrBuilder {
@@ -6749,12 +6814,14 @@ public final class Data {
     /**
      * <code>repeated .HexCoord hex = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data.HexCoord> getHexList() {
       return hex_;
     }
     /**
      * <code>repeated .HexCoord hex = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.Data.HexCoordOrBuilder> 
         getHexOrBuilderList() {
       return hex_;
@@ -6762,18 +6829,21 @@ public final class Data {
     /**
      * <code>repeated .HexCoord hex = 1;</code>
      */
+    @java.lang.Override
     public int getHexCount() {
       return hex_.size();
     }
     /**
      * <code>repeated .HexCoord hex = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.HexCoord getHex(int index) {
       return hex_.get(index);
     }
     /**
      * <code>repeated .HexCoord hex = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.HexCoordOrBuilder getHexOrBuilder(
         int index) {
       return hex_.get(index);
@@ -7452,7 +7522,7 @@ public final class Data {
    *
    * Protobuf type {@code _NodeList}
    */
-  public  static final class _NodeList extends
+  public static final class _NodeList extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:_NodeList)
       _NodeListOrBuilder {
@@ -7545,12 +7615,14 @@ public final class Data {
     /**
      * <code>repeated .NodeCoord node = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data.NodeCoord> getNodeList() {
       return node_;
     }
     /**
      * <code>repeated .NodeCoord node = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.Data.NodeCoordOrBuilder> 
         getNodeOrBuilderList() {
       return node_;
@@ -7558,18 +7630,21 @@ public final class Data {
     /**
      * <code>repeated .NodeCoord node = 1;</code>
      */
+    @java.lang.Override
     public int getNodeCount() {
       return node_.size();
     }
     /**
      * <code>repeated .NodeCoord node = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.NodeCoord getNode(int index) {
       return node_.get(index);
     }
     /**
      * <code>repeated .NodeCoord node = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.NodeCoordOrBuilder getNodeOrBuilder(
         int index) {
       return node_.get(index);
@@ -8248,7 +8323,7 @@ public final class Data {
    *
    * Protobuf type {@code _BoardCoordList}
    */
-  public  static final class _BoardCoordList extends
+  public static final class _BoardCoordList extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:_BoardCoordList)
       _BoardCoordListOrBuilder {
@@ -8341,12 +8416,14 @@ public final class Data {
     /**
      * <code>repeated .BoardCoord coord = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data.BoardCoord> getCoordList() {
       return coord_;
     }
     /**
      * <code>repeated .BoardCoord coord = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.Data.BoardCoordOrBuilder> 
         getCoordOrBuilderList() {
       return coord_;
@@ -8354,18 +8431,21 @@ public final class Data {
     /**
      * <code>repeated .BoardCoord coord = 1;</code>
      */
+    @java.lang.Override
     public int getCoordCount() {
       return coord_.size();
     }
     /**
      * <code>repeated .BoardCoord coord = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoord getCoord(int index) {
       return coord_.get(index);
     }
     /**
      * <code>repeated .BoardCoord coord = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoordOrBuilder getCoordOrBuilder(
         int index) {
       return coord_.get(index);
@@ -9114,7 +9194,7 @@ public final class Data {
    *
    * Protobuf type {@code ResourceSet}
    */
-  public  static final class ResourceSet extends
+  public static final class ResourceSet extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ResourceSet)
       ResourceSetOrBuilder {
@@ -9255,7 +9335,7 @@ public final class Data {
      *
      * Protobuf type {@code ResourceSet.OtherResource}
      */
-    public  static final class OtherResource extends
+    public static final class OtherResource extends
         com.google.protobuf.GeneratedMessageV3 implements
         // @@protoc_insertion_point(message_implements:ResourceSet.OtherResource)
         OtherResourceOrBuilder {
@@ -9347,14 +9427,14 @@ public final class Data {
        * <code>.ResourceType res_type = 1;</code>
        * @return The enum numeric value on the wire for resType.
        */
-      public int getResTypeValue() {
+      @java.lang.Override public int getResTypeValue() {
         return resType_;
       }
       /**
        * <code>.ResourceType res_type = 1;</code>
        * @return The resType.
        */
-      public soc.proto.Data.ResourceType getResType() {
+      @java.lang.Override public soc.proto.Data.ResourceType getResType() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(resType_);
         return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
@@ -9366,6 +9446,7 @@ public final class Data {
        * <code>int32 amount = 2;</code>
        * @return The amount.
        */
+      @java.lang.Override
       public int getAmount() {
         return amount_;
       }
@@ -9697,7 +9778,7 @@ public final class Data {
          * <code>.ResourceType res_type = 1;</code>
          * @return The enum numeric value on the wire for resType.
          */
-        public int getResTypeValue() {
+        @java.lang.Override public int getResTypeValue() {
           return resType_;
         }
         /**
@@ -9706,6 +9787,7 @@ public final class Data {
          * @return This builder for chaining.
          */
         public Builder setResTypeValue(int value) {
+          
           resType_ = value;
           onChanged();
           return this;
@@ -9714,6 +9796,7 @@ public final class Data {
          * <code>.ResourceType res_type = 1;</code>
          * @return The resType.
          */
+        @java.lang.Override
         public soc.proto.Data.ResourceType getResType() {
           @SuppressWarnings("deprecation")
           soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(resType_);
@@ -9749,6 +9832,7 @@ public final class Data {
          * <code>int32 amount = 2;</code>
          * @return The amount.
          */
+        @java.lang.Override
         public int getAmount() {
           return amount_;
         }
@@ -9836,6 +9920,7 @@ public final class Data {
      * <code>int32 clay = 1;</code>
      * @return The clay.
      */
+    @java.lang.Override
     public int getClay() {
       return clay_;
     }
@@ -9850,6 +9935,7 @@ public final class Data {
      * <code>int32 ore = 2;</code>
      * @return The ore.
      */
+    @java.lang.Override
     public int getOre() {
       return ore_;
     }
@@ -9864,6 +9950,7 @@ public final class Data {
      * <code>int32 sheep = 3;</code>
      * @return The sheep.
      */
+    @java.lang.Override
     public int getSheep() {
       return sheep_;
     }
@@ -9878,6 +9965,7 @@ public final class Data {
      * <code>int32 wheat = 4;</code>
      * @return The wheat.
      */
+    @java.lang.Override
     public int getWheat() {
       return wheat_;
     }
@@ -9892,6 +9980,7 @@ public final class Data {
      * <code>int32 wood = 5;</code>
      * @return The wood.
      */
+    @java.lang.Override
     public int getWood() {
       return wood_;
     }
@@ -9905,6 +9994,7 @@ public final class Data {
      *
      * <code>repeated .ResourceSet.OtherResource others = 6;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data.ResourceSet.OtherResource> getOthersList() {
       return others_;
     }
@@ -9915,6 +10005,7 @@ public final class Data {
      *
      * <code>repeated .ResourceSet.OtherResource others = 6;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.Data.ResourceSet.OtherResourceOrBuilder> 
         getOthersOrBuilderList() {
       return others_;
@@ -9926,6 +10017,7 @@ public final class Data {
      *
      * <code>repeated .ResourceSet.OtherResource others = 6;</code>
      */
+    @java.lang.Override
     public int getOthersCount() {
       return others_.size();
     }
@@ -9936,6 +10028,7 @@ public final class Data {
      *
      * <code>repeated .ResourceSet.OtherResource others = 6;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSet.OtherResource getOthers(int index) {
       return others_.get(index);
     }
@@ -9946,6 +10039,7 @@ public final class Data {
      *
      * <code>repeated .ResourceSet.OtherResource others = 6;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSet.OtherResourceOrBuilder getOthersOrBuilder(
         int index) {
       return others_.get(index);
@@ -10391,6 +10485,7 @@ public final class Data {
        * <code>int32 clay = 1;</code>
        * @return The clay.
        */
+      @java.lang.Override
       public int getClay() {
         return clay_;
       }
@@ -10433,6 +10528,7 @@ public final class Data {
        * <code>int32 ore = 2;</code>
        * @return The ore.
        */
+      @java.lang.Override
       public int getOre() {
         return ore_;
       }
@@ -10475,6 +10571,7 @@ public final class Data {
        * <code>int32 sheep = 3;</code>
        * @return The sheep.
        */
+      @java.lang.Override
       public int getSheep() {
         return sheep_;
       }
@@ -10517,6 +10614,7 @@ public final class Data {
        * <code>int32 wheat = 4;</code>
        * @return The wheat.
        */
+      @java.lang.Override
       public int getWheat() {
         return wheat_;
       }
@@ -10559,6 +10657,7 @@ public final class Data {
        * <code>int32 wood = 5;</code>
        * @return The wood.
        */
+      @java.lang.Override
       public int getWood() {
         return wood_;
       }

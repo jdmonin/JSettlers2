@@ -440,8 +440,8 @@ in the "Network Communication and interop" section.
 
 Here are some brief notes:
 
-- Development and the JSettlers build require `protobuf-java-3.11.3.jar`,
-  `protobuf-java-util-3.11.3.jar`, and other JARs.
+- Development and the JSettlers build require `protobuf-java-3.17.3.jar`,
+  `protobuf-java-util-3.17.3.jar`, and other JARs.
   Running `gradle test` can download them for you, or see above under
   "Download required library JARs" for download URLs.
 - `build.gradle` can generate Java classes from the *.proto files.
@@ -456,14 +456,14 @@ Here are some brief notes:
 - To run the JSettlers server JAR with protobuf support, instead of the usual
   `-jar` command line argument (which ignores CLASSPATH), use this style:
 
-      export CLASSPATH=$CLASSPATH:/path/to/protobuf-java-3.11.3.jar:/path/to/protobuf-java-util-3.11.3.jar  # <-- run this just once
+      export CLASSPATH=$CLASSPATH:/path/to/protobuf-java-3.17.3.jar:/path/to/protobuf-java-util-3.17.3.jar  # <-- run this just once
 
       java -cp $CLASSPATH:JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
 
   On Windows, place the JARs in the same folder as the
   JSettlers JAR and run a command prompt in that folder:
 
-      java -cp protobuf-java-3.11.3.jar;protobuf-java-util-3.11.3.jar;JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
+      java -cp protobuf-java-3.17.3.jar;protobuf-java-util-3.17.3.jar;JSettlersServer.jar soc.server.SOCServer -Dserver.protobuf=Y
 
   Once the server starts up, you should see a line like this in the console:
 
@@ -478,7 +478,7 @@ Here are some brief notes:
 - For very basic testing, see the sample protobuf robot client class `soc.robot.protobuf.DummyProtoClient`.
      - So that the standalone proto bot can connect, start the server with the flag property to print its random
        cookie: `-Djsettlers.bots.showcookie=Y` or set a specific cookie like `-Djsettlers.bots.cookie=PRO`.
-     - Make sure `protobuf-java-3.11.3.jar` is in the client's $CLASSPATH
+     - Make sure `protobuf-java-3.17.3.jar` is in the client's $CLASSPATH
      - Start the sample client with a command line like:
 
            java -cp $CLASSPATH:JSettlers.jar soc.robot.protobuf.DummyProtoClient localhost PRO
@@ -496,7 +496,7 @@ you will need to build `socweb.war` and `socserver.war` and copy related runtime
   but not its runtime-dependency JARs, and socweb.war the HTML5 client.
 - Copy `build/libs/socserver.war` and `socweb.war` to $JETTY_HOME/webapps/
 - Copy the runtime JARs to $JETTY_HOME/lib/ext/  
-  gson-2.8.6.jar, guava-28.1-android.jar, protobuf-java-3.11.3.jar, protobuf-java-util-3.11.3.jar
+  gson-2.8.6.jar, guava-30.1.1-android.jar, protobuf-java-3.17.3.jar, protobuf-java-util-3.17.3.jar
 - To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`
 - The server listens on endpoint path `/socserver/apisock` for JSON over websockets,
   port `4000` for Protobuf, and port `8880` for the classic SOCMessage protocol
@@ -515,11 +515,11 @@ For interop with other languages, see the **python** sample protobuf client `Dum
   It includes functions to implement `Message.writeDelimitedTo` and `Message.parseDelimitedFrom`
   since those are included only with protobuf's java runtime, not other languages.
 - The sample client is written in Python 3.
-- To install the protobuf python runtime (requires v3.11.3 or newer), run:  
+- To install the protobuf python runtime (requires v3.17.3 or newer), run:  
   `pip3 install protobuf`  
   or to upgrade from an earlier runtime version:  
-  `pip3 install --upgrade protobuf==3.11.3`  
-- DummyProtoClient was tested with python protobuf runtime v3.11.3. To print your installed runtime version, run:  
+  `pip3 install --upgrade protobuf==3.17.3`  
+- DummyProtoClient was tested with python protobuf runtime v3.17.3. To print your installed runtime version, run:  
   `python3 -c "import google.protobuf; print(google.protobuf.__version__)"`  
   If your python protobuf runtime is too old, you may see this error when running your python script:  
   `TypeError: __init__() got an unexpected keyword argument 'serialized_options'`
@@ -1115,14 +1115,14 @@ These are automatically downloaded by gradle and added to the project.
 They're listed here for reference or if you want to download them manually.
 
 - For API JARs (protobuf, servlets, websockets):
-     - Locate `protobuf-java-3.11.3.jar` by
-       [searching maven for g:"com.google.protobuf" AND a:"protobuf-java" AND v:"3.11.3"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java%22%20AND%20v%3A%223.11.3%22),
-       then clicking **jar** in the search results. Or, click version **3.11.3** in the search results
+     - Locate `protobuf-java-3.17.3.jar` by
+       [searching maven for g:"com.google.protobuf" AND a:"protobuf-java" AND v:"3.17.3"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java%22%20AND%20v%3A%223.17.3%22),
+       then clicking **jar** in the search results. Or, click version **3.17.3** in the search results
        and then click the link to browse the repository, which will get you to a maven repo folder
-       like http://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.11.3/
+       like http://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.17.3/
      - Download it to the project's top-level `lib` directory
-     - Locate and download `protobuf-java-util-3.11.3.jar`
-          - [search maven for g:"com.google.protobuf" AND a:"protobuf-java-util" AND v:"3.11.3"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java-util%22%20AND%20v%3A%223.11.3%22)
+     - Locate and download `protobuf-java-util-3.17.3.jar`
+          - [search maven for g:"com.google.protobuf" AND a:"protobuf-java-util" AND v:"3.17.3"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.protobuf%22%20AND%20a%3A%22protobuf-java-util%22%20AND%20v%3A%223.17.3%22)
      - Locate and download `servlet-api-3.1.jar`
           - [search maven for g:"javax.servlet" AND a:"javax.servlet-api" AND v:"3.1.0"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22javax.servlet%22%20AND%20a%3A%22javax.servlet-api%22%20AND%20v%3A%223.1.0%22)
      - Locate and download `javax.websocket-api-1.0.jar`
@@ -1130,6 +1130,7 @@ They're listed here for reference or if you want to download them manually.
 - For runtime JARs (protobuf-java-util dependencies, needed for servlet and json but not protobuf-only standalone server):
      - `gson-2.8.6.jar`
           - [search maven for g:"com.google.code.gson" AND a:"gson" AND v:"2.8.6"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.code.gson%22%20AND%20a%3A%22gson%22%20AND%20v%3A%222.8.6%22)
-     - `guava-28.1-android.jar`
-          - [search maven for g:"com.google.guava" AND a:"guava" AND v:"28.1-android"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.guava%22%20AND%20a%3A%22guava%22%20AND%20v%3A%2228.1-android%22)
+     - `guava-30.1.1-android.jar`
+          - [search maven for g:"com.google.guava" AND a:"guava" AND v:"30.1.1-android"](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.google.guava%22%20AND%20a%3A%22guava%22%20AND%20v%3A%2230.1.1-android%22)
+     - To see other possible dependencies, you can run `gradle dependencies` and examine the `runtimeClasspath` section.
 

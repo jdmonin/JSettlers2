@@ -138,6 +138,10 @@ public final class GameMessage {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -703,6 +707,10 @@ public final class GameMessage {
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
       return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -828,7 +836,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code BoardLayout}
    */
-  public  static final class BoardLayout extends
+  public static final class BoardLayout extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BoardLayout)
       BoardLayoutOrBuilder {
@@ -1069,6 +1077,10 @@ public final class GameMessage {
 
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalStateException(
+              "Can't get the descriptor of an unrecognized enum value.");
+        }
         return getDescriptor().getValues().get(ordinal());
       }
       public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -1113,10 +1125,28 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 i_val = 1;</code>
+       * @return Whether the iVal field is set.
+       */
+      boolean hasIVal();
+      /**
+       * <pre>
+       * signed integer value
+       * </pre>
+       *
+       * <code>int32 i_val = 1;</code>
        * @return The iVal.
        */
       int getIVal();
 
+      /**
+       * <pre>
+       * string value
+       * </pre>
+       *
+       * <code>string s_val = 2;</code>
+       * @return Whether the sVal field is set.
+       */
+      boolean hasSVal();
       /**
        * <pre>
        * string value
@@ -1277,7 +1307,7 @@ public final class GameMessage {
     /**
      * Protobuf type {@code BoardLayout._BoardLayoutPart}
      */
-    public  static final class _BoardLayoutPart extends
+    public static final class _BoardLayoutPart extends
         com.google.protobuf.GeneratedMessageV3 implements
         // @@protoc_insertion_point(message_implements:BoardLayout._BoardLayoutPart)
         _BoardLayoutPartOrBuilder {
@@ -1490,8 +1520,21 @@ public final class GameMessage {
        * </pre>
        *
        * <code>int32 i_val = 1;</code>
+       * @return Whether the iVal field is set.
+       */
+      @java.lang.Override
+      public boolean hasIVal() {
+        return valCase_ == 1;
+      }
+      /**
+       * <pre>
+       * signed integer value
+       * </pre>
+       *
+       * <code>int32 i_val = 1;</code>
        * @return The iVal.
        */
+      @java.lang.Override
       public int getIVal() {
         if (valCase_ == 1) {
           return (java.lang.Integer) val_;
@@ -1500,6 +1543,17 @@ public final class GameMessage {
       }
 
       public static final int S_VAL_FIELD_NUMBER = 2;
+      /**
+       * <pre>
+       * string value
+       * </pre>
+       *
+       * <code>string s_val = 2;</code>
+       * @return Whether the sVal field is set.
+       */
+      public boolean hasSVal() {
+        return valCase_ == 2;
+      }
       /**
        * <pre>
        * string value
@@ -1561,6 +1615,7 @@ public final class GameMessage {
        * <code>._IntArray i_arr = 3;</code>
        * @return Whether the iArr field is set.
        */
+      @java.lang.Override
       public boolean hasIArr() {
         return valCase_ == 3;
       }
@@ -1572,6 +1627,7 @@ public final class GameMessage {
        * <code>._IntArray i_arr = 3;</code>
        * @return The iArr.
        */
+      @java.lang.Override
       public soc.proto.Data._IntArray getIArr() {
         if (valCase_ == 3) {
            return (soc.proto.Data._IntArray) val_;
@@ -1585,6 +1641,7 @@ public final class GameMessage {
        *
        * <code>._IntArray i_arr = 3;</code>
        */
+      @java.lang.Override
       public soc.proto.Data._IntArrayOrBuilder getIArrOrBuilder() {
         if (valCase_ == 3) {
            return (soc.proto.Data._IntArray) val_;
@@ -1601,6 +1658,7 @@ public final class GameMessage {
        * <code>._BoardCoordList coordinate_list = 4;</code>
        * @return Whether the coordinateList field is set.
        */
+      @java.lang.Override
       public boolean hasCoordinateList() {
         return valCase_ == 4;
       }
@@ -1612,6 +1670,7 @@ public final class GameMessage {
        * <code>._BoardCoordList coordinate_list = 4;</code>
        * @return The coordinateList.
        */
+      @java.lang.Override
       public soc.proto.Data._BoardCoordList getCoordinateList() {
         if (valCase_ == 4) {
            return (soc.proto.Data._BoardCoordList) val_;
@@ -1625,6 +1684,7 @@ public final class GameMessage {
        *
        * <code>._BoardCoordList coordinate_list = 4;</code>
        */
+      @java.lang.Override
       public soc.proto.Data._BoardCoordListOrBuilder getCoordinateListOrBuilder() {
         if (valCase_ == 4) {
            return (soc.proto.Data._BoardCoordList) val_;
@@ -1641,6 +1701,7 @@ public final class GameMessage {
        * <code>._EdgeList edge_list = 5;</code>
        * @return Whether the edgeList field is set.
        */
+      @java.lang.Override
       public boolean hasEdgeList() {
         return valCase_ == 5;
       }
@@ -1652,6 +1713,7 @@ public final class GameMessage {
        * <code>._EdgeList edge_list = 5;</code>
        * @return The edgeList.
        */
+      @java.lang.Override
       public soc.proto.Data._EdgeList getEdgeList() {
         if (valCase_ == 5) {
            return (soc.proto.Data._EdgeList) val_;
@@ -1665,6 +1727,7 @@ public final class GameMessage {
        *
        * <code>._EdgeList edge_list = 5;</code>
        */
+      @java.lang.Override
       public soc.proto.Data._EdgeListOrBuilder getEdgeListOrBuilder() {
         if (valCase_ == 5) {
            return (soc.proto.Data._EdgeList) val_;
@@ -1681,6 +1744,7 @@ public final class GameMessage {
        * <code>._HexList hex_list = 6;</code>
        * @return Whether the hexList field is set.
        */
+      @java.lang.Override
       public boolean hasHexList() {
         return valCase_ == 6;
       }
@@ -1692,6 +1756,7 @@ public final class GameMessage {
        * <code>._HexList hex_list = 6;</code>
        * @return The hexList.
        */
+      @java.lang.Override
       public soc.proto.Data._HexList getHexList() {
         if (valCase_ == 6) {
            return (soc.proto.Data._HexList) val_;
@@ -1705,6 +1770,7 @@ public final class GameMessage {
        *
        * <code>._HexList hex_list = 6;</code>
        */
+      @java.lang.Override
       public soc.proto.Data._HexListOrBuilder getHexListOrBuilder() {
         if (valCase_ == 6) {
            return (soc.proto.Data._HexList) val_;
@@ -1721,6 +1787,7 @@ public final class GameMessage {
        * <code>._NodeList node_list = 7;</code>
        * @return Whether the nodeList field is set.
        */
+      @java.lang.Override
       public boolean hasNodeList() {
         return valCase_ == 7;
       }
@@ -1732,6 +1799,7 @@ public final class GameMessage {
        * <code>._NodeList node_list = 7;</code>
        * @return The nodeList.
        */
+      @java.lang.Override
       public soc.proto.Data._NodeList getNodeList() {
         if (valCase_ == 7) {
            return (soc.proto.Data._NodeList) val_;
@@ -1745,6 +1813,7 @@ public final class GameMessage {
        *
        * <code>._NodeList node_list = 7;</code>
        */
+      @java.lang.Override
       public soc.proto.Data._NodeListOrBuilder getNodeListOrBuilder() {
         if (valCase_ == 7) {
            return (soc.proto.Data._NodeList) val_;
@@ -2252,6 +2321,17 @@ public final class GameMessage {
          * </pre>
          *
          * <code>int32 i_val = 1;</code>
+         * @return Whether the iVal field is set.
+         */
+        public boolean hasIVal() {
+          return valCase_ == 1;
+        }
+        /**
+         * <pre>
+         * signed integer value
+         * </pre>
+         *
+         * <code>int32 i_val = 1;</code>
          * @return The iVal.
          */
         public int getIVal() {
@@ -2298,8 +2378,21 @@ public final class GameMessage {
          * </pre>
          *
          * <code>string s_val = 2;</code>
+         * @return Whether the sVal field is set.
+         */
+        @java.lang.Override
+        public boolean hasSVal() {
+          return valCase_ == 2;
+        }
+        /**
+         * <pre>
+         * string value
+         * </pre>
+         *
+         * <code>string s_val = 2;</code>
          * @return The sVal.
          */
+        @java.lang.Override
         public java.lang.String getSVal() {
           java.lang.Object ref = "";
           if (valCase_ == 2) {
@@ -2325,6 +2418,7 @@ public final class GameMessage {
          * <code>string s_val = 2;</code>
          * @return The bytes for sVal.
          */
+        @java.lang.Override
         public com.google.protobuf.ByteString
             getSValBytes() {
           java.lang.Object ref = "";
@@ -2409,6 +2503,7 @@ public final class GameMessage {
          * <code>._IntArray i_arr = 3;</code>
          * @return Whether the iArr field is set.
          */
+        @java.lang.Override
         public boolean hasIArr() {
           return valCase_ == 3;
         }
@@ -2420,6 +2515,7 @@ public final class GameMessage {
          * <code>._IntArray i_arr = 3;</code>
          * @return The iArr.
          */
+        @java.lang.Override
         public soc.proto.Data._IntArray getIArr() {
           if (iArrBuilder_ == null) {
             if (valCase_ == 3) {
@@ -2537,6 +2633,7 @@ public final class GameMessage {
          *
          * <code>._IntArray i_arr = 3;</code>
          */
+        @java.lang.Override
         public soc.proto.Data._IntArrayOrBuilder getIArrOrBuilder() {
           if ((valCase_ == 3) && (iArrBuilder_ != null)) {
             return iArrBuilder_.getMessageOrBuilder();
@@ -2583,6 +2680,7 @@ public final class GameMessage {
          * <code>._BoardCoordList coordinate_list = 4;</code>
          * @return Whether the coordinateList field is set.
          */
+        @java.lang.Override
         public boolean hasCoordinateList() {
           return valCase_ == 4;
         }
@@ -2594,6 +2692,7 @@ public final class GameMessage {
          * <code>._BoardCoordList coordinate_list = 4;</code>
          * @return The coordinateList.
          */
+        @java.lang.Override
         public soc.proto.Data._BoardCoordList getCoordinateList() {
           if (coordinateListBuilder_ == null) {
             if (valCase_ == 4) {
@@ -2711,6 +2810,7 @@ public final class GameMessage {
          *
          * <code>._BoardCoordList coordinate_list = 4;</code>
          */
+        @java.lang.Override
         public soc.proto.Data._BoardCoordListOrBuilder getCoordinateListOrBuilder() {
           if ((valCase_ == 4) && (coordinateListBuilder_ != null)) {
             return coordinateListBuilder_.getMessageOrBuilder();
@@ -2757,6 +2857,7 @@ public final class GameMessage {
          * <code>._EdgeList edge_list = 5;</code>
          * @return Whether the edgeList field is set.
          */
+        @java.lang.Override
         public boolean hasEdgeList() {
           return valCase_ == 5;
         }
@@ -2768,6 +2869,7 @@ public final class GameMessage {
          * <code>._EdgeList edge_list = 5;</code>
          * @return The edgeList.
          */
+        @java.lang.Override
         public soc.proto.Data._EdgeList getEdgeList() {
           if (edgeListBuilder_ == null) {
             if (valCase_ == 5) {
@@ -2885,6 +2987,7 @@ public final class GameMessage {
          *
          * <code>._EdgeList edge_list = 5;</code>
          */
+        @java.lang.Override
         public soc.proto.Data._EdgeListOrBuilder getEdgeListOrBuilder() {
           if ((valCase_ == 5) && (edgeListBuilder_ != null)) {
             return edgeListBuilder_.getMessageOrBuilder();
@@ -2931,6 +3034,7 @@ public final class GameMessage {
          * <code>._HexList hex_list = 6;</code>
          * @return Whether the hexList field is set.
          */
+        @java.lang.Override
         public boolean hasHexList() {
           return valCase_ == 6;
         }
@@ -2942,6 +3046,7 @@ public final class GameMessage {
          * <code>._HexList hex_list = 6;</code>
          * @return The hexList.
          */
+        @java.lang.Override
         public soc.proto.Data._HexList getHexList() {
           if (hexListBuilder_ == null) {
             if (valCase_ == 6) {
@@ -3059,6 +3164,7 @@ public final class GameMessage {
          *
          * <code>._HexList hex_list = 6;</code>
          */
+        @java.lang.Override
         public soc.proto.Data._HexListOrBuilder getHexListOrBuilder() {
           if ((valCase_ == 6) && (hexListBuilder_ != null)) {
             return hexListBuilder_.getMessageOrBuilder();
@@ -3105,6 +3211,7 @@ public final class GameMessage {
          * <code>._NodeList node_list = 7;</code>
          * @return Whether the nodeList field is set.
          */
+        @java.lang.Override
         public boolean hasNodeList() {
           return valCase_ == 7;
         }
@@ -3116,6 +3223,7 @@ public final class GameMessage {
          * <code>._NodeList node_list = 7;</code>
          * @return The nodeList.
          */
+        @java.lang.Override
         public soc.proto.Data._NodeList getNodeList() {
           if (nodeListBuilder_ == null) {
             if (valCase_ == 7) {
@@ -3233,6 +3341,7 @@ public final class GameMessage {
          *
          * <code>._NodeList node_list = 7;</code>
          */
+        @java.lang.Override
         public soc.proto.Data._NodeListOrBuilder getNodeListOrBuilder() {
           if ((valCase_ == 7) && (nodeListBuilder_ != null)) {
             return nodeListBuilder_.getMessageOrBuilder();
@@ -3331,7 +3440,7 @@ public final class GameMessage {
      * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
      * @return The enum numeric value on the wire for layoutEncoding.
      */
-    public int getLayoutEncodingValue() {
+    @java.lang.Override public int getLayoutEncodingValue() {
       return layoutEncoding_;
     }
     /**
@@ -3342,7 +3451,7 @@ public final class GameMessage {
      * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
      * @return The layoutEncoding.
      */
-    public soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding() {
+    @java.lang.Override public soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding() {
       @SuppressWarnings("deprecation")
       soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat result = soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.valueOf(layoutEncoding_);
       return result == null ? soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.UNRECOGNIZED : result;
@@ -3382,6 +3491,7 @@ public final class GameMessage {
      * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
      */
 
+    @java.lang.Override
     public boolean containsParts(
         java.lang.String key) {
       if (key == null) { throw new java.lang.NullPointerException(); }
@@ -3390,6 +3500,7 @@ public final class GameMessage {
     /**
      * Use {@link #getPartsMap()} instead.
      */
+    @java.lang.Override
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> getParts() {
       return getPartsMap();
@@ -3401,6 +3512,7 @@ public final class GameMessage {
      *
      * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
      */
+    @java.lang.Override
 
     public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> getPartsMap() {
       return internalGetParts().getMap();
@@ -3412,6 +3524,7 @@ public final class GameMessage {
      *
      * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
      */
+    @java.lang.Override
 
     public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrDefault(
         java.lang.String key,
@@ -3428,6 +3541,7 @@ public final class GameMessage {
      *
      * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
      */
+    @java.lang.Override
 
     public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrThrow(
         java.lang.String key) {
@@ -3812,7 +3926,7 @@ public final class GameMessage {
        * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
        * @return The enum numeric value on the wire for layoutEncoding.
        */
-      public int getLayoutEncodingValue() {
+      @java.lang.Override public int getLayoutEncodingValue() {
         return layoutEncoding_;
       }
       /**
@@ -3825,6 +3939,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setLayoutEncodingValue(int value) {
+        
         layoutEncoding_ = value;
         onChanged();
         return this;
@@ -3837,6 +3952,7 @@ public final class GameMessage {
        * <code>.BoardLayout._LayoutEncodingFormat layout_encoding = 1;</code>
        * @return The layoutEncoding.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat getLayoutEncoding() {
         @SuppressWarnings("deprecation")
         soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat result = soc.proto.GameMessage.BoardLayout._LayoutEncodingFormat.valueOf(layoutEncoding_);
@@ -3909,6 +4025,7 @@ public final class GameMessage {
        * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
        */
 
+      @java.lang.Override
       public boolean containsParts(
           java.lang.String key) {
         if (key == null) { throw new java.lang.NullPointerException(); }
@@ -3917,6 +4034,7 @@ public final class GameMessage {
       /**
        * Use {@link #getPartsMap()} instead.
        */
+      @java.lang.Override
       @java.lang.Deprecated
       public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> getParts() {
         return getPartsMap();
@@ -3928,6 +4046,7 @@ public final class GameMessage {
        *
        * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
        */
+      @java.lang.Override
 
       public java.util.Map<java.lang.String, soc.proto.GameMessage.BoardLayout._BoardLayoutPart> getPartsMap() {
         return internalGetParts().getMap();
@@ -3939,6 +4058,7 @@ public final class GameMessage {
        *
        * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
        */
+      @java.lang.Override
 
       public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrDefault(
           java.lang.String key,
@@ -3955,6 +4075,7 @@ public final class GameMessage {
        *
        * <code>map&lt;string, .BoardLayout._BoardLayoutPart&gt; parts = 2;</code>
        */
+      @java.lang.Override
 
       public soc.proto.GameMessage.BoardLayout._BoardLayoutPart getPartsOrThrow(
           java.lang.String key) {
@@ -4343,7 +4464,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code PotentialSettlements}
    */
-  public  static final class PotentialSettlements extends
+  public static final class PotentialSettlements extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:PotentialSettlements)
       PotentialSettlementsOrBuilder {
@@ -4492,6 +4613,7 @@ public final class GameMessage {
      *
      * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data.NodeCoord> getPsNodesList() {
       return psNodes_;
     }
@@ -4506,6 +4628,7 @@ public final class GameMessage {
      *
      * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.Data.NodeCoordOrBuilder> 
         getPsNodesOrBuilderList() {
       return psNodes_;
@@ -4521,6 +4644,7 @@ public final class GameMessage {
      *
      * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
+    @java.lang.Override
     public int getPsNodesCount() {
       return psNodes_.size();
     }
@@ -4535,6 +4659,7 @@ public final class GameMessage {
      *
      * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.NodeCoord getPsNodes(int index) {
       return psNodes_.get(index);
     }
@@ -4549,6 +4674,7 @@ public final class GameMessage {
      *
      * <code>repeated .NodeCoord ps_nodes = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.NodeCoordOrBuilder getPsNodesOrBuilder(
         int index) {
       return psNodes_.get(index);
@@ -4564,6 +4690,7 @@ public final class GameMessage {
      * <code>uint32 area_count = 2;</code>
      * @return The areaCount.
      */
+    @java.lang.Override
     public int getAreaCount() {
       return areaCount_;
     }
@@ -4582,6 +4709,7 @@ public final class GameMessage {
      * <code>uint32 starting_land_area = 3;</code>
      * @return The startingLandArea.
      */
+    @java.lang.Override
     public int getStartingLandArea() {
       return startingLandArea_;
     }
@@ -4621,6 +4749,7 @@ public final class GameMessage {
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
 
+    @java.lang.Override
     public boolean containsLandAreasLegalNodes(
         int key) {
       
@@ -4629,6 +4758,7 @@ public final class GameMessage {
     /**
      * Use {@link #getLandAreasLegalNodesMap()} instead.
      */
+    @java.lang.Override
     @java.lang.Deprecated
     public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> getLandAreasLegalNodes() {
       return getLandAreasLegalNodesMap();
@@ -4641,6 +4771,7 @@ public final class GameMessage {
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
+    @java.lang.Override
 
     public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> getLandAreasLegalNodesMap() {
       return internalGetLandAreasLegalNodes().getMap();
@@ -4653,6 +4784,7 @@ public final class GameMessage {
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
+    @java.lang.Override
 
     public soc.proto.Data._NodeList getLandAreasLegalNodesOrDefault(
         int key,
@@ -4670,6 +4802,7 @@ public final class GameMessage {
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
      */
+    @java.lang.Override
 
     public soc.proto.Data._NodeList getLandAreasLegalNodesOrThrow(
         int key) {
@@ -4701,6 +4834,7 @@ public final class GameMessage {
      *
      * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data._EdgeList> getLegalSeaEdgesList() {
       return legalSeaEdges_;
     }
@@ -4721,6 +4855,7 @@ public final class GameMessage {
      *
      * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.Data._EdgeListOrBuilder> 
         getLegalSeaEdgesOrBuilderList() {
       return legalSeaEdges_;
@@ -4742,6 +4877,7 @@ public final class GameMessage {
      *
      * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
+    @java.lang.Override
     public int getLegalSeaEdgesCount() {
       return legalSeaEdges_.size();
     }
@@ -4762,6 +4898,7 @@ public final class GameMessage {
      *
      * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
+    @java.lang.Override
     public soc.proto.Data._EdgeList getLegalSeaEdges(int index) {
       return legalSeaEdges_.get(index);
     }
@@ -4782,6 +4919,7 @@ public final class GameMessage {
      *
      * <code>repeated ._EdgeList legal_sea_edges = 5;</code>
      */
+    @java.lang.Override
     public soc.proto.Data._EdgeListOrBuilder getLegalSeaEdgesOrBuilder(
         int index) {
       return legalSeaEdges_.get(index);
@@ -5677,6 +5815,7 @@ public final class GameMessage {
        * <code>uint32 area_count = 2;</code>
        * @return The areaCount.
        */
+      @java.lang.Override
       public int getAreaCount() {
         return areaCount_;
       }
@@ -5723,6 +5862,7 @@ public final class GameMessage {
        * <code>uint32 starting_land_area = 3;</code>
        * @return The startingLandArea.
        */
+      @java.lang.Override
       public int getStartingLandArea() {
         return startingLandArea_;
       }
@@ -5799,6 +5939,7 @@ public final class GameMessage {
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
 
+      @java.lang.Override
       public boolean containsLandAreasLegalNodes(
           int key) {
         
@@ -5807,6 +5948,7 @@ public final class GameMessage {
       /**
        * Use {@link #getLandAreasLegalNodesMap()} instead.
        */
+      @java.lang.Override
       @java.lang.Deprecated
       public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> getLandAreasLegalNodes() {
         return getLandAreasLegalNodesMap();
@@ -5819,6 +5961,7 @@ public final class GameMessage {
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
+      @java.lang.Override
 
       public java.util.Map<java.lang.Integer, soc.proto.Data._NodeList> getLandAreasLegalNodesMap() {
         return internalGetLandAreasLegalNodes().getMap();
@@ -5831,6 +5974,7 @@ public final class GameMessage {
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
+      @java.lang.Override
 
       public soc.proto.Data._NodeList getLandAreasLegalNodesOrDefault(
           int key,
@@ -5848,6 +5992,7 @@ public final class GameMessage {
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
        */
+      @java.lang.Override
 
       public soc.proto.Data._NodeList getLandAreasLegalNodesOrThrow(
           int key) {
@@ -6550,7 +6695,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code PieceValue}
    */
-  public  static final class PieceValue extends
+  public static final class PieceValue extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:PieceValue)
       PieceValueOrBuilder {
@@ -6665,7 +6810,7 @@ public final class GameMessage {
      * <code>.PieceType ptype = 1;</code>
      * @return The enum numeric value on the wire for ptype.
      */
-    public int getPtypeValue() {
+    @java.lang.Override public int getPtypeValue() {
       return ptype_;
     }
     /**
@@ -6677,7 +6822,7 @@ public final class GameMessage {
      * <code>.PieceType ptype = 1;</code>
      * @return The ptype.
      */
-    public soc.proto.Data.PieceType getPtype() {
+    @java.lang.Override public soc.proto.Data.PieceType getPtype() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
@@ -6693,6 +6838,7 @@ public final class GameMessage {
      * <code>.BoardCoord coordinates = 2;</code>
      * @return Whether the coordinates field is set.
      */
+    @java.lang.Override
     public boolean hasCoordinates() {
       return coordinates_ != null;
     }
@@ -6704,6 +6850,7 @@ public final class GameMessage {
      * <code>.BoardCoord coordinates = 2;</code>
      * @return The coordinates.
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoord getCoordinates() {
       return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
     }
@@ -6714,6 +6861,7 @@ public final class GameMessage {
      *
      * <code>.BoardCoord coordinates = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
       return getCoordinates();
     }
@@ -6728,6 +6876,7 @@ public final class GameMessage {
      * <code>sint32 piece_value1 = 3;</code>
      * @return The pieceValue1.
      */
+    @java.lang.Override
     public int getPieceValue1() {
       return pieceValue1_;
     }
@@ -6742,6 +6891,7 @@ public final class GameMessage {
      * <code>sint32 piece_value2 = 4;</code>
      * @return The pieceValue2.
      */
+    @java.lang.Override
     public int getPieceValue2() {
       return pieceValue2_;
     }
@@ -7130,7 +7280,7 @@ public final class GameMessage {
        * <code>.PieceType ptype = 1;</code>
        * @return The enum numeric value on the wire for ptype.
        */
-      public int getPtypeValue() {
+      @java.lang.Override public int getPtypeValue() {
         return ptype_;
       }
       /**
@@ -7144,6 +7294,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setPtypeValue(int value) {
+        
         ptype_ = value;
         onChanged();
         return this;
@@ -7157,6 +7308,7 @@ public final class GameMessage {
        * <code>.PieceType ptype = 1;</code>
        * @return The ptype.
        */
+      @java.lang.Override
       public soc.proto.Data.PieceType getPtype() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
@@ -7361,6 +7513,7 @@ public final class GameMessage {
        * <code>sint32 piece_value1 = 3;</code>
        * @return The pieceValue1.
        */
+      @java.lang.Override
       public int getPieceValue1() {
         return pieceValue1_;
       }
@@ -7403,6 +7556,7 @@ public final class GameMessage {
        * <code>sint32 piece_value2 = 4;</code>
        * @return The pieceValue2.
        */
+      @java.lang.Override
       public int getPieceValue2() {
         return pieceValue2_;
       }
@@ -7572,7 +7726,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code BuildPiece}
    */
-  public  static final class BuildPiece extends
+  public static final class BuildPiece extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BuildPiece)
       BuildPieceOrBuilder {
@@ -7672,14 +7826,14 @@ public final class GameMessage {
      * <code>.PieceType ptype = 1;</code>
      * @return The enum numeric value on the wire for ptype.
      */
-    public int getPtypeValue() {
+    @java.lang.Override public int getPtypeValue() {
       return ptype_;
     }
     /**
      * <code>.PieceType ptype = 1;</code>
      * @return The ptype.
      */
-    public soc.proto.Data.PieceType getPtype() {
+    @java.lang.Override public soc.proto.Data.PieceType getPtype() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
@@ -7697,6 +7851,7 @@ public final class GameMessage {
      * <code>.BoardCoord coordinates = 2;</code>
      * @return Whether the coordinates field is set.
      */
+    @java.lang.Override
     public boolean hasCoordinates() {
       return coordinates_ != null;
     }
@@ -7710,6 +7865,7 @@ public final class GameMessage {
      * <code>.BoardCoord coordinates = 2;</code>
      * @return The coordinates.
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoord getCoordinates() {
       return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
     }
@@ -7722,6 +7878,7 @@ public final class GameMessage {
      *
      * <code>.BoardCoord coordinates = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
       return getCoordinates();
     }
@@ -8095,7 +8252,7 @@ public final class GameMessage {
        * <code>.PieceType ptype = 1;</code>
        * @return The enum numeric value on the wire for ptype.
        */
-      public int getPtypeValue() {
+      @java.lang.Override public int getPtypeValue() {
         return ptype_;
       }
       /**
@@ -8104,6 +8261,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setPtypeValue(int value) {
+        
         ptype_ = value;
         onChanged();
         return this;
@@ -8112,6 +8270,7 @@ public final class GameMessage {
        * <code>.PieceType ptype = 1;</code>
        * @return The ptype.
        */
+      @java.lang.Override
       public soc.proto.Data.PieceType getPtype() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
@@ -8418,7 +8577,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code BuyInventoryItemRequest}
    */
-  public  static final class BuyInventoryItemRequest extends
+  public static final class BuyInventoryItemRequest extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BuyInventoryItemRequest)
       BuyInventoryItemRequestOrBuilder {
@@ -8512,6 +8671,7 @@ public final class GameMessage {
      * <code>bool is_not_dev_card = 1;</code>
      * @return The isNotDevCard.
      */
+    @java.lang.Override
     public boolean getIsNotDevCard() {
       return isNotDevCard_;
     }
@@ -8527,6 +8687,7 @@ public final class GameMessage {
      * <code>sint32 other_inv_item_type = 2;</code>
      * @return The otherInvItemType.
      */
+    @java.lang.Override
     public int getOtherInvItemType() {
       return otherInvItemType_;
     }
@@ -8883,6 +9044,7 @@ public final class GameMessage {
        * <code>bool is_not_dev_card = 1;</code>
        * @return The isNotDevCard.
        */
+      @java.lang.Override
       public boolean getIsNotDevCard() {
         return isNotDevCard_;
       }
@@ -8926,6 +9088,7 @@ public final class GameMessage {
        * <code>sint32 other_inv_item_type = 2;</code>
        * @return The otherInvItemType.
        */
+      @java.lang.Override
       public int getOtherInvItemType() {
         return otherInvItemType_;
       }
@@ -9035,6 +9198,16 @@ public final class GameMessage {
      * </pre>
      *
      * <code>.DevCardValue dev_card_value = 2;</code>
+     * @return Whether the devCardValue field is set.
+     */
+    boolean hasDevCardValue();
+    /**
+     * <pre>
+     * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>.DevCardValue dev_card_value = 2;</code>
      * @return The enum numeric value on the wire for devCardValue.
      */
     int getDevCardValueValue();
@@ -9049,6 +9222,15 @@ public final class GameMessage {
      */
     soc.proto.Data.DevCardValue getDevCardValue();
 
+    /**
+     * <pre>
+     * Type of generic inventory item, from {&#64;link SOCInventoryItem#itype} 
+     * </pre>
+     *
+     * <code>int32 other_inv_item_type = 3;</code>
+     * @return Whether the otherInvItemType field is set.
+     */
+    boolean hasOtherInvItemType();
     /**
      * <pre>
      * Type of generic inventory item, from {&#64;link SOCInventoryItem#itype} 
@@ -9210,7 +9392,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code InventoryItemAction}
    */
-  public  static final class InventoryItemAction extends
+  public static final class InventoryItemAction extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:InventoryItemAction)
       InventoryItemActionOrBuilder {
@@ -9577,6 +9759,10 @@ public final class GameMessage {
 
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalStateException(
+              "Can't get the descriptor of an unrecognized enum value.");
+        }
         return getDescriptor().getValues().get(ordinal());
       }
       public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -9658,20 +9844,32 @@ public final class GameMessage {
      * <code>.InventoryItemAction._ActionType action_type = 1;</code>
      * @return The enum numeric value on the wire for actionType.
      */
-    public int getActionTypeValue() {
+    @java.lang.Override public int getActionTypeValue() {
       return actionType_;
     }
     /**
      * <code>.InventoryItemAction._ActionType action_type = 1;</code>
      * @return The actionType.
      */
-    public soc.proto.GameMessage.InventoryItemAction._ActionType getActionType() {
+    @java.lang.Override public soc.proto.GameMessage.InventoryItemAction._ActionType getActionType() {
       @SuppressWarnings("deprecation")
       soc.proto.GameMessage.InventoryItemAction._ActionType result = soc.proto.GameMessage.InventoryItemAction._ActionType.valueOf(actionType_);
       return result == null ? soc.proto.GameMessage.InventoryItemAction._ActionType.UNRECOGNIZED : result;
     }
 
     public static final int DEV_CARD_VALUE_FIELD_NUMBER = 2;
+    /**
+     * <pre>
+     * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+     * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+     * </pre>
+     *
+     * <code>.DevCardValue dev_card_value = 2;</code>
+     * @return Whether the devCardValue field is set.
+     */
+    public boolean hasDevCardValue() {
+      return itemValueCase_ == 2;
+    }
     /**
      * <pre>
      * Type of dev card, like {&#64;link DevCardValue#ROADS}.
@@ -9713,8 +9911,21 @@ public final class GameMessage {
      * </pre>
      *
      * <code>int32 other_inv_item_type = 3;</code>
+     * @return Whether the otherInvItemType field is set.
+     */
+    @java.lang.Override
+    public boolean hasOtherInvItemType() {
+      return itemValueCase_ == 3;
+    }
+    /**
+     * <pre>
+     * Type of generic inventory item, from {&#64;link SOCInventoryItem#itype} 
+     * </pre>
+     *
+     * <code>int32 other_inv_item_type = 3;</code>
      * @return The otherInvItemType.
      */
+    @java.lang.Override
     public int getOtherInvItemType() {
       if (itemValueCase_ == 3) {
         return (java.lang.Integer) itemValue_;
@@ -9745,6 +9956,7 @@ public final class GameMessage {
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
      * @return A list containing the devCardsSet.
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data.DevCardValue> getDevCardsSetList() {
       return new com.google.protobuf.Internal.ListAdapter<
           java.lang.Integer, soc.proto.Data.DevCardValue>(devCardsSet_, devCardsSet_converter_);
@@ -9760,6 +9972,7 @@ public final class GameMessage {
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
      * @return The count of devCardsSet.
      */
+    @java.lang.Override
     public int getDevCardsSetCount() {
       return devCardsSet_.size();
     }
@@ -9775,6 +9988,7 @@ public final class GameMessage {
      * @param index The index of the element to return.
      * @return The devCardsSet at the given index.
      */
+    @java.lang.Override
     public soc.proto.Data.DevCardValue getDevCardsSet(int index) {
       return devCardsSet_converter_.convert(devCardsSet_.get(index));
     }
@@ -9789,6 +10003,7 @@ public final class GameMessage {
      * <code>repeated .DevCardValue dev_cards_set = 4;</code>
      * @return A list containing the enum numeric values on the wire for devCardsSet.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
     getDevCardsSetValueList() {
       return devCardsSet_;
@@ -9805,6 +10020,7 @@ public final class GameMessage {
      * @param index The index of the value to return.
      * @return The enum numeric value on the wire of devCardsSet at the given index.
      */
+    @java.lang.Override
     public int getDevCardsSetValue(int index) {
       return devCardsSet_.get(index);
     }
@@ -9821,6 +10037,7 @@ public final class GameMessage {
      * <code>sint32 reason_code = 21;</code>
      * @return The reasonCode.
      */
+    @java.lang.Override
     public int getReasonCode() {
       return reasonCode_;
     }
@@ -9836,6 +10053,7 @@ public final class GameMessage {
      * <code>bool is_playable = 22;</code>
      * @return The isPlayable.
      */
+    @java.lang.Override
     public boolean getIsPlayable() {
       return isPlayable_;
     }
@@ -9851,6 +10069,7 @@ public final class GameMessage {
      * <code>bool is_kept = 23;</code>
      * @return The isKept.
      */
+    @java.lang.Override
     public boolean getIsKept() {
       return isKept_;
     }
@@ -9866,6 +10085,7 @@ public final class GameMessage {
      * <code>bool is_VP = 24;</code>
      * @return The isVP.
      */
+    @java.lang.Override
     public boolean getIsVP() {
       return isVP_;
     }
@@ -9882,6 +10102,7 @@ public final class GameMessage {
      * <code>bool can_cancel_play = 25;</code>
      * @return The canCancelPlay.
      */
+    @java.lang.Override
     public boolean getCanCancelPlay() {
       return canCancelPlay_;
     }
@@ -10429,7 +10650,7 @@ public final class GameMessage {
        * <code>.InventoryItemAction._ActionType action_type = 1;</code>
        * @return The enum numeric value on the wire for actionType.
        */
-      public int getActionTypeValue() {
+      @java.lang.Override public int getActionTypeValue() {
         return actionType_;
       }
       /**
@@ -10438,6 +10659,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setActionTypeValue(int value) {
+        
         actionType_ = value;
         onChanged();
         return this;
@@ -10446,6 +10668,7 @@ public final class GameMessage {
        * <code>.InventoryItemAction._ActionType action_type = 1;</code>
        * @return The actionType.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.InventoryItemAction._ActionType getActionType() {
         @SuppressWarnings("deprecation")
         soc.proto.GameMessage.InventoryItemAction._ActionType result = soc.proto.GameMessage.InventoryItemAction._ActionType.valueOf(actionType_);
@@ -10483,8 +10706,22 @@ public final class GameMessage {
        * </pre>
        *
        * <code>.DevCardValue dev_card_value = 2;</code>
+       * @return Whether the devCardValue field is set.
+       */
+      @java.lang.Override
+      public boolean hasDevCardValue() {
+        return itemValueCase_ == 2;
+      }
+      /**
+       * <pre>
+       * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+       * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
+       * </pre>
+       *
+       * <code>.DevCardValue dev_card_value = 2;</code>
        * @return The enum numeric value on the wire for devCardValue.
        */
+      @java.lang.Override
       public int getDevCardValueValue() {
         if (itemValueCase_ == 2) {
           return ((java.lang.Integer) itemValue_).intValue();
@@ -10516,6 +10753,7 @@ public final class GameMessage {
        * <code>.DevCardValue dev_card_value = 2;</code>
        * @return The devCardValue.
        */
+      @java.lang.Override
       public soc.proto.Data.DevCardValue getDevCardValue() {
         if (itemValueCase_ == 2) {
           @SuppressWarnings("deprecation")
@@ -10562,6 +10800,17 @@ public final class GameMessage {
         return this;
       }
 
+      /**
+       * <pre>
+       * Type of generic inventory item, from {&#64;link SOCInventoryItem#itype} 
+       * </pre>
+       *
+       * <code>int32 other_inv_item_type = 3;</code>
+       * @return Whether the otherInvItemType field is set.
+       */
+      public boolean hasOtherInvItemType() {
+        return itemValueCase_ == 3;
+      }
       /**
        * <pre>
        * Type of generic inventory item, from {&#64;link SOCInventoryItem#itype} 
@@ -10842,6 +11091,7 @@ public final class GameMessage {
        * <code>sint32 reason_code = 21;</code>
        * @return The reasonCode.
        */
+      @java.lang.Override
       public int getReasonCode() {
         return reasonCode_;
       }
@@ -10887,6 +11137,7 @@ public final class GameMessage {
        * <code>bool is_playable = 22;</code>
        * @return The isPlayable.
        */
+      @java.lang.Override
       public boolean getIsPlayable() {
         return isPlayable_;
       }
@@ -10932,6 +11183,7 @@ public final class GameMessage {
        * <code>bool is_kept = 23;</code>
        * @return The isKept.
        */
+      @java.lang.Override
       public boolean getIsKept() {
         return isKept_;
       }
@@ -10977,6 +11229,7 @@ public final class GameMessage {
        * <code>bool is_VP = 24;</code>
        * @return The isVP.
        */
+      @java.lang.Override
       public boolean getIsVP() {
         return isVP_;
       }
@@ -11023,6 +11276,7 @@ public final class GameMessage {
        * <code>bool can_cancel_play = 25;</code>
        * @return The canCancelPlay.
        */
+      @java.lang.Override
       public boolean getCanCancelPlay() {
         return canCancelPlay_;
       }
@@ -11118,6 +11372,11 @@ public final class GameMessage {
 
     /**
      * <code>.PieceType piece_type = 1;</code>
+     * @return Whether the pieceType field is set.
+     */
+    boolean hasPieceType();
+    /**
+     * <code>.PieceType piece_type = 1;</code>
      * @return The enum numeric value on the wire for pieceType.
      */
     int getPieceTypeValue();
@@ -11127,6 +11386,11 @@ public final class GameMessage {
      */
     soc.proto.Data.PieceType getPieceType();
 
+    /**
+     * <code>.OtherPlayableItem item_type = 2;</code>
+     * @return Whether the itemType field is set.
+     */
+    boolean hasItemType();
     /**
      * <code>.OtherPlayableItem item_type = 2;</code>
      * @return The enum numeric value on the wire for itemType.
@@ -11179,7 +11443,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code CancelBuild}
    */
-  public  static final class CancelBuild extends
+  public static final class CancelBuild extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:CancelBuild)
       CancelBuildOrBuilder {
@@ -11309,6 +11573,13 @@ public final class GameMessage {
     public static final int PIECE_TYPE_FIELD_NUMBER = 1;
     /**
      * <code>.PieceType piece_type = 1;</code>
+     * @return Whether the pieceType field is set.
+     */
+    public boolean hasPieceType() {
+      return cancelTypeCase_ == 1;
+    }
+    /**
+     * <code>.PieceType piece_type = 1;</code>
      * @return The enum numeric value on the wire for pieceType.
      */
     public int getPieceTypeValue() {
@@ -11332,6 +11603,13 @@ public final class GameMessage {
     }
 
     public static final int ITEM_TYPE_FIELD_NUMBER = 2;
+    /**
+     * <code>.OtherPlayableItem item_type = 2;</code>
+     * @return Whether the itemType field is set.
+     */
+    public boolean hasItemType() {
+      return cancelTypeCase_ == 2;
+    }
     /**
      * <code>.OtherPlayableItem item_type = 2;</code>
      * @return The enum numeric value on the wire for itemType.
@@ -11755,8 +12033,17 @@ public final class GameMessage {
 
       /**
        * <code>.PieceType piece_type = 1;</code>
+       * @return Whether the pieceType field is set.
+       */
+      @java.lang.Override
+      public boolean hasPieceType() {
+        return cancelTypeCase_ == 1;
+      }
+      /**
+       * <code>.PieceType piece_type = 1;</code>
        * @return The enum numeric value on the wire for pieceType.
        */
+      @java.lang.Override
       public int getPieceTypeValue() {
         if (cancelTypeCase_ == 1) {
           return ((java.lang.Integer) cancelType_).intValue();
@@ -11778,6 +12065,7 @@ public final class GameMessage {
        * <code>.PieceType piece_type = 1;</code>
        * @return The pieceType.
        */
+      @java.lang.Override
       public soc.proto.Data.PieceType getPieceType() {
         if (cancelTypeCase_ == 1) {
           @SuppressWarnings("deprecation")
@@ -11816,8 +12104,17 @@ public final class GameMessage {
 
       /**
        * <code>.OtherPlayableItem item_type = 2;</code>
+       * @return Whether the itemType field is set.
+       */
+      @java.lang.Override
+      public boolean hasItemType() {
+        return cancelTypeCase_ == 2;
+      }
+      /**
+       * <code>.OtherPlayableItem item_type = 2;</code>
        * @return The enum numeric value on the wire for itemType.
        */
+      @java.lang.Override
       public int getItemTypeValue() {
         if (cancelTypeCase_ == 2) {
           return ((java.lang.Integer) cancelType_).intValue();
@@ -11839,6 +12136,7 @@ public final class GameMessage {
        * <code>.OtherPlayableItem item_type = 2;</code>
        * @return The itemType.
        */
+      @java.lang.Override
       public soc.proto.Data.OtherPlayableItem getItemType() {
         if (cancelTypeCase_ == 2) {
           @SuppressWarnings("deprecation")
@@ -11995,7 +12293,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code MovePiece}
    */
-  public  static final class MovePiece extends
+  public static final class MovePiece extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:MovePiece)
       MovePieceOrBuilder {
@@ -12112,7 +12410,7 @@ public final class GameMessage {
      * <code>.PieceType ptype = 1;</code>
      * @return The enum numeric value on the wire for ptype.
      */
-    public int getPtypeValue() {
+    @java.lang.Override public int getPtypeValue() {
       return ptype_;
     }
     /**
@@ -12123,7 +12421,7 @@ public final class GameMessage {
      * <code>.PieceType ptype = 1;</code>
      * @return The ptype.
      */
-    public soc.proto.Data.PieceType getPtype() {
+    @java.lang.Override public soc.proto.Data.PieceType getPtype() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
@@ -12135,6 +12433,7 @@ public final class GameMessage {
      * <code>.BoardCoord from_coordinates = 2;</code>
      * @return Whether the fromCoordinates field is set.
      */
+    @java.lang.Override
     public boolean hasFromCoordinates() {
       return fromCoordinates_ != null;
     }
@@ -12142,12 +12441,14 @@ public final class GameMessage {
      * <code>.BoardCoord from_coordinates = 2;</code>
      * @return The fromCoordinates.
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoord getFromCoordinates() {
       return fromCoordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : fromCoordinates_;
     }
     /**
      * <code>.BoardCoord from_coordinates = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoordOrBuilder getFromCoordinatesOrBuilder() {
       return getFromCoordinates();
     }
@@ -12158,6 +12459,7 @@ public final class GameMessage {
      * <code>.BoardCoord to_coordinates = 3;</code>
      * @return Whether the toCoordinates field is set.
      */
+    @java.lang.Override
     public boolean hasToCoordinates() {
       return toCoordinates_ != null;
     }
@@ -12165,12 +12467,14 @@ public final class GameMessage {
      * <code>.BoardCoord to_coordinates = 3;</code>
      * @return The toCoordinates.
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoord getToCoordinates() {
       return toCoordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : toCoordinates_;
     }
     /**
      * <code>.BoardCoord to_coordinates = 3;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoordOrBuilder getToCoordinatesOrBuilder() {
       return getToCoordinates();
     }
@@ -12557,7 +12861,7 @@ public final class GameMessage {
        * <code>.PieceType ptype = 1;</code>
        * @return The enum numeric value on the wire for ptype.
        */
-      public int getPtypeValue() {
+      @java.lang.Override public int getPtypeValue() {
         return ptype_;
       }
       /**
@@ -12570,6 +12874,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setPtypeValue(int value) {
+        
         ptype_ = value;
         onChanged();
         return this;
@@ -12582,6 +12887,7 @@ public final class GameMessage {
        * <code>.PieceType ptype = 1;</code>
        * @return The ptype.
        */
+      @java.lang.Override
       public soc.proto.Data.PieceType getPtype() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
@@ -12960,7 +13266,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code RemovePiece}
    */
-  public  static final class RemovePiece extends
+  public static final class RemovePiece extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:RemovePiece)
       RemovePieceOrBuilder {
@@ -13064,7 +13370,7 @@ public final class GameMessage {
      * <code>.PieceType ptype = 1;</code>
      * @return The enum numeric value on the wire for ptype.
      */
-    public int getPtypeValue() {
+    @java.lang.Override public int getPtypeValue() {
       return ptype_;
     }
     /**
@@ -13075,7 +13381,7 @@ public final class GameMessage {
      * <code>.PieceType ptype = 1;</code>
      * @return The ptype.
      */
-    public soc.proto.Data.PieceType getPtype() {
+    @java.lang.Override public soc.proto.Data.PieceType getPtype() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
       return result == null ? soc.proto.Data.PieceType.UNRECOGNIZED : result;
@@ -13087,6 +13393,7 @@ public final class GameMessage {
      * <code>.BoardCoord coordinates = 2;</code>
      * @return Whether the coordinates field is set.
      */
+    @java.lang.Override
     public boolean hasCoordinates() {
       return coordinates_ != null;
     }
@@ -13094,12 +13401,14 @@ public final class GameMessage {
      * <code>.BoardCoord coordinates = 2;</code>
      * @return The coordinates.
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoord getCoordinates() {
       return coordinates_ == null ? soc.proto.Data.BoardCoord.getDefaultInstance() : coordinates_;
     }
     /**
      * <code>.BoardCoord coordinates = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.BoardCoordOrBuilder getCoordinatesOrBuilder() {
       return getCoordinates();
     }
@@ -13453,7 +13762,7 @@ public final class GameMessage {
        * <code>.PieceType ptype = 1;</code>
        * @return The enum numeric value on the wire for ptype.
        */
-      public int getPtypeValue() {
+      @java.lang.Override public int getPtypeValue() {
         return ptype_;
       }
       /**
@@ -13466,6 +13775,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setPtypeValue(int value) {
+        
         ptype_ = value;
         onChanged();
         return this;
@@ -13478,6 +13788,7 @@ public final class GameMessage {
        * <code>.PieceType ptype = 1;</code>
        * @return The ptype.
        */
+      @java.lang.Override
       public soc.proto.Data.PieceType getPtype() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.PieceType result = soc.proto.Data.PieceType.valueOf(ptype_);
@@ -13759,7 +14070,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code RevealFogHex}
    */
-  public  static final class RevealFogHex extends
+  public static final class RevealFogHex extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:RevealFogHex)
       RevealFogHexOrBuilder {
@@ -13868,6 +14179,7 @@ public final class GameMessage {
      * <code>.HexCoord coord = 1;</code>
      * @return Whether the coord field is set.
      */
+    @java.lang.Override
     public boolean hasCoord() {
       return coord_ != null;
     }
@@ -13879,6 +14191,7 @@ public final class GameMessage {
      * <code>.HexCoord coord = 1;</code>
      * @return The coord.
      */
+    @java.lang.Override
     public soc.proto.Data.HexCoord getCoord() {
       return coord_ == null ? soc.proto.Data.HexCoord.getDefaultInstance() : coord_;
     }
@@ -13889,6 +14202,7 @@ public final class GameMessage {
      *
      * <code>.HexCoord coord = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.HexCoordOrBuilder getCoordOrBuilder() {
       return getCoord();
     }
@@ -13903,7 +14217,7 @@ public final class GameMessage {
      * <code>.HexType htype = 2;</code>
      * @return The enum numeric value on the wire for htype.
      */
-    public int getHtypeValue() {
+    @java.lang.Override public int getHtypeValue() {
       return htype_;
     }
     /**
@@ -13914,7 +14228,7 @@ public final class GameMessage {
      * <code>.HexType htype = 2;</code>
      * @return The htype.
      */
-    public soc.proto.Data.HexType getHtype() {
+    @java.lang.Override public soc.proto.Data.HexType getHtype() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.HexType result = soc.proto.Data.HexType.valueOf(htype_);
       return result == null ? soc.proto.Data.HexType.UNRECOGNIZED : result;
@@ -13930,6 +14244,7 @@ public final class GameMessage {
      * <code>sint32 dice_num = 3;</code>
      * @return The diceNum.
      */
+    @java.lang.Override
     public int getDiceNum() {
       return diceNum_;
     }
@@ -14455,7 +14770,7 @@ public final class GameMessage {
        * <code>.HexType htype = 2;</code>
        * @return The enum numeric value on the wire for htype.
        */
-      public int getHtypeValue() {
+      @java.lang.Override public int getHtypeValue() {
         return htype_;
       }
       /**
@@ -14468,6 +14783,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setHtypeValue(int value) {
+        
         htype_ = value;
         onChanged();
         return this;
@@ -14480,6 +14796,7 @@ public final class GameMessage {
        * <code>.HexType htype = 2;</code>
        * @return The htype.
        */
+      @java.lang.Override
       public soc.proto.Data.HexType getHtype() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.HexType result = soc.proto.Data.HexType.valueOf(htype_);
@@ -14527,6 +14844,7 @@ public final class GameMessage {
        * <code>sint32 dice_num = 3;</code>
        * @return The diceNum.
        */
+      @java.lang.Override
       public int getDiceNum() {
         return diceNum_;
       }
@@ -14724,7 +15042,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code State}
    */
-  public  static final class State extends
+  public static final class State extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:State)
       StateOrBuilder {
@@ -14811,14 +15129,14 @@ public final class GameMessage {
      * <code>.GameState state = 1;</code>
      * @return The enum numeric value on the wire for state.
      */
-    public int getStateValue() {
+    @java.lang.Override public int getStateValue() {
       return state_;
     }
     /**
      * <code>.GameState state = 1;</code>
      * @return The state.
      */
-    public soc.proto.Data.GameState getState() {
+    @java.lang.Override public soc.proto.Data.GameState getState() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
@@ -15224,7 +15542,7 @@ public final class GameMessage {
        * <code>.GameState state = 1;</code>
        * @return The enum numeric value on the wire for state.
        */
-      public int getStateValue() {
+      @java.lang.Override public int getStateValue() {
         return state_;
       }
       /**
@@ -15233,6 +15551,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setStateValue(int value) {
+        
         state_ = value;
         onChanged();
         return this;
@@ -15241,6 +15560,7 @@ public final class GameMessage {
        * <code>.GameState state = 1;</code>
        * @return The state.
        */
+      @java.lang.Override
       public soc.proto.Data.GameState getState() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
@@ -15391,7 +15711,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code PlayerElement}
    */
-  public  static final class PlayerElement extends
+  public static final class PlayerElement extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:PlayerElement)
       PlayerElementOrBuilder {
@@ -15495,14 +15815,14 @@ public final class GameMessage {
      * <code>._PlayerElementAction action = 1;</code>
      * @return The enum numeric value on the wire for action.
      */
-    public int getActionValue() {
+    @java.lang.Override public int getActionValue() {
       return action_;
     }
     /**
      * <code>._PlayerElementAction action = 1;</code>
      * @return The action.
      */
-    public soc.proto.GameMessage._PlayerElementAction getAction() {
+    @java.lang.Override public soc.proto.GameMessage._PlayerElementAction getAction() {
       @SuppressWarnings("deprecation")
       soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
       return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
@@ -15514,14 +15834,14 @@ public final class GameMessage {
      * <code>._PlayerElementType element_type = 2;</code>
      * @return The enum numeric value on the wire for elementType.
      */
-    public int getElementTypeValue() {
+    @java.lang.Override public int getElementTypeValue() {
       return elementType_;
     }
     /**
      * <code>._PlayerElementType element_type = 2;</code>
      * @return The elementType.
      */
-    public soc.proto.GameMessage._PlayerElementType getElementType() {
+    @java.lang.Override public soc.proto.GameMessage._PlayerElementType getElementType() {
       @SuppressWarnings("deprecation")
       soc.proto.GameMessage._PlayerElementType result = soc.proto.GameMessage._PlayerElementType.valueOf(elementType_);
       return result == null ? soc.proto.GameMessage._PlayerElementType.UNRECOGNIZED : result;
@@ -15533,6 +15853,7 @@ public final class GameMessage {
      * <code>sint32 amount = 3;</code>
      * @return The amount.
      */
+    @java.lang.Override
     public int getAmount() {
       return amount_;
     }
@@ -15543,6 +15864,7 @@ public final class GameMessage {
      * <code>bool is_news = 4;</code>
      * @return The isNews.
      */
+    @java.lang.Override
     public boolean getIsNews() {
       return isNews_;
     }
@@ -15931,7 +16253,7 @@ public final class GameMessage {
        * <code>._PlayerElementAction action = 1;</code>
        * @return The enum numeric value on the wire for action.
        */
-      public int getActionValue() {
+      @java.lang.Override public int getActionValue() {
         return action_;
       }
       /**
@@ -15940,6 +16262,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setActionValue(int value) {
+        
         action_ = value;
         onChanged();
         return this;
@@ -15948,6 +16271,7 @@ public final class GameMessage {
        * <code>._PlayerElementAction action = 1;</code>
        * @return The action.
        */
+      @java.lang.Override
       public soc.proto.GameMessage._PlayerElementAction getAction() {
         @SuppressWarnings("deprecation")
         soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
@@ -15983,7 +16307,7 @@ public final class GameMessage {
        * <code>._PlayerElementType element_type = 2;</code>
        * @return The enum numeric value on the wire for elementType.
        */
-      public int getElementTypeValue() {
+      @java.lang.Override public int getElementTypeValue() {
         return elementType_;
       }
       /**
@@ -15992,6 +16316,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setElementTypeValue(int value) {
+        
         elementType_ = value;
         onChanged();
         return this;
@@ -16000,6 +16325,7 @@ public final class GameMessage {
        * <code>._PlayerElementType element_type = 2;</code>
        * @return The elementType.
        */
+      @java.lang.Override
       public soc.proto.GameMessage._PlayerElementType getElementType() {
         @SuppressWarnings("deprecation")
         soc.proto.GameMessage._PlayerElementType result = soc.proto.GameMessage._PlayerElementType.valueOf(elementType_);
@@ -16035,6 +16361,7 @@ public final class GameMessage {
        * <code>sint32 amount = 3;</code>
        * @return The amount.
        */
+      @java.lang.Override
       public int getAmount() {
         return amount_;
       }
@@ -16065,6 +16392,7 @@ public final class GameMessage {
        * <code>bool is_news = 4;</code>
        * @return The isNews.
        */
+      @java.lang.Override
       public boolean getIsNews() {
         return isNews_;
       }
@@ -16220,7 +16548,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code PlayerElements}
    */
-  public  static final class PlayerElements extends
+  public static final class PlayerElements extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:PlayerElements)
       PlayerElementsOrBuilder {
@@ -16360,14 +16688,14 @@ public final class GameMessage {
      * <code>._PlayerElementAction action = 1;</code>
      * @return The enum numeric value on the wire for action.
      */
-    public int getActionValue() {
+    @java.lang.Override public int getActionValue() {
       return action_;
     }
     /**
      * <code>._PlayerElementAction action = 1;</code>
      * @return The action.
      */
-    public soc.proto.GameMessage._PlayerElementAction getAction() {
+    @java.lang.Override public soc.proto.GameMessage._PlayerElementAction getAction() {
       @SuppressWarnings("deprecation")
       soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
       return result == null ? soc.proto.GameMessage._PlayerElementAction.UNRECOGNIZED : result;
@@ -16389,6 +16717,7 @@ public final class GameMessage {
      * <code>repeated ._PlayerElementType element_types = 2;</code>
      * @return A list containing the elementTypes.
      */
+    @java.lang.Override
     public java.util.List<soc.proto.GameMessage._PlayerElementType> getElementTypesList() {
       return new com.google.protobuf.Internal.ListAdapter<
           java.lang.Integer, soc.proto.GameMessage._PlayerElementType>(elementTypes_, elementTypes_converter_);
@@ -16397,6 +16726,7 @@ public final class GameMessage {
      * <code>repeated ._PlayerElementType element_types = 2;</code>
      * @return The count of elementTypes.
      */
+    @java.lang.Override
     public int getElementTypesCount() {
       return elementTypes_.size();
     }
@@ -16405,6 +16735,7 @@ public final class GameMessage {
      * @param index The index of the element to return.
      * @return The elementTypes at the given index.
      */
+    @java.lang.Override
     public soc.proto.GameMessage._PlayerElementType getElementTypes(int index) {
       return elementTypes_converter_.convert(elementTypes_.get(index));
     }
@@ -16412,6 +16743,7 @@ public final class GameMessage {
      * <code>repeated ._PlayerElementType element_types = 2;</code>
      * @return A list containing the enum numeric values on the wire for elementTypes.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
     getElementTypesValueList() {
       return elementTypes_;
@@ -16421,6 +16753,7 @@ public final class GameMessage {
      * @param index The index of the value to return.
      * @return The enum numeric value on the wire of elementTypes at the given index.
      */
+    @java.lang.Override
     public int getElementTypesValue(int index) {
       return elementTypes_.get(index);
     }
@@ -16432,6 +16765,7 @@ public final class GameMessage {
      * <code>repeated sint32 amounts = 3;</code>
      * @return A list containing the amounts.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
         getAmountsList() {
       return amounts_;
@@ -16861,7 +17195,7 @@ public final class GameMessage {
        * <code>._PlayerElementAction action = 1;</code>
        * @return The enum numeric value on the wire for action.
        */
-      public int getActionValue() {
+      @java.lang.Override public int getActionValue() {
         return action_;
       }
       /**
@@ -16870,6 +17204,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setActionValue(int value) {
+        
         action_ = value;
         onChanged();
         return this;
@@ -16878,6 +17213,7 @@ public final class GameMessage {
        * <code>._PlayerElementAction action = 1;</code>
        * @return The action.
        */
+      @java.lang.Override
       public soc.proto.GameMessage._PlayerElementAction getAction() {
         @SuppressWarnings("deprecation")
         soc.proto.GameMessage._PlayerElementAction result = soc.proto.GameMessage._PlayerElementAction.valueOf(action_);
@@ -17240,7 +17576,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code GameElements}
    */
-  public  static final class GameElements extends
+  public static final class GameElements extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GameElements)
       GameElementsOrBuilder {
@@ -17540,6 +17876,10 @@ public final class GameMessage {
 
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalStateException(
+              "Can't get the descriptor of an unrecognized enum value.");
+        }
         return getDescriptor().getValues().get(ordinal());
       }
       public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -17590,6 +17930,7 @@ public final class GameMessage {
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
      * @return A list containing the elementTypes.
      */
+    @java.lang.Override
     public java.util.List<soc.proto.GameMessage.GameElements._ElementType> getElementTypesList() {
       return new com.google.protobuf.Internal.ListAdapter<
           java.lang.Integer, soc.proto.GameMessage.GameElements._ElementType>(elementTypes_, elementTypes_converter_);
@@ -17598,6 +17939,7 @@ public final class GameMessage {
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
      * @return The count of elementTypes.
      */
+    @java.lang.Override
     public int getElementTypesCount() {
       return elementTypes_.size();
     }
@@ -17606,6 +17948,7 @@ public final class GameMessage {
      * @param index The index of the element to return.
      * @return The elementTypes at the given index.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GameElements._ElementType getElementTypes(int index) {
       return elementTypes_converter_.convert(elementTypes_.get(index));
     }
@@ -17613,6 +17956,7 @@ public final class GameMessage {
      * <code>repeated .GameElements._ElementType element_types = 1;</code>
      * @return A list containing the enum numeric values on the wire for elementTypes.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
     getElementTypesValueList() {
       return elementTypes_;
@@ -17622,6 +17966,7 @@ public final class GameMessage {
      * @param index The index of the value to return.
      * @return The enum numeric value on the wire of elementTypes at the given index.
      */
+    @java.lang.Override
     public int getElementTypesValue(int index) {
       return elementTypes_.get(index);
     }
@@ -17633,6 +17978,7 @@ public final class GameMessage {
      * <code>repeated sint32 values = 2;</code>
      * @return A list containing the values.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
         getValuesList() {
       return values_;
@@ -18342,7 +18688,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code StartGame}
    */
-  public  static final class StartGame extends
+  public static final class StartGame extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:StartGame)
       StartGameOrBuilder {
@@ -18433,7 +18779,7 @@ public final class GameMessage {
      * <code>.GameState state = 1;</code>
      * @return The enum numeric value on the wire for state.
      */
-    public int getStateValue() {
+    @java.lang.Override public int getStateValue() {
       return state_;
     }
     /**
@@ -18444,7 +18790,7 @@ public final class GameMessage {
      * <code>.GameState state = 1;</code>
      * @return The state.
      */
-    public soc.proto.Data.GameState getState() {
+    @java.lang.Override public soc.proto.Data.GameState getState() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
@@ -18770,7 +19116,7 @@ public final class GameMessage {
        * <code>.GameState state = 1;</code>
        * @return The enum numeric value on the wire for state.
        */
-      public int getStateValue() {
+      @java.lang.Override public int getStateValue() {
         return state_;
       }
       /**
@@ -18783,6 +19129,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setStateValue(int value) {
+        
         state_ = value;
         onChanged();
         return this;
@@ -18795,6 +19142,7 @@ public final class GameMessage {
        * <code>.GameState state = 1;</code>
        * @return The state.
        */
+      @java.lang.Override
       public soc.proto.Data.GameState getState() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
@@ -18926,7 +19274,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code Turn}
    */
-  public  static final class Turn extends
+  public static final class Turn extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:Turn)
       TurnOrBuilder {
@@ -19017,7 +19365,7 @@ public final class GameMessage {
      * <code>.GameState state = 1;</code>
      * @return The enum numeric value on the wire for state.
      */
-    public int getStateValue() {
+    @java.lang.Override public int getStateValue() {
       return state_;
     }
     /**
@@ -19028,7 +19376,7 @@ public final class GameMessage {
      * <code>.GameState state = 1;</code>
      * @return The state.
      */
-    public soc.proto.Data.GameState getState() {
+    @java.lang.Override public soc.proto.Data.GameState getState() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
       return result == null ? soc.proto.Data.GameState.UNRECOGNIZED : result;
@@ -19359,7 +19707,7 @@ public final class GameMessage {
        * <code>.GameState state = 1;</code>
        * @return The enum numeric value on the wire for state.
        */
-      public int getStateValue() {
+      @java.lang.Override public int getStateValue() {
         return state_;
       }
       /**
@@ -19372,6 +19720,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setStateValue(int value) {
+        
         state_ = value;
         onChanged();
         return this;
@@ -19384,6 +19733,7 @@ public final class GameMessage {
        * <code>.GameState state = 1;</code>
        * @return The state.
        */
+      @java.lang.Override
       public soc.proto.Data.GameState getState() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.GameState result = soc.proto.Data.GameState.valueOf(state_);
@@ -19489,7 +19839,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code SetTurn}
    */
-  public  static final class SetTurn extends
+  public static final class SetTurn extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:SetTurn)
       SetTurnOrBuilder {
@@ -19926,7 +20276,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code DiceRollRequest}
    */
-  public  static final class DiceRollRequest extends
+  public static final class DiceRollRequest extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:DiceRollRequest)
       DiceRollRequestOrBuilder {
@@ -20385,7 +20735,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code DiceResult}
    */
-  public  static final class DiceResult extends
+  public static final class DiceResult extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:DiceResult)
       DiceResultOrBuilder {
@@ -20475,6 +20825,7 @@ public final class GameMessage {
      * <code>sint32 dice_total = 1;</code>
      * @return The diceTotal.
      */
+    @java.lang.Override
     public int getDiceTotal() {
       return diceTotal_;
     }
@@ -20810,6 +21161,7 @@ public final class GameMessage {
        * <code>sint32 dice_total = 1;</code>
        * @return The diceTotal.
        */
+      @java.lang.Override
       public int getDiceTotal() {
         return diceTotal_;
       }
@@ -20934,7 +21286,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code DiceResultResources}
    */
-  public  static final class DiceResultResources extends
+  public static final class DiceResultResources extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:DiceResultResources)
       DiceResultResourcesOrBuilder {
@@ -21080,7 +21432,7 @@ public final class GameMessage {
      *
      * Protobuf type {@code DiceResultResources.PlayerResources}
      */
-    public  static final class PlayerResources extends
+    public static final class PlayerResources extends
         com.google.protobuf.GeneratedMessageV3 implements
         // @@protoc_insertion_point(message_implements:DiceResultResources.PlayerResources)
         PlayerResourcesOrBuilder {
@@ -21187,6 +21539,7 @@ public final class GameMessage {
        * <code>uint32 player_number = 1;</code>
        * @return The playerNumber.
        */
+      @java.lang.Override
       public int getPlayerNumber() {
         return playerNumber_;
       }
@@ -21201,6 +21554,7 @@ public final class GameMessage {
        * <code>.ResourceSet res_gained = 2;</code>
        * @return Whether the resGained field is set.
        */
+      @java.lang.Override
       public boolean hasResGained() {
         return resGained_ != null;
       }
@@ -21212,6 +21566,7 @@ public final class GameMessage {
        * <code>.ResourceSet res_gained = 2;</code>
        * @return The resGained.
        */
+      @java.lang.Override
       public soc.proto.Data.ResourceSet getResGained() {
         return resGained_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : resGained_;
       }
@@ -21222,6 +21577,7 @@ public final class GameMessage {
        *
        * <code>.ResourceSet res_gained = 2;</code>
        */
+      @java.lang.Override
       public soc.proto.Data.ResourceSetOrBuilder getResGainedOrBuilder() {
         return getResGained();
       }
@@ -21236,6 +21592,7 @@ public final class GameMessage {
        * <code>uint32 res_total = 3;</code>
        * @return The resTotal.
        */
+      @java.lang.Override
       public int getResTotal() {
         return resTotal_;
       }
@@ -21602,6 +21959,7 @@ public final class GameMessage {
          * <code>uint32 player_number = 1;</code>
          * @return The playerNumber.
          */
+        @java.lang.Override
         public int getPlayerNumber() {
           return playerNumber_;
         }
@@ -21799,6 +22157,7 @@ public final class GameMessage {
          * <code>uint32 res_total = 3;</code>
          * @return The resTotal.
          */
+        @java.lang.Override
         public int getResTotal() {
           return resTotal_;
         }
@@ -21889,12 +22248,14 @@ public final class GameMessage {
     /**
      * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.GameMessage.DiceResultResources.PlayerResources> getPlayerResourcesList() {
       return playerResources_;
     }
     /**
      * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder> 
         getPlayerResourcesOrBuilderList() {
       return playerResources_;
@@ -21902,18 +22263,21 @@ public final class GameMessage {
     /**
      * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
      */
+    @java.lang.Override
     public int getPlayerResourcesCount() {
       return playerResources_.size();
     }
     /**
      * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceResultResources.PlayerResources getPlayerResources(int index) {
       return playerResources_.get(index);
     }
     /**
      * <code>repeated .DiceResultResources.PlayerResources player_resources = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceResultResources.PlayerResourcesOrBuilder getPlayerResourcesOrBuilder(
         int index) {
       return playerResources_.get(index);
@@ -22570,7 +22934,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code EndTurn}
    */
-  public  static final class EndTurn extends
+  public static final class EndTurn extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:EndTurn)
       EndTurnOrBuilder {
@@ -23030,7 +23394,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code TradeWithBank}
    */
-  public  static final class TradeWithBank extends
+  public static final class TradeWithBank extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:TradeWithBank)
       TradeWithBankOrBuilder {
@@ -23136,6 +23500,7 @@ public final class GameMessage {
      * <code>.ResourceSet give = 1;</code>
      * @return Whether the give field is set.
      */
+    @java.lang.Override
     public boolean hasGive() {
       return give_ != null;
     }
@@ -23143,12 +23508,14 @@ public final class GameMessage {
      * <code>.ResourceSet give = 1;</code>
      * @return The give.
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSet getGive() {
       return give_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
     }
     /**
      * <code>.ResourceSet give = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSetOrBuilder getGiveOrBuilder() {
       return getGive();
     }
@@ -23159,6 +23526,7 @@ public final class GameMessage {
      * <code>.ResourceSet get = 2;</code>
      * @return Whether the get field is set.
      */
+    @java.lang.Override
     public boolean hasGet() {
       return get_ != null;
     }
@@ -23166,12 +23534,14 @@ public final class GameMessage {
      * <code>.ResourceSet get = 2;</code>
      * @return The get.
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSet getGet() {
       return get_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
     }
     /**
      * <code>.ResourceSet get = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSetOrBuilder getGetOrBuilder() {
       return getGet();
     }
@@ -23904,7 +24274,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code TradeMakeOffer}
    */
-  public  static final class TradeMakeOffer extends
+  public static final class TradeMakeOffer extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:TradeMakeOffer)
       TradeMakeOfferOrBuilder {
@@ -24028,6 +24398,7 @@ public final class GameMessage {
      * <code>.ResourceSet give = 1;</code>
      * @return Whether the give field is set.
      */
+    @java.lang.Override
     public boolean hasGive() {
       return give_ != null;
     }
@@ -24035,12 +24406,14 @@ public final class GameMessage {
      * <code>.ResourceSet give = 1;</code>
      * @return The give.
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSet getGive() {
       return give_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : give_;
     }
     /**
      * <code>.ResourceSet give = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSetOrBuilder getGiveOrBuilder() {
       return getGive();
     }
@@ -24051,6 +24424,7 @@ public final class GameMessage {
      * <code>.ResourceSet get = 2;</code>
      * @return Whether the get field is set.
      */
+    @java.lang.Override
     public boolean hasGet() {
       return get_ != null;
     }
@@ -24058,12 +24432,14 @@ public final class GameMessage {
      * <code>.ResourceSet get = 2;</code>
      * @return The get.
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSet getGet() {
       return get_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : get_;
     }
     /**
      * <code>.ResourceSet get = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSetOrBuilder getGetOrBuilder() {
       return getGet();
     }
@@ -24078,6 +24454,7 @@ public final class GameMessage {
      * <code>._IntArray to_players = 3;</code>
      * @return Whether the toPlayers field is set.
      */
+    @java.lang.Override
     public boolean hasToPlayers() {
       return toPlayers_ != null;
     }
@@ -24089,6 +24466,7 @@ public final class GameMessage {
      * <code>._IntArray to_players = 3;</code>
      * @return The toPlayers.
      */
+    @java.lang.Override
     public soc.proto.Data._IntArray getToPlayers() {
       return toPlayers_ == null ? soc.proto.Data._IntArray.getDefaultInstance() : toPlayers_;
     }
@@ -24099,6 +24477,7 @@ public final class GameMessage {
      *
      * <code>._IntArray to_players = 3;</code>
      */
+    @java.lang.Override
     public soc.proto.Data._IntArrayOrBuilder getToPlayersOrBuilder() {
       return getToPlayers();
     }
@@ -24113,6 +24492,7 @@ public final class GameMessage {
      * <code>int32 offer_serial = 4;</code>
      * @return The offerSerial.
      */
+    @java.lang.Override
     public int getOfferSerial() {
       return offerSerial_;
     }
@@ -24922,6 +25302,7 @@ public final class GameMessage {
        * <code>int32 offer_serial = 4;</code>
        * @return The offerSerial.
        */
+      @java.lang.Override
       public int getOfferSerial() {
         return offerSerial_;
       }
@@ -25022,7 +25403,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code TradeClearOffer}
    */
-  public  static final class TradeClearOffer extends
+  public static final class TradeClearOffer extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:TradeClearOffer)
       TradeClearOfferOrBuilder {
@@ -25454,7 +25835,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code TradeRejectOffer}
    */
-  public  static final class TradeRejectOffer extends
+  public static final class TradeRejectOffer extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:TradeRejectOffer)
       TradeRejectOfferOrBuilder {
@@ -25910,7 +26291,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code TradeAcceptOffer}
    */
-  public  static final class TradeAcceptOffer extends
+  public static final class TradeAcceptOffer extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:TradeAcceptOffer)
       TradeAcceptOfferOrBuilder {
@@ -26004,6 +26385,7 @@ public final class GameMessage {
      * <code>int32 offering_player_number = 1;</code>
      * @return The offeringPlayerNumber.
      */
+    @java.lang.Override
     public int getOfferingPlayerNumber() {
       return offeringPlayerNumber_;
     }
@@ -26018,6 +26400,7 @@ public final class GameMessage {
      * <code>int32 offer_serial = 2;</code>
      * @return The offerSerial.
      */
+    @java.lang.Override
     public int getOfferSerial() {
       return offerSerial_;
     }
@@ -26362,6 +26745,7 @@ public final class GameMessage {
        * <code>int32 offering_player_number = 1;</code>
        * @return The offeringPlayerNumber.
        */
+      @java.lang.Override
       public int getOfferingPlayerNumber() {
         return offeringPlayerNumber_;
       }
@@ -26404,6 +26788,7 @@ public final class GameMessage {
        * <code>int32 offer_serial = 2;</code>
        * @return The offerSerial.
        */
+      @java.lang.Override
       public int getOfferSerial() {
         return offerSerial_;
       }
@@ -26545,7 +26930,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code LoseResources}
    */
-  public  static final class LoseResources extends
+  public static final class LoseResources extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:LoseResources)
       LoseResourcesOrBuilder {
@@ -26647,6 +27032,7 @@ public final class GameMessage {
      * <code>int32 amount = 1;</code>
      * @return The amount.
      */
+    @java.lang.Override
     public int getAmount() {
       return amount_;
     }
@@ -26661,6 +27047,7 @@ public final class GameMessage {
      * <code>.ResourceSet lose = 2;</code>
      * @return Whether the lose field is set.
      */
+    @java.lang.Override
     public boolean hasLose() {
       return lose_ != null;
     }
@@ -26672,6 +27059,7 @@ public final class GameMessage {
      * <code>.ResourceSet lose = 2;</code>
      * @return The lose.
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSet getLose() {
       return lose_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : lose_;
     }
@@ -26682,6 +27070,7 @@ public final class GameMessage {
      *
      * <code>.ResourceSet lose = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSetOrBuilder getLoseOrBuilder() {
       return getLose();
     }
@@ -27039,6 +27428,7 @@ public final class GameMessage {
        * <code>int32 amount = 1;</code>
        * @return The amount.
        */
+      @java.lang.Override
       public int getAmount() {
         return amount_;
       }
@@ -27330,7 +27720,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code GainResources}
    */
-  public  static final class GainResources extends
+  public static final class GainResources extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GainResources)
       GainResourcesOrBuilder {
@@ -27432,6 +27822,7 @@ public final class GameMessage {
      * <code>int32 amount = 1;</code>
      * @return The amount.
      */
+    @java.lang.Override
     public int getAmount() {
       return amount_;
     }
@@ -27446,6 +27837,7 @@ public final class GameMessage {
      * <code>.ResourceSet gain = 2;</code>
      * @return Whether the gain field is set.
      */
+    @java.lang.Override
     public boolean hasGain() {
       return gain_ != null;
     }
@@ -27457,6 +27849,7 @@ public final class GameMessage {
      * <code>.ResourceSet gain = 2;</code>
      * @return The gain.
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSet getGain() {
       return gain_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : gain_;
     }
@@ -27467,6 +27860,7 @@ public final class GameMessage {
      *
      * <code>.ResourceSet gain = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.ResourceSetOrBuilder getGainOrBuilder() {
       return getGain();
     }
@@ -27819,6 +28213,7 @@ public final class GameMessage {
        * <code>int32 amount = 1;</code>
        * @return The amount.
        */
+      @java.lang.Override
       public int getAmount() {
         return amount_;
       }
@@ -28092,7 +28487,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code ChooseResourceType}
    */
-  public  static final class ChooseResourceType extends
+  public static final class ChooseResourceType extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ChooseResourceType)
       ChooseResourceTypeOrBuilder {
@@ -28183,7 +28578,7 @@ public final class GameMessage {
      * <code>.ResourceType rtype = 1;</code>
      * @return The enum numeric value on the wire for rtype.
      */
-    public int getRtypeValue() {
+    @java.lang.Override public int getRtypeValue() {
       return rtype_;
     }
     /**
@@ -28194,7 +28589,7 @@ public final class GameMessage {
      * <code>.ResourceType rtype = 1;</code>
      * @return The rtype.
      */
-    public soc.proto.Data.ResourceType getRtype() {
+    @java.lang.Override public soc.proto.Data.ResourceType getRtype() {
       @SuppressWarnings("deprecation")
       soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(rtype_);
       return result == null ? soc.proto.Data.ResourceType.UNRECOGNIZED : result;
@@ -28517,7 +28912,7 @@ public final class GameMessage {
        * <code>.ResourceType rtype = 1;</code>
        * @return The enum numeric value on the wire for rtype.
        */
-      public int getRtypeValue() {
+      @java.lang.Override public int getRtypeValue() {
         return rtype_;
       }
       /**
@@ -28530,6 +28925,7 @@ public final class GameMessage {
        * @return This builder for chaining.
        */
       public Builder setRtypeValue(int value) {
+        
         rtype_ = value;
         onChanged();
         return this;
@@ -28542,6 +28938,7 @@ public final class GameMessage {
        * <code>.ResourceType rtype = 1;</code>
        * @return The rtype.
        */
+      @java.lang.Override
       public soc.proto.Data.ResourceType getRtype() {
         @SuppressWarnings("deprecation")
         soc.proto.Data.ResourceType result = soc.proto.Data.ResourceType.valueOf(rtype_);
@@ -28697,7 +29094,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code ChoosePlayer}
    */
-  public  static final class ChoosePlayer extends
+  public static final class ChoosePlayer extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ChoosePlayer)
       ChoosePlayerOrBuilder {
@@ -28820,6 +29217,7 @@ public final class GameMessage {
      * <code>sint32 chosen_player_number = 1;</code>
      * @return The chosenPlayerNumber.
      */
+    @java.lang.Override
     public int getChosenPlayerNumber() {
       return chosenPlayerNumber_;
     }
@@ -28834,6 +29232,7 @@ public final class GameMessage {
      * <code>bool can_choose_none = 2;</code>
      * @return The canChooseNone.
      */
+    @java.lang.Override
     public boolean getCanChooseNone() {
       return canChooseNone_;
     }
@@ -28848,6 +29247,7 @@ public final class GameMessage {
      * <code>repeated uint32 chooseable_player_number = 3;</code>
      * @return A list containing the chooseablePlayerNumber.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
         getChooseablePlayerNumberList() {
       return chooseablePlayerNumber_;
@@ -29262,6 +29662,7 @@ public final class GameMessage {
        * <code>sint32 chosen_player_number = 1;</code>
        * @return The chosenPlayerNumber.
        */
+      @java.lang.Override
       public int getChosenPlayerNumber() {
         return chosenPlayerNumber_;
       }
@@ -29310,6 +29711,7 @@ public final class GameMessage {
        * <code>bool can_choose_none = 2;</code>
        * @return The canChooseNone.
        */
+      @java.lang.Override
       public boolean getCanChooseNone() {
         return canChooseNone_;
       }
@@ -29571,7 +29973,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code MoveRobber}
    */
-  public  static final class MoveRobber extends
+  public static final class MoveRobber extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:MoveRobber)
       MoveRobberOrBuilder {
@@ -29678,6 +30080,7 @@ public final class GameMessage {
      * <code>.HexCoord move_to = 1;</code>
      * @return Whether the moveTo field is set.
      */
+    @java.lang.Override
     public boolean hasMoveTo() {
       return moveTo_ != null;
     }
@@ -29689,6 +30092,7 @@ public final class GameMessage {
      * <code>.HexCoord move_to = 1;</code>
      * @return The moveTo.
      */
+    @java.lang.Override
     public soc.proto.Data.HexCoord getMoveTo() {
       return moveTo_ == null ? soc.proto.Data.HexCoord.getDefaultInstance() : moveTo_;
     }
@@ -29699,6 +30103,7 @@ public final class GameMessage {
      *
      * <code>.HexCoord move_to = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Data.HexCoordOrBuilder getMoveToOrBuilder() {
       return getMoveTo();
     }
@@ -29715,6 +30120,7 @@ public final class GameMessage {
      * <code>bool is_robber = 2;</code>
      * @return The isRobber.
      */
+    @java.lang.Override
     public boolean getIsRobber() {
       return isRobber_;
     }
@@ -29731,6 +30137,7 @@ public final class GameMessage {
      * <code>bool is_pirate = 3;</code>
      * @return The isPirate.
      */
+    @java.lang.Override
     public boolean getIsPirate() {
       return isPirate_;
     }
@@ -30263,6 +30670,7 @@ public final class GameMessage {
        * <code>bool is_robber = 2;</code>
        * @return The isRobber.
        */
+      @java.lang.Override
       public boolean getIsRobber() {
         return isRobber_;
       }
@@ -30311,6 +30719,7 @@ public final class GameMessage {
        * <code>bool is_pirate = 3;</code>
        * @return The isPirate.
        */
+      @java.lang.Override
       public boolean getIsPirate() {
         return isPirate_;
       }
@@ -30418,7 +30827,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code ResetBoardRequest}
    */
-  public  static final class ResetBoardRequest extends
+  public static final class ResetBoardRequest extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ResetBoardRequest)
       ResetBoardRequestOrBuilder {
@@ -30867,7 +31276,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code ResetBoardVote}
    */
-  public  static final class ResetBoardVote extends
+  public static final class ResetBoardVote extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ResetBoardVote)
       ResetBoardVoteOrBuilder {
@@ -30956,6 +31365,7 @@ public final class GameMessage {
      * <code>bool is_yes = 1;</code>
      * @return The isYes.
      */
+    @java.lang.Override
     public boolean getIsYes() {
       return isYes_;
     }
@@ -31282,6 +31692,7 @@ public final class GameMessage {
        * <code>bool is_yes = 1;</code>
        * @return The isYes.
        */
+      @java.lang.Override
       public boolean getIsYes() {
         return isYes_;
       }
@@ -31396,7 +31807,7 @@ public final class GameMessage {
    *
    * Protobuf type {@code ResetBoardResult}
    */
-  public  static final class ResetBoardResult extends
+  public static final class ResetBoardResult extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ResetBoardResult)
       ResetBoardResultOrBuilder {
@@ -31485,6 +31896,7 @@ public final class GameMessage {
      * <code>bool was_rejected = 1;</code>
      * @return The wasRejected.
      */
+    @java.lang.Override
     public boolean getWasRejected() {
       return wasRejected_;
     }
@@ -31813,6 +32225,7 @@ public final class GameMessage {
        * <code>bool was_rejected = 1;</code>
        * @return The wasRejected.
        */
+      @java.lang.Override
       public boolean getWasRejected() {
         return wasRejected_;
       }
@@ -32543,7 +32956,7 @@ public final class GameMessage {
   /**
    * Protobuf type {@code GameMessageFromServer}
    */
-  public  static final class GameMessageFromServer extends
+  public static final class GameMessageFromServer extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GameMessageFromServer)
       GameMessageFromServerOrBuilder {
@@ -33216,6 +33629,7 @@ public final class GameMessage {
      * <code>string game_name = 1;</code>
      * @return The gameName.
      */
+    @java.lang.Override
     public java.lang.String getGameName() {
       java.lang.Object ref = gameName_;
       if (ref instanceof java.lang.String) {
@@ -33232,6 +33646,7 @@ public final class GameMessage {
      * <code>string game_name = 1;</code>
      * @return The bytes for gameName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGameNameBytes() {
       java.lang.Object ref = gameName_;
@@ -33258,6 +33673,7 @@ public final class GameMessage {
      * <code>sint32 player_number = 2;</code>
      * @return The playerNumber.
      */
+    @java.lang.Override
     public int getPlayerNumber() {
       return playerNumber_;
     }
@@ -33271,6 +33687,7 @@ public final class GameMessage {
      * <code>.State game_state = 3;</code>
      * @return Whether the gameState field is set.
      */
+    @java.lang.Override
     public boolean hasGameState() {
       return msgCase_ == 3;
     }
@@ -33282,6 +33699,7 @@ public final class GameMessage {
      * <code>.State game_state = 3;</code>
      * @return The gameState.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.State getGameState() {
       if (msgCase_ == 3) {
          return (soc.proto.GameMessage.State) msg_;
@@ -33295,6 +33713,7 @@ public final class GameMessage {
      *
      * <code>.State game_state = 3;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.StateOrBuilder getGameStateOrBuilder() {
       if (msgCase_ == 3) {
          return (soc.proto.GameMessage.State) msg_;
@@ -33307,6 +33726,7 @@ public final class GameMessage {
      * <code>.PlayerElement player_element = 15;</code>
      * @return Whether the playerElement field is set.
      */
+    @java.lang.Override
     public boolean hasPlayerElement() {
       return msgCase_ == 15;
     }
@@ -33314,6 +33734,7 @@ public final class GameMessage {
      * <code>.PlayerElement player_element = 15;</code>
      * @return The playerElement.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.PlayerElement getPlayerElement() {
       if (msgCase_ == 15) {
          return (soc.proto.GameMessage.PlayerElement) msg_;
@@ -33323,6 +33744,7 @@ public final class GameMessage {
     /**
      * <code>.PlayerElement player_element = 15;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.PlayerElementOrBuilder getPlayerElementOrBuilder() {
       if (msgCase_ == 15) {
          return (soc.proto.GameMessage.PlayerElement) msg_;
@@ -33339,6 +33761,7 @@ public final class GameMessage {
      * <code>.PlayerElements player_elements = 16;</code>
      * @return Whether the playerElements field is set.
      */
+    @java.lang.Override
     public boolean hasPlayerElements() {
       return msgCase_ == 16;
     }
@@ -33350,6 +33773,7 @@ public final class GameMessage {
      * <code>.PlayerElements player_elements = 16;</code>
      * @return The playerElements.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.PlayerElements getPlayerElements() {
       if (msgCase_ == 16) {
          return (soc.proto.GameMessage.PlayerElements) msg_;
@@ -33363,6 +33787,7 @@ public final class GameMessage {
      *
      * <code>.PlayerElements player_elements = 16;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.PlayerElementsOrBuilder getPlayerElementsOrBuilder() {
       if (msgCase_ == 16) {
          return (soc.proto.GameMessage.PlayerElements) msg_;
@@ -33375,6 +33800,7 @@ public final class GameMessage {
      * <code>.GameElements game_elements = 17;</code>
      * @return Whether the gameElements field is set.
      */
+    @java.lang.Override
     public boolean hasGameElements() {
       return msgCase_ == 17;
     }
@@ -33382,6 +33808,7 @@ public final class GameMessage {
      * <code>.GameElements game_elements = 17;</code>
      * @return The gameElements.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GameElements getGameElements() {
       if (msgCase_ == 17) {
          return (soc.proto.GameMessage.GameElements) msg_;
@@ -33391,6 +33818,7 @@ public final class GameMessage {
     /**
      * <code>.GameElements game_elements = 17;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GameElementsOrBuilder getGameElementsOrBuilder() {
       if (msgCase_ == 17) {
          return (soc.proto.GameMessage.GameElements) msg_;
@@ -33407,6 +33835,7 @@ public final class GameMessage {
      * <code>.BoardLayout board_layout = 30;</code>
      * @return Whether the boardLayout field is set.
      */
+    @java.lang.Override
     public boolean hasBoardLayout() {
       return msgCase_ == 30;
     }
@@ -33418,6 +33847,7 @@ public final class GameMessage {
      * <code>.BoardLayout board_layout = 30;</code>
      * @return The boardLayout.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.BoardLayout getBoardLayout() {
       if (msgCase_ == 30) {
          return (soc.proto.GameMessage.BoardLayout) msg_;
@@ -33431,6 +33861,7 @@ public final class GameMessage {
      *
      * <code>.BoardLayout board_layout = 30;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.BoardLayoutOrBuilder getBoardLayoutOrBuilder() {
       if (msgCase_ == 30) {
          return (soc.proto.GameMessage.BoardLayout) msg_;
@@ -33443,6 +33874,7 @@ public final class GameMessage {
      * <code>.PotentialSettlements potential_settlements = 31;</code>
      * @return Whether the potentialSettlements field is set.
      */
+    @java.lang.Override
     public boolean hasPotentialSettlements() {
       return msgCase_ == 31;
     }
@@ -33450,6 +33882,7 @@ public final class GameMessage {
      * <code>.PotentialSettlements potential_settlements = 31;</code>
      * @return The potentialSettlements.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.PotentialSettlements getPotentialSettlements() {
       if (msgCase_ == 31) {
          return (soc.proto.GameMessage.PotentialSettlements) msg_;
@@ -33459,6 +33892,7 @@ public final class GameMessage {
     /**
      * <code>.PotentialSettlements potential_settlements = 31;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.PotentialSettlementsOrBuilder getPotentialSettlementsOrBuilder() {
       if (msgCase_ == 31) {
          return (soc.proto.GameMessage.PotentialSettlements) msg_;
@@ -33471,6 +33905,7 @@ public final class GameMessage {
      * <code>.PieceValue piece_value = 32;</code>
      * @return Whether the pieceValue field is set.
      */
+    @java.lang.Override
     public boolean hasPieceValue() {
       return msgCase_ == 32;
     }
@@ -33478,6 +33913,7 @@ public final class GameMessage {
      * <code>.PieceValue piece_value = 32;</code>
      * @return The pieceValue.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.PieceValue getPieceValue() {
       if (msgCase_ == 32) {
          return (soc.proto.GameMessage.PieceValue) msg_;
@@ -33487,6 +33923,7 @@ public final class GameMessage {
     /**
      * <code>.PieceValue piece_value = 32;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.PieceValueOrBuilder getPieceValueOrBuilder() {
       if (msgCase_ == 32) {
          return (soc.proto.GameMessage.PieceValue) msg_;
@@ -33499,6 +33936,7 @@ public final class GameMessage {
      * <code>.BuildPiece build_piece = 33;</code>
      * @return Whether the buildPiece field is set.
      */
+    @java.lang.Override
     public boolean hasBuildPiece() {
       return msgCase_ == 33;
     }
@@ -33506,6 +33944,7 @@ public final class GameMessage {
      * <code>.BuildPiece build_piece = 33;</code>
      * @return The buildPiece.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.BuildPiece getBuildPiece() {
       if (msgCase_ == 33) {
          return (soc.proto.GameMessage.BuildPiece) msg_;
@@ -33515,6 +33954,7 @@ public final class GameMessage {
     /**
      * <code>.BuildPiece build_piece = 33;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.BuildPieceOrBuilder getBuildPieceOrBuilder() {
       if (msgCase_ == 33) {
          return (soc.proto.GameMessage.BuildPiece) msg_;
@@ -33527,6 +33967,7 @@ public final class GameMessage {
      * <code>.CancelBuild cancel_build = 34;</code>
      * @return Whether the cancelBuild field is set.
      */
+    @java.lang.Override
     public boolean hasCancelBuild() {
       return msgCase_ == 34;
     }
@@ -33534,6 +33975,7 @@ public final class GameMessage {
      * <code>.CancelBuild cancel_build = 34;</code>
      * @return The cancelBuild.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.CancelBuild getCancelBuild() {
       if (msgCase_ == 34) {
          return (soc.proto.GameMessage.CancelBuild) msg_;
@@ -33543,6 +33985,7 @@ public final class GameMessage {
     /**
      * <code>.CancelBuild cancel_build = 34;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
       if (msgCase_ == 34) {
          return (soc.proto.GameMessage.CancelBuild) msg_;
@@ -33555,6 +33998,7 @@ public final class GameMessage {
      * <code>.MovePiece move_piece = 35;</code>
      * @return Whether the movePiece field is set.
      */
+    @java.lang.Override
     public boolean hasMovePiece() {
       return msgCase_ == 35;
     }
@@ -33562,6 +34006,7 @@ public final class GameMessage {
      * <code>.MovePiece move_piece = 35;</code>
      * @return The movePiece.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.MovePiece getMovePiece() {
       if (msgCase_ == 35) {
          return (soc.proto.GameMessage.MovePiece) msg_;
@@ -33571,6 +34016,7 @@ public final class GameMessage {
     /**
      * <code>.MovePiece move_piece = 35;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder() {
       if (msgCase_ == 35) {
          return (soc.proto.GameMessage.MovePiece) msg_;
@@ -33583,6 +34029,7 @@ public final class GameMessage {
      * <code>.RemovePiece remove_piece = 36;</code>
      * @return Whether the removePiece field is set.
      */
+    @java.lang.Override
     public boolean hasRemovePiece() {
       return msgCase_ == 36;
     }
@@ -33590,6 +34037,7 @@ public final class GameMessage {
      * <code>.RemovePiece remove_piece = 36;</code>
      * @return The removePiece.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.RemovePiece getRemovePiece() {
       if (msgCase_ == 36) {
          return (soc.proto.GameMessage.RemovePiece) msg_;
@@ -33599,6 +34047,7 @@ public final class GameMessage {
     /**
      * <code>.RemovePiece remove_piece = 36;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.RemovePieceOrBuilder getRemovePieceOrBuilder() {
       if (msgCase_ == 36) {
          return (soc.proto.GameMessage.RemovePiece) msg_;
@@ -33611,6 +34060,7 @@ public final class GameMessage {
      * <code>.RevealFogHex reveal_fog_hex = 37;</code>
      * @return Whether the revealFogHex field is set.
      */
+    @java.lang.Override
     public boolean hasRevealFogHex() {
       return msgCase_ == 37;
     }
@@ -33618,6 +34068,7 @@ public final class GameMessage {
      * <code>.RevealFogHex reveal_fog_hex = 37;</code>
      * @return The revealFogHex.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.RevealFogHex getRevealFogHex() {
       if (msgCase_ == 37) {
          return (soc.proto.GameMessage.RevealFogHex) msg_;
@@ -33627,6 +34078,7 @@ public final class GameMessage {
     /**
      * <code>.RevealFogHex reveal_fog_hex = 37;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.RevealFogHexOrBuilder getRevealFogHexOrBuilder() {
       if (msgCase_ == 37) {
          return (soc.proto.GameMessage.RevealFogHex) msg_;
@@ -33643,6 +34095,7 @@ public final class GameMessage {
      * <code>.StartGame start_game = 100;</code>
      * @return Whether the startGame field is set.
      */
+    @java.lang.Override
     public boolean hasStartGame() {
       return msgCase_ == 100;
     }
@@ -33654,6 +34107,7 @@ public final class GameMessage {
      * <code>.StartGame start_game = 100;</code>
      * @return The startGame.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.StartGame getStartGame() {
       if (msgCase_ == 100) {
          return (soc.proto.GameMessage.StartGame) msg_;
@@ -33667,6 +34121,7 @@ public final class GameMessage {
      *
      * <code>.StartGame start_game = 100;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder() {
       if (msgCase_ == 100) {
          return (soc.proto.GameMessage.StartGame) msg_;
@@ -33679,6 +34134,7 @@ public final class GameMessage {
      * <code>.Turn turn = 101;</code>
      * @return Whether the turn field is set.
      */
+    @java.lang.Override
     public boolean hasTurn() {
       return msgCase_ == 101;
     }
@@ -33686,6 +34142,7 @@ public final class GameMessage {
      * <code>.Turn turn = 101;</code>
      * @return The turn.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.Turn getTurn() {
       if (msgCase_ == 101) {
          return (soc.proto.GameMessage.Turn) msg_;
@@ -33695,6 +34152,7 @@ public final class GameMessage {
     /**
      * <code>.Turn turn = 101;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TurnOrBuilder getTurnOrBuilder() {
       if (msgCase_ == 101) {
          return (soc.proto.GameMessage.Turn) msg_;
@@ -33707,6 +34165,7 @@ public final class GameMessage {
      * <code>.SetTurn set_turn = 102;</code>
      * @return Whether the setTurn field is set.
      */
+    @java.lang.Override
     public boolean hasSetTurn() {
       return msgCase_ == 102;
     }
@@ -33714,6 +34173,7 @@ public final class GameMessage {
      * <code>.SetTurn set_turn = 102;</code>
      * @return The setTurn.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.SetTurn getSetTurn() {
       if (msgCase_ == 102) {
          return (soc.proto.GameMessage.SetTurn) msg_;
@@ -33723,6 +34183,7 @@ public final class GameMessage {
     /**
      * <code>.SetTurn set_turn = 102;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.SetTurnOrBuilder getSetTurnOrBuilder() {
       if (msgCase_ == 102) {
          return (soc.proto.GameMessage.SetTurn) msg_;
@@ -33735,6 +34196,7 @@ public final class GameMessage {
      * <code>.DiceRollRequest dice_roll_request = 103;</code>
      * @return Whether the diceRollRequest field is set.
      */
+    @java.lang.Override
     public boolean hasDiceRollRequest() {
       return msgCase_ == 103;
     }
@@ -33742,6 +34204,7 @@ public final class GameMessage {
      * <code>.DiceRollRequest dice_roll_request = 103;</code>
      * @return The diceRollRequest.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
       if (msgCase_ == 103) {
          return (soc.proto.GameMessage.DiceRollRequest) msg_;
@@ -33751,6 +34214,7 @@ public final class GameMessage {
     /**
      * <code>.DiceRollRequest dice_roll_request = 103;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder() {
       if (msgCase_ == 103) {
          return (soc.proto.GameMessage.DiceRollRequest) msg_;
@@ -33763,6 +34227,7 @@ public final class GameMessage {
      * <code>.DiceResult dice_result = 104;</code>
      * @return Whether the diceResult field is set.
      */
+    @java.lang.Override
     public boolean hasDiceResult() {
       return msgCase_ == 104;
     }
@@ -33770,6 +34235,7 @@ public final class GameMessage {
      * <code>.DiceResult dice_result = 104;</code>
      * @return The diceResult.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceResult getDiceResult() {
       if (msgCase_ == 104) {
          return (soc.proto.GameMessage.DiceResult) msg_;
@@ -33779,6 +34245,7 @@ public final class GameMessage {
     /**
      * <code>.DiceResult dice_result = 104;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceResultOrBuilder getDiceResultOrBuilder() {
       if (msgCase_ == 104) {
          return (soc.proto.GameMessage.DiceResult) msg_;
@@ -33791,6 +34258,7 @@ public final class GameMessage {
      * <code>.DiceResultResources dice_result_resources = 105;</code>
      * @return Whether the diceResultResources field is set.
      */
+    @java.lang.Override
     public boolean hasDiceResultResources() {
       return msgCase_ == 105;
     }
@@ -33798,6 +34266,7 @@ public final class GameMessage {
      * <code>.DiceResultResources dice_result_resources = 105;</code>
      * @return The diceResultResources.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceResultResources getDiceResultResources() {
       if (msgCase_ == 105) {
          return (soc.proto.GameMessage.DiceResultResources) msg_;
@@ -33807,6 +34276,7 @@ public final class GameMessage {
     /**
      * <code>.DiceResultResources dice_result_resources = 105;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder() {
       if (msgCase_ == 105) {
          return (soc.proto.GameMessage.DiceResultResources) msg_;
@@ -33825,6 +34295,7 @@ public final class GameMessage {
      * <code>.InventoryItemAction inventory_item_action = 302;</code>
      * @return Whether the inventoryItemAction field is set.
      */
+    @java.lang.Override
     public boolean hasInventoryItemAction() {
       return msgCase_ == 302;
     }
@@ -33838,6 +34309,7 @@ public final class GameMessage {
      * <code>.InventoryItemAction inventory_item_action = 302;</code>
      * @return The inventoryItemAction.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.InventoryItemAction getInventoryItemAction() {
       if (msgCase_ == 302) {
          return (soc.proto.GameMessage.InventoryItemAction) msg_;
@@ -33853,6 +34325,7 @@ public final class GameMessage {
      *
      * <code>.InventoryItemAction inventory_item_action = 302;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.InventoryItemActionOrBuilder getInventoryItemActionOrBuilder() {
       if (msgCase_ == 302) {
          return (soc.proto.GameMessage.InventoryItemAction) msg_;
@@ -33869,6 +34342,7 @@ public final class GameMessage {
      * <code>.TradeWithBank trade_with_bank = 400;</code>
      * @return Whether the tradeWithBank field is set.
      */
+    @java.lang.Override
     public boolean hasTradeWithBank() {
       return msgCase_ == 400;
     }
@@ -33880,6 +34354,7 @@ public final class GameMessage {
      * <code>.TradeWithBank trade_with_bank = 400;</code>
      * @return The tradeWithBank.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
       if (msgCase_ == 400) {
          return (soc.proto.GameMessage.TradeWithBank) msg_;
@@ -33893,6 +34368,7 @@ public final class GameMessage {
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder() {
       if (msgCase_ == 400) {
          return (soc.proto.GameMessage.TradeWithBank) msg_;
@@ -33905,6 +34381,7 @@ public final class GameMessage {
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
      * @return Whether the tradeMakeOffer field is set.
      */
+    @java.lang.Override
     public boolean hasTradeMakeOffer() {
       return msgCase_ == 401;
     }
@@ -33912,6 +34389,7 @@ public final class GameMessage {
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
      * @return The tradeMakeOffer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
       if (msgCase_ == 401) {
          return (soc.proto.GameMessage.TradeMakeOffer) msg_;
@@ -33921,6 +34399,7 @@ public final class GameMessage {
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder() {
       if (msgCase_ == 401) {
          return (soc.proto.GameMessage.TradeMakeOffer) msg_;
@@ -33933,6 +34412,7 @@ public final class GameMessage {
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
      * @return Whether the tradeClearOffer field is set.
      */
+    @java.lang.Override
     public boolean hasTradeClearOffer() {
       return msgCase_ == 402;
     }
@@ -33940,6 +34420,7 @@ public final class GameMessage {
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
      * @return The tradeClearOffer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
       if (msgCase_ == 402) {
          return (soc.proto.GameMessage.TradeClearOffer) msg_;
@@ -33949,6 +34430,7 @@ public final class GameMessage {
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder() {
       if (msgCase_ == 402) {
          return (soc.proto.GameMessage.TradeClearOffer) msg_;
@@ -33961,6 +34443,7 @@ public final class GameMessage {
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
      * @return Whether the tradeRejectOffer field is set.
      */
+    @java.lang.Override
     public boolean hasTradeRejectOffer() {
       return msgCase_ == 403;
     }
@@ -33968,6 +34451,7 @@ public final class GameMessage {
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
      * @return The tradeRejectOffer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
       if (msgCase_ == 403) {
          return (soc.proto.GameMessage.TradeRejectOffer) msg_;
@@ -33977,6 +34461,7 @@ public final class GameMessage {
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder() {
       if (msgCase_ == 403) {
          return (soc.proto.GameMessage.TradeRejectOffer) msg_;
@@ -33989,6 +34474,7 @@ public final class GameMessage {
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
      * @return Whether the tradeAcceptOffer field is set.
      */
+    @java.lang.Override
     public boolean hasTradeAcceptOffer() {
       return msgCase_ == 404;
     }
@@ -33996,6 +34482,7 @@ public final class GameMessage {
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
      * @return The tradeAcceptOffer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
       if (msgCase_ == 404) {
          return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
@@ -34005,6 +34492,7 @@ public final class GameMessage {
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder() {
       if (msgCase_ == 404) {
          return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
@@ -34021,6 +34509,7 @@ public final class GameMessage {
      * <code>.LoseResources lose_resources_prompt = 500;</code>
      * @return Whether the loseResourcesPrompt field is set.
      */
+    @java.lang.Override
     public boolean hasLoseResourcesPrompt() {
       return msgCase_ == 500;
     }
@@ -34032,6 +34521,7 @@ public final class GameMessage {
      * <code>.LoseResources lose_resources_prompt = 500;</code>
      * @return The loseResourcesPrompt.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.LoseResources getLoseResourcesPrompt() {
       if (msgCase_ == 500) {
          return (soc.proto.GameMessage.LoseResources) msg_;
@@ -34045,6 +34535,7 @@ public final class GameMessage {
      *
      * <code>.LoseResources lose_resources_prompt = 500;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesPromptOrBuilder() {
       if (msgCase_ == 500) {
          return (soc.proto.GameMessage.LoseResources) msg_;
@@ -34057,6 +34548,7 @@ public final class GameMessage {
      * <code>.LoseResources lose_resources = 501;</code>
      * @return Whether the loseResources field is set.
      */
+    @java.lang.Override
     public boolean hasLoseResources() {
       return msgCase_ == 501;
     }
@@ -34064,6 +34556,7 @@ public final class GameMessage {
      * <code>.LoseResources lose_resources = 501;</code>
      * @return The loseResources.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.LoseResources getLoseResources() {
       if (msgCase_ == 501) {
          return (soc.proto.GameMessage.LoseResources) msg_;
@@ -34073,6 +34566,7 @@ public final class GameMessage {
     /**
      * <code>.LoseResources lose_resources = 501;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder() {
       if (msgCase_ == 501) {
          return (soc.proto.GameMessage.LoseResources) msg_;
@@ -34085,6 +34579,7 @@ public final class GameMessage {
      * <code>.GainResources gain_resources_prompt = 502;</code>
      * @return Whether the gainResourcesPrompt field is set.
      */
+    @java.lang.Override
     public boolean hasGainResourcesPrompt() {
       return msgCase_ == 502;
     }
@@ -34092,6 +34587,7 @@ public final class GameMessage {
      * <code>.GainResources gain_resources_prompt = 502;</code>
      * @return The gainResourcesPrompt.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GainResources getGainResourcesPrompt() {
       if (msgCase_ == 502) {
          return (soc.proto.GameMessage.GainResources) msg_;
@@ -34101,6 +34597,7 @@ public final class GameMessage {
     /**
      * <code>.GainResources gain_resources_prompt = 502;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesPromptOrBuilder() {
       if (msgCase_ == 502) {
          return (soc.proto.GameMessage.GainResources) msg_;
@@ -34113,6 +34610,7 @@ public final class GameMessage {
      * <code>.GainResources gain_resources = 503;</code>
      * @return Whether the gainResources field is set.
      */
+    @java.lang.Override
     public boolean hasGainResources() {
       return msgCase_ == 503;
     }
@@ -34120,6 +34618,7 @@ public final class GameMessage {
      * <code>.GainResources gain_resources = 503;</code>
      * @return The gainResources.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GainResources getGainResources() {
       if (msgCase_ == 503) {
          return (soc.proto.GameMessage.GainResources) msg_;
@@ -34129,6 +34628,7 @@ public final class GameMessage {
     /**
      * <code>.GainResources gain_resources = 503;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder() {
       if (msgCase_ == 503) {
          return (soc.proto.GameMessage.GainResources) msg_;
@@ -34141,6 +34641,7 @@ public final class GameMessage {
      * <code>.ChoosePlayer choose_player_prompt = 504;</code>
      * @return Whether the choosePlayerPrompt field is set.
      */
+    @java.lang.Override
     public boolean hasChoosePlayerPrompt() {
       return msgCase_ == 504;
     }
@@ -34148,6 +34649,7 @@ public final class GameMessage {
      * <code>.ChoosePlayer choose_player_prompt = 504;</code>
      * @return The choosePlayerPrompt.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ChoosePlayer getChoosePlayerPrompt() {
       if (msgCase_ == 504) {
          return (soc.proto.GameMessage.ChoosePlayer) msg_;
@@ -34157,6 +34659,7 @@ public final class GameMessage {
     /**
      * <code>.ChoosePlayer choose_player_prompt = 504;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerPromptOrBuilder() {
       if (msgCase_ == 504) {
          return (soc.proto.GameMessage.ChoosePlayer) msg_;
@@ -34169,6 +34672,7 @@ public final class GameMessage {
      * <code>.MoveRobber move_robber = 505;</code>
      * @return Whether the moveRobber field is set.
      */
+    @java.lang.Override
     public boolean hasMoveRobber() {
       return msgCase_ == 505;
     }
@@ -34176,6 +34680,7 @@ public final class GameMessage {
      * <code>.MoveRobber move_robber = 505;</code>
      * @return The moveRobber.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.MoveRobber getMoveRobber() {
       if (msgCase_ == 505) {
          return (soc.proto.GameMessage.MoveRobber) msg_;
@@ -34185,6 +34690,7 @@ public final class GameMessage {
     /**
      * <code>.MoveRobber move_robber = 505;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder() {
       if (msgCase_ == 505) {
          return (soc.proto.GameMessage.MoveRobber) msg_;
@@ -34201,6 +34707,7 @@ public final class GameMessage {
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
      * @return Whether the resetBoardRequest field is set.
      */
+    @java.lang.Override
     public boolean hasResetBoardRequest() {
       return msgCase_ == 1000;
     }
@@ -34212,6 +34719,7 @@ public final class GameMessage {
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
      * @return The resetBoardRequest.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
       if (msgCase_ == 1000) {
          return (soc.proto.GameMessage.ResetBoardRequest) msg_;
@@ -34225,6 +34733,7 @@ public final class GameMessage {
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder() {
       if (msgCase_ == 1000) {
          return (soc.proto.GameMessage.ResetBoardRequest) msg_;
@@ -34237,6 +34746,7 @@ public final class GameMessage {
      * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
      * @return Whether the resetBoardVotePrompt field is set.
      */
+    @java.lang.Override
     public boolean hasResetBoardVotePrompt() {
       return msgCase_ == 1001;
     }
@@ -34244,6 +34754,7 @@ public final class GameMessage {
      * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
      * @return The resetBoardVotePrompt.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardVote getResetBoardVotePrompt() {
       if (msgCase_ == 1001) {
          return (soc.proto.GameMessage.ResetBoardVote) msg_;
@@ -34253,6 +34764,7 @@ public final class GameMessage {
     /**
      * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVotePromptOrBuilder() {
       if (msgCase_ == 1001) {
          return (soc.proto.GameMessage.ResetBoardVote) msg_;
@@ -34265,6 +34777,7 @@ public final class GameMessage {
      * <code>.ResetBoardVote reset_board_vote = 1002;</code>
      * @return Whether the resetBoardVote field is set.
      */
+    @java.lang.Override
     public boolean hasResetBoardVote() {
       return msgCase_ == 1002;
     }
@@ -34272,6 +34785,7 @@ public final class GameMessage {
      * <code>.ResetBoardVote reset_board_vote = 1002;</code>
      * @return The resetBoardVote.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
       if (msgCase_ == 1002) {
          return (soc.proto.GameMessage.ResetBoardVote) msg_;
@@ -34281,6 +34795,7 @@ public final class GameMessage {
     /**
      * <code>.ResetBoardVote reset_board_vote = 1002;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder() {
       if (msgCase_ == 1002) {
          return (soc.proto.GameMessage.ResetBoardVote) msg_;
@@ -34293,6 +34808,7 @@ public final class GameMessage {
      * <code>.ResetBoardResult reset_board_result = 1003;</code>
      * @return Whether the resetBoardResult field is set.
      */
+    @java.lang.Override
     public boolean hasResetBoardResult() {
       return msgCase_ == 1003;
     }
@@ -34300,6 +34816,7 @@ public final class GameMessage {
      * <code>.ResetBoardResult reset_board_result = 1003;</code>
      * @return The resetBoardResult.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardResult getResetBoardResult() {
       if (msgCase_ == 1003) {
          return (soc.proto.GameMessage.ResetBoardResult) msg_;
@@ -34309,6 +34826,7 @@ public final class GameMessage {
     /**
      * <code>.ResetBoardResult reset_board_result = 1003;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardResultOrBuilder getResetBoardResultOrBuilder() {
       if (msgCase_ == 1003) {
          return (soc.proto.GameMessage.ResetBoardResult) msg_;
@@ -35638,6 +36156,7 @@ public final class GameMessage {
        * <code>sint32 player_number = 2;</code>
        * @return The playerNumber.
        */
+      @java.lang.Override
       public int getPlayerNumber() {
         return playerNumber_;
       }
@@ -35685,6 +36204,7 @@ public final class GameMessage {
        * <code>.State game_state = 3;</code>
        * @return Whether the gameState field is set.
        */
+      @java.lang.Override
       public boolean hasGameState() {
         return msgCase_ == 3;
       }
@@ -35696,6 +36216,7 @@ public final class GameMessage {
        * <code>.State game_state = 3;</code>
        * @return The gameState.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.State getGameState() {
         if (gameStateBuilder_ == null) {
           if (msgCase_ == 3) {
@@ -35813,6 +36334,7 @@ public final class GameMessage {
        *
        * <code>.State game_state = 3;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.StateOrBuilder getGameStateOrBuilder() {
         if ((msgCase_ == 3) && (gameStateBuilder_ != null)) {
           return gameStateBuilder_.getMessageOrBuilder();
@@ -35855,6 +36377,7 @@ public final class GameMessage {
        * <code>.PlayerElement player_element = 15;</code>
        * @return Whether the playerElement field is set.
        */
+      @java.lang.Override
       public boolean hasPlayerElement() {
         return msgCase_ == 15;
       }
@@ -35862,6 +36385,7 @@ public final class GameMessage {
        * <code>.PlayerElement player_element = 15;</code>
        * @return The playerElement.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElement getPlayerElement() {
         if (playerElementBuilder_ == null) {
           if (msgCase_ == 15) {
@@ -35955,6 +36479,7 @@ public final class GameMessage {
       /**
        * <code>.PlayerElement player_element = 15;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElementOrBuilder getPlayerElementOrBuilder() {
         if ((msgCase_ == 15) && (playerElementBuilder_ != null)) {
           return playerElementBuilder_.getMessageOrBuilder();
@@ -35997,6 +36522,7 @@ public final class GameMessage {
        * <code>.PlayerElements player_elements = 16;</code>
        * @return Whether the playerElements field is set.
        */
+      @java.lang.Override
       public boolean hasPlayerElements() {
         return msgCase_ == 16;
       }
@@ -36008,6 +36534,7 @@ public final class GameMessage {
        * <code>.PlayerElements player_elements = 16;</code>
        * @return The playerElements.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElements getPlayerElements() {
         if (playerElementsBuilder_ == null) {
           if (msgCase_ == 16) {
@@ -36125,6 +36652,7 @@ public final class GameMessage {
        *
        * <code>.PlayerElements player_elements = 16;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.PlayerElementsOrBuilder getPlayerElementsOrBuilder() {
         if ((msgCase_ == 16) && (playerElementsBuilder_ != null)) {
           return playerElementsBuilder_.getMessageOrBuilder();
@@ -36167,6 +36695,7 @@ public final class GameMessage {
        * <code>.GameElements game_elements = 17;</code>
        * @return Whether the gameElements field is set.
        */
+      @java.lang.Override
       public boolean hasGameElements() {
         return msgCase_ == 17;
       }
@@ -36174,6 +36703,7 @@ public final class GameMessage {
        * <code>.GameElements game_elements = 17;</code>
        * @return The gameElements.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GameElements getGameElements() {
         if (gameElementsBuilder_ == null) {
           if (msgCase_ == 17) {
@@ -36267,6 +36797,7 @@ public final class GameMessage {
       /**
        * <code>.GameElements game_elements = 17;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GameElementsOrBuilder getGameElementsOrBuilder() {
         if ((msgCase_ == 17) && (gameElementsBuilder_ != null)) {
           return gameElementsBuilder_.getMessageOrBuilder();
@@ -36309,6 +36840,7 @@ public final class GameMessage {
        * <code>.BoardLayout board_layout = 30;</code>
        * @return Whether the boardLayout field is set.
        */
+      @java.lang.Override
       public boolean hasBoardLayout() {
         return msgCase_ == 30;
       }
@@ -36320,6 +36852,7 @@ public final class GameMessage {
        * <code>.BoardLayout board_layout = 30;</code>
        * @return The boardLayout.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BoardLayout getBoardLayout() {
         if (boardLayoutBuilder_ == null) {
           if (msgCase_ == 30) {
@@ -36437,6 +36970,7 @@ public final class GameMessage {
        *
        * <code>.BoardLayout board_layout = 30;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BoardLayoutOrBuilder getBoardLayoutOrBuilder() {
         if ((msgCase_ == 30) && (boardLayoutBuilder_ != null)) {
           return boardLayoutBuilder_.getMessageOrBuilder();
@@ -36479,6 +37013,7 @@ public final class GameMessage {
        * <code>.PotentialSettlements potential_settlements = 31;</code>
        * @return Whether the potentialSettlements field is set.
        */
+      @java.lang.Override
       public boolean hasPotentialSettlements() {
         return msgCase_ == 31;
       }
@@ -36486,6 +37021,7 @@ public final class GameMessage {
        * <code>.PotentialSettlements potential_settlements = 31;</code>
        * @return The potentialSettlements.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.PotentialSettlements getPotentialSettlements() {
         if (potentialSettlementsBuilder_ == null) {
           if (msgCase_ == 31) {
@@ -36579,6 +37115,7 @@ public final class GameMessage {
       /**
        * <code>.PotentialSettlements potential_settlements = 31;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.PotentialSettlementsOrBuilder getPotentialSettlementsOrBuilder() {
         if ((msgCase_ == 31) && (potentialSettlementsBuilder_ != null)) {
           return potentialSettlementsBuilder_.getMessageOrBuilder();
@@ -36617,6 +37154,7 @@ public final class GameMessage {
        * <code>.PieceValue piece_value = 32;</code>
        * @return Whether the pieceValue field is set.
        */
+      @java.lang.Override
       public boolean hasPieceValue() {
         return msgCase_ == 32;
       }
@@ -36624,6 +37162,7 @@ public final class GameMessage {
        * <code>.PieceValue piece_value = 32;</code>
        * @return The pieceValue.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.PieceValue getPieceValue() {
         if (pieceValueBuilder_ == null) {
           if (msgCase_ == 32) {
@@ -36717,6 +37256,7 @@ public final class GameMessage {
       /**
        * <code>.PieceValue piece_value = 32;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.PieceValueOrBuilder getPieceValueOrBuilder() {
         if ((msgCase_ == 32) && (pieceValueBuilder_ != null)) {
           return pieceValueBuilder_.getMessageOrBuilder();
@@ -36755,6 +37295,7 @@ public final class GameMessage {
        * <code>.BuildPiece build_piece = 33;</code>
        * @return Whether the buildPiece field is set.
        */
+      @java.lang.Override
       public boolean hasBuildPiece() {
         return msgCase_ == 33;
       }
@@ -36762,6 +37303,7 @@ public final class GameMessage {
        * <code>.BuildPiece build_piece = 33;</code>
        * @return The buildPiece.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BuildPiece getBuildPiece() {
         if (buildPieceBuilder_ == null) {
           if (msgCase_ == 33) {
@@ -36855,6 +37397,7 @@ public final class GameMessage {
       /**
        * <code>.BuildPiece build_piece = 33;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BuildPieceOrBuilder getBuildPieceOrBuilder() {
         if ((msgCase_ == 33) && (buildPieceBuilder_ != null)) {
           return buildPieceBuilder_.getMessageOrBuilder();
@@ -36893,6 +37436,7 @@ public final class GameMessage {
        * <code>.CancelBuild cancel_build = 34;</code>
        * @return Whether the cancelBuild field is set.
        */
+      @java.lang.Override
       public boolean hasCancelBuild() {
         return msgCase_ == 34;
       }
@@ -36900,6 +37444,7 @@ public final class GameMessage {
        * <code>.CancelBuild cancel_build = 34;</code>
        * @return The cancelBuild.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.CancelBuild getCancelBuild() {
         if (cancelBuildBuilder_ == null) {
           if (msgCase_ == 34) {
@@ -36993,6 +37538,7 @@ public final class GameMessage {
       /**
        * <code>.CancelBuild cancel_build = 34;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
         if ((msgCase_ == 34) && (cancelBuildBuilder_ != null)) {
           return cancelBuildBuilder_.getMessageOrBuilder();
@@ -37031,6 +37577,7 @@ public final class GameMessage {
        * <code>.MovePiece move_piece = 35;</code>
        * @return Whether the movePiece field is set.
        */
+      @java.lang.Override
       public boolean hasMovePiece() {
         return msgCase_ == 35;
       }
@@ -37038,6 +37585,7 @@ public final class GameMessage {
        * <code>.MovePiece move_piece = 35;</code>
        * @return The movePiece.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.MovePiece getMovePiece() {
         if (movePieceBuilder_ == null) {
           if (msgCase_ == 35) {
@@ -37131,6 +37679,7 @@ public final class GameMessage {
       /**
        * <code>.MovePiece move_piece = 35;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder() {
         if ((msgCase_ == 35) && (movePieceBuilder_ != null)) {
           return movePieceBuilder_.getMessageOrBuilder();
@@ -37169,6 +37718,7 @@ public final class GameMessage {
        * <code>.RemovePiece remove_piece = 36;</code>
        * @return Whether the removePiece field is set.
        */
+      @java.lang.Override
       public boolean hasRemovePiece() {
         return msgCase_ == 36;
       }
@@ -37176,6 +37726,7 @@ public final class GameMessage {
        * <code>.RemovePiece remove_piece = 36;</code>
        * @return The removePiece.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.RemovePiece getRemovePiece() {
         if (removePieceBuilder_ == null) {
           if (msgCase_ == 36) {
@@ -37269,6 +37820,7 @@ public final class GameMessage {
       /**
        * <code>.RemovePiece remove_piece = 36;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.RemovePieceOrBuilder getRemovePieceOrBuilder() {
         if ((msgCase_ == 36) && (removePieceBuilder_ != null)) {
           return removePieceBuilder_.getMessageOrBuilder();
@@ -37307,6 +37859,7 @@ public final class GameMessage {
        * <code>.RevealFogHex reveal_fog_hex = 37;</code>
        * @return Whether the revealFogHex field is set.
        */
+      @java.lang.Override
       public boolean hasRevealFogHex() {
         return msgCase_ == 37;
       }
@@ -37314,6 +37867,7 @@ public final class GameMessage {
        * <code>.RevealFogHex reveal_fog_hex = 37;</code>
        * @return The revealFogHex.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.RevealFogHex getRevealFogHex() {
         if (revealFogHexBuilder_ == null) {
           if (msgCase_ == 37) {
@@ -37407,6 +37961,7 @@ public final class GameMessage {
       /**
        * <code>.RevealFogHex reveal_fog_hex = 37;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.RevealFogHexOrBuilder getRevealFogHexOrBuilder() {
         if ((msgCase_ == 37) && (revealFogHexBuilder_ != null)) {
           return revealFogHexBuilder_.getMessageOrBuilder();
@@ -37449,6 +38004,7 @@ public final class GameMessage {
        * <code>.StartGame start_game = 100;</code>
        * @return Whether the startGame field is set.
        */
+      @java.lang.Override
       public boolean hasStartGame() {
         return msgCase_ == 100;
       }
@@ -37460,6 +38016,7 @@ public final class GameMessage {
        * <code>.StartGame start_game = 100;</code>
        * @return The startGame.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.StartGame getStartGame() {
         if (startGameBuilder_ == null) {
           if (msgCase_ == 100) {
@@ -37577,6 +38134,7 @@ public final class GameMessage {
        *
        * <code>.StartGame start_game = 100;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder() {
         if ((msgCase_ == 100) && (startGameBuilder_ != null)) {
           return startGameBuilder_.getMessageOrBuilder();
@@ -37619,6 +38177,7 @@ public final class GameMessage {
        * <code>.Turn turn = 101;</code>
        * @return Whether the turn field is set.
        */
+      @java.lang.Override
       public boolean hasTurn() {
         return msgCase_ == 101;
       }
@@ -37626,6 +38185,7 @@ public final class GameMessage {
        * <code>.Turn turn = 101;</code>
        * @return The turn.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.Turn getTurn() {
         if (turnBuilder_ == null) {
           if (msgCase_ == 101) {
@@ -37719,6 +38279,7 @@ public final class GameMessage {
       /**
        * <code>.Turn turn = 101;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TurnOrBuilder getTurnOrBuilder() {
         if ((msgCase_ == 101) && (turnBuilder_ != null)) {
           return turnBuilder_.getMessageOrBuilder();
@@ -37757,6 +38318,7 @@ public final class GameMessage {
        * <code>.SetTurn set_turn = 102;</code>
        * @return Whether the setTurn field is set.
        */
+      @java.lang.Override
       public boolean hasSetTurn() {
         return msgCase_ == 102;
       }
@@ -37764,6 +38326,7 @@ public final class GameMessage {
        * <code>.SetTurn set_turn = 102;</code>
        * @return The setTurn.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.SetTurn getSetTurn() {
         if (setTurnBuilder_ == null) {
           if (msgCase_ == 102) {
@@ -37857,6 +38420,7 @@ public final class GameMessage {
       /**
        * <code>.SetTurn set_turn = 102;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.SetTurnOrBuilder getSetTurnOrBuilder() {
         if ((msgCase_ == 102) && (setTurnBuilder_ != null)) {
           return setTurnBuilder_.getMessageOrBuilder();
@@ -37895,6 +38459,7 @@ public final class GameMessage {
        * <code>.DiceRollRequest dice_roll_request = 103;</code>
        * @return Whether the diceRollRequest field is set.
        */
+      @java.lang.Override
       public boolean hasDiceRollRequest() {
         return msgCase_ == 103;
       }
@@ -37902,6 +38467,7 @@ public final class GameMessage {
        * <code>.DiceRollRequest dice_roll_request = 103;</code>
        * @return The diceRollRequest.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
         if (diceRollRequestBuilder_ == null) {
           if (msgCase_ == 103) {
@@ -37995,6 +38561,7 @@ public final class GameMessage {
       /**
        * <code>.DiceRollRequest dice_roll_request = 103;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder() {
         if ((msgCase_ == 103) && (diceRollRequestBuilder_ != null)) {
           return diceRollRequestBuilder_.getMessageOrBuilder();
@@ -38033,6 +38600,7 @@ public final class GameMessage {
        * <code>.DiceResult dice_result = 104;</code>
        * @return Whether the diceResult field is set.
        */
+      @java.lang.Override
       public boolean hasDiceResult() {
         return msgCase_ == 104;
       }
@@ -38040,6 +38608,7 @@ public final class GameMessage {
        * <code>.DiceResult dice_result = 104;</code>
        * @return The diceResult.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResult getDiceResult() {
         if (diceResultBuilder_ == null) {
           if (msgCase_ == 104) {
@@ -38133,6 +38702,7 @@ public final class GameMessage {
       /**
        * <code>.DiceResult dice_result = 104;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResultOrBuilder getDiceResultOrBuilder() {
         if ((msgCase_ == 104) && (diceResultBuilder_ != null)) {
           return diceResultBuilder_.getMessageOrBuilder();
@@ -38171,6 +38741,7 @@ public final class GameMessage {
        * <code>.DiceResultResources dice_result_resources = 105;</code>
        * @return Whether the diceResultResources field is set.
        */
+      @java.lang.Override
       public boolean hasDiceResultResources() {
         return msgCase_ == 105;
       }
@@ -38178,6 +38749,7 @@ public final class GameMessage {
        * <code>.DiceResultResources dice_result_resources = 105;</code>
        * @return The diceResultResources.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResultResources getDiceResultResources() {
         if (diceResultResourcesBuilder_ == null) {
           if (msgCase_ == 105) {
@@ -38271,6 +38843,7 @@ public final class GameMessage {
       /**
        * <code>.DiceResultResources dice_result_resources = 105;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.DiceResultResourcesOrBuilder getDiceResultResourcesOrBuilder() {
         if ((msgCase_ == 105) && (diceResultResourcesBuilder_ != null)) {
           return diceResultResourcesBuilder_.getMessageOrBuilder();
@@ -38315,6 +38888,7 @@ public final class GameMessage {
        * <code>.InventoryItemAction inventory_item_action = 302;</code>
        * @return Whether the inventoryItemAction field is set.
        */
+      @java.lang.Override
       public boolean hasInventoryItemAction() {
         return msgCase_ == 302;
       }
@@ -38328,6 +38902,7 @@ public final class GameMessage {
        * <code>.InventoryItemAction inventory_item_action = 302;</code>
        * @return The inventoryItemAction.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.InventoryItemAction getInventoryItemAction() {
         if (inventoryItemActionBuilder_ == null) {
           if (msgCase_ == 302) {
@@ -38457,6 +39032,7 @@ public final class GameMessage {
        *
        * <code>.InventoryItemAction inventory_item_action = 302;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.InventoryItemActionOrBuilder getInventoryItemActionOrBuilder() {
         if ((msgCase_ == 302) && (inventoryItemActionBuilder_ != null)) {
           return inventoryItemActionBuilder_.getMessageOrBuilder();
@@ -38505,6 +39081,7 @@ public final class GameMessage {
        * <code>.TradeWithBank trade_with_bank = 400;</code>
        * @return Whether the tradeWithBank field is set.
        */
+      @java.lang.Override
       public boolean hasTradeWithBank() {
         return msgCase_ == 400;
       }
@@ -38516,6 +39093,7 @@ public final class GameMessage {
        * <code>.TradeWithBank trade_with_bank = 400;</code>
        * @return The tradeWithBank.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
         if (tradeWithBankBuilder_ == null) {
           if (msgCase_ == 400) {
@@ -38633,6 +39211,7 @@ public final class GameMessage {
        *
        * <code>.TradeWithBank trade_with_bank = 400;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder() {
         if ((msgCase_ == 400) && (tradeWithBankBuilder_ != null)) {
           return tradeWithBankBuilder_.getMessageOrBuilder();
@@ -38675,6 +39254,7 @@ public final class GameMessage {
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
        * @return Whether the tradeMakeOffer field is set.
        */
+      @java.lang.Override
       public boolean hasTradeMakeOffer() {
         return msgCase_ == 401;
       }
@@ -38682,6 +39262,7 @@ public final class GameMessage {
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
        * @return The tradeMakeOffer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
         if (tradeMakeOfferBuilder_ == null) {
           if (msgCase_ == 401) {
@@ -38775,6 +39356,7 @@ public final class GameMessage {
       /**
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder() {
         if ((msgCase_ == 401) && (tradeMakeOfferBuilder_ != null)) {
           return tradeMakeOfferBuilder_.getMessageOrBuilder();
@@ -38813,6 +39395,7 @@ public final class GameMessage {
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
        * @return Whether the tradeClearOffer field is set.
        */
+      @java.lang.Override
       public boolean hasTradeClearOffer() {
         return msgCase_ == 402;
       }
@@ -38820,6 +39403,7 @@ public final class GameMessage {
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
        * @return The tradeClearOffer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
         if (tradeClearOfferBuilder_ == null) {
           if (msgCase_ == 402) {
@@ -38913,6 +39497,7 @@ public final class GameMessage {
       /**
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder() {
         if ((msgCase_ == 402) && (tradeClearOfferBuilder_ != null)) {
           return tradeClearOfferBuilder_.getMessageOrBuilder();
@@ -38951,6 +39536,7 @@ public final class GameMessage {
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
        * @return Whether the tradeRejectOffer field is set.
        */
+      @java.lang.Override
       public boolean hasTradeRejectOffer() {
         return msgCase_ == 403;
       }
@@ -38958,6 +39544,7 @@ public final class GameMessage {
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
        * @return The tradeRejectOffer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
         if (tradeRejectOfferBuilder_ == null) {
           if (msgCase_ == 403) {
@@ -39051,6 +39638,7 @@ public final class GameMessage {
       /**
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder() {
         if ((msgCase_ == 403) && (tradeRejectOfferBuilder_ != null)) {
           return tradeRejectOfferBuilder_.getMessageOrBuilder();
@@ -39089,6 +39677,7 @@ public final class GameMessage {
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
        * @return Whether the tradeAcceptOffer field is set.
        */
+      @java.lang.Override
       public boolean hasTradeAcceptOffer() {
         return msgCase_ == 404;
       }
@@ -39096,6 +39685,7 @@ public final class GameMessage {
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
        * @return The tradeAcceptOffer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
         if (tradeAcceptOfferBuilder_ == null) {
           if (msgCase_ == 404) {
@@ -39189,6 +39779,7 @@ public final class GameMessage {
       /**
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder() {
         if ((msgCase_ == 404) && (tradeAcceptOfferBuilder_ != null)) {
           return tradeAcceptOfferBuilder_.getMessageOrBuilder();
@@ -39231,6 +39822,7 @@ public final class GameMessage {
        * <code>.LoseResources lose_resources_prompt = 500;</code>
        * @return Whether the loseResourcesPrompt field is set.
        */
+      @java.lang.Override
       public boolean hasLoseResourcesPrompt() {
         return msgCase_ == 500;
       }
@@ -39242,6 +39834,7 @@ public final class GameMessage {
        * <code>.LoseResources lose_resources_prompt = 500;</code>
        * @return The loseResourcesPrompt.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResources getLoseResourcesPrompt() {
         if (loseResourcesPromptBuilder_ == null) {
           if (msgCase_ == 500) {
@@ -39359,6 +39952,7 @@ public final class GameMessage {
        *
        * <code>.LoseResources lose_resources_prompt = 500;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesPromptOrBuilder() {
         if ((msgCase_ == 500) && (loseResourcesPromptBuilder_ != null)) {
           return loseResourcesPromptBuilder_.getMessageOrBuilder();
@@ -39401,6 +39995,7 @@ public final class GameMessage {
        * <code>.LoseResources lose_resources = 501;</code>
        * @return Whether the loseResources field is set.
        */
+      @java.lang.Override
       public boolean hasLoseResources() {
         return msgCase_ == 501;
       }
@@ -39408,6 +40003,7 @@ public final class GameMessage {
        * <code>.LoseResources lose_resources = 501;</code>
        * @return The loseResources.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResources getLoseResources() {
         if (loseResourcesBuilder_ == null) {
           if (msgCase_ == 501) {
@@ -39501,6 +40097,7 @@ public final class GameMessage {
       /**
        * <code>.LoseResources lose_resources = 501;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder() {
         if ((msgCase_ == 501) && (loseResourcesBuilder_ != null)) {
           return loseResourcesBuilder_.getMessageOrBuilder();
@@ -39539,6 +40136,7 @@ public final class GameMessage {
        * <code>.GainResources gain_resources_prompt = 502;</code>
        * @return Whether the gainResourcesPrompt field is set.
        */
+      @java.lang.Override
       public boolean hasGainResourcesPrompt() {
         return msgCase_ == 502;
       }
@@ -39546,6 +40144,7 @@ public final class GameMessage {
        * <code>.GainResources gain_resources_prompt = 502;</code>
        * @return The gainResourcesPrompt.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GainResources getGainResourcesPrompt() {
         if (gainResourcesPromptBuilder_ == null) {
           if (msgCase_ == 502) {
@@ -39639,6 +40238,7 @@ public final class GameMessage {
       /**
        * <code>.GainResources gain_resources_prompt = 502;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesPromptOrBuilder() {
         if ((msgCase_ == 502) && (gainResourcesPromptBuilder_ != null)) {
           return gainResourcesPromptBuilder_.getMessageOrBuilder();
@@ -39677,6 +40277,7 @@ public final class GameMessage {
        * <code>.GainResources gain_resources = 503;</code>
        * @return Whether the gainResources field is set.
        */
+      @java.lang.Override
       public boolean hasGainResources() {
         return msgCase_ == 503;
       }
@@ -39684,6 +40285,7 @@ public final class GameMessage {
        * <code>.GainResources gain_resources = 503;</code>
        * @return The gainResources.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GainResources getGainResources() {
         if (gainResourcesBuilder_ == null) {
           if (msgCase_ == 503) {
@@ -39777,6 +40379,7 @@ public final class GameMessage {
       /**
        * <code>.GainResources gain_resources = 503;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder() {
         if ((msgCase_ == 503) && (gainResourcesBuilder_ != null)) {
           return gainResourcesBuilder_.getMessageOrBuilder();
@@ -39815,6 +40418,7 @@ public final class GameMessage {
        * <code>.ChoosePlayer choose_player_prompt = 504;</code>
        * @return Whether the choosePlayerPrompt field is set.
        */
+      @java.lang.Override
       public boolean hasChoosePlayerPrompt() {
         return msgCase_ == 504;
       }
@@ -39822,6 +40426,7 @@ public final class GameMessage {
        * <code>.ChoosePlayer choose_player_prompt = 504;</code>
        * @return The choosePlayerPrompt.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ChoosePlayer getChoosePlayerPrompt() {
         if (choosePlayerPromptBuilder_ == null) {
           if (msgCase_ == 504) {
@@ -39915,6 +40520,7 @@ public final class GameMessage {
       /**
        * <code>.ChoosePlayer choose_player_prompt = 504;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerPromptOrBuilder() {
         if ((msgCase_ == 504) && (choosePlayerPromptBuilder_ != null)) {
           return choosePlayerPromptBuilder_.getMessageOrBuilder();
@@ -39953,6 +40559,7 @@ public final class GameMessage {
        * <code>.MoveRobber move_robber = 505;</code>
        * @return Whether the moveRobber field is set.
        */
+      @java.lang.Override
       public boolean hasMoveRobber() {
         return msgCase_ == 505;
       }
@@ -39960,6 +40567,7 @@ public final class GameMessage {
        * <code>.MoveRobber move_robber = 505;</code>
        * @return The moveRobber.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.MoveRobber getMoveRobber() {
         if (moveRobberBuilder_ == null) {
           if (msgCase_ == 505) {
@@ -40053,6 +40661,7 @@ public final class GameMessage {
       /**
        * <code>.MoveRobber move_robber = 505;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder() {
         if ((msgCase_ == 505) && (moveRobberBuilder_ != null)) {
           return moveRobberBuilder_.getMessageOrBuilder();
@@ -40095,6 +40704,7 @@ public final class GameMessage {
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
        * @return Whether the resetBoardRequest field is set.
        */
+      @java.lang.Override
       public boolean hasResetBoardRequest() {
         return msgCase_ == 1000;
       }
@@ -40106,6 +40716,7 @@ public final class GameMessage {
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
        * @return The resetBoardRequest.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
         if (resetBoardRequestBuilder_ == null) {
           if (msgCase_ == 1000) {
@@ -40223,6 +40834,7 @@ public final class GameMessage {
        *
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder() {
         if ((msgCase_ == 1000) && (resetBoardRequestBuilder_ != null)) {
           return resetBoardRequestBuilder_.getMessageOrBuilder();
@@ -40265,6 +40877,7 @@ public final class GameMessage {
        * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
        * @return Whether the resetBoardVotePrompt field is set.
        */
+      @java.lang.Override
       public boolean hasResetBoardVotePrompt() {
         return msgCase_ == 1001;
       }
@@ -40272,6 +40885,7 @@ public final class GameMessage {
        * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
        * @return The resetBoardVotePrompt.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVote getResetBoardVotePrompt() {
         if (resetBoardVotePromptBuilder_ == null) {
           if (msgCase_ == 1001) {
@@ -40365,6 +40979,7 @@ public final class GameMessage {
       /**
        * <code>.ResetBoardVote reset_board_vote_prompt = 1001;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVotePromptOrBuilder() {
         if ((msgCase_ == 1001) && (resetBoardVotePromptBuilder_ != null)) {
           return resetBoardVotePromptBuilder_.getMessageOrBuilder();
@@ -40403,6 +41018,7 @@ public final class GameMessage {
        * <code>.ResetBoardVote reset_board_vote = 1002;</code>
        * @return Whether the resetBoardVote field is set.
        */
+      @java.lang.Override
       public boolean hasResetBoardVote() {
         return msgCase_ == 1002;
       }
@@ -40410,6 +41026,7 @@ public final class GameMessage {
        * <code>.ResetBoardVote reset_board_vote = 1002;</code>
        * @return The resetBoardVote.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
         if (resetBoardVoteBuilder_ == null) {
           if (msgCase_ == 1002) {
@@ -40503,6 +41120,7 @@ public final class GameMessage {
       /**
        * <code>.ResetBoardVote reset_board_vote = 1002;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder() {
         if ((msgCase_ == 1002) && (resetBoardVoteBuilder_ != null)) {
           return resetBoardVoteBuilder_.getMessageOrBuilder();
@@ -40541,6 +41159,7 @@ public final class GameMessage {
        * <code>.ResetBoardResult reset_board_result = 1003;</code>
        * @return Whether the resetBoardResult field is set.
        */
+      @java.lang.Override
       public boolean hasResetBoardResult() {
         return msgCase_ == 1003;
       }
@@ -40548,6 +41167,7 @@ public final class GameMessage {
        * <code>.ResetBoardResult reset_board_result = 1003;</code>
        * @return The resetBoardResult.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardResult getResetBoardResult() {
         if (resetBoardResultBuilder_ == null) {
           if (msgCase_ == 1003) {
@@ -40641,6 +41261,7 @@ public final class GameMessage {
       /**
        * <code>.ResetBoardResult reset_board_result = 1003;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardResultOrBuilder getResetBoardResultOrBuilder() {
         if ((msgCase_ == 1003) && (resetBoardResultBuilder_ != null)) {
           return resetBoardResultBuilder_.getMessageOrBuilder();
@@ -41106,7 +41727,7 @@ public final class GameMessage {
   /**
    * Protobuf type {@code GameMessageFromClient}
    */
-  public  static final class GameMessageFromClient extends
+  public static final class GameMessageFromClient extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GameMessageFromClient)
       GameMessageFromClientOrBuilder {
@@ -41550,6 +42171,7 @@ public final class GameMessage {
      * <code>string game_name = 1;</code>
      * @return The gameName.
      */
+    @java.lang.Override
     public java.lang.String getGameName() {
       java.lang.Object ref = gameName_;
       if (ref instanceof java.lang.String) {
@@ -41566,6 +42188,7 @@ public final class GameMessage {
      * <code>string game_name = 1;</code>
      * @return The bytes for gameName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGameNameBytes() {
       java.lang.Object ref = gameName_;
@@ -41589,6 +42212,7 @@ public final class GameMessage {
      * <code>.StartGame start_game = 100;</code>
      * @return Whether the startGame field is set.
      */
+    @java.lang.Override
     public boolean hasStartGame() {
       return msgCase_ == 100;
     }
@@ -41600,6 +42224,7 @@ public final class GameMessage {
      * <code>.StartGame start_game = 100;</code>
      * @return The startGame.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.StartGame getStartGame() {
       if (msgCase_ == 100) {
          return (soc.proto.GameMessage.StartGame) msg_;
@@ -41613,6 +42238,7 @@ public final class GameMessage {
      *
      * <code>.StartGame start_game = 100;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder() {
       if (msgCase_ == 100) {
          return (soc.proto.GameMessage.StartGame) msg_;
@@ -41625,6 +42251,7 @@ public final class GameMessage {
      * <code>.DiceRollRequest dice_roll_request = 101;</code>
      * @return Whether the diceRollRequest field is set.
      */
+    @java.lang.Override
     public boolean hasDiceRollRequest() {
       return msgCase_ == 101;
     }
@@ -41632,6 +42259,7 @@ public final class GameMessage {
      * <code>.DiceRollRequest dice_roll_request = 101;</code>
      * @return The diceRollRequest.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
       if (msgCase_ == 101) {
          return (soc.proto.GameMessage.DiceRollRequest) msg_;
@@ -41641,6 +42269,7 @@ public final class GameMessage {
     /**
      * <code>.DiceRollRequest dice_roll_request = 101;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder() {
       if (msgCase_ == 101) {
          return (soc.proto.GameMessage.DiceRollRequest) msg_;
@@ -41653,6 +42282,7 @@ public final class GameMessage {
      * <code>.EndTurn end_turn = 102;</code>
      * @return Whether the endTurn field is set.
      */
+    @java.lang.Override
     public boolean hasEndTurn() {
       return msgCase_ == 102;
     }
@@ -41660,6 +42290,7 @@ public final class GameMessage {
      * <code>.EndTurn end_turn = 102;</code>
      * @return The endTurn.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.EndTurn getEndTurn() {
       if (msgCase_ == 102) {
          return (soc.proto.GameMessage.EndTurn) msg_;
@@ -41669,6 +42300,7 @@ public final class GameMessage {
     /**
      * <code>.EndTurn end_turn = 102;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder() {
       if (msgCase_ == 102) {
          return (soc.proto.GameMessage.EndTurn) msg_;
@@ -41685,6 +42317,7 @@ public final class GameMessage {
      * <code>.BuildPiece build_piece = 200;</code>
      * @return Whether the buildPiece field is set.
      */
+    @java.lang.Override
     public boolean hasBuildPiece() {
       return msgCase_ == 200;
     }
@@ -41696,6 +42329,7 @@ public final class GameMessage {
      * <code>.BuildPiece build_piece = 200;</code>
      * @return The buildPiece.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.BuildPiece getBuildPiece() {
       if (msgCase_ == 200) {
          return (soc.proto.GameMessage.BuildPiece) msg_;
@@ -41709,6 +42343,7 @@ public final class GameMessage {
      *
      * <code>.BuildPiece build_piece = 200;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.BuildPieceOrBuilder getBuildPieceOrBuilder() {
       if (msgCase_ == 200) {
          return (soc.proto.GameMessage.BuildPiece) msg_;
@@ -41721,6 +42356,7 @@ public final class GameMessage {
      * <code>.CancelBuild cancel_build = 201;</code>
      * @return Whether the cancelBuild field is set.
      */
+    @java.lang.Override
     public boolean hasCancelBuild() {
       return msgCase_ == 201;
     }
@@ -41728,6 +42364,7 @@ public final class GameMessage {
      * <code>.CancelBuild cancel_build = 201;</code>
      * @return The cancelBuild.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.CancelBuild getCancelBuild() {
       if (msgCase_ == 201) {
          return (soc.proto.GameMessage.CancelBuild) msg_;
@@ -41737,6 +42374,7 @@ public final class GameMessage {
     /**
      * <code>.CancelBuild cancel_build = 201;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
       if (msgCase_ == 201) {
          return (soc.proto.GameMessage.CancelBuild) msg_;
@@ -41749,6 +42387,7 @@ public final class GameMessage {
      * <code>.MovePiece move_piece = 202;</code>
      * @return Whether the movePiece field is set.
      */
+    @java.lang.Override
     public boolean hasMovePiece() {
       return msgCase_ == 202;
     }
@@ -41756,6 +42395,7 @@ public final class GameMessage {
      * <code>.MovePiece move_piece = 202;</code>
      * @return The movePiece.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.MovePiece getMovePiece() {
       if (msgCase_ == 202) {
          return (soc.proto.GameMessage.MovePiece) msg_;
@@ -41765,6 +42405,7 @@ public final class GameMessage {
     /**
      * <code>.MovePiece move_piece = 202;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder() {
       if (msgCase_ == 202) {
          return (soc.proto.GameMessage.MovePiece) msg_;
@@ -41777,6 +42418,7 @@ public final class GameMessage {
      * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
      * @return Whether the buyInventoryItem field is set.
      */
+    @java.lang.Override
     public boolean hasBuyInventoryItem() {
       return msgCase_ == 203;
     }
@@ -41784,6 +42426,7 @@ public final class GameMessage {
      * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
      * @return The buyInventoryItem.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.BuyInventoryItemRequest getBuyInventoryItem() {
       if (msgCase_ == 203) {
          return (soc.proto.GameMessage.BuyInventoryItemRequest) msg_;
@@ -41793,6 +42436,7 @@ public final class GameMessage {
     /**
      * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder getBuyInventoryItemOrBuilder() {
       if (msgCase_ == 203) {
          return (soc.proto.GameMessage.BuyInventoryItemRequest) msg_;
@@ -41805,6 +42449,7 @@ public final class GameMessage {
      * <code>.InventoryItemAction inventory_item_action = 204;</code>
      * @return Whether the inventoryItemAction field is set.
      */
+    @java.lang.Override
     public boolean hasInventoryItemAction() {
       return msgCase_ == 204;
     }
@@ -41812,6 +42457,7 @@ public final class GameMessage {
      * <code>.InventoryItemAction inventory_item_action = 204;</code>
      * @return The inventoryItemAction.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.InventoryItemAction getInventoryItemAction() {
       if (msgCase_ == 204) {
          return (soc.proto.GameMessage.InventoryItemAction) msg_;
@@ -41821,6 +42467,7 @@ public final class GameMessage {
     /**
      * <code>.InventoryItemAction inventory_item_action = 204;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.InventoryItemActionOrBuilder getInventoryItemActionOrBuilder() {
       if (msgCase_ == 204) {
          return (soc.proto.GameMessage.InventoryItemAction) msg_;
@@ -41837,6 +42484,7 @@ public final class GameMessage {
      * <code>.TradeWithBank trade_with_bank = 400;</code>
      * @return Whether the tradeWithBank field is set.
      */
+    @java.lang.Override
     public boolean hasTradeWithBank() {
       return msgCase_ == 400;
     }
@@ -41848,6 +42496,7 @@ public final class GameMessage {
      * <code>.TradeWithBank trade_with_bank = 400;</code>
      * @return The tradeWithBank.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
       if (msgCase_ == 400) {
          return (soc.proto.GameMessage.TradeWithBank) msg_;
@@ -41861,6 +42510,7 @@ public final class GameMessage {
      *
      * <code>.TradeWithBank trade_with_bank = 400;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder() {
       if (msgCase_ == 400) {
          return (soc.proto.GameMessage.TradeWithBank) msg_;
@@ -41873,6 +42523,7 @@ public final class GameMessage {
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
      * @return Whether the tradeMakeOffer field is set.
      */
+    @java.lang.Override
     public boolean hasTradeMakeOffer() {
       return msgCase_ == 401;
     }
@@ -41880,6 +42531,7 @@ public final class GameMessage {
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
      * @return The tradeMakeOffer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
       if (msgCase_ == 401) {
          return (soc.proto.GameMessage.TradeMakeOffer) msg_;
@@ -41889,6 +42541,7 @@ public final class GameMessage {
     /**
      * <code>.TradeMakeOffer trade_make_offer = 401;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder() {
       if (msgCase_ == 401) {
          return (soc.proto.GameMessage.TradeMakeOffer) msg_;
@@ -41901,6 +42554,7 @@ public final class GameMessage {
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
      * @return Whether the tradeClearOffer field is set.
      */
+    @java.lang.Override
     public boolean hasTradeClearOffer() {
       return msgCase_ == 402;
     }
@@ -41908,6 +42562,7 @@ public final class GameMessage {
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
      * @return The tradeClearOffer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
       if (msgCase_ == 402) {
          return (soc.proto.GameMessage.TradeClearOffer) msg_;
@@ -41917,6 +42572,7 @@ public final class GameMessage {
     /**
      * <code>.TradeClearOffer trade_clear_offer = 402;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder() {
       if (msgCase_ == 402) {
          return (soc.proto.GameMessage.TradeClearOffer) msg_;
@@ -41929,6 +42585,7 @@ public final class GameMessage {
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
      * @return Whether the tradeRejectOffer field is set.
      */
+    @java.lang.Override
     public boolean hasTradeRejectOffer() {
       return msgCase_ == 403;
     }
@@ -41936,6 +42593,7 @@ public final class GameMessage {
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
      * @return The tradeRejectOffer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
       if (msgCase_ == 403) {
          return (soc.proto.GameMessage.TradeRejectOffer) msg_;
@@ -41945,6 +42603,7 @@ public final class GameMessage {
     /**
      * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder() {
       if (msgCase_ == 403) {
          return (soc.proto.GameMessage.TradeRejectOffer) msg_;
@@ -41957,6 +42616,7 @@ public final class GameMessage {
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
      * @return Whether the tradeAcceptOffer field is set.
      */
+    @java.lang.Override
     public boolean hasTradeAcceptOffer() {
       return msgCase_ == 404;
     }
@@ -41964,6 +42624,7 @@ public final class GameMessage {
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
      * @return The tradeAcceptOffer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
       if (msgCase_ == 404) {
          return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
@@ -41973,6 +42634,7 @@ public final class GameMessage {
     /**
      * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder() {
       if (msgCase_ == 404) {
          return (soc.proto.GameMessage.TradeAcceptOffer) msg_;
@@ -41989,6 +42651,7 @@ public final class GameMessage {
      * <code>.LoseResources lose_resources = 500;</code>
      * @return Whether the loseResources field is set.
      */
+    @java.lang.Override
     public boolean hasLoseResources() {
       return msgCase_ == 500;
     }
@@ -42000,6 +42663,7 @@ public final class GameMessage {
      * <code>.LoseResources lose_resources = 500;</code>
      * @return The loseResources.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.LoseResources getLoseResources() {
       if (msgCase_ == 500) {
          return (soc.proto.GameMessage.LoseResources) msg_;
@@ -42013,6 +42677,7 @@ public final class GameMessage {
      *
      * <code>.LoseResources lose_resources = 500;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder() {
       if (msgCase_ == 500) {
          return (soc.proto.GameMessage.LoseResources) msg_;
@@ -42025,6 +42690,7 @@ public final class GameMessage {
      * <code>.GainResources gain_resources = 501;</code>
      * @return Whether the gainResources field is set.
      */
+    @java.lang.Override
     public boolean hasGainResources() {
       return msgCase_ == 501;
     }
@@ -42032,6 +42698,7 @@ public final class GameMessage {
      * <code>.GainResources gain_resources = 501;</code>
      * @return The gainResources.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GainResources getGainResources() {
       if (msgCase_ == 501) {
          return (soc.proto.GameMessage.GainResources) msg_;
@@ -42041,6 +42708,7 @@ public final class GameMessage {
     /**
      * <code>.GainResources gain_resources = 501;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder() {
       if (msgCase_ == 501) {
          return (soc.proto.GameMessage.GainResources) msg_;
@@ -42053,6 +42721,7 @@ public final class GameMessage {
      * <code>.ChooseResourceType choose_resource_type = 502;</code>
      * @return Whether the chooseResourceType field is set.
      */
+    @java.lang.Override
     public boolean hasChooseResourceType() {
       return msgCase_ == 502;
     }
@@ -42060,6 +42729,7 @@ public final class GameMessage {
      * <code>.ChooseResourceType choose_resource_type = 502;</code>
      * @return The chooseResourceType.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ChooseResourceType getChooseResourceType() {
       if (msgCase_ == 502) {
          return (soc.proto.GameMessage.ChooseResourceType) msg_;
@@ -42069,6 +42739,7 @@ public final class GameMessage {
     /**
      * <code>.ChooseResourceType choose_resource_type = 502;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ChooseResourceTypeOrBuilder getChooseResourceTypeOrBuilder() {
       if (msgCase_ == 502) {
          return (soc.proto.GameMessage.ChooseResourceType) msg_;
@@ -42081,6 +42752,7 @@ public final class GameMessage {
      * <code>.ChoosePlayer choose_player = 503;</code>
      * @return Whether the choosePlayer field is set.
      */
+    @java.lang.Override
     public boolean hasChoosePlayer() {
       return msgCase_ == 503;
     }
@@ -42088,6 +42760,7 @@ public final class GameMessage {
      * <code>.ChoosePlayer choose_player = 503;</code>
      * @return The choosePlayer.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ChoosePlayer getChoosePlayer() {
       if (msgCase_ == 503) {
          return (soc.proto.GameMessage.ChoosePlayer) msg_;
@@ -42097,6 +42770,7 @@ public final class GameMessage {
     /**
      * <code>.ChoosePlayer choose_player = 503;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerOrBuilder() {
       if (msgCase_ == 503) {
          return (soc.proto.GameMessage.ChoosePlayer) msg_;
@@ -42109,6 +42783,7 @@ public final class GameMessage {
      * <code>.MoveRobber move_robber = 504;</code>
      * @return Whether the moveRobber field is set.
      */
+    @java.lang.Override
     public boolean hasMoveRobber() {
       return msgCase_ == 504;
     }
@@ -42116,6 +42791,7 @@ public final class GameMessage {
      * <code>.MoveRobber move_robber = 504;</code>
      * @return The moveRobber.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.MoveRobber getMoveRobber() {
       if (msgCase_ == 504) {
          return (soc.proto.GameMessage.MoveRobber) msg_;
@@ -42125,6 +42801,7 @@ public final class GameMessage {
     /**
      * <code>.MoveRobber move_robber = 504;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder() {
       if (msgCase_ == 504) {
          return (soc.proto.GameMessage.MoveRobber) msg_;
@@ -42141,6 +42818,7 @@ public final class GameMessage {
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
      * @return Whether the resetBoardRequest field is set.
      */
+    @java.lang.Override
     public boolean hasResetBoardRequest() {
       return msgCase_ == 1000;
     }
@@ -42152,6 +42830,7 @@ public final class GameMessage {
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
      * @return The resetBoardRequest.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
       if (msgCase_ == 1000) {
          return (soc.proto.GameMessage.ResetBoardRequest) msg_;
@@ -42165,6 +42844,7 @@ public final class GameMessage {
      *
      * <code>.ResetBoardRequest reset_board_request = 1000;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder() {
       if (msgCase_ == 1000) {
          return (soc.proto.GameMessage.ResetBoardRequest) msg_;
@@ -42177,6 +42857,7 @@ public final class GameMessage {
      * <code>.ResetBoardVote reset_board_vote = 1001;</code>
      * @return Whether the resetBoardVote field is set.
      */
+    @java.lang.Override
     public boolean hasResetBoardVote() {
       return msgCase_ == 1001;
     }
@@ -42184,6 +42865,7 @@ public final class GameMessage {
      * <code>.ResetBoardVote reset_board_vote = 1001;</code>
      * @return The resetBoardVote.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
       if (msgCase_ == 1001) {
          return (soc.proto.GameMessage.ResetBoardVote) msg_;
@@ -42193,6 +42875,7 @@ public final class GameMessage {
     /**
      * <code>.ResetBoardVote reset_board_vote = 1001;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder() {
       if (msgCase_ == 1001) {
          return (soc.proto.GameMessage.ResetBoardVote) msg_;
@@ -43140,6 +43823,7 @@ public final class GameMessage {
        * <code>.StartGame start_game = 100;</code>
        * @return Whether the startGame field is set.
        */
+      @java.lang.Override
       public boolean hasStartGame() {
         return msgCase_ == 100;
       }
@@ -43151,6 +43835,7 @@ public final class GameMessage {
        * <code>.StartGame start_game = 100;</code>
        * @return The startGame.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.StartGame getStartGame() {
         if (startGameBuilder_ == null) {
           if (msgCase_ == 100) {
@@ -43268,6 +43953,7 @@ public final class GameMessage {
        *
        * <code>.StartGame start_game = 100;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.StartGameOrBuilder getStartGameOrBuilder() {
         if ((msgCase_ == 100) && (startGameBuilder_ != null)) {
           return startGameBuilder_.getMessageOrBuilder();
@@ -43310,6 +43996,7 @@ public final class GameMessage {
        * <code>.DiceRollRequest dice_roll_request = 101;</code>
        * @return Whether the diceRollRequest field is set.
        */
+      @java.lang.Override
       public boolean hasDiceRollRequest() {
         return msgCase_ == 101;
       }
@@ -43317,6 +44004,7 @@ public final class GameMessage {
        * <code>.DiceRollRequest dice_roll_request = 101;</code>
        * @return The diceRollRequest.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.DiceRollRequest getDiceRollRequest() {
         if (diceRollRequestBuilder_ == null) {
           if (msgCase_ == 101) {
@@ -43410,6 +44098,7 @@ public final class GameMessage {
       /**
        * <code>.DiceRollRequest dice_roll_request = 101;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.DiceRollRequestOrBuilder getDiceRollRequestOrBuilder() {
         if ((msgCase_ == 101) && (diceRollRequestBuilder_ != null)) {
           return diceRollRequestBuilder_.getMessageOrBuilder();
@@ -43448,6 +44137,7 @@ public final class GameMessage {
        * <code>.EndTurn end_turn = 102;</code>
        * @return Whether the endTurn field is set.
        */
+      @java.lang.Override
       public boolean hasEndTurn() {
         return msgCase_ == 102;
       }
@@ -43455,6 +44145,7 @@ public final class GameMessage {
        * <code>.EndTurn end_turn = 102;</code>
        * @return The endTurn.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.EndTurn getEndTurn() {
         if (endTurnBuilder_ == null) {
           if (msgCase_ == 102) {
@@ -43548,6 +44239,7 @@ public final class GameMessage {
       /**
        * <code>.EndTurn end_turn = 102;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.EndTurnOrBuilder getEndTurnOrBuilder() {
         if ((msgCase_ == 102) && (endTurnBuilder_ != null)) {
           return endTurnBuilder_.getMessageOrBuilder();
@@ -43590,6 +44282,7 @@ public final class GameMessage {
        * <code>.BuildPiece build_piece = 200;</code>
        * @return Whether the buildPiece field is set.
        */
+      @java.lang.Override
       public boolean hasBuildPiece() {
         return msgCase_ == 200;
       }
@@ -43601,6 +44294,7 @@ public final class GameMessage {
        * <code>.BuildPiece build_piece = 200;</code>
        * @return The buildPiece.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BuildPiece getBuildPiece() {
         if (buildPieceBuilder_ == null) {
           if (msgCase_ == 200) {
@@ -43718,6 +44412,7 @@ public final class GameMessage {
        *
        * <code>.BuildPiece build_piece = 200;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BuildPieceOrBuilder getBuildPieceOrBuilder() {
         if ((msgCase_ == 200) && (buildPieceBuilder_ != null)) {
           return buildPieceBuilder_.getMessageOrBuilder();
@@ -43760,6 +44455,7 @@ public final class GameMessage {
        * <code>.CancelBuild cancel_build = 201;</code>
        * @return Whether the cancelBuild field is set.
        */
+      @java.lang.Override
       public boolean hasCancelBuild() {
         return msgCase_ == 201;
       }
@@ -43767,6 +44463,7 @@ public final class GameMessage {
        * <code>.CancelBuild cancel_build = 201;</code>
        * @return The cancelBuild.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.CancelBuild getCancelBuild() {
         if (cancelBuildBuilder_ == null) {
           if (msgCase_ == 201) {
@@ -43860,6 +44557,7 @@ public final class GameMessage {
       /**
        * <code>.CancelBuild cancel_build = 201;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.CancelBuildOrBuilder getCancelBuildOrBuilder() {
         if ((msgCase_ == 201) && (cancelBuildBuilder_ != null)) {
           return cancelBuildBuilder_.getMessageOrBuilder();
@@ -43898,6 +44596,7 @@ public final class GameMessage {
        * <code>.MovePiece move_piece = 202;</code>
        * @return Whether the movePiece field is set.
        */
+      @java.lang.Override
       public boolean hasMovePiece() {
         return msgCase_ == 202;
       }
@@ -43905,6 +44604,7 @@ public final class GameMessage {
        * <code>.MovePiece move_piece = 202;</code>
        * @return The movePiece.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.MovePiece getMovePiece() {
         if (movePieceBuilder_ == null) {
           if (msgCase_ == 202) {
@@ -43998,6 +44698,7 @@ public final class GameMessage {
       /**
        * <code>.MovePiece move_piece = 202;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.MovePieceOrBuilder getMovePieceOrBuilder() {
         if ((msgCase_ == 202) && (movePieceBuilder_ != null)) {
           return movePieceBuilder_.getMessageOrBuilder();
@@ -44036,6 +44737,7 @@ public final class GameMessage {
        * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
        * @return Whether the buyInventoryItem field is set.
        */
+      @java.lang.Override
       public boolean hasBuyInventoryItem() {
         return msgCase_ == 203;
       }
@@ -44043,6 +44745,7 @@ public final class GameMessage {
        * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
        * @return The buyInventoryItem.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BuyInventoryItemRequest getBuyInventoryItem() {
         if (buyInventoryItemBuilder_ == null) {
           if (msgCase_ == 203) {
@@ -44136,6 +44839,7 @@ public final class GameMessage {
       /**
        * <code>.BuyInventoryItemRequest buy_inventory_item = 203;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.BuyInventoryItemRequestOrBuilder getBuyInventoryItemOrBuilder() {
         if ((msgCase_ == 203) && (buyInventoryItemBuilder_ != null)) {
           return buyInventoryItemBuilder_.getMessageOrBuilder();
@@ -44174,6 +44878,7 @@ public final class GameMessage {
        * <code>.InventoryItemAction inventory_item_action = 204;</code>
        * @return Whether the inventoryItemAction field is set.
        */
+      @java.lang.Override
       public boolean hasInventoryItemAction() {
         return msgCase_ == 204;
       }
@@ -44181,6 +44886,7 @@ public final class GameMessage {
        * <code>.InventoryItemAction inventory_item_action = 204;</code>
        * @return The inventoryItemAction.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.InventoryItemAction getInventoryItemAction() {
         if (inventoryItemActionBuilder_ == null) {
           if (msgCase_ == 204) {
@@ -44274,6 +44980,7 @@ public final class GameMessage {
       /**
        * <code>.InventoryItemAction inventory_item_action = 204;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.InventoryItemActionOrBuilder getInventoryItemActionOrBuilder() {
         if ((msgCase_ == 204) && (inventoryItemActionBuilder_ != null)) {
           return inventoryItemActionBuilder_.getMessageOrBuilder();
@@ -44316,6 +45023,7 @@ public final class GameMessage {
        * <code>.TradeWithBank trade_with_bank = 400;</code>
        * @return Whether the tradeWithBank field is set.
        */
+      @java.lang.Override
       public boolean hasTradeWithBank() {
         return msgCase_ == 400;
       }
@@ -44327,6 +45035,7 @@ public final class GameMessage {
        * <code>.TradeWithBank trade_with_bank = 400;</code>
        * @return The tradeWithBank.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeWithBank getTradeWithBank() {
         if (tradeWithBankBuilder_ == null) {
           if (msgCase_ == 400) {
@@ -44444,6 +45153,7 @@ public final class GameMessage {
        *
        * <code>.TradeWithBank trade_with_bank = 400;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeWithBankOrBuilder getTradeWithBankOrBuilder() {
         if ((msgCase_ == 400) && (tradeWithBankBuilder_ != null)) {
           return tradeWithBankBuilder_.getMessageOrBuilder();
@@ -44486,6 +45196,7 @@ public final class GameMessage {
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
        * @return Whether the tradeMakeOffer field is set.
        */
+      @java.lang.Override
       public boolean hasTradeMakeOffer() {
         return msgCase_ == 401;
       }
@@ -44493,6 +45204,7 @@ public final class GameMessage {
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
        * @return The tradeMakeOffer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeMakeOffer getTradeMakeOffer() {
         if (tradeMakeOfferBuilder_ == null) {
           if (msgCase_ == 401) {
@@ -44586,6 +45298,7 @@ public final class GameMessage {
       /**
        * <code>.TradeMakeOffer trade_make_offer = 401;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeMakeOfferOrBuilder getTradeMakeOfferOrBuilder() {
         if ((msgCase_ == 401) && (tradeMakeOfferBuilder_ != null)) {
           return tradeMakeOfferBuilder_.getMessageOrBuilder();
@@ -44624,6 +45337,7 @@ public final class GameMessage {
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
        * @return Whether the tradeClearOffer field is set.
        */
+      @java.lang.Override
       public boolean hasTradeClearOffer() {
         return msgCase_ == 402;
       }
@@ -44631,6 +45345,7 @@ public final class GameMessage {
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
        * @return The tradeClearOffer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeClearOffer getTradeClearOffer() {
         if (tradeClearOfferBuilder_ == null) {
           if (msgCase_ == 402) {
@@ -44724,6 +45439,7 @@ public final class GameMessage {
       /**
        * <code>.TradeClearOffer trade_clear_offer = 402;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeClearOfferOrBuilder getTradeClearOfferOrBuilder() {
         if ((msgCase_ == 402) && (tradeClearOfferBuilder_ != null)) {
           return tradeClearOfferBuilder_.getMessageOrBuilder();
@@ -44762,6 +45478,7 @@ public final class GameMessage {
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
        * @return Whether the tradeRejectOffer field is set.
        */
+      @java.lang.Override
       public boolean hasTradeRejectOffer() {
         return msgCase_ == 403;
       }
@@ -44769,6 +45486,7 @@ public final class GameMessage {
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
        * @return The tradeRejectOffer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeRejectOffer getTradeRejectOffer() {
         if (tradeRejectOfferBuilder_ == null) {
           if (msgCase_ == 403) {
@@ -44862,6 +45580,7 @@ public final class GameMessage {
       /**
        * <code>.TradeRejectOffer trade_reject_offer = 403;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeRejectOfferOrBuilder getTradeRejectOfferOrBuilder() {
         if ((msgCase_ == 403) && (tradeRejectOfferBuilder_ != null)) {
           return tradeRejectOfferBuilder_.getMessageOrBuilder();
@@ -44900,6 +45619,7 @@ public final class GameMessage {
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
        * @return Whether the tradeAcceptOffer field is set.
        */
+      @java.lang.Override
       public boolean hasTradeAcceptOffer() {
         return msgCase_ == 404;
       }
@@ -44907,6 +45627,7 @@ public final class GameMessage {
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
        * @return The tradeAcceptOffer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeAcceptOffer getTradeAcceptOffer() {
         if (tradeAcceptOfferBuilder_ == null) {
           if (msgCase_ == 404) {
@@ -45000,6 +45721,7 @@ public final class GameMessage {
       /**
        * <code>.TradeAcceptOffer trade_accept_offer = 404;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.TradeAcceptOfferOrBuilder getTradeAcceptOfferOrBuilder() {
         if ((msgCase_ == 404) && (tradeAcceptOfferBuilder_ != null)) {
           return tradeAcceptOfferBuilder_.getMessageOrBuilder();
@@ -45042,6 +45764,7 @@ public final class GameMessage {
        * <code>.LoseResources lose_resources = 500;</code>
        * @return Whether the loseResources field is set.
        */
+      @java.lang.Override
       public boolean hasLoseResources() {
         return msgCase_ == 500;
       }
@@ -45053,6 +45776,7 @@ public final class GameMessage {
        * <code>.LoseResources lose_resources = 500;</code>
        * @return The loseResources.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResources getLoseResources() {
         if (loseResourcesBuilder_ == null) {
           if (msgCase_ == 500) {
@@ -45170,6 +45894,7 @@ public final class GameMessage {
        *
        * <code>.LoseResources lose_resources = 500;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.LoseResourcesOrBuilder getLoseResourcesOrBuilder() {
         if ((msgCase_ == 500) && (loseResourcesBuilder_ != null)) {
           return loseResourcesBuilder_.getMessageOrBuilder();
@@ -45212,6 +45937,7 @@ public final class GameMessage {
        * <code>.GainResources gain_resources = 501;</code>
        * @return Whether the gainResources field is set.
        */
+      @java.lang.Override
       public boolean hasGainResources() {
         return msgCase_ == 501;
       }
@@ -45219,6 +45945,7 @@ public final class GameMessage {
        * <code>.GainResources gain_resources = 501;</code>
        * @return The gainResources.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GainResources getGainResources() {
         if (gainResourcesBuilder_ == null) {
           if (msgCase_ == 501) {
@@ -45312,6 +46039,7 @@ public final class GameMessage {
       /**
        * <code>.GainResources gain_resources = 501;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GainResourcesOrBuilder getGainResourcesOrBuilder() {
         if ((msgCase_ == 501) && (gainResourcesBuilder_ != null)) {
           return gainResourcesBuilder_.getMessageOrBuilder();
@@ -45350,6 +46078,7 @@ public final class GameMessage {
        * <code>.ChooseResourceType choose_resource_type = 502;</code>
        * @return Whether the chooseResourceType field is set.
        */
+      @java.lang.Override
       public boolean hasChooseResourceType() {
         return msgCase_ == 502;
       }
@@ -45357,6 +46086,7 @@ public final class GameMessage {
        * <code>.ChooseResourceType choose_resource_type = 502;</code>
        * @return The chooseResourceType.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ChooseResourceType getChooseResourceType() {
         if (chooseResourceTypeBuilder_ == null) {
           if (msgCase_ == 502) {
@@ -45450,6 +46180,7 @@ public final class GameMessage {
       /**
        * <code>.ChooseResourceType choose_resource_type = 502;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ChooseResourceTypeOrBuilder getChooseResourceTypeOrBuilder() {
         if ((msgCase_ == 502) && (chooseResourceTypeBuilder_ != null)) {
           return chooseResourceTypeBuilder_.getMessageOrBuilder();
@@ -45488,6 +46219,7 @@ public final class GameMessage {
        * <code>.ChoosePlayer choose_player = 503;</code>
        * @return Whether the choosePlayer field is set.
        */
+      @java.lang.Override
       public boolean hasChoosePlayer() {
         return msgCase_ == 503;
       }
@@ -45495,6 +46227,7 @@ public final class GameMessage {
        * <code>.ChoosePlayer choose_player = 503;</code>
        * @return The choosePlayer.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ChoosePlayer getChoosePlayer() {
         if (choosePlayerBuilder_ == null) {
           if (msgCase_ == 503) {
@@ -45588,6 +46321,7 @@ public final class GameMessage {
       /**
        * <code>.ChoosePlayer choose_player = 503;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ChoosePlayerOrBuilder getChoosePlayerOrBuilder() {
         if ((msgCase_ == 503) && (choosePlayerBuilder_ != null)) {
           return choosePlayerBuilder_.getMessageOrBuilder();
@@ -45626,6 +46360,7 @@ public final class GameMessage {
        * <code>.MoveRobber move_robber = 504;</code>
        * @return Whether the moveRobber field is set.
        */
+      @java.lang.Override
       public boolean hasMoveRobber() {
         return msgCase_ == 504;
       }
@@ -45633,6 +46368,7 @@ public final class GameMessage {
        * <code>.MoveRobber move_robber = 504;</code>
        * @return The moveRobber.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.MoveRobber getMoveRobber() {
         if (moveRobberBuilder_ == null) {
           if (msgCase_ == 504) {
@@ -45726,6 +46462,7 @@ public final class GameMessage {
       /**
        * <code>.MoveRobber move_robber = 504;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.MoveRobberOrBuilder getMoveRobberOrBuilder() {
         if ((msgCase_ == 504) && (moveRobberBuilder_ != null)) {
           return moveRobberBuilder_.getMessageOrBuilder();
@@ -45768,6 +46505,7 @@ public final class GameMessage {
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
        * @return Whether the resetBoardRequest field is set.
        */
+      @java.lang.Override
       public boolean hasResetBoardRequest() {
         return msgCase_ == 1000;
       }
@@ -45779,6 +46517,7 @@ public final class GameMessage {
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
        * @return The resetBoardRequest.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardRequest getResetBoardRequest() {
         if (resetBoardRequestBuilder_ == null) {
           if (msgCase_ == 1000) {
@@ -45896,6 +46635,7 @@ public final class GameMessage {
        *
        * <code>.ResetBoardRequest reset_board_request = 1000;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardRequestOrBuilder getResetBoardRequestOrBuilder() {
         if ((msgCase_ == 1000) && (resetBoardRequestBuilder_ != null)) {
           return resetBoardRequestBuilder_.getMessageOrBuilder();
@@ -45938,6 +46678,7 @@ public final class GameMessage {
        * <code>.ResetBoardVote reset_board_vote = 1001;</code>
        * @return Whether the resetBoardVote field is set.
        */
+      @java.lang.Override
       public boolean hasResetBoardVote() {
         return msgCase_ == 1001;
       }
@@ -45945,6 +46686,7 @@ public final class GameMessage {
        * <code>.ResetBoardVote reset_board_vote = 1001;</code>
        * @return The resetBoardVote.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVote getResetBoardVote() {
         if (resetBoardVoteBuilder_ == null) {
           if (msgCase_ == 1001) {
@@ -46038,6 +46780,7 @@ public final class GameMessage {
       /**
        * <code>.ResetBoardVote reset_board_vote = 1001;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.ResetBoardVoteOrBuilder getResetBoardVoteOrBuilder() {
         if ((msgCase_ == 1001) && (resetBoardVoteBuilder_ != null)) {
           return resetBoardVoteBuilder_.getMessageOrBuilder();

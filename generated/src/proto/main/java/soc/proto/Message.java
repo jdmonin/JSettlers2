@@ -117,7 +117,7 @@ public final class Message {
    *
    * Protobuf type {@code Version}
    */
-  public  static final class Version extends
+  public static final class Version extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:Version)
       VersionOrBuilder {
@@ -234,6 +234,7 @@ public final class Message {
      * <code>uint32 vers_num = 1;</code>
      * @return The versNum.
      */
+    @java.lang.Override
     public int getVersNum() {
       return versNum_;
     }
@@ -248,6 +249,7 @@ public final class Message {
      * <code>string vers_str = 2;</code>
      * @return The versStr.
      */
+    @java.lang.Override
     public java.lang.String getVersStr() {
       java.lang.Object ref = versStr_;
       if (ref instanceof java.lang.String) {
@@ -268,6 +270,7 @@ public final class Message {
      * <code>string vers_str = 2;</code>
      * @return The bytes for versStr.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getVersStrBytes() {
       java.lang.Object ref = versStr_;
@@ -292,6 +295,7 @@ public final class Message {
      * <code>string vers_build = 3;</code>
      * @return The versBuild.
      */
+    @java.lang.Override
     public java.lang.String getVersBuild() {
       java.lang.Object ref = versBuild_;
       if (ref instanceof java.lang.String) {
@@ -312,6 +316,7 @@ public final class Message {
      * <code>string vers_build = 3;</code>
      * @return The bytes for versBuild.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getVersBuildBytes() {
       java.lang.Object ref = versBuild_;
@@ -336,6 +341,7 @@ public final class Message {
      * <code>string cli_locale = 4;</code>
      * @return The cliLocale.
      */
+    @java.lang.Override
     public java.lang.String getCliLocale() {
       java.lang.Object ref = cliLocale_;
       if (ref instanceof java.lang.String) {
@@ -356,6 +362,7 @@ public final class Message {
      * <code>string cli_locale = 4;</code>
      * @return The bytes for cliLocale.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getCliLocaleBytes() {
       java.lang.Object ref = cliLocale_;
@@ -380,6 +387,7 @@ public final class Message {
      * <code>string feats = 5;</code>
      * @return The feats.
      */
+    @java.lang.Override
     public java.lang.String getFeats() {
       java.lang.Object ref = feats_;
       if (ref instanceof java.lang.String) {
@@ -400,6 +408,7 @@ public final class Message {
      * <code>string feats = 5;</code>
      * @return The bytes for feats.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getFeatsBytes() {
       java.lang.Object ref = feats_;
@@ -799,6 +808,7 @@ public final class Message {
        * <code>uint32 vers_num = 1;</code>
        * @return The versNum.
        */
+      @java.lang.Override
       public int getVersNum() {
         return versNum_;
       }
@@ -1335,7 +1345,7 @@ public final class Message {
   /**
    * Protobuf type {@code ImARobot}
    */
-  public  static final class ImARobot extends
+  public static final class ImARobot extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ImARobot)
       ImARobotOrBuilder {
@@ -1440,6 +1450,7 @@ public final class Message {
      * <code>string nickname = 1;</code>
      * @return The nickname.
      */
+    @java.lang.Override
     public java.lang.String getNickname() {
       java.lang.Object ref = nickname_;
       if (ref instanceof java.lang.String) {
@@ -1460,6 +1471,7 @@ public final class Message {
      * <code>string nickname = 1;</code>
      * @return The bytes for nickname.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getNicknameBytes() {
       java.lang.Object ref = nickname_;
@@ -1484,6 +1496,7 @@ public final class Message {
      * <code>string cookie = 2;</code>
      * @return The cookie.
      */
+    @java.lang.Override
     public java.lang.String getCookie() {
       java.lang.Object ref = cookie_;
       if (ref instanceof java.lang.String) {
@@ -1504,6 +1517,7 @@ public final class Message {
      * <code>string cookie = 2;</code>
      * @return The bytes for cookie.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getCookieBytes() {
       java.lang.Object ref = cookie_;
@@ -1528,6 +1542,7 @@ public final class Message {
      * <code>string rb_class = 3;</code>
      * @return The rbClass.
      */
+    @java.lang.Override
     public java.lang.String getRbClass() {
       java.lang.Object ref = rbClass_;
       if (ref instanceof java.lang.String) {
@@ -1548,6 +1563,7 @@ public final class Message {
      * <code>string rb_class = 3;</code>
      * @return The bytes for rbClass.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getRbClassBytes() {
       java.lang.Object ref = rbClass_;
@@ -2322,7 +2338,7 @@ public final class Message {
    *
    * Protobuf type {@code AuthRequest}
    */
-  public  static final class AuthRequest extends
+  public static final class AuthRequest extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:AuthRequest)
       AuthRequestOrBuilder {
@@ -2527,6 +2543,10 @@ public final class Message {
 
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalStateException(
+              "Can't get the descriptor of an unrecognized enum value.");
+        }
         return getDescriptor().getValues().get(ordinal());
       }
       public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -2647,6 +2667,10 @@ public final class Message {
 
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalStateException(
+              "Can't get the descriptor of an unrecognized enum value.");
+        }
         return getDescriptor().getValues().get(ordinal());
       }
       public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -2687,14 +2711,14 @@ public final class Message {
      * <code>.AuthRequest.AuthRole role = 1;</code>
      * @return The enum numeric value on the wire for role.
      */
-    public int getRoleValue() {
+    @java.lang.Override public int getRoleValue() {
       return role_;
     }
     /**
      * <code>.AuthRequest.AuthRole role = 1;</code>
      * @return The role.
      */
-    public soc.proto.Message.AuthRequest.AuthRole getRole() {
+    @java.lang.Override public soc.proto.Message.AuthRequest.AuthRole getRole() {
       @SuppressWarnings("deprecation")
       soc.proto.Message.AuthRequest.AuthRole result = soc.proto.Message.AuthRequest.AuthRole.valueOf(role_);
       return result == null ? soc.proto.Message.AuthRequest.AuthRole.UNRECOGNIZED : result;
@@ -2706,6 +2730,7 @@ public final class Message {
      * <code>string nickname = 2;</code>
      * @return The nickname.
      */
+    @java.lang.Override
     public java.lang.String getNickname() {
       java.lang.Object ref = nickname_;
       if (ref instanceof java.lang.String) {
@@ -2722,6 +2747,7 @@ public final class Message {
      * <code>string nickname = 2;</code>
      * @return The bytes for nickname.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getNicknameBytes() {
       java.lang.Object ref = nickname_;
@@ -2742,6 +2768,7 @@ public final class Message {
      * <code>string password = 3;</code>
      * @return The password.
      */
+    @java.lang.Override
     public java.lang.String getPassword() {
       java.lang.Object ref = password_;
       if (ref instanceof java.lang.String) {
@@ -2758,6 +2785,7 @@ public final class Message {
      * <code>string password = 3;</code>
      * @return The bytes for password.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getPasswordBytes() {
       java.lang.Object ref = password_;
@@ -2778,14 +2806,14 @@ public final class Message {
      * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
      * @return The enum numeric value on the wire for authScheme.
      */
-    public int getAuthSchemeValue() {
+    @java.lang.Override public int getAuthSchemeValue() {
       return authScheme_;
     }
     /**
      * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
      * @return The authScheme.
      */
-    public soc.proto.Message.AuthRequest.AuthScheme getAuthScheme() {
+    @java.lang.Override public soc.proto.Message.AuthRequest.AuthScheme getAuthScheme() {
       @SuppressWarnings("deprecation")
       soc.proto.Message.AuthRequest.AuthScheme result = soc.proto.Message.AuthRequest.AuthScheme.valueOf(authScheme_);
       return result == null ? soc.proto.Message.AuthRequest.AuthScheme.UNRECOGNIZED : result;
@@ -3178,7 +3206,7 @@ public final class Message {
        * <code>.AuthRequest.AuthRole role = 1;</code>
        * @return The enum numeric value on the wire for role.
        */
-      public int getRoleValue() {
+      @java.lang.Override public int getRoleValue() {
         return role_;
       }
       /**
@@ -3187,6 +3215,7 @@ public final class Message {
        * @return This builder for chaining.
        */
       public Builder setRoleValue(int value) {
+        
         role_ = value;
         onChanged();
         return this;
@@ -3195,6 +3224,7 @@ public final class Message {
        * <code>.AuthRequest.AuthRole role = 1;</code>
        * @return The role.
        */
+      @java.lang.Override
       public soc.proto.Message.AuthRequest.AuthRole getRole() {
         @SuppressWarnings("deprecation")
         soc.proto.Message.AuthRequest.AuthRole result = soc.proto.Message.AuthRequest.AuthRole.valueOf(role_);
@@ -3382,7 +3412,7 @@ public final class Message {
        * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
        * @return The enum numeric value on the wire for authScheme.
        */
-      public int getAuthSchemeValue() {
+      @java.lang.Override public int getAuthSchemeValue() {
         return authScheme_;
       }
       /**
@@ -3391,6 +3421,7 @@ public final class Message {
        * @return This builder for chaining.
        */
       public Builder setAuthSchemeValue(int value) {
+        
         authScheme_ = value;
         onChanged();
         return this;
@@ -3399,6 +3430,7 @@ public final class Message {
        * <code>.AuthRequest.AuthScheme auth_scheme = 4;</code>
        * @return The authScheme.
        */
+      @java.lang.Override
       public soc.proto.Message.AuthRequest.AuthScheme getAuthScheme() {
         @SuppressWarnings("deprecation")
         soc.proto.Message.AuthRequest.AuthScheme result = soc.proto.Message.AuthRequest.AuthScheme.valueOf(authScheme_);
@@ -3512,7 +3544,7 @@ public final class Message {
    *
    * Protobuf type {@code RejectConnection}
    */
-  public  static final class RejectConnection extends
+  public static final class RejectConnection extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:RejectConnection)
       RejectConnectionOrBuilder {
@@ -3603,6 +3635,7 @@ public final class Message {
      * <code>string reason_text = 1;</code>
      * @return The reasonText.
      */
+    @java.lang.Override
     public java.lang.String getReasonText() {
       java.lang.Object ref = reasonText_;
       if (ref instanceof java.lang.String) {
@@ -3623,6 +3656,7 @@ public final class Message {
      * <code>string reason_text = 1;</code>
      * @return The bytes for reasonText.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getReasonTextBytes() {
       java.lang.Object ref = reasonText_;
@@ -4177,7 +4211,7 @@ public final class Message {
    *
    * Protobuf type {@code ServerStatusText}
    */
-  public  static final class ServerStatusText extends
+  public static final class ServerStatusText extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ServerStatusText)
       ServerStatusTextOrBuilder {
@@ -4979,6 +5013,10 @@ public final class Message {
 
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalStateException(
+              "Can't get the descriptor of an unrecognized enum value.");
+        }
         return getDescriptor().getValues().get(ordinal());
       }
       public final com.google.protobuf.Descriptors.EnumDescriptor
@@ -5019,6 +5057,7 @@ public final class Message {
      * <code>string text = 1;</code>
      * @return The text.
      */
+    @java.lang.Override
     public java.lang.String getText() {
       java.lang.Object ref = text_;
       if (ref instanceof java.lang.String) {
@@ -5035,6 +5074,7 @@ public final class Message {
      * <code>string text = 1;</code>
      * @return The bytes for text.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getTextBytes() {
       java.lang.Object ref = text_;
@@ -5055,14 +5095,14 @@ public final class Message {
      * <code>.ServerStatusText.StatusValue sv = 2;</code>
      * @return The enum numeric value on the wire for sv.
      */
-    public int getSvValue() {
+    @java.lang.Override public int getSvValue() {
       return sv_;
     }
     /**
      * <code>.ServerStatusText.StatusValue sv = 2;</code>
      * @return The sv.
      */
-    public soc.proto.Message.ServerStatusText.StatusValue getSv() {
+    @java.lang.Override public soc.proto.Message.ServerStatusText.StatusValue getSv() {
       @SuppressWarnings("deprecation")
       soc.proto.Message.ServerStatusText.StatusValue result = soc.proto.Message.ServerStatusText.StatusValue.valueOf(sv_);
       return result == null ? soc.proto.Message.ServerStatusText.StatusValue.UNRECOGNIZED : result;
@@ -5569,7 +5609,7 @@ public final class Message {
        * <code>.ServerStatusText.StatusValue sv = 2;</code>
        * @return The enum numeric value on the wire for sv.
        */
-      public int getSvValue() {
+      @java.lang.Override public int getSvValue() {
         return sv_;
       }
       /**
@@ -5578,6 +5618,7 @@ public final class Message {
        * @return This builder for chaining.
        */
       public Builder setSvValue(int value) {
+        
         sv_ = value;
         onChanged();
         return this;
@@ -5586,6 +5627,7 @@ public final class Message {
        * <code>.ServerStatusText.StatusValue sv = 2;</code>
        * @return The sv.
        */
+      @java.lang.Override
       public soc.proto.Message.ServerStatusText.StatusValue getSv() {
         @SuppressWarnings("deprecation")
         soc.proto.Message.ServerStatusText.StatusValue result = soc.proto.Message.ServerStatusText.StatusValue.valueOf(sv_);
@@ -5839,7 +5881,7 @@ public final class Message {
    *
    * Protobuf type {@code BroadcastText}
    */
-  public  static final class BroadcastText extends
+  public static final class BroadcastText extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BroadcastText)
       BroadcastTextOrBuilder {
@@ -5926,6 +5968,7 @@ public final class Message {
      * <code>string text = 1;</code>
      * @return The text.
      */
+    @java.lang.Override
     public java.lang.String getText() {
       java.lang.Object ref = text_;
       if (ref instanceof java.lang.String) {
@@ -5942,6 +5985,7 @@ public final class Message {
      * <code>string text = 1;</code>
      * @return The bytes for text.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getTextBytes() {
       java.lang.Object ref = text_;
@@ -6407,7 +6451,7 @@ public final class Message {
    *
    * Protobuf type {@code LeaveAll}
    */
-  public  static final class LeaveAll extends
+  public static final class LeaveAll extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:LeaveAll)
       LeaveAllOrBuilder {
@@ -6860,7 +6904,7 @@ public final class Message {
    *
    * Protobuf type {@code ServerPing}
    */
-  public  static final class ServerPing extends
+  public static final class ServerPing extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ServerPing)
       ServerPingOrBuilder {
@@ -6952,6 +6996,7 @@ public final class Message {
      * <code>int32 sleep_time = 1;</code>
      * @return The sleepTime.
      */
+    @java.lang.Override
     public int getSleepTime() {
       return sleepTime_;
     }
@@ -7284,6 +7329,7 @@ public final class Message {
        * <code>int32 sleep_time = 1;</code>
        * @return The sleepTime.
        */
+      @java.lang.Override
       public int getSleepTime() {
         return sleepTime_;
       }
@@ -7451,7 +7497,7 @@ public final class Message {
    *
    * Protobuf type {@code BotUpdateParams}
    */
-  public  static final class BotUpdateParams extends
+  public static final class BotUpdateParams extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BotUpdateParams)
       BotUpdateParamsOrBuilder {
@@ -7576,6 +7622,7 @@ public final class Message {
      * <code>uint32 max_game_length = 1;</code>
      * @return The maxGameLength.
      */
+    @java.lang.Override
     public int getMaxGameLength() {
       return maxGameLength_;
     }
@@ -7586,6 +7633,7 @@ public final class Message {
      * <code>uint32 max_eta = 2;</code>
      * @return The maxEta.
      */
+    @java.lang.Override
     public int getMaxEta() {
       return maxEta_;
     }
@@ -7596,6 +7644,7 @@ public final class Message {
      * <code>float eta_bonus_factor = 3;</code>
      * @return The etaBonusFactor.
      */
+    @java.lang.Override
     public float getEtaBonusFactor() {
       return etaBonusFactor_;
     }
@@ -7606,6 +7655,7 @@ public final class Message {
      * <code>float adversarial_factor = 4;</code>
      * @return The adversarialFactor.
      */
+    @java.lang.Override
     public float getAdversarialFactor() {
       return adversarialFactor_;
     }
@@ -7616,6 +7666,7 @@ public final class Message {
      * <code>float leader_adversarial_factor = 5;</code>
      * @return The leaderAdversarialFactor.
      */
+    @java.lang.Override
     public float getLeaderAdversarialFactor() {
       return leaderAdversarialFactor_;
     }
@@ -7626,6 +7677,7 @@ public final class Message {
      * <code>float dev_card_multiplier = 6;</code>
      * @return The devCardMultiplier.
      */
+    @java.lang.Override
     public float getDevCardMultiplier() {
       return devCardMultiplier_;
     }
@@ -7636,6 +7688,7 @@ public final class Message {
      * <code>float threat_multiplier = 7;</code>
      * @return The threatMultiplier.
      */
+    @java.lang.Override
     public float getThreatMultiplier() {
       return threatMultiplier_;
     }
@@ -7650,6 +7703,7 @@ public final class Message {
      * <code>uint32 strategy_type = 8;</code>
      * @return The strategyType.
      */
+    @java.lang.Override
     public int getStrategyType() {
       return strategyType_;
     }
@@ -7664,6 +7718,7 @@ public final class Message {
      * <code>bool trade_flag = 9;</code>
      * @return The tradeFlag.
      */
+    @java.lang.Override
     public boolean getTradeFlag() {
       return tradeFlag_;
     }
@@ -8129,6 +8184,7 @@ public final class Message {
        * <code>uint32 max_game_length = 1;</code>
        * @return The maxGameLength.
        */
+      @java.lang.Override
       public int getMaxGameLength() {
         return maxGameLength_;
       }
@@ -8159,6 +8215,7 @@ public final class Message {
        * <code>uint32 max_eta = 2;</code>
        * @return The maxEta.
        */
+      @java.lang.Override
       public int getMaxEta() {
         return maxEta_;
       }
@@ -8189,6 +8246,7 @@ public final class Message {
        * <code>float eta_bonus_factor = 3;</code>
        * @return The etaBonusFactor.
        */
+      @java.lang.Override
       public float getEtaBonusFactor() {
         return etaBonusFactor_;
       }
@@ -8219,6 +8277,7 @@ public final class Message {
        * <code>float adversarial_factor = 4;</code>
        * @return The adversarialFactor.
        */
+      @java.lang.Override
       public float getAdversarialFactor() {
         return adversarialFactor_;
       }
@@ -8249,6 +8308,7 @@ public final class Message {
        * <code>float leader_adversarial_factor = 5;</code>
        * @return The leaderAdversarialFactor.
        */
+      @java.lang.Override
       public float getLeaderAdversarialFactor() {
         return leaderAdversarialFactor_;
       }
@@ -8279,6 +8339,7 @@ public final class Message {
        * <code>float dev_card_multiplier = 6;</code>
        * @return The devCardMultiplier.
        */
+      @java.lang.Override
       public float getDevCardMultiplier() {
         return devCardMultiplier_;
       }
@@ -8309,6 +8370,7 @@ public final class Message {
        * <code>float threat_multiplier = 7;</code>
        * @return The threatMultiplier.
        */
+      @java.lang.Override
       public float getThreatMultiplier() {
         return threatMultiplier_;
       }
@@ -8343,6 +8405,7 @@ public final class Message {
        * <code>uint32 strategy_type = 8;</code>
        * @return The strategyType.
        */
+      @java.lang.Override
       public int getStrategyType() {
         return strategyType_;
       }
@@ -8385,6 +8448,7 @@ public final class Message {
        * <code>bool trade_flag = 9;</code>
        * @return The tradeFlag.
        */
+      @java.lang.Override
       public boolean getTradeFlag() {
         return tradeFlag_;
       }
@@ -8483,7 +8547,7 @@ public final class Message {
    *
    * Protobuf type {@code BotAdminReset}
    */
-  public  static final class BotAdminReset extends
+  public static final class BotAdminReset extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BotAdminReset)
       BotAdminResetOrBuilder {
@@ -8944,7 +9008,7 @@ public final class Message {
    *
    * Protobuf type {@code Channels}
    */
-  public  static final class Channels extends
+  public static final class Channels extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:Channels)
       ChannelsOrBuilder {
@@ -9585,7 +9649,7 @@ public final class Message {
    *
    * Protobuf type {@code NewChannel}
    */
-  public  static final class NewChannel extends
+  public static final class NewChannel extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:NewChannel)
       NewChannelOrBuilder {
@@ -9672,6 +9736,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The chName.
      */
+    @java.lang.Override
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
       if (ref instanceof java.lang.String) {
@@ -9688,6 +9753,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The bytes for chName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getChNameBytes() {
       java.lang.Object ref = chName_;
@@ -10195,7 +10261,7 @@ public final class Message {
    *
    * Protobuf type {@code JoinChannel}
    */
-  public  static final class JoinChannel extends
+  public static final class JoinChannel extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:JoinChannel)
       JoinChannelOrBuilder {
@@ -10293,6 +10359,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The chName.
      */
+    @java.lang.Override
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
       if (ref instanceof java.lang.String) {
@@ -10313,6 +10380,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The bytes for chName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getChNameBytes() {
       java.lang.Object ref = chName_;
@@ -10337,6 +10405,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The memberName.
      */
+    @java.lang.Override
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
@@ -10357,6 +10426,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The bytes for memberName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
       java.lang.Object ref = memberName_;
@@ -11003,7 +11073,7 @@ public final class Message {
    *
    * Protobuf type {@code ChannelMembers}
    */
-  public  static final class ChannelMembers extends
+  public static final class ChannelMembers extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ChannelMembers)
       ChannelMembersOrBuilder {
@@ -11104,6 +11174,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The chName.
      */
+    @java.lang.Override
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
       if (ref instanceof java.lang.String) {
@@ -11120,6 +11191,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The bytes for chName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getChNameBytes() {
       java.lang.Object ref = chName_;
@@ -11841,7 +11913,7 @@ public final class Message {
    *
    * Protobuf type {@code ChannelText}
    */
-  public  static final class ChannelText extends
+  public static final class ChannelText extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:ChannelText)
       ChannelTextOrBuilder {
@@ -11946,6 +12018,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The chName.
      */
+    @java.lang.Override
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
       if (ref instanceof java.lang.String) {
@@ -11966,6 +12039,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The bytes for chName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getChNameBytes() {
       java.lang.Object ref = chName_;
@@ -11993,6 +12067,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The memberName.
      */
+    @java.lang.Override
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
@@ -12016,6 +12091,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The bytes for memberName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
       java.lang.Object ref = memberName_;
@@ -12041,6 +12117,7 @@ public final class Message {
      * <code>string text = 3;</code>
      * @return The text.
      */
+    @java.lang.Override
     public java.lang.String getText() {
       java.lang.Object ref = text_;
       if (ref instanceof java.lang.String) {
@@ -12062,6 +12139,7 @@ public final class Message {
      * <code>string text = 3;</code>
      * @return The bytes for text.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getTextBytes() {
       java.lang.Object ref = text_;
@@ -12832,7 +12910,7 @@ public final class Message {
    *
    * Protobuf type {@code LeaveChannel}
    */
-  public  static final class LeaveChannel extends
+  public static final class LeaveChannel extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:LeaveChannel)
       LeaveChannelOrBuilder {
@@ -12930,6 +13008,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The chName.
      */
+    @java.lang.Override
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
       if (ref instanceof java.lang.String) {
@@ -12950,6 +13029,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The bytes for chName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getChNameBytes() {
       java.lang.Object ref = chName_;
@@ -12974,6 +13054,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The memberName.
      */
+    @java.lang.Override
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
@@ -12994,6 +13075,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The bytes for memberName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
       java.lang.Object ref = memberName_;
@@ -13599,7 +13681,7 @@ public final class Message {
    *
    * Protobuf type {@code DeleteChannel}
    */
-  public  static final class DeleteChannel extends
+  public static final class DeleteChannel extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:DeleteChannel)
       DeleteChannelOrBuilder {
@@ -13686,6 +13768,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The chName.
      */
+    @java.lang.Override
     public java.lang.String getChName() {
       java.lang.Object ref = chName_;
       if (ref instanceof java.lang.String) {
@@ -13702,6 +13785,7 @@ public final class Message {
      * <code>string ch_name = 1;</code>
      * @return The bytes for chName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getChNameBytes() {
       java.lang.Object ref = chName_;
@@ -14203,7 +14287,7 @@ public final class Message {
    *
    * Protobuf type {@code _GameWithOptions}
    */
-  public  static final class _GameWithOptions extends
+  public static final class _GameWithOptions extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:_GameWithOptions)
       _GameWithOptionsOrBuilder {
@@ -14302,6 +14386,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -14318,6 +14403,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -14342,6 +14428,7 @@ public final class Message {
      * <code>string opts = 2;</code>
      * @return The opts.
      */
+    @java.lang.Override
     public java.lang.String getOpts() {
       java.lang.Object ref = opts_;
       if (ref instanceof java.lang.String) {
@@ -14362,6 +14449,7 @@ public final class Message {
      * <code>string opts = 2;</code>
      * @return The bytes for opts.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getOptsBytes() {
       java.lang.Object ref = opts_;
@@ -14386,6 +14474,7 @@ public final class Message {
      * <code>bool unjoinable = 3;</code>
      * @return The unjoinable.
      */
+    @java.lang.Override
     public boolean getUnjoinable() {
       return unjoinable_;
     }
@@ -14912,6 +15001,7 @@ public final class Message {
        * <code>bool unjoinable = 3;</code>
        * @return The unjoinable.
        */
+      @java.lang.Override
       public boolean getUnjoinable() {
         return unjoinable_;
       }
@@ -15039,7 +15129,7 @@ public final class Message {
    *
    * Protobuf type {@code Games}
    */
-  public  static final class Games extends
+  public static final class Games extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:Games)
       GamesOrBuilder {
@@ -15132,12 +15222,14 @@ public final class Message {
     /**
      * <code>repeated ._GameWithOptions game = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Message._GameWithOptions> getGameList() {
       return game_;
     }
     /**
      * <code>repeated ._GameWithOptions game = 1;</code>
      */
+    @java.lang.Override
     public java.util.List<? extends soc.proto.Message._GameWithOptionsOrBuilder> 
         getGameOrBuilderList() {
       return game_;
@@ -15145,18 +15237,21 @@ public final class Message {
     /**
      * <code>repeated ._GameWithOptions game = 1;</code>
      */
+    @java.lang.Override
     public int getGameCount() {
       return game_.size();
     }
     /**
      * <code>repeated ._GameWithOptions game = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Message._GameWithOptions getGame(int index) {
       return game_.get(index);
     }
     /**
      * <code>repeated ._GameWithOptions game = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Message._GameWithOptionsOrBuilder getGameOrBuilder(
         int index) {
       return game_.get(index);
@@ -15845,7 +15940,7 @@ public final class Message {
    *
    * Protobuf type {@code NewGame}
    */
-  public  static final class NewGame extends
+  public static final class NewGame extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:NewGame)
       NewGameOrBuilder {
@@ -15943,6 +16038,7 @@ public final class Message {
      * <code>._GameWithOptions game = 1;</code>
      * @return Whether the game field is set.
      */
+    @java.lang.Override
     public boolean hasGame() {
       return game_ != null;
     }
@@ -15950,12 +16046,14 @@ public final class Message {
      * <code>._GameWithOptions game = 1;</code>
      * @return The game.
      */
+    @java.lang.Override
     public soc.proto.Message._GameWithOptions getGame() {
       return game_ == null ? soc.proto.Message._GameWithOptions.getDefaultInstance() : game_;
     }
     /**
      * <code>._GameWithOptions game = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Message._GameWithOptionsOrBuilder getGameOrBuilder() {
       return getGame();
     }
@@ -15970,6 +16068,7 @@ public final class Message {
      * <code>uint32 min_version = 2;</code>
      * @return The minVersion.
      */
+    @java.lang.Override
     public int getMinVersion() {
       return minVersion_;
     }
@@ -16440,6 +16539,7 @@ public final class Message {
        * <code>uint32 min_version = 2;</code>
        * @return The minVersion.
        */
+      @java.lang.Override
       public int getMinVersion() {
         return minVersion_;
       }
@@ -16578,7 +16678,7 @@ public final class Message {
    *
    * Protobuf type {@code BotJoinGameRequest}
    */
-  public  static final class BotJoinGameRequest extends
+  public static final class BotJoinGameRequest extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BotJoinGameRequest)
       BotJoinGameRequestOrBuilder {
@@ -16680,6 +16780,7 @@ public final class Message {
      * <code>._GameWithOptions game = 1;</code>
      * @return Whether the game field is set.
      */
+    @java.lang.Override
     public boolean hasGame() {
       return game_ != null;
     }
@@ -16691,6 +16792,7 @@ public final class Message {
      * <code>._GameWithOptions game = 1;</code>
      * @return The game.
      */
+    @java.lang.Override
     public soc.proto.Message._GameWithOptions getGame() {
       return game_ == null ? soc.proto.Message._GameWithOptions.getDefaultInstance() : game_;
     }
@@ -16701,6 +16803,7 @@ public final class Message {
      *
      * <code>._GameWithOptions game = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Message._GameWithOptionsOrBuilder getGameOrBuilder() {
       return getGame();
     }
@@ -16715,6 +16818,7 @@ public final class Message {
      * <code>uint32 seat_number = 2;</code>
      * @return The seatNumber.
      */
+    @java.lang.Override
     public int getSeatNumber() {
       return seatNumber_;
     }
@@ -17224,6 +17328,7 @@ public final class Message {
        * <code>uint32 seat_number = 2;</code>
        * @return The seatNumber.
        */
+      @java.lang.Override
       public int getSeatNumber() {
         return seatNumber_;
       }
@@ -17434,7 +17539,7 @@ public final class Message {
    *
    * Protobuf type {@code JoinGame}
    */
-  public  static final class JoinGame extends
+  public static final class JoinGame extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:JoinGame)
       JoinGameOrBuilder {
@@ -17558,6 +17663,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -17578,6 +17684,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -17602,6 +17709,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The memberName.
      */
+    @java.lang.Override
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
@@ -17622,6 +17730,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The bytes for memberName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
       java.lang.Object ref = memberName_;
@@ -17654,6 +17763,7 @@ public final class Message {
      * <code>repeated sint32 board_size_vshift = 3;</code>
      * @return A list containing the boardSizeVshift.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
         getBoardSizeVshiftList() {
       return boardSizeVshift_;
@@ -18562,7 +18672,7 @@ public final class Message {
    *
    * Protobuf type {@code GameMembers}
    */
-  public  static final class GameMembers extends
+  public static final class GameMembers extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GameMembers)
       GameMembersOrBuilder {
@@ -18663,6 +18773,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -18679,6 +18790,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -19399,7 +19511,7 @@ public final class Message {
    *
    * Protobuf type {@code SitDown}
    */
-  public  static final class SitDown extends
+  public static final class SitDown extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:SitDown)
       SitDownOrBuilder {
@@ -19507,6 +19619,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -19527,6 +19640,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -19551,6 +19665,7 @@ public final class Message {
      * <code>string pl_name = 2;</code>
      * @return The plName.
      */
+    @java.lang.Override
     public java.lang.String getPlName() {
       java.lang.Object ref = plName_;
       if (ref instanceof java.lang.String) {
@@ -19571,6 +19686,7 @@ public final class Message {
      * <code>string pl_name = 2;</code>
      * @return The bytes for plName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getPlNameBytes() {
       java.lang.Object ref = plName_;
@@ -19595,6 +19711,7 @@ public final class Message {
      * <code>uint32 seat_number = 3;</code>
      * @return The seatNumber.
      */
+    @java.lang.Override
     public int getSeatNumber() {
       return seatNumber_;
     }
@@ -19609,6 +19726,7 @@ public final class Message {
      * <code>bool is_robot = 4;</code>
      * @return The isRobot.
      */
+    @java.lang.Override
     public boolean getIsRobot() {
       return isRobot_;
     }
@@ -20175,6 +20293,7 @@ public final class Message {
        * <code>uint32 seat_number = 3;</code>
        * @return The seatNumber.
        */
+      @java.lang.Override
       public int getSeatNumber() {
         return seatNumber_;
       }
@@ -20217,6 +20336,7 @@ public final class Message {
        * <code>bool is_robot = 4;</code>
        * @return The isRobot.
        */
+      @java.lang.Override
       public boolean getIsRobot() {
         return isRobot_;
       }
@@ -20393,7 +20513,7 @@ public final class Message {
    *
    * Protobuf type {@code SetSeatLock}
    */
-  public  static final class SetSeatLock extends
+  public static final class SetSeatLock extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:SetSeatLock)
       SetSeatLockOrBuilder {
@@ -20517,6 +20637,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -20537,6 +20658,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -20561,6 +20683,7 @@ public final class Message {
      * <code>uint32 seat_number = 2;</code>
      * @return The seatNumber.
      */
+    @java.lang.Override
     public int getSeatNumber() {
       return seatNumber_;
     }
@@ -20585,6 +20708,7 @@ public final class Message {
      * <code>repeated .SeatLockState state = 3;</code>
      * @return A list containing the state.
      */
+    @java.lang.Override
     public java.util.List<soc.proto.Data.SeatLockState> getStateList() {
       return new com.google.protobuf.Internal.ListAdapter<
           java.lang.Integer, soc.proto.Data.SeatLockState>(state_, state_converter_);
@@ -20597,6 +20721,7 @@ public final class Message {
      * <code>repeated .SeatLockState state = 3;</code>
      * @return The count of state.
      */
+    @java.lang.Override
     public int getStateCount() {
       return state_.size();
     }
@@ -20609,6 +20734,7 @@ public final class Message {
      * @param index The index of the element to return.
      * @return The state at the given index.
      */
+    @java.lang.Override
     public soc.proto.Data.SeatLockState getState(int index) {
       return state_converter_.convert(state_.get(index));
     }
@@ -20620,6 +20746,7 @@ public final class Message {
      * <code>repeated .SeatLockState state = 3;</code>
      * @return A list containing the enum numeric values on the wire for state.
      */
+    @java.lang.Override
     public java.util.List<java.lang.Integer>
     getStateValueList() {
       return state_;
@@ -20633,6 +20760,7 @@ public final class Message {
      * @param index The index of the value to return.
      * @return The enum numeric value on the wire of state at the given index.
      */
+    @java.lang.Override
     public int getStateValue(int index) {
       return state_.get(index);
     }
@@ -21111,6 +21239,7 @@ public final class Message {
        * <code>uint32 seat_number = 2;</code>
        * @return The seatNumber.
        */
+      @java.lang.Override
       public int getSeatNumber() {
         return seatNumber_;
       }
@@ -21436,7 +21565,7 @@ public final class Message {
    *
    * Protobuf type {@code GameServerText}
    */
-  public  static final class GameServerText extends
+  public static final class GameServerText extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GameServerText)
       GameServerTextOrBuilder {
@@ -21530,6 +21659,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -21546,6 +21676,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -21566,6 +21697,7 @@ public final class Message {
      * <code>string text = 2;</code>
      * @return The text.
      */
+    @java.lang.Override
     public java.lang.String getText() {
       java.lang.Object ref = text_;
       if (ref instanceof java.lang.String) {
@@ -21582,6 +21714,7 @@ public final class Message {
      * <code>string text = 2;</code>
      * @return The bytes for text.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getTextBytes() {
       java.lang.Object ref = text_;
@@ -22224,7 +22357,7 @@ public final class Message {
    *
    * Protobuf type {@code GamePlayerText}
    */
-  public  static final class GamePlayerText extends
+  public static final class GamePlayerText extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:GamePlayerText)
       GamePlayerTextOrBuilder {
@@ -22325,6 +22458,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -22341,6 +22475,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -22368,6 +22503,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The memberName.
      */
+    @java.lang.Override
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
@@ -22391,6 +22527,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The bytes for memberName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
       java.lang.Object ref = memberName_;
@@ -22416,6 +22553,7 @@ public final class Message {
      * <code>string text = 3;</code>
      * @return The text.
      */
+    @java.lang.Override
     public java.lang.String getText() {
       java.lang.Object ref = text_;
       if (ref instanceof java.lang.String) {
@@ -22437,6 +22575,7 @@ public final class Message {
      * <code>string text = 3;</code>
      * @return The bytes for text.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getTextBytes() {
       java.lang.Object ref = text_;
@@ -23171,7 +23310,7 @@ public final class Message {
    *
    * Protobuf type {@code BotTimingPing}
    */
-  public  static final class BotTimingPing extends
+  public static final class BotTimingPing extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BotTimingPing)
       BotTimingPingOrBuilder {
@@ -23258,6 +23397,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -23274,6 +23414,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -23751,7 +23892,7 @@ public final class Message {
    *
    * Protobuf type {@code BotAdminPing}
    */
-  public  static final class BotAdminPing extends
+  public static final class BotAdminPing extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BotAdminPing)
       BotAdminPingOrBuilder {
@@ -23838,6 +23979,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -23854,6 +23996,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -24329,7 +24472,7 @@ public final class Message {
    *
    * Protobuf type {@code BotDismiss}
    */
-  public  static final class BotDismiss extends
+  public static final class BotDismiss extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:BotDismiss)
       BotDismissOrBuilder {
@@ -24416,6 +24559,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -24432,6 +24576,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -24926,7 +25071,7 @@ public final class Message {
    *
    * Protobuf type {@code LeaveGame}
    */
-  public  static final class LeaveGame extends
+  public static final class LeaveGame extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:LeaveGame)
       LeaveGameOrBuilder {
@@ -25020,6 +25165,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -25036,6 +25182,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -25060,6 +25207,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The memberName.
      */
+    @java.lang.Override
     public java.lang.String getMemberName() {
       java.lang.Object ref = memberName_;
       if (ref instanceof java.lang.String) {
@@ -25080,6 +25228,7 @@ public final class Message {
      * <code>string member_name = 2;</code>
      * @return The bytes for memberName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getMemberNameBytes() {
       java.lang.Object ref = memberName_;
@@ -25665,7 +25814,7 @@ public final class Message {
    *
    * Protobuf type {@code DeleteGame}
    */
-  public  static final class DeleteGame extends
+  public static final class DeleteGame extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:DeleteGame)
       DeleteGameOrBuilder {
@@ -25752,6 +25901,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The gaName.
      */
+    @java.lang.Override
     public java.lang.String getGaName() {
       java.lang.Object ref = gaName_;
       if (ref instanceof java.lang.String) {
@@ -25768,6 +25918,7 @@ public final class Message {
      * <code>string ga_name = 1;</code>
      * @return The bytes for gaName.
      */
+    @java.lang.Override
     public com.google.protobuf.ByteString
         getGaNameBytes() {
       java.lang.Object ref = gaName_;
@@ -26720,7 +26871,7 @@ public final class Message {
   /**
    * Protobuf type {@code FromServer}
    */
-  public  static final class FromServer extends
+  public static final class FromServer extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:FromServer)
       FromServerOrBuilder {
@@ -27304,6 +27455,7 @@ public final class Message {
      * <code>.Version vers = 1;</code>
      * @return Whether the vers field is set.
      */
+    @java.lang.Override
     public boolean hasVers() {
       return msgCase_ == 1;
     }
@@ -27315,6 +27467,7 @@ public final class Message {
      * <code>.Version vers = 1;</code>
      * @return The vers.
      */
+    @java.lang.Override
     public soc.proto.Message.Version getVers() {
       if (msgCase_ == 1) {
          return (soc.proto.Message.Version) msg_;
@@ -27328,6 +27481,7 @@ public final class Message {
      *
      * <code>.Version vers = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.VersionOrBuilder getVersOrBuilder() {
       if (msgCase_ == 1) {
          return (soc.proto.Message.Version) msg_;
@@ -27340,6 +27494,7 @@ public final class Message {
      * <code>.RejectConnection reject_connection = 2;</code>
      * @return Whether the rejectConnection field is set.
      */
+    @java.lang.Override
     public boolean hasRejectConnection() {
       return msgCase_ == 2;
     }
@@ -27347,6 +27502,7 @@ public final class Message {
      * <code>.RejectConnection reject_connection = 2;</code>
      * @return The rejectConnection.
      */
+    @java.lang.Override
     public soc.proto.Message.RejectConnection getRejectConnection() {
       if (msgCase_ == 2) {
          return (soc.proto.Message.RejectConnection) msg_;
@@ -27356,6 +27512,7 @@ public final class Message {
     /**
      * <code>.RejectConnection reject_connection = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.RejectConnectionOrBuilder getRejectConnectionOrBuilder() {
       if (msgCase_ == 2) {
          return (soc.proto.Message.RejectConnection) msg_;
@@ -27368,6 +27525,7 @@ public final class Message {
      * <code>.ServerStatusText status_text = 3;</code>
      * @return Whether the statusText field is set.
      */
+    @java.lang.Override
     public boolean hasStatusText() {
       return msgCase_ == 3;
     }
@@ -27375,6 +27533,7 @@ public final class Message {
      * <code>.ServerStatusText status_text = 3;</code>
      * @return The statusText.
      */
+    @java.lang.Override
     public soc.proto.Message.ServerStatusText getStatusText() {
       if (msgCase_ == 3) {
          return (soc.proto.Message.ServerStatusText) msg_;
@@ -27384,6 +27543,7 @@ public final class Message {
     /**
      * <code>.ServerStatusText status_text = 3;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.ServerStatusTextOrBuilder getStatusTextOrBuilder() {
       if (msgCase_ == 3) {
          return (soc.proto.Message.ServerStatusText) msg_;
@@ -27396,6 +27556,7 @@ public final class Message {
      * <code>.BroadcastText broadcast_text = 4;</code>
      * @return Whether the broadcastText field is set.
      */
+    @java.lang.Override
     public boolean hasBroadcastText() {
       return msgCase_ == 4;
     }
@@ -27403,6 +27564,7 @@ public final class Message {
      * <code>.BroadcastText broadcast_text = 4;</code>
      * @return The broadcastText.
      */
+    @java.lang.Override
     public soc.proto.Message.BroadcastText getBroadcastText() {
       if (msgCase_ == 4) {
          return (soc.proto.Message.BroadcastText) msg_;
@@ -27412,6 +27574,7 @@ public final class Message {
     /**
      * <code>.BroadcastText broadcast_text = 4;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.BroadcastTextOrBuilder getBroadcastTextOrBuilder() {
       if (msgCase_ == 4) {
          return (soc.proto.Message.BroadcastText) msg_;
@@ -27424,6 +27587,7 @@ public final class Message {
      * <code>.ServerPing server_ping = 5;</code>
      * @return Whether the serverPing field is set.
      */
+    @java.lang.Override
     public boolean hasServerPing() {
       return msgCase_ == 5;
     }
@@ -27431,6 +27595,7 @@ public final class Message {
      * <code>.ServerPing server_ping = 5;</code>
      * @return The serverPing.
      */
+    @java.lang.Override
     public soc.proto.Message.ServerPing getServerPing() {
       if (msgCase_ == 5) {
          return (soc.proto.Message.ServerPing) msg_;
@@ -27440,6 +27605,7 @@ public final class Message {
     /**
      * <code>.ServerPing server_ping = 5;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.ServerPingOrBuilder getServerPingOrBuilder() {
       if (msgCase_ == 5) {
          return (soc.proto.Message.ServerPing) msg_;
@@ -27456,6 +27622,7 @@ public final class Message {
      * <code>.GameMessageFromServer game_message = 15;</code>
      * @return Whether the gameMessage field is set.
      */
+    @java.lang.Override
     public boolean hasGameMessage() {
       return msgCase_ == 15;
     }
@@ -27467,6 +27634,7 @@ public final class Message {
      * <code>.GameMessageFromServer game_message = 15;</code>
      * @return The gameMessage.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GameMessageFromServer getGameMessage() {
       if (msgCase_ == 15) {
          return (soc.proto.GameMessage.GameMessageFromServer) msg_;
@@ -27480,6 +27648,7 @@ public final class Message {
      *
      * <code>.GameMessageFromServer game_message = 15;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GameMessageFromServerOrBuilder getGameMessageOrBuilder() {
       if (msgCase_ == 15) {
          return (soc.proto.GameMessage.GameMessageFromServer) msg_;
@@ -27496,6 +27665,7 @@ public final class Message {
      * <code>.BotUpdateParams bot_update_params = 20;</code>
      * @return Whether the botUpdateParams field is set.
      */
+    @java.lang.Override
     public boolean hasBotUpdateParams() {
       return msgCase_ == 20;
     }
@@ -27507,6 +27677,7 @@ public final class Message {
      * <code>.BotUpdateParams bot_update_params = 20;</code>
      * @return The botUpdateParams.
      */
+    @java.lang.Override
     public soc.proto.Message.BotUpdateParams getBotUpdateParams() {
       if (msgCase_ == 20) {
          return (soc.proto.Message.BotUpdateParams) msg_;
@@ -27520,6 +27691,7 @@ public final class Message {
      *
      * <code>.BotUpdateParams bot_update_params = 20;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.BotUpdateParamsOrBuilder getBotUpdateParamsOrBuilder() {
       if (msgCase_ == 20) {
          return (soc.proto.Message.BotUpdateParams) msg_;
@@ -27532,6 +27704,7 @@ public final class Message {
      * <code>.BotAdminReset bot_admin_reset = 21;</code>
      * @return Whether the botAdminReset field is set.
      */
+    @java.lang.Override
     public boolean hasBotAdminReset() {
       return msgCase_ == 21;
     }
@@ -27539,6 +27712,7 @@ public final class Message {
      * <code>.BotAdminReset bot_admin_reset = 21;</code>
      * @return The botAdminReset.
      */
+    @java.lang.Override
     public soc.proto.Message.BotAdminReset getBotAdminReset() {
       if (msgCase_ == 21) {
          return (soc.proto.Message.BotAdminReset) msg_;
@@ -27548,6 +27722,7 @@ public final class Message {
     /**
      * <code>.BotAdminReset bot_admin_reset = 21;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.BotAdminResetOrBuilder getBotAdminResetOrBuilder() {
       if (msgCase_ == 21) {
          return (soc.proto.Message.BotAdminReset) msg_;
@@ -27564,6 +27739,7 @@ public final class Message {
      * <code>.Channels channels = 100;</code>
      * @return Whether the channels field is set.
      */
+    @java.lang.Override
     public boolean hasChannels() {
       return msgCase_ == 100;
     }
@@ -27575,6 +27751,7 @@ public final class Message {
      * <code>.Channels channels = 100;</code>
      * @return The channels.
      */
+    @java.lang.Override
     public soc.proto.Message.Channels getChannels() {
       if (msgCase_ == 100) {
          return (soc.proto.Message.Channels) msg_;
@@ -27588,6 +27765,7 @@ public final class Message {
      *
      * <code>.Channels channels = 100;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.ChannelsOrBuilder getChannelsOrBuilder() {
       if (msgCase_ == 100) {
          return (soc.proto.Message.Channels) msg_;
@@ -27600,6 +27778,7 @@ public final class Message {
      * <code>.NewChannel ch_new = 101;</code>
      * @return Whether the chNew field is set.
      */
+    @java.lang.Override
     public boolean hasChNew() {
       return msgCase_ == 101;
     }
@@ -27607,6 +27786,7 @@ public final class Message {
      * <code>.NewChannel ch_new = 101;</code>
      * @return The chNew.
      */
+    @java.lang.Override
     public soc.proto.Message.NewChannel getChNew() {
       if (msgCase_ == 101) {
          return (soc.proto.Message.NewChannel) msg_;
@@ -27616,6 +27796,7 @@ public final class Message {
     /**
      * <code>.NewChannel ch_new = 101;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.NewChannelOrBuilder getChNewOrBuilder() {
       if (msgCase_ == 101) {
          return (soc.proto.Message.NewChannel) msg_;
@@ -27628,6 +27809,7 @@ public final class Message {
      * <code>.JoinChannel ch_join = 102;</code>
      * @return Whether the chJoin field is set.
      */
+    @java.lang.Override
     public boolean hasChJoin() {
       return msgCase_ == 102;
     }
@@ -27635,6 +27817,7 @@ public final class Message {
      * <code>.JoinChannel ch_join = 102;</code>
      * @return The chJoin.
      */
+    @java.lang.Override
     public soc.proto.Message.JoinChannel getChJoin() {
       if (msgCase_ == 102) {
          return (soc.proto.Message.JoinChannel) msg_;
@@ -27644,6 +27827,7 @@ public final class Message {
     /**
      * <code>.JoinChannel ch_join = 102;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.JoinChannelOrBuilder getChJoinOrBuilder() {
       if (msgCase_ == 102) {
          return (soc.proto.Message.JoinChannel) msg_;
@@ -27656,6 +27840,7 @@ public final class Message {
      * <code>.ChannelMembers ch_members = 103;</code>
      * @return Whether the chMembers field is set.
      */
+    @java.lang.Override
     public boolean hasChMembers() {
       return msgCase_ == 103;
     }
@@ -27663,6 +27848,7 @@ public final class Message {
      * <code>.ChannelMembers ch_members = 103;</code>
      * @return The chMembers.
      */
+    @java.lang.Override
     public soc.proto.Message.ChannelMembers getChMembers() {
       if (msgCase_ == 103) {
          return (soc.proto.Message.ChannelMembers) msg_;
@@ -27672,6 +27858,7 @@ public final class Message {
     /**
      * <code>.ChannelMembers ch_members = 103;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.ChannelMembersOrBuilder getChMembersOrBuilder() {
       if (msgCase_ == 103) {
          return (soc.proto.Message.ChannelMembers) msg_;
@@ -27684,6 +27871,7 @@ public final class Message {
      * <code>.ChannelText ch_text = 104;</code>
      * @return Whether the chText field is set.
      */
+    @java.lang.Override
     public boolean hasChText() {
       return msgCase_ == 104;
     }
@@ -27691,6 +27879,7 @@ public final class Message {
      * <code>.ChannelText ch_text = 104;</code>
      * @return The chText.
      */
+    @java.lang.Override
     public soc.proto.Message.ChannelText getChText() {
       if (msgCase_ == 104) {
          return (soc.proto.Message.ChannelText) msg_;
@@ -27700,6 +27889,7 @@ public final class Message {
     /**
      * <code>.ChannelText ch_text = 104;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.ChannelTextOrBuilder getChTextOrBuilder() {
       if (msgCase_ == 104) {
          return (soc.proto.Message.ChannelText) msg_;
@@ -27712,6 +27902,7 @@ public final class Message {
      * <code>.LeaveChannel ch_leave = 105;</code>
      * @return Whether the chLeave field is set.
      */
+    @java.lang.Override
     public boolean hasChLeave() {
       return msgCase_ == 105;
     }
@@ -27719,6 +27910,7 @@ public final class Message {
      * <code>.LeaveChannel ch_leave = 105;</code>
      * @return The chLeave.
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveChannel getChLeave() {
       if (msgCase_ == 105) {
          return (soc.proto.Message.LeaveChannel) msg_;
@@ -27728,6 +27920,7 @@ public final class Message {
     /**
      * <code>.LeaveChannel ch_leave = 105;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveChannelOrBuilder getChLeaveOrBuilder() {
       if (msgCase_ == 105) {
          return (soc.proto.Message.LeaveChannel) msg_;
@@ -27740,6 +27933,7 @@ public final class Message {
      * <code>.DeleteChannel ch_delete = 106;</code>
      * @return Whether the chDelete field is set.
      */
+    @java.lang.Override
     public boolean hasChDelete() {
       return msgCase_ == 106;
     }
@@ -27747,6 +27941,7 @@ public final class Message {
      * <code>.DeleteChannel ch_delete = 106;</code>
      * @return The chDelete.
      */
+    @java.lang.Override
     public soc.proto.Message.DeleteChannel getChDelete() {
       if (msgCase_ == 106) {
          return (soc.proto.Message.DeleteChannel) msg_;
@@ -27756,6 +27951,7 @@ public final class Message {
     /**
      * <code>.DeleteChannel ch_delete = 106;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.DeleteChannelOrBuilder getChDeleteOrBuilder() {
       if (msgCase_ == 106) {
          return (soc.proto.Message.DeleteChannel) msg_;
@@ -27772,6 +27968,7 @@ public final class Message {
      * <code>.Games games = 200;</code>
      * @return Whether the games field is set.
      */
+    @java.lang.Override
     public boolean hasGames() {
       return msgCase_ == 200;
     }
@@ -27783,6 +27980,7 @@ public final class Message {
      * <code>.Games games = 200;</code>
      * @return The games.
      */
+    @java.lang.Override
     public soc.proto.Message.Games getGames() {
       if (msgCase_ == 200) {
          return (soc.proto.Message.Games) msg_;
@@ -27796,6 +27994,7 @@ public final class Message {
      *
      * <code>.Games games = 200;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.GamesOrBuilder getGamesOrBuilder() {
       if (msgCase_ == 200) {
          return (soc.proto.Message.Games) msg_;
@@ -27808,6 +28007,7 @@ public final class Message {
      * <code>.NewGame ga_new = 201;</code>
      * @return Whether the gaNew field is set.
      */
+    @java.lang.Override
     public boolean hasGaNew() {
       return msgCase_ == 201;
     }
@@ -27815,6 +28015,7 @@ public final class Message {
      * <code>.NewGame ga_new = 201;</code>
      * @return The gaNew.
      */
+    @java.lang.Override
     public soc.proto.Message.NewGame getGaNew() {
       if (msgCase_ == 201) {
          return (soc.proto.Message.NewGame) msg_;
@@ -27824,6 +28025,7 @@ public final class Message {
     /**
      * <code>.NewGame ga_new = 201;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.NewGameOrBuilder getGaNewOrBuilder() {
       if (msgCase_ == 201) {
          return (soc.proto.Message.NewGame) msg_;
@@ -27836,6 +28038,7 @@ public final class Message {
      * <code>.JoinGame ga_join = 202;</code>
      * @return Whether the gaJoin field is set.
      */
+    @java.lang.Override
     public boolean hasGaJoin() {
       return msgCase_ == 202;
     }
@@ -27843,6 +28046,7 @@ public final class Message {
      * <code>.JoinGame ga_join = 202;</code>
      * @return The gaJoin.
      */
+    @java.lang.Override
     public soc.proto.Message.JoinGame getGaJoin() {
       if (msgCase_ == 202) {
          return (soc.proto.Message.JoinGame) msg_;
@@ -27852,6 +28056,7 @@ public final class Message {
     /**
      * <code>.JoinGame ga_join = 202;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.JoinGameOrBuilder getGaJoinOrBuilder() {
       if (msgCase_ == 202) {
          return (soc.proto.Message.JoinGame) msg_;
@@ -27864,6 +28069,7 @@ public final class Message {
      * <code>.BotJoinGameRequest bot_join_req = 203;</code>
      * @return Whether the botJoinReq field is set.
      */
+    @java.lang.Override
     public boolean hasBotJoinReq() {
       return msgCase_ == 203;
     }
@@ -27871,6 +28077,7 @@ public final class Message {
      * <code>.BotJoinGameRequest bot_join_req = 203;</code>
      * @return The botJoinReq.
      */
+    @java.lang.Override
     public soc.proto.Message.BotJoinGameRequest getBotJoinReq() {
       if (msgCase_ == 203) {
          return (soc.proto.Message.BotJoinGameRequest) msg_;
@@ -27880,6 +28087,7 @@ public final class Message {
     /**
      * <code>.BotJoinGameRequest bot_join_req = 203;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.BotJoinGameRequestOrBuilder getBotJoinReqOrBuilder() {
       if (msgCase_ == 203) {
          return (soc.proto.Message.BotJoinGameRequest) msg_;
@@ -27892,6 +28100,7 @@ public final class Message {
      * <code>.GameMembers ga_members = 204;</code>
      * @return Whether the gaMembers field is set.
      */
+    @java.lang.Override
     public boolean hasGaMembers() {
       return msgCase_ == 204;
     }
@@ -27899,6 +28108,7 @@ public final class Message {
      * <code>.GameMembers ga_members = 204;</code>
      * @return The gaMembers.
      */
+    @java.lang.Override
     public soc.proto.Message.GameMembers getGaMembers() {
       if (msgCase_ == 204) {
          return (soc.proto.Message.GameMembers) msg_;
@@ -27908,6 +28118,7 @@ public final class Message {
     /**
      * <code>.GameMembers ga_members = 204;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.GameMembersOrBuilder getGaMembersOrBuilder() {
       if (msgCase_ == 204) {
          return (soc.proto.Message.GameMembers) msg_;
@@ -27920,6 +28131,7 @@ public final class Message {
      * <code>.SitDown sit_down = 205;</code>
      * @return Whether the sitDown field is set.
      */
+    @java.lang.Override
     public boolean hasSitDown() {
       return msgCase_ == 205;
     }
@@ -27927,6 +28139,7 @@ public final class Message {
      * <code>.SitDown sit_down = 205;</code>
      * @return The sitDown.
      */
+    @java.lang.Override
     public soc.proto.Message.SitDown getSitDown() {
       if (msgCase_ == 205) {
          return (soc.proto.Message.SitDown) msg_;
@@ -27936,6 +28149,7 @@ public final class Message {
     /**
      * <code>.SitDown sit_down = 205;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.SitDownOrBuilder getSitDownOrBuilder() {
       if (msgCase_ == 205) {
          return (soc.proto.Message.SitDown) msg_;
@@ -27948,6 +28162,7 @@ public final class Message {
      * <code>.SetSeatLock set_seat_lock = 206;</code>
      * @return Whether the setSeatLock field is set.
      */
+    @java.lang.Override
     public boolean hasSetSeatLock() {
       return msgCase_ == 206;
     }
@@ -27955,6 +28170,7 @@ public final class Message {
      * <code>.SetSeatLock set_seat_lock = 206;</code>
      * @return The setSeatLock.
      */
+    @java.lang.Override
     public soc.proto.Message.SetSeatLock getSetSeatLock() {
       if (msgCase_ == 206) {
          return (soc.proto.Message.SetSeatLock) msg_;
@@ -27964,6 +28180,7 @@ public final class Message {
     /**
      * <code>.SetSeatLock set_seat_lock = 206;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.SetSeatLockOrBuilder getSetSeatLockOrBuilder() {
       if (msgCase_ == 206) {
          return (soc.proto.Message.SetSeatLock) msg_;
@@ -27976,6 +28193,7 @@ public final class Message {
      * <code>.GameServerText server_text = 207;</code>
      * @return Whether the serverText field is set.
      */
+    @java.lang.Override
     public boolean hasServerText() {
       return msgCase_ == 207;
     }
@@ -27983,6 +28201,7 @@ public final class Message {
      * <code>.GameServerText server_text = 207;</code>
      * @return The serverText.
      */
+    @java.lang.Override
     public soc.proto.Message.GameServerText getServerText() {
       if (msgCase_ == 207) {
          return (soc.proto.Message.GameServerText) msg_;
@@ -27992,6 +28211,7 @@ public final class Message {
     /**
      * <code>.GameServerText server_text = 207;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.GameServerTextOrBuilder getServerTextOrBuilder() {
       if (msgCase_ == 207) {
          return (soc.proto.Message.GameServerText) msg_;
@@ -28004,6 +28224,7 @@ public final class Message {
      * <code>.GamePlayerText ga_player_text = 208;</code>
      * @return Whether the gaPlayerText field is set.
      */
+    @java.lang.Override
     public boolean hasGaPlayerText() {
       return msgCase_ == 208;
     }
@@ -28011,6 +28232,7 @@ public final class Message {
      * <code>.GamePlayerText ga_player_text = 208;</code>
      * @return The gaPlayerText.
      */
+    @java.lang.Override
     public soc.proto.Message.GamePlayerText getGaPlayerText() {
       if (msgCase_ == 208) {
          return (soc.proto.Message.GamePlayerText) msg_;
@@ -28020,6 +28242,7 @@ public final class Message {
     /**
      * <code>.GamePlayerText ga_player_text = 208;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.GamePlayerTextOrBuilder getGaPlayerTextOrBuilder() {
       if (msgCase_ == 208) {
          return (soc.proto.Message.GamePlayerText) msg_;
@@ -28032,6 +28255,7 @@ public final class Message {
      * <code>.BotTimingPing bot_timing_ping = 209;</code>
      * @return Whether the botTimingPing field is set.
      */
+    @java.lang.Override
     public boolean hasBotTimingPing() {
       return msgCase_ == 209;
     }
@@ -28039,6 +28263,7 @@ public final class Message {
      * <code>.BotTimingPing bot_timing_ping = 209;</code>
      * @return The botTimingPing.
      */
+    @java.lang.Override
     public soc.proto.Message.BotTimingPing getBotTimingPing() {
       if (msgCase_ == 209) {
          return (soc.proto.Message.BotTimingPing) msg_;
@@ -28048,6 +28273,7 @@ public final class Message {
     /**
      * <code>.BotTimingPing bot_timing_ping = 209;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.BotTimingPingOrBuilder getBotTimingPingOrBuilder() {
       if (msgCase_ == 209) {
          return (soc.proto.Message.BotTimingPing) msg_;
@@ -28060,6 +28286,7 @@ public final class Message {
      * <code>.BotAdminPing bot_admin_ping = 210;</code>
      * @return Whether the botAdminPing field is set.
      */
+    @java.lang.Override
     public boolean hasBotAdminPing() {
       return msgCase_ == 210;
     }
@@ -28067,6 +28294,7 @@ public final class Message {
      * <code>.BotAdminPing bot_admin_ping = 210;</code>
      * @return The botAdminPing.
      */
+    @java.lang.Override
     public soc.proto.Message.BotAdminPing getBotAdminPing() {
       if (msgCase_ == 210) {
          return (soc.proto.Message.BotAdminPing) msg_;
@@ -28076,6 +28304,7 @@ public final class Message {
     /**
      * <code>.BotAdminPing bot_admin_ping = 210;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.BotAdminPingOrBuilder getBotAdminPingOrBuilder() {
       if (msgCase_ == 210) {
          return (soc.proto.Message.BotAdminPing) msg_;
@@ -28088,6 +28317,7 @@ public final class Message {
      * <code>.BotDismiss bot_dismiss = 211;</code>
      * @return Whether the botDismiss field is set.
      */
+    @java.lang.Override
     public boolean hasBotDismiss() {
       return msgCase_ == 211;
     }
@@ -28095,6 +28325,7 @@ public final class Message {
      * <code>.BotDismiss bot_dismiss = 211;</code>
      * @return The botDismiss.
      */
+    @java.lang.Override
     public soc.proto.Message.BotDismiss getBotDismiss() {
       if (msgCase_ == 211) {
          return (soc.proto.Message.BotDismiss) msg_;
@@ -28104,6 +28335,7 @@ public final class Message {
     /**
      * <code>.BotDismiss bot_dismiss = 211;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.BotDismissOrBuilder getBotDismissOrBuilder() {
       if (msgCase_ == 211) {
          return (soc.proto.Message.BotDismiss) msg_;
@@ -28116,6 +28348,7 @@ public final class Message {
      * <code>.LeaveGame ga_leave = 212;</code>
      * @return Whether the gaLeave field is set.
      */
+    @java.lang.Override
     public boolean hasGaLeave() {
       return msgCase_ == 212;
     }
@@ -28123,6 +28356,7 @@ public final class Message {
      * <code>.LeaveGame ga_leave = 212;</code>
      * @return The gaLeave.
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveGame getGaLeave() {
       if (msgCase_ == 212) {
          return (soc.proto.Message.LeaveGame) msg_;
@@ -28132,6 +28366,7 @@ public final class Message {
     /**
      * <code>.LeaveGame ga_leave = 212;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveGameOrBuilder getGaLeaveOrBuilder() {
       if (msgCase_ == 212) {
          return (soc.proto.Message.LeaveGame) msg_;
@@ -28144,6 +28379,7 @@ public final class Message {
      * <code>.DeleteGame ga_delete = 213;</code>
      * @return Whether the gaDelete field is set.
      */
+    @java.lang.Override
     public boolean hasGaDelete() {
       return msgCase_ == 213;
     }
@@ -28151,6 +28387,7 @@ public final class Message {
      * <code>.DeleteGame ga_delete = 213;</code>
      * @return The gaDelete.
      */
+    @java.lang.Override
     public soc.proto.Message.DeleteGame getGaDelete() {
       if (msgCase_ == 213) {
          return (soc.proto.Message.DeleteGame) msg_;
@@ -28160,6 +28397,7 @@ public final class Message {
     /**
      * <code>.DeleteGame ga_delete = 213;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.DeleteGameOrBuilder getGaDeleteOrBuilder() {
       if (msgCase_ == 213) {
          return (soc.proto.Message.DeleteGame) msg_;
@@ -29248,6 +29486,7 @@ public final class Message {
        * <code>.Version vers = 1;</code>
        * @return Whether the vers field is set.
        */
+      @java.lang.Override
       public boolean hasVers() {
         return msgCase_ == 1;
       }
@@ -29259,6 +29498,7 @@ public final class Message {
        * <code>.Version vers = 1;</code>
        * @return The vers.
        */
+      @java.lang.Override
       public soc.proto.Message.Version getVers() {
         if (versBuilder_ == null) {
           if (msgCase_ == 1) {
@@ -29376,6 +29616,7 @@ public final class Message {
        *
        * <code>.Version vers = 1;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.VersionOrBuilder getVersOrBuilder() {
         if ((msgCase_ == 1) && (versBuilder_ != null)) {
           return versBuilder_.getMessageOrBuilder();
@@ -29418,6 +29659,7 @@ public final class Message {
        * <code>.RejectConnection reject_connection = 2;</code>
        * @return Whether the rejectConnection field is set.
        */
+      @java.lang.Override
       public boolean hasRejectConnection() {
         return msgCase_ == 2;
       }
@@ -29425,6 +29667,7 @@ public final class Message {
        * <code>.RejectConnection reject_connection = 2;</code>
        * @return The rejectConnection.
        */
+      @java.lang.Override
       public soc.proto.Message.RejectConnection getRejectConnection() {
         if (rejectConnectionBuilder_ == null) {
           if (msgCase_ == 2) {
@@ -29518,6 +29761,7 @@ public final class Message {
       /**
        * <code>.RejectConnection reject_connection = 2;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.RejectConnectionOrBuilder getRejectConnectionOrBuilder() {
         if ((msgCase_ == 2) && (rejectConnectionBuilder_ != null)) {
           return rejectConnectionBuilder_.getMessageOrBuilder();
@@ -29556,6 +29800,7 @@ public final class Message {
        * <code>.ServerStatusText status_text = 3;</code>
        * @return Whether the statusText field is set.
        */
+      @java.lang.Override
       public boolean hasStatusText() {
         return msgCase_ == 3;
       }
@@ -29563,6 +29808,7 @@ public final class Message {
        * <code>.ServerStatusText status_text = 3;</code>
        * @return The statusText.
        */
+      @java.lang.Override
       public soc.proto.Message.ServerStatusText getStatusText() {
         if (statusTextBuilder_ == null) {
           if (msgCase_ == 3) {
@@ -29656,6 +29902,7 @@ public final class Message {
       /**
        * <code>.ServerStatusText status_text = 3;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.ServerStatusTextOrBuilder getStatusTextOrBuilder() {
         if ((msgCase_ == 3) && (statusTextBuilder_ != null)) {
           return statusTextBuilder_.getMessageOrBuilder();
@@ -29694,6 +29941,7 @@ public final class Message {
        * <code>.BroadcastText broadcast_text = 4;</code>
        * @return Whether the broadcastText field is set.
        */
+      @java.lang.Override
       public boolean hasBroadcastText() {
         return msgCase_ == 4;
       }
@@ -29701,6 +29949,7 @@ public final class Message {
        * <code>.BroadcastText broadcast_text = 4;</code>
        * @return The broadcastText.
        */
+      @java.lang.Override
       public soc.proto.Message.BroadcastText getBroadcastText() {
         if (broadcastTextBuilder_ == null) {
           if (msgCase_ == 4) {
@@ -29794,6 +30043,7 @@ public final class Message {
       /**
        * <code>.BroadcastText broadcast_text = 4;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.BroadcastTextOrBuilder getBroadcastTextOrBuilder() {
         if ((msgCase_ == 4) && (broadcastTextBuilder_ != null)) {
           return broadcastTextBuilder_.getMessageOrBuilder();
@@ -29832,6 +30082,7 @@ public final class Message {
        * <code>.ServerPing server_ping = 5;</code>
        * @return Whether the serverPing field is set.
        */
+      @java.lang.Override
       public boolean hasServerPing() {
         return msgCase_ == 5;
       }
@@ -29839,6 +30090,7 @@ public final class Message {
        * <code>.ServerPing server_ping = 5;</code>
        * @return The serverPing.
        */
+      @java.lang.Override
       public soc.proto.Message.ServerPing getServerPing() {
         if (serverPingBuilder_ == null) {
           if (msgCase_ == 5) {
@@ -29932,6 +30184,7 @@ public final class Message {
       /**
        * <code>.ServerPing server_ping = 5;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.ServerPingOrBuilder getServerPingOrBuilder() {
         if ((msgCase_ == 5) && (serverPingBuilder_ != null)) {
           return serverPingBuilder_.getMessageOrBuilder();
@@ -29974,6 +30227,7 @@ public final class Message {
        * <code>.GameMessageFromServer game_message = 15;</code>
        * @return Whether the gameMessage field is set.
        */
+      @java.lang.Override
       public boolean hasGameMessage() {
         return msgCase_ == 15;
       }
@@ -29985,6 +30239,7 @@ public final class Message {
        * <code>.GameMessageFromServer game_message = 15;</code>
        * @return The gameMessage.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromServer getGameMessage() {
         if (gameMessageBuilder_ == null) {
           if (msgCase_ == 15) {
@@ -30102,6 +30357,7 @@ public final class Message {
        *
        * <code>.GameMessageFromServer game_message = 15;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromServerOrBuilder getGameMessageOrBuilder() {
         if ((msgCase_ == 15) && (gameMessageBuilder_ != null)) {
           return gameMessageBuilder_.getMessageOrBuilder();
@@ -30148,6 +30404,7 @@ public final class Message {
        * <code>.BotUpdateParams bot_update_params = 20;</code>
        * @return Whether the botUpdateParams field is set.
        */
+      @java.lang.Override
       public boolean hasBotUpdateParams() {
         return msgCase_ == 20;
       }
@@ -30159,6 +30416,7 @@ public final class Message {
        * <code>.BotUpdateParams bot_update_params = 20;</code>
        * @return The botUpdateParams.
        */
+      @java.lang.Override
       public soc.proto.Message.BotUpdateParams getBotUpdateParams() {
         if (botUpdateParamsBuilder_ == null) {
           if (msgCase_ == 20) {
@@ -30276,6 +30534,7 @@ public final class Message {
        *
        * <code>.BotUpdateParams bot_update_params = 20;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.BotUpdateParamsOrBuilder getBotUpdateParamsOrBuilder() {
         if ((msgCase_ == 20) && (botUpdateParamsBuilder_ != null)) {
           return botUpdateParamsBuilder_.getMessageOrBuilder();
@@ -30318,6 +30577,7 @@ public final class Message {
        * <code>.BotAdminReset bot_admin_reset = 21;</code>
        * @return Whether the botAdminReset field is set.
        */
+      @java.lang.Override
       public boolean hasBotAdminReset() {
         return msgCase_ == 21;
       }
@@ -30325,6 +30585,7 @@ public final class Message {
        * <code>.BotAdminReset bot_admin_reset = 21;</code>
        * @return The botAdminReset.
        */
+      @java.lang.Override
       public soc.proto.Message.BotAdminReset getBotAdminReset() {
         if (botAdminResetBuilder_ == null) {
           if (msgCase_ == 21) {
@@ -30418,6 +30679,7 @@ public final class Message {
       /**
        * <code>.BotAdminReset bot_admin_reset = 21;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.BotAdminResetOrBuilder getBotAdminResetOrBuilder() {
         if ((msgCase_ == 21) && (botAdminResetBuilder_ != null)) {
           return botAdminResetBuilder_.getMessageOrBuilder();
@@ -30460,6 +30722,7 @@ public final class Message {
        * <code>.Channels channels = 100;</code>
        * @return Whether the channels field is set.
        */
+      @java.lang.Override
       public boolean hasChannels() {
         return msgCase_ == 100;
       }
@@ -30471,6 +30734,7 @@ public final class Message {
        * <code>.Channels channels = 100;</code>
        * @return The channels.
        */
+      @java.lang.Override
       public soc.proto.Message.Channels getChannels() {
         if (channelsBuilder_ == null) {
           if (msgCase_ == 100) {
@@ -30588,6 +30852,7 @@ public final class Message {
        *
        * <code>.Channels channels = 100;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.ChannelsOrBuilder getChannelsOrBuilder() {
         if ((msgCase_ == 100) && (channelsBuilder_ != null)) {
           return channelsBuilder_.getMessageOrBuilder();
@@ -30630,6 +30895,7 @@ public final class Message {
        * <code>.NewChannel ch_new = 101;</code>
        * @return Whether the chNew field is set.
        */
+      @java.lang.Override
       public boolean hasChNew() {
         return msgCase_ == 101;
       }
@@ -30637,6 +30903,7 @@ public final class Message {
        * <code>.NewChannel ch_new = 101;</code>
        * @return The chNew.
        */
+      @java.lang.Override
       public soc.proto.Message.NewChannel getChNew() {
         if (chNewBuilder_ == null) {
           if (msgCase_ == 101) {
@@ -30730,6 +30997,7 @@ public final class Message {
       /**
        * <code>.NewChannel ch_new = 101;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.NewChannelOrBuilder getChNewOrBuilder() {
         if ((msgCase_ == 101) && (chNewBuilder_ != null)) {
           return chNewBuilder_.getMessageOrBuilder();
@@ -30768,6 +31036,7 @@ public final class Message {
        * <code>.JoinChannel ch_join = 102;</code>
        * @return Whether the chJoin field is set.
        */
+      @java.lang.Override
       public boolean hasChJoin() {
         return msgCase_ == 102;
       }
@@ -30775,6 +31044,7 @@ public final class Message {
        * <code>.JoinChannel ch_join = 102;</code>
        * @return The chJoin.
        */
+      @java.lang.Override
       public soc.proto.Message.JoinChannel getChJoin() {
         if (chJoinBuilder_ == null) {
           if (msgCase_ == 102) {
@@ -30868,6 +31138,7 @@ public final class Message {
       /**
        * <code>.JoinChannel ch_join = 102;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.JoinChannelOrBuilder getChJoinOrBuilder() {
         if ((msgCase_ == 102) && (chJoinBuilder_ != null)) {
           return chJoinBuilder_.getMessageOrBuilder();
@@ -30906,6 +31177,7 @@ public final class Message {
        * <code>.ChannelMembers ch_members = 103;</code>
        * @return Whether the chMembers field is set.
        */
+      @java.lang.Override
       public boolean hasChMembers() {
         return msgCase_ == 103;
       }
@@ -30913,6 +31185,7 @@ public final class Message {
        * <code>.ChannelMembers ch_members = 103;</code>
        * @return The chMembers.
        */
+      @java.lang.Override
       public soc.proto.Message.ChannelMembers getChMembers() {
         if (chMembersBuilder_ == null) {
           if (msgCase_ == 103) {
@@ -31006,6 +31279,7 @@ public final class Message {
       /**
        * <code>.ChannelMembers ch_members = 103;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.ChannelMembersOrBuilder getChMembersOrBuilder() {
         if ((msgCase_ == 103) && (chMembersBuilder_ != null)) {
           return chMembersBuilder_.getMessageOrBuilder();
@@ -31044,6 +31318,7 @@ public final class Message {
        * <code>.ChannelText ch_text = 104;</code>
        * @return Whether the chText field is set.
        */
+      @java.lang.Override
       public boolean hasChText() {
         return msgCase_ == 104;
       }
@@ -31051,6 +31326,7 @@ public final class Message {
        * <code>.ChannelText ch_text = 104;</code>
        * @return The chText.
        */
+      @java.lang.Override
       public soc.proto.Message.ChannelText getChText() {
         if (chTextBuilder_ == null) {
           if (msgCase_ == 104) {
@@ -31144,6 +31420,7 @@ public final class Message {
       /**
        * <code>.ChannelText ch_text = 104;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.ChannelTextOrBuilder getChTextOrBuilder() {
         if ((msgCase_ == 104) && (chTextBuilder_ != null)) {
           return chTextBuilder_.getMessageOrBuilder();
@@ -31182,6 +31459,7 @@ public final class Message {
        * <code>.LeaveChannel ch_leave = 105;</code>
        * @return Whether the chLeave field is set.
        */
+      @java.lang.Override
       public boolean hasChLeave() {
         return msgCase_ == 105;
       }
@@ -31189,6 +31467,7 @@ public final class Message {
        * <code>.LeaveChannel ch_leave = 105;</code>
        * @return The chLeave.
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveChannel getChLeave() {
         if (chLeaveBuilder_ == null) {
           if (msgCase_ == 105) {
@@ -31282,6 +31561,7 @@ public final class Message {
       /**
        * <code>.LeaveChannel ch_leave = 105;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveChannelOrBuilder getChLeaveOrBuilder() {
         if ((msgCase_ == 105) && (chLeaveBuilder_ != null)) {
           return chLeaveBuilder_.getMessageOrBuilder();
@@ -31320,6 +31600,7 @@ public final class Message {
        * <code>.DeleteChannel ch_delete = 106;</code>
        * @return Whether the chDelete field is set.
        */
+      @java.lang.Override
       public boolean hasChDelete() {
         return msgCase_ == 106;
       }
@@ -31327,6 +31608,7 @@ public final class Message {
        * <code>.DeleteChannel ch_delete = 106;</code>
        * @return The chDelete.
        */
+      @java.lang.Override
       public soc.proto.Message.DeleteChannel getChDelete() {
         if (chDeleteBuilder_ == null) {
           if (msgCase_ == 106) {
@@ -31420,6 +31702,7 @@ public final class Message {
       /**
        * <code>.DeleteChannel ch_delete = 106;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.DeleteChannelOrBuilder getChDeleteOrBuilder() {
         if ((msgCase_ == 106) && (chDeleteBuilder_ != null)) {
           return chDeleteBuilder_.getMessageOrBuilder();
@@ -31462,6 +31745,7 @@ public final class Message {
        * <code>.Games games = 200;</code>
        * @return Whether the games field is set.
        */
+      @java.lang.Override
       public boolean hasGames() {
         return msgCase_ == 200;
       }
@@ -31473,6 +31757,7 @@ public final class Message {
        * <code>.Games games = 200;</code>
        * @return The games.
        */
+      @java.lang.Override
       public soc.proto.Message.Games getGames() {
         if (gamesBuilder_ == null) {
           if (msgCase_ == 200) {
@@ -31590,6 +31875,7 @@ public final class Message {
        *
        * <code>.Games games = 200;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.GamesOrBuilder getGamesOrBuilder() {
         if ((msgCase_ == 200) && (gamesBuilder_ != null)) {
           return gamesBuilder_.getMessageOrBuilder();
@@ -31632,6 +31918,7 @@ public final class Message {
        * <code>.NewGame ga_new = 201;</code>
        * @return Whether the gaNew field is set.
        */
+      @java.lang.Override
       public boolean hasGaNew() {
         return msgCase_ == 201;
       }
@@ -31639,6 +31926,7 @@ public final class Message {
        * <code>.NewGame ga_new = 201;</code>
        * @return The gaNew.
        */
+      @java.lang.Override
       public soc.proto.Message.NewGame getGaNew() {
         if (gaNewBuilder_ == null) {
           if (msgCase_ == 201) {
@@ -31732,6 +32020,7 @@ public final class Message {
       /**
        * <code>.NewGame ga_new = 201;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.NewGameOrBuilder getGaNewOrBuilder() {
         if ((msgCase_ == 201) && (gaNewBuilder_ != null)) {
           return gaNewBuilder_.getMessageOrBuilder();
@@ -31770,6 +32059,7 @@ public final class Message {
        * <code>.JoinGame ga_join = 202;</code>
        * @return Whether the gaJoin field is set.
        */
+      @java.lang.Override
       public boolean hasGaJoin() {
         return msgCase_ == 202;
       }
@@ -31777,6 +32067,7 @@ public final class Message {
        * <code>.JoinGame ga_join = 202;</code>
        * @return The gaJoin.
        */
+      @java.lang.Override
       public soc.proto.Message.JoinGame getGaJoin() {
         if (gaJoinBuilder_ == null) {
           if (msgCase_ == 202) {
@@ -31870,6 +32161,7 @@ public final class Message {
       /**
        * <code>.JoinGame ga_join = 202;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.JoinGameOrBuilder getGaJoinOrBuilder() {
         if ((msgCase_ == 202) && (gaJoinBuilder_ != null)) {
           return gaJoinBuilder_.getMessageOrBuilder();
@@ -31908,6 +32200,7 @@ public final class Message {
        * <code>.BotJoinGameRequest bot_join_req = 203;</code>
        * @return Whether the botJoinReq field is set.
        */
+      @java.lang.Override
       public boolean hasBotJoinReq() {
         return msgCase_ == 203;
       }
@@ -31915,6 +32208,7 @@ public final class Message {
        * <code>.BotJoinGameRequest bot_join_req = 203;</code>
        * @return The botJoinReq.
        */
+      @java.lang.Override
       public soc.proto.Message.BotJoinGameRequest getBotJoinReq() {
         if (botJoinReqBuilder_ == null) {
           if (msgCase_ == 203) {
@@ -32008,6 +32302,7 @@ public final class Message {
       /**
        * <code>.BotJoinGameRequest bot_join_req = 203;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.BotJoinGameRequestOrBuilder getBotJoinReqOrBuilder() {
         if ((msgCase_ == 203) && (botJoinReqBuilder_ != null)) {
           return botJoinReqBuilder_.getMessageOrBuilder();
@@ -32046,6 +32341,7 @@ public final class Message {
        * <code>.GameMembers ga_members = 204;</code>
        * @return Whether the gaMembers field is set.
        */
+      @java.lang.Override
       public boolean hasGaMembers() {
         return msgCase_ == 204;
       }
@@ -32053,6 +32349,7 @@ public final class Message {
        * <code>.GameMembers ga_members = 204;</code>
        * @return The gaMembers.
        */
+      @java.lang.Override
       public soc.proto.Message.GameMembers getGaMembers() {
         if (gaMembersBuilder_ == null) {
           if (msgCase_ == 204) {
@@ -32146,6 +32443,7 @@ public final class Message {
       /**
        * <code>.GameMembers ga_members = 204;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.GameMembersOrBuilder getGaMembersOrBuilder() {
         if ((msgCase_ == 204) && (gaMembersBuilder_ != null)) {
           return gaMembersBuilder_.getMessageOrBuilder();
@@ -32184,6 +32482,7 @@ public final class Message {
        * <code>.SitDown sit_down = 205;</code>
        * @return Whether the sitDown field is set.
        */
+      @java.lang.Override
       public boolean hasSitDown() {
         return msgCase_ == 205;
       }
@@ -32191,6 +32490,7 @@ public final class Message {
        * <code>.SitDown sit_down = 205;</code>
        * @return The sitDown.
        */
+      @java.lang.Override
       public soc.proto.Message.SitDown getSitDown() {
         if (sitDownBuilder_ == null) {
           if (msgCase_ == 205) {
@@ -32284,6 +32584,7 @@ public final class Message {
       /**
        * <code>.SitDown sit_down = 205;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.SitDownOrBuilder getSitDownOrBuilder() {
         if ((msgCase_ == 205) && (sitDownBuilder_ != null)) {
           return sitDownBuilder_.getMessageOrBuilder();
@@ -32322,6 +32623,7 @@ public final class Message {
        * <code>.SetSeatLock set_seat_lock = 206;</code>
        * @return Whether the setSeatLock field is set.
        */
+      @java.lang.Override
       public boolean hasSetSeatLock() {
         return msgCase_ == 206;
       }
@@ -32329,6 +32631,7 @@ public final class Message {
        * <code>.SetSeatLock set_seat_lock = 206;</code>
        * @return The setSeatLock.
        */
+      @java.lang.Override
       public soc.proto.Message.SetSeatLock getSetSeatLock() {
         if (setSeatLockBuilder_ == null) {
           if (msgCase_ == 206) {
@@ -32422,6 +32725,7 @@ public final class Message {
       /**
        * <code>.SetSeatLock set_seat_lock = 206;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.SetSeatLockOrBuilder getSetSeatLockOrBuilder() {
         if ((msgCase_ == 206) && (setSeatLockBuilder_ != null)) {
           return setSeatLockBuilder_.getMessageOrBuilder();
@@ -32460,6 +32764,7 @@ public final class Message {
        * <code>.GameServerText server_text = 207;</code>
        * @return Whether the serverText field is set.
        */
+      @java.lang.Override
       public boolean hasServerText() {
         return msgCase_ == 207;
       }
@@ -32467,6 +32772,7 @@ public final class Message {
        * <code>.GameServerText server_text = 207;</code>
        * @return The serverText.
        */
+      @java.lang.Override
       public soc.proto.Message.GameServerText getServerText() {
         if (serverTextBuilder_ == null) {
           if (msgCase_ == 207) {
@@ -32560,6 +32866,7 @@ public final class Message {
       /**
        * <code>.GameServerText server_text = 207;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.GameServerTextOrBuilder getServerTextOrBuilder() {
         if ((msgCase_ == 207) && (serverTextBuilder_ != null)) {
           return serverTextBuilder_.getMessageOrBuilder();
@@ -32598,6 +32905,7 @@ public final class Message {
        * <code>.GamePlayerText ga_player_text = 208;</code>
        * @return Whether the gaPlayerText field is set.
        */
+      @java.lang.Override
       public boolean hasGaPlayerText() {
         return msgCase_ == 208;
       }
@@ -32605,6 +32913,7 @@ public final class Message {
        * <code>.GamePlayerText ga_player_text = 208;</code>
        * @return The gaPlayerText.
        */
+      @java.lang.Override
       public soc.proto.Message.GamePlayerText getGaPlayerText() {
         if (gaPlayerTextBuilder_ == null) {
           if (msgCase_ == 208) {
@@ -32698,6 +33007,7 @@ public final class Message {
       /**
        * <code>.GamePlayerText ga_player_text = 208;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.GamePlayerTextOrBuilder getGaPlayerTextOrBuilder() {
         if ((msgCase_ == 208) && (gaPlayerTextBuilder_ != null)) {
           return gaPlayerTextBuilder_.getMessageOrBuilder();
@@ -32736,6 +33046,7 @@ public final class Message {
        * <code>.BotTimingPing bot_timing_ping = 209;</code>
        * @return Whether the botTimingPing field is set.
        */
+      @java.lang.Override
       public boolean hasBotTimingPing() {
         return msgCase_ == 209;
       }
@@ -32743,6 +33054,7 @@ public final class Message {
        * <code>.BotTimingPing bot_timing_ping = 209;</code>
        * @return The botTimingPing.
        */
+      @java.lang.Override
       public soc.proto.Message.BotTimingPing getBotTimingPing() {
         if (botTimingPingBuilder_ == null) {
           if (msgCase_ == 209) {
@@ -32836,6 +33148,7 @@ public final class Message {
       /**
        * <code>.BotTimingPing bot_timing_ping = 209;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.BotTimingPingOrBuilder getBotTimingPingOrBuilder() {
         if ((msgCase_ == 209) && (botTimingPingBuilder_ != null)) {
           return botTimingPingBuilder_.getMessageOrBuilder();
@@ -32874,6 +33187,7 @@ public final class Message {
        * <code>.BotAdminPing bot_admin_ping = 210;</code>
        * @return Whether the botAdminPing field is set.
        */
+      @java.lang.Override
       public boolean hasBotAdminPing() {
         return msgCase_ == 210;
       }
@@ -32881,6 +33195,7 @@ public final class Message {
        * <code>.BotAdminPing bot_admin_ping = 210;</code>
        * @return The botAdminPing.
        */
+      @java.lang.Override
       public soc.proto.Message.BotAdminPing getBotAdminPing() {
         if (botAdminPingBuilder_ == null) {
           if (msgCase_ == 210) {
@@ -32974,6 +33289,7 @@ public final class Message {
       /**
        * <code>.BotAdminPing bot_admin_ping = 210;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.BotAdminPingOrBuilder getBotAdminPingOrBuilder() {
         if ((msgCase_ == 210) && (botAdminPingBuilder_ != null)) {
           return botAdminPingBuilder_.getMessageOrBuilder();
@@ -33012,6 +33328,7 @@ public final class Message {
        * <code>.BotDismiss bot_dismiss = 211;</code>
        * @return Whether the botDismiss field is set.
        */
+      @java.lang.Override
       public boolean hasBotDismiss() {
         return msgCase_ == 211;
       }
@@ -33019,6 +33336,7 @@ public final class Message {
        * <code>.BotDismiss bot_dismiss = 211;</code>
        * @return The botDismiss.
        */
+      @java.lang.Override
       public soc.proto.Message.BotDismiss getBotDismiss() {
         if (botDismissBuilder_ == null) {
           if (msgCase_ == 211) {
@@ -33112,6 +33430,7 @@ public final class Message {
       /**
        * <code>.BotDismiss bot_dismiss = 211;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.BotDismissOrBuilder getBotDismissOrBuilder() {
         if ((msgCase_ == 211) && (botDismissBuilder_ != null)) {
           return botDismissBuilder_.getMessageOrBuilder();
@@ -33150,6 +33469,7 @@ public final class Message {
        * <code>.LeaveGame ga_leave = 212;</code>
        * @return Whether the gaLeave field is set.
        */
+      @java.lang.Override
       public boolean hasGaLeave() {
         return msgCase_ == 212;
       }
@@ -33157,6 +33477,7 @@ public final class Message {
        * <code>.LeaveGame ga_leave = 212;</code>
        * @return The gaLeave.
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveGame getGaLeave() {
         if (gaLeaveBuilder_ == null) {
           if (msgCase_ == 212) {
@@ -33250,6 +33571,7 @@ public final class Message {
       /**
        * <code>.LeaveGame ga_leave = 212;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveGameOrBuilder getGaLeaveOrBuilder() {
         if ((msgCase_ == 212) && (gaLeaveBuilder_ != null)) {
           return gaLeaveBuilder_.getMessageOrBuilder();
@@ -33288,6 +33610,7 @@ public final class Message {
        * <code>.DeleteGame ga_delete = 213;</code>
        * @return Whether the gaDelete field is set.
        */
+      @java.lang.Override
       public boolean hasGaDelete() {
         return msgCase_ == 213;
       }
@@ -33295,6 +33618,7 @@ public final class Message {
        * <code>.DeleteGame ga_delete = 213;</code>
        * @return The gaDelete.
        */
+      @java.lang.Override
       public soc.proto.Message.DeleteGame getGaDelete() {
         if (gaDeleteBuilder_ == null) {
           if (msgCase_ == 213) {
@@ -33388,6 +33712,7 @@ public final class Message {
       /**
        * <code>.DeleteGame ga_delete = 213;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.DeleteGameOrBuilder getGaDeleteOrBuilder() {
         if ((msgCase_ == 213) && (gaDeleteBuilder_ != null)) {
           return gaDeleteBuilder_.getMessageOrBuilder();
@@ -33754,7 +34079,7 @@ public final class Message {
   /**
    * Protobuf type {@code FromClient}
    */
-  public  static final class FromClient extends
+  public static final class FromClient extends
       com.google.protobuf.GeneratedMessageV3 implements
       // @@protoc_insertion_point(message_implements:FromClient)
       FromClientOrBuilder {
@@ -34114,6 +34439,7 @@ public final class Message {
      * <code>.Version vers = 1;</code>
      * @return Whether the vers field is set.
      */
+    @java.lang.Override
     public boolean hasVers() {
       return msgCase_ == 1;
     }
@@ -34125,6 +34451,7 @@ public final class Message {
      * <code>.Version vers = 1;</code>
      * @return The vers.
      */
+    @java.lang.Override
     public soc.proto.Message.Version getVers() {
       if (msgCase_ == 1) {
          return (soc.proto.Message.Version) msg_;
@@ -34138,6 +34465,7 @@ public final class Message {
      *
      * <code>.Version vers = 1;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.VersionOrBuilder getVersOrBuilder() {
       if (msgCase_ == 1) {
          return (soc.proto.Message.Version) msg_;
@@ -34150,6 +34478,7 @@ public final class Message {
      * <code>.AuthRequest auth_req = 2;</code>
      * @return Whether the authReq field is set.
      */
+    @java.lang.Override
     public boolean hasAuthReq() {
       return msgCase_ == 2;
     }
@@ -34157,6 +34486,7 @@ public final class Message {
      * <code>.AuthRequest auth_req = 2;</code>
      * @return The authReq.
      */
+    @java.lang.Override
     public soc.proto.Message.AuthRequest getAuthReq() {
       if (msgCase_ == 2) {
          return (soc.proto.Message.AuthRequest) msg_;
@@ -34166,6 +34496,7 @@ public final class Message {
     /**
      * <code>.AuthRequest auth_req = 2;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.AuthRequestOrBuilder getAuthReqOrBuilder() {
       if (msgCase_ == 2) {
          return (soc.proto.Message.AuthRequest) msg_;
@@ -34178,6 +34509,7 @@ public final class Message {
      * <code>.ImARobot im_a_robot = 3;</code>
      * @return Whether the imARobot field is set.
      */
+    @java.lang.Override
     public boolean hasImARobot() {
       return msgCase_ == 3;
     }
@@ -34185,6 +34517,7 @@ public final class Message {
      * <code>.ImARobot im_a_robot = 3;</code>
      * @return The imARobot.
      */
+    @java.lang.Override
     public soc.proto.Message.ImARobot getImARobot() {
       if (msgCase_ == 3) {
          return (soc.proto.Message.ImARobot) msg_;
@@ -34194,6 +34527,7 @@ public final class Message {
     /**
      * <code>.ImARobot im_a_robot = 3;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.ImARobotOrBuilder getImARobotOrBuilder() {
       if (msgCase_ == 3) {
          return (soc.proto.Message.ImARobot) msg_;
@@ -34206,6 +34540,7 @@ public final class Message {
      * <code>.ServerPing server_ping = 4;</code>
      * @return Whether the serverPing field is set.
      */
+    @java.lang.Override
     public boolean hasServerPing() {
       return msgCase_ == 4;
     }
@@ -34213,6 +34548,7 @@ public final class Message {
      * <code>.ServerPing server_ping = 4;</code>
      * @return The serverPing.
      */
+    @java.lang.Override
     public soc.proto.Message.ServerPing getServerPing() {
       if (msgCase_ == 4) {
          return (soc.proto.Message.ServerPing) msg_;
@@ -34222,6 +34558,7 @@ public final class Message {
     /**
      * <code>.ServerPing server_ping = 4;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.ServerPingOrBuilder getServerPingOrBuilder() {
       if (msgCase_ == 4) {
          return (soc.proto.Message.ServerPing) msg_;
@@ -34234,6 +34571,7 @@ public final class Message {
      * <code>.LeaveAll leave_all = 5;</code>
      * @return Whether the leaveAll field is set.
      */
+    @java.lang.Override
     public boolean hasLeaveAll() {
       return msgCase_ == 5;
     }
@@ -34241,6 +34579,7 @@ public final class Message {
      * <code>.LeaveAll leave_all = 5;</code>
      * @return The leaveAll.
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveAll getLeaveAll() {
       if (msgCase_ == 5) {
          return (soc.proto.Message.LeaveAll) msg_;
@@ -34250,6 +34589,7 @@ public final class Message {
     /**
      * <code>.LeaveAll leave_all = 5;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveAllOrBuilder getLeaveAllOrBuilder() {
       if (msgCase_ == 5) {
          return (soc.proto.Message.LeaveAll) msg_;
@@ -34266,6 +34606,7 @@ public final class Message {
      * <code>.GameMessageFromClient game_message = 15;</code>
      * @return Whether the gameMessage field is set.
      */
+    @java.lang.Override
     public boolean hasGameMessage() {
       return msgCase_ == 15;
     }
@@ -34277,6 +34618,7 @@ public final class Message {
      * <code>.GameMessageFromClient game_message = 15;</code>
      * @return The gameMessage.
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GameMessageFromClient getGameMessage() {
       if (msgCase_ == 15) {
          return (soc.proto.GameMessage.GameMessageFromClient) msg_;
@@ -34290,6 +34632,7 @@ public final class Message {
      *
      * <code>.GameMessageFromClient game_message = 15;</code>
      */
+    @java.lang.Override
     public soc.proto.GameMessage.GameMessageFromClientOrBuilder getGameMessageOrBuilder() {
       if (msgCase_ == 15) {
          return (soc.proto.GameMessage.GameMessageFromClient) msg_;
@@ -34306,6 +34649,7 @@ public final class Message {
      * <code>.JoinChannel ch_join = 100;</code>
      * @return Whether the chJoin field is set.
      */
+    @java.lang.Override
     public boolean hasChJoin() {
       return msgCase_ == 100;
     }
@@ -34317,6 +34661,7 @@ public final class Message {
      * <code>.JoinChannel ch_join = 100;</code>
      * @return The chJoin.
      */
+    @java.lang.Override
     public soc.proto.Message.JoinChannel getChJoin() {
       if (msgCase_ == 100) {
          return (soc.proto.Message.JoinChannel) msg_;
@@ -34330,6 +34675,7 @@ public final class Message {
      *
      * <code>.JoinChannel ch_join = 100;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.JoinChannelOrBuilder getChJoinOrBuilder() {
       if (msgCase_ == 100) {
          return (soc.proto.Message.JoinChannel) msg_;
@@ -34342,6 +34688,7 @@ public final class Message {
      * <code>.ChannelText ch_text = 101;</code>
      * @return Whether the chText field is set.
      */
+    @java.lang.Override
     public boolean hasChText() {
       return msgCase_ == 101;
     }
@@ -34349,6 +34696,7 @@ public final class Message {
      * <code>.ChannelText ch_text = 101;</code>
      * @return The chText.
      */
+    @java.lang.Override
     public soc.proto.Message.ChannelText getChText() {
       if (msgCase_ == 101) {
          return (soc.proto.Message.ChannelText) msg_;
@@ -34358,6 +34706,7 @@ public final class Message {
     /**
      * <code>.ChannelText ch_text = 101;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.ChannelTextOrBuilder getChTextOrBuilder() {
       if (msgCase_ == 101) {
          return (soc.proto.Message.ChannelText) msg_;
@@ -34370,6 +34719,7 @@ public final class Message {
      * <code>.LeaveChannel ch_leave = 102;</code>
      * @return Whether the chLeave field is set.
      */
+    @java.lang.Override
     public boolean hasChLeave() {
       return msgCase_ == 102;
     }
@@ -34377,6 +34727,7 @@ public final class Message {
      * <code>.LeaveChannel ch_leave = 102;</code>
      * @return The chLeave.
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveChannel getChLeave() {
       if (msgCase_ == 102) {
          return (soc.proto.Message.LeaveChannel) msg_;
@@ -34386,6 +34737,7 @@ public final class Message {
     /**
      * <code>.LeaveChannel ch_leave = 102;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveChannelOrBuilder getChLeaveOrBuilder() {
       if (msgCase_ == 102) {
          return (soc.proto.Message.LeaveChannel) msg_;
@@ -34402,6 +34754,7 @@ public final class Message {
      * <code>.NewGame ga_new = 200;</code>
      * @return Whether the gaNew field is set.
      */
+    @java.lang.Override
     public boolean hasGaNew() {
       return msgCase_ == 200;
     }
@@ -34413,6 +34766,7 @@ public final class Message {
      * <code>.NewGame ga_new = 200;</code>
      * @return The gaNew.
      */
+    @java.lang.Override
     public soc.proto.Message.NewGame getGaNew() {
       if (msgCase_ == 200) {
          return (soc.proto.Message.NewGame) msg_;
@@ -34426,6 +34780,7 @@ public final class Message {
      *
      * <code>.NewGame ga_new = 200;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.NewGameOrBuilder getGaNewOrBuilder() {
       if (msgCase_ == 200) {
          return (soc.proto.Message.NewGame) msg_;
@@ -34438,6 +34793,7 @@ public final class Message {
      * <code>.JoinGame ga_join = 201;</code>
      * @return Whether the gaJoin field is set.
      */
+    @java.lang.Override
     public boolean hasGaJoin() {
       return msgCase_ == 201;
     }
@@ -34445,6 +34801,7 @@ public final class Message {
      * <code>.JoinGame ga_join = 201;</code>
      * @return The gaJoin.
      */
+    @java.lang.Override
     public soc.proto.Message.JoinGame getGaJoin() {
       if (msgCase_ == 201) {
          return (soc.proto.Message.JoinGame) msg_;
@@ -34454,6 +34811,7 @@ public final class Message {
     /**
      * <code>.JoinGame ga_join = 201;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.JoinGameOrBuilder getGaJoinOrBuilder() {
       if (msgCase_ == 201) {
          return (soc.proto.Message.JoinGame) msg_;
@@ -34466,6 +34824,7 @@ public final class Message {
      * <code>.SitDown sit_down = 202;</code>
      * @return Whether the sitDown field is set.
      */
+    @java.lang.Override
     public boolean hasSitDown() {
       return msgCase_ == 202;
     }
@@ -34473,6 +34832,7 @@ public final class Message {
      * <code>.SitDown sit_down = 202;</code>
      * @return The sitDown.
      */
+    @java.lang.Override
     public soc.proto.Message.SitDown getSitDown() {
       if (msgCase_ == 202) {
          return (soc.proto.Message.SitDown) msg_;
@@ -34482,6 +34842,7 @@ public final class Message {
     /**
      * <code>.SitDown sit_down = 202;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.SitDownOrBuilder getSitDownOrBuilder() {
       if (msgCase_ == 202) {
          return (soc.proto.Message.SitDown) msg_;
@@ -34494,6 +34855,7 @@ public final class Message {
      * <code>.SetSeatLock set_seat_lock = 203;</code>
      * @return Whether the setSeatLock field is set.
      */
+    @java.lang.Override
     public boolean hasSetSeatLock() {
       return msgCase_ == 203;
     }
@@ -34501,6 +34863,7 @@ public final class Message {
      * <code>.SetSeatLock set_seat_lock = 203;</code>
      * @return The setSeatLock.
      */
+    @java.lang.Override
     public soc.proto.Message.SetSeatLock getSetSeatLock() {
       if (msgCase_ == 203) {
          return (soc.proto.Message.SetSeatLock) msg_;
@@ -34510,6 +34873,7 @@ public final class Message {
     /**
      * <code>.SetSeatLock set_seat_lock = 203;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.SetSeatLockOrBuilder getSetSeatLockOrBuilder() {
       if (msgCase_ == 203) {
          return (soc.proto.Message.SetSeatLock) msg_;
@@ -34522,6 +34886,7 @@ public final class Message {
      * <code>.GamePlayerText ga_player_text = 204;</code>
      * @return Whether the gaPlayerText field is set.
      */
+    @java.lang.Override
     public boolean hasGaPlayerText() {
       return msgCase_ == 204;
     }
@@ -34529,6 +34894,7 @@ public final class Message {
      * <code>.GamePlayerText ga_player_text = 204;</code>
      * @return The gaPlayerText.
      */
+    @java.lang.Override
     public soc.proto.Message.GamePlayerText getGaPlayerText() {
       if (msgCase_ == 204) {
          return (soc.proto.Message.GamePlayerText) msg_;
@@ -34538,6 +34904,7 @@ public final class Message {
     /**
      * <code>.GamePlayerText ga_player_text = 204;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.GamePlayerTextOrBuilder getGaPlayerTextOrBuilder() {
       if (msgCase_ == 204) {
          return (soc.proto.Message.GamePlayerText) msg_;
@@ -34550,6 +34917,7 @@ public final class Message {
      * <code>.LeaveGame ga_leave = 205;</code>
      * @return Whether the gaLeave field is set.
      */
+    @java.lang.Override
     public boolean hasGaLeave() {
       return msgCase_ == 205;
     }
@@ -34557,6 +34925,7 @@ public final class Message {
      * <code>.LeaveGame ga_leave = 205;</code>
      * @return The gaLeave.
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveGame getGaLeave() {
       if (msgCase_ == 205) {
          return (soc.proto.Message.LeaveGame) msg_;
@@ -34566,6 +34935,7 @@ public final class Message {
     /**
      * <code>.LeaveGame ga_leave = 205;</code>
      */
+    @java.lang.Override
     public soc.proto.Message.LeaveGameOrBuilder getGaLeaveOrBuilder() {
       if (msgCase_ == 205) {
          return (soc.proto.Message.LeaveGame) msg_;
@@ -35290,6 +35660,7 @@ public final class Message {
        * <code>.Version vers = 1;</code>
        * @return Whether the vers field is set.
        */
+      @java.lang.Override
       public boolean hasVers() {
         return msgCase_ == 1;
       }
@@ -35301,6 +35672,7 @@ public final class Message {
        * <code>.Version vers = 1;</code>
        * @return The vers.
        */
+      @java.lang.Override
       public soc.proto.Message.Version getVers() {
         if (versBuilder_ == null) {
           if (msgCase_ == 1) {
@@ -35418,6 +35790,7 @@ public final class Message {
        *
        * <code>.Version vers = 1;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.VersionOrBuilder getVersOrBuilder() {
         if ((msgCase_ == 1) && (versBuilder_ != null)) {
           return versBuilder_.getMessageOrBuilder();
@@ -35460,6 +35833,7 @@ public final class Message {
        * <code>.AuthRequest auth_req = 2;</code>
        * @return Whether the authReq field is set.
        */
+      @java.lang.Override
       public boolean hasAuthReq() {
         return msgCase_ == 2;
       }
@@ -35467,6 +35841,7 @@ public final class Message {
        * <code>.AuthRequest auth_req = 2;</code>
        * @return The authReq.
        */
+      @java.lang.Override
       public soc.proto.Message.AuthRequest getAuthReq() {
         if (authReqBuilder_ == null) {
           if (msgCase_ == 2) {
@@ -35560,6 +35935,7 @@ public final class Message {
       /**
        * <code>.AuthRequest auth_req = 2;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.AuthRequestOrBuilder getAuthReqOrBuilder() {
         if ((msgCase_ == 2) && (authReqBuilder_ != null)) {
           return authReqBuilder_.getMessageOrBuilder();
@@ -35598,6 +35974,7 @@ public final class Message {
        * <code>.ImARobot im_a_robot = 3;</code>
        * @return Whether the imARobot field is set.
        */
+      @java.lang.Override
       public boolean hasImARobot() {
         return msgCase_ == 3;
       }
@@ -35605,6 +35982,7 @@ public final class Message {
        * <code>.ImARobot im_a_robot = 3;</code>
        * @return The imARobot.
        */
+      @java.lang.Override
       public soc.proto.Message.ImARobot getImARobot() {
         if (imARobotBuilder_ == null) {
           if (msgCase_ == 3) {
@@ -35698,6 +36076,7 @@ public final class Message {
       /**
        * <code>.ImARobot im_a_robot = 3;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.ImARobotOrBuilder getImARobotOrBuilder() {
         if ((msgCase_ == 3) && (imARobotBuilder_ != null)) {
           return imARobotBuilder_.getMessageOrBuilder();
@@ -35736,6 +36115,7 @@ public final class Message {
        * <code>.ServerPing server_ping = 4;</code>
        * @return Whether the serverPing field is set.
        */
+      @java.lang.Override
       public boolean hasServerPing() {
         return msgCase_ == 4;
       }
@@ -35743,6 +36123,7 @@ public final class Message {
        * <code>.ServerPing server_ping = 4;</code>
        * @return The serverPing.
        */
+      @java.lang.Override
       public soc.proto.Message.ServerPing getServerPing() {
         if (serverPingBuilder_ == null) {
           if (msgCase_ == 4) {
@@ -35836,6 +36217,7 @@ public final class Message {
       /**
        * <code>.ServerPing server_ping = 4;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.ServerPingOrBuilder getServerPingOrBuilder() {
         if ((msgCase_ == 4) && (serverPingBuilder_ != null)) {
           return serverPingBuilder_.getMessageOrBuilder();
@@ -35874,6 +36256,7 @@ public final class Message {
        * <code>.LeaveAll leave_all = 5;</code>
        * @return Whether the leaveAll field is set.
        */
+      @java.lang.Override
       public boolean hasLeaveAll() {
         return msgCase_ == 5;
       }
@@ -35881,6 +36264,7 @@ public final class Message {
        * <code>.LeaveAll leave_all = 5;</code>
        * @return The leaveAll.
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveAll getLeaveAll() {
         if (leaveAllBuilder_ == null) {
           if (msgCase_ == 5) {
@@ -35974,6 +36358,7 @@ public final class Message {
       /**
        * <code>.LeaveAll leave_all = 5;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveAllOrBuilder getLeaveAllOrBuilder() {
         if ((msgCase_ == 5) && (leaveAllBuilder_ != null)) {
           return leaveAllBuilder_.getMessageOrBuilder();
@@ -36016,6 +36401,7 @@ public final class Message {
        * <code>.GameMessageFromClient game_message = 15;</code>
        * @return Whether the gameMessage field is set.
        */
+      @java.lang.Override
       public boolean hasGameMessage() {
         return msgCase_ == 15;
       }
@@ -36027,6 +36413,7 @@ public final class Message {
        * <code>.GameMessageFromClient game_message = 15;</code>
        * @return The gameMessage.
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromClient getGameMessage() {
         if (gameMessageBuilder_ == null) {
           if (msgCase_ == 15) {
@@ -36144,6 +36531,7 @@ public final class Message {
        *
        * <code>.GameMessageFromClient game_message = 15;</code>
        */
+      @java.lang.Override
       public soc.proto.GameMessage.GameMessageFromClientOrBuilder getGameMessageOrBuilder() {
         if ((msgCase_ == 15) && (gameMessageBuilder_ != null)) {
           return gameMessageBuilder_.getMessageOrBuilder();
@@ -36190,6 +36578,7 @@ public final class Message {
        * <code>.JoinChannel ch_join = 100;</code>
        * @return Whether the chJoin field is set.
        */
+      @java.lang.Override
       public boolean hasChJoin() {
         return msgCase_ == 100;
       }
@@ -36201,6 +36590,7 @@ public final class Message {
        * <code>.JoinChannel ch_join = 100;</code>
        * @return The chJoin.
        */
+      @java.lang.Override
       public soc.proto.Message.JoinChannel getChJoin() {
         if (chJoinBuilder_ == null) {
           if (msgCase_ == 100) {
@@ -36318,6 +36708,7 @@ public final class Message {
        *
        * <code>.JoinChannel ch_join = 100;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.JoinChannelOrBuilder getChJoinOrBuilder() {
         if ((msgCase_ == 100) && (chJoinBuilder_ != null)) {
           return chJoinBuilder_.getMessageOrBuilder();
@@ -36360,6 +36751,7 @@ public final class Message {
        * <code>.ChannelText ch_text = 101;</code>
        * @return Whether the chText field is set.
        */
+      @java.lang.Override
       public boolean hasChText() {
         return msgCase_ == 101;
       }
@@ -36367,6 +36759,7 @@ public final class Message {
        * <code>.ChannelText ch_text = 101;</code>
        * @return The chText.
        */
+      @java.lang.Override
       public soc.proto.Message.ChannelText getChText() {
         if (chTextBuilder_ == null) {
           if (msgCase_ == 101) {
@@ -36460,6 +36853,7 @@ public final class Message {
       /**
        * <code>.ChannelText ch_text = 101;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.ChannelTextOrBuilder getChTextOrBuilder() {
         if ((msgCase_ == 101) && (chTextBuilder_ != null)) {
           return chTextBuilder_.getMessageOrBuilder();
@@ -36498,6 +36892,7 @@ public final class Message {
        * <code>.LeaveChannel ch_leave = 102;</code>
        * @return Whether the chLeave field is set.
        */
+      @java.lang.Override
       public boolean hasChLeave() {
         return msgCase_ == 102;
       }
@@ -36505,6 +36900,7 @@ public final class Message {
        * <code>.LeaveChannel ch_leave = 102;</code>
        * @return The chLeave.
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveChannel getChLeave() {
         if (chLeaveBuilder_ == null) {
           if (msgCase_ == 102) {
@@ -36598,6 +36994,7 @@ public final class Message {
       /**
        * <code>.LeaveChannel ch_leave = 102;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveChannelOrBuilder getChLeaveOrBuilder() {
         if ((msgCase_ == 102) && (chLeaveBuilder_ != null)) {
           return chLeaveBuilder_.getMessageOrBuilder();
@@ -36640,6 +37037,7 @@ public final class Message {
        * <code>.NewGame ga_new = 200;</code>
        * @return Whether the gaNew field is set.
        */
+      @java.lang.Override
       public boolean hasGaNew() {
         return msgCase_ == 200;
       }
@@ -36651,6 +37049,7 @@ public final class Message {
        * <code>.NewGame ga_new = 200;</code>
        * @return The gaNew.
        */
+      @java.lang.Override
       public soc.proto.Message.NewGame getGaNew() {
         if (gaNewBuilder_ == null) {
           if (msgCase_ == 200) {
@@ -36768,6 +37167,7 @@ public final class Message {
        *
        * <code>.NewGame ga_new = 200;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.NewGameOrBuilder getGaNewOrBuilder() {
         if ((msgCase_ == 200) && (gaNewBuilder_ != null)) {
           return gaNewBuilder_.getMessageOrBuilder();
@@ -36810,6 +37210,7 @@ public final class Message {
        * <code>.JoinGame ga_join = 201;</code>
        * @return Whether the gaJoin field is set.
        */
+      @java.lang.Override
       public boolean hasGaJoin() {
         return msgCase_ == 201;
       }
@@ -36817,6 +37218,7 @@ public final class Message {
        * <code>.JoinGame ga_join = 201;</code>
        * @return The gaJoin.
        */
+      @java.lang.Override
       public soc.proto.Message.JoinGame getGaJoin() {
         if (gaJoinBuilder_ == null) {
           if (msgCase_ == 201) {
@@ -36910,6 +37312,7 @@ public final class Message {
       /**
        * <code>.JoinGame ga_join = 201;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.JoinGameOrBuilder getGaJoinOrBuilder() {
         if ((msgCase_ == 201) && (gaJoinBuilder_ != null)) {
           return gaJoinBuilder_.getMessageOrBuilder();
@@ -36948,6 +37351,7 @@ public final class Message {
        * <code>.SitDown sit_down = 202;</code>
        * @return Whether the sitDown field is set.
        */
+      @java.lang.Override
       public boolean hasSitDown() {
         return msgCase_ == 202;
       }
@@ -36955,6 +37359,7 @@ public final class Message {
        * <code>.SitDown sit_down = 202;</code>
        * @return The sitDown.
        */
+      @java.lang.Override
       public soc.proto.Message.SitDown getSitDown() {
         if (sitDownBuilder_ == null) {
           if (msgCase_ == 202) {
@@ -37048,6 +37453,7 @@ public final class Message {
       /**
        * <code>.SitDown sit_down = 202;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.SitDownOrBuilder getSitDownOrBuilder() {
         if ((msgCase_ == 202) && (sitDownBuilder_ != null)) {
           return sitDownBuilder_.getMessageOrBuilder();
@@ -37086,6 +37492,7 @@ public final class Message {
        * <code>.SetSeatLock set_seat_lock = 203;</code>
        * @return Whether the setSeatLock field is set.
        */
+      @java.lang.Override
       public boolean hasSetSeatLock() {
         return msgCase_ == 203;
       }
@@ -37093,6 +37500,7 @@ public final class Message {
        * <code>.SetSeatLock set_seat_lock = 203;</code>
        * @return The setSeatLock.
        */
+      @java.lang.Override
       public soc.proto.Message.SetSeatLock getSetSeatLock() {
         if (setSeatLockBuilder_ == null) {
           if (msgCase_ == 203) {
@@ -37186,6 +37594,7 @@ public final class Message {
       /**
        * <code>.SetSeatLock set_seat_lock = 203;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.SetSeatLockOrBuilder getSetSeatLockOrBuilder() {
         if ((msgCase_ == 203) && (setSeatLockBuilder_ != null)) {
           return setSeatLockBuilder_.getMessageOrBuilder();
@@ -37224,6 +37633,7 @@ public final class Message {
        * <code>.GamePlayerText ga_player_text = 204;</code>
        * @return Whether the gaPlayerText field is set.
        */
+      @java.lang.Override
       public boolean hasGaPlayerText() {
         return msgCase_ == 204;
       }
@@ -37231,6 +37641,7 @@ public final class Message {
        * <code>.GamePlayerText ga_player_text = 204;</code>
        * @return The gaPlayerText.
        */
+      @java.lang.Override
       public soc.proto.Message.GamePlayerText getGaPlayerText() {
         if (gaPlayerTextBuilder_ == null) {
           if (msgCase_ == 204) {
@@ -37324,6 +37735,7 @@ public final class Message {
       /**
        * <code>.GamePlayerText ga_player_text = 204;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.GamePlayerTextOrBuilder getGaPlayerTextOrBuilder() {
         if ((msgCase_ == 204) && (gaPlayerTextBuilder_ != null)) {
           return gaPlayerTextBuilder_.getMessageOrBuilder();
@@ -37362,6 +37774,7 @@ public final class Message {
        * <code>.LeaveGame ga_leave = 205;</code>
        * @return Whether the gaLeave field is set.
        */
+      @java.lang.Override
       public boolean hasGaLeave() {
         return msgCase_ == 205;
       }
@@ -37369,6 +37782,7 @@ public final class Message {
        * <code>.LeaveGame ga_leave = 205;</code>
        * @return The gaLeave.
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveGame getGaLeave() {
         if (gaLeaveBuilder_ == null) {
           if (msgCase_ == 205) {
@@ -37462,6 +37876,7 @@ public final class Message {
       /**
        * <code>.LeaveGame ga_leave = 205;</code>
        */
+      @java.lang.Override
       public soc.proto.Message.LeaveGameOrBuilder getGaLeaveOrBuilder() {
         if ((msgCase_ == 205) && (gaLeaveBuilder_ != null)) {
           return gaLeaveBuilder_.getMessageOrBuilder();
