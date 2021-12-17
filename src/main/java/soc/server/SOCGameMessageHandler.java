@@ -1799,6 +1799,7 @@ public class SOCGameMessageHandler
                 handler.sendDecline(c, ga, false, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
 
             if ((sendCancelReply || (sendDeclineReason != -1))
+                && (pieceType != -1)
                 && ga.getPlayer(pn).isRobot())
             {
                 srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, pieceType));
@@ -2084,7 +2085,12 @@ public class SOCGameMessageHandler
                     break;
 
                 default:
-                    throw new IllegalArgumentException("Unknown piece type " + mes.getPieceType());
+                    System.err.println
+                        ("SGMH.handleCANCELBUILDREQUEST:  Unknown piece type " + mes.getPieceType()
+                         + " from " + c.getData() + " in game " + ga.getName());
+                    sendDeclineReason = SOCDeclinePlayerRequest.REASON_SPECIFICS;
+                    sendDeclineTextKey = "reply.piece.type.unknown";  // "Unknown piece type."
+                    noAction = true;
                 }
 
                 if (sendDeclineReason != -1)
@@ -2449,7 +2455,8 @@ public class SOCGameMessageHandler
                 {
                     if (isBuyAndPut)
                         handler.sendGameState(ga);  // is probably now PLACING_*, was PLAY1 or SPECIAL_BUILDING
-                    srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, mes.getPieceType()));
+                    if (pieceType != -1)
+                        srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, pieceType));
                     if (player.isRobot())
                     {
                         // Set the "force end turn soon" field

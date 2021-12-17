@@ -3506,7 +3506,8 @@ public class SOCRobotBrain extends Thread
             } else {
                 // Should not occur
                 System.err.println
-                    ("L2521 SOCRobotBrain: " + client.getNickname() + ": Unhandled CANCELBUILDREQUEST at state " + gstate);
+                    ("L2521 SOCRobotBrain: " + client.getNickname()
+                     + ": Unhandled CANCELBUILDREQUEST(" + mes.getPieceType() + ") at state " + gstate);
             }
 
         }  // switch (gameState)
@@ -4793,6 +4794,7 @@ public class SOCRobotBrain extends Thread
         {
             // Shouldn't have asked to build this piece at this time.
             // End our confusion by ending our current turn. Can re-plan on next turn.
+
             failedBuildingAttempts = MAX_DENIED_BUILDING_PER_TURN;
             expectPLACING_ROAD = false;
             expectPLACING_SETTLEMENT = false;
@@ -4803,9 +4805,13 @@ public class SOCRobotBrain extends Thread
             {
                 // special building, currently in state PLACING_* ;
                 // get our resources back, get state PLAY1 or SPECIALBUILD
-                waitingForGameState = true;
-                expectPLAY1 = true;
-                client.cancelBuildRequest(game, mes.getPieceType());
+                final int ptype = mes.getPieceType();
+                if (ptype != -1)
+                {
+                    waitingForGameState = true;
+                    expectPLAY1 = true;
+                    client.cancelBuildRequest(game, ptype);
+                }
             }
         }
         else if (gameState <= SOCGame.START3B)
@@ -4845,11 +4851,18 @@ public class SOCRobotBrain extends Thread
             // The run loop will check if failedBuildingAttempts > (2 * MAX_DENIED_BUILDING_PER_TURN).
             // This bot will leave the game there if it can't recover.
         } else {
-            expectPLAY1 = true;
-            waitingForGameState = true;
-            counter = 0;
-            client.cancelBuildRequest(game, mes.getPieceType());
-            // Now wait for the play1 message, then can re-plan another piece.
+            final int ptype = mes.getPieceType();
+            if (ptype != -1)
+            {
+                expectPLAY1 = true;
+                waitingForGameState = true;
+                counter = 0;
+                client.cancelBuildRequest(game, ptype);
+                // Now wait for the play1 message, then can re-plan another piece.
+            } else {
+                whatWeWantToBuild = null;
+                resetBuildingPlan();
+            }
         }
     }
 
