@@ -3587,7 +3587,7 @@ public class SOCServer extends Server
 
             final int pn = req.getSitDownMessage().getPlayerNumber();
             final Connection arriving = req.getArriving();
-            final boolean isRobot = req.getSitDownMessage().isRobot();
+            final boolean isRobot = req.isArrivingRobot();
             if (! isRobot)
             {
                 // don't keep the robot face icon
@@ -9245,7 +9245,7 @@ public class SOCServer extends Server
      * @param ga     the game
      * @param c      the connection for the player
      * @param pn     which seat the player is taking
-     * @param robot  true if this player is a robot
+     * @param robot  true if this player is a robot, usually from {@link SOCClientData#isRobot}
      * @param isReset Game is a board-reset of an existing game
      */
     void sitDown

@@ -39,6 +39,8 @@ import java.util.StringTokenizer;
  * SOCSitDown for those seats is sent with {@link #isRobot()} true so the client will show
  * a "Take Over" button for them.
  *<P>
+ * Server v2.5.00 and newer ignore {@link #isRobot()} because robot clients authenticate before joining games.
+ *<P>
  * Although it's a game-specific message, this game-lifecycle message
  * is handled by {@code SOCServer} instead of a {@code GameHandler}.
  *
