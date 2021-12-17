@@ -709,6 +709,7 @@ public class SOCServer extends Server
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Currently there is no enforced minimum (0000).
      * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
+     * @see #CLI_VERSION_MAX_REPORT
      * @since 1.1.00
      */
     public static final int CLI_VERSION_MIN = 0000;
@@ -728,6 +729,16 @@ public class SOCServer extends Server
      * @since 1.1.06
      */
     public static final int CLI_VERSION_TIMER_FIRE_MS = 1200;
+
+    /**
+     * If client is newer than this version which is several major versions into the future,
+     * treat it as if reporting this version. Helps control range of values for {@link Connection#getVersion()}.
+     * Currently 5999 (v5.0.00 + highest minor and patchlevel: v5.9.99).
+     * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
+     * @see #CLI_VERSION_MIN
+     * @since 2.5.00
+     */
+    public static final int CLI_VERSION_MAX_REPORT = 5000 + 999;
 
     /**
      * If game will expire in this or fewer minutes, warn the players. Default is 15.
@@ -1330,7 +1341,9 @@ public class SOCServer extends Server
     /**
      * Client version count stats since startup (includes bots).
      * Key = version number, Value = client count.
-     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)}.
+     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)};
+     * see that method for version number range.
+     *<P>
      * Must synchronize on the map when modifying its contents.
      *
      * @since 1.1.19
@@ -7075,7 +7088,9 @@ public class SOCServer extends Server
      * and {@link SOCClientData.SOCCDCliVersionTask#run()}.
      *
      * @param c     Client's connection
-     * @param cvers Version reported by client, or assumed version if no report
+     * @param cvers Version reported by client, or assumed version if no report.
+     *     Will be limited here to range [1100, {@link #CLI_VERSION_MAX_REPORT}] if outside that range,
+     *     plus {@link #CLI_VERSION_ASSUMED_GUESS}.
      * @param cfeats  Optional features reported by client, or null if none given
      *     (was added to {@link SOCVersion} message in 2.0.00)
      * @param clocale  Locale reported by client, or null if none given
@@ -7087,10 +7102,18 @@ public class SOCServer extends Server
      * @return True if OK, false if rejected
      */
     boolean setClientVersSendGamesOrReject
-        (Connection c, final int cvers, String cfeats, String clocale, final boolean isKnown)
+        (Connection c, int cvers, String cfeats, String clocale, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
+
+        // basic sanity check/sanitize
+        if ((cvers < 1100) && (cvers != CLI_VERSION_ASSUMED_GUESS))
+            cvers = CLI_VERSION_ASSUMED_GUESS;
+        else if ((cvers > 1299) && (cvers < 2000))
+            cvers = 1299;  // aren't any newer 1.x releases
+        else if (cvers > CLI_VERSION_MAX_REPORT)
+            cvers = CLI_VERSION_MAX_REPORT;  // several major versions into future
 
         final SOCFeatureSet cfeatSet;
         if (cfeats != null)
