@@ -29,11 +29,39 @@ JARs for recent JSettlers versions can be downloaded from
 	  (thank you Lee Passey)
 	- If knight card is played by bot, then returned because bot is unresponsive,
 	  server updates their army size and largest army (thanks kotc for reporting #91)
+- I18N:
+	- Added French translation (thank you Lee Passey)
+- Client:
+	- New Game dialog:
+	    - Sort game option descriptions case-insensitively, in case of acronyms
+	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
+	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
+	- Game window:
+	    - Hand Panel: Shrink unused space above trading squares
+	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
+	    - Discards: List resources you discarded, not just total amount, in game action textarea
+	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
+	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
+	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
+	  (thanks kotc for reporting issue #81)
+	- If client starts a TCP server, can turn on Debug Mode for that server
+	  by adding `-Djsettlers.allow.debug=Y` before `-jar` on java command line
+	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
+	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
+	- Linux/Unix: Use sub-pixel font antialiasing if available (thanks kotc for issue #92)
+	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
+	- When receiving SOCResourceCount or RESOURCE_COUNT player element, try to avoid converting that player's resources to unknowns
+	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
 - Bots/AI:
 	- Shorten pause after bot requests a bank trade
 	- Limit the number of failed trade offers/bank trades per turn
-- I18N:
-	- Added French translation (thank you Lee Passey)
+- Server:
+	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
+	- During game reset, don't send chat recap: Chat text is still in clients' game windows
+	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
+	- Print console "joined the game", "left the game" messages as 24-hour local "HH:mm:ss"
+	  like client connect/disconnect times, instead of locale-dependent 12-hour times
+	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
 	- For efficiency and third-party bots' understanding, server sends data messages instead of text when clients are this version or newer:
 		- Report robbery results with `SOCRobberyResult`
@@ -62,6 +90,7 @@ JARs for recent JSettlers versions can be downloaded from
 		  or SOCResourceCounts to v2.x clients. Those clients are already sent SOCDiceResultResources,
 		  and the extra messages could lead to incorrect resource tracking.
 	- Discard:
+		- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 		- Server sends SOCDiscard instead of SOCPlayerElement to clients v2.5 and newer
 		- After a player discards, if others still must discard, server sends SOCGameState(WAITING_FOR_DISCARDS) for clarity although state hasn't changed
 			- Not sent to clients older than v2.5
@@ -81,7 +110,6 @@ JARs for recent JSettlers versions can be downloaded from
 	- Pirate Islands scenario: Attacks by pirate fleet:
 		- Results announced as SOCRobberyResult
 		- Also announces ties
-	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 	- When client joins a game:
 		- If any player currently picking free resources, server sends SOCPlayerElement(NUM_PICK_GOLD_HEX_RESOURCES)
 	- SOCGameTextMsg, SOCChannelTextMsg: Clients and server remove extraneous trailing `\n` when sending message
@@ -152,34 +180,6 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Refactored option maps to SOCGameOptionSet
 	    - Robot clients no longer ignore game option info sync messages
 	    - SGH.calcGameClientFeaturesRequired checks each gameopt for features
-- Server:
-	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
-	- During game reset, don't send chat recap: Chat text is still in clients' game windows
-	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
-	- Print console "joined the game", "left the game" messages as 24-hour local "HH:mm:ss"
-	  like client connect/disconnect times, instead of locale-dependent 12-hour times
-	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
-- Client:
-	- New Game dialog:
-	    - Sort game option descriptions case-insensitively, in case of acronyms
-	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
-	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
-	- Game window:
-	    - Hand Panel: Shrink unused space above trading squares
-	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
-	    - Discards: List resources you discarded, not just total amount, in game action textarea
-	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
-	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
-	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
-	  (thanks kotc for reporting issue #81)
-	- If client starts a TCP server, can turn on Debug Mode for that server
-	  by adding `-Djsettlers.allow.debug=Y` before `-jar` on java command line
-	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
-	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
-	- Linux/Unix: Use sub-pixel font antialiasing if available (thanks kotc for issue #92)
-	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
-	- When receiving SOCResourceCount or RESOURCE_COUNT player element, try to avoid converting that player's resources to unknowns
-	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields
 	- Renames for consistency:
