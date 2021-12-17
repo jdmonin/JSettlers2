@@ -34,8 +34,7 @@ import static org.junit.Assert.*;
 public class TestSOCServerMisc
 {
     /**
-     * Test that {@link SOCServer#CLI_VERSION_MAX_REPORT} is at least 3.3.99
-     * versions newer than {@link Version#versionNumber()}.
+     * Test that {@link SOCServer#CLI_VERSION_MAX_REPORT} is at least 3.3 versions newer than {@link Version#versionNumber()}.
      */
     @Test
     public void testCliVersionMaxReport()
@@ -43,7 +42,7 @@ public class TestSOCServerMisc
         final int currVersion = Version.versionNumber(),
             gap = SOCServer.CLI_VERSION_MAX_REPORT - currVersion;
         if (gap < 3300)
-            fail("SOCServer.CLI_VERSION_MAX_REPORT should be at least 3.3 versions ahead of current: "
+            fail("SOCServer.CLI_VERSION_MAX_REPORT should be at least 3.3 versions newer than current: "
                 + SOCServer.CLI_VERSION_MAX_REPORT + " - " + currVersion + " = " + gap);
     }
 
