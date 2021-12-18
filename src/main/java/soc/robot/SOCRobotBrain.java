@@ -1578,10 +1578,7 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.SIMPLEREQUEST:
                         // For any player's request, update game data in our thread
                         SOCDisplaylessPlayerClient.handleSIMPLEREQUEST((SOCSimpleRequest) mes, game);
-                        isDataUpdateOnly = true;
 
-                        // These messages can almost always be ignored by bots,
-                        // unless we've just sent a request to attack a pirate fortress.
                         // Some request types are handled at the bottom of the loop body;
                         // search for SOCMessage.SIMPLEREQUEST
 
@@ -1599,8 +1596,6 @@ public class SOCRobotBrain extends Thread
                                 waitingForSC_PIRI_FortressRequest = false;
                                 resetFieldsAtEndTurn();
                                 client.endTurn(game);
-
-                                isDataUpdateOnly = false;
                             }
                             // else, from another player; we can ignore it
                         }
