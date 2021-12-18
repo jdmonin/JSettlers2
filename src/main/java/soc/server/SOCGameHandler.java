@@ -913,7 +913,7 @@ public class SOCGameHandler extends GameHandler
                          true);
                 }
                 srv.messageToGameKeyed
-                    (ga, true, true, "action.discarded", plName, totalRes);  //  "{0} discarded {1} resources."
+                    (ga, true, true, "action.discarded.total.common", plName, totalRes);  // "{0} discarded {1} resources."
             }
         }
 
@@ -4789,7 +4789,8 @@ public class SOCGameHandler extends GameHandler
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, totalRes, true),
                      true);
             }
-            srv.messageToGameKeyed(cg, true, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
+            srv.messageToGameKeyed
+                (cg, true, true, "action.discarded.total.common", plName, totalRes);  // "{0} discarded {1} resources."
 
             System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + gaName);
         } else {
