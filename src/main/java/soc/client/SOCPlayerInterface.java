@@ -129,8 +129,9 @@ import javax.swing.event.DocumentListener;
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
  * ready for interaction, the client calls {@link #began(List)}.
  *<P>
- * Has keyboard shortcuts for Accept/Reject/Counter trade offers, since v2.3.00.
- * See {@link TradeHotkeyActionListener} for details if adding others.
+ * Has keyboard shortcuts for Accept/Reject/Counter trade offers since v2.3.00,
+ * and to ask for Special Building since v2.5.00.
+ * See {@link PIHotkeyActionListener} for details if adding others.
  *<P>
  * <B>Chat text history:</B>
  * Remembers chat text sent by client player to the game/server, including local debug commands.
@@ -1263,18 +1264,22 @@ public class SOCPlayerInterface extends Frame
     private void addHotkeysInputMap()
         throws IllegalStateException
     {
-        final TradeHotkeyActionListener acceptTrade
-            = new TradeHotkeyActionListener(TradeHotkeyActionListener.ACCEPT);
+        final PIHotkeyActionListener acceptTrade
+            = new PIHotkeyActionListener(PIHotkeyActionListener.ACCEPT);
 
         final ActionMap am = buildingPanel.getActionMap();
         am.put("hotkey_accept", acceptTrade);
-        am.put("hotkey_reject", new TradeHotkeyActionListener(TradeHotkeyActionListener.REJECT));
-        am.put("hotkey_counteroffer", new TradeHotkeyActionListener(TradeHotkeyActionListener.COUNTER));
+        am.put("hotkey_reject", new PIHotkeyActionListener(PIHotkeyActionListener.REJECT));
+        am.put("hotkey_counteroffer", new PIHotkeyActionListener(PIHotkeyActionListener.COUNTER));
+        if (game.maxPlayers > 4)
+            am.put("hotkey_askspecialbuild", new PIHotkeyActionListener(PIHotkeyActionListener.ASK_SPECIAL_BUILD));
 
         final InputMap im = buildingPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         addHotkeysInputMap_one(im, KeyEvent.VK_A, "hotkey_accept", null);
         addHotkeysInputMap_one(im, KeyEvent.VK_J, "hotkey_reject", null);
         addHotkeysInputMap_one(im, KeyEvent.VK_C, "hotkey_counteroffer", null);
+        if (game.maxPlayers > 4)
+            addHotkeysInputMap_one(im, KeyEvent.VK_B, "hotkey_askspecialbuild", null);
 
         textInput.getActionMap().put("hotkey_selectAllOrTradeAccept", new AbstractAction()
         {
@@ -5714,28 +5719,64 @@ public class SOCPlayerInterface extends Frame
     }  // SOCPITextfieldListener
 
     /**
-     * Hotkey listener for client player to respond to a hand panel's trade offers.
-     * If more than one hand panel has {@link TradePanel#isOfferToPlayer()}, does nothing
+     * Hotkey listener for client player to request actions or respond to a hand panel's trade offers.
+     * If {@link #isForTrade}: When more than one hand panel has {@link TradePanel#isOfferToPlayer()}, does nothing
      * to avoid responding to the wrong offer.
+     * Not used for {@link SOCHandPanel}'s Roll and Done hotkeys.
      * Initialized in {@link SOCPlayerInterface#addHotkeysInputMap()}.
+     *<P>
+     * Before v2.5.00 this class was {@code TradeHotkeyActionListener}.
      * @since 2.3.00
      */
-    private class TradeHotkeyActionListener extends AbstractAction
+    private class PIHotkeyActionListener extends AbstractAction
     {
         public static final int ACCEPT = 1, REJECT = 2, COUNTER = 3;
 
-        private final int forButton;
+        /**
+         * Ask to Special Build.
+         * @since 2.5.00
+         */
+        public static final int ASK_SPECIAL_BUILD = 4;
 
         /**
-         * @param tradeButton The trade button to activate: {@link #ACCEPT}, {@link #REJECT}, or {@link #COUNTER}
+         * {@link #ACCEPT}, {@link #ASK_SPECIAL_BUILD}, etc.
+         * @see #isForTrade
          */
-        public TradeHotkeyActionListener(final int tradeButton)
+        public final int forButton;
+
+        /**
+         * True if should do nothing if more than one hand panel has {@link TradePanel#isOfferToPlayer()}.
+         * Set in constructor. Is used with trade buttons {@link #ACCEPT}, {@link #REJECT}, {@link #COUNTER}
+         * but not {@link #ASK_SPECIAL_BUILD}.
+         * @see #forButton
+         * @since 2.5.00
+         */
+        public final boolean isForTrade;
+
+        /**
+         * @param forButton The button to activate: {@link #ACCEPT}, {@link #REJECT}, {@link #COUNTER},
+         *     or {@link #ASK_SPECIAL_BUILD}
+         */
+        public PIHotkeyActionListener(final int forButton)
         {
-            forButton = tradeButton;
+            this.forButton = forButton;
+            this.isForTrade = (forButton != ASK_SPECIAL_BUILD);
         }
 
         public void actionPerformed(ActionEvent e)
         {
+            if (! isForTrade)
+            {
+                switch (forButton)
+                {
+                case ASK_SPECIAL_BUILD:
+                    buildingPanel.clickBuildingButton(game, SOCBuildingPanel.SBP, false);
+                    break;
+                }
+
+                return;
+            }
+
             SOCHandPanel hpo = null;
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {

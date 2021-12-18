@@ -32,16 +32,17 @@ JARs for recent JSettlers versions can be downloaded from
 - I18N:
 	- Added French translation (thank you Lee Passey)
 - Client:
-	- New Game dialog:
-	    - Sort game option descriptions case-insensitively, in case of acronyms
-	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
-	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- Game window:
+	    - Added hotkey Ctrl-B/Alt-B/Cmd-B to ask to Special Build in 6-player game
 	    - Hand Panel: Shrink unused space above trading squares
 	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
 	    - Discards: List resources you discarded, not just total amount, in game action textarea
 	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
 	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
+	- New Game dialog:
+	    - Sort game option descriptions case-insensitively, in case of acronyms
+	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
+	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
 	  (thanks kotc for reporting issue #81)
 	- If client starts a TCP server, can turn on Debug Mode for that server

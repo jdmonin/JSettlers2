@@ -1206,6 +1206,7 @@ On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JR
     - Generic modifier key: Ctrl on all platforms (Ctrl-R, Ctrl-D, etc)
     - MacOSX or Windows: also test modifier Cmd or Alt
     - Roll and Done buttons: R, D + modifier
+    - Ask to Special Build in 6-player game: B + modifier
     - Accept, Reject, Counter trade offer when just one is visible: A, J, C + modifier
     - Click in chat text input field
       - Try Ctrl-A, Ctrl-C, Ctrl-V (or Cmd on MacOSX); should be Select All, Copy, Paste as usual
