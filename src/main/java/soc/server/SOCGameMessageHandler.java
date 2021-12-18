@@ -1005,6 +1005,8 @@ public class SOCGameMessageHandler
         try
         {
             SOCPlayer player = ga.getPlayer(c.getData());
+            if (player == null)
+                return;
 
             /**
              * make sure the player can do it
@@ -1307,8 +1309,8 @@ public class SOCGameMessageHandler
         if (clientPl == null)
             return;
 
-        final int pn = mes.getPlayerNumber();
-        final boolean clientIsPN = (pn == clientPl.getPlayerNumber());  // probably required for most request types
+        final int pn = mes.getPlayerNumber(), clientPN = clientPl.getPlayerNumber();
+        final boolean clientIsPN = (pn == clientPN);  // required for most request types
         final int reqtype = mes.getRequestType();
         final int cpn = ga.getCurrentPlayerNumber();
 
@@ -1319,9 +1321,9 @@ public class SOCGameMessageHandler
         case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
             {
                 final SOCShip adjac = ga.canAttackPirateFortress();
-                if ((! clientIsPN) || (pn != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
+                if ((! clientIsPN) || (clientPN != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
                 {
-                    srv.messageToPlayer(c, gaName, pn, new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
+                    srv.messageToPlayer(c, gaName, clientPN, new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
                     return;  // <--- early return: deny ---
                 }
 
@@ -1373,7 +1375,7 @@ public class SOCGameMessageHandler
 
         case SOCSimpleRequest.TRADE_PORT_PLACE:
             {
-                if (clientIsPN && (pn == cpn))
+                if (clientIsPN && (clientPN == cpn))
                 {
                     final int edge = mes.getValue1();
                     if ((ga.getGameState() == SOCGame.PLACING_INV_ITEM) && ga.canPlacePort(clientPl, edge))
@@ -1387,7 +1389,7 @@ public class SOCGameMessageHandler
                         replyDecline = true;  // client will print a text message, no need to send one
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");
+                    srv.messageToPlayerKeyed(c, gaName, clientPN, "base.reply.not.your.turn");
                     replyDecline = true;
                 }
             }
@@ -1401,7 +1403,7 @@ public class SOCGameMessageHandler
         }
 
         if (replyDecline)
-            srv.messageToPlayer(c, gaName, pn, new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
+            srv.messageToPlayer(c, gaName, clientPN, new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
     }
 
 
@@ -1738,6 +1740,8 @@ public class SOCGameMessageHandler
         {
             final boolean isCurrent = handler.checkTurn(c, ga);
             SOCPlayer player = ga.getPlayer(c.getData());
+            if (player == null)
+                return;
             final int pn = player.getPlayerNumber();
             final int pieceType = mes.getPieceType();
             int sendDeclineReason = -1;       // send SOCDeclinePlayerRequest if != -1
@@ -2487,12 +2491,13 @@ public class SOCGameMessageHandler
     private void handleMOVEPIECE(SOCGame ga, Connection c, final SOCMovePiece mes)
     {
         final String gaName = ga.getName();
+        final boolean isCurrent = handler.checkTurn(c, ga);
 
         boolean denyRequest = false;
         final int fromEdge = mes.getFromCoord(),
                   toEdge   = mes.getToCoord();
         if ((mes.getPieceType() != SOCPlayingPiece.SHIP)
-            || ! handler.checkTurn(c, ga))
+            || ! isCurrent)
         {
             denyRequest = true;
         } else {
@@ -2533,8 +2538,10 @@ public class SOCGameMessageHandler
 
         if (denyRequest)
         {
-            D.ebugPrintlnINFO("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
-                + ": player " + c.getData());
+            if (isCurrent)
+                D.ebugPrintlnINFO
+                    ("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
+                     + ": player " + c.getData());
             srv.messageToPlayerKeyed
                 (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.movepiece.cannot.now.ship");  // "You can't move that ship now."
             srv.messageToPlayer
@@ -2683,6 +2690,8 @@ public class SOCGameMessageHandler
         {
             final String gaName = ga.getName();
             SOCPlayer player = ga.getPlayer(c.getData());
+            if (player == null)
+                return;
             final int pn = player.getPlayerNumber();
             int sendDeclineReason = -1;
                 // send SOCDeclinePlayerRequest if != -1, along with SOCCancelBuildRequest for robots' benefit
