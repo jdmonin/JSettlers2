@@ -4713,6 +4713,12 @@ public class SOCGameHandler extends GameHandler
                     forceGamePlayerDiscardOrGain(ga, cpn, plConn, plName, plNumber);
                     sendGameState(ga, false, true, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER for discard;
                         // PLAY1 or WAITING_FOR_PICK_GOLD_RESOURCE for gain
+                    if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
+                    {
+                        // happens only in scenario _SC_PIRI, when 7 is rolled, player wins against pirate fleet
+                        // and we just picked their won resource, must prompt any clients who need to discard
+                        sendGameState_sendDiscardRequests(ga, gaName);
+                    }
                 } finally {
                     ga.releaseMonitor();
                 }

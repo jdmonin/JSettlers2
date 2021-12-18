@@ -6583,7 +6583,7 @@ public class SOCGame implements Serializable, Cloneable
             if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             {
                 // Call is from rollDice():
-                // If player has warships, might tie or be stronger, otherwise steal multiple items
+                // If player has warships, might tie or be stronger (win gold), otherwise pirate steals multiple items
                 // Set sc_piri_loot; don't change gameState
                 stealFromPlayerPirateFleet(vpn, pirFleetStrength);
             }

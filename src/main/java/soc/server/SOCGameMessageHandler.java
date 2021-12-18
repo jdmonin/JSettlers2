@@ -3212,7 +3212,7 @@ public class SOCGameMessageHandler
                             if (newState == SOCGame.WAITING_FOR_DISCARDS)
                             {
                                 // happens only in scenario _SC_PIRI, when 7 is rolled, player wins against pirate fleet
-                                // and has picked their won resource, and then someone must discard
+                                // and has picked their won resource, must prompt any clients who need to discard
                                 handler.sendGameState_sendDiscardRequests(ga, gaName);
                             }
                         } else {
