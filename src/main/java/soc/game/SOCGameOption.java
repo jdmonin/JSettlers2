@@ -362,12 +362,14 @@ public class SOCGameOption
     public final int optFlags;
 
     /**
-     * Default value for boolean part of this option, if any
+     * Default value for boolean part of this option, if option's {@link #optType} uses that part.
+     * @see #copyDefaults(SOCGameOption)
      */
     public final boolean defaultBoolValue;
 
     /**
-     * Default value for integer part of this option, if any
+     * Default value for integer part of this option, if option's {@link #optType} uses that part.
+     * @see #copyDefaults(SOCGameOption)
      */
     public final int defaultIntValue;
 
@@ -804,6 +806,35 @@ public class SOCGameOption
              intOpt.minIntValue, maxIntValue,
              null, intOpt.optFlags, intOpt.desc);
         copyMiscFields(intOpt);
+    }
+
+    /**
+     * If {@code opt}'s {@link #defaultBoolValue} or {@link #defaultIntValue} are different
+     * from its current {@link #getBoolValue()} or {@link #getIntValue()},
+     * copy to a new {@code SOCGameOption} which sets those default fields from current.
+     * Useful at client when server sends game option defaults.
+     * @param opt  Option to check defaults and copy if needed, or {@code null} to return {@code null}
+     * @return  {@code opt} if defaults are same as current, or a new {@code SOCGameOption} with updated defaults
+     * @since 2.5.00
+     */
+    public static SOCGameOption copyDefaults(SOCGameOption opt)
+    {
+        if (opt == null)
+            return null;
+
+        final boolean currBool = opt.boolValue;
+        final int currInt = opt.intValue;
+        if ((currBool != opt.defaultBoolValue) || (currInt != opt.defaultIntValue))
+        {
+            SOCGameOption updatedOpt = new SOCGameOption
+                (opt.optType, opt.key, opt.minVersion, opt.lastModVersion,
+                 currBool, currInt, opt.minIntValue, opt.maxIntValue, opt.enumVals,
+                 opt.optFlags, opt.desc);
+            updatedOpt.copyMiscFields(opt);
+            opt = updatedOpt;
+        }
+
+        return opt;
     }
 
     /**

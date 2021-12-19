@@ -161,6 +161,45 @@ When preparing to release a new version, testing should include:
         - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above.
           When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP.
           Card should fully play out (choose player, etc) before server announces game is over.
+- Scenarios and Victory Points to Win
+    - New Game dialog: VP to Win vs scenarios
+        - In client's main window, click "New Game"
+        - Note default "Victory points to Win" is 10
+        - Click "Create Game" to create; in created game, note VP is default (10)
+        - Briefly join game with another client; should also see VP is default
+        - Quit that game
+        - Click "New Game" again
+        - Note VP still at default (10)
+        - In the Game Scenario dropdown, pick Fog Islands; VP to Win should change to 12
+        - Pick scenario Through the Desert; VP should remain 12
+        - Pick scenario Cloth Trade; VP should change to 14
+        - Pick scenario Wonders; VP should change back to default
+        - Pick scenario "(none)"; VP should remain default
+        - Change VP to Win to 11
+        - Now pick each of those scenarios again; VP should not change from 11
+        - Keep VP at 11, pick scenario Fog Islands
+        - Click "Create Game" to create; note VP is 11
+        - Briefly join game with another client; should also see VP is 11
+        - Quit that game
+        - Click "New Game" again
+        - Set VP to 11, pick scenario Through the Desert; VP should remain 11
+        - Un-check the VP checkbox
+        - Click "Create game"; in created game, note VP was set to 12 by server based on scenario
+        - Briefly join game with another client; should also see VP is 12
+        - Quit that game
+    - When server has larger default VP
+        - Start a server; add at end of usual command line: `-o VP=t13`
+        - Repeat the above test. Should get same results, except default VP is 13 not 10, so Cloth Trade will be 14 VP and all others will be 13, except when directly changing VP to 11 in dialog
+    - When server has a default scenario (standard VP)
+        - Start a server; add at end of usual command line: `-o SC=SC_WOND`
+        - Repeat the above test. Should get same results, except dialog's default scenario is Wonders when first shown
+    - When server has a default scenario and larger default VP
+        - Start a server; add at end of usual command line: `-o SC=SC_WOND -o VP=t13`
+        - Repeat the above test. Should get same results, except for changes described for VP=t13 and SC=SC_WOND
+    - If the version being tested has changed things about the VP-Scenario interaction, also test the above with a recent previous version
+        - New client with previous server
+        - New server; new client creates game, previous client joins it
+        - New server; previous client creates game, new client joins it
 - Unprivileged info commands  
     As a non-admin non-debug user, start playing a game. These should all work:
     - `*WHO*` lists all players and observers in game
@@ -393,9 +432,9 @@ When preparing to release a new version, testing should include:
         - Server config:
             - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`  
               All client versions should see that custom text when they connect
-        - With an older client connected to a newer server, available new-game options
+        - With an older client connected to a newer server, list of available new-game options
           should adapt to the older client version.  
-          With a newer client connected to an older server, available new-game options
+          With a newer client connected to an older server, list of available new-game options
           should adapt to the older server version.  
             - This is especially visible when testing 1.x against 2.x.
             - Also test this with new client against server 1.1.07 (first version with options)

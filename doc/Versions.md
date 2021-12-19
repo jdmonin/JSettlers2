@@ -41,6 +41,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
 	- New Game dialog:
 	    - Sort game option descriptions case-insensitively, in case of acronyms
+	    - If server has increased default VP to win, use that as minimum when picking a scenario
 	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
 	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
 	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
@@ -53,6 +54,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 	- When receiving SOCResourceCount or RESOURCE_COUNT player element, try to avoid converting that player's resources to unknowns
 	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
+	- When receiving SOCGameOptionGetDefaults: Update default fields in set of known options, not just current values
 - Bots/AI:
 	- Shorten pause after bot requests a bank trade
 	- Limit the number of failed trade offers/bank trades per turn

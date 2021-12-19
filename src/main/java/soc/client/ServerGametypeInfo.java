@@ -228,7 +228,7 @@ public class ServerGametypeInfo
             prevKnown = new HashSet<>();
             for (String oKey : servOpts.keySet())
             {
-                SOCGameOption op = servOpts.get(oKey);
+                SOCGameOption op = SOCGameOption.copyDefaults(servOpts.get(oKey));
                 if (knownOpts.put(op) != null)  // always add, even if OTYPE_UNKNOWN
                     prevKnown.add(oKey);
             }

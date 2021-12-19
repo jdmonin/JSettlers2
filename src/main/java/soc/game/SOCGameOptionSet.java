@@ -680,11 +680,11 @@ public class SOCGameOptionSet
                 final String newSC = optSc.getStringValue();
                 final boolean isScenPicked = optSc.getBoolValue() && (newSC.length() != 0);
 
-                // check/update #VP if scenario specifies it, otherwise revert to standard
+                // check/update #VP if scenario specifies larger, otherwise revert to standard
                 SOCGameOption vp = currentOpts.get("VP");
                 if ((vp != null) && ! vp.userChanged)
                 {
-                    int newVP = SOCGame.VP_WINNER_STANDARD;
+                    int newVP = vp.defaultIntValue;  // usually == SOCGame.VP_WINNER_STANDARD
                     if (isScenPicked)
                     {
                         final SOCScenario scen = SOCScenario.getScenario(newSC);
@@ -694,7 +694,11 @@ public class SOCGameOptionSet
                                 SOCGameOption.parseOptionsToMap(scen.scOpts, knownOpts);
                             final SOCGameOption scOptVP = (scenOpts != null) ? scenOpts.get("VP") : null;
                             if (scOptVP != null)
-                                newVP = scOptVP.getIntValue();
+                            {
+                                final int scenVP = scOptVP.getIntValue();
+                                if (scenVP > newVP)
+                                    newVP = scenVP;
+                            }
 
                             // TODO possibly update other scen opts, not just VP
                         }

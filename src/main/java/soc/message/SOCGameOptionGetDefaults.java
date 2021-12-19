@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file Copyright (C) 2009,2013-2015,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2015,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,6 +18,8 @@
  **/
 package soc.message;
 
+import soc.game.SOCGameOption;  // for javadocs only
+
 /**
  * Information on current defaults for new games' {@link soc.game.SOCGameOption game options}.
  * Based on server's current values ({@link soc.game.SOCGameOption#getIntValue() .getIntValue()},
@@ -33,6 +35,9 @@ package soc.message;
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.
+ *<P>
+ * Clients older than v2.5.00 don't update their known options' {@link SOCGameOption#defaultBoolValue}s
+ * or {@link SOCGameOption#defaultIntValue}s when receiving this, only their current values.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.

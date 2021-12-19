@@ -98,6 +98,47 @@ public class TestGameOptions
     }
 
     /**
+     * Test {@link SOCGameOption#copyDefaults(SOCGameOption)}.
+     * @since 2.5.00
+     */
+    @Test
+    public void testCopyDefaults()
+    {
+        assertNull(SOCGameOption.copyDefaults(null));
+
+        final SOCGameOption optStr = new SOCGameOption("ZZ", 1000, 2500, 99, false, 0, "ZZ");
+        assertTrue("optStr unchanged", optStr == SOCGameOption.copyDefaults(optStr));  // no int/bool fields
+
+        final SOCGameOption opt = new SOCGameOption("ZZ", 1000, 2500, true, 7, 0, 9, 0, "ZZ");
+        assertTrue(opt.defaultBoolValue);
+        assertTrue(opt.getBoolValue());
+        assertEquals(7, opt.defaultIntValue);
+        assertEquals(7, opt.getIntValue());
+        assertTrue("opt unchanged", opt == SOCGameOption.copyDefaults(opt));  // returns same reference
+
+        // change bool and/or int value
+        for (int i = 1; i < 4; ++i)
+        {
+            final boolean newBool = (0 == (i & 0x01));
+            final int newInt = (0 != (i & 0x02)) ? 3 : 7;
+            opt.setBoolValue(newBool);
+            opt.setIntValue(newInt);
+
+            final SOCGameOption optUpdate = SOCGameOption.copyDefaults(opt);
+            assertFalse("opt copied for i=" + i, optUpdate == opt);
+            assertEquals(optUpdate.defaultBoolValue, newBool);
+            assertEquals(optUpdate.getBoolValue(), newBool);
+            assertEquals(optUpdate.defaultIntValue, newInt);
+            assertEquals(optUpdate.getIntValue(), newInt);
+            assertEquals(optUpdate.lastModVersion, opt.lastModVersion);
+        }
+
+        opt.setBoolValue(true);
+        opt.setIntValue(7);
+        assertTrue("opt again unchanged", opt == SOCGameOption.copyDefaults(opt));
+    }
+
+    /**
      * Test that when the client sends a new-game request whose opts contains {@code "VP"} with boolean part false,
      * that {@code "VP"} will be removed from the set of options by
      * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) newOpts.adjustOptionsToKnown(knownOpts, true, null)}.
