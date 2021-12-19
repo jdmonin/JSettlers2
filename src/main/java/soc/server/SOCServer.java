@@ -10067,7 +10067,7 @@ public class SOCServer extends Server
      *   Keyname should be case-insensitive; note both of those calls include {@code forceNameUpcase == true}.
      *   <BR>
      *   {@code null} is allowed and will throw
-     *   {@code IllegalArgumentException("Unknown or malformed game option: " + optRaw)}.
+     *   {@code IllegalArgumentException("Malformed game option: " + optRaw)}.
      * @param optRaw  To include in exception text or a value into {@code optsAlreadySet},
      *         the option name=value from command line. Should not be null.
      *         For cleaner messages, option name should be uppercased.
@@ -10078,7 +10078,8 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException if bad name, bad value, or already set from command line.
      *         {@link Throwable#getMessage()} will have problem details:
      *         <UL>
-     *         <LI> Unknown or malformed game option name, from
+     *         <LI> Unknown game option
+     *         <LI> Malformed game option name, from
      *           {@link SOCGameOption#parseOptionNameValue(String, boolean, SOCGameOptionSet)}
      *         <LI> Bad option value, from {@link SOCGameOptionSet#setKnownOptionCurrentValue(SOCGameOption)}
      *         <LI> Appears twice on command line, name is already in {@code optsAlreadySet}
@@ -10090,7 +10091,7 @@ public class SOCServer extends Server
         throws IllegalArgumentException
     {
         if (op == null)
-            throw new IllegalArgumentException("Unknown or malformed game option: " + optRaw);
+            throw new IllegalArgumentException("Malformed game option: " + optRaw);
 
         if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             throw new IllegalArgumentException("Unknown game option: " + op.key);
@@ -10251,36 +10252,37 @@ public class SOCServer extends Server
                 hasSetGameOptions = true;
 
                 boolean printedMsg = false;
-                String argValue;
+                String optNameValue;
                 if (arg.startsWith("-o") && (arg.length() > 2))
                 {
-                    argValue = arg.substring(2);
+                    optNameValue = arg.substring(2);
                 } else {
                     ++aidx;
                     if (aidx < args.length)
-                        argValue = args[aidx];
+                        optNameValue = args[aidx];
                     else
-                        argValue = null;
+                        optNameValue = null;
                 }
-                if (argValue != null)
+                if (optNameValue != null)
                 {
                     try
                     {
                         // canonicalize opt's keyname to all-uppercase
                         {
-                            final int i = argValue.indexOf('=');
+                            final int i = optNameValue.indexOf('=');
                             if (i > 0)
                             {
-                                String oKey = argValue.substring(0, i),
+                                String oKey = optNameValue.substring(0, i),
                                        okUC = oKey.toUpperCase(Locale.US);
                                 if (! oKey.equals(okUC))
-                                    argValue = okUC + argValue.substring(i);
+                                    optNameValue = okUC + optNameValue.substring(i);
                             }
                         }
                         // parse this opt, update known option's current value
                         SOCGameOption opt = parseCmdline_GameOption
-                            (SOCGameOption.parseOptionNameValue(argValue, false, startupKnownOpts),  // null if parse fails
-                             argValue, gameOptsAlreadySet);
+                            (SOCGameOption.parseOptionNameValue
+                                (optNameValue, false, startupKnownOpts),  // null if parse fails
+                             optNameValue, gameOptsAlreadySet);
 
                         // Add or update in argp, in case this gameopt property also appears in the properties file;
                         // otherwise the SOCServer constructor will reset the known opt current value
@@ -10290,12 +10292,12 @@ public class SOCServer extends Server
                         if (argp.containsKey(propKey))
                             argp.put(propKey, opt.getPackedValue().toString());
                     } catch (IllegalArgumentException e) {
-                        argValue = null;
+                        optNameValue = null;
                         System.err.println(e.getMessage());
                         printedMsg = true;
                     }
                 }
-                if (argValue == null)
+                if (optNameValue == null)
                 {
                     if (! printedMsg)
                     {

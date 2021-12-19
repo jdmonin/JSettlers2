@@ -62,6 +62,8 @@ JARs for recent JSettlers versions can be downloaded from
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Print console "joined the game", "left the game" messages as 24-hour local "HH:mm:ss"
 	  like client connect/disconnect times, instead of locale-dependent 12-hour times
+	- Startup: If problem with game options in properties file or command line,
+	  improve error messages to tell whether option is unknown or malformed
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
 	- For efficiency and third-party bots' understanding, server sends data messages instead of text when clients are this version or newer:
