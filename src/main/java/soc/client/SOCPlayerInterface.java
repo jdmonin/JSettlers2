@@ -648,13 +648,6 @@ public class SOCPlayerInterface extends Frame
     private Dimension prevSize;
 
     /**
-     * Have we resized the board, and thus need to repaint the borders
-     * between panels?  Determined in {@link #doLayout()}.
-     * @since 1.1.11
-     */
-    private boolean needRepaintBorders;
-
-    /**
      * True if sound effects in this particular game interface are muted.
      * For more details see {@link #isSoundMuted()}.
      * @since 1.2.00
@@ -1382,26 +1375,25 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Paint each component, after (if {@link #needRepaintBorders}) clearing stray pixels
+     * Paint each component, after clearing possible stray pixels
      * from the borders between the components.
      * @since 1.1.11
      */
     @Override
     public void paint(Graphics g)
     {
-        if (needRepaintBorders)
-            paintBorders(g);
+        paintBorders(g);
 
         super.paint(g);
     }
 
     /**
-     * Paint the borders after a resize, and set {@link #needRepaintBorders} false.
+     * Paint the borders after a resize to clear stray pixels.
      * {@link #prevSize} must be set before calling.
      * @param g  Graphics as passed to <tt>update()</tt>
      * @since 1.1.11
      */
-    private void paintBorders(Graphics g)
+    private void paintBorders(final Graphics g)
     {
         if (prevSize == null)
             return;
@@ -1416,8 +1408,6 @@ public class SOCPlayerInterface extends Frame
         }
         int bw = 4 * displayScale;
         g.clearRect(boardPanel.getX(), boardPanel.getY() - bw, boardPanel.getWidth(), bw);
-
-        needRepaintBorders = false;
     }
 
     /**
@@ -3926,11 +3916,8 @@ public class SOCPlayerInterface extends Frame
     {
         Insets i = getInsets();
         Dimension dim = getSize();
-        if (prevSize != null)
-        {
-            needRepaintBorders = (dim.width != prevSize.width)
-                || (dim.height != prevSize.height);
-        }
+        boolean needRepaintBorders = (prevSize != null)
+            && ((dim.width != prevSize.width) || (dim.height != prevSize.height));
         prevSize = dim;
         dim.width -= (i.left + i.right);
         dim.height -= (i.top + i.bottom);
@@ -4187,10 +4174,13 @@ public class SOCPlayerInterface extends Frame
             h += cdh;
             textInput.setBounds(x, i.top + pix4 + h, w, tfh);
 
+            needRepaintBorders = true;
+
             // focus here for easier chat typing
             textInput.requestFocusInWindow();
         } else {
             // standard size
+            final int prevTextY = textInput.getBounds().y;
             textDisplay.setBounds(i.left + hw + pix8, i.top + pix4, bw, tdh);
             chatDisplay.setBounds(i.left + hw + pix8, i.top + pix4 + tdh, bw, cdh);
             textInput.setBounds(i.left + hw + pix8, i.top + pix4 + tah, bw, tfh);
@@ -4204,8 +4194,13 @@ public class SOCPlayerInterface extends Frame
                     textDisplay.setCaretPosition(textDisplay.getText().length());
                 }
             });
+
+            if (textDisplaysLargerTemp_needsLayout || (prevTextY != textInput.getBounds().y))
+                needRepaintBorders = true;
         }
         textDisplaysLargerTemp_needsLayout = false;
+        if (needRepaintBorders)
+            repaint();  // clear borders of handpanels near chatDisplay, textDisplay
 
         npix = textDisplay.getPreferredSize().width;
         ncols = (int) (((bw) * 100.0f) / (npix)) - 2; // use float division for closer approximation
