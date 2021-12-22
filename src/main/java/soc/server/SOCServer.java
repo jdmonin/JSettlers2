@@ -10696,6 +10696,7 @@ public class SOCServer extends Server
      *      <LI> specified scenario name
      *      <LI> {@code null}
      *     </UL>
+     * @see SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)
      * @since 2.0.00
      */
     public static List<Triple> checkScenarioOpts
@@ -10770,32 +10771,12 @@ public class SOCServer extends Server
             sb.setLength(0);  // reset from previous iteration
             scOpt.packValue(sb);
 
-            if (! scOpt.key.equals("VP"))
-            {
-                final String scOptVal = sb.toString().toLowerCase(Locale.US);
-                if (! mapOptVal.equals(scOptVal))
-                    scenConflictWarns.add(new Triple(scOpt.key, mapOptVal, scOptVal));
-            } else {
-                // VP: special case: warn only if scen has false or a lower int value
+            if (scOpt.key.equals("VP"))
+                continue;  // VP: special case, no need to warn: scenario will never reduce VP from opts VP amount
 
-                if (mapOptVal.charAt(0) == 'f')
-                    continue;  // opts map doesn't specify VP
-
-                if (scOpt.getBoolValue())
-                {
-                    int mapVP;
-                    try {
-                        mapVP = Integer.parseInt(mapOptVal.substring(1));
-                    } catch (NumberFormatException e ) {
-                        mapVP = 0;  // unlikely, would already have been caught by cmdline parsing
-                    }
-
-                    if (mapVP <= scOpt.getIntValue())
-                        continue;  // opts map's VP not greater than scen's VP
-                }
-
-                scenConflictWarns.add(new Triple(scOpt.key, mapOptVal, sb.toString()));
-            }
+            final String scOptVal = sb.toString().toLowerCase(Locale.US);
+            if (! mapOptVal.equals(scOptVal))
+                scenConflictWarns.add(new Triple(scOpt.key, mapOptVal, scOptVal));
         }
 
         if (scenConflictWarns.isEmpty())

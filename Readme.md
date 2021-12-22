@@ -181,19 +181,22 @@ on the command line.  If the command includes -jar, switches and options go
 after the jar filename.
 
 To change a Game Option from its default, for example to activate the house rule
-"Robber can't return to the desert", use the `-o` switch with the game option's
-name and value, or equivalently "-Djsettlers.gameopt." + the name and value:
+"Robber can't return to the desert" and set default Victory Points to Win to 13,
+use `-o` switches with the game options' names and values, or equivalently
+"-Djsettlers.gameopt." + the names and values:
 
-    -o RD=t
-    -Djsettlers.gameopt.RD=t
+    -o RD=t -o VP=t13
+    -Djsettlers.gameopt.RD=t -Djsettlers.gameopt.VP=t13
+
+If a default VP is set, that will also be the minimum winning VP for any scenario.
 
 You could also set a default game scenario this way; for example if your server
 was running a tournament of Fog Islands games:
 
     -o SC=SC_FOG
 
-If the scenario's game options conflict with any other game options given (VP,
-etc), a warning will be printed during startup.  In general, servers shouldn't
+If the scenario's game options conflict with any other game options given,
+a warning will be printed during startup.  In general, servers shouldn't
 set a default scenario; users can choose a scenario on their own if they want.
 
 To have all completed games' results saved in the database, use this option:
@@ -206,7 +209,7 @@ To see a list of all jsettlers options (use them with -D), run:
 
 This will print all server options, and all Game Option default values. Note the
 format of those default values: Some options need both a true/false flag and a
-numeric value. To change the default winning victory points to 12 for example:
+numeric value. To change the default winning Victory Points to 12 for example:
 
     -o VP=t12
 

@@ -1540,6 +1540,7 @@ public class SOCGameOptionSet
      * This is a server-side equivalent to the client-side {@link SOCGameOption.ChangeListener}s.
      * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
      * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
+     * Unless {@code "VP=t..."} is in the set, will copy server's default VP (if any) from {@code knownOpts}.
      * {@code doServerPreadjust} will also remove any game-internal options the client has sent.
      *<P>
      * Before any other adjustments when <tt>doServerPreadjust</tt>, will check for
@@ -1599,10 +1600,29 @@ public class SOCGameOptionSet
                 }
             }
 
-            // If has "VP" but boolean part is false, use server default instead
+            // Use server default for "VP" unless options has "VP" with boolean part true.
+            // If "VP" not known at server, client shouldn't have sent it; code later in method will handle that
             SOCGameOption opt = options.get("VP");
-            if ((opt != null) && ! opt.getBoolValue())
-                options.remove("VP");
+            {
+                final SOCGameOption knownOptVP = knownOpts.get("VP");
+
+                if (opt == null)
+                {
+                    if ((knownOptVP != null) && knownOptVP.getBoolValue())
+                        try { options.put("VP", (SOCGameOption) knownOptVP.clone()); }
+                        catch (CloneNotSupportedException e) {}  // not actually thrown by SOCGameOption
+                }
+                else if ((! opt.getBoolValue()) && (knownOptVP != null))
+                {
+                    if (knownOptVP.getBoolValue())
+                    {
+                        opt.setBoolValue(true);
+                        opt.setIntValue(knownOptVP.getIntValue());
+                    } else {
+                        options.remove("VP");
+                    }
+                }
+            }
 
             // Apply scenario options, if any
             opt = options.get("SC");

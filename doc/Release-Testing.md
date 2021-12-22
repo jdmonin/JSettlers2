@@ -165,7 +165,8 @@ When preparing to release a new version, testing should include:
     - New Game dialog: VP to Win vs scenarios
         - In client's main window, click "New Game"
         - Note default "Victory points to Win" is 10
-        - Click "Create Game" to create; in created game, note VP is default (10)
+        - Click "Create Game" to create; in created game, note VP is default (10);
+          is 10 if not shown in Building Panel
         - Briefly join game with another client; should also see VP is default
         - Quit that game
         - Click "New Game" again
@@ -175,7 +176,7 @@ When preparing to release a new version, testing should include:
         - Pick scenario Cloth Trade; VP should change to 14
         - Pick scenario Wonders; VP should change back to default
         - Pick scenario "(none)"; VP should remain default
-        - Change VP to Win to 11
+        - Change VP to Win to 11; if it wasn't already, VP checkbox should automatically be checked by doing so
         - Now pick each of those scenarios again; VP should not change from 11
         - Keep VP at 11, pick scenario Fog Islands
         - Click "Create Game" to create; note VP is 11

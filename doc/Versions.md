@@ -61,6 +61,8 @@ JARs for recent JSettlers versions can be downloaded from
 - Server:
 	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
 	- During game reset, don't send chat recap: Chat text is still in clients' game windows
+	- If client's New Game request doesn't set game option `VP`, and server config has a default, use that for new game's `VP`
+	- If default VP is set on command line or properties, will also be minimum VP for any scenario
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Print console "joined the game", "left the game" messages as 24-hour local "HH:mm:ss"
 	  like client connect/disconnect times, instead of locale-dependent 12-hour times
