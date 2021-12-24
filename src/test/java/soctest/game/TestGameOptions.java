@@ -139,7 +139,7 @@ public class TestGameOptions
     }
 
     /**
-     * Test {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) newOpts.adjustOptionsToKnown(knownOpts, true, null)}
+     * Test {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) adjustOptionsToKnown(knownOpts, doServerPreadjust=true, null)}
      * with all 3 * 3 possible combinations of {@code "VP"} at server's known opts and client:
      * True ({@code t13}), false ({@code f13}), not in set.
      *<P>
@@ -148,57 +148,93 @@ public class TestGameOptions
     @Test
     public void testServerAdjustNewGameOptsVP()
     {
-        final SOCGameOptionSet newOpts = new SOCGameOptionSet(),
-            testFewKnownOpts = new SOCGameOptionSet();
+        testOne_ServerAdjustNewGameOptsVP(12, 13, null, null);
+        // TODO test with other scenarios
+        // TODO test with gameopt _VP_ALL
+    }
+
+    /**
+     * Test one combination of client-server game opt parameters for {@link #testServerAdjustNewGameOptsVP()}.
+     * If {@code srvKnownOpts} is {@code null}, tests include gameopt {@code "VP"} unknown at server.
+     * @param clientVP  Requested VP from client, like 12
+     * @param srvDefaultVP  Server's default VP, like 13
+     * @param clientScen  Client's requested scenario, or {@code null}; must supply {@code srvKnownOpts} if used
+     * @param srvKnownOpts  Known options for testing, or {@code null} to make a new set here containing only {@code "VP"}
+     * @throws IllegalArgumentException if {@code srvKnownOpts} is {@code null} but {@code clientScen != null}
+     */
+    private void testOne_ServerAdjustNewGameOptsVP
+        (final int clientVP, final int srvDefaultVP, final String clientScen, SOCGameOptionSet srvKnownOpts)
+        throws IllegalArgumentException
+    {
+        final boolean testFewKnownOpts = (srvKnownOpts == null);
+        if (testFewKnownOpts)
+        {
+            srvKnownOpts = new SOCGameOptionSet();
+            if (clientScen != null)
+                throw new IllegalArgumentException("for clientScen, must supply srvKnownOpts");
+        }
+        final SOCGameOptionSet cliNewGameOpts = new SOCGameOptionSet();
         final SOCGameOption cliOptVP = knownOpts.getKnownOption("VP", true);
-        cliOptVP.setIntValue(12);
+        cliOptVP.setIntValue(clientVP);
         cliOptVP.setBoolValue(true);
+        // cliOptVP will be added and removed from cliNewGameOpts during test cases below.
+        // TODO validate and add clientScen
+
         StringBuilder sb;
 
-        // 3 x 3 test matrix: [missing, false, true] for "client" opt, for "server" known opt
+        // 3 x 3 test matrix: VP [missing, false, true] for "client" opt, for "server" known opt.
+        // 2 x 3 unless testFewKnownOpts: Otherwise, don't test VP unknown at server.
 
         // - VP=t12 from "client": shouldn't change or remove
 
         // when server default false
         {
-            final SOCGameOption srvVP = knownOpts.getKnownOption("VP", true);
-            srvVP.setIntValue(13);
+            final SOCGameOption srvVP;
+            if (testFewKnownOpts)
+            {
+                srvVP = knownOpts.getKnownOption("VP", true);
+                srvKnownOpts.put(srvVP);
+            } else {
+                srvVP = srvKnownOpts.get("VP");
+                assertNotNull(srvVP);
+            }
+            srvVP.setIntValue(srvDefaultVP);
             srvVP.setBoolValue(false);
-            testFewKnownOpts.put(srvVP);
 
-            newOpts.put(cliOptVP);
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            cliNewGameOpts.put(cliOptVP);
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNull(sb);
-            SOCGameOption opt = newOpts.get("VP");
+            SOCGameOption opt = cliNewGameOpts.get("VP");
             assertNotNull(opt);
             assertTrue(opt == cliOptVP);
             assertTrue(opt.getBoolValue());
-            assertEquals(12, opt.getIntValue());
+            assertEquals(clientVP, opt.getIntValue());
         }
 
         // when server default true
         {
-            final SOCGameOption srvVP = testFewKnownOpts.get("VP");
+            final SOCGameOption srvVP = srvKnownOpts.get("VP");
             assertNotNull(srvVP);
             srvVP.setBoolValue(true);
-            assertEquals(13, srvVP.getIntValue());
+            assertEquals(srvDefaultVP, srvVP.getIntValue());
 
-            assertTrue(newOpts.get("VP") == cliOptVP);
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            assertTrue(cliNewGameOpts.get("VP") == cliOptVP);
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNull(sb);
-            SOCGameOption opt = newOpts.get("VP");
+            SOCGameOption opt = cliNewGameOpts.get("VP");
             assertNotNull(opt);
             assertTrue(opt == cliOptVP);
             assertTrue(opt.getBoolValue());
-            assertEquals(12, opt.getIntValue());
+            assertEquals(clientVP, opt.getIntValue());
         }
 
         // should reject if VP not known at "server"; cli would know not to send "VP"
+        if (testFewKnownOpts)
         {
-            testFewKnownOpts.remove("VP");
-            assertTrue(newOpts.get("VP") == cliOptVP);
+            srvKnownOpts.remove("VP");
+            assertTrue(cliNewGameOpts.get("VP") == cliOptVP);
 
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNotNull(sb);
             assertEquals("VP: unknown. ", sb.toString());
         }
@@ -209,42 +245,50 @@ public class TestGameOptions
 
         // should update VP when false and is present at "server" with a true default
         {
-            final SOCGameOption srvVP = knownOpts.getKnownOption("VP", true);
-            srvVP.setIntValue(13);
+            final SOCGameOption srvVP;
+            if (testFewKnownOpts)
+            {
+                srvVP = knownOpts.getKnownOption("VP", true);
+                srvKnownOpts.put(srvVP);
+            } else {
+                srvVP = srvKnownOpts.get("VP");
+                assertNotNull(srvVP);
+            }
+            srvVP.setIntValue(srvDefaultVP);
             srvVP.setBoolValue(true);
-            testFewKnownOpts.put(srvVP);
 
-            newOpts.put(cliOptVP);
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            cliNewGameOpts.put(cliOptVP);
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNull(sb);
-            SOCGameOption opt = newOpts.get("VP");
+            SOCGameOption opt = cliNewGameOpts.get("VP");
             assertNotNull(opt);
             assertTrue(opt.getBoolValue());
-            assertEquals(13, opt.getIntValue());
+            assertEquals(srvDefaultVP, opt.getIntValue());
             assertTrue("object fields updated, not cloned", cliOptVP == opt);
         }
 
         // should remove VP when false and server's default is false
         {
-            final SOCGameOption srvVP = testFewKnownOpts.get("VP");
+            final SOCGameOption srvVP = srvKnownOpts.get("VP");
             assertNotNull(srvVP);
-            assertEquals(13, srvVP.getIntValue());
+            assertEquals(srvDefaultVP, srvVP.getIntValue());
             srvVP.setBoolValue(false);
 
-            assertTrue(newOpts.containsKey("VP"));
-            assertTrue(cliOptVP == newOpts.get("VP"));
+            assertTrue(cliNewGameOpts.containsKey("VP"));
+            assertTrue(cliOptVP == cliNewGameOpts.get("VP"));
             cliOptVP.setBoolValue(false);
-            testFewKnownOpts.get("VP").setBoolValue(false);
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            srvKnownOpts.get("VP").setBoolValue(false);
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNull(sb);
-            assertFalse(newOpts.containsKey("VP"));
+            assertFalse(cliNewGameOpts.containsKey("VP"));
         }
 
         // should reject if VP not known at "server"
+        if (testFewKnownOpts)
         {
-            newOpts.put(cliOptVP);
-            testFewKnownOpts.remove("VP");
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            cliNewGameOpts.put(cliOptVP);
+            srvKnownOpts.remove("VP");
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNotNull(sb);
             assertEquals("VP: unknown. ", sb.toString());
         }
@@ -253,41 +297,49 @@ public class TestGameOptions
 
         // when VP not sent in opts, but true in knownOpts, include a clone of knownOpts' VP
         {
-            final SOCGameOption srvVP = knownOpts.getKnownOption("VP", true);
-            srvVP.setIntValue(13);
+            final SOCGameOption srvVP;
+            if (testFewKnownOpts)
+            {
+                srvVP = knownOpts.getKnownOption("VP", true);
+                srvKnownOpts.put(srvVP);
+            } else {
+                srvVP = srvKnownOpts.get("VP");
+                assertNotNull(srvVP);
+            }
+            srvVP.setIntValue(srvDefaultVP);
             srvVP.setBoolValue(true);
-            testFewKnownOpts.put(srvVP);
 
-            newOpts.remove("VP");
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            cliNewGameOpts.remove("VP");
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNull(sb);
-            SOCGameOption opt = newOpts.get("VP");
+            SOCGameOption opt = cliNewGameOpts.get("VP");
             assertNotNull(opt);
             assertTrue(opt.getBoolValue());
-            assertEquals(13, opt.getIntValue());
+            assertEquals(srvDefaultVP, opt.getIntValue());
             assertTrue("cloned, not same reference as srvVP", opt != srvVP);
         }
 
         // when VP not sent in opts, and false in knownOpts, don't add it
         {
-            final SOCGameOption srvVP = testFewKnownOpts.get("VP");
+            final SOCGameOption srvVP = srvKnownOpts.get("VP");
             assertNotNull(srvVP);
             srvVP.setBoolValue(false);
-            assertEquals(13, srvVP.getIntValue());
+            assertEquals(srvDefaultVP, srvVP.getIntValue());
 
-            newOpts.remove("VP");
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            cliNewGameOpts.remove("VP");
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNull(sb);
-            assertFalse(newOpts.containsKey("VP"));
+            assertFalse(cliNewGameOpts.containsKey("VP"));
         }
 
         // when VP not sent in opts, and not in knownOpts, don't add it
+        if (testFewKnownOpts)
         {
-            testFewKnownOpts.remove("VP");
-            newOpts.remove("VP");
-            sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+            srvKnownOpts.remove("VP");
+            cliNewGameOpts.remove("VP");
+            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             assertNull(sb);
-            assertFalse(newOpts.containsKey("VP"));
+            assertFalse(cliNewGameOpts.containsKey("VP"));
         }
     }
 

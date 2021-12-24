@@ -190,6 +190,8 @@ use `-o` switches with the game options' names and values, or equivalently
 
 If a default VP is set, that will also be the minimum winning VP for any scenario.
 Some scenarios like Cloth Trade may have a higher VP amount, but none will be lower.
+To use the default VP in all scenarios, even those specifying a higher VP amount,
+also set game option `_VP_ALL=t` when starting the server.
 
 You could also set a default game scenario this way; for example if your server
 was running a tournament of Fog Islands games:

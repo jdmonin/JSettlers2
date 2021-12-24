@@ -289,6 +289,7 @@ public class SOCGameOptionSet
      *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC.
      *           Used only at client, for board size received in JoinGame message from server
      *           to pass through SOCGame constructor into SOCBoard factory
+     *<LI> _VP_ALL  If true in server's Known Options, server's default VP is used for all scenarios, instead of scenario's higher VP amount
      *</UL>
      *  * Grouping: PLB, PLP are 3 characters, not 2, and the first 2 characters match an
      *    existing option. So in NewGameOptionsFrame, they appear on the lines following
@@ -508,6 +509,8 @@ public class SOCGameOptionSet
             ("VP", -1, 2000, false, 10, 10, 20, FLAG_DROP_IF_UNUSED, "Victory points to win: #"));
             // If min or max changes, test client to make sure New Game dialog still shows it as a dropdown
             // (not a text box) for user convenience
+        opts.add(new SOCGameOption
+            ("_VP_ALL", 2000, 2500, false, FLAG_DROP_IF_UNUSED, "Use default VP in all scenarios"));
 
         final SOCGameOption optSC = new SOCGameOption
             ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
@@ -666,7 +669,7 @@ public class SOCGameOptionSet
         });
 
         // If SC (scenario) is chosen, also set SBL (use sea board)
-        // and VP (vp to win), unless already changed by user.
+        // and VP (vp to win), unless already changed by user or using "_VP_ALL".
         // This is for NGOF responsiveness during new-game option setup at the client:
         // Game creation at the server doesn't rely on these updates.
         // For game creation with scenario options, see adjustOptionsToKnown(doServerPreadjust=true).
@@ -682,7 +685,7 @@ public class SOCGameOptionSet
 
                 // check/update #VP if scenario specifies larger, otherwise revert to standard
                 SOCGameOption vp = currentOpts.get("VP");
-                if ((vp != null) && ! vp.userChanged)
+                if ((vp != null) && ! (vp.userChanged || currentOpts.isOptionSet("_VP_ALL")))
                 {
                     int newVP = vp.defaultIntValue;  // usually == SOCGame.VP_WINNER_STANDARD
                     if (isScenPicked)
@@ -956,7 +959,7 @@ public class SOCGameOptionSet
     // Examining and updating values within the set:
 
     /**
-     * Is this boolean-valued game option currently set to true?
+     * Is this boolean-valued or intbool-valued game option currently set to true?
      *<P>
      * Before v2.5.00 this method was {@code SOCGame.isGameOptionSet(opts, optKey)}.
      *
@@ -979,7 +982,7 @@ public class SOCGameOptionSet
     }
 
     /**
-     * Within this set, include a boolean option and make it true.
+     * Within this set, include a boolean or intbool option and make it true.
      * If the option object isn't already in the set, it will be cloned from {@code knownOpts}.
      * @param boKey   Key name for boolean option to set
      * @param knownOpts  Set of Known Options, if needed for adding the option
@@ -1541,7 +1544,7 @@ public class SOCGameOptionSet
      * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
      * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
      * If {@code "VP=t..."} isn't in the set, will copy server's default VP (if any) from {@code knownOpts},
-     * or if set has a scenario, scenario's VP if larger than default.
+     * or if set has a scenario, scenario's VP if larger than default and not using bool option <tt>"_VP_ALL"</tt>.
      * {@code doServerPreadjust} will also remove any game-internal options the client has sent.
      *<P>
      * Before any other adjustments when <tt>doServerPreadjust</tt>, will check for
@@ -1549,8 +1552,8 @@ public class SOCGameOptionSet
      * {@link SOCScenario#getScenario(String)}; the scenario name must be known.
      * Then, add that scenario's {@link SOCScenario#scOpts .scOpts} into this set.
      * Scenario option values always overwrite those already in the set, except for <tt>"VP"</tt>
-     * whose current value is kept. If VP not in set but server has a default VP larger than scenario,
-     * that's used instead.
+     * whose current value is kept. If VP not in set but server has a default VP larger than scenario
+     * (or bool option <tt>"_VP_ALL"</tt> is set) that's used instead.
      * For convenience, {@link SOCServer#checkScenarioOpts(Map, boolean, String)} may warn about such overwrites.
      *<P>
      * Client-side gameopt code also assumes all scenarios use the sea board,
@@ -1606,6 +1609,7 @@ public class SOCGameOptionSet
             // Use server default for "VP" unless options has "VP" with boolean part true.
             // If "VP" not known at server, client shouldn't have sent it; code later in method will handle that
             int wantedVP = 0;
+            boolean using_VP_ALL = false;  // unless true, make sure _VP_ALL isn't in adjusted set of opts
             SOCGameOption opt = options.get("VP");
             {
                 final SOCGameOption knownOptVP = knownOpts.get("VP");
@@ -1644,16 +1648,20 @@ public class SOCGameOptionSet
                         // overwriting any values for those
                         // opts if already in options.
                         // keep scen VP only if options don't specify VP
-                        // and scen's VP is greater than default.
+                        // and scen's VP is greater than default
+                        // and "_VP_ALL" isn't set in server options
 
                         final Map<String, SOCGameOption> scOpts = SOCGameOption.parseOptionsToMap(sc.scOpts, knownOpts);
+                        final boolean with_VP_ALL = knownOpts.isOptionSet("_VP_ALL");
+                        using_VP_ALL = with_VP_ALL && knownOpts.isOptionSet("VP") && ! isOptionSet("VP");
                         opt = options.get("VP");
                         final SOCGameOption scOptVP = scOpts.get("VP");
                         if (scOptVP != null)
                         {
                             if (((opt == null) || ! opt.getBoolValue())
                                 && (scOptVP.getIntValue() > wantedVP)
-                                && scOptVP.getBoolValue())
+                                && scOptVP.getBoolValue()
+                                && ((wantedVP == 0) || ! with_VP_ALL))
                             {
                                 wantedVP = 0;
                             } else {
@@ -1685,6 +1693,13 @@ public class SOCGameOptionSet
                     optVP.setIntValue(wantedVP);
                 }
             }
+
+            // If game has scenario, server's using _VP_ALL, and client didn't ask to override default/scenario VP,
+            // show that by setting _VP_ALL in the new game's options
+            if (! using_VP_ALL)
+                options.remove("_VP_ALL");
+            else if (! options.containsKey("_VP_ALL"))
+                add(knownOpts.getKnownOption("_VP_ALL", true));
 
             // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
             //    here. Set or change options if it makes sense; if a user has deliberately

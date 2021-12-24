@@ -197,6 +197,9 @@ When preparing to release a new version, testing should include:
     - When server has a default scenario and larger default VP
         - Start a server; add at end of usual command line: `-o SC=SC_WOND -o VP=t13`
         - Repeat the above test. Should get same results, except for changes described for VP=t13 and SC=SC_WOND
+    - Optional: When server has a default scenario, VP, and uses default VP for all scenarios
+        - Start a server; add at end of usual command line: `-o SC=SC_CLVI -o VP=t13 -o _VP_ALL=t`
+        - Repeat the above test. Should get same results, except for changes described for VP=t13, and default scenario should be Cloth Trade, but with 13 VP not its usual 14
     - If the version being tested has changed things about the VP-Scenario interaction, also test the above with a recent previous version
         - New client with previous server
         - New server; new client creates game, previous client joins it
