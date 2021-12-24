@@ -10652,26 +10652,26 @@ public class SOCServer extends Server
      * check that the scenario is known and that its game options don't conflict with any others specified
      * in the properties or command line.
      *<P>
-     * The scenario named in {@code opts.get("SC")} or {@code scName} is retrieved with
+     * The scenario named in {@code configOpts.get("SC")} or {@code scName} is retrieved with
      * {@link SOCScenario#getScenario(String)}; an empty scenario name "" is treated as an unknown scenario.
      *<P>
      * The scenario will be the default scenario, but its option values aren't set as default at server startup.
      * When a new game begins using that scenario, at that time scenario options override any other options
      * specified for the game (except whichever {@code "VP"} is greater is kept).  Since the user may specify
-     * a different scenario, 'conflicting' options in {@code opts} are only potentially a problem and will be
+     * a different scenario, 'conflicting' options in {@code configOpts} are only potentially a problem and will be
      * returned as a list for warnings (not errors) to be printed during server init.
      *
-     * @param opts  Option name key and value strings, typically from command line or
-     *    properties file parsing.  See {@code optsIsFromProps} for format of {@code opts} keys and values.
-     * @param optsAreProps  If <B>true</B>, {@code opts} keys and values are from the properties file:
+     * @param configOpts  Option name key and value strings, typically from command line or
+     *    properties file parsing.  See {@code optsIsFromProps} for format of {@code configOpts} keys and values.
+     * @param optsAreProps  If <B>true</B>, {@code configOpts} keys and values are from the properties file:
      *    key = {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} + optname, value = option value.
      *    Option names are not case-sensitive but {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} is.
      *    <br>
      *    If <B>false</B>, keys and values are from command line parsing:
      *    key = uppercase optname, value = optkey + "=" + option value.
-     * @param scName  Scenario name to check against, or {@code null} to use value of {@code opts.get("SC"}); never ""
-     * @returns A list of game option names and value strings from {@code opts} which would be overwritten by
-     *     those from opts' {@code "SC"} scenario, or {@code null} if no potential conflicts.
+     * @param scName  Scenario name to check against, or {@code null} to use value of {@code configOpts.get("SC"}); never ""
+     * @returns A list of game option names and value strings from {@code configOpts} which would be overwritten by
+     *     those from configOpts' {@code "SC"} scenario, or {@code null} if no potential conflicts.
      *    <P>
      *     For ease of use by caller, the extracted default scenario is the first item in the list.
      *     (If there are no conflicts, the list is {@code null}; the scenario will not be returned.)
@@ -10685,7 +10685,7 @@ public class SOCServer extends Server
      *     Each other list item is a {@link Triple} containing:
      *     <UL>
      *      <LI> option name
-     *      <LI> value in {@code opts}
+     *      <LI> value in {@code configOpts}
      *      <LI> value in default scenario
      *    </UL>
      *    <P>
@@ -10700,16 +10700,16 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     public static List<Triple> checkScenarioOpts
-        (Map<?, ?> opts, final boolean optsAreProps, String scName)
+        (Map<?, ?> configOpts, final boolean optsAreProps, String scName)
     {
         List<Triple> scenConflictWarns = null;
 
         if (scName == null)
         {
             final String scKey = (optsAreProps) ? (PROP_JSETTLERS_GAMEOPT_PREFIX + "SC") : "SC";
-            if (opts.containsKey(scKey))
+            if (configOpts.containsKey(scKey))
             {
-                scName = (String) opts.get(scKey);
+                scName = (String) configOpts.get(scKey);
                 if (! optsAreProps)
                     scName = scName.substring(scName.indexOf('=') + 1).trim();
                        // indexOf should be okay, because this is called after parsing cmdline options;
@@ -10739,15 +10739,15 @@ public class SOCServer extends Server
             // jsettlers.gameopt.NT -> jsettlers.gameopt.nt
 
             Map<String, Object> normOpts = new HashMap<String, Object>();
-            for (Object k : opts.keySet())
+            for (Object k : configOpts.keySet())
             {
                 if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
                     continue;
 
-                normOpts.put(((String) k).toLowerCase(Locale.US), opts.get(k));
+                normOpts.put(((String) k).toLowerCase(Locale.US), configOpts.get(k));
             }
 
-            opts = normOpts;
+            configOpts = normOpts;
         }
 
         final Map<String, SOCGameOption> scOpts = SOCGameOption.parseOptionsToMap(scOptsStr, startupKnownOpts);
@@ -10758,25 +10758,25 @@ public class SOCServer extends Server
             final String optKey = (optsAreProps)
                 ? (PROP_JSETTLERS_GAMEOPT_PREFIX + scOpt.key).toLowerCase(Locale.US)
                 : scOpt.key;
-            if (! opts.containsKey(optKey))
+            if (! configOpts.containsKey(optKey))
                 continue;
 
-            String mapOptVal = (String) opts.get(optKey);
+            String configOptVal = (String) configOpts.get(optKey);
             if (! optsAreProps)
-                mapOptVal = mapOptVal.substring(mapOptVal.indexOf('=') + 1).trim();
+                configOptVal = configOptVal.substring(configOptVal.indexOf('=') + 1).trim();
                    // indexOf should be okay, because this is called after parsing cmdline options;
                    // if somehow it's -1 then we get entire string from substring(0).
-            mapOptVal = mapOptVal.toLowerCase(Locale.US);  // for intbool t/f chars
+            configOptVal = configOptVal.toLowerCase(Locale.US);  // for intbool t/f chars
 
             sb.setLength(0);  // reset from previous iteration
             scOpt.packValue(sb);
 
             if (scOpt.key.equals("VP"))
-                continue;  // VP: special case, no need to warn: scenario will never reduce VP from opts VP amount
+                continue;  // VP: special case, no need to warn: scenario will never reduce VP from configOpts VP amount
 
             final String scOptVal = sb.toString().toLowerCase(Locale.US);
-            if (! mapOptVal.equals(scOptVal))
-                scenConflictWarns.add(new Triple(scOpt.key, mapOptVal, scOptVal));
+            if (! configOptVal.equals(scOptVal))
+                scenConflictWarns.add(new Triple(scOpt.key, configOptVal, scOptVal));
         }
 
         if (scenConflictWarns.isEmpty())
@@ -10789,16 +10789,17 @@ public class SOCServer extends Server
     }
 
     /**
-     * During startup, call {@link #checkScenarioOpts(Map, boolean, String)} and print any warnings it returns
-     * to {@link System#err}.  An unknown scenario name is printed as an error not a warning.
-     * An empty scenario name "" from {@code opts.get("SC")} or {@code scName} is treated as an unknown scenario.
-     * @param opts  Options to check, see {@link #checkScenarioOpts(Map, boolean, String)}
-     * @param optsAreProps  Are {@code opts} from properties or command line?
+     * During startup, call {@link #checkScenarioOpts(Map, boolean, String)} for game options set on command line
+     * or in server config properties, and print any warnings it returns to {@link System#err}.
+     * An unknown scenario name is printed as an error not a warning.
+     * An empty scenario name "" from {@code configOpts.get("SC")} or {@code scName} is treated as an unknown scenario.
+     * @param configOpts  Options to check; see {@link #checkScenarioOpts(Map, boolean, String)}
+     * @param optsAreProps  Are {@code configOpts} from properties or command line?
      *     See {@link #checkScenarioOpts(Map, boolean, String)}.
-     * @param srcDesc  Description of {@code opts} for warning message text:
+     * @param srcDesc  Description of {@code configOpts} for warning message text:
      *     "Command line" or properties filename "jsserver.properties"
-     * @param scName  Scenario name to check against, or {@code null} to use value of {@code opts.get("SC"}); never ""
-     * @param scNameSrcDesc  If {@code scName} isn't from {@code opts}, lowercase description of its source
+     * @param scName  Scenario name to check against, or {@code null} to use value of {@code configOpts.get("SC"}); never ""
+     * @param scNameSrcDesc  If {@code scName} isn't from {@code configOpts}, lowercase description of its source
      *     for warnings (like {@code srcDesc}), otherwise {@code null}.
      *     If {@code scNameSrcDesc != null}, will not print a warning if {@code scName} is unknown, to avoid
      *     repeating the warning already printed when that SC was checked while parsing its source.
@@ -10806,9 +10807,10 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     private static boolean init_checkScenarioOpts
-        (final Map<?, ?> opts, final boolean optsAreProps, final String srcDesc, String scName, String scNameSrcDesc)
+        (final Map<?, ?> configOpts, final boolean optsAreProps,
+         final String srcDesc, String scName, final String scNameSrcDesc)
     {
-        List<Triple> warns = checkScenarioOpts(opts, optsAreProps, scName);
+        List<Triple> warns = checkScenarioOpts(configOpts, optsAreProps, scName);
         if (warns == null)
             return true;
 

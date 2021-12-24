@@ -189,6 +189,7 @@ use `-o` switches with the game options' names and values, or equivalently
     -Djsettlers.gameopt.RD=t -Djsettlers.gameopt.VP=t13
 
 If a default VP is set, that will also be the minimum winning VP for any scenario.
+Some scenarios like Cloth Trade may have a higher VP amount, but none will be lower.
 
 You could also set a default game scenario this way; for example if your server
 was running a tournament of Fog Islands games:

@@ -1540,7 +1540,8 @@ public class SOCGameOptionSet
      * This is a server-side equivalent to the client-side {@link SOCGameOption.ChangeListener}s.
      * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
      * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
-     * Unless {@code "VP=t..."} is in the set, will copy server's default VP (if any) from {@code knownOpts}.
+     * If {@code "VP=t..."} isn't in the set, will copy server's default VP (if any) from {@code knownOpts},
+     * or if set has a scenario, scenario's VP if larger than default.
      * {@code doServerPreadjust} will also remove any game-internal options the client has sent.
      *<P>
      * Before any other adjustments when <tt>doServerPreadjust</tt>, will check for
@@ -1548,7 +1549,9 @@ public class SOCGameOptionSet
      * {@link SOCScenario#getScenario(String)}; the scenario name must be known.
      * Then, add that scenario's {@link SOCScenario#scOpts .scOpts} into this set.
      * Scenario option values always overwrite those already in the set, except for <tt>"VP"</tt>
-     * where current value (if any) is kept.
+     * whose current value is kept. If VP not in set but server has a default VP larger than scenario,
+     * that's used instead.
+     * For convenience, {@link SOCServer#checkScenarioOpts(Map, boolean, String)} may warn about such overwrites.
      *<P>
      * Client-side gameopt code also assumes all scenarios use the sea board,
      * and sets game option <tt>"SBL"</tt> when a scenario is chosen by the user.
@@ -1602,6 +1605,7 @@ public class SOCGameOptionSet
 
             // Use server default for "VP" unless options has "VP" with boolean part true.
             // If "VP" not known at server, client shouldn't have sent it; code later in method will handle that
+            int wantedVP = 0;
             SOCGameOption opt = options.get("VP");
             {
                 final SOCGameOption knownOptVP = knownOpts.get("VP");
@@ -1609,18 +1613,18 @@ public class SOCGameOptionSet
                 if (opt == null)
                 {
                     if ((knownOptVP != null) && knownOptVP.getBoolValue())
-                        try { options.put("VP", (SOCGameOption) knownOptVP.clone()); }
-                        catch (CloneNotSupportedException e) {}  // not actually thrown by SOCGameOption
+                        wantedVP = knownOptVP.getIntValue();
                 }
-                else if ((! opt.getBoolValue()) && (knownOptVP != null))
+                else if (opt.getBoolValue())
+                {
+                    wantedVP = opt.getIntValue();
+                }
+                else if (knownOptVP != null)
                 {
                     if (knownOptVP.getBoolValue())
-                    {
-                        opt.setBoolValue(true);
-                        opt.setIntValue(knownOptVP.getIntValue());
-                    } else {
+                        wantedVP = knownOptVP.getIntValue();
+                    else
                         options.remove("VP");
-                    }
                 }
             }
 
@@ -1638,14 +1642,24 @@ public class SOCGameOptionSet
                     } else {
                         // include this scenario's opts,
                         // overwriting any values for those
-                        // opts if already in newOpts, except
-                        // keep VP if specified.
-                        opt = options.get("VP");
+                        // opts if already in options.
+                        // keep scen VP only if options don't specify VP
+                        // and scen's VP is greater than default.
 
                         final Map<String, SOCGameOption> scOpts = SOCGameOption.parseOptionsToMap(sc.scOpts, knownOpts);
-                        if (scOpts.containsKey("VP") && (opt != null))
-                            scOpts.remove("VP");
-
+                        opt = options.get("VP");
+                        final SOCGameOption scOptVP = scOpts.get("VP");
+                        if (scOptVP != null)
+                        {
+                            if (((opt == null) || ! opt.getBoolValue())
+                                && (scOptVP.getIntValue() > wantedVP)
+                                && scOptVP.getBoolValue())
+                            {
+                                wantedVP = 0;
+                            } else {
+                                scOpts.remove("VP");
+                            }
+                        }
                         options.putAll(scOpts);
                     }
                 }
@@ -1653,6 +1667,23 @@ public class SOCGameOptionSet
                 // Client-side gameopt code also assumes all scenarios use
                 // the sea board, and sets game option "SBL" when a scenario
                 // is chosen by the user.
+            }
+
+            if (wantedVP > 0)
+            {
+                SOCGameOption optVP = options.get("VP");
+                if (optVP == null)
+                {
+                    optVP = knownOpts.getKnownOption("VP", true);
+                    if (optVP != null)
+                        options.put("VP", optVP);
+                }
+
+                if (optVP != null)
+                {
+                    optVP.setBoolValue(true);
+                    optVP.setIntValue(wantedVP);
+                }
             }
 
             // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
