@@ -2339,7 +2339,7 @@ public class SOCGameHandler extends GameHandler
         else if (ga.getClientVersionMinRequired() > Version.versionNumber())
         {
             srv.messageToGameKeyed
-                (ga, true, false, "member.bot.join.interror.version", ga.getClientVersionMinRequired());
+                (ga, true, false, "member.bot.join.interror.version_nolocaliz", ga.getClientVersionMinRequired());
                 // "Internal error: The robots can't join this game; game's version {0} is newer than the robots.
 
             return false;  // <--- Early return: No bot available ---
