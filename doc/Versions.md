@@ -193,6 +193,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Renames for consistency:
 	    - SOCDevCardConstants.TEMP -> TEMPLE
 	    - SOCPlayerInterface.clientIsCurrentPlayer -> isClientCurrentPlayer
+	- Added 75 unit tests (new total is 202)
 
 
 ## `2.4.00` (build JM20200704)

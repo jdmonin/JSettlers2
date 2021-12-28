@@ -92,7 +92,7 @@ Same coordinates as 4-player classic. Trading ports' hexes are off the edge of t
 Coding is done in Java 7 for client compatibility, but should compile cleanly
 in newer JDKs. (v2.0 and 2.1 used java 6 for compatibility; 1.2 used java 5.)
 The build system is gradle 5.6 or higher (which requires java 8);
-the newest tested version is gradle 6.4. Use any IDE you want, including vi.
+the newest tested version is gradle 6.9.2. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
 
@@ -605,7 +605,8 @@ ideas.
 To help with testing, the server can save a game and board's state to a file
 and load it later, using admin/debug commands.
 
-This feature is experimental and still being developed, so the notes here are very basic.
+This feature is still being developed, so the notes here are very basic.
+The file format/structure is stable, future versions will stay compatible with it.
 
 Most games with a scenario can't yet be saved, because of their special pieces
 or game/player data fields. Basic scenarios like "Four Islands" which don't have
