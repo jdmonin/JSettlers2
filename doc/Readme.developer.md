@@ -649,6 +649,8 @@ in a standardized format, you can do so with `soc.extra.server.RecordingSOCServe
 records all messages relevant to gameplay captured by server-side calls to
 `messageToPlayer / messageToGame(.., isEvent=true)` or `recordGameEvent(..)`,
 along with messages from client players and observers.
+A list of basic game actions and their message sequences is in
+[Message-Sequences-for-Game-Actions.md](Message-Sequences-for-Game-Actions.md).
 
 Launch RecordingSOCServer and log in as `debug` with the standard client.
 In any game you're playing or observing, logs can be saved at any time with the debug command  

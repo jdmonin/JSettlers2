@@ -51,12 +51,22 @@ import soc.util.Version;
  * An {@link EventEntry} holds each log entry.
  *<P>
  * These logs and their entry format are used by various tests and {@link RecordingSOCServer},
- * but aren't used by the standard SOCServer.
+ * but aren't used by the standard SOCServer. Their contents are the network messages relevant to gameplay
+ * captured by server-side calls to {@code messageToPlayer / messageToGame(.., isEvent=true)}
+ * or {@code recordGameEvent(..)}, along with messages from client players and observers.
  *<P>
  * Use {@link #load(File, boolean, int)} to parse from a {@code .soclog} file,
  * creating a new {@code GameEventLog} with {@link #entries} from the parsed entries,
  * setting the {@link #gameName}, {@link #isAtClient}, {@link #version}, {@link #optsStr},
  * and {@link #numLines} fields.
+ *
+ *<H3>Message Sequences</H3>
+ *
+ * A list of basic game actions and their message sequences is in
+ * {@code doc/Message-Sequences-for-Game-Actions.md}.
+ * The server uses the latest version format to record the game event sequences
+ * it sends, even when it actually sent different messages to an older client to be compatible.
+ * When loading a log file, {@link #version} holds that sequence/format version info.
  *
  *<H3>Log file format</H3>
  *
