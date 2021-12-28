@@ -477,7 +477,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         if (gameopt3p != null)
         {
             gameopt3p = gameopt3p.toUpperCase(Locale.US);
-            feats.add("com.example.js." + gameopt3p);
+            feats.add("com.example.js.feat." + gameopt3p);
 
             if (null == knownOpts.getKnownOption(gameopt3p, false))
             {

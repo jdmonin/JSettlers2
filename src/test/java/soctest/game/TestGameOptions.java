@@ -913,7 +913,7 @@ public class TestGameOptions
         // client-side test FLAG_3RD_PARTY
         opt3PKnown = new SOCGameOption
             ("T3P", -1, 1107, 0, 0, 0xFFFF, SOCGameOption.FLAG_3RD_PARTY, "For unit test");
-        opt3PKnown.setClientFeature("com.example.js.test3p");
+        opt3PKnown.setClientFeature("com.example.js.feat.test3p");
         assertTrue(opt3PKnown.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
         knowns.addKnownOption(opt3PKnown);
         SOCGameOption knOpt = knowns.getKnownOption("T3P", false);

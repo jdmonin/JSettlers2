@@ -234,7 +234,8 @@ public class SOCGameOption
      * currently connected clients/servers at the same version.
      *<UL>
      * <LI> Each such game opt requires an accompanying client feature name, so a server
-     *      which knows about the opt can easily tell if a client knows it
+     *      which knows about the opt can easily tell if a client knows it.
+     *      See {@link SOCFeatureSet} for more about third-party client features.
      * <LI> A client which knows 3rd-party game opts should ask server about all of them
      *      during game option info sync, to see whether server knows them.
      *      (Client call to {@link SOCGameOptionSet#optionsNewerThanVersion(int, boolean, boolean)} handles this.)

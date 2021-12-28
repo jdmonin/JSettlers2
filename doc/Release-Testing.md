@@ -622,7 +622,7 @@ When preparing to release a new version, testing should include:
         - Click Practice button; in Practice Game dialog, should see and set checkbox for game option "Client test 3p option XYZ"
         - Start the practice game
         - In game window, click "Options" button; game opt XYZ should be set
-        - Start a server without that `gameopt3p` param
+        - Start a server without any `gameopt3p` param
         - Connect from that client
         - Click New Game button; New Game dialog shouldn't have game opt "Client test 3p option XYZ"
         - Quit that client and server
@@ -647,7 +647,7 @@ When preparing to release a new version, testing should include:
         - In list of games, the game with option XYZ should show "(cannot join)"
         - Click "Game Info"; popup should show "This game does not use options"
         - Double-click game, popup should show message "Cannot join"
-        - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.XYZ"
+        - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.feat.XYZ"
     - Quit all clients and server
     - Unit tests handle third-party options if added in a fork
         - In soc.game.SOCGameOptionSet.getAllKnownOptions, temporarily uncomment game opts `"_3P"` and `"_3P2"`

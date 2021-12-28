@@ -681,7 +681,7 @@ public class SOCServer extends Server
     /**
      * For server testing, JVM/system property {@code "jsettlers.debug.server.gameopt3p"}
      * with name of a "third-party" Known Game Option to create; will have {@link SOCGameOption#FLAG_3RD_PARTY}
-     * and require client feature {@code "com.example.js."} + optionName.
+     * and require client feature {@code "com.example.js.feat."} + optionName.
      *<P>
      * For robots' benefit, if this system property is set but the equivalent client property
      * {@link soc.baseclient.SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P} isn't,
@@ -1918,7 +1918,7 @@ public class SOCServer extends Server
                     (gameopt3p, 2000, Version.versionNumber(), false,
                      SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED,
                      "Server test 3p option " + gameopt3p);
-                opt.setClientFeature("com.example.js." + gameopt3p);
+                opt.setClientFeature("com.example.js.feat." + gameopt3p);
                 knownOpts.put(opt);
 
                 if (null == System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P))

@@ -544,7 +544,7 @@ import soc.util.Version;
      * is set, its value is sent instead of {@link #cliFeats}.{@link SOCFeatureSet#getEncodedList() getEncodedList()}.
      * Then if debug property
      * {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P}
-     * is set, its value is appended to client features as {@code "com.example.js."} + gameopt3p.
+     * is set, its value is appended to client features as {@code "com.example.js.feat."} + gameopt3p.
      *
      * @param isPractice  True if sending to client's practice server with {@link #putPractice(String)},
      *     false if to a TCP server with {@link #putNet(String)}.
@@ -561,7 +561,7 @@ import soc.util.Version;
         String gameopt3p = System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P);
         if (gameopt3p != null)
         {
-            gameopt3p = "com.example.js." + gameopt3p.toUpperCase(Locale.US) + ';';
+            gameopt3p = "com.example.js.feat." + gameopt3p.toUpperCase(Locale.US) + ';';
             if (feats != null)
                 feats = feats + gameopt3p;
             else
