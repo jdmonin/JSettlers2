@@ -502,7 +502,7 @@ public class TestGameEventLog
         throws NoSuchElementException, IOException, ParseException
     {
         final GameEventLog log = load("all-basic-actions.soclog", false, -1);
-        final int EXPECTED_FILE_LINE_COUNT = 770;  // length from wc -l
+        final int EXPECTED_FILE_LINE_COUNT = 772;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
@@ -536,12 +536,12 @@ public class TestGameEventLog
         assertEquals(-1, ((SOCDiceResult) msg).getResult());
 
         // !p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
-        entry = log.entries.get(304);
+        entry = log.entries.get(306);
         msg = entry.event;
         assertFalse(entry.isFromClient);
         assertEquals(-1, entry.pn);
         assertArrayEquals(new int[]{3, 2}, entry.excludedPN);
-        assertTrue("Line 306 expected SOCRobberyResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+        assertTrue("Line 308 expected SOCRobberyResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCRobberyResult);
         assertEquals(3, ((SOCRobberyResult) msg).perpPN);
         assertEquals(2, ((SOCRobberyResult) msg).victimPN);
