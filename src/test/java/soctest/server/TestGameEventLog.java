@@ -502,7 +502,7 @@ public class TestGameEventLog
         throws NoSuchElementException, IOException, ParseException
     {
         final GameEventLog log = load("all-basic-actions.soclog", false, -1);
-        final int EXPECTED_FILE_LINE_COUNT = 772;  // length from wc -l
+        final int EXPECTED_FILE_LINE_COUNT = 773;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
@@ -525,23 +525,23 @@ public class TestGameEventLog
         // spot-check a few parsed messages:
 
         // ob:SOCDiceResult:game=test|param=-1
-        entry = log.entries.get(18);
+        entry = log.entries.get(19);
         SOCMessage msg = entry.event;
         assertFalse(entry.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, entry.pn);
         assertNull(entry.excludedPN);
-        assertTrue("Line 20 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+        assertTrue("Line 21 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCDiceResult);
         assertEquals("test", ((SOCDiceResult) msg).getGame());
         assertEquals(-1, ((SOCDiceResult) msg).getResult());
 
         // !p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
-        entry = log.entries.get(306);
+        entry = log.entries.get(307);
         msg = entry.event;
         assertFalse(entry.isFromClient);
         assertEquals(-1, entry.pn);
         assertArrayEquals(new int[]{3, 2}, entry.excludedPN);
-        assertTrue("Line 308 expected SOCRobberyResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+        assertTrue("Line 309 expected SOCRobberyResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCRobberyResult);
         assertEquals(3, ((SOCRobberyResult) msg).perpPN);
         assertEquals(2, ((SOCRobberyResult) msg).victimPN);
@@ -690,6 +690,7 @@ public class TestGameEventLog
      * @see #testLoadKnownGood()
      * @see #testLoadWithTimestamps()
      * @see #testLoadWithFilterAtClientPN()
+     * @see soctest.robot.TestGameActionExtractor#testLoadAndExtractInitialPlacement()
      */
     @Test
     public void testLoadWithAtClient()

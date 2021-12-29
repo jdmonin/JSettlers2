@@ -20,9 +20,11 @@
 
 package soctest.robot;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import soc.extra.robot.GameActionExtractor;
 import soc.extra.robot.GameActionLog;
@@ -34,6 +36,7 @@ import soc.game.SOCGame;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
+import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCGameElements;
 import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
@@ -46,6 +49,7 @@ import soc.message.SOCStartGame;
 import soc.message.SOCTurn;
 import soc.message.SOCVersion;
 import soc.util.Version;
+import soctest.server.TestGameEventLog;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -480,7 +484,8 @@ public class TestGameActionExtractor
     /**
      * Test extraction of basic initial placement with 3 players: p3 (first player), p0, and p1.
      *<P>
-     * Initial placement with a settlement canceled/re-placed is tested in {@link #testInitialPlacementCancelSettlement()}.
+     * Initial placement with a settlement canceled/re-placed is tested in {@link #testInitialPlacementCancelSettlement()}
+     * and (from soclog file) {@link #testLoadAndExtractInitialPlacement()}.
      * Initial placement with gold hexes and revealed fog hexes is tested in {@link #testGoldHexFogHex()}.
      */
     @Test
@@ -757,6 +762,7 @@ public class TestGameActionExtractor
     /**
      * Test initial placement with a settlement canceled/re-placed.
      * @see #testInitialPlacement()
+     * @see #testLoadAndExtractInitialPlacement()
      */
     @Test
     public void testInitialPlacementCancelSettlement()
@@ -798,7 +804,7 @@ public class TestGameActionExtractor
                     assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
                     assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
 
-                    // Start of 2st initial placements
+                    // Start of 2nd initial placements
 
                     act = actionLog.get(1);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
@@ -831,6 +837,294 @@ public class TestGameActionExtractor
                     assertEquals(desc, 3, act.param3);
                 }
             });
+    }
+
+    /**
+     * Test loading from soclog file and extracting initial placement with a settlement canceled/re-placed,
+     * with 3 players (p3 droid 1 (first player), p5, and p1 robot 4). on sea board
+     * from the known-good {@code initial-placement-sea-cancel.soclog} artifact.
+     * @see #testInitialPlacementCancelSettlement()
+     * @see TestGameEventLog#testLoadWithAtClient()
+     */
+    @Test
+    public void testLoadAndExtractInitialPlacement()
+        throws NoSuchElementException, IOException, ParseException
+    {
+        // Load and spot-check before extraction:
+
+        final GameEventLog log = TestGameEventLog.load("initial-placement-sea-cancel.soclog", false, -1);
+        final int EXPECTED_FILE_LINE_COUNT = 223;  // length from wc -l
+
+        assertNotNull(log);
+        assertEquals("test", log.gameName);
+        assertFalse(log.isAtClient);
+        assertEquals(-1, log.atClientPN);
+        assertEquals(2500, log.version);
+        assertEquals("BC=t4,PLB=t,SBL=t,N7=f7,RD=f,PL=6", log.optsStr);
+        assertFalse(log.entries.isEmpty());
+        assertEquals(EXPECTED_FILE_LINE_COUNT, log.numLines);
+        assertEquals(log.numLines, 1 + log.entries.size());  // true if no blank lines
+
+        // f5:SOCPutPiece:game=test|playerNumber=5|pieceType=3|coord=704
+        EventEntry entry = log.entries.get(133);
+        SOCMessage msg = entry.event;
+        assertTrue(entry.isFromClient);
+        assertEquals(5, entry.pn);
+        assertNull(entry.excludedPN);
+        assertTrue
+            ("Line 135 expected SOCPutPiece, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+             msg instanceof SOCPutPiece);
+        assertEquals("test", ((SOCPutPiece) msg).getGame());
+        assertEquals(3, ((SOCPutPiece) msg).getPieceType());
+        assertEquals(0x704, ((SOCPutPiece) msg).getCoordinates());
+
+        // all:SOCCancelBuildRequest:game=test|pieceType=1
+        entry = log.entries.get(166);
+        msg = entry.event;
+        assertFalse(entry.isFromClient);
+        assertEquals(-1, entry.pn);
+        assertNull(entry.excludedPN);
+        assertTrue("Line 168 expected SOCCancelBuildRequest, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCCancelBuildRequest);
+        assertEquals(1, ((SOCCancelBuildRequest) msg).getPieceType());
+
+        // Test extraction:
+
+        final ExtractResultsChecker checker = new ExtractResultsChecker()
+        {
+            public void check(final GameActionLog actionLog, final int toClientPN)
+            {
+                final String desc = "for clientPN=" + toClientPN + ":";
+
+                assertEquals(desc, 27, actionLog.size());
+
+                GameActionLog.Action act = actionLog.get(0);
+                assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 112 : ((toClientPN == 5) ? 36 : 35), act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1A, act.endingGameState);
+
+                // Start of 1st initial placements
+
+                act = actionLog.get(1);
+                assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                assertEquals(desc, 2, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1A, act.endingGameState);
+                assertEquals(desc + " new current player number", 3, act.param1);
+
+                act = actionLog.get(2);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 8 : 5, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                assertEquals(desc + " built at 0x60b", 0x60b, act.param2);
+                assertEquals(desc, 3, act.param3);
+
+                act = actionLog.get(3);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
+                assertEquals(desc + " built at 0x60b", 0x60b, act.param2);
+                assertEquals(desc, 3, act.param3);
+
+                act = actionLog.get(4);
+                assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                assertEquals(desc, 2, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1A, act.endingGameState);
+                assertEquals(desc, 5, act.param1);
+
+                act = actionLog.get(5);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                assertEquals(desc + " built at 0x804", 0x804, act.param2);
+                assertEquals(desc, 5, act.param3);
+
+                act = actionLog.get(6);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
+                assertEquals(desc + " built at 0x704", 0x704, act.param2);
+                assertEquals(desc, 5, act.param3);
+
+                act = actionLog.get(7);
+                assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                assertEquals(desc, 2, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1A, act.endingGameState);
+                assertEquals(desc, 1, act.param1);
+
+                act = actionLog.get(8);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                assertEquals(desc + " built at 0xa0b", 0xa0b, act.param2);
+                assertEquals(desc, 1, act.param3);
+
+                act = actionLog.get(9);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START1B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
+                assertEquals(desc + " built at 0x90b", 0x90b, act.param2);
+                assertEquals(desc, 1, act.param3);
+
+                // Start of 2nd initial placements
+
+                act = actionLog.get(10);
+                assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                assertEquals(desc, 2, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2A, act.endingGameState);
+                assertEquals(desc, 1, act.param1);
+
+                act = actionLog.get(11);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                assertEquals(desc + " built at 0x40a", 0x40a, act.param2);
+                assertEquals(desc, 1, act.param3);
+
+                act = actionLog.get(12);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
+                assertEquals(desc + " built at 0x30a", 0x30a, act.param2);
+                assertEquals(desc, 1, act.param3);
+
+                act = actionLog.get(13);
+                assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                assertEquals(desc, 2, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2A, act.endingGameState);
+                assertEquals(desc, 5, act.param1);
+
+                act = actionLog.get(14);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                assertEquals(desc + " built at 0x80d", 0x80d, act.param2);
+                assertEquals(desc, 5, act.param3);
+
+                act = actionLog.get(15);
+                assertEquals(desc, ActionType.CANCEL_BUILT_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2A, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                assertEquals(0, act.param2);
+                assertEquals(desc, 5, act.param3);
+
+                act = actionLog.get(16);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 7 : 5, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                assertEquals(desc + " built at 0xa06", 0xa06, act.param2);
+                assertEquals(desc, 5, act.param3);
+
+                act = actionLog.get(17);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
+                assertEquals(desc + " built at 0xa05", 0xa05, act.param2);
+                assertEquals(desc, 5, act.param3);
+
+                act = actionLog.get(18);
+                assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                assertEquals(desc, 2, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2A, act.endingGameState);
+                assertEquals(desc, 3, act.param1);
+
+                // p3 init settle at 0xc0c, reveals fog hex
+                act = actionLog.get(19);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 8 : 6, act.eventSequence.size());
+                assertEquals(desc, SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.SETTLEMENT, act.param1);
+                assertEquals(desc + " built at 0xc0c", 0xc0c, act.param2);
+                assertEquals(desc, 3, act.param3);
+
+                act = actionLog.get(20);
+                assertEquals(desc, ActionType.CHOOSE_FREE_RESOURCES, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                assertEquals(desc, new SOCResourceSet(0, 0, 0, 1, 0, 0), act.rset1);
+
+                act = actionLog.get(21);
+                assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.START2B, act.endingGameState);
+                assertEquals(desc, SOCPlayingPiece.ROAD, act.param1);
+                assertEquals(desc + " built at 0xb0c", 0xb0c, act.param2);
+                assertEquals(desc, 3, act.param3);
+
+                // First regular turn
+
+                act = actionLog.get(22);
+                assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                assertEquals(desc, 2, act.eventSequence.size());
+                assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                assertEquals(desc, 3, act.param1);
+
+                act = actionLog.get(23);
+                assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 6 : 3, act.eventSequence.size());
+                assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                assertEquals(desc + " dice roll sum", 9, act.param1);
+
+                act = actionLog.get(24);
+                assertEquals(desc, ActionType.END_TURN, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+
+                act = actionLog.get(25);
+                assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                assertEquals(desc, 2, act.eventSequence.size());
+                assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                assertEquals(desc, 5, act.param1);
+
+                act = actionLog.get(26);
+                assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                assertEquals(desc, (toClientPN == -1) ? 12 : 8, act.eventSequence.size());
+                assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                assertEquals(desc + " dice roll sum", 9, act.param1);
+            }
+        };
+
+        // for server
+        {
+            final GameEventLog fullLog = new GameEventLog(log, -1);
+            GameActionExtractor ext = new GameActionExtractor(fullLog, true);
+            GameActionLog actionLog = ext.extract();
+            assertNotNull(actionLog);
+            checker.check(actionLog, -1);
+        }
+
+        // for clientPN
+        {
+            final int testToClientPN = 5;
+            final GameEventLog clientEventLog = new GameEventLog(log, testToClientPN);
+            assertEquals(testToClientPN, clientEventLog.atClientPN);
+            GameActionExtractor ext = new GameActionExtractor(clientEventLog, true);
+            GameActionLog clientActLog = ext.extract();
+            assertNotNull(clientActLog);
+            checker.check(clientActLog, testToClientPN);
+        }
+
+        // for otherPN (observer)
+        {
+            final int testToOtherPN = 99;
+            final GameEventLog clientEventLog = new GameEventLog(log, testToOtherPN);
+            assertEquals(testToOtherPN, clientEventLog.atClientPN);
+            GameActionExtractor ext = new GameActionExtractor(clientEventLog, true);
+            GameActionLog clientActLog = ext.extract();
+            assertNotNull(clientActLog);
+            checker.check(clientActLog, testToOtherPN);
+        }
     }
 
     /**

@@ -9,6 +9,7 @@ SOC game event log: type=F, version=2500, created_at=1633920526, now=1633921260,
 # Starts with debug player and 1 robot; human player p2 takes over for bot just after initial placement.
 # Uses debug comands rsrcs, devnext.
 # For a log with the optional timestamp field, see has-timestamps.soclog.
+# For more complicated initial placement, see initial-placement-sea-cancel.soclog.
 all:SOCVersion:2500|str=2.5.00|verBuild=JM20211010|feats=;ch;|cliLocale=(null)
 all:SOCNewGameWithOptions:game=test|param1=2000|param2=BC=t4,N7=f7,RD=f,SBL=t,PL=4
 ob:SOCJoinGameAuth:game=test|bh=20|bw=21|vs=[-2, 1, 3, 0]
@@ -765,7 +766,7 @@ p3:SOCPlayerStats:game=test|p=1|p=2|p=6|p=0|p=5|p=1
 f3:SOCGameTextMsg:game=test|nickname=-|text=*savegame* test-over
 un:SOCGameServerText:game=test|text=Saved game to test-over.game.json
 # note: ^ committed as artifact ../savegame/all-basic-actions-over.game.json
-f3:SOCGameTextMsg:game=test|nickname=-|text=*savelog* test-all-basic-actions
+f3:SOCGameTextMsg:game=test|nickname=-|text=*savelog* -u test-all-basic-actions
 # End of log. Game state 1000
 # Player info:
 # - pn 2: total score 2: p2
