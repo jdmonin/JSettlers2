@@ -564,7 +564,7 @@ When preparing to release a new version, testing should include:
           `("DEBUGBOOL", 2400, Version.versionNumber(), false, ...)`
         - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2400 -> 2401, 2.4.00 -> 2.4.01
         - Build client (at that "new" version) using `gradle assemble` to skip the usual unit tests.
-          The built jars' filenames might include current version number; that's not an issue.
+          The built jars' filenames might include current version number; that's normal.
         - Launch that client (prints the "new" version number at startup), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
           Scenario dropdown should include those 3 "new" scenarios
@@ -713,7 +713,7 @@ When preparing to release a new version, testing should include:
           - Game Info dialog: Click Scenario Info button: Except Fog Islands,
             game's scenario info should be localized as expected
           - In message traffic, should see `SOCLocalizedStrings:type=S` with text for only that game's scenario
-            (except for english client), or for Fog Islands, `SC_FOG|K` as visible part of the marker for "unknown"
+            (except for english client), or for Fog Islands, `SC_FOG|K` because it's marked as "unknown"
         - Join each of those 3 games
           - In message traffic, shouldn't see another `SOCLocalizedStrings:type=S`, because server tracks already-sent ones
         - Re-launch client, to clear that server-side and client-side tracking
@@ -1183,7 +1183,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  
-      `java -jar JSettlersServer-2.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=10 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.gametypes=3 -Djsettlers.debug.bots.datacheck.rsrc=Y -Djsettlers.allow.debug=Y -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+      `java -jar JSettlersServer-2.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=6 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.gametypes=3 -Djsettlers.debug.bots.datacheck.rsrc=Y -Djsettlers.allow.debug=Y -Djsettlers.bots.botgames.shutdown=Y 8118 15`
     - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
     - These games should complete in under 10 minutes
     - Once the games complete, that server will exit

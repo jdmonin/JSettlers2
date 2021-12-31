@@ -18,15 +18,15 @@ JARs for recent JSettlers versions can be downloaded from
 - Gameplay:
 	- Road Building: If player cancels placement or ends turn before placing the first free road or ship,
 	  the dev card is returned to their hand
+	- When a trade is offered to bots and humans, bots wait longer before responding.
+	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
+	  (thank you Lee Passey)
 	- Recalc Longest Route when building coastal settlement to connect a player's roads to ships
 	  (thanks kotc for reporting issue #95)
 	- Pirate Islands scenario: Ship placement: Fix client bug where placing a coastal ship
 	  next to a road would prevent any further ship building, based on "no branches in route" rule
 	- Through the Desert scenario: No longer incorrectly gives 2 SVP to a player
 	  building a settlement within the desert (thanks kotc for reporting #86)
-	- When a trade is offered to bots and humans, bots wait longer before responding.
-	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
-	  (thank you Lee Passey)
 	- If knight card is played by bot, then returned because bot is unresponsive,
 	  server updates their army size and largest army (thanks kotc for reporting #91)
 - I18N:
@@ -59,8 +59,8 @@ JARs for recent JSettlers versions can be downloaded from
 	- Shorten pause after bot requests a bank trade
 	- Limit the number of failed trade offers/bank trades per turn
 - Server:
-	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
 	- During game reset, don't send chat recap: Chat text is still in clients' game windows
+	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
 	- If client's New Game request doesn't set game option `VP`, and server config has a default, use that for new game's `VP`
 	- If default VP is set on command line or properties, will also be minimum VP for any scenario
 	- To use default VP in all scenarios (not just as minimum VP), start server with new game option `-o _VP_ALL=t`
