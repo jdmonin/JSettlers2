@@ -2988,6 +2988,8 @@ public class SOCPlayerInterface extends Frame
 
             hands[i].updateCurrentOffer(false, true);
         }
+
+        buildingPanel.updateButtonStatus();
     }
 
     /**
@@ -4656,7 +4658,7 @@ public class SOCPlayerInterface extends Frame
                     if (isClientPlayer)
                     {
                         // Because client player's available resources have changed,
-                        // update any trade offers currently showing (show or hide Accept button)
+                        // update Building panel and any trade offers currently showing (show or hide Accept button)
                         pi.updateAtClientPlayerResources();
 
                         // If good or bad news from unexpectedly gained or lost
@@ -5213,8 +5215,10 @@ public class SOCPlayerInterface extends Frame
                 toOffering = offer.getGetSet();
             } else {
                 // update resource-count displays, since there weren't PlayerElement messages for this trade
-                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateResourcesVP();
-                pi.getPlayerHandPanel(acceptor.getPlayerNumber()).updateResourcesVP();
+                playerElementUpdated
+                    (offerer, PlayerClientListener.UpdateType.ResourceTotalAndDetails, false, false);
+                playerElementUpdated
+                    (acceptor, PlayerClientListener.UpdateType.ResourceTotalAndDetails, false, false);
             }
 
             if (toOffering != null)

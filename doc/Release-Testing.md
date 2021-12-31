@@ -87,7 +87,10 @@ When preparing to release a new version, testing should include:
 - Basic rules and game play
     - Can build pieces by right-clicking board or with the Build Panel
     - Can trade with ports by right-clicking board or using Trade Offer Bank/Port button
+        - Trade to have resources to build city; should update Build Panel buttons
+        - Undo trade; should update Build Panel buttons
     - Trade offer, rejection, counter-offer accept/rejection
+        - Build 2 roads, trade to have resources to build settlement; should update Build Panel buttons
     - Can play dev card before dice roll
     - Can win only on your own turn
         - This can be tested using the 6-player board's Special Building Phase
@@ -491,9 +494,11 @@ When preparing to release a new version, testing should include:
             - All clients in game (players and observers) should see expected results in player hand panels and game text area for:
                 - Bank trade and Undo trade
                     - Total resource counts should be accurate before and after
+                    - Gain/lose resources to build a piece type; should update Build Panel buttons
                     - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCBankTrade` message
                 - Trade between players
                     - Do a trade where a player gives 1, receives 2; total resource counts should be accurate before and after
+                    - Gain/lose resources to build a piece type; should update Build Panel buttons
                     - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCAcceptOffer` message
                 - Discard
                     - Total resource counts should be accurate before and after
