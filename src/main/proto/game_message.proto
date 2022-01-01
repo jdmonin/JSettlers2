@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ import public "data.proto";
 //
 
 /* Board layout contents.
- * Sent when game starts or client joins a game in progress.
+ * Sent when game starts or to a client who has joined a game as an observer or player.
  * Applies to entire game (player_number field is unused).
  * TODO: Ref to list of part keynames, etc
  *
@@ -97,13 +97,21 @@ message BoardLayout
  * on where the players can place. By having the server be authoritative on this, more scenarios
  * could be added later without a client change.
  *<P>
+ * This message is sent before any {@link BuildPiece}.
+ * So even if game is in progress, each player receives their unique potential settlement node list,
+ * to populate their legal node/edge sets, before seeing any of their piece locations.
+ *<P>
  * Player Number field may be -1 if applies to all players at start of game.
  * -1 also indicates that the legal settlements should be set and the
  * legal roads recalculated from this message's list of potential nodes.
  *<P>
  * If the game has already started, Land Area contents are sent when
- * {@code player_number} == 0 and board's legal roads should be
- * calculated at that point.
+ * {@code player_number} == 0 (the first player sent) and board's legal roads should be
+ * calculated at that point, before calculating any player's
+ * legal or potential sets. Server typically must send several (one per player)
+ * {@code PotentialSettlements} messages because of each player's unique potential/legal coordinate sets.
+ * Each has the player's Potential Settlements and optional Legal Sea Edges,
+ * but not the board layout's Land Areas (which are sent only with pn = 0, not again for every player).
  */
 message PotentialSettlements {
     /* Potential settlement node coordinates for {@link #playerNumber}.
@@ -126,7 +134,8 @@ message PotentialSettlements {
     uint32 starting_land_area = 3;
 
     /* Each land area's legal node coordinates; keys are 1 to {@link areaCount}.
-     * Areas 0 and {@link #startingLandArea} are unused. Not sent if {@code areaCount} == 1.
+     * Areas 0 and {@link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {@code areaCount} == 1.
      */
     map<uint32, _NodeList> land_areas_legal_nodes = 4;
 
@@ -212,10 +221,27 @@ message BuildPiece {
  * When sent during other game states, and other players' turns, this is a request
  * to start the 6-player Special Building Phase.
  *<P>
- * If the player can buy a card, the server replies to the client with
- * {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW}, {@link SOCDevCardConstants typeconstant}),
- * and to all other players with {@link SOCDevCardAction DEVCARDACTION}({@link SOCDevCardAction#DRAW},
- * {@link SOCDevCardConstants#UNKNOWN}).
+ * If the player can buy a card, the server responds with:
+ *<UL>
+ * <LI> Announce game data to entire game:
+ *  <UL>
+ *   <LI> Resource cost paid: {@link PlayerElements}
+ *          (gaName, playerNumber, {@link PlayerElement#LOSE}, {@link SOCDevCard#COST})
+ *   <LI> New remaining card count: {@link GameElements}
+ *          (gaName, DEV_CARD_COUNT}, remainingUnboughtCount)
+ *  </UL>
+ * <LI> Action announcement/display:
+ *  <UL>
+ *   <LI> Detail to the client: {@link InventoryItemAction}(DRAW, {@link SOCDevCardConstants cardTypeConstant})
+ *   <LI> To all other players: {@link InventoryItemAction}(DRAW, {@link SOCDevCardConstants#UNKNOWN})
+ *   <LI> Action announcement to entire game: {@link SimpleAction}
+ *          (gaName, playerNumber, DEVCARD_BOUGHT, remainingUnboughtCount, 0)
+ *   <LI> New {@code gameState}, to entire game: {@link State}.
+ *        Usually unchanged; sent in case buying the card ended the game or otherwise changed its state.
+ *        This is sent via {@link soc.server.SOCGameHandler#sendGameState(soc.game.SOCGame)},
+ *        which may also send other messages depending on the gameState.
+ *  </UL>
+ *</UL>
  *<P>
  * If there are no cards remaining to buy, or player doesn't have enough resources,
  * isn't currently their turn, or the player otherwise can't buy a card right now,
@@ -252,14 +278,15 @@ message BuyInventoryItemRequest {
  * InventoryItemAction(playerNumber, ADD_OLD, devCardsSet={cardType, cardType, ...})
  * for each player that has them. This is sent to all game members; a client player should ignore
  * messages about their own cards in state {@code OVER} by checking playerNumber.
- * That multiple-cardtype form is currently used only at end of game.
+ * That multiple-cardtype form (dev_cards_set != null) is currently used only at end of game.
  *<P>
  * Other Inventory Items:
  *<P>
  * Detailed message documentation location is TBD; for now see javadoc
  * of {@code soc.message.SOCInventoryItemAction}.
  *<P>
- * Before v3.0.00 this message was {@code SOCDevCardAction} and {@code SOCInventoryItemAction}.
+ * Before v3.0.00 this message was {@code SOCDevCardAction}, {@code SOCPlayDevCardRequest},
+ * and {@code SOCInventoryItemAction}.
  */
 message InventoryItemAction {
     /* Types of action to take. Each action is sent only from server,
@@ -320,7 +347,8 @@ message InventoryItemAction {
 
     /* Specific type of Dev Card or Inventory Item. Not used if dev_cards_set is used. */
     oneof item_value {
-        /* Type of dev card, like {@link DevCardValue#ROADS}.
+        /* Type of dev card, like {@link DevCardValue#ROADS} or {@link DevCardValue#UNKNOWN_DEV_CARD}.
+         * If dev_cards_set is used, this field is not used.
          * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
          */
         DevCardValue dev_card_value = 2;
@@ -330,6 +358,7 @@ message InventoryItemAction {
     }
 
     /* several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -495,7 +524,7 @@ message RevealFogHex {
  *     {@link PlayerElement}({@link _PlayerElementType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
  *     Sends specific player(s) {@link SimpleRequest}({@link SimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
  * <LI>{@code ROLL_OR_CARD}: Server sends game {@link DiceRollRequest} with current player number.
- *     Current player: Send {@link DiceRollRequest} or {@link SOCPlayDevCardRequest}
+ *     Current player: Send {@link DiceRollRequest} or {@link InventoryItemAction}
  * <LI>{@code PLAY1}: Current player: Build, play and buy cards, trade, etc.
  *     When done with turn, send {@link EndTurn}
  * <LI>{@code PLACING_ROAD}: Current player: Place a road
@@ -535,7 +564,10 @@ message RevealFogHex {
  *     See that message's javadoc for how to encode both choices
  * <LI>{@code WAITING_FOR_PICK_GOLD_RESOURCE}:
  *     Same message flow as {@code WAITING_FOR_DISCARDS}: Server sends game a
- *     "x, y, and z need to pick resources from the gold hex" prompt text. For each player who must pick, the game is sent
+ *     "x, y, and z need to pick resources from the gold hex" prompt text.
+ *     When receiving this state from server, a client shouldn't immediately check their user player's
+ *     {@link SOCPlayer#getNeedToPickGoldHexResources()} or prompt the user to pick resources.
+ *     For each player who must pick, the game is sent
  *     {@link PlayerElement}({@link _PlayerElementType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES})
  *     and the player is sent
  *     {@link SimpleRequest}({@link SimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
@@ -713,7 +745,7 @@ enum _PlayerElementType {
      * This element can be {@code SET} or {@code GAIN}ed.  For clarity, if the number of
      * warships decreases, send {@code SET}, never send {@code LOSE}.
      * {@code GAIN} is sent only in response to a player's successful
-     * {@link SOCPlayDevCardRequest} to convert a ship to a warship.
+     * {@link InventoryItemAction} to convert a ship to a warship.
      *<P>
      * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
      * message is sent to their client only after sending their SOCShip piece positions.
@@ -792,6 +824,9 @@ message GameElements {
 
         /* Number of development cards remaining in the deck to be bought,
          * from {@link soc.game.SOCGame#getNumDevCards()}.
+         * Sent to clients during game join/start. When a dev card is bought,
+         * is sent to clients as part of game data before action announcement/display:
+         * See {@link BuyInventoryItemRequest} javadoc.
          */
         DEV_CARD_COUNT = 2;
 
@@ -821,9 +856,9 @@ message GameElements {
  * from server, it means that a game has just started, leaving state {@code NEW}.
  * Applies to entire game (player_number field is unused).
  *<P>
- * If a client joins a game in progress it won't be sent a {@code SOCStartGame} message,
+ * If a client joins a game in progress it won't be sent a {@code StartGame} message,
  * only the game's current {@code GameState} and other parts of the game's and
- * players' current status.
+ * players' current status: See {@link JoinGame}.
  */
 message StartGame {
     GameState state = 1;  // new state; ignored from client

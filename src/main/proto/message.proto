@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -583,6 +583,11 @@ message BotJoinGameRequest {
  * so it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  *<P>
  * Before v3.0.00 this message was handled by {@code SOCJoinGameRequest} and {@code SOCJoinGameAuth}.
+ *<P>
+ *<B>Scenarios:</B> If the game being joined uses a scenario added or modified in a version
+ * newer than the client, server may send {@code SOCScenarioInfo} before this {@code JoinGame} message.
+ * That message will include localized strings if available and needed by client.
+ *
  * @see JoinChannel
  * @see BotJoinGameRequest
  */
@@ -608,12 +613,15 @@ message JoinGame {
  *<P>
  * In response to a client's {@link JoinGame}, the joining player is sent a specific
  * sequence of messages with details about the game: Board layout, player scores,
- * piece counts, etc. This sequence ends with GAMEMEMBERS, SETTURN and GAMESTATE.
- * GAMEMEMBERS thus tells the client that the server is ready for its input.
+ * piece counts, current player, etc. This sequence begins with {@link JoinGame}
+ * (sometimes preceded by optional {@code SOCScenarioInfo} or
+ * {@code SOCLocalizedStrings(TYPE_SCENARIO)}),
+ * and ends with: {@code GameMembers}, {@link State}.
+ * {@code GameMembers} thus tells the client that the server is ready for its input.
  *<P>
- * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
+ * Robots use {@code GameMembers} as their cue to sit down at the game, if they've been
  * asked to sit from {@link BotJoinGameRequest}. In order for the robot to be certain
- * it has all details about a game, bots should take no action before receiving GAMEMEMBERS.
+ * it has all details about a game, bots should take no action before receiving this message.
  *<P>
  * When forming a new game, clients will be sent the sequence as described above, and
  * then will each choose a position and sit down. Any client can then send {@link StartGame}
@@ -656,13 +664,13 @@ message SetSeatLock {
  *<P>
  * Robots ignore this message type so they won't be dependent on brittle
  * text parsing. For the benefit of robots and to help client responsiveness,
- * the server often sends this message type preceded by data-only messages
+ * the server often precedes this message type with data-only messages
  * such as {@link AcceptOffer}.
  *<P>
  * Occasionally, game text is sent with additional information
- * via {@link SVPTextMessage}, instead of using this message type.
- * Some simple actions are sent by the server with {@link SimpleAction}
- * or {@link SimpleRequest} instead of text.
+ * via {@link SVPTextMessage} instead of using this message type.
+ * Some simple actions or prompts are sent by the server with {@link SimpleAction}
+ * or {@link SimpleRequest} instead of as text.
  *<P>
  * This class was introduced in version 2.0.00; earlier versions of the server
  * and client used {@code SOCGameTextMsg} for server announcements and messages.
