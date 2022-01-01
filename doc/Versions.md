@@ -13,6 +13,10 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
+## `2.6.00` (build JM2021xxxx)
+- Currently being developed
+
+
 ## `2.5.00` (build JM20211230)
 - Gameplay:
 	- Road Building: If player cancels placement or ends turn before placing the first free road or ship,
