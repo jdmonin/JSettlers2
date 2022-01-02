@@ -3151,7 +3151,7 @@ import javax.swing.JComponent;
      * Set or clear the debug flag where the board item tooltip includes the item's coordinates.
      * Takes effect the next time the mouse moves.
      * @see BoardToolTip#setHoverText(String, int)
-     * @param setOn
+     * @param setOn  If true, set the flag; if false, clear it
      * @since 2.0.00
      */
     void setDebugShowCoordsFlag(final boolean setOn)
@@ -6621,11 +6621,14 @@ import javax.swing.JComponent;
                 }
                 else if (((evt.getButton() & MouseEvent.BUTTON1) != 0)
                     && (player != null) && (game.getCurrentPlayerNumber() == playerNumber)
-                    && (player.getPublicVP() == 2) && (hintShownCount_RightClickToBuild < 2))
+                    && (player.getPublicVP() == 2) && (hintShownCount_RightClickToBuild < 2)
+                    && (evt.getWhen() - popupMenuSystime > 5000))
                 {
                     // To help during the start of the game, display a hint message
                     // reminding new users to right-click to build (OSX: control-click).
                     // Show it at most twice to avoid annoying the user.
+                    // Don't show if they've just shown the right-click build menu,
+                    // because they might be clicking to dismiss that.
 
                     ++hintShownCount_RightClickToBuild;
                     final String prompt =

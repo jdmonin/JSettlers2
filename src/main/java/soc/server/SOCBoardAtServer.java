@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2882,8 +2882,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * a check there for your scenario's {@link SOCGameOption}.
      *<P>
      * This is called after {@link #makeNewBoard(Map)} and before
-     * {@link SOCGameHandler#getBoardLayoutMessage}.  So if needed,
-     * it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
+     * {@link SOCGameHandler#getBoardLayoutMessage}. Calls
+     * {@link SOCBoardLarge#setAddedLayoutPart(String, int[])} if needed.
      *<P>
      * If ship placement is restricted by the scenario, please call each player's
      * {@link SOCPlayer#setRestrictedLegalShips(int[])} before calling this method,

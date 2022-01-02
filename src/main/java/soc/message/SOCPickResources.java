@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,7 +45,7 @@ import java.util.StringTokenizer;
  * Otherwise: <BR>
  * The server will report the picked resources to the other players via {@link SOCPlayerElement} and text, but
  * will not send a {@code SOCPickResources} message to other players. The server will also send all players a
- * {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}, 0).
+ * {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}, 0).
  *<P>
  * Also used in scenario SC_PIRI when player wins a free resource for defeating the
  * pirate fleet attack at a dice roll.

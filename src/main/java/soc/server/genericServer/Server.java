@@ -46,7 +46,7 @@ import soc.server.SOCServer;
  *<P>
  *  This is the real stuff. Server subclasses won't have to care about
  *  reading/writing on the net, data consistency among threads, etc.
- *  The Server listens on either a TCP {@link #port}, or for practice mode,
+ *  The Server listens on either a TCP {@link #port}, or for Practice mode,
  *  to a {@link StringServerSocket}.
  *<P>
  *  Newly connecting clients arrive in {@link #run()},
@@ -182,12 +182,15 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public static final int CLI_VERSION_SET_CONSIS_CHECK_QUICK_COUNT = 5;
 
     /**
-     * total number of connections made since startup
+     * Total number of connections made since startup.
+     * Returned by {@link #getRunConnectionCount()}.
+     * @see #numberCurrentConnections
      */
     protected int numberOfConnections = 0;
 
     /**
      * total number of current connections
+     * @see #numberOfConnections
      * @since 1.1.06
      */
     protected int numberCurrentConnections = 0;
@@ -361,7 +364,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * A Server which will start listening to the given local string port (practice game).
+     * A Server which will start listening to the given local string port (Practice mode).
      * Will not also start on TCP port or Protobuf port.
      * @param stringSocketName  Arbitrary name for string "port" to use
      * @param props  Optional properties to configure and run the server.
@@ -548,13 +551,24 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         return pDefault;
     }
 
+
+    /**
+     * Get the total number of connections made since startup.
+     * @see #getCurrentConnectionCount()
+     * @since 2.2.00
+     */
+    public final int getRunConnectionCount()
+    {
+        return numberOfConnections;
+    }
+
     /**
      * Get the current number of named connections to the server.
      * @return the count of named connections: {@link Connection}s where {@link Connection#getData()}
      *         is not null
      * @see #getCurrentConnectionCount()
      */
-    protected final int getNamedConnectionCount()
+    public final int getNamedConnectionCount()
     {
         return conns.size();
     }
@@ -564,9 +578,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @return the count of connections, both unnamed and named
      *         ({@link Connection#getData()} not null).
      * @since 1.1.13
+     * @see #getRunConnectionCount()
      * @see #getNamedConnectionCount()
      */
-    protected int getCurrentConnectionCount()
+    public final int getCurrentConnectionCount()
     {
         return numberCurrentConnections;
     }

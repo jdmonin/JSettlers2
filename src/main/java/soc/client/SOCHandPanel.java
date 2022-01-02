@@ -3299,6 +3299,7 @@ import javax.swing.UIManager;
             JLabel la = new JLabel(info != null ? info : "");
             miscInfoArea = la;
             la.setFont(vpLab.getFont());
+            la.setVerticalAlignment(JLabel.TOP);
             la.setForeground(null);  // inherit panel's colors
             la.setBackground(null);
             add(la);
@@ -4254,6 +4255,7 @@ import javax.swing.UIManager;
                         (dim.height - offerMinHeight) < topFaceAreaHeight;
 
                     final int offerW = Math.min(dim.width - (2 * inset), offerPrefSize.width);
+                    final int py, ph;
 
                     // This is a dynamic flag, set by hideTradeMsgShowOthers
                     // when the user clicks button to show/hide the counter-offer.
@@ -4261,19 +4263,33 @@ import javax.swing.UIManager;
                     // pname, vpLab and vpSq, to make room for it.
                     if (offerCounterHidingFace)
                     {
-                        int ph = Math.min(dim.height - (2 * inset), offerPrefSize.height);
+                        ph = Math.min(dim.height - (2 * inset), offerPrefSize.height);
                         // messagePanel is hidden, since offerCounterHidingFace.
-                        offerPanel.setBounds(inset, inset, offerW, ph);
+                        py = inset;
+                        offerPanel.setBounds(inset, py, offerW, ph);
                         counterOfferPanel.setBounds
-                            (inset, inset + ph + space, offerW, counterOfferHeight);
+                            (inset, py + ph + space, offerW, counterOfferHeight);
                     } else {
-                        int ph = Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height);
-                        messagePanel.setBounds(inset, inset + faceW + space, offerW, ph);
+                        ph = Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height);
+                        py = inset + faceW + space;
+                        messagePanel.setBounds(inset, py, offerW, ph);
                         offerPanel.setBounds
-                            (inset, inset + faceW + space, offerW, ph);
+                            (inset, py, offerW, ph);
                         counterOfferPanel.setBounds
-                            (inset, inset + faceW + ph + 2 * space, offerW, counterOfferHeight);
+                            (inset, py + ph + space, offerW, counterOfferHeight);
                     }
+
+                    if (miscInfoArea != null)
+                    {
+                        if ((messagePanel != null) && messagePanel.isVisible())
+                        {
+                            miscInfoArea.setVisible(false);
+                        } else {
+                            miscInfoArea.setBounds(inset, py, offerW, ph + counterOfferHeight);
+                            miscInfoArea.setVisible(true);
+                        }
+                    }
+
                 } else {
                     // usual size & position
 
@@ -4306,7 +4322,7 @@ import javax.swing.UIManager;
                         {
                             miscInfoArea.setVisible(false);
                         } else {
-                            miscInfoArea.setBounds(inset, py, dim.width - inset, availHeightNoHide - inset);
+                            miscInfoArea.setBounds(inset, py, dim.width - 2 * inset, availHeightNoHide - inset);
                             miscInfoArea.setVisible(true);
                         }
                     }

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ import soc.proto.Message;
  * Only the game's current player number should change; no other
  * game state is updated.
  *<P>
- * In games where all clients are v2.0.00 or newer, send {@link SOCGameElements#CURRENT_PLAYER}
+ * In games where all clients are v2.0.00 or newer, send {@link SOCGameElements.GEType#CURRENT_PLAYER}
  * instead: Check {@link soc.game.SOCGame#clientVersionLowest} or client connection's version
  * against {@link SOCGameElements#MIN_VERSION}.
  *

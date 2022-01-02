@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -331,6 +331,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * For other port information, use the same methods as in {@link #BOARD_ENCODING_6PLAYER}.
      *<P>
      * Activated with {@link SOCGameOption} {@code "SBL"}.
+     * Can specify non-default board size with game option {@code "_BHW"}.
      *<P>
      * Although this is encoding "v3", it was added to JSettlers in v2.0.00
      * ({@link SOCBoardLarge#MIN_VERSION}).
@@ -367,21 +368,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * The encoding format of board coordinates,
      * or {@link #BOARD_ENCODING_ORIGINAL} (default, original).
      * The board size determines the required encoding format.
-     *<UL>
-     *<LI> 1 - Original format: hexadecimal 0x00 to 0xFF.
-     *       Coordinate range is 0 to 15 (in decimal).
-     *       Port types and facings encoded within {@link #hexLayout}.
-     *<LI> 2 - 6-player board, variant of original format: hexadecimal 0x00 to 0xFF.
-     *       Coordinate range is 0 to 15 (in decimal).
-     *       Port types stored in {@link #portsLayout}.
-     *       Added in 1.1.08.
-     *<LI> 3 - Large board ({@link #BOARD_ENCODING_LARGE}).
-     *       Coordinate range for rows,columns is each 0 to 255 decimal,
-     *       or altogether 0x0000 to 0xFFFF hex.
-     *       Arbitrary mix of land and water tiles.
-     *       Added in 2.0.00, implemented in {@link SOCBoardLarge}.
-     *       Activated with {@link SOCGameOption} <tt>"SBL"</tt>.
-     *</UL>
+     *<P>
+     * See {@link #getBoardEncodingFormat()} for details and the list of known encoding formats.
      * @since 1.1.06
      */
     protected final int boardEncodingFormat;
@@ -1921,7 +1909,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *       or altogether 0x0000 to 0xFFFF hex.
      *       Arbitrary mix of land and water tiles.<BR>
      *       Added in 2.0.00.
-     *       Activated with {@link SOCGameOption} <tt>"SBL"</tt>.
+     *       Activated with {@link SOCGameOption} {@code "SBL"}.
+     *       Can specify non-default board size with game option {@code "_BHW"}.
      *</UL>
      * @return board coordinate-encoding format, from the list above
      * @see SOCBoard.BoardFactory#createBoard(Map, int)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import soc.game.SOCGame;    // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants; // for javadocs only
 
 
 /**
@@ -67,7 +68,7 @@ public class SOCPlayerElement extends SOCMessage
 {
     /**
      * First version number (2.0.00) that has element types replacing single-purpose message types:
-     * {@link #RESOURCE_COUNT}, {@link #PLAYED_DEV_CARD_FLAG}, {@link #LAST_SETTLEMENT_NODE}.
+     * {@link PEType#RESOURCE_COUNT}, {@link PEType#PLAYED_DEV_CARD_FLAG}, {@link PEType#LAST_SETTLEMENT_NODE}.
      * Send older clients {@link SOCSetPlayedDevCard} or other appropriate messages instead.
      *<P>
      * Same version as {@link SOCPlayerElements#MIN_VERSION} and {@link SOCDevCardAction#VERSION_FOR_MULTIPLE}.
@@ -78,176 +79,246 @@ public class SOCPlayerElement extends SOCMessage
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     // -----------------------------------------------------------
-    // Player element type list:
 
     /**
-     * player element types.  CLAY has same value
-     * as {@link Data.ResourceType#CLAY_VALUE};
-     * ORE, SHEEP, WHEAT and WOOD also match {@link Data.ResourceType}
-     * and {@code SOCResourceConstants}.
-     */
-    public static final int CLAY = 1;
-    public static final int ORE = 2;
-    public static final int SHEEP = 3;
-    public static final int WHEAT = 4;
-    public static final int WOOD = 5;
-
-    /**
-     * Amount of resources of unknown type; sent in messages about opponents' resources.
-     * For some loops which send resource types + unknown, this constant is assumed to be 6
-     * (5 known resource types + 1).
-     */
-    public static final int UNKNOWN = 6;
-
-    /** Number of Road pieces available to place. */
-    public static final int ROADS = 10;
-
-    /** Number of Settlement pieces available to place. */
-    public static final int SETTLEMENTS = 11;
-
-    /** Number of City pieces available to place. */
-    public static final int CITIES = 12;
-
-    /**
-     * Number of Ship pieces available to place.
-     * @since 2.0.00
-     */
-    public static final int SHIPS = 13;
-
-    /**
-     * Number of knights in player's army; sent after a Soldier card is played.
+     * Player element type list.
+     * To send over the network as an int, use {@link #getValue()}.
+     * When received from network as int, use {@link #valueOf(int)} to convert to {@link PEType}.
      *<P>
-     * During normal gameplay, "largest army" indicator at client is updated
-     * by examining game state, not by {@link SOCGameElements#LARGEST_ARMY_PLAYER} message from server:
-     *<BR>
-     * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
-     * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
-     * then update any related displays.
+     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization.
+     * @since 2.3.00
      */
-    public static final int NUMKNIGHTS = 15;
+    public enum PEType
+    {
+        /**
+         * Type to use when converting from int but value is unknown.
+         * Note: {@link #valueOf(int)} returns {@code null} and not this value.
+         * @since 2.3.00
+         */
+        UNKNOWN_TYPE(0),
 
-    /**
-     * For the 6-player board, player element type for asking to build
-     * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
-     * This element is {@link #SET} to 1 or 0.
-     * @since 1.1.08
-     */
-    public static final int ASK_SPECIAL_BUILD = 16;
+        /**
+         * player element types.  CLAY has same {@link #getValue()}
+         * as {@link Data.ResourceType#CLAY_VALUE} and {@link SOCResourceConstants#CLAY};
+         * ORE, SHEEP, WHEAT and WOOD values also match {@link Data.ResourceType} and {@link SOCResourceConstants}.
+         */
+        CLAY(1),
+        ORE(2),
+        SHEEP(3),
+        WHEAT(4),
+        WOOD(5),
 
-    /**
-     * Total resources this player has available in hand to use,
-     * from their hand's {@link soc.game.SOCResourceSet#getTotal()}.
-     * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
-     *<P>
-     * Alternately, send that info as part of a {@link SOCDiceResultResources} message.
-     *<P>
-     * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
-     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
-     * @since 2.0.00
-     */
-    public static final int RESOURCE_COUNT = 17;
+        /**
+         * Amount of resources of unknown type; sent in messages about opponents' resources.
+         * For some loops which send resource types + unknown, this constant's {@link #getValue()} is 6
+         * (5 known resource types + 1), same numeric value as {@link SOCResourceConstants#UNKNOWN}.
+         *<P>
+         * Not to be confused with {@link #UNKNOWN_TYPE}.
+         *<P>
+         * Before v2.3.00 this was named {@code UNKNOWN}.
+         */
+        UNKNOWN_RESOURCE(6),
 
-    /**
-     * Node coordinate location of this player's most recently placed settlement, or 0.
-     * Used for robots during initial placement at the start of a game.
-     * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
-     *<P>
-     * Games with clients older than v2.0.00 use {@link SOCLastSettlement} messages instead of this element:
-     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
-     * @since 2.0.00
-     */
-    public static final int LAST_SETTLEMENT_NODE = 18;
+        /** Number of Road pieces available to place. */
+        ROADS(10),
 
-    /**
-     * Has this player played a development card already this turn?
-     * Applies to all players if {@link #getPlayerNumber()} == -1.
-     * This element is {@link #SET} to 1 or 0, never sent with {@link #GAIN} or {@link #LOSE}.
-     *<P>
-     * Games with clients older than v2.0.00 use {@link SOCSetPlayedDevCard} messages instead of this element:
-     * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
-     * @since 2.0.00
-     */
-    public static final int PLAYED_DEV_CARD_FLAG = 19;
+        /** Number of Settlement pieces available to place. */
+        SETTLEMENTS(11),
 
-    //
-    // Elements related to scenarios and sea boards:
-    //
+        /** Number of City pieces available to place. */
+        CITIES(12),
 
-    /**
-     * For the {@link soc.game.SOCBoardLarge large sea board},
-     * player element type for asking to choose
-     * resources from the gold hex after a dice roll,
-     * during the {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
-     * game state.
-     * This element is {@link #SET} to 0 or to the number of resources to choose.
-     * Call {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
-     * @since 2.0.00
-     */
-    public static final int NUM_PICK_GOLD_HEX_RESOURCES = 101;
+        /**
+         * Number of Ship pieces available to place.
+         * @since 2.0.00
+         */
+        SHIPS(13),
 
-    /**
-     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
-     * the player's number of Special Victory Points (SVP).
-     * This element is {@link #SET} to 0 or to the player's
-     * {@link SOCPlayer#getSpecialVP()}.
-     * @since 2.0.00
-     */
-    public static final int SCENARIO_SVP = 102;
+        /**
+         * Number of knights in player's army; sent after a Soldier card is played.
+         *<P>
+         * During normal gameplay, "largest army" indicator at client is updated
+         * by examining game state, not by {@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER} message from server:
+         *<BR>
+         * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
+         * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
+         * then update any related displays.
+         */
+        NUMKNIGHTS(15),
 
-    /**
-     * For the {@link soc.game.SOCBoardLarge large sea board},
-     * bitmask of flags related to {@link soc.game.SOCPlayerEvent}s.
-     * This element is {@link #SET} to 0 or to the player's flags
-     * from {@link SOCPlayer#getPlayerEvents()}.
-     * @since 2.0.00
-     */
-    public static final int PLAYEREVENTS_BITMASK = 103;
+        /**
+         * For the 6-player board, player element type for asking to build
+         * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+         * This element is {@link #SET} to 1 or 0.
+         * @since 1.1.08
+         */
+        ASK_SPECIAL_BUILD(16),
 
-    /**
-     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
-     * bitmask of land areas for tracking Special Victory Points (SVP).
-     * This element is {@link #SET} to 0 or to the player's land areas
-     * from {@link SOCPlayer#getScenarioSVPLandAreas()}.
-     * @since 2.0.00
-     */
-    public static final int SCENARIO_SVP_LANDAREAS_BITMASK = 104;
+        /**
+         * Total resources this player has available in hand to use,
+         * from their hand's {@link soc.game.SOCResourceSet#getTotal()}.
+         * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
+         *<P>
+         * Alternately, send that info as part of a {@link SOCDiceResultResources} message.
+         *<P>
+         * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
+         * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         * @since 2.0.00
+         */
+        RESOURCE_COUNT(17),
 
-    /**
-     * Player's starting land area numbers.
-     * Sent only at reconnect, because these are also tracked during play at the client.
-     * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
-     * @since 2.0.00
-     */
-    public static final int STARTING_LANDAREAS = 105;
+        /**
+         * Node coordinate location of this player's most recently placed settlement, or 0.
+         * Used for robots during initial placement at the start of a game.
+         * Sent only with {@link #SET}, not {@link #GAIN} or {@link #LOSE}.
+         *<P>
+         * Games with clients older than v2.0.00 use {@link SOCLastSettlement} messages instead of this element:
+         * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         * @since 2.0.00
+         */
+        LAST_SETTLEMENT_NODE(18),
 
-    /**
-     * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
-     * the number of cloth held by this player.
-     * This element is {@link #SET} to 0 or to the player's cloth count
-     * from {@link SOCPlayer#getCloth()}.
-     * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
-     *<P>
-     * The board's "general supply" is updated with this element type
-     * with {@link #getPlayerNumber()} == -1.
-     * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
-     * @since 2.0.00
-     */
-    public static final int SCENARIO_CLOTH_COUNT = 106;
+        /**
+         * Has this player played a development card already this turn?
+         * Applies to all players if {@link #getPlayerNumber()} == -1.
+         * This element is {@link #SET} to 1 or 0, never sent with {@link #GAIN} or {@link #LOSE}.
+         *<P>
+         * Games with clients older than v2.0.00 use {@link SOCSetPlayedDevCard} messages instead of this element:
+         * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         * @since 2.0.00
+         */
+        PLAYED_DEV_CARD_FLAG(19),
 
-    /**
-     * For scenario game option <tt>_SC_PIRI</tt>,
-     * the player's total number of ships that have been converted to warships.
-     * See SOCPlayer.getNumWarships() for details.
-     * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of
-     * warships decreases, send {@link #SET}, never send {@link #LOSE}.
-     * {@link #GAIN} is sent only in response to a player's successful
-     * {@link SOCPlayDevCardRequest} to convert a ship to a warship.
-     *<P>
-     * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
-     * message is sent to their client only after sending their SOCShip piece positions.
-     * @since 2.0.00
-     */
-    public static final int SCENARIO_WARSHIP_COUNT = 107;
+        //
+        // Elements related to scenarios and sea boards:
+        //
+
+        /**
+         * For the {@link soc.game.SOCBoardLarge large sea board},
+         * player element type for asking to choose
+         * resources from the gold hex after a dice roll,
+         * during the {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
+         * game state.
+         * This element is {@link #SET} to 0 or to the number of resources to choose.
+         * Call {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
+         * @since 2.0.00
+         */
+        NUM_PICK_GOLD_HEX_RESOURCES(101),
+
+        /**
+         * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+         * the player's number of Special Victory Points (SVP).
+         * This element is {@link #SET} to 0 or to the player's
+         * {@link SOCPlayer#getSpecialVP()}.
+         * @since 2.0.00
+         */
+        SCENARIO_SVP(102),
+
+        /**
+         * For the {@link soc.game.SOCBoardLarge large sea board},
+         * bitmask of flags related to {@link soc.game.SOCPlayerEvent}s.
+         * This element is {@link #SET} to 0 or to the player's flags
+         * from {@link SOCPlayer#getPlayerEvents()}.
+         * @since 2.0.00
+         */
+        PLAYEREVENTS_BITMASK(103),
+
+        /**
+         * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+         * bitmask of land areas for tracking Special Victory Points (SVP).
+         * This element is {@link #SET} to 0 or to the player's land areas
+         * from {@link SOCPlayer#getScenarioSVPLandAreas()}.
+         * @since 2.0.00
+         */
+        SCENARIO_SVP_LANDAREAS_BITMASK(104),
+
+        /**
+         * Player's starting land area numbers.
+         * Sent only at reconnect, because these are also tracked during play at the client.
+         * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
+         * @since 2.0.00
+         */
+        STARTING_LANDAREAS(105),
+
+        /**
+         * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
+         * the number of cloth held by this player.
+         * This element is {@link #SET} to 0 or to the player's cloth count
+         * from {@link SOCPlayer#getCloth()}.
+         * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
+         *<P>
+         * The board's "general supply" is updated with this element type
+         * with {@link #getPlayerNumber()} == -1.
+         * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
+         * @since 2.0.00
+         */
+        SCENARIO_CLOTH_COUNT(106),
+
+        /**
+         * For scenario game option <tt>_SC_PIRI</tt>,
+         * the player's total number of ships that have been converted to warships.
+         * See SOCPlayer.getNumWarships() for details.
+         * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of
+         * warships decreases, send {@link #SET}, never send {@link #LOSE}.
+         * {@link #GAIN} is sent only in response to a player's successful
+         * {@link SOCPlayDevCardRequest} to convert a ship to a warship.
+         *<P>
+         * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
+         * message is sent to their client only after sending their SOCShip piece positions.
+         * @since 2.0.00
+         */
+        SCENARIO_WARSHIP_COUNT(107);
+
+        private int value;
+
+        private PEType(final int v)
+        {
+            value = v;
+        }
+
+        /**
+         * Get a type's integer value ({@link #NUMKNIGHTS} == 15, etc).
+         * @see #valueOf(int)
+         */
+        public int getValue()
+        {
+            return value;
+        }
+
+        /**
+         * Get a PEType from its int {@link #getValue()}, if type is known.
+         * @param ti  Type int value ({@link #NUMKNIGHTS} == 15, etc).
+         * @return  PEType for that value, or {@code null} if unknown
+         */
+        public static PEType valueOf(final int ti)
+        {
+            for (PEType et : values())
+                if (et.value == ti)
+                    return et;
+
+            return null;
+        }
+
+        /**
+         * Get a type array's integer values. Calls {@link #getValue()} for each element.
+         * @param pe Element array, or {@code null}
+         * @return  Int value array of same size as {@code pe}, or {@code null}
+         * @throws NullPointerException if {@code pe} contains null values
+         */
+        public static int[] getValues(PEType[] pe)
+            throws NullPointerException
+        {
+            if (pe == null)
+                return null;
+
+            final int L = pe.length;
+            final int[] iv = new int[L];
+            for (int i = 0; i < L; ++i)
+                iv[i] = pe[i].value;
+
+            return iv;
+        }
+    }
 
     // End of element type list.
     // -----------------------------------------------------------
@@ -289,12 +360,14 @@ public class SOCPlayerElement extends SOCMessage
     private String game;
 
     /**
-     * Player number
+     * Player number; can be -1 for some elements.
+     * See {@link #getPlayerNumber()} for details and version restrictions.
      */
     private int playerNumber;
 
     /**
-     * Player element type, such as {@link #SETTLEMENTS}
+     * Player element type, such as {@link PEType#SETTLEMENTS}, as int.
+     * See {@link #getElementType()} for details.
      */
     private int elementType;
 
@@ -318,28 +391,32 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Get the element type to send for a given {@link SOCPlayingPiece} type.
+     *<P>
+     * Before v2.3.00 this returned an int.
+     *
      * @param ptype  Playing piece type constant, such as {@link SOCPlayingPiece#SETTLEMENT}
-     * @return  {@code ptype}'s element type for this message, such as {@link #SETTLEMENTS}
+     * @return  {@code ptype}'s element type for this message, such as {@link PEType#SETTLEMENTS},
+     *     or {@link PEType#UNKNOWN_TYPE}
      * @since 2.0.00
      */
-    public static int elementTypeForPieceType(final int ptype)
+    public static PEType elementTypeForPieceType(final int ptype)
     {
-        final int et;
+        final PEType et;
 
         switch(ptype)
         {
-        case SOCPlayingPiece.ROAD:        et = ROADS;        break;
-        case SOCPlayingPiece.SETTLEMENT:  et = SETTLEMENTS;  break;
-        case SOCPlayingPiece.CITY:        et = CITIES;       break;
-        case SOCPlayingPiece.SHIP:        et = SHIPS;        break;
-        default:  et = 0;
+        case SOCPlayingPiece.ROAD:        et = PEType.ROADS;        break;
+        case SOCPlayingPiece.SETTLEMENT:  et = PEType.SETTLEMENTS;  break;
+        case SOCPlayingPiece.CITY:        et = PEType.CITIES;       break;
+        case SOCPlayingPiece.SHIP:        et = PEType.SHIPS;        break;
+        default:  et = PEType.UNKNOWN_TYPE;
         }
 
         return et;
     }
 
     /**
-     * Create a PlayerElement message.
+     * Create a PlayerElement message with an int element type.
      *
      * @param ga  name of the game
      * @param pn  the player number; v1.1.19 and newer allow -1 for some elements (applies to board or to all players).
@@ -348,16 +425,42 @@ public class SOCPlayerElement extends SOCMessage
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
      *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here, call
      *            {@link #SOCPlayerElement(String, int, int, int, int, boolean)} instead.
-     * @param et  the type of element, such as {@link #SETTLEMENTS} or {@link #WHEAT}.
+     * @param et  {@link PEType#getValue()} for the type of element,
+     *            such as {@link PEType#SETTLEMENTS} or {@link PEType#WHEAT}.
      *            For playing pieces in general, see {@link #elementTypeForPieceType(int)}.
      * @param amt the amount to set or change the element
      * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS}
+     * @see #SOCPlayerElement(String, int, int, PEType, int)
      * @see #SOCPlayerElement(String, int, int, int, int, boolean)
      */
     public SOCPlayerElement(String ga, int pn, int ac, int et, int amt)
         throws IllegalArgumentException
     {
         this(ga, pn, ac, et, amt, false);
+    }
+
+    /**
+     * Create a PlayerElement message with a {@link PEType} element type.
+     *
+     * @param ga  name of the game
+     * @param pn  the player number; v1.1.19 and newer allow -1 for some elements (applies to board or to all players).
+     *            Earlier client versions will throw an exception accessing player -1.
+     *            If the element type allows -1, its constant's javadoc will mention that.
+     * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
+     *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here, call
+     *            {@link #SOCPlayerElement(String, int, int, int, int, boolean)} instead.
+     * @param et  the type of element, such as {@link PEType#SETTLEMENTS} or {@link PEType#WHEAT}.
+     *            For playing pieces in general, see {@link #elementTypeForPieceType(int)}.
+     * @param amt the amount to set or change the element
+     * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS}
+     * @see #SOCPlayerElement(String, int, int, int, int)
+     * @see #SOCPlayerElement(String, int, int, PEType, int, boolean)
+     * @since 2.3.00
+     */
+    public SOCPlayerElement(String ga, int pn, int ac, PEType et, int amt)
+        throws IllegalArgumentException
+    {
+        this(ga, pn, ac, et.value, amt, false);
     }
 
     /**
@@ -370,10 +473,37 @@ public class SOCPlayerElement extends SOCMessage
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
      *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here,
      *            instead set {@code isNews} parameter.
-     * @param et  the type of element, such as {@link #SETTLEMENTS} or {@link #WHEAT}.
+     * @param et  the type of element, such as {@link PEType#SETTLEMENTS} or {@link PEType#WHEAT}.
      *            For playing pieces in general, see {@link #elementTypeForPieceType(int)}.
      * @param amt the amount to set or change the element
      * @param isNews  Value to give the {@link #isNews()} flag
+     * @see #SOCPlayerElement(String, int, int, PEType, int)
+     * @see #SOCPlayerElement(String, int, int, int, int, boolean)
+     * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS} or {@link #LOSE_NEWS}
+     * @since 2.3.00
+     */
+    public SOCPlayerElement(String ga, int pn, int ac, PEType et, int amt, boolean isNews)
+        throws IllegalArgumentException
+    {
+        this(ga, pn, ac, et.value, amt, isNews);
+    }
+
+    /**
+     * Create a PlayerElement message, optionally with the {@link #isNews()} flag set.
+     *
+     * @param ga  name of the game
+     * @param pn  the player number; v1.1.19 and newer allow -1 for some elements (applies to board or to all players).
+     *            Earlier client versions will throw an exception accessing player -1.
+     *            If the element type allows -1, its constant's javadoc will mention that.
+     * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}.
+     *            Do not use {@link #GAIN_NEWS}, {@link #SET_NEWS}, or {@link #LOSE_NEWS} here,
+     *            instead set {@code isNews} parameter.
+     * @param et  {@link PEType#getValue()} for the type of element,
+     *            such as {@link PEType#SETTLEMENTS} or {@link PEType#WHEAT}.
+     *            For playing pieces in general, see {@link #elementTypeForPieceType(int)}.
+     * @param amt the amount to set or change the element
+     * @param isNews  Value to give the {@link #isNews()} flag
+     * @see #SOCPlayerElement(String, int, int, PEType, int, boolean)
      * @see #SOCPlayerElement(String, int, int, int, int)
      * @throws IllegalArgumentException if {@code ac} is {@link #GAIN_NEWS}, {@link #SET_NEWS} or {@link #LOSE_NEWS}
      * @since 1.2.00
@@ -403,6 +533,7 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Get this element's player number.
+     *<P>
      * v1.1.19 and newer allow -1 for some elements (applies to board or to all players).
      * Earlier client versions will throw an exception accessing player -1.
      * If the element type allows -1, its constant's javadoc will mention that.
@@ -424,7 +555,10 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Get the element type, the type of info that is changing.
-     * @return the element type, such as {@link #SETTLEMENTS} or {@link #NUMKNIGHTS}
+     * This is an int to preserve values from unknown types from different versions.
+     * converted at sending side with {@link PEType#getValue()}.
+     * To convert at receiving side to a {@link PEType}, use {@link PEType#valueOf(int)}.
+     * @return the element type, such as {@link PEType#SETTLEMENTS} or {@link PEType#NUMKNIGHTS}, as int
      */
     public int getElementType()
     {
@@ -498,7 +632,12 @@ public class SOCPlayerElement extends SOCMessage
      * @param amt the amount to set or change the element
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn, int ac, int et, int amt)
+    public static String toCmd(String ga, int pn, int ac, PEType et, int amt)
+    {
+        return toCmd(ga, pn, ac, et.getValue(), amt);
+    }
+
+    private static String toCmd(String ga, int pn, int ac, int et, int amt)
     {
         boolean isNews = false;
         switch (ac)

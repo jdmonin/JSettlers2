@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -19,6 +19,7 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -96,16 +97,16 @@ import soc.util.DataUtils;
 public class SOCBoardLayout2 extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 2000L;
+    private static final long serialVersionUID = 2300L;
 
     /**
-     * Known layout part keys.  To be ignored by {@link #getAddedParts()} because the client calls
-     * specific {@link SOCBoardLarge} methods for each of these, instead of generically calling
+     * Known layout part keys. These are ignored by {@link #getAddedParts()} because the client calls
+     * specific {@link SOCBoardLarge} methods for each of them, instead of generically calling
      * {@link SOCBoardLarge#setAddedLayoutParts(HashMap)}.  See {@code getAddedParts()} javadoc
      * for details.
      * @since 2.0.00
      */
-    private final String[] KNOWN_KEYS = { "HL", "NL", "RH", "PL", "LH", "PH", "PX", "RX", "CV" };
+    private final static String[] KNOWN_KEYS = { "HL", "NL", "RH", "PL", "LH", "PH", "PX", "RX", "CV" };
 
     /**
      * Minimum version (1.1.08) of client/server which recognize
@@ -136,6 +137,10 @@ public class SOCBoardLayout2 extends SOCMessage
      * see class javadoc, {@link #getAddedParts()}, {@link #KNOWN_KEYS},
      * {@link SOCBoardLarge#getAddedLayoutParts()},
      * and {@link soc.server.SOCBoardAtServer#setAddedLayoutPart(String, int[])}.
+     *<P>
+     * In v2.3.00 and newer, this message can be part of a server game saved/loaded using json files.
+     * Reloaded layoutPart objects may be List<Number> or Number instead of the expected int[] or String;
+     * {@link #getIntArrayPart(String)} and {@link #getIntPart(String)} will convert as needed.
      */
     private Map<String, Object> layoutParts;
 
@@ -267,10 +272,23 @@ public class SOCBoardLayout2 extends SOCMessage
      *
      * @param pkey the part's key name
      * @return the component, or null if no part named <tt>pkey</tt>.
+     * @see #getIntPart(String)
      */
+    @SuppressWarnings("unchecked")
     public int[] getIntArrayPart(String pkey)
     {
-        final int[] iap = (int[]) layoutParts.get(pkey);
+        Object part = layoutParts.get(pkey);
+        final int[] iap;
+        if (part instanceof ArrayList)
+        {
+            // part can be ArrayList<Double> if message is loaded from JSON
+            final int L = ((ArrayList<?>) part).size();
+            iap = new int[L];
+            for (int i = 0; i < L; ++i)
+                iap[i] = ((ArrayList<Number>) part).get(i).intValue();
+        } else {
+            iap = (int[]) part;
+        }
         if (! pkey.equals("HL"))
             return iap;
 
@@ -297,10 +315,15 @@ public class SOCBoardLayout2 extends SOCMessage
      * Get a layout part of type int
      * @param pkey the part's key name
      * @return the part's value, or 0 if no part named <tt>pkey</tt>, or if it's not integer.
+     * @see #getIntArrayPart(String)
      */
     public int getIntPart(String pkey)
     {
-        String sobj = (String) layoutParts.get(pkey);
+        final Object obj = layoutParts.get(pkey);
+        if (obj instanceof Number)
+            return ((Number) obj).intValue();  // message was probably loaded from JSON
+
+        String sobj = (String) obj;
         if (sobj == null)
             return 0;
         try
@@ -362,7 +385,7 @@ public class SOCBoardLayout2 extends SOCMessage
             {
                 if (added == null)
                     added = new HashMap<String, int[]>();
-                added.put(key, (int[]) layoutParts.get(key));
+                added.put(key, getIntArrayPart(key));
             }
         }
 

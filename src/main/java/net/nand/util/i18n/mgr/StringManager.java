@@ -77,17 +77,17 @@ public class StringManager
     /**
      * Parse and construct a Locale for this locale string.
      *<P>
-     * This method in the JSettlers {@code soc.util.I18n} package; moved here for JSettlers v2.2
-     * and net.nand.util.i18n editor version 1.2.
+     * This method used to be in the JSettlers {@code soc.util.I18n} package;
+     * moved here for JSettlers v2.2 and net.nand.util.i18n editor version 1.2.
      *
      * @param loc  Locale string, such as "en_US" from {@link Locale#toString()}
-     * @return A Locale object, or if 0-length, {@link Locale#getDefault()}.
+     * @return A Locale object, or {@link Locale#getDefault()} if {@code loc} is "" or null
      * @throws IllegalArgumentException if no locale can be parsed or found
      */
     public static final Locale parseLocale(final String loc)
         throws IllegalArgumentException
     {
-        if (loc.length() == 0)
+        if ((loc == null) || loc.isEmpty())
             return Locale.getDefault();
         final String[] lc = loc.split("_");
         if (lc.length == 1)

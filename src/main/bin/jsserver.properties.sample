@@ -261,6 +261,14 @@
 # Default is 8 seconds, the same limit as the built-in bots.
 # jsettlers.bots.timeout.turn=8
 
+
+# Enable SAVEGAME/LOADGAME debug commands and set the directory in which to
+# store savegame files. If set, but isn't an existing directory, server will
+# warn at startup. Ignored unless jsettlers.allow.debug is set.
+# Requires gson 2.8.6 or higher; for details search Readme.developer.md for gson.
+# jsettlers.savegame.dir=/home/jsuser/jsettlers/savegame
+
+
 # -- End of list of recognized available properties --
 
 # This sample file is documentation about the available properties.

@@ -37,9 +37,9 @@ JSettlers is tested with sqlite 3.27.2.1, mariadb 10.4, mysql 5.5, and
 postgresql 8.4, 9.5, 11.6, 12.1.
 
 You will need a JDBC driver JAR file in your classpath or the same directory as
-the JSettlers JAR, see below for details. Besides PostgreSQL, MySQL, MariaDB, or SQLite
-any JDBC database can be used, including Oracle or MS SQL Server; however only
-that list of db types are tested in depth with JSettlers.
+the JSettlers JAR; see below for details. Besides PostgreSQL, MySQL, MariaDB,
+or SQLite, any JDBC database can be used, including Oracle or MS SQL Server;
+however only that list of db types are tested in depth with JSettlers.
 
 The default type and name for the database is MySQL and "socdata". To use
 another db type or another name, you'll need to specify it as a JDBC URL on

@@ -38,6 +38,9 @@ dependencies {
     providedCompile 'com.google.protobuf:protobuf-java-util:3.17.3'   // for proto3 <-> json
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0'  // Java EE 7
     providedCompile 'javax.websocket:javax.websocket-api:1.0'  // for java EE 7
+    implementation 'com.google.code.gson:gson:2.8.6'  // optional at runtime, for savegame feature
+        // If version changes, update Readme.developer.md and jsserver.properties.sample
+        // Same version is used by v3 branch (dependency of protobuf-java-util)
 }
 
 sourceSets {
@@ -139,6 +142,7 @@ task serverJar(type: Jar) {
             'Main-Class': 'soc.server.SOCServer',
             'Implementation-Version': project.version,
             'Build-Revision': project.git_revision,
+            'Class-Path': 'gson.jar',
         )
     }
     from(sourceSets.main.output) {
@@ -167,6 +171,7 @@ task fullJar(type: Jar) {
             'Main-Class': 'soc.client.SOCPlayerClient',
             'Implementation-Version': project.version,
             'Build-Revision': project.git_revision,
+            'Class-Path': 'gson.jar',  // in case client launches a server, or another project uses fullJar
         )
     }
     from(sourceSets.main.output) {
