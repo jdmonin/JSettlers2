@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2014,2017-2019,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -648,8 +648,12 @@ public class SOCPotentialSettlements extends SOCMessage
 
         if (landAreasLegalNodes == null)
         {
-            for (final int node : psNodes)
-                b.addPsNodes(ProtoMessageBuildHelper.toNodeCoord(node));
+            if (psNodes.isEmpty())
+                b.addPsNodes(ProtoMessageBuildHelper.toNodeCoord(0));
+                    // send empty as {0} for consistency with SOCMessage format
+            else
+                for (final int node : psNodes)
+                    b.addPsNodes(ProtoMessageBuildHelper.toNodeCoord(node));
         } else {
             final int pan = startingLandArea;  // Player's Area Number
             final HashSet<Integer>[] lan = landAreasLegalNodes;
@@ -674,20 +678,20 @@ public class SOCPotentialSettlements extends SOCMessage
                 b.putLandAreasLegalNodes
                     (i, ProtoMessageBuildHelper.toNodeList(lan[i]).build());
             }
+        }
 
-            if (legalSeaEdges != null)
+        if (legalSeaEdges != null)
+        {
+            for (final int[] lse_i : legalSeaEdges)
             {
-                for (final int[] lse_i : legalSeaEdges)
-                {
-                    final Data._EdgeList.Builder eb;
-                    if (lse_i.length != 0)
-                        eb = ProtoMessageBuildHelper.toEdgeList(DataUtils.toList(lse_i));
-                    else
-                        // pad for nonzero length
-                        eb = Data._EdgeList.newBuilder().addEdge(ProtoMessageBuildHelper.toEdgeCoord(0));
+                final Data._EdgeList.Builder eb;
+                if (lse_i.length != 0)
+                    eb = ProtoMessageBuildHelper.toEdgeList(DataUtils.toList(lse_i));
+                else
+                    // pad for nonzero length
+                    eb = Data._EdgeList.newBuilder().addEdge(ProtoMessageBuildHelper.toEdgeCoord(0));
 
-                    b.addLegalSeaEdges(eb);
-                }
+                b.addLegalSeaEdges(eb);
             }
         }
 
