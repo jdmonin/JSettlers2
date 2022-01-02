@@ -244,12 +244,12 @@ message ServerStatusText {
          */
         NEWGAME_NAME_REJECTED = 12;
 
-        /* New game requested, but name of game or player is too long.
+        /* New game or account-creation requested, but name of game or player is too long.
          * The text returned with this status shall indicate the max permitted length.
          * @see soc.server.SOCServer#createOrJoinGameIfUserOK
          * @since 1.1.07
          */
-        NEWGAME_NAME_TOO_LONG = 13;
+        NAME_TOO_LONG = 13;
 
         /* New game requested, but client already has created too many active games.
          * The text returned with this status shall indicate the max number.

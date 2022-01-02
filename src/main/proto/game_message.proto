@@ -175,9 +175,20 @@ message PieceValue {
 /* Client player is asking to buy and build, or server is announcing placement of, a piece on the board.
  * Also used when joining a new game or a game in progress, to send the game state so far.
  *<P>
+ * If message is from server for a {@link soc.game.SOCRoad} or {@link soc.game.SOCShip}:
+ * After updating game data with the new piece, client should call {@link SOCGame#getPlayerWithLongestRoad()}
+ * and update displays if needed.
+ *<P>
  * If message is from server for a {@link soc.game.SOCCity} while client is joining a game, must precede
  * by sending that client a {@code BuildPiece} message with the Settlement at the same coordinate
  * which was upgraded to that city.
+ *<P>
+ * If this is a placement request from a client player: If successful, server announces
+ * {@link PlayerElement} messages to the game for the resources spent, {@code BuildPiece},
+ * and the new {@link State}. Otherwise server responds with an explanatory {@link GameServerText} and,
+ * if the gamestate allowed placement but resources or requested coordinates
+ * disallowed it, the current {@link State} and then a {@link CancelBuild}.
+ * After rejection the gamestate may be a placement state such as {@code PLACING_ROAD}.
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@code player_number} is -1 in this message.
@@ -191,13 +202,6 @@ message PieceValue {
  * sending them {@link StartGame}. Scenario {@link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
  * sends its neutral villages before {@code START1A} but as part {@code "CV"} of the board layout
  * message, not as {@code BuildPiece}s.
- *<P>
- * If this is a placement request from a client player: If successful, server announces
- * {@link PlayerElement} messages to the game for the resources spent, {@code BuildPiece},
- * and the new {@link State}. Otherwise server responds with an explanatory {@link GameServerText} and,
- * if the gamestate allowed placement but resources or requested coordinates
- * disallowed it, the current {@link State} and then a {@link CancelBuild}.
- * After rejection the gamestate may be a placement state such as {@code PLACING_ROAD}.
  *<P>
  * Before v3.0.00 this message was {@code SOCPutPiece}.
  *
@@ -639,6 +643,13 @@ enum _PlayerElementType {
 
     /*
      * Number of knights in player's army; sent after a Soldier card is played.
+    *<P>
+     * During normal gameplay, "largest army" indicator at client is updated
+     * by examining game state, not by {@link GameElements._ElementType#LARGEST_ARMY_PLAYER} message from server:
+     *<BR>
+     * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
+     * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
+     * then update any related displays.
      */
     NUMKNIGHTS = 15;
 
@@ -836,10 +847,17 @@ message GameElements {
         /* Player number of current player, or -1, from {@link soc.game.SOCGame#getCurrentPlayerNumber()}. */
         CURRENT_PLAYER = 4;
 
-        /* Player number of player with largest army, or -1, from {@link soc.game.SOCGame#getPlayerWithLargestArmy()}. */
+        /* Player number of player with largest army, or -1, from {@link soc.game.SOCGame#getPlayerWithLargestArmy()}.
+         * Sent when a client joins a game. Not sent during game play when Largest Army player changes:
+         * Client updates that display by examining game state; see {@link _PlayerElementType#NUMKNIGHTS}.
+         */
         LARGEST_ARMY_PLAYER = 5;
 
-        /* Player number of player with longest road, or -1, from {@link soc.game.SOCGame#getPlayerWithLongestRoad()}. */
+        /* Player number of player with longest road, or -1, from {@link soc.game.SOCGame#getPlayerWithLongestRoad()}.
+         * Sent when a client joins a game. Not sent during game play when Longest Road player changes:
+         * Client updates that display by examining game state;
+         * see {@link PutPiece}(ROAD).
+         */
         LONGEST_ROAD_PLAYER = 6;
     }
 

@@ -673,7 +673,7 @@ ideas.
   bots, currently active/total games from `*STATS*` cmd, client versions, any
   errors, etc
 - Per-game thread/message queue at server (use SOCMessageForGame.getGame)
-- HTML5 client (see v3 branch for protobuf/JSON over websockets)
+- HTML5 client (see v3 branch for work so far; uses JSON over websockets and protobuf)
 - Cities & Knights support
     - UI mock-ups
     - state change / network message plans
