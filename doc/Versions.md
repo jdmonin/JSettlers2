@@ -13,8 +13,10 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.6.00` (build JM2021xxxx)
+## `2.6.00` (build JM2022xxxx)
 - Currently being developed
+- For developers:
+	- SOCForceEndTurnThread: Name thread to identify in server thread dumps
 
 
 ## `2.5.00` (build JM20211230)
