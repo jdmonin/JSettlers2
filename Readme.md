@@ -458,7 +458,7 @@ org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 Miscellaneous code is attributed to the Strategic Conversation (STAC) Project -
 https://www.irit.fr/STAC/ - from their fork published at https://github.com/sorinMD/StacSettlers
 and reintegrated into JSettlers by Jeremy D Monin for v2.5.00.
-[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/main/README.md)
+[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/master/README.md)
 says "Copyright (C) 2017  STAC" and that repo's most recent substantial change was in 2018.
 In the JSettlers repository, commits from that code use "STAC Project" as the author.
 

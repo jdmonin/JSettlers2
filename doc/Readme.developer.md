@@ -270,13 +270,22 @@ parameters (before, not after, `-jar` or the SOCPlayerClient class name):
 
 ## Setup instructions for JSettlers as an Eclipse project
 
-Written for Eclipse 4.2 and Buildship 2, should be applicable to other versions
+Written for Eclipse 4.6 and Buildship 3.1, should be applicable to other versions
 with minor changes. These instructions can be adapted to import JSettlers and
 its `build.gradle` into other IDEs.
 
 - If your Eclipse's File -> Import dialog doesn't have a "Gradle" option:
-    - Help -> Eclipse Marketplace -> Search -> Find "buildship"
-      ("Buildship Gradle Integration, by Eclipse Buildship Project")
+    - Help -> Eclipse Marketplace
+        - If Help doesn't have an Eclipse Marketplace option:
+            - Help -> Install new software
+            - Add
+                - Name: buildship
+                - Location: `https://download.eclipse.org/buildship/updates/latest/`
+                - OK
+            - (Or see https://projects.eclipse.org/projects/tools.buildship for install instructions)
+            - Select "buildship" from "Work with" dropdown
+    - Search -> Find "buildship"
+      ("Buildship: Eclipse Plug-ins for Gradle")
         - Buildship 3.x runs on JDK 8 or newer, eclipse 4.3 or newer
     - Install
     - If prompted to restart Eclipse, do so
@@ -287,13 +296,6 @@ its `build.gradle` into other IDEs.
 - Project -> Properties
     - Resource:
         - Text file encoding: UTF-8
-        - Resource Filters -> Add  
-            To speed up project-wide file text searches:
-            - Type: Exclude all
-            - Applies to: Folders
-            - [X] All children (recursive)
-            - Name matches: `.git`
-            - OK
     - Java Compiler:
         - Enable project specific settings
         - JDK compliance
@@ -301,8 +303,8 @@ its `build.gradle` into other IDEs.
         - Errors/Warnings:
             - Enable project specific settings
             - Defaults are generally OK, but be sure to change these from "Ignore" to "Warning":
-                - Potential programming problems: switch case fall-through
-                - Name shadowing and conflicts: All
+                - Potential programming problems -> switch case fall-through
+                - Name shadowing and conflicts -> All
     - OK
     	- If eclipse asks "Build the project now?", hit Yes
 - Run the `assemble` or `build` gradle task now to copy resources from `src/main/resources/`.  
@@ -330,6 +332,14 @@ file-based local database.
 
 This project is designed to build with gradle 5.6 or higher, or from within an IDE
 like eclipse. Gradle builds output to `build/libs/`.
+
+To quickly run the client and server, in the Package Explorer pane:
+
+- Expand package soc.server, find `SOCServer`, right-click, run as Java Application
+- Expand soc.client, find `SOCPlayerClient`, right-click, run as Java Application
+- Click "Connect to a Server", take defaults, click Connect
+- Enter a nickname, click New Game, enter a new game, create the game
+- Should be able to sit down and start the game
 
 If not using an IDE like eclipse, check the `build.gradle` file. There may be
 build variables you may want to change locally. These can be changed by
@@ -419,7 +429,7 @@ you are developing anything related to game options or jsettlers properties.
 This is optional. See also the "Developing with a database (JDBC)" section
 of this readme.
 
-These instructions are written for Eclipse 4.2. JSettlers+sqlite works with
+These instructions are written for Eclipse 4.6. JSettlers+sqlite works with
 standard Eclipse; the j2ee Eclipse adds a convenient data browser. Note that
 [Readme.md](../Readme.md) mentions a command-line option
 `-Djsettlers.db.jar=driverfile.jar`; that's needed only while running the
@@ -427,8 +437,8 @@ jsettlers JAR from the command line, not running inside the IDE.
 
 - See the `socserver-sqlite` IDE Run Configuration in the previous section;
   this config includes the sqlite database you're about to configure.
-- Download the driver from https://bitbucket.org/xerial/sqlite-jdbc/downloads/ .
-  The downloaded JAR might have a name like `sqlite-jdbc-3.15.1.jar`.
+- Download the driver from https://github.com/xerial/sqlite-jdbc/releases -> assets.
+  The downloaded JAR might have a name like `sqlite-jdbc-3.27.2.1.jar`.
   These instructions use a generic name `sqlite-jdbc-3.xx.y`.
 - Project properties -> Java build path -> Libraries -> Add External JARs... ->
      Browse to `sqlite-jdbc-3.xx.y.jar`
