@@ -89,9 +89,8 @@ Same coordinates as 4-player classic. Trading ports' hexes are off the edge of t
 
 ### Development
 
-Coding is done in Java 7 for client compatibility, but should compile cleanly
-in newer JDKs. (v2.0 and 2.1 used java 6 for compatibility; 1.2 used java 5.)
-The build system is gradle 5.6 or higher (which requires java 8);
+Coding is done in Java 8 for client compatibility, but should compile cleanly
+in newer JDKs. The build system is gradle 5.6 or higher;
 the newest tested version is gradle 6.9.2. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
@@ -278,7 +277,6 @@ its `build.gradle` into other IDEs.
 - If your Eclipse's File -> Import dialog doesn't have a "Gradle" option:
     - Help -> Eclipse Marketplace -> Search -> Find "buildship"
       ("Buildship Gradle Integration, by Eclipse Buildship Project")
-        - Buildship 2.x runs on JDK 7 or newer, eclipse 4.2 or newer
         - Buildship 3.x runs on JDK 8 or newer, eclipse 4.3 or newer
     - Install
     - If prompted to restart Eclipse, do so
@@ -299,7 +297,7 @@ its `build.gradle` into other IDEs.
     - Java Compiler:
         - Enable project specific settings
         - JDK compliance
-            - Compliance level: 1.7
+            - Compliance level: 1.8
         - Errors/Warnings:
             - Enable project specific settings
             - Defaults are generally OK, but be sure to change these from "Ignore" to "Warning":
@@ -319,8 +317,8 @@ patch submissions; to set up Eclipse now to use that style, see section
 ## Build Setup and Results
 
 Before building, make sure you have the Java Development Kit (JDK) version 8 or higher.
-If you only want to run the client or server, you can use either JDK 7 or higher,
-or version 7 or 8 of the smaller Java Runtime (JRE).
+If you only want to run the client or server, you can use either JDK 8 or higher,
+or version 8 of the smaller Java Runtime (JRE).
 
 Extra tests in the build want python 2.7 or 3 for unittest discovery.
 Java unit tests and extraTests use JUnit 4, which is downloaded by `build.gradle`.
@@ -485,7 +483,7 @@ ideas.
 - Docs: State diagram for `SOCGame` states, or important message sequences
   (log into server, create/join game, roll dice, etc)
 - Docs: `PlayerClientListener` interface has some methods without javadocs: Add by checking `SOCPlayerInterface.ClientBridge` implementation
-- Java 7 cleanup: Use diamond operator where possible
+- Java 7+ cleanup: Use diamond operator where possible
   - Example: change  
     `Map<String, SOCGameOption> newOpts = new HashMap<String, SOCGameOption>()`  
     to  

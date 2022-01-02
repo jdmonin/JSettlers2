@@ -1246,8 +1246,8 @@ The current Extra Tests are:
 
 ## Platform-specific
 
-On most recent and less-recent OSX and Windows; oldest JRE (java 7) and a new JRE/JDK:  
-(Note: Java 7 runs on Win XP and higher; can download installer from https://jdk.java.net/ )
+On most recent and less-recent OSX and Windows; oldest JRE (java 8) and a new JRE/JDK:  
+(Note: Java 8 runs on Win XP and higher; can download installer from https://jdk.java.net/ )
 
 - Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
 - Hotkey shortcuts
