@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,6 +50,7 @@ import soc.server.savegame.SavedGameModel;
 import soc.server.savegame.SavedGameModel.PlayerInfo;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -263,6 +264,7 @@ public class TestLoadgame
         }
     }
 
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testBasicLoading()
         throws IOException
@@ -350,6 +352,7 @@ public class TestLoadgame
      * If any non-vacant player hasn't joined the game before {@link SavedGameModel#resumePlay(boolean)},
      * should throw an exception
      */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test(expected=java.util.MissingResourceException.class)
     public void testNeedPlayers()
         throws IOException
@@ -359,6 +362,7 @@ public class TestLoadgame
     }
 
     /** Test successful {@link SavedGameModel#resumePlay(boolean)} after all player connections have joined. */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testResumePlay()
         throws IOException
@@ -376,6 +380,7 @@ public class TestLoadgame
     }
 
     /** When loading a game that's over, should call {@link SavedGameModel#resumePlay(boolean)} successfully */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testLoadResumeGameOver()
         throws IOException
@@ -473,6 +478,7 @@ public class TestLoadgame
     }
 
     /** Test loading and resuming a 6-player game, during Special Building Phase. */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testLoad6PlayerSBP()
         throws IOException
@@ -586,6 +592,7 @@ public class TestLoadgame
     /**
      * Test parsing and loading game where various field contents are invalid.
      */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testLoadBadFieldContents()
         throws IOException
@@ -671,6 +678,7 @@ public class TestLoadgame
     }
 
     /** Test loading a game where current player, another player are making trade offers. */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testLoadTradeOffers()
         throws IOException
