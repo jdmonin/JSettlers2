@@ -72,6 +72,11 @@ public class ColorSquare extends JComponent implements MouseListener
     public final static Color WHEAT = new Color(204, 204, 51);
     public final static Color WOOD = new Color(204, 153, 102);
     public final static Color GREY = new Color(204, 204, 204);  // Must not equal ORE, for ore's auto-tooltip to show
+
+    /**
+     * {@link soc.game.SOCBoard#DESERT_HEX} color.
+     * @since 1.1.00
+     */
     public final static Color DESERT = new Color(255, 255, 153);
 
     /**
@@ -149,6 +154,10 @@ public class ColorSquare extends JComponent implements MouseListener
      */
     private Color borderColor = Color.BLACK;
 
+    /**
+     * Square change listener if any, or null.
+     * @since 1.1.00
+     */
     protected ColorSquareListener sqListener;
 
     /**
@@ -166,20 +175,36 @@ public class ColorSquare extends JComponent implements MouseListener
      */
     protected String ttip_text;
 
-    /** Optional text for low-warning-level and high-warning-level (intValue). */
+    /**
+     * Optional text for low-warning-level and high-warning-level (intValue).
+     * @since 1.1.00
+     */
     protected String ttip_text_warnLow, ttip_text_warnHigh;
 
-    /** Optional text for zero level (intValue). */
+    /**
+     * Optional text for zero level (intValue).
+     * @since 1.1.00
+     */
     protected String ttip_text_zero;
 
-    /** Low-level or high-level warning level has been set (intValue). */
+    /**
+     * Low-level or high-level warning level has been set (intValue).
+     * @since 1.1.00
+     */
     protected boolean hasWarnLow, hasWarnHigh;
 
-    /** True if at low-level warning, or at zero if ttip_text_zero was set. */
+    /**
+     * True if at low-level warning, or at zero if ttip_text_zero was set.
+     * @since 1.1.00
+     */
     protected boolean isWarnLow;
 
-    /** True if at high-level warning. */
+    /**
+     * True if at high-level warning.
+     * @since 1.1.00
+     */
     protected boolean isWarnHigh;
+
     protected int warnLowBound;  // TODO rename any warn-thing from "bound" incl comments
     protected int warnHighBound;  // TODO rename any warn-thing from "bound" incl comments
 
@@ -192,6 +217,7 @@ public class ColorSquare extends JComponent implements MouseListener
     /**
      * Size from most recent call to {@link #setSize(int, int)}.
      * @see #minSize
+     * @since 1.1.00
      */
     protected Dimension squareSize;
 
@@ -202,7 +228,10 @@ public class ColorSquare extends JComponent implements MouseListener
      */
     protected Dimension minSize;
 
-    /** i18n text strings */
+    /**
+     * i18n text strings, for tooltip text.
+     * @since 2.0.00
+     */
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
@@ -563,6 +592,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * @param w width in pixels
      * @param h height in pixels
      * @see #setMinimumSize(Dimension)
+     * @since 1.1.00
      */
     @Override
     public void setSize(int w, int h)
@@ -605,6 +635,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * @see #setToolTipHighWarningLevel(String, int)
      * @see #setToolTipLowWarningLevel(String, int)
      * @see #setToolTipZeroText(String)
+     * @since 1.1.00
      */
     @Override
     public void setToolTipText(String tip)
@@ -932,8 +963,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * @param w width in pixels
      * @param h height in pixels
      *
-     * @since 1.1.06
      * @see java.awt.Component#setBounds(int, int, int, int)
+     * @since 1.1.06
      */
     public void setBounds(int x, int y, int w, int h)
     {
@@ -1181,6 +1212,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * Optionally, a square listener can be called when the value changes.
      * If this square is part of a {@link SquaresPanel}, that panel is the listener.
      * @return square listener, or null.
+     * @since 1.1.00
      */
     public ColorSquareListener getSquareListener()
     {
@@ -1190,6 +1222,7 @@ public class ColorSquare extends JComponent implements MouseListener
     /**
      * Optionally, a square listener can be called when the value changes.
      * @param sp Square listener, or null to clear
+     * @since 1.1.00
      */
     public void setSquareListener(ColorSquareListener sp)
     {

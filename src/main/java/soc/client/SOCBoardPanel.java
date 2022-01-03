@@ -213,12 +213,14 @@ import javax.swing.JComponent;
     /**
      * How many unscaled pixels to move down for each row of hexes.
      * @see #HEXHEIGHT
+     * @since 1.1.00
      */
     private static final int deltaY = 46;
 
     /**
      * How many unscaled pixels to move over for a new hex.
      * @see #HEXWIDTH
+     * @since 1.1.00
      */
     private static final int deltaX = 54;
 
@@ -228,6 +230,7 @@ import javax.swing.JComponent;
      * compared to the row above/below it.
      * @see #deltaX
      * @see #halfdeltaY
+     * @since 1.1.00
      */
     private static final int halfdeltaX = 27;
 
@@ -374,21 +377,21 @@ import javax.swing.JComponent;
      * @since 2.0.00
      */
     private static final int[] shipX =           // center is (x=0.5, y=32)
-        { -4,  3,  7,  7,  5, 13, 11,-12,-12, -3, -1, -1, -3, -4 },
+        { -2,  3,  6,  6,  4, 13, 11, -11, -11, -1, -1,  0,  0, -2 },
                                shipY =
-        { 22, 23, 28, 32, 37, 37, 42, 42, 37, 37, 34, 30, 25, 22 };
+        { 22, 24, 28, 33, 36, 36, 43,  43,  36, 36, 34, 32, 27, 22 };
 
     /**
      * Warship for scenario <tt>SC_PIRI</tt>.
      * Center is (x=0.5, y=32 == {@link #HALF_HEXHEIGHT}).
      * Design is based on the normal ship ({@link #shipX}, {@link #shipY})
-     * with a second sail and a taller hull.
+     * with two sails (offset x-5 and +5 from single-sail model).
      * @since 2.0.00
      */
     private static final int[] warshipX =        // center is (x=0.5, y=32)
-        { -8, -2,  1,  1, -1,     3,  5,  5,  3,  2,  8, 11, 11, 9,     13, 10,-10,-12, -7, -5, -5, -7, -8 },
+        { -7, -2,  1,  1, -1,    4,  4,  5,  5, 3,   8, 11, 11,  9,    13, 11, -11, -11, -6, -6, -5, -5, -7 },
                                warshipY =
-        { 21, 22, 27, 31, 36,    36, 33, 29, 24, 21, 22, 27, 31, 36,    36, 43, 43, 36, 36, 33, 29, 24, 21 };
+        { 22, 24, 28, 33, 36,   36, 34, 32, 27, 22, 24, 28, 33, 36,    36, 43,  43,  36, 36, 34, 32, 27, 22 };
 
     /**
      * Fortress polygon for scenario <tt>SC_PIRI</tt>.
@@ -405,14 +408,15 @@ import javax.swing.JComponent;
          -7,-11,-11, 11,     11, 9,  9, 11 };
 
     /**
-     * village polygon. X is -14 to +14; Y is -10 to +10.
+     * marker diamond/"village" polygon. X is -14 to +14; Y is -10 to +10.
      * Used in {@link #drawVillage(Graphics, SOCVillage)}, and as a
      * generic marker in {@link #drawMarker(Graphics, int, int, Color, int)}.
+     *<P>
+     * Before v2.3.00 these fields were called villageX, villageY.
      * @since 2.0.00
      */
-    private static final int[] villageX = {  0,  14,  0, -14,   0 },
-                               villageY = { -10,  0, 10,   0, -10 };
-        // TODO just a first draft; village graphic needs adjustment
+    private static final int[] diamondX = {  0,  14,  0, -14,   0 },
+                               diamondY = { -10,  0, 10,   0, -10 };
 
     /** robber polygon. X is -4 to +4; Y is -8 to +8. */
     private static final int[] robberX =
@@ -475,12 +479,14 @@ import javax.swing.JComponent;
     {
         0,  17, 18, 18, 36, 36, 18, 18, 17,  0
     };
+
     /**
      * Current-player arrow, right-pointing.
      * Calculated when needed by flipping {@link #arrowXL} in {@link #rescaleCoordinateArrays()}.
      * @since 1.1.00
      */
     private static int[] arrowXR = null;
+
     /**
      * Current-player arrow, y-coordinates: same whether pointing left or right.
      * First point is top of arrow-tip's bevel, last point is bottom of tip.
@@ -716,22 +722,49 @@ import javax.swing.JComponent;
 
     // future boardpanel state#s can go here
 
+    /**
+     * Player's turn is starting; waiting for current player to take action.
+     * (State {@link SOCGame#ROLL_OR_CARD})
+     * @since 1.1.03
+     */
     private final static int TURN_STARTING = 97;
+
+    /**
+     * Game is still forming, players are sitting down.
+     * (State {@link SOCGame#READY} or {@link SOCGame#NEW})
+     * @since 1.1.00
+     */
     private final static int GAME_FORMING = 98;
+
+    /**
+     * Game has ended.
+     * @since 1.1.00
+     */
     private final static int GAME_OVER = 99;
 
-    /** During initial-piece placement, the tooltip is moved this far over to make room. */
+    /**
+     * During initial-piece placement, the tooltip is moved this far over to make room.
+     * @since 1.1.00
+     */
     public final static int HOVER_OFFSET_X_FOR_INIT_PLACE = 9;
 
-    /** During robber placement, the tooltip is moved this far over to make room. */
+    /**
+     * During robber placement, the tooltip is moved this far over to make room.
+     * @since 1.1.00
+     */
     public final static int HOVER_OFFSET_X_FOR_ROBBER = 15;
 
-    /** for popup-menu build request, network send maximum delay (seconds) */
+    /**
+     * For popup-menu build request, network send maximum delay (seconds)
+     * @since 1.1.00
+     */
     protected static int BUILD_REQUEST_MAX_DELAY_SEC = 5;
 
-    /** for popup-menu build request, length of time after popup to ignore further
-     *  mouse-clicks.  Avoids Windows accidental build by popup-click during game's
-     *  initial piece placement. (150 ms)
+    /**
+     * For popup-menu build request, length of time after popup to ignore further
+     * mouse-clicks.  Avoids Windows accidental build by popup-click during game's
+     * initial piece placement. (150 ms)
+     * @since 1.1.00
      */
     protected static int POPUP_MENU_IGNORE_MS = 150;
 
@@ -931,12 +964,13 @@ import javax.swing.JComponent;
      * actual size on-screen, not internal-pixels size
      * ({@link #panelMinBW}, {@link #panelMinBH}).
      * Includes any positive {@link #panelMarginX}/{@link #panelMarginY}
-     * from {@link #panelShiftBX}, {@link #panelShiftBY}.
+     * from {@link #panelShiftBX}, {@link #panelShiftBY}, and {@link SOCPlayerInterface#layoutVS}.
      *<P>
      * See {@link #scaledBoardW} for board width within {@code scaledPanelW}, containing board hexes from game data
      * but not including margins. See {@link #unscaledBoardW} for unscaled (internal pixel) board width.
      *<P>
      * Before v2.0.00 these fields were {@code scaledPanelX, scaledPanelY}.
+     * @since 1.1.00
      */
     private int scaledPanelW, scaledPanelH;
 
@@ -1042,6 +1076,7 @@ import javax.swing.JComponent;
      * @see #scaledAt
      * @see #rescaleBoard(int, int)
      * @see #isHexesAlwaysScaled
+     * @since 1.1.00
      */
     protected boolean isScaled;
 
@@ -1049,6 +1084,7 @@ import javax.swing.JComponent;
      * Time of last request to resize and repaint, as returned by {@link System#currentTimeMillis()}.
      * Used with {@link #scaledMissedImage}.
      * @see #drawnEmptyAt
+     * @since 1.1.00
      */
     protected long scaledAt;
 
@@ -1062,6 +1098,7 @@ import javax.swing.JComponent;
      * @see #scaledHexFail
      * @see #scaledAt
      * @see #drawnEmptyAt
+     * @since 1.1.00
      */
     protected boolean scaledMissedImage;
 
@@ -1260,6 +1297,7 @@ import javax.swing.JComponent;
      * For port overlay images, see {@link #scaledPorts}.
      *
      * @see #scaledHexFail
+     * @since 1.1.00
      */
     private Image[] scaledHexes;
 
@@ -1271,6 +1309,7 @@ import javax.swing.JComponent;
      * For the rest of the hex images, see {@link #scaledHexes}.
      *
      * @see #scaledPortFail
+     * @since 1.1.00
      */
     private Image[] scaledPorts;
 
@@ -1290,46 +1329,79 @@ import javax.swing.JComponent;
      *
      * @see #scaledHexes
      * @see #drawHex(Graphics, int)
+     * @since 1.1.00
      */
     private boolean[] scaledHexFail, scaledPortFail;
 
     /**
      * Arrow dice number bounding-box size in pixels; 24 x 24 square fits in the arrow.
      * @see #drawArrow(Graphics, int, int)
+     * @since 1.1.00
      */
     private static final int DICE_SZ = 24;
 
     /**
      * Coordinate arrays for drawing the playing pieces.
      * Local copy if isScaled, otherwise points to static arrays.
+     * @since 1.1.00
      */
     private int[] scaledVertRoadX, scaledVertRoadY;
 
-    /***  road looks like "/"  ***/
+    /**
+     * scaled road shape looks like "/"
+     * @since 1.1.00
+     */
     private int[] scaledUpRoadX, scaledUpRoadY;
 
-    /***  road looks like "\"  ***/
+    /**
+     * scaled road shape looks like "\"
+     * @since 1.1.00
+     */
     private int[] scaledDownRoadX, scaledDownRoadY;
 
-    /***  settlement  ***/
+    /**
+     * scaled settlement
+     * @since 1.1.00
+     */
     private int[] scaledSettlementX, scaledSettlementY;
 
-    /***  city  ***/
+    /**
+     * scaled city
+     * @since 1.1.00
+     */
     private int[] scaledCityX, scaledCityY;
 
-    /*** ship ***/
+    /**
+     * scaled ship
+     * @since 2.0.00
+     */
     private int[] scaledShipX, scaledShipY;
 
-    /*** fortress (scenario _SC_PIRI) ***/
-    private int[] scaledFortressX, scaledFortressY;  // @since 2.0.00
+    /**
+     * scaled fortress (scenario _SC_PIRI)
+     * @since 2.0.00
+     */
+    private int[] scaledFortressX, scaledFortressY;
 
-    /*** village (scenario _SC_CLVI) ***/
-    private int[] scaledVillageX, scaledVillageY;  // @since 2.0.00
+    /**
+     * scaled diamond marker (village in scenario _SC_CLVI, etc).
+     * See {@link #diamondX} for details.
+     *<P>
+     * Before v2.3.00 these fields were called scaledVillageX, scaledVillageY.
+     * @since 2.0.00
+     */
+    private int[] scaledDiamondX, scaledDiamondY;
 
-    /*** warship (scenario _SC_PIRI) ***/
-    private int[] scaledWarshipX, scaledWarshipY;  // @since 2.0.00
+    /**
+     * scaled warship (scenario _SC_PIRI)
+     * @since 2.0.00
+     */
+    private int[] scaledWarshipX, scaledWarshipY;
 
-    /***  robber  ***/
+    /**
+     * scaled robber
+     * @since 1.1.00
+     */
     private int[] scaledRobberX, scaledRobberY;
 
     // The pirate ship uses scaledShipX, scaledShipY like any other ship.
@@ -1410,6 +1482,7 @@ import javax.swing.JComponent;
      * (tooltip) Hover text for info on pieces/parts of the board. Its mode uses boardpanel mode constants.
      * Also contains "hovering" road/settlement/city near mouse pointer.
      * @see #hilight
+     * @since 1.1.00
      */
     private BoardToolTip hoverTip;
 
@@ -1418,6 +1491,7 @@ import javax.swing.JComponent;
      * @see #popupMenuSystime
      * @see #buildReqTimerTask
      * @see #doBoardMenuPopup(int, int)
+     * @since 1.1.00
      */
     private BoardPopupMenu popupMenu;
 
@@ -1426,6 +1500,7 @@ import javax.swing.JComponent;
      * of popup-click with placement-click during initial placement: On Windows,
      * popup-click must be caught in mouseReleased, but mousePressed is called
      * immediately afterwards.
+     * @since 1.1.00
      */
     private long popupMenuSystime;
 
@@ -1440,6 +1515,7 @@ import javax.swing.JComponent;
      * <LI> {@link SOCPlayerInterface#updateAtGameState()}
      * <LI> {@link SOCBoardPanel#popupFireBuildingRequest()}
      *</OL>
+     * @since 1.1.00
      */
     protected BoardPanelSendBuildTask buildReqTimerTask;
 
@@ -1706,6 +1782,7 @@ import javax.swing.JComponent;
      *
      *  @see soc.client.ColorSquare
      *  @see #drawRobber(Graphics, int, boolean, boolean)
+     *  @since 1.1.00
      */
     protected Color[] robberGhostFill, robberGhostOutline;
 
@@ -1715,7 +1792,7 @@ import javax.swing.JComponent;
      * After construction, call {@link #getMinimumSize()} to read it.
      *
      * @param pi  the player interface that spawned us
-     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     * @param layoutVS  Optional board layout "visual shift and trim" (Added Layout Part "VS")
      *     to use when setting minimum size of this {@code SOCBoardPanel}, or {@code null}
      * @throws IllegalStateException if {@code pi}'s game {@link SOCBoard#getBoardEncodingFormat()} !=
      *     {@link SOCBoard#BOARD_ENCODING_LARGE}
@@ -1768,21 +1845,32 @@ import javax.swing.JComponent;
 
                 if (layoutVS != null)
                 {
-                    final int sBX, sBY;
-                    sBY = (layoutVS[0] * halfdeltaY) / 2;
-                    sBX = (layoutVS[1] * halfdeltaX) / 2;
+                    final int shiftBX, shiftBY;
+                    shiftBY = (layoutVS[0] * halfdeltaY) / 2;
+                    shiftBX = (layoutVS[1] * halfdeltaX) / 2;
 
-                    if (sBX != 0)
+                    if (shiftBX != 0)
                     {
-                        panelMarginX = panelShiftBX = sBX;
-                        if (sBX > 0)
-                            scaledPanelW += sBX;
+                        panelMarginX = panelShiftBX = shiftBX;
+                        if (shiftBX > 0)
+                            scaledPanelW += shiftBX;
                     }
-                    if (sBY != 0)
+                    if (shiftBY != 0)
                     {
-                        panelMarginY = panelShiftBY = sBY;
-                        if (sBY > 0)
-                            scaledPanelH += sBY;
+                        panelMarginY = panelShiftBY = shiftBY;
+                        if (shiftBY > 0)
+                            scaledPanelH += shiftBY;
+                    }
+
+                    if (layoutVS.length >= 4)
+                    {
+                        final int trimBX, trimBY;
+                        trimBY = (layoutVS[2] * halfdeltaY) / 2;
+                        trimBX = (layoutVS[3] * halfdeltaX) / 2;
+                        if (trimBX > 0)
+                            scaledPanelW -= trimBX;
+                        if (trimBY > 0)
+                            scaledPanelH -= trimBY;
                     }
                 }
             } else {
@@ -2458,6 +2546,7 @@ import javax.swing.JComponent;
      *   During initial layout, the layoutmanager may make calls to setSize(0,0);
      *   such a call is passed to super without scaling graphics.
      *   To not throw this exception, call {@link #setSize(int, int, boolean)} instead.
+     * @since 1.1.00
      */
     @Override
     public void setSize(int newW, int newH)
@@ -2475,6 +2564,7 @@ import javax.swing.JComponent;
      *     If false, throw if newW or newH too small; see {@link #setSize(int, int)} for details.
      * @throws IllegalArgumentException if newW or newH is too small but not 0:
      *     See {@link #setSize(int, int)} for details.
+     * @since 2.0.00
      */
     public void setSize(int newW, int newH, final boolean noException)
         throws IllegalArgumentException
@@ -2508,6 +2598,7 @@ import javax.swing.JComponent;
      * @throws IllegalArgumentException if sz is too small but not 0.
      *   During initial layout, the layoutmanager may make calls to setSize(0,0);
      *   such a call is passed to super without scaling graphics.
+     * @since 1.1.00
      */
     @Override
     public void setSize(Dimension sz)
@@ -2527,6 +2618,7 @@ import javax.swing.JComponent;
      * @throws IllegalArgumentException if w or h is too small but not 0.
      *   During initial layout, the layoutmanager may make calls to setBounds(0,0,0,0);
      *   such a call is passed to super without scaling graphics.
+     * @since 1.1.00
      */
     @Override
     public void setBounds(int x, int y, int w, int h)
@@ -2671,6 +2763,7 @@ import javax.swing.JComponent;
      * @throws IllegalArgumentException if newW or newH is below {@link #minSize} but not 0.
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
      *   such a call is ignored, no rescaling of graphics is done.
+     * @since 1.1.00
      */
     private void rescaleBoard(int newW, int newH)
         throws IllegalArgumentException
@@ -2957,6 +3050,7 @@ import javax.swing.JComponent;
      * (from internal coordinates to actual on-screen pixels),
      * or (if not isScaled) point to static arrays.
      * Called from constructor and {@link #rescaleBoard(int, int)}.
+     * @since 1.1.00
      */
     private void rescaleCoordinateArrays()
     {
@@ -2988,7 +3082,7 @@ import javax.swing.JComponent;
             scaledCityX     = cityX;         scaledCityY     = cityY;
             scaledShipX     = shipX;         scaledShipY     = shipY;
             scaledFortressX = fortressX;     scaledFortressY = fortressY;
-            scaledVillageX  = villageX;      scaledVillageY  = villageY;
+            scaledDiamondX  = diamondX;      scaledDiamondY  = diamondY;
             scaledWarshipX  = warshipX;      scaledWarshipY  = warshipY;
             scaledRobberX   = robberX;       scaledRobberY   = robberY;
             scaledArrowXL   = arrowXL;       scaledArrowY    = arrowY;
@@ -3049,8 +3143,8 @@ import javax.swing.JComponent;
             scaledShipY = scaleCopyToActual(shipY);
             scaledFortressX = scaleCopyToActual(fortressX);
             scaledFortressY = scaleCopyToActual(fortressY);
-            scaledVillageX  = scaleCopyToActual(villageX);
-            scaledVillageY  = scaleCopyToActual(villageY);
+            scaledDiamondX  = scaleCopyToActual(diamondX);
+            scaledDiamondY  = scaleCopyToActual(diamondY);
             scaledWarshipX = scaleCopyToActual(warshipX);
             scaledWarshipY = scaleCopyToActual(warshipY);
             scaledRobberX   = scaleCopyToActual(robberX);
@@ -3090,6 +3184,7 @@ import javax.swing.JComponent;
      *
      * @see #scaleToActual(int[])
      * @see #rotateScaleCopyYToActualX(int[], int, boolean)
+     * @since 1.1.00
      */
     public int[] scaleCopyToActual(int[] orig)
     {
@@ -4101,7 +4196,7 @@ import javax.swing.JComponent;
    }
 
     /**
-     * Draw a marker (village symbol) centered at a final (x,y) coordinate.
+     * Draw a marker diamond (village/"special" symbol) centered at a final (x,y) coordinate.
      * @param x  Marker center x, must be already scaled and/or rotated
      * @param y  Marker center x, must be already scaled and/or rotated
      * @param color  Color to fill the marker
@@ -4113,9 +4208,9 @@ import javax.swing.JComponent;
         g.translate(x, y);
 
         g.setColor(color);
-        g.fillPolygon(scaledVillageX, scaledVillageY, 4);
+        g.fillPolygon(scaledDiamondX, scaledDiamondY, 4);
         g.setColor(Color.black);
-        g.drawPolygon(scaledVillageX, scaledVillageY, 5);
+        g.drawPolygon(scaledDiamondX, scaledDiamondY, 5);
 
         // dice # for village
         if (val >= 0)
@@ -4134,7 +4229,7 @@ import javax.swing.JComponent;
      * draw the arrow that shows whose turn it is.
      *
      * @param g Graphics
-     * @param pnum Current player number.
+     * @param pnum Current player number, from {@link SOCGame#getCurrentPlayerNumber()}.
      *             Player positions are clockwise from top-left:
      *           <BR>
      *             For the classic 4-player board:<BR>
@@ -4144,12 +4239,17 @@ import javax.swing.JComponent;
      *             For the classic 6-player board:<BR>
      *             0 for top-left, 1 for top-right, 2 for middle-right,
      *             3 for bottom-right, 4 for bottom-left, 5 for middle-left.
+     *           <P>
+     *             If &lt; 0, no arrow is drawn.
      * @param diceResult Roll result to show, if rolled, from {@link SOCGame#getCurrentDice()}.
      *                   To show, {@code diceResult} must be at least 2
      *                   and gameState not {@link SOCGame#ROLL_OR_CARD}.
      */
     private final void drawArrow(Graphics g, int pnum, int diceResult)
     {
+        if (pnum < 0)
+            return;
+
         int arrowX, arrowY, diceX, diceY;  // diceY always arrowY + 5
         boolean arrowLeft;
 
@@ -4548,7 +4648,14 @@ import javax.swing.JComponent;
          */
         if (gameState != SOCGame.NEW)
         {
-            drawArrow(g, game.getCurrentPlayerNumber(), game.getCurrentDice());
+            int cpn = game.getCurrentPlayerNumber();
+            if ((cpn < 0) && (gameState >= SOCGame.OVER))
+            {
+                SOCPlayer wp = game.getPlayerWithWin();
+                if (wp != null)
+                    cpn = wp.getPlayerNumber();
+            }
+            drawArrow(g, cpn, game.getCurrentDice());
         }
 
         if (player != null)
@@ -5540,6 +5647,7 @@ import javax.swing.JComponent;
      *
      * @see #scaleToActual(int)
      * @see #scaleCopyToActual(int[])
+     * @since 1.1.00
      */
     public void scaleToActual(int[] xa)
     {
@@ -5561,6 +5669,7 @@ import javax.swing.JComponent;
      * @param x x-coordinate or y-coordinate to be scaled
      * @see #scaleFromActual(int)
      * @see #scaleToActual(int[])
+     * @since 1.1.00
      */
     public final int scaleToActual(int x)
     {
@@ -5582,6 +5691,7 @@ import javax.swing.JComponent;
      * @param x x-coordinate or y-coordinate to be scaled. Subtract {@link #panelMarginX}
      *     or {@link #panelMarginY} before calling.
      * @see #scaleToActual(int)
+     * @since 1.1.00
      */
     public final int scaleFromActual(int x)
     {
@@ -5602,6 +5712,7 @@ import javax.swing.JComponent;
      *
      * @return Is the board scaled larger than default size?
      * @see #isRotated()
+     * @since 1.1.00
      */
     public boolean isScaled()
     {
@@ -5653,20 +5764,32 @@ import javax.swing.JComponent;
             if (game.isDebugFreePlacement())
             {
                 topText = "DEBUG: Free Placement Mode";
-                switch(player.getPieces().size())
+
+                if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
                 {
-                case 1:
-                case 3:
-                    mode = PLACE_INIT_ROAD;
-                    break;
+                    if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                    {
+                        mode = SC_FTRI_PLACE_PORT;
+                        repaint();
+                    } else {
+                        mode = NONE;
+                    }
+                } else {
+                    switch(player.getPieces().size())
+                    {
+                    case 1:
+                    case 3:
+                        mode = PLACE_INIT_ROAD;
+                        break;
 
-                case 0:
-                case 2:
-                    mode = PLACE_INIT_SETTLEMENT;
-                    break;
+                    case 0:
+                    case 2:
+                        mode = PLACE_INIT_SETTLEMENT;
+                        break;
 
-                default:
-                    mode = NONE;
+                    default:
+                        mode = NONE;
+                    }
                 }
             }
             else if (cpn == playerNumber)
@@ -5808,6 +5931,7 @@ import javax.swing.JComponent;
      * Update {@link #hoverTip} based on {@link #mode} when it changes;
      * called from {@link #updateMode()}. Might or might not repaint board:
      * Calls {@link BoardToolTip#setOffsetX(int)} or {@link BoardToolTip#setHoverText(String, int)}.
+     * @since 1.1.00
      */
     protected void updateHoverTipToMode()
     {
@@ -5836,6 +5960,7 @@ import javax.swing.JComponent;
      *              and board has already set mode to place that piece type.
      *              If ptype doesn't match the board's current mode/piece type,
      *              board's mode is not changed to NONE.
+     * @since 1.1.00
      */
     protected void clearModeAndHilight(final int ptype)
     {
@@ -5896,6 +6021,9 @@ import javax.swing.JComponent;
     /**
      * Set the player that is using this board panel to be the client's player in this game.
      * Called when observing user sits down to become a player.
+     *<P>
+     * Call only after {@link SOCPlayerInterface#addPlayer(String, int)} has been called for client player.
+     *
      * @see #setPlayer(SOCPlayer)
      */
     public void setPlayer()
@@ -5907,7 +6035,12 @@ import javax.swing.JComponent;
      * Set or change the player that is using this board panel.
      * Initially {@code null} when first joining or observing a game.
      * Also used for temporary change during {@link SOCGame#debugFreePlacement} mode.
+     *<P>
+     * If {@code pl} is null, call only after {@link SOCPlayerInterface#addPlayer(String, int)}
+     * has been called for client player.
+     *
      * @param pl Player to set, or null to change back to the client player
+     *     using {@link SOCPlayerInterface#getClientPlayer()}
      * @see #getPlayerNumber()
      * @see #setPlayer()
      * @since 1.1.12
@@ -5915,7 +6048,7 @@ import javax.swing.JComponent;
     void setPlayer(SOCPlayer pl)
     {
         if (pl == null)
-            pl = game.getPlayer(playerInterface.getClient().getNickname());
+            pl = playerInterface.getClientPlayer();
         if (pl == player)
             return;
 
@@ -7007,10 +7140,30 @@ import javax.swing.JComponent;
         return ! buildReqTimerTask.wasItSentAlready();
     }
 
+    /**
+     * Since player has chosen a piece to build from the right-click popup menu,
+     * set fields to expect a placing GameState reply from server.
+     * In case server doesn't reply, starts a timer to eventually send the
+     * build-piece request regardless, after canceling any previous timer.
+     *<P>
+     * Does not send the initial build-type request; caller should do so afterwards
+     * with {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)}.
+     *<P>
+     * To cancel this new pending build request, call {@link #popupClearBuildRequest()}.
+     *<P>
+     * When client receives the expected GameState from server, other client code will respond
+     * by calling {@link #popupFireBuildingRequest()}.
+     *
+     * @param coord  Piece's edge or node coordinate
+     * @param ptype  Piece type, like {@link SOCPlayingPiece#ROAD}
+     * @see #popupExpectingBuildRequest()
+     * @since 1.1.00
+     */
     public void popupSetBuildRequest(int coord, int ptype)
     {
         if (coord == -1)
             coord = 0;  // road on edge 0x00
+
         Timer piTimer = playerInterface.getEventTimer();
         synchronized (piTimer)
         {
@@ -7045,7 +7198,11 @@ import javax.swing.JComponent;
         }
     }
 
-    /** Have received gamestate placing message; send the building request in reply. */
+    /**
+     * Client has received gamestate placing message; send the building request in reply.
+     * @see #popupSetBuildRequest(int, int)
+     * @since 1.1.00
+     */
     public void popupFireBuildingRequest()
     {
         final Timer piTimer = playerInterface.getEventTimer();
@@ -9389,7 +9546,8 @@ import javax.swing.JComponent;
      * Menu items won't necessarily say "trade 3", because the user may have a 2-for-1
      * port, or may not have a 3-for-1 port (cost 4).
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     /* package-access */ static class ResourceTradeAllMenu extends SOCHandPanel.ResourceTradePopupMenu
     {

@@ -47,6 +47,30 @@ public class TestResourceSet
         assertEquals(5, rs.getTotal());
     }
 
+    /**
+     * Tests for {@link SOCResourceSet#isEmpty()}.
+     * @since 2.4.10
+     */
+    @Test
+    public void isEmpty()
+    {
+        assertFalse(onePerType().isEmpty());
+
+        SOCResourceSet rs = new SOCResourceSet();
+        assertTrue(rs.isEmpty());
+
+        rs.add(1, SOCResourceConstants.SHEEP);
+        assertFalse(rs.isEmpty());
+
+        rs.subtract(1, SOCResourceConstants.SHEEP);
+        assertTrue(rs.isEmpty());
+
+        // remove a resource, even though set is already empty
+        rs.subtract(1, SOCResourceConstants.SHEEP);
+        assertEquals(-1, rs.getAmount(SOCResourceConstants.UNKNOWN));
+        assertFalse(rs.isEmpty());  // since total UNKNOWN is -1
+    }
+
     @Test
     public void removeOneResource_removesOneResource()
     {
@@ -184,6 +208,7 @@ public class TestResourceSet
     {
         SOCResourceSet rs1 = onePerType();
         SOCResourceSet rs2 = onePerType();
+        assertTrue(rs1.equals(rs2));
         assertTrue(rs1.contains(rs2));
     }
 
@@ -192,6 +217,8 @@ public class TestResourceSet
     {
         SOCResourceSet rs1 = onePerType();
         SOCResourceSet rs2 = onePerType();
+        assertTrue(rs2.equals(rs1));
+
         rs2.subtract(1, Data.ResourceType.CLAY_VALUE);
         assertTrue(rs1.contains(rs2));
         assertFalse(rs2.contains(rs1));
@@ -212,6 +239,32 @@ public class TestResourceSet
         SOCResourceSet all = onePerType();
         SOCResourceSet copy = new SOCResourceSet(all);
         assertEquals(all, copy);
+        assertTrue(all.equals(copy));
+        assertTrue(copy.equals(all));
+    }
+
+    /**
+     * Test {@link SOCResourceSet#hashCode()}
+     * @since 2.4.10
+     */
+    @Test
+    public void testHashCode()
+    {
+        SOCResourceSet rs1 = new SOCResourceSet(1, 0, 2, 0, 3, 1);
+        SOCResourceSet rs2 = new SOCResourceSet(1, 0, 2, 0, 3, 1);
+        assertTrue(rs1.equals(rs2));
+        assertEquals(rs1.hashCode(), rs2.hashCode());
+
+        rs1.add(1, SOCResourceConstants.SHEEP);
+        assertFalse(rs1.equals(rs2));
+        assertNotEquals(rs1.hashCode(), rs2.hashCode());
+        rs2.add(1, SOCResourceConstants.SHEEP);
+        assertTrue(rs1.equals(rs2));
+        assertEquals(rs1.hashCode(), rs2.hashCode());
+
+        SOCResourceSet rsCopy = new SOCResourceSet(rs1);
+        assertTrue(rs1.equals(rs2));
+        assertEquals(rs1.hashCode(), rsCopy.hashCode());
     }
 
     /**

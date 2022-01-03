@@ -74,7 +74,17 @@ import soc.game.SOCResourceSet;
      */
     private ColorSquare[] give, get;
     boolean interactive;
+
+    /**
+     * True if any square's value != 0.
+     * @since 1.1.00
+     */
     boolean notAllZero;
+
+    /**
+     * HandPanel containing this SquaresPanel, or null.
+     * @since 1.1.00
+     */
     SOCHandPanel parentHand;
 
     /**
@@ -100,6 +110,7 @@ import soc.game.SOCResourceSet;
      * @param in Interactive, not read-only?  Can be changed later with {@link #setInteractive(boolean)}.
      * @param hand HandPanel containing this SquaresPanel
      * @param displayScale  For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * @since 1.1.00
      */
     public SquaresPanel(boolean in, SOCHandPanel hand, final int displayScale)
     {
@@ -298,7 +309,10 @@ import soc.game.SOCResourceSet;
         }
     }
 
-    /** Does any grid square contain a non-zero value? */
+    /**
+     * Does any grid square contain a non-zero value?
+     * @since 1.1.00
+     */
     public boolean containsNonZero()
     {
         return notAllZero;
@@ -309,6 +323,7 @@ import soc.game.SOCResourceSet;
      * could enable/disable its buttons based on new value.
      * If needed, also call {@link SOCHandPanel#sqPanelZerosChange(boolean)}
      * if {@link #parentHand} is set.
+     * @since 1.1.00
      */
     public void squareChanged(ColorSquare sq, int oldValue, int newValue)
     {

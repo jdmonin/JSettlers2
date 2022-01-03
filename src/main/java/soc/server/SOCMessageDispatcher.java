@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,9 @@ import soc.debug.D;
 import soc.game.SOCGame;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
+import soc.message.SOCMessageFromUnauthClient;
 import soc.message.SOCSitDown;
+import soc.message.SOCStatusMessage;
 import soc.server.genericServer.Connection;
 import soc.server.genericServer.Server;
 
@@ -127,6 +129,16 @@ import soc.server.genericServer.Server;
         try
         {
             // D.ebugPrintln(c.getData()+" - "+mes);
+
+            if (! ((mes instanceof SOCMessageFromUnauthClient) || (con.getData() != null)))
+            {
+                con.put(new SOCStatusMessage
+                    (SOCStatusMessage.statusFallbackForVersion
+                        (SOCStatusMessage.SV_MUST_AUTH_FIRST, con.getVersion()),
+                    "Must authenticate first"));  // I18N OK: won't encounter this in normal message flow
+
+                return;  // <--- Early return: Client must auth before sending that message type ---
+            }
 
             if (mes instanceof SOCMessageForGame)
             {

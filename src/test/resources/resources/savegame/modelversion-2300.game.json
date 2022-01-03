@@ -1,0 +1,563 @@
+{
+  "modelVersion": 2300,
+  "savedByVersion": 2300,
+  "gameMinVersion": 1108,
+  "gameName": "testmodel-2300-3h",
+  "comments": "game saved from model version 2300; 6-player board with 3 humans. Player inventories have same dev cards as classic-botturn.",
+  "gameOptions": "N7\u003df7,PLB\u003dt,RD\u003df,PL\u003d6,BC\u003dt4",
+  "gameDurationSeconds": 289,
+  "gameState": 20,
+  "oldGameState": 20,
+  "currentDice": 6,
+  "elements": {
+    "LONGEST_ROAD_PLAYER": -1,
+    "CURRENT_PLAYER": 5,
+    "FIRST_PLAYER": 3,
+    "LARGEST_ARMY_PLAYER": -1,
+    "ROUND_COUNT": 3
+  },
+  "devCardDeck": [
+    9,
+    3,
+    9,
+    4,
+    1,
+    9,
+    9,
+    5,
+    9,
+    9,
+    2,
+    9,
+    9,
+    2,
+    8,
+    1,
+    2,
+    9,
+    9,
+    9,
+    7,
+    3,
+    9,
+    3,
+    1,
+    9,
+    9,
+    9,
+    9,
+    6,
+    9,
+    9,
+    9,
+    9
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "boardInfo": {
+    "layout2": {
+      "game": "testmodel-2300-3h",
+      "boardEncodingFormat": 2,
+      "layoutParts": {
+        "PL": [
+          0,
+          5,
+          0,
+          1,
+          3,
+          0,
+          0,
+          0,
+          4,
+          3,
+          2
+        ],
+        "RH": 55,
+        "NL": [
+          3,
+          6,
+          10,
+          -1,
+          8,
+          5,
+          9,
+          11,
+          -1,
+          4,
+          9,
+          6,
+          4,
+          11,
+          -1,
+          2,
+          8,
+          12,
+          2,
+          5,
+          8,
+          -1,
+          5,
+          10,
+          3,
+          10,
+          9,
+          -1,
+          -1,
+          11,
+          12,
+          3,
+          -1,
+          4,
+          -1,
+          6,
+          -1
+        ],
+        "HL": [
+          3,
+          2,
+          5,
+          6,
+          2,
+          1,
+          4,
+          1,
+          6,
+          3,
+          1,
+          5,
+          3,
+          4,
+          6,
+          2,
+          3,
+          2,
+          2,
+          1,
+          3,
+          6,
+          5,
+          1,
+          5,
+          4,
+          5,
+          6,
+          0,
+          3,
+          4,
+          5,
+          6,
+          4,
+          0,
+          4,
+          6
+        ]
+      },
+      "messageType": 1084
+    },
+    "playerPotentials": [
+      {
+        "game": "testmodel-2300-3h",
+        "playerNumber": 0,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testmodel-2300-3h",
+        "playerNumber": 1,
+        "psNodes": [
+          35,
+          52
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testmodel-2300-3h",
+        "playerNumber": 2,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testmodel-2300-3h",
+        "playerNumber": 3,
+        "psNodes": [
+          52
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testmodel-2300-3h",
+        "playerNumber": 4,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testmodel-2300-3h",
+        "playerNumber": 5,
+        "psNodes": [
+          171
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeats": [
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "SETTLEMENTS": 5,
+        "CITIES": 4,
+        "NUMKNIGHTS": 0,
+        "ROADS": 15
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "p2",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 1,
+        "wood": 3
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "CITIES": 4,
+        "NUMKNIGHTS": 0,
+        "ROADS": 11
+      },
+      "resRollStats": [
+        0,
+        1,
+        0,
+        0,
+        1,
+        4,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": 1,
+          "coord": 105,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 105,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 1,
+          "coord": 67,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 50,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 34,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 35,
+          "specialVP": 0
+        }
+      ]
+    },
+    {
+      "name": "samplebot2",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "robot3rdPartyBrainClass": "soc.robot.sample3p.Sample3PClient",
+      "faceID": 0,
+      "resources": {
+        "clay": 1,
+        "ore": 2,
+        "sheep": 0,
+        "wheat": 3,
+        "wood": 1
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "CITIES": 4,
+        "NUMKNIGHTS": 0,
+        "ROADS": 13
+      },
+      "resRollStats": [
+        0,
+        1,
+        3,
+        0,
+        1,
+        2,
+        0
+      ],
+      "oldDevCards": [
+        9
+      ],
+      "newDevCards": [
+        2
+      ],
+      "pieces": [
+        {
+          "pieceType": 1,
+          "coord": 169,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 169,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 1,
+          "coord": 75,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 74,
+          "specialVP": 0
+        }
+      ]
+    },
+    {
+      "name": "p3",
+      "isSeatVacant": false,
+      "totalVP": 3,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 1,
+        "ore": 1,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 3
+      },
+      "elements": {
+        "SETTLEMENTS": 4,
+        "CITIES": 3,
+        "NUMKNIGHTS": 0,
+        "ROADS": 12
+      },
+      "resRollStats": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        3,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": 1,
+          "coord": 20,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 20,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 69,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 36,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 2,
+          "coord": 86,
+          "specialVP": 0
+        }
+      ]
+    },
+    {
+      "name": "robot 2",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 2,
+        "ore": 3,
+        "sheep": 0,
+        "wheat": 1,
+        "wood": 0
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "CITIES": 4,
+        "NUMKNIGHTS": 0,
+        "ROADS": 13
+      },
+      "resRollStats": [
+        0,
+        1,
+        3,
+        0,
+        1,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": 1,
+          "coord": 73,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 73,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 1,
+          "coord": 54,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 37,
+          "specialVP": 0
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 3,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 3,
+        "wood": 3
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "CITIES": 4,
+        "NUMKNIGHTS": 0,
+        "ROADS": 12
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        3,
+        3,
+        0
+      ],
+      "oldDevCards": [
+        2,
+        6
+      ],
+      "newDevCards": [
+        1
+      ],
+      "pieces": [
+        {
+          "pieceType": 1,
+          "coord": 203,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 186,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 1,
+          "coord": 199,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 182,
+          "specialVP": 0
+        },
+        {
+          "pieceType": 0,
+          "coord": 170,
+          "specialVP": 0
+        }
+      ]
+    }
+  ]
+}

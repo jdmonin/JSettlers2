@@ -307,11 +307,11 @@ public class TestI18NGameoptScenStrings
         if (pfull.charAt(0) != '/')
             pfull = '/' + pfull;  // we're in a separate package from SOCStringManager
         final URL u = SOCStringManager.class.getResource(pfull);
-        assertNotNull("Found " + pfull, u);
+        assertNotNull("Couldn't find " + pfull, u);
 
         final File uf = new File(u.getPath());
         final File dir = new File(uf.getParent());
-        assertTrue("Dir for " + pfull + " exists", dir.isDirectory());
+        assertTrue("Dir for " + pfull + " should exist", dir.isDirectory());
         String pname = uf.getName();
         assertTrue(pname.endsWith(".properties"));
         pname = pname.substring(0, pname.length() - ".properties".length());  // to use as prefix in loop
@@ -326,7 +326,7 @@ public class TestI18NGameoptScenStrings
         }
 
         assertTrue
-            ("All locales' gameopt and scenario descs have no unsendable characters: " + pfull, allOK);
+            ("All locales' gameopt and scenario descs should have no unsendable characters: " + pfull, allOK);
     }
 
     public static void main(String[] args)

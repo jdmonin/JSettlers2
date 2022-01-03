@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -82,6 +82,7 @@ import javax.swing.SwingConstants;
     /**
      * Has chosen to discard or gain this many resources so far in {@link #pick}.
      * {@link #okBut} is disabled unless proper number of resources ({@link #numPickNeeded}) are chosen.
+     * @since 1.1.00
      */
     private int numChosen;
 
@@ -99,7 +100,7 @@ import javax.swing.SwingConstants;
     {
         super(pi,
             strings.get
-                (isDiscard ? "dialog.discard.title" : "dialog.discard.title.gain", pi.getClient().getNickname()),
+                (isDiscard ? "dialog.discard.title" : "dialog.discard.title.gain", pi.getClientNickname()),
                  // "Discard [{0}]" or "Gain Resources [{0}]"
             strings.get((isDiscard) ? "dialog.discard.please.discard.n" : "dialog.discard.please.pick.n", numPickNeeded),
                  // "Please discard {0} resources." or "Please pick {0} resources.",
@@ -176,7 +177,7 @@ import javax.swing.SwingConstants;
 
         // set initial values
         final SOCResourceSet resources
-            = playerInterface.getGame().getPlayer(playerInterface.getClientPlayerNumber()).getResources();
+            = playerInterface.getClientPlayer().getResources();
         keep[0].setIntValue(resources.getAmount(Data.ResourceType.CLAY_VALUE));
         keep[1].setIntValue(resources.getAmount(Data.ResourceType.ORE_VALUE));
         keep[2].setIntValue(resources.getAmount(Data.ResourceType.SHEEP_VALUE));

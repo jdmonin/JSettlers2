@@ -1,0 +1,450 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2400,
+  "gameMinVersion": -1,
+  "gameName": "classic",
+  "comments": "At end of typical 3-player Classic game; bot won",
+  "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df",
+  "gameDurationSeconds": 471,
+  "gameState": 1000,
+  "currentDice": 11,
+  "elements": {
+    "ROUND_COUNT": 21,
+    "CURRENT_PLAYER": 2,
+    "LONGEST_ROAD_PLAYER": 2,
+    "FIRST_PLAYER": 1,
+    "LARGEST_ARMY_PLAYER": 1
+  },
+  "devCardDeck": [
+    "CHAPEL",
+    "KNIGHT",
+    "UNIV",
+    "MONO",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "MONO",
+    "CAP",
+    "ROADS",
+    "KNIGHT",
+    "DISC",
+    "TEMPLE",
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "boardInfo": {
+    "layout1": {
+      "game": "classic",
+      "hexLayout": [
+        50,
+        6,
+        65,
+        6,
+        6,
+        5,
+        3,
+        4,
+        10,
+        8,
+        2,
+        3,
+        1,
+        0,
+        6,
+        6,
+        1,
+        1,
+        4,
+        3,
+        4,
+        11,
+        8,
+        2,
+        5,
+        5,
+        2,
+        6,
+        6,
+        5,
+        3,
+        4,
+        100,
+        19,
+        6,
+        101,
+        6
+      ],
+      "numberLayout": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        4,
+        0,
+        -1,
+        -1,
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        7,
+        3,
+        8,
+        7,
+        3,
+        -1,
+        -1,
+        6,
+        4,
+        1,
+        5,
+        -1,
+        -1,
+        9,
+        8,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "robberHex": 185,
+      "messageType": 1014
+    },
+    "playerPotentials": [
+      {
+        "game": "classic",
+        "playerNumber": 0,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "classic",
+        "playerNumber": 1,
+        "psNodes": [
+          165
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "classic",
+        "playerNumber": 2,
+        "psNodes": [
+          39
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "classic",
+        "playerNumber": 3,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeats": [
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "NUMKNIGHTS": 0,
+        "SETTLEMENTS": 5,
+        "CITIES": 4,
+        "ROADS": 15
+      },
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "robot 4",
+      "isSeatVacant": false,
+      "totalVP": 8,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 1,
+        "wood": 0
+      },
+      "elements": {
+        "NUMKNIGHTS": 3,
+        "SETTLEMENTS": 1,
+        "CITIES": 3,
+        "ROADS": 4
+      },
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "ROAD",
+          "coord": 186
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 201
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 184
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 186
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 203
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 167
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 168
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 152
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 220
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 152
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 169
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 200
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 199
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 199
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 182
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 165
+        }
+      ]
+    },
+    {
+      "name": "robot 2",
+      "isSeatVacant": false,
+      "totalVP": 10,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "NUMKNIGHTS": 1,
+        "SETTLEMENTS": 5,
+        "CITIES": 0,
+        "ROADS": 4
+      },
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "ROAD",
+          "coord": 102
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 68
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 67
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 118
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 69
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 70
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 69
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 50
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 34
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 35
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 35
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 36
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 37
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 38
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 37
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 7,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 1,
+        "sheep": 2,
+        "wheat": 0,
+        "wood": 1
+      },
+      "elements": {
+        "NUMKNIGHTS": 1,
+        "SETTLEMENTS": 1,
+        "CITIES": 3,
+        "ROADS": 7
+      },
+      "oldDevCards": [
+        "MARKET"
+      ],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "ROAD",
+          "coord": 105
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 116
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 99
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 82
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 82
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 116
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 133
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 150
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 167
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 88
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 71
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 71
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 105
+        }
+      ]
+    }
+  ]
+}

@@ -66,7 +66,7 @@ import soc.util.IntTriple;
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
  * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
  * During board setup, {@link #makeNewBoard(Map)} calls
- * {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, int, SOCGameOption, String, Map)}
+ * {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, boolean, int, SOCGameOption, String, Map)}
  * once for each land area.  In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
@@ -80,6 +80,9 @@ import soc.util.IntTriple;
  *<P>
  * A good example is SC_PIRI "Pirate Islands"; see commits 57073cb, f9623e5, and 112e289,
  * or search this class for the string SC_PIRI.
+ *<P>
+ * If you need to move your board layout's coordinates by a few rows or columns,
+ * utility script {@code /src/tools/coords-shift.py} might be helpful.
  *
  * <H4>Parts of the new board's layout:</H4>
  *<UL>
@@ -100,16 +103,29 @@ import soc.util.IntTriple;
  *<P>
  * Some fields and methods were moved here from other classes, so you may see "@since 1.1.08" or other
  * versions older than this class.
+ *<P>
+ * If the new board's scenario game options always disallow moving the pirate ship, add the scenario
+ * to {@code soctest.game.TestBoardLayouts.testLayout_movePirateCoastal}'s skip list.
  *
  * <H4>Layout placement rules for special situations:</H4>
  *<UL>
  * <LI><B>If player shouldn't build on an island</B> (like scenario SC_CLVI):<BR>
  *   Don't place that island's hexes in a Land Area: Use LA # 0 when calling
  *   {@code makeNewBoard_placeHexes(..)}.
+ * <LI>Nodes on hexes having LA # 0 (no land area) aren't legal for settlement placement,
+ *   and the client will ignore them when generating the legal road edges between legal settlement nodes.
+ *   So, hexes in LA 0 may be more difficult to build roads across.
  * <LI><B>If an island has more than one Land Area</B> (like scenario SC_TTD):<BR>
- *   Separate those areas with a 1-hex-wide border zone of land hex types having no Land Area.
+ *   After placing non-adjacent areas' hexes on the island, place a 1-hex-wide border zone of land hexes
+ *   which either have no land area (LA 0), or use the {@code nodesAreInfill} parameter of
+ *   {@code makeNewBoard_placeHexes(..)}. See above for caveat about LA 0.
+ *   <BR>
  *   This is because the Land Areas are tracked by their hexes' nodes, not by the hex coordinates
  *   themselves, and a node can't be in multiple LAs.
+ *   <BR>
+ *   The client won't notice an "overshared" node that's in multiple LAs, to avoid being too picky and thus brittle,
+ *   but server unit test {@link soctest.game.TestBoardLayouts} will fail layouts having such node inconsistencies
+ *   in 2.3.00 and newer.
  * <LI><B>Fog-hidden hexes contain some Water</B> (like scenario SC_FOG):<BR>
  *   Such hexes can't be part of the Initial Placement Land Area(s), for settlement placement
  *   reasons and because of assumptions in the code that generates Legal Edges. However, the
@@ -117,7 +133,7 @@ import soc.util.IntTriple;
  *   <P>
  *   During board generation, fog hexes are treated as land hexes: To prevent leaking information
  *   about what kind of hex is under the fog, all their corners are legal settlement nodes
- *   until revealed as water. For more info, see {@link #makeNewBoard_hideHexesInFog(int[])} javadoc.
+ *   until revealed as water. For more info, see {@link #makeNewBoard_hideHexesInFog(int[], boolean)} javadoc.
  *   <P>
  *   While testing: Make sure to reveal a non-coastal water hex that removes edge(s) from the
  *   set of legal roads, and confirm that set's still accurate at client after leaving/rejoining the game.
@@ -400,7 +416,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 landAreasLegalNodes = new HashSet[5];
                 makeNewBoard_placeHexes
                     (FOUR_ISL_LANDHEX_TYPE_3PL, FOUR_ISL_LANDHEX_COORD_3PL, false, FOUR_ISL_DICENUM_3PL, true, true,
-                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_3PL, false, maxPl, opt_breakClumps, scen, opts);
+                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_3PL, false, false, maxPl, opt_breakClumps, scen, opts);
                 PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_3PL;
                 PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_3PL;
                 setRobberHex(FOUR_ISL_ROBBER_HEX[0], false);
@@ -411,7 +427,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 landAreasLegalNodes = new HashSet[5];
                 makeNewBoard_placeHexes
                     (FOUR_ISL_LANDHEX_TYPE_4PL, FOUR_ISL_LANDHEX_COORD_4PL, false, FOUR_ISL_DICENUM_4PL, true, true,
-                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_4PL, false, maxPl, opt_breakClumps, scen, opts);
+                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_4PL, false, false, maxPl, opt_breakClumps, scen, opts);
                 PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_4PL;
                 PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_4PL;
                 setRobberHex(FOUR_ISL_ROBBER_HEX[1], false);
@@ -421,7 +437,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 landAreasLegalNodes = new HashSet[7];
                 makeNewBoard_placeHexes
                     (FOUR_ISL_LANDHEX_TYPE_6PL, FOUR_ISL_LANDHEX_COORD_6PL, false, FOUR_ISL_DICENUM_6PL, true, true,
-                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_6PL, false, maxPl, opt_breakClumps, scen, opts);
+                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_6PL, false, false, maxPl, opt_breakClumps, scen, opts);
                 PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_6PL;
                 PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_6PL;
                 // robber not initially placed
@@ -438,9 +454,14 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
             // Land Area count varies by number of players;
             // 2 + number of small islands.  Array length has + 1 for unused landAreasLegalNodes[0].
-            landAreasLegalNodes = new HashSet[1 + 2 + (TTDESERT_LANDHEX_RANGES_SMALL[idx].length / 2)];
+            landAreasLegalNodes = new HashSet[1 + 3 + (TTDESERT_LANDHEX_RANGES_SMALL[idx].length / 2)];
 
-            // - Desert strip (not part of any landarea)
+            // - Main island (landarea 1, 2)
+            makeNewBoard_placeHexes
+                (TTDESERT_LANDHEX_TYPE_MAIN[idx], TTDESERT_LANDHEX_COORD_MAIN[idx], false, TTDESERT_DICENUM_MAIN[idx],
+                 true, true, TTDESERT_LANDHEX_RANGES_MAIN[idx], false, false, maxPl, opt_breakClumps, scen, opts);
+
+            // - Desert strip (LA 3; infill)
             {
                 final int[] desertLandHexCoords = TTDESERT_LANDHEX_COORD_DESERT[idx];
                 final int[] desertDiceNum = new int[desertLandHexCoords.length];  // all 0
@@ -449,18 +470,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
                 makeNewBoard_placeHexes
                     (desertLandhexType, desertLandHexCoords, true, desertDiceNum,
-                     false, false, 0, false, maxPl, null, scen, opts);
+                     false, false, 3, false, true, maxPl, null, scen, opts);
             }
 
-            // - Main island (landarea 1 and 2)
-            makeNewBoard_placeHexes
-                (TTDESERT_LANDHEX_TYPE_MAIN[idx], TTDESERT_LANDHEX_COORD_MAIN[idx], false, TTDESERT_DICENUM_MAIN[idx],
-                 true, true, TTDESERT_LANDHEX_RANGES_MAIN[idx], false, maxPl, opt_breakClumps, scen, opts);
-
-            // - Small islands (LA 3 to n)
+            // - Small islands (LA 4 to n)
             makeNewBoard_placeHexes
                 (TTDESERT_LANDHEX_TYPE_SMALL[idx], TTDESERT_LANDHEX_COORD_SMALL[idx], false, TTDESERT_DICENUM_SMALL[idx],
-                 true, true, TTDESERT_LANDHEX_RANGES_SMALL[idx], false, maxPl, null, scen, opts);
+                 true, true, TTDESERT_LANDHEX_RANGES_SMALL[idx], false, false, maxPl, null, scen, opts);
 
             pirateHex = TTDESERT_PIRATE_HEX[idx];
 
@@ -478,13 +494,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
             // - Large starting island
             makeNewBoard_placeHexes
                 (PIR_ISL_LANDHEX_TYPE_MAIN[idx], PIR_ISL_LANDHEX_COORD_MAIN[idx], false, PIR_ISL_DICENUM_MAIN[idx],
-                 false, false, 1, false, maxPl, opt_breakClumps, scen, opts);
+                 false, false, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
             // - Pirate islands
             //  (LA # 0: Player can't place there except at their Lone Settlement coordinate within "LS".)
             makeNewBoard_placeHexes
                 (PIR_ISL_LANDHEX_TYPE_PIRI[idx], PIR_ISL_LANDHEX_COORD_PIRI[idx], false, PIR_ISL_DICENUM_PIRI[idx],
-                 false, false, 0, false, maxPl, opt_breakClumps, scen, opts);
+                 false, false, 0, false, false, maxPl, opt_breakClumps, scen, opts);
 
             pirateHex = PIR_ISL_PIRATE_HEX[idx];
 
@@ -504,13 +520,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
             // - Larger main island
             makeNewBoard_placeHexes
                 (FOR_TRI_LANDHEX_TYPE_MAIN[idx], FOR_TRI_LANDHEX_COORD_MAIN[idx], false, FOR_TRI_DICENUM_MAIN[idx],
-                 true, true, 1, false, maxPl, opt_breakClumps, scen, opts);
+                 true, true, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
             // - Small outlying islands for tribe
             //  (LA # 0; Player can't place there)
             makeNewBoard_placeHexes
                 (FOR_TRI_LANDHEX_TYPE_ISL[idx], FOR_TRI_LANDHEX_COORD_ISL[idx], true, null,
-                 false, false, 0, false, maxPl, null, scen, opts);
+                 false, false, 0, false, false, maxPl, null, scen, opts);
 
             pirateHex = FOR_TRI_PIRATE_HEX[idx];
 
@@ -546,13 +562,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
             // - Larger main islands
             makeNewBoard_placeHexes
                 (CLVI_LANDHEX_TYPE_MAIN[idx], CLVI_LANDHEX_COORD_MAIN[idx], false, CLVI_DICENUM_MAIN[idx],
-                 true, true, 1, false, maxPl, opt_breakClumps, scen, opts);
+                 true, true, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
             // - Small middle islands for villages
             //  (LA # 0; Players can't place there)
             makeNewBoard_placeHexes
                 (CLVI_LANDHEX_TYPE_ISL[idx], CLVI_LANDHEX_COORD_ISL[idx], false, null,
-                 false, false, 0, false, maxPl, null, scen, opts);
+                 false, false, 0, false, false, maxPl, null, scen, opts);
 
             setRobberHex(CLVI_ROBBER_HEX[idx], false);
             pirateHex = CLVI_PIRATE_HEX[idx];
@@ -588,19 +604,19 @@ public class SOCBoardAtServer extends SOCBoardLarge
             // - Large main island
             makeNewBoard_placeHexes
                 (WOND_LANDHEX_TYPE_MAIN[idx], WOND_LANDHEX_COORD_MAIN[idx], false, WOND_DICENUM_MAIN[idx],
-                 true, true, 1, false, maxPl, opt_breakClumps, scen, opts);
+                 true, true, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
             // - Desert on main island (not shuffled with other hexes)
             int[] desert = new int[WOND_LANDHEX_COORD_DESERT[idx].length];
             Arrays.fill(desert, DESERT_HEX);
             makeNewBoard_placeHexes
                 (desert, WOND_LANDHEX_COORD_DESERT[idx], true, null,
-                 false, false, 1, true, maxPl, null, scen, opts);
+                 false, false, 1, true, false, maxPl, null, scen, opts);
 
             // - Small outlying islands (LA #2)
             makeNewBoard_placeHexes
                 (WOND_LANDHEX_TYPE_ISL[idx], WOND_LANDHEX_COORD_ISL[idx], false, WOND_DICENUM_ISL[idx],
-                 false, false, 2, false, maxPl, null, scen, opts);
+                 false, false, 2, false, false, maxPl, null, scen, opts);
 
             pirateHex = 0;
 
@@ -627,12 +643,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 // - East and West islands:
                 makeNewBoard_placeHexes
                     (FOG_ISL_LANDHEX_TYPE_MAIN_3PL, FOG_ISL_LANDHEX_COORD_MAIN_3PL, false, FOG_ISL_DICENUM_MAIN_3PL,
-                     true, true, 1, false, maxPl, opt_breakClumps, scen, opts);
+                     true, true, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
                 // - "Fog Island" in the middle:
                 makeNewBoard_placeHexes
                     (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_3PL, false, FOG_ISL_DICENUM_FOG_3PL,
-                     true, true, 2, false, maxPl, null, scen, opts);
+                     true, true, 2, false, false, maxPl, null, scen, opts);
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_3PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_3PL;
@@ -643,12 +659,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 // - East and West islands:
                 makeNewBoard_placeHexes
                     (FOG_ISL_LANDHEX_TYPE_MAIN_4PL, FOG_ISL_LANDHEX_COORD_MAIN_4PL, false, FOG_ISL_DICENUM_MAIN_4PL,
-                     true, true, 1, false, maxPl, opt_breakClumps, scen, opts);
+                     true, true, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
                 // - "Fog Island" in the middle:
                 makeNewBoard_placeHexes
                     (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_4PL, false, FOG_ISL_DICENUM_FOG_4PL,
-                     true, true, 2, false, maxPl, null, scen, opts);
+                     true, true, 2, false, false, maxPl, null, scen, opts);
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_4PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_4PL;
@@ -659,17 +675,18 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 // - Northern main island:
                 makeNewBoard_placeHexes
                     (FOG_ISL_LANDHEX_TYPE_MAIN_6PL, FOG_ISL_LANDHEX_COORD_MAIN_6PL, true, FOG_ISL_DICENUM_MAIN_6PL,
-                     true, true, 1, false, maxPl, opt_breakClumps, scen, opts);
-
-                // - "Fog Island" in an arc from southwest to southeast:
-                makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_FOG_6PL, FOG_ISL_LANDHEX_COORD_FOG_6PL, false, FOG_ISL_DICENUM_FOG_6PL,
-                     true, true, 2, false, maxPl, opt_breakClumps, scen, opts);
+                     true, true, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
                 // - Gold Corners in southwest, southeast
                 makeNewBoard_placeHexes
                     (FOG_ISL_LANDHEX_TYPE_GC, FOG_ISL_LANDHEX_COORD_GC, false, FOG_ISL_DICENUM_GC,
-                     false, false, 3, false, maxPl, null, scen, opts);
+                     false, false, 3, false, false, maxPl, null, scen, opts);
+
+                // - "Fog Island" in an arc from southwest to southeast:
+                //   infill where touching Gold Corners
+                makeNewBoard_placeHexes
+                    (FOG_ISL_LANDHEX_TYPE_FOG_6PL, FOG_ISL_LANDHEX_COORD_FOG_6PL, false, FOG_ISL_DICENUM_FOG_6PL,
+                     true, true, 2, false, true, maxPl, opt_breakClumps, scen, opts);
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_6PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_6PL;
@@ -698,12 +715,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
             //     3pl starts on a certain hex, 6pl apparently starts with none
             makeNewBoard_placeHexes
                 (NSHO_LANDHEX_TYPE_MAIN[idx], NSHO_LANDHEX_COORD_MAIN[idx], (maxPl == 4), NSHO_DICENUM_MAIN[idx],
-                 (maxPl < 4), true, 1, false, maxPl, opt_breakClumps, scen, opts);
+                 (maxPl < 4), true, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
             // - Outlying islands:
             makeNewBoard_placeHexes
                 (NSHO_LANDHEX_TYPE_ISL[idx], NSHO_LANDHEX_COORD_ISL[idx], false, NSHO_DICENUM_ISL[idx],
-                 true, true, NSHO_LANDHEX_LANDAREA_RANGES[idx], false, maxPl, null, scen, opts);
+                 true, true, NSHO_LANDHEX_LANDAREA_RANGES[idx], false, false, maxPl, null, scen, opts);
 
             if (maxPl < 4)
                 setRobberHex(NSHO_ROBBER_HEX_3PL, false);
@@ -734,7 +751,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                      (maxPl > 4) ? LANDHEX_DICEPATH_MAINLAND_6PL : LANDHEX_DICEPATH_MAINLAND_4PL,
                      true,
                      CLASSIC_DICENUM[idx],
-                     false, true, 1, false, maxPl, opt_breakClumps, scen, opts);
+                     false, true, 1, false, false, maxPl, opt_breakClumps, scen, opts);
 
                 // - Outlying islands:
                 makeNewBoard_placeHexes
@@ -744,7 +761,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                      (maxPl > 4) ? LANDHEX_DICENUM_ISLANDS_6PL : LANDHEX_DICENUM_ISLANDS_4PL,
                      true, true,
                      (maxPl > 4) ? LANDHEX_LANDAREA_RANGES_ISLANDS_6PL : LANDHEX_LANDAREA_RANGES_ISLANDS_4PL,
-                     false, maxPl, null, scen, opts);
+                     false, false, maxPl, null, scen, opts);
 
                 PORT_LOC_FACING_ISLANDS = (maxPl > 4) ? PORT_EDGE_FACING_ISLANDS_6PL : PORT_EDGE_FACING_ISLANDS_4PL;
                 PORTS_TYPES_ISLANDS = (maxPl > 4) ? PORT_TYPE_ISLANDS_6PL : PORT_TYPE_ISLANDS_4PL;
@@ -758,7 +775,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                      CLASSIC_LANDHEX_COORD[idx],
                      true,
                      CLASSIC_DICENUM[idx],
-                     false, true, 0, false, maxPl, opt_breakClumps, scen, opts);
+                     false, true, 0, false, false, maxPl, opt_breakClumps, scen, opts);
 
                 PORT_LOC_FACING_ISLANDS = null;
                 PORTS_TYPES_ISLANDS = null;
@@ -792,7 +809,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
             final int[] FOGHEXES = (maxPl == 6)
                 ? FOG_ISL_LANDHEX_COORD_FOG_6PL
                 : ((maxPl < 4) ? FOG_ISL_LANDHEX_COORD_FOG_3PL : FOG_ISL_LANDHEX_COORD_FOG_4PL);
-            makeNewBoard_hideHexesInFog(FOGHEXES);
+            makeNewBoard_hideHexesInFog(FOGHEXES, (maxPl == 6));
         } else if (null != System.getProperty(PROP_JSETTLERS_DEBUG_BOARD_FOG)) {
             // Select n random hexes (20% of landHexLayout):
             // Knuth, "The Art of Computer Programming" Vol 2 Seminumerical Algorithms, Algorithm 3.4.2 S
@@ -814,7 +831,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 d -= 1;
             }
 
-            makeNewBoard_hideHexesInFog(hideCoord);
+            makeNewBoard_hideHexesInFog(hideCoord, false);
         }
 
         if ((PORTS_TYPES_MAINLAND == null) && (PORTS_TYPES_ISLANDS == null))
@@ -932,8 +949,6 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * (for land hex resource types).
      * If <tt>landAreaNumber</tt> != 0, also adds to {@link #landAreasLegalNodes}.
      *<P>
-     * Called from {@link #makeNewBoard(Map)} at server only; client has its board layout sent from the server.
-     *<P>
      * For the board layout geometry, see the {@link SOCBoardLarge} class javadoc's "Coordinate System" section.
      *<P>
      * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
@@ -971,6 +986,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *                    contents should be added to it.  Ignored if {@code landAreaNumber == 0}.
      *                    Otherwise this should always be {@code false}, to avoid typos and cut-and-paste
      *                    errors with Land Area numbers.
+     * @param nodesAreInfill  If true, these hexes and nodes are "infill" adjacent to already-placed ones.
+     *               If any nodes here are already part of a Land Area, will not add those nodes to this LA
+     *               in {@link #landAreasLegalNodes}. Ignored if land area number == 0.
      * @param maxPl  For scenario boards, use 3-player or 4-player or 6-player layout?
      *               Always tests maxPl for ==6 or &lt; 4; actual value may be 6, 4, 3, or 2.
      * @param optBC  Optional game option "BC" from the options for this board, or <tt>null</tt> if should not
@@ -987,19 +1005,19 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * @throws IllegalArgumentException  if <tt>landHexType</tt> contains {@link #FOG_HEX}, <BR>
      *             or if <tt>landHexType.length != landPath.length</tt>, <BR>
      *             or if <tt>number</tt> contains a negative value
-     * @see #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int[], boolean, int, SOCGameOption, String, Map)
+     * @see #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int[], boolean, boolean, int, SOCGameOption, String, Map)
      */
     private final void makeNewBoard_placeHexes
         (int[] landHexType, final int[] landPath, final boolean placeRobberDesert,
          final int[] number, final boolean shuffleDiceNumbers, final boolean shuffleLandHexes,
-         final int landAreaNumber, final boolean addToExistingLA,
+         final int landAreaNumber, final boolean addToExistingLA, final boolean nodesAreInfill,
          final int maxPl, final SOCGameOption optBC, final String scen, final Map<String, SOCGameOption> opts)
         throws IllegalStateException, IllegalArgumentException
     {
         final int[] pathRanges = { landAreaNumber, landPath.length };  // 1 range, uses all of landPath
         makeNewBoard_placeHexes
             (landHexType, landPath, placeRobberDesert, number, shuffleDiceNumbers, shuffleLandHexes,
-             pathRanges, addToExistingLA, maxPl, optBC, scen, opts);
+             pathRanges, addToExistingLA, nodesAreInfill, maxPl, optBC, scen, opts);
     }
 
     /**
@@ -1064,6 +1082,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *                    contents should be added to it.  Ignored if land area number == 0.
      *                    Otherwise this should always be {@code false}, to avoid typos and cut-and-paste
      *                    errors with Land Area numbers.
+     * @param nodesAreInfill  If true, these hexes and nodes are "infill" adjacent to already-placed ones.
+     *               If any nodes here are already part of a Land Area, will not add those nodes to this LA
+     *               in {@link #landAreasLegalNodes}. Ignored if land area number == 0.
      * @param maxPl  For scenario boards, use 3-player or 4-player or 6-player layout?
      *               Always tests maxPl for ==6 or &lt; 4; actual value may be 6, 4, 3, or 2.
      * @param optBC  Optional game option "BC" from the options for this board, or <tt>null</tt> if should not
@@ -1084,12 +1105,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *             or if <tt>number</tt> contains a negative value, <BR>
      *             or if {@link SOCBoard#makeNewBoard_checkLandHexResourceClumps(List, int)}
      *                 finds an invalid or uninitialized hex coordinate (hex type -1)
-     * @see #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, int, SOCGameOption, String, Map)
+     * @see #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, boolean, int, SOCGameOption, String, Map)
      */
     private final void makeNewBoard_placeHexes
         (final int[] landHexType, final int[] landPath, final boolean placeRobberDesert,
          int[] number, final boolean shuffleDiceNumbers,
-         final boolean shuffleLandHexes, final int[] landAreaPathRanges, final boolean addToExistingLA,
+         final boolean shuffleLandHexes, final int[] landAreaPathRanges,
+         final boolean addToExistingLA, final boolean nodesAreInfill,
          final int maxPl, final SOCGameOption optBC, final String scen,
          final Map<String, SOCGameOption> opts)
         throws IllegalStateException, IllegalArgumentException
@@ -1287,7 +1309,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                       landAreaLength = landAreaPathRanges[i + 1],
                       nextHexIdx = hexIdx + landAreaLength;
             makeNewBoard_fillNodesOnLandFromHexes
-                (landPath, hexIdx, nextHexIdx, landAreaNumber, addToExistingLA);
+                (landPath, hexIdx, nextHexIdx, landAreaNumber, addToExistingLA, nodesAreInfill);
             hexIdx = nextHexIdx;
         }
 
@@ -1306,7 +1328,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * @param hexCoords  All hex coordinates being shuffled; includes gold hexes and non-gold hexes, may include water
      * @param landAreaPathRanges  <tt>landPath[]</tt>'s Land Area Numbers, and the size of each land area;
      *     see this parameter's javadoc at
-     *     {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int[], boolean, int, SOCGameOption, String, Map)}.
+     *     {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int[], boolean, boolean, int, SOCGameOption, String, Map)}.
      * @param scen  Game scenario, such as {@link SOCScenario#K_SC_TTD}, or "";
      *              some scenarios might want special distribution of certain hex types or dice numbers.
      */
@@ -2404,7 +2426,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Calculate the board's legal settlement/city nodes, based on land hexes.
      * All corners of these hexes are legal for settlements/cities.
      * Called from
-     * {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int[], boolean, int, SOCGameOption, String, Map)}.
+     * {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int[], boolean, boolean, int, SOCGameOption, String, Map)}.
      * Can use all or part of a <tt>landHexCoords</tt> array.
      *<P>
      * Iterative: Can call multiple times, giving different hexes each time.
@@ -2430,6 +2452,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * @param addToExistingLA  True if {@code landAreaNumber} already has hexes and nodes, and {@code landHexCoords[]}
      *                    contents should be added to it.  Ignored if {@code landAreaNumber == 0}.
      *                    Otherwise this should always be {@code false}.
+     * @param nodesAreInfill  If true, these hexes and nodes are "infill" adjacent to already-placed ones.
+     *              If any nodes here are already part of a Land Area, will not add those nodes to this LA
+     *              in {@link #landAreasLegalNodes}. Ignored if land area number == 0.
      * @see SOCBoardLarge#initLegalRoadsFromLandNodes()
      * @see SOCBoardLarge#initLegalShipEdges()
      * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
@@ -2438,7 +2463,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private void makeNewBoard_fillNodesOnLandFromHexes
         (final int landHexCoords[], final int startIdx, final int pastEndIdx,
-         final int landAreaNumber, final boolean addToExistingLA)
+         final int landAreaNumber, final boolean addToExistingLA, final boolean nodesAreInfill)
         throws IllegalStateException
     {
         if (landAreaNumber != 0)
@@ -2464,10 +2489,16 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
             for (Integer ni : getAdjacentNodesToHex(hex))
             {
-                nodesOnLand.add(ni);
                 if (landAreaNumber != 0)
+                {
+                    if (nodesAreInfill && nodesOnLand.contains(ni))
+                        continue;
+
                     landAreasLegalNodes[landAreaNumber].add(ni);
                         // it's ok to add ni even if set already contains an Integer equal to it
+                }
+
+                nodesOnLand.add(ni);
             }
         }
 
@@ -2477,7 +2508,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * For {@link #makeNewBoard(Map)}, remove some nodes from legal/potential initial placement
      * locations.  Does not remove from {@link SOCBoard#nodesOnLand nodesOnLand}.
      * Used in some scenarios ({@link SOCScenario#K_SC_WOND SC_WOND}) after the last call to
-     * {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, int, SOCGameOption, String, Map)}.
+     * {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, boolean, int, SOCGameOption, String, Map)}.
      *<P>
      * To re-add nodes after initial placement, call {@link SOCBoardLarge#addLegalNodes(int[], int)}.
      * This is done automatically by {@link SOCGame#updateAtGameFirstTurn()} if the nodes are
@@ -2555,10 +2586,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * before the board layout is made and sent to the client.
      *
      * @param hexCoords  Coordinates of each hex to hide in the fog. Any elements with value 0 are ignored.
+     * @param nodesAreInfill  If true, these hexes and nodes are "infill" adjacent to already-placed ones.
+     *            If any hex's nodes here are already part of a Land Area, will not add those nodes to another LA
+     *            in {@link #landAreasLegalNodes}.
      * @throws IllegalStateException  if any hexCoord is already {@link #FOG_HEX} within {@link #hexLayoutLg}
      * @see #revealFogHiddenHexPrep(int)
      */
-    protected void makeNewBoard_hideHexesInFog(final int[] hexCoords)
+    protected void makeNewBoard_hideHexesInFog(final int[] hexCoords, final boolean nodesAreInfill)
         throws IllegalStateException
     {
         final boolean debugHalfAreGold =
@@ -2587,7 +2621,6 @@ public class SOCBoardAtServer extends SOCBoardLarge
                 legalRoadEdges.addAll(getAdjacentEdgesToHex(hexCoord));
 
                 final List<Integer> cornerNodes = getAdjacentNodesToHex(hexCoord);
-                nodesOnLand.addAll(cornerNodes);
                 if (landAreasLegalNodes != null)
                 {
                     // We don't store hexes' Land Area numbers, but one of its corners is
@@ -2600,9 +2633,25 @@ public class SOCBoardAtServer extends SOCBoardLarge
                         if (lan != 0)
                             break;
                     }
+
                     if ((lan != 0) && (landAreasLegalNodes[lan] != null))
-                        landAreasLegalNodes[lan].addAll(cornerNodes);
+                    {
+                        if (! nodesAreInfill)
+                        {
+                            landAreasLegalNodes[lan].addAll(cornerNodes);
+                        } else {
+                            for (final Integer nodeInt : cornerNodes)
+                            {
+                                if (nodesOnLand.contains(nodeInt) || (0 != getNodeLandArea(nodeInt)))
+                                    continue;
+
+                                landAreasLegalNodes[lan].add(nodeInt);
+                            }
+                        }
+                    }
                 }
+
+                nodesOnLand.addAll(cornerNodes);
             }
         }
 
@@ -2698,14 +2747,14 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * Given max players and scenario from {@code gameOpts},
-     * get this board's Visual Shift amount if any (layout part "VS").
+     * get this board's Visual Shift and Trim amount if any (layout part "VS").
      * Determined at board creation, does not vary based on the specific layout details
      * randomly generated later at {@link SOCGame#startGame()}.
      *<P>
      * See {@link SOCBoardLarge#getAddedLayoutPart(String)} javadoc for details on "VS".
      * @param gameOpts  Game options, or null.
      *     Looks for {@code "PL"} for max players and {@code "SC"} for scenario name key.
-     * @return array with vsDown, vsRight, or {@code null}
+     * @return array with [vsDown, vsRight] or [vsDown, vsRight, trimBottom, trimRight], or {@code null}
      * @see #getBoardSize(Map, int)
      */
     private static int[] getBoardShift
@@ -2756,11 +2805,11 @@ public class SOCBoardAtServer extends SOCBoardLarge
         else if (scen.equals(SOCScenario.K_SC_NSHO))
             boardVS = NSHO_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_4ISL))
-            return FOUR_ISL_VIS_SHIFT;
+            boardVS = FOUR_ISL_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_PIRI))
             return PIR_ISL_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_TTD))
-            return TTDESERT_VIS_SHIFT;
+            boardVS = TTDESERT_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_FTRI))
             boardVS = FOR_TRI_VIS_SHIFT;
         else if (scen.equals(SOCScenario.K_SC_CLVI))
@@ -3077,18 +3126,19 @@ public class SOCBoardAtServer extends SOCBoardLarge
     //
 
     /**
-     * Fallback sea board layout board size:
-     * 4 players max 0x11, 0x13.
-     * 6 players max 0x13, 0x13.
+     * Fallback sea board layout board size, including margins to place pirate,
+     * encoded as 0xRRCC for convenience:
+     * 4 players max 0x14 rows, 0x15 columns.
+     * 6 players max 0x16 rows, 0x17 cols.
      *<P>
-     * {@link SOCBoardLarge}'s default size is slightly larger:<BR>
+     * {@link SOCBoardLarge}'s default size is slightly different: 0x10 rows, 0x12 columns:<BR>
      * {@link SOCBoardLarge#BOARDHEIGHT_LARGE BOARDHEIGHT_LARGE} by
      * {@link SOCBoardLarge#BOARDWIDTH_LARGE BOARDWIDTH_LARGE}.
      */
-    private static final int FALLBACK_BOARDSIZE[] = { 0x1113, 0x1313 };
+    private static final int FALLBACK_BOARDSIZE[] = { 0x1415, 0x1617 };
 
-    /** Fallback sea board layout: Visual Shift ("VS") */
-    private static final int FALLBACK_VIS_SHIFT[][] = { {2,1}, {2,2} };
+    /** Fallback sea board layout: Visual Shift and Trim ("VS") */
+    private static final int FALLBACK_VIS_SHIFT[][] = {{-2,1, 3,0}, {-2,0, 2,0}};
 
     /**
      * Fallback sea board layout for 4 players: Main island's ports, clockwise from its northwest.
@@ -3099,7 +3149,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Port Facing is the direction from the port edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      *<P>
-     * Calculated from {@link #CLASSIC_PORT_EDGE_FACING}[0] shifted up 2 rows right 1 column.
+     * Calculated from {@link #CLASSIC_PORT_EDGE_FACING}[0] shifted right 2 columns.
      */
     private static final int PORT_EDGE_FACING_MAINLAND_4PL[];
     static
@@ -3109,7 +3159,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
         int[] lh = new int[L];
         for (int i = 0; i < L; )
         {
-            lh[i] = PEF[i] - 0x0200 + 0x01;  // edge coord
+            lh[i] = PEF[i] + 0x02;  // edge coord
             ++i;
             lh[i] = PEF[i];  // facing
             ++i;
@@ -3125,9 +3175,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int PORT_EDGE_FACING_ISLANDS_4PL[] =
     {
-        0x060E, FACING_NW,   // - northeast island
-        0x0A0F, FACING_SW,  0x0E0C, FACING_NW,        // - southeast island
-        0x0E06, FACING_SE    // - southwest island
+        0x080F, FACING_NW,   // - northeast island
+        0x0C10, FACING_SW,  0x100D, FACING_NW,        // - southeast island
+        0x1007, FACING_SE    // - southwest island
     };
 
     /**
@@ -3143,7 +3193,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Fallback sea board layout for 4 players: Dice-number path (hex coordinates)
      * on the main island, spiraling inward from the shore.
      * The outlying islands have no dice path.
-     * Calculated from {@link #CLASSIC_LANDHEX_COORDS}[0] shifted up 2 rows right 1 column.
+     * Calculated from {@link #CLASSIC_LANDHEX_COORDS}[0] shifted right 2 columns.
      * For the mainland's dice numbers, see {@link #CLASSIC_DICENUM}[0].
      */
    private static final int LANDHEX_DICEPATH_MAINLAND_4PL[];
@@ -3153,7 +3203,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
        final int L = DP.length;
        int[] lh = new int[L];
        for (int i = 0; i < L; ++i)
-           lh[i] = DP[i] - 0x0200 + 0x01;
+           lh[i] = DP[i] + 0x02;
        LANDHEX_DICEPATH_MAINLAND_4PL = lh;
    };
 
@@ -3168,9 +3218,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int LANDHEX_COORD_ISLANDS_ALL_4PL[] =
     {
-        0x010E, 0x030D, 0x030F, 0x050E, 0x0510,
-        0x0B0D, 0x0B0F, 0x0B11, 0x0D0C, 0x0D0E,
-        0x0D02, 0x0D04, 0x0F05, 0x0F07
+        0x030F, 0x050E, 0x0510, 0x070F, 0x0711,
+        0x0D0E, 0x0D10, 0x0D12, 0x0F0D, 0x0F0F,
+        0x0F03, 0x0F05, 0x1106, 0x1108
     };
 
     /**
@@ -3181,9 +3231,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
     @SuppressWarnings("unused")  // TODO is this field useful to keep for reference?
     private static final int LANDHEX_COORD_ISLANDS_EACH[][] =
     {
-        { 0x010E, 0x030D, 0x030F, 0x050E, 0x0510 },
-        { 0x0B0D, 0x0B0F, 0x0B11, 0x0D0C, 0x0D0E },
-        { 0x0D02, 0x0D04, 0x0F05, 0x0F07 }
+        { 0x030F, 0x050E, 0x0510, 0x070F, 0x0711 },
+        { 0x0D0E, 0x0D10, 0x0D12, 0x0F0D, 0x0F0F },
+        { 0x0F03, 0x0F05, 0x1106, 0x1108 }
     };
 
     /**
@@ -3226,7 +3276,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Fallback sea board layout for 6 players: Dice-number path (hex coordinates)
      * on the main island, spiraling inward from the shore.
      * The outlying islands have no dice path.
-     * Calculated from {@link #CLASSIC_LANDHEX_COORD}[1] shifted up 2 rows left 1 column.
+     * Calculated from {@link #CLASSIC_LANDHEX_COORD}[1] shifted right 2 columns.
      * For the mainland's dice numbers, see {@link #CLASSIC_DICENUM}[1].
      */
     private static final int LANDHEX_DICEPATH_MAINLAND_6PL[];
@@ -3236,7 +3286,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
         final int L = DP.length;
         int[] lh = new int[L];
         for (int i = 0; i < L; ++i)
-            lh[i] = DP[i] - 0x0201;
+            lh[i] = DP[i] + 0x02;
         LANDHEX_DICEPATH_MAINLAND_6PL = lh;
     };
 
@@ -3249,7 +3299,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Port Facing is the direction from the port edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      *<P>
-     * Calculated from {@link #CLASSIC_PORT_EDGE_FACING}[1] shifted up 2 rows left 1 column.
+     * Calculated from {@link #CLASSIC_PORT_EDGE_FACING}[1] shifted right 2 columns.
      */
     private static final int PORT_EDGE_FACING_MAINLAND_6PL[];
     static
@@ -3259,7 +3309,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
         int[] lh = new int[L];
         for (int i = 0; i < L; )
         {
-            lh[i] = PEF[i] - 0x0201;  // edge coord
+            lh[i] = PEF[i] + 0x02;  // edge coord
             ++i;
             lh[i] = PEF[i];  // facing
             ++i;
@@ -3277,9 +3327,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int LANDHEX_COORD_ISLANDS_ALL_6PL[] =
     {
-        0x010E, 0x0110, 0x030D, 0x030F, 0x0311, 0x050E, 0x0510, 0x0711,
-        0x0B0D, 0x0B0F, 0x0B11, 0x0D0C, 0x0D0E, 0x0D10, 0x0F0F, 0x0F11,
-        0x1102, 0x1104, 0x1106, 0x1108, 0x110A
+        0x0311, 0x0313, 0x0510, 0x0512, 0x0514, 0x0711, 0x0713, 0x0914,
+        0x0D10, 0x0D12, 0x0D14, 0x0F0F, 0x0F11, 0x0F13, 0x1112, 0x1114,
+        0x1305, 0x1307, 0x1309, 0x130B, 0x130D
     };
 
     /**
@@ -3325,9 +3375,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int PORT_EDGE_FACING_ISLANDS_6PL[] =
     {
-        0x060F, FACING_NE,  0x010D, FACING_E,    // - northeast island
-        0x0A0F, FACING_SW,  0x0E0D, FACING_NE,   // - southeast island
-        0x1006, FACING_SW    // - southwest island
+        0x0812, FACING_NE,  0x0310, FACING_E,    // - northeast island
+        0x0C12, FACING_SW,  0x1010, FACING_NE,   // - southeast island
+        0x1209, FACING_SW    // - southwest island
     };
 
     /**
@@ -3351,23 +3401,23 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * New Shores: Board size:
-     * 3 players max row 0x0E, max col 0x0E.
-     * 4 players max 0x0E, 0x10.
-     * 6 players max 0x0E, 0x14.
+     * 3 players max row 0x12, max col 0x0F
+     * 4 players max (0x12, 0x11).
+     * 6 players max (0x12, 0x16).
      */
-    private static final int NSHO_BOARDSIZE[] = { 0x0E0E, 0x0E10, 0x0E14 };
+    private static final int NSHO_BOARDSIZE[] = { 0x120F, 0x1211, 0x1216 };
 
-    /** New Shores: Visual Shift ("VS") */
-    private static final int NSHO_VIS_SHIFT[][] = { {0,1}, {0,1}, {3,0} };
+    /** New Shores: Visual Shift and Trim ("VS") */
+    private static final int NSHO_VIS_SHIFT[][] = {{-2,0, 1,0}, {-2,1}, {-1,0}};
 
     /** New Shores: Starting robber hex (needed on 3-player board only) */
-    private static final int NSHO_ROBBER_HEX_3PL = 0x104;
+    private static final int NSHO_ROBBER_HEX_3PL = 0x0305;
 
     /**
      * New Shores: Starting pirate water hex coordinate for 3, 4, 6 players.
      * The 6-player layout starts with the pirate off the board.
      */
-    private static final int NSHO_PIRATE_HEX[] = { 0x070D, 0x070F, 0 };
+    private static final int NSHO_PIRATE_HEX[] = { 0x090E, 0x0910, 0 };
 
     /** New Shores: Land hex types for the main island. Shuffled. */
     private static final int NSHO_LANDHEX_TYPE_MAIN[][] =
@@ -3390,22 +3440,22 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int NSHO_LANDHEX_COORD_MAIN[][] =
     {{
         // 3 players: clockwise from west (dice numbers are shuffled)
-        0x0902, 0x0703, 0x0504, 0x0506, 0x0707,
-        0x0908, 0x0B07, 0x0D06, 0x0D04, 0x0B03,
-        0x0904, 0x0705, 0x0906, 0x0B05
+        0x0B03, 0x0904, 0x0705, 0x0707, 0x0908,
+        0x0B09, 0x0D08, 0x0F07, 0x0F05, 0x0D04,
+        0x0B05, 0x0906, 0x0B07, 0x0D06
     }, {
         // 4 players: clockwise from northwest (dice path)
-        0x0504, 0x0506, 0x0508, 0x0709, 0x090A,
-        0x0B09, 0x0D08, 0x0D06, 0x0D04, 0x0B03,
-        0x0902, 0x0703, 0x0705, 0x0707, 0x0908,
-        0x0B07, 0x0B05, 0x0904, 0x0906
+        0x0705, 0x0707, 0x0709, 0x090A, 0x0B0B,
+        0x0D0A, 0x0F09, 0x0F07, 0x0F05, 0x0D04,
+        0x0B03, 0x0904, 0x0906, 0x0908, 0x0B09,
+        0x0D08, 0x0D06, 0x0B05, 0x0B07
     }, {
         // 6 players: clockwise from west (dice path)
-        0x0705, 0x0506, 0x0307, 0x0108, 0x010A, 0x010C, 0x030D,
-        0x050E, 0x070F, 0x090E, 0x0B0D, 0x0D0C, 0x0D0A, 0x0D08,
-        0x0B07, 0x0906, 0x0707, 0x0508, 0x0309, 0x030B, 0x050C,
-        0x070D, 0x090C, 0x0B0B, 0x0B09, 0x0908, 0x0709, 0x050A,
-        0x070B, 0x090A
+        0x0906, 0x0707, 0x0508, 0x0309, 0x030B, 0x030D, 0x050E,
+        0x070F, 0x0910, 0x0B0F, 0x0D0E, 0x0F0D, 0x0F0B, 0x0F09,
+        0x0D08, 0x0B07, 0x0908, 0x0709, 0x050A, 0x050C, 0x070D,
+        0x090E, 0x0B0D, 0x0D0C, 0x0D0A, 0x0B09, 0x090A, 0x070B,
+        0x090C, 0x0B0B
     }};
 
     /**
@@ -3433,16 +3483,16 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int NSHO_PORT_EDGE_FACING[][] =
     {{
-        0x0503, FACING_E,   0x0507, FACING_W,   0x0808, FACING_SW,  0x0D07, FACING_W,
-        0x0E05, FACING_NE,  0x0D03, FACING_E,   0x0A01, FACING_NE,  0x0801, FACING_SE
+        0x0704, FACING_E,   0x0708, FACING_W,   0x0A09, FACING_SW,  0x0F08, FACING_W,
+        0x1006, FACING_NE,  0x0F04, FACING_E,   0x0C02, FACING_NE,  0x0A02, FACING_SE
     }, {
-        0x0403, FACING_SE,  0x0406, FACING_SW,  0x0609, FACING_SW,  0x090B, FACING_W,
-        0x0C09, FACING_NW,  0x0E06, FACING_NW,  0x0E03, FACING_NE,  0x0B02, FACING_E,
-        0x0702, FACING_E
+        0x0604, FACING_SE,  0x0607, FACING_SW,  0x080A, FACING_SW,  0x0B0C, FACING_W,
+        0x0E0A, FACING_NW,  0x1007, FACING_NW,  0x1004, FACING_NE,  0x0D03, FACING_E,
+        0x0903, FACING_E
     }, {
-        0x000A, FACING_SW,  0x020D, FACING_SW,  0x050F, FACING_W,   0x080F, FACING_NW,
-        0x0B0E, FACING_W,   0x0E0C, FACING_NW,  0x0E09, FACING_NE,  0x0C06, FACING_NE,
-        0x0804, FACING_NE,  0x0505, FACING_E,   0x0206, FACING_SE
+        0x020B, FACING_SW,  0x040E, FACING_SW,  0x0710, FACING_W,   0x0A10, FACING_NW,
+        0x0D0F, FACING_W,   0x100D, FACING_NW,  0x100A, FACING_NE,  0x0E07, FACING_NE,
+        0x0A05, FACING_NE,  0x0706, FACING_E,   0x0407, FACING_SE
     }};
 
     /** New Shores: Port types on main island; will be shuffled. */
@@ -3493,17 +3543,17 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int NSHO_LANDHEX_COORD_ISL[][] =
     {{
-        0x0104, 0x0106,
-        0x0309, 0x030B, 0x050A, 0x070B,
-        0x0B0B, 0x0D0A
+        0x0305, 0x0307,
+        0x050A, 0x050C, 0x070B, 0x090C,
+        0x0D0C, 0x0F0B
     }, {
-        0x0104, 0x0106,
-        0x010A, 0x030B, 0x030D, 0x050C, 0x070D,
-        0x0B0D, 0x0D0C
+        0x0305, 0x0307,
+        0x030B, 0x050C, 0x050E, 0x070D, 0x090E,
+        0x0D0E, 0x0F0D
     }, {
-        0x0104, 0x0303, 0x0502,
-        0x0902, 0x0B03, 0x0D04,
-        0x0110,   0x0512,   0x0912,   0x0D10
+        0x0305, 0x0504, 0x0703,
+        0x0B03, 0x0D04, 0x0F05,
+        0x0311,   0x0713,   0x0B13,   0x0F11
     }};
 
     /**
@@ -3523,32 +3573,32 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     ////////////////////////////////////////////
     //
-    // Fog Island scenario Layout
+    // Fog Island scenario Layout (_SC_FOG)
     //   Has 3-player, 4-player, 6-player versions;
     //   FOG_ISL_LANDHEX_TYPE_FOG[] is shared between 3p and 4p.
     //
 
     /**
      * Fog Island: Board size:
-     * 3 or 4 players max row 0x10, max col 0x11.
-     * 6 players max row 0x10, max col 0x14.
+     * 3 or 4 players max row 0x12, max col 0x12.
+     * 6 players max row 0x12, max col 0x18.
      */
-    private static final int FOG_ISL_BOARDSIZE[] = { 0x1011, 0x1014 };
+    private static final int FOG_ISL_BOARDSIZE[] = { 0x1212, 0x1218 };
 
-    /** Fog Island: Visual Shift ("VS") */
-    private static final int FOG_ISL_VIS_SHIFT[][] = { {0,2}, {2,1}, {-1,0} };
+    /** Fog Island: Visual Shift and Trim ("VS") */
+    private static final int FOG_ISL_VIS_SHIFT[][] = {{-3,1, 2,0}, {-2,0, 1,0}, {-1,0, 1,2}};
 
     /**
      * Fog Island: Starting robber hex coordinate for 3, 4 players.
      * The 6-player layout doesn't specify a starting location, so robber starts on any desert hex.
      */
-    private static final int FOG_ISL_ROBBER_HEX[] = { 0x10a, 0x902 };
+    private static final int FOG_ISL_ROBBER_HEX[] = { 0x030B, 0x0B03 };
 
     /**
      * Fog Island: Pirate ship's starting hex coordinate for 3,4,6 players.
      * The 4-player board has the pirate start at a port hex, which looks cluttered.
      */
-    private static final int FOG_ISL_PIRATE_HEX[] = { 0x070f, 0x070f, 0x0910 };
+    private static final int FOG_ISL_PIRATE_HEX[] = { 0x0910, 0x0910, 0x0912 };
 
     //
     // 3-player
@@ -3570,11 +3620,11 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOG_ISL_LANDHEX_COORD_MAIN_3PL[] =
     {
-        // Southwest island: 7 hexes centered on rows 7, 9, b, d, columns 2-6
-        0x0703, 0x0902, 0x0904, 0x0B03, 0x0B05, 0x0D04, 0x0D06,
+        // Southwest island: 7 hexes centered on rows 9, b, d, f, columns 3-7
+        0x0904, 0x0B03, 0x0B05, 0x0D04, 0x0D06, 0x0F05, 0x0F07,
 
-        // Northeast island: 7 hexes centered on rows 1, 3, 5, 7, columns 9-d
-        0x010A, 0x0309, 0x030B, 0x050A, 0x050C, 0x070B, 0x070D
+        // Northeast island: 7 hexes centered on rows 3, 5, 7, 9, columns a-e
+        0x030B, 0x050A, 0x050C, 0x070B, 0x070D, 0x090C, 0x090E
     };
 
     /**
@@ -3598,12 +3648,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOG_ISL_PORT_EDGE_FACING_3PL[] =
     {
         // Southwest island: 4 ports; placing counterclockwise from northwest end
-        0x0702, FACING_E,   0x0A01, FACING_NE,
-        0x0D03, FACING_E,   0x0E05, FACING_NE,
+        0x0903, FACING_E,   0x0C02, FACING_NE,
+        0x0F04, FACING_E,   0x1006, FACING_NE,
 
         // Northeast island: 4 ports; placing counterclockwise from southeast end
-        0x060D, FACING_SW,  0x040C, FACING_SW,
-        0x010B, FACING_W,   0x0208, FACING_SE
+        0x080E, FACING_SW,  0x060D, FACING_SW,
+        0x030C, FACING_W,   0x0409, FACING_SE
     };
 
     /**
@@ -3641,9 +3691,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
         // Fog island: 12 hexes, from northwest to southeast;
         // the main part of the fog island is a diagonal line
         // of hexes from (1, 4) to (D, A).
-        0x0104, 0x0106, 0x0303,
-        0x0305, 0x0506, 0x0707, 0x0908, 0x0B09, 0x0D0A,
-        0x0B0B, 0x0B0D, 0x0D0C
+        0x0305, 0x0307, 0x0504,
+        0x0506, 0x0707, 0x0908, 0x0B09, 0x0D0A, 0x0F0B,
+        0x0D0C, 0x0D0E, 0x0F0D
     };
 
     /**
@@ -3677,11 +3727,11 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOG_ISL_LANDHEX_COORD_MAIN_4PL[] =
     {
-        // Southwest island: 10 hexes centered on rows 5-d, columns 2-8
-        0x0502, 0x0703, 0x0902, 0x0904, 0x0B03, 0x0B05, 0x0B07, 0x0D04, 0x0D06,0x0D08,
+        // Southwest island: 10 hexes centered on rows 7-f, columns 3-9
+        0x0703, 0x0904, 0x0B03, 0x0B05, 0x0D04, 0x0D06, 0x0D08, 0x0F05, 0x0F07,0x0F09,
 
-        // Northeast island: 7 hexes centered on rows 1-7, columns a-e
-        0x010A, 0x010C, 0x030B, 0x030D, 0x050C, 0x050E, 0x070D
+        // Northeast island: 7 hexes centered on rows 3-9, columns b-f
+        0x030B, 0x030D, 0x050C, 0x050E, 0x070D, 0x070F, 0x090E
     };
 
     /**
@@ -3705,12 +3755,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOG_ISL_PORT_EDGE_FACING_4PL[] =
     {
         // Southwest island: 5 ports; placing counterclockwise from northern end
-        0x0601, FACING_NE,  0x0A01, FACING_NE,  0x0D03, FACING_E,
-        0x0E04, FACING_NW,  0x0E07, FACING_NE,
+        0x0802, FACING_NE,  0x0C02, FACING_NE,  0x0F04, FACING_E,
+        0x1005, FACING_NW,  0x1008, FACING_NE,
 
         // Northeast island: 4 ports; placing counterclockwise from southeast end
-        0x070E, FACING_W,   0x040E, FACING_SW,
-        0x010D, FACING_W,   0x000B, FACING_SE
+        0x090F, FACING_W,   0x060F, FACING_SW,
+        0x030E, FACING_W,   0x020C, FACING_SE
     };
 
     /**
@@ -3734,10 +3784,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
     {
         // Fog island: 12 hexes, from northwest to southeast;
         // the main part of the fog island is a diagonal line
-        // of hexes from (1, 6) to (D, C).
-        0x0104, 0x0305, 0x0506, 0x0707,
-        0x0106, 0x0307, 0x0508, 0x0709, 0x090A, 0x0B0B, 0x0D0C,
-        0x0B0D
+        // of hexes from (3, 7) to (F, D).
+        0x0305, 0x0506, 0x0707, 0x0908,
+        0x0307, 0x0508, 0x0709, 0x090A, 0x0B0B, 0x0D0C, 0x0F0D,
+        0x0D0E
     };
 
     /**
@@ -3773,11 +3823,11 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOG_ISL_LANDHEX_COORD_MAIN_6PL[] =
     {
-        // 24 hexes centered on rows 3-9, columns 3-0x11 (northmost row is 8 hexes across)
-        0x0303, 0x0305, 0x0307, 0x0309, 0x030B, 0x030D, 0x030F, 0x0311,
-        0x0504, 0x0506, 0x0508, 0x050A, 0x050C, 0x050E, 0x0510,
-        0x0705, 0x0707, 0x0709, 0x070B, 0x070D, 0x070F,
-        0x0908, 0x090A, 0x090C
+        // 24 hexes centered on rows 3-9, columns 5-0x13 (northmost row is 8 hexes across)
+        0x0305, 0x0307, 0x0309, 0x030B, 0x030D, 0x030F, 0x0311, 0x0313,
+        0x0506, 0x0508, 0x050A, 0x050C, 0x050E, 0x0510, 0x0512,
+        0x0707, 0x0709, 0x070B, 0x070D, 0x070F, 0x0711,
+        0x090A, 0x090C, 0x090E
     };
 
     /**
@@ -3803,9 +3853,9 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOG_ISL_PORT_EDGE_FACING_6PL[] =
     {
         // 9 ports; placing counterclockwise from northwest end
-        0x0503, FACING_E,   0x0806, FACING_NE,  0x0A0A, FACING_NW,
-        0x080D, FACING_NW,  0x0511, FACING_W,   0x0210, FACING_SE,
-        0x020B, FACING_SW,  0x0206, FACING_SE,  0x0203, FACING_SW
+        0x0505, FACING_E,   0x0808, FACING_NE,  0x0A0C, FACING_NW,
+        0x080F, FACING_NW,  0x0513, FACING_W,   0x0212, FACING_SE,
+        0x020D, FACING_SW,  0x0208, FACING_SE,  0x0205, FACING_SW
     };
 
     /**
@@ -3839,12 +3889,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOG_ISL_LANDHEX_COORD_FOG_6PL[] =
     {
         // Fog island: 25 hexes, in a wide arc from southwest to southeast.
-        // The westernmost hex is centered at column 1, easternmost at 0x13.
+        // The westernmost hex is centered at column 3, easternmost at 0x15.
         // The 2 thick rows along the south are row D and F.
-        0x0701, 0x0713, 0x0902, 0x0912,
-        0x0B01, 0x0B03, 0x0B05, 0x0B0F, 0x0B11, 0x0B13,
-        0x0D02, 0x0D04, 0x0D06, 0x0D08, 0x0D0A, 0x0D0C, 0x0D0E, 0x0D10, 0x0D12,
-        0x0F05, 0x0F07, 0x0F09, 0x0F0B, 0x0F0D, 0x0F0F
+        0x0703, 0x0715, 0x0904, 0x0914,
+        0x0B03, 0x0B05, 0x0B07, 0x0B11, 0x0B13, 0x0B15,
+        0x0D04, 0x0D06, 0x0D08, 0x0D0A, 0x0D0C, 0x0D0E, 0x0D10, 0x0D12, 0x0D14,
+        0x0F07, 0x0F09, 0x0F0B, 0x0F0D, 0x0F0F, 0x0F11
     };
 
     /**
@@ -3870,7 +3920,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOG_ISL_LANDHEX_COORD_GC[] =
     {
-        0x0F03, 0x0F11
+        0x0F05, 0x0F13
     };
 
     /**
@@ -3890,22 +3940,22 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * Four Islands: Board size:
-     * 3 or 4 players max row 0x0f, max col 0x0e.
-     * 6 players max row 0x10, max col 0x14.
+     * 3 or 4 players max row 0x12, max col 0x10.
+     * 6 players max row 0x12, max col 0x16.
      */
-    private static final int FOUR_ISL_BOARDSIZE[] = { 0x0f0e, 0x1014 };
+    private static final int FOUR_ISL_BOARDSIZE[] = { 0x1210, 0x1216 };
 
-    /** Four Islands: Visual Shift ("VS"), same for all player counts */
-    private static final int FOUR_ISL_VIS_SHIFT[] = {3, 0};
+    /** Four Islands: Visual Shift and Trim ("VS") */
+    private static final int FOUR_ISL_VIS_SHIFT[][] = {{-3,0, 3,6}, {-3,0, 3,6},  {-2,0, 2,2}};
 
     /**
      * Four Islands: Starting robber hex coordinate for 3, 4 players.
      * The 6-player layout starts with the robber off the board.
      */
-    private static final int FOUR_ISL_ROBBER_HEX[] = { 0xd04, 0x309 };
+    private static final int FOUR_ISL_ROBBER_HEX[] = { 0x0F05, 0x050A };
 
     /** Four Islands: Pirate ship's starting hex coordinate for 3,4,6 players */
-    private static final int FOUR_ISL_PIRATE_HEX[] = { 0x0707, 0x070d, 0x0701 };
+    private static final int FOUR_ISL_PIRATE_HEX[] = { 0x0908, 0x090E, 0x0902 };
 
     //
     // 3-player
@@ -3930,17 +3980,17 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOUR_ISL_LANDHEX_COORD_3PL[] =
     {
-        // Northwest island: 4 hexes centered on rows 3,5, columns 2-5
-        0x0303, 0x0305, 0x0502, 0x0504,
+        // Northwest island: 4 hexes centered on rows 5,7, columns 3-6
+        0x0504, 0x0506, 0x0703, 0x0705,
 
-        // Southwest island: 6 hexes centered on rows 9,b,d, columns 2-6
-        0x0902, 0x0904, 0x0906, 0x0B03, 0x0B05, 0x0D04,
+        // Southwest island: 6 hexes centered on rows b,d,f, columns 3-7
+        0x0B03, 0x0B05, 0x0B07, 0x0D04, 0x0D06, 0x0F05,
 
-        // Northeast island: 6 hexes centered on rows 1,3,5, columns 8-b
-        0x0108, 0x010A, 0x0309, 0x030B, 0x0508, 0x050A,
+        // Northeast island: 6 hexes centered on rows 3,5,7, columns 9-c
+        0x0309, 0x030B, 0x050A, 0x050C, 0x0709, 0x070B,
 
-        // Southeast island: 4 hexes centered on rows 9,b, columns 9-c
-        0x090A, 0x090C, 0x0B09, 0x0B0B
+        // Southeast island: 4 hexes centered on rows b,d, columns a-d
+        0x0B0B, 0x0B0D, 0x0D0A, 0x0D0C
     };
 
     /**
@@ -3976,10 +4026,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOUR_ISL_PORT_EDGE_FACING_3PL[] =
     {
-        0x0401, FACING_SE,  0x0405, FACING_NW, // Northwest island
-        0x0802, FACING_SW,  0x0A01, FACING_NE,  0x0C05, FACING_NW,  // SW island
-        0x020B, FACING_SW,  0x0609, FACING_NE, // NE island
-        0x0A08, FACING_SE,  0x0A0C, FACING_NW  // SE island
+        0x0602, FACING_SE,  0x0606, FACING_NW, // Northwest island
+        0x0A03, FACING_SW,  0x0C02, FACING_NE,  0x0E06, FACING_NW,  // SW island
+        0x040C, FACING_SW,  0x080A, FACING_NE, // NE island
+        0x0C09, FACING_SE,  0x0C0D, FACING_NW  // SE island
     };
 
     /**
@@ -4015,17 +4065,17 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOUR_ISL_LANDHEX_COORD_4PL[] =
     {
-        // Northwest island: 4 hexes centered on rows 1,3,5, columns 2-4
-        0x0104, 0x0303, 0x0502, 0x0504,
+        // Northwest island: 4 hexes centered on rows 3,5,7, columns 3-5
+        0x0305, 0x0504, 0x0703, 0x0705,
 
-        // Southwest island: 7 hexes centered on rows 9,b,d, columns 2-7
-        0x0902, 0x0904, 0x0B03, 0x0B05, 0x0B07, 0x0D04, 0x0D06,
+        // Southwest island: 7 hexes centered on rows b,d,f, columns 3-8
+        0x0B03, 0x0B05, 0x0D04, 0x0D06, 0x0D08, 0x0F05, 0x0F07,
 
-        // Northeast island: 8 hexes centered on rows 1,3,5, columns 7-b, outlier at (7,7)
-        0x0108, 0x010A, 0x0307, 0x0309, 0x030B, 0x0508, 0x050A, 0x0707,
+        // Northeast island: 8 hexes centered on rows 3,5,7, columns 8-c, outlier at (9,8)
+        0x0309, 0x030B, 0x0508, 0x050A, 0x050C, 0x0709, 0x070B, 0x0908,
 
-        // Southeast island: 4 hexes centered on rows 9,b,d, columns a-c
-        0x090A, 0x090C, 0x0B0B, 0x0D0A
+        // Southeast island: 4 hexes centered on rows b,d,f, columns b-d
+        0x0B0B, 0x0B0D, 0x0D0C, 0x0F0B
     };
 
     /**
@@ -4058,10 +4108,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOUR_ISL_PORT_EDGE_FACING_4PL[] =
     {
-        0x0302, FACING_E,   0x0602, FACING_NW,
-        0x0A01, FACING_NE,  0x0A05, FACING_SW,  0x0D03, FACING_E,
-        0x0606, FACING_SE,  0x040B, FACING_NW,
-        0x080B, FACING_SE,  0x0A0C, FACING_NW
+        0x0503, FACING_E,   0x0803, FACING_NW,
+        0x0C02, FACING_NE,  0x0C06, FACING_SW,  0x0F04, FACING_E,
+        0x0807, FACING_SE,  0x060C, FACING_NW,
+        0x0A0C, FACING_SE,  0x0C0D, FACING_NW
     };
 
     /**
@@ -4097,27 +4147,27 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOUR_ISL_LANDHEX_COORD_6PL[] =
     {
-        // All 3 Northern islands are centered on rows 1,3,5.
+        // All 3 Northern islands are centered on rows 3,5,7.
 
-        // Northwest island: 6 hexes centered on columns 2-6
-        0x0104, 0x0106, 0x0303, 0x0305, 0x0502, 0x0504,
+        // Northwest island: 6 hexes centered on columns 3-7
+        0x0305, 0x0307, 0x0504, 0x0506, 0x0703, 0x0705,
 
-        // Center North island: 5 hexes  on columns 8-b
-        0x010A, 0x0309, 0x030B, 0x0508, 0x050A,
+        // Center North island: 5 hexes  on columns 9-c
+        0x030B, 0x050A, 0x050C, 0x0709, 0x070B,
 
-        // Northeast island: 5 hexes  on columns e-0x11
-        0x010E, 0x0110, 0x030F, 0x0311, 0x0510,
+        // Northeast island: 5 hexes  on columns f-0x12
+        0x030F, 0x0311, 0x0510, 0x0512, 0x0711,
 
-        // All 3 Southern islands are centered on rows 9,b,d.
+        // All 3 Southern islands are centered on rows b,d,f.
 
-        // Southwest island: 5 hexes centered on columns 3-6
-        0x0904, 0x0B03, 0x0B05, 0x0D04, 0x0D06,
+        // Southwest island: 5 hexes centered on columns 4-7
+        0x0B05, 0x0D04, 0x0D06, 0x0F05, 0x0F07,
 
-        // Center South island: 5 hexes on columns 9-c
-        0x090A, 0x090C, 0x0B09, 0x0B0B, 0x0D0A,
+        // Center South island: 5 hexes on columns a-d
+        0x0B0B, 0x0B0D, 0x0D0A, 0x0D0C, 0x0F0B,
 
-        // Southeast island: 6 hexes on columns e-0x12
-        0x0910, 0x0912, 0x0B0F, 0x0B11, 0x0D0E, 0x0D10
+        // Southeast island: 6 hexes on columns f-0x13
+        0x0B11, 0x0B13, 0x0D10, 0x0D12, 0x0F0F, 0x0F11
     };
 
     /**
@@ -4154,12 +4204,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOUR_ISL_PORT_EDGE_FACING_6PL[] =
     {
         // 1 row here per island, same order as hexes
-        0x0005, FACING_SE,  0x0405, FACING_NW,  0x0603, FACING_NE,
-        0x000A, FACING_SW,
-        0x0010, FACING_SW,  0x040E, FACING_NE,
-        0x0B02, FACING_E,   0x0C06, FACING_SW,
-        0x0C08, FACING_NE,
-        0x0B12, FACING_W,   0x0E0D, FACING_NE
+        0x0206, FACING_SE,  0x0606, FACING_NW,  0x0804, FACING_NE,
+        0x020B, FACING_SW,
+        0x0211, FACING_SW,  0x060F, FACING_NE,
+        0x0D03, FACING_E,   0x0E07, FACING_SW,
+        0x0E09, FACING_NE,
+        0x0D13, FACING_W,   0x100E, FACING_NE
     };
 
     /**
@@ -4183,7 +4233,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
     //   at a coordinate within PIR_ISL_INIT_PIECES.
     //
 
-    /** Pirate Islands: Visual Shift ("VS"), same for all player counts */
+    /** Pirate Islands: Visual Shift and Trim ("VS"), same for all player counts */
     private static final int PIR_ISL_VIS_SHIFT[] = {3, -1};
 
     /**
@@ -4418,15 +4468,15 @@ public class SOCBoardAtServer extends SOCBoardLarge
     /**
      * Through The Desert: Board size for 3, 4, 6 players: Each is 0xrrcc (max row, max col).
      */
-    private static final int TTDESERT_BOARDSIZE[] = { 0x100E, 0x1011, 0x1016 };
+    private static final int TTDESERT_BOARDSIZE[] = { 0x120F, 0x1212, 0x1218 };
 
-    /** Through The Desert: Visual Shift ("VS"), same for all player counts */
-    private static final int TTDESERT_VIS_SHIFT[] = {0, 1};
+    /** Through The Desert: Visual Shift and Trim ("VS") */
+    private static final int TTDESERT_VIS_SHIFT[][] = {{-2,0, 1,0}, {-2,0, 1,2}, {-2,0, 1,2}};
 
     /**
      * Through The Desert: Starting pirate water hex coordinate for 3, 4, 6 players.
      */
-    private static final int TTDESERT_PIRATE_HEX[] = { 0x070D, 0x070F, 0x0D10 };
+    private static final int TTDESERT_PIRATE_HEX[] = { 0x090E, 0x0910, 0x0F11 };
 
     /**
      * Through The Desert: Land hex types for the main island (land areas 1, 2). These will be shuffled.
@@ -4475,29 +4525,29 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int TTDESERT_LANDHEX_COORD_MAIN[][] =
     {{
-        // 3-player: 14 hexes; 6 rows, hex centers on columns 2-8
-        0x0307, 0x0506, 0x0508, 0x0705, 0x0707,
-        0x0902, 0x0904, 0x0906, 0x0908,
-        0x0B03, 0x0B05, 0x0B07, 0x0D04, 0x0D06,
+        // 3-player: 14 hexes; 6 rows, hex centers on columns 3-9
+        0x0508, 0x0707, 0x0709, 0x0906, 0x0908,
+        0x0B03, 0x0B05, 0x0B07, 0x0B09,
+        0x0D04, 0x0D06, 0x0D08, 0x0F05, 0x0F07,
         // Past the desert: 3 more:
-        0x0104, 0x0303, 0x0502
+        0x0305, 0x0504, 0x0703
     }, {
-        // 4-player: 17 hexes; 7 rows, columns 2-A
-        0x0108, 0x0307, 0x0309,
-        0x0506, 0x0508, 0x050A,
-        0x0705, 0x0707, 0x0709,
-        0x0902, 0x0904, 0x0906, 0x0908,
-        0x0B03, 0x0B05, 0x0B07, 0x0D06,
+        // 4-player: 17 hexes; 7 rows, columns 3-B
+        0x0309, 0x0508, 0x050A,
+        0x0707, 0x0709, 0x070B,
+        0x0906, 0x0908, 0x090A,
+        0x0B03, 0x0B05, 0x0B07, 0x0B09,
+        0x0D04, 0x0D06, 0x0D08, 0x0F07,
         // Past the desert: 3 more:
-        0x0104, 0x0303, 0x0502
+        0x0305, 0x0504, 0x0703
     }, {
-        // 6-player: 21 hexes; 5 rows, columns 2-F
-        0x0508, 0x050A, 0x050C, 0x050E,
-        0x0703, 0x0705, 0x0707, 0x0709, 0x070B, 0x070D, 0x070F,
-        0x0902, 0x0904, 0x0906, 0x0908, 0x090A, 0x090C, 0x090E,
-        0x0B03, 0x0B05, 0x0D04,
+        // 6-player: 21 hexes; 5 rows, columns 3-0x10
+        0x0709, 0x070B, 0x070D, 0x070F,
+        0x0904, 0x0906, 0x0908, 0x090A, 0x090C, 0x090E, 0x0910,
+        0x0B03, 0x0B05, 0x0B07, 0x0B09, 0x0B0B, 0x0B0D, 0x0B0F,
+        0x0D04, 0x0D06, 0x0F05,
         // Past the desert: 9 more:
-        0x0305, 0x0303, 0x0104, 0x0106, 0x0108, /* 1-hex gap, */ 0x010C, 0x010E, 0x0110, 0x0112
+        0x0506, 0x0504, 0x0305, 0x0307, 0x0309, /* 1-hex gap, */ 0x030D, 0x030F, 0x0311, 0x0313
     }};
 
     /**
@@ -4529,9 +4579,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * @see #TTDESERT_LANDHEX_COORD_MAIN
      */
     private static final int TTDESERT_LANDHEX_COORD_DESERT[][] =
-    {{ 0x0106, 0x0305, 0x0504 },  // 3-player
-     { 0x0106, 0x0305, 0x0504 },  // 4-player same as 3-player
-     { 0x0307, 0x0309, 0x030B, 0x030D, 0x030F }  // 6-player
+    {
+        { 0x0307, 0x0506, 0x0705 },  // 3-player
+        { 0x0307, 0x0506, 0x0705 },  // 4-player same as 3-player
+        { 0x0508, 0x050A, 0x050C, 0x050E, 0x0510 }  // 6-player
     };
 
     /**
@@ -4567,20 +4618,20 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int TTDESERT_PORT_EDGE_FACING[][] =
     {{
         // 3 players
-        0x0207, FACING_SW,  0x0808, FACING_SW,  0x0A08, FACING_NW,
-        0x0D07, FACING_W,   0x0E04, FACING_NW,  0x0D03, FACING_E,
-        0x0A01, FACING_NE,  0x0803, FACING_SE
+        0x0408, FACING_SW,  0x0A09, FACING_SW,  0x0C09, FACING_NW,
+        0x0F08, FACING_W,   0x1005, FACING_NW,  0x0F04, FACING_E,
+        0x0C02, FACING_NE,  0x0A04, FACING_SE
     }, {
         // 4 players
-        0x0109, FACING_W,   0x040A, FACING_SW,  0x060A, FACING_NW,
-        0x0A08, FACING_NW,  0x0D07, FACING_W,   0x0E05, FACING_NE,
-        0x0C03, FACING_NW,  0x0B02, FACING_E,   0x0704, FACING_E
+        0x030A, FACING_W,   0x060B, FACING_SW,  0x080B, FACING_NW,
+        0x0C09, FACING_NW,  0x0F08, FACING_W,   0x1006, FACING_NE,
+        0x0E04, FACING_NW,  0x0D03, FACING_E,   0x0905, FACING_E
     }, {
         // 6 players
-        0x0B02, FACING_E,   0x0801, FACING_SE,  0x0602, FACING_SE,
-        0x0606, FACING_SE,  0x050F, FACING_W,   0x080F, FACING_NW,
-        0x0A0D, FACING_NE,  0x0A09, FACING_NE,  0x0A06, FACING_NW,
-        0x0C05, FACING_NW,  0x0E03, FACING_NE
+        0x0D03, FACING_E,   0x0A02, FACING_SE,  0x0803, FACING_SE,
+        0x0807, FACING_SE,  0x0710, FACING_W,   0x0A10, FACING_NW,
+        0x0C0E, FACING_NE,  0x0C0A, FACING_NE,  0x0C07, FACING_NW,
+        0x0E06, FACING_NW,  0x1004, FACING_NE
     }};
 
     /**
@@ -4622,30 +4673,30 @@ public class SOCBoardAtServer extends SOCBoardLarge
     }};
 
     /**
-     * Through The Desert: Land Areas 3 to n:
+     * Through The Desert: Land Areas 4 to n:
      * Hex counts and Land area numbers for each of the small "foreign" islands, one per island,
      * within {@link #TTDESERT_LANDHEX_COORD_SMALL}.
      * Allows us to shuffle them all together within {@link #TTDESERT_LANDHEX_TYPE_SMALL}.
      * Dice numbers are {@link #TTDESERT_DICENUM_SMALL}.
-     * Total land area count for this layout varies, will be 2 + (<tt>TTDESERT_LANDHEX_RANGES_SMALL[i].length</tt> / 2).
+     * Total land area count for this layout varies, will be 3 + (<tt>TTDESERT_LANDHEX_RANGES_SMALL[i].length</tt> / 2).
      */
     private static final int TTDESERT_LANDHEX_RANGES_SMALL[][] =
     {{
         // 3 players
-        3, 2,  // landarea 3 is an island with 2 hexes (see TTDESERT_LANDHEX_COORD_SMALL)
-        4, 1,  // landarea 4
-        5, 2   // landarea 5
+        4, 2,  // landarea 3 is an island with 2 hexes (see TTDESERT_LANDHEX_COORD_SMALL)
+        5, 1,  // landarea 4
+        6, 2   // landarea 5
     }, {
         // 4 players
-        3, 3,
-        4, 2,
-        5, 2
+        4, 3,
+        5, 2,
+        6, 2
     }, {
         // 6 players
-        3, 2,
-        4, 1,
-        5, 4,
-        6, 1
+        4, 2,
+        5, 1,
+        6, 4,
+        7, 1
     }};
 
     /**
@@ -4658,20 +4709,20 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int TTDESERT_LANDHEX_COORD_SMALL[][] =
     {{
         // 3 players
-        0x010A, 0x030B,  // landarea 3 is an island with 2 hexes (see TTDESERT_LANDHEX_RANGES_SMALL)
-        0x070B,          // landarea 4
-        0x0B0B, 0x0D0A   // landarea 5
+        0x030B, 0x050C,  // landarea 3 is an island with 2 hexes (see TTDESERT_LANDHEX_RANGES_SMALL)
+        0x090C,          // landarea 4
+        0x0D0C, 0x0F0B   // landarea 5
     }, {
         // 4 players
-        0x010C, 0x030D, 0x050E,
-        0x090C, 0x090E,
-        0x0D0A, 0x0D0C
+        0x030D, 0x050E, 0x070F,
+        0x0B0D, 0x0B0F,
+        0x0F0B, 0x0F0D
     }, {
         // 6 players
-        0x0D08, 0x0D0A,
-        0x0D0E,
-        0x0D12, 0x0B11, 0x0B13, 0x0914,
-        0x0514
+        0x0F09, 0x0F0B,
+        0x0F0F,
+        0x0F13, 0x0D12, 0x0D14, 0x0B15,
+        0x0715
     }};
 
     /**
@@ -4702,19 +4753,19 @@ public class SOCBoardAtServer extends SOCBoardLarge
     //
 
     /**
-     * Forgotten Tribe: Board size:
-     * 4 players max row 0x0E, max col 0x11.
-     * 6 players max row 0x0E, max col 0x15.
+     * Forgotten Tribe: Board size, including margins to place pirate:
+     * 4 players max row 0x12, max col 0x14.
+     * 6 players max row 0x12, max col 0x18.
      */
-    private static final int FOR_TRI_BOARDSIZE[] = { 0x0E11, 0x0E15 };
+    private static final int FOR_TRI_BOARDSIZE[] = { 0x1214, 0x1218 };
 
-    /** Forgotten Tribe: Visual Shift ("VS") */
-    private static final int FOR_TRI_VIS_SHIFT[][] = { {3,-2}, {2,-1} };
+    /** Forgotten Tribe: Visual Shift and Trim ("VS") */
+    private static final int FOR_TRI_VIS_SHIFT[][] = {{-2,0, 2,2}, {-2,0, 1,2}};
 
     /**
      * Forgotten Tribe: Starting pirate water hex coordinate for 4, 6 players.
      */
-    private static final int FOR_TRI_PIRATE_HEX[] = { 0x0108, 0x010E };
+    private static final int FOR_TRI_PIRATE_HEX[] = { 0x0309, 0x030F };
 
     /**
      * Forgotten Tribe: Land hex types for the main island. Shuffled.
@@ -4741,15 +4792,15 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int FOR_TRI_LANDHEX_COORD_MAIN[][] =
     {{
-        // 4-player: 18 hexes; 3 rows, centered on columns 2 - d
-        0x0502, 0x0504, 0x0506, 0x0508, 0x050A, 0x050C,
+        // 4-player: 18 hexes; 3 rows, centered on columns 3 - e
         0x0703, 0x0705, 0x0707, 0x0709, 0x070B, 0x070D,
-        0x0902, 0x0904, 0x0906, 0x0908, 0x090A, 0x090C
+        0x0904, 0x0906, 0x0908, 0x090A, 0x090C, 0x090E,
+        0x0B03, 0x0B05, 0x0B07, 0x0B09, 0x0B0B, 0x0B0D
     }, {
-        // 6-player: 29 hexes; 3 rows, centered on columns 2 - 0x14
-        0x0502, 0x0504, 0x0506, 0x0508, 0x050A, 0x050C, 0x050E, 0x0510, 0x0512, 0x0514,
-        0x0703, 0x0705, 0x0707, 0x0709, 0x070B, 0x070D, 0x070F, 0x0711, 0x0713,
-        0x0902, 0x0904, 0x0906, 0x0908, 0x090A, 0x090C, 0x090E, 0x0910, 0x0912, 0x0914
+        // 6-player: 29 hexes; 3 rows, centered on columns 3 - 0x15
+        0x0703, 0x0705, 0x0707, 0x0709, 0x070B, 0x070D, 0x070F, 0x0711, 0x0713, 0x0715,
+        0x0904, 0x0906, 0x0908, 0x090A, 0x090C, 0x090E, 0x0910, 0x0912, 0x0914,
+        0x0B03, 0x0B05, 0x0B07, 0x0B09, 0x0B0B, 0x0B0D, 0x0B0F, 0x0B11, 0x0B13, 0x0B15
     }};
 
     /**
@@ -4760,10 +4811,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOR_TRI_LANDHEX_COORD_MAIN_FAR_COASTAL[][] =
     {{
         // 4-player:
-        0x050C, 0x070D, 0x090C
+        0x070D, 0x090E, 0x0B0D
     }, {
         // 6-player:
-        0x0514, 0x0713, 0x0914
+        0x0715, 0x0914, 0x0B15
     }};
 
     /**
@@ -4792,12 +4843,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOR_TRI_PORT_EDGE_FACING[][] =
     {{
         // 4 players
-        0x0003, FACING_SE,  0x0009, FACING_SE,  0x0410, FACING_SW,
-        0x0A10, FACING_NW,  0x0E0A, FACING_NW,  0x0E03, FACING_NE
+        0x0204, FACING_SE,  0x020A, FACING_SE,  0x0611, FACING_SW,
+        0x0C11, FACING_NW,  0x100B, FACING_NW,  0x1004, FACING_NE
     }, {
         // 6 players
-        0x0006, FACING_SW,  0x0009, FACING_SE,  0x000F, FACING_SE, 0x0012, FACING_SW,
-        0x0E0F, FACING_NE,  0x0E0C, FACING_NW,  0x0E05, FACING_NE, 0x0E03, FACING_NE
+        0x0207, FACING_SW,  0x020A, FACING_SE,  0x0210, FACING_SE, 0x0213, FACING_SW,
+        0x1010, FACING_NE,  0x100D, FACING_NW,  0x1006, FACING_NE, 0x1004, FACING_NE
     }};
 
     /**
@@ -4837,12 +4888,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOR_TRI_LANDHEX_COORD_ISL[][] =
     {{
         // 4 players: Clockwise from northwest corner of board:
-        0x0104, 0x0106,    0x010A, 0x010C, 0x010E,    0x0510,
-        0x0910,    0x0D0E, 0x0D0C, 0x0D0A,    0x0D06, 0x0D04
+        0x0305, 0x0307,    0x030B, 0x030D, 0x030F,    0x0711,
+        0x0B11,    0x0F0F, 0x0F0D, 0x0F0B,    0x0F07, 0x0F05
     }, {
         // 6 players: Northern islands west to east, then southern west to east:
-        0x0104, 0x0106,    0x010A, 0x010C,    0x0110, 0x0112,
-        0x0D04, 0x0D06,    0x0D0A, 0x0D0C,    0x0D10, 0x0D12
+        0x0305, 0x0307,    0x030B, 0x030D,    0x0311, 0x0313,
+        0x0F05, 0x0F07,    0x0F0B, 0x0F0D,    0x0F11, 0x0F13
     }};
 
     /**
@@ -4852,12 +4903,12 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOR_TRI_SVP_EDGES[][] =
     {{
         // 4 players
-        0x0004, 0x000A, 0x000E, 0x0511,
-        0x0E04, 0x0E09, 0x0E0E, 0x0911
+        0x0205, 0x020B, 0x020F, 0x0712,
+        0x1005, 0x100A, 0x100F, 0x0B12
     }, {
         // 6 players
-        0x0003, 0x0005, 0x000A, 0x000B, 0x0010,
-        0x0E06, 0x0E0A, 0x0E0B, 0x0E10, 0x0E12
+        0x0204, 0x0206, 0x020B, 0x020C, 0x0211,
+        0x1007, 0x100B, 0x100C, 0x1011, 0x1013
     }};
 
     /**
@@ -4867,10 +4918,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int FOR_TRI_DEV_CARD_EDGES[][] =
     {{
         // 4 players
-        0x0103, 0x010F, 0x0D03, 0x0D0F
+        0x0304, 0x0310, 0x0F04, 0x0F10
     }, {
         // 6 players
-        0x0103, 0x000C, 0x0113, 0x0D03, 0x0E09, 0x0D13
+        0x0304, 0x020D, 0x0314, 0x0F04, 0x100A, 0x0F14
     }};
 
 
@@ -4886,23 +4937,23 @@ public class SOCBoardAtServer extends SOCBoardLarge
 
     /**
      * Cloth Villages: Board size:
-     * 4 players max row 0x0E, max col 0x10.
-     * 6 players max row 0x0E, max col 0x15.
+     * 4 players max row 0x12, max col 0x12.
+     * 6 players max row 0x12, max col 0x16.
      */
-    private static final int CLVI_BOARDSIZE[] = { 0x0E10, 0x0E15 };
+    private static final int CLVI_BOARDSIZE[] = { 0x1212, 0x1216 };
 
-    /** Cloth Villages: Visual Shift ("VS") */
-    private static final int CLVI_VIS_SHIFT[][] = {{2,-1}, {2,0}};
+    /** Cloth Villages: Visual Shift and Trim ("VS") */
+    private static final int CLVI_VIS_SHIFT[][] = {{-2,0, 1,1}, {-2,-1, 1,1}};
 
     /**
      * Cloth Villages: Starting robber hex coordinate for 4, 6 players.
      */
-    private static final int CLVI_ROBBER_HEX[] = { 0x502, 0x502 };
+    private static final int CLVI_ROBBER_HEX[] = { 0x0703, 0x0703 };
 
     /**
      * Cloth Villages: Starting pirate water hex coordinate for 4, 6 players.
      */
-    private static final int CLVI_PIRATE_HEX[] = { 0x070f, 0x0713 };
+    private static final int CLVI_PIRATE_HEX[] = { 0x0910, 0x0914 };
 
     /**
      * Cloth Villages: Land hex types for the main island. Shuffled.
@@ -4930,18 +4981,18 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int CLVI_LANDHEX_COORD_MAIN[][] =
     {{
         // 4-player: Each 10 hexes; 3 rows, main row centered on columns 4 - c
-        0x0104, 0x0106, 0x0108, 0x010A, 0x010C,
-        0x0303, 0x0305, 0x030B, 0x030D, 0x0502,
+        0x0305, 0x0307, 0x0309, 0x030B, 0x030D,
+        0x0504, 0x0506, 0x050C, 0x050E, 0x0703,
 
-        0x0B03, 0x0B05, 0x0B0B, 0x0B0D, 0x090E,
-        0x0D04, 0x0D06, 0x0D08, 0x0D0A, 0x0D0C
+        0x0D04, 0x0D06, 0x0D0C, 0x0D0E, 0x0B0F,
+        0x0F05, 0x0F07, 0x0F09, 0x0F0B, 0x0F0D
     }, {
         // 6-player: Each 13 hexes; 3 rows, main row centered on columns 4 - 0x10
-        0x0104, 0x0106, 0x0108, 0x010A, 0x010C, 0x010E, 0x0110,
-        0x0303, 0x0305, 0x030F, 0x0311, 0x0502, 0x0512,
+        0x0305, 0x0307, 0x0309, 0x030B, 0x030D, 0x030F, 0x0311,
+        0x0504, 0x0506, 0x0510, 0x0512, 0x0703, 0x0713,
 
-        0x0B03, 0x0B05, 0x0B0F, 0x0B11, 0x0902, 0x0912,
-        0x0D04, 0x0D06, 0x0D08, 0x0D0A, 0x0D0C, 0x0D0E, 0x0D10
+        0x0D04, 0x0D06, 0x0D10, 0x0D12, 0x0B03, 0x0B13,
+        0x0F05, 0x0F07, 0x0F09, 0x0F0B, 0x0F0D, 0x0F0F, 0x0F11
     }};
 
     /**
@@ -4970,13 +5021,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int CLVI_PORT_EDGE_FACING[][] =
     {{
         // 4 players
-        0x0302, FACING_E,  0x0004, FACING_SW,  0x0009, FACING_SE,  0x030E, FACING_W,
-        0x0B02, FACING_E,  0x0E05, FACING_NE,  0x0E0A, FACING_NW,  0x0C0D, FACING_NW,  0x090F, FACING_W
+        0x0503, FACING_E,  0x0205, FACING_SW,  0x020A, FACING_SE,  0x050F, FACING_W,
+        0x0D03, FACING_E,  0x1006, FACING_NE,  0x100B, FACING_NW,  0x0E0E, FACING_NW,  0x0B10, FACING_W
     }, {
         // 6 players
-        0x0302, FACING_E,  0x0004, FACING_SW,  0x0009, FACING_SE,  0x000D, FACING_SE,  0x0312, FACING_W,
-        0x0B02, FACING_E,  0x0E05, FACING_NE,  0x0E08, FACING_NW,  0x0E0E, FACING_NW,
-        0x0C11, FACING_NW, 0x0913, FACING_W
+        0x0503, FACING_E,  0x0205, FACING_SW,  0x020A, FACING_SE,  0x020E, FACING_SE,  0x0513, FACING_W,
+        0x0D03, FACING_E,  0x1006, FACING_NE,  0x1009, FACING_NW,  0x100F, FACING_NW,
+        0x0E12, FACING_NW, 0x0B14, FACING_W
     }};
 
     /**
@@ -5017,10 +5068,10 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static final int CLVI_LANDHEX_COORD_ISL[][] =
     {{
         // 4 players:
-        0x0705, 0x0508, 0x0908, 0x070B
+        0x0906, 0x0709, 0x0B09, 0x090C
     }, {
         // 6 players:
-        0x0705, 0x0508, 0x0908, 0x050C, 0x090C, 0x070F
+        0x0906, 0x0709, 0x0B09, 0x070D, 0x0B0D, 0x0910
     }};
 
     /**
@@ -5041,13 +5092,13 @@ public class SOCBoardAtServer extends SOCBoardLarge
         // 4 players:
         SOCVillage.STARTING_GENERAL_CLOTH,  // Board's "general supply" cloth count is same for 4pl, 6pl
         SOCVillage.STARTING_CLOTH,
-        0x0605, 10,  0x0805, 9,  0x0408, 11,  0x0608, 8,  0x0808, 6,  0x0A08, 3,  0x060B, 4,  0x080B, 5
+        0x0806, 10,  0x0A06, 9,  0x0609, 11,  0x0809, 8,  0x0A09, 6,  0x0C09, 3,  0x080C, 4,  0x0A0C, 5
     }, {
         // 6 players:
         SOCVillage.STARTING_GENERAL_CLOTH,
         SOCVillage.STARTING_CLOTH,
-        0x0605, 4,   0x0805, 9,  0x0408, 2,  0x0608, 5,   0x0808, 6,  0x0A08, 12,
-        0x040C, 10,  0x060C, 8,  0x080C, 9,  0x0A0C, 10,  0x060F, 4,  0x080F, 5
+        0x0806, 4,   0x0A06, 9,  0x0609, 2,  0x0809, 5,   0x0A09, 6,  0x0C09, 12,
+        0x060D, 10,  0x080D, 8,  0x0A0D, 9,  0x0C0D, 10,  0x0810, 4,  0x0A10, 5
     }};
 
 
@@ -5068,8 +5119,8 @@ public class SOCBoardAtServer extends SOCBoardLarge
      */
     private static final int WOND_BOARDSIZE[] = { 0x0E12, 0x1014 };
 
-    /** Wonders: Visual Shift ("VS") */
-    private static final int WOND_VIS_SHIFT[][] = { {4,-1}, {-1,-1} };
+    /** Wonders: Visual Shift and Trim ("VS") */
+    private static final int WOND_VIS_SHIFT[][] = {{4,-1, 3,0}, {-1,-1}};
 
     /**
      * Wonders: Land hex types for the main island, excluding the desert. Shuffled.

@@ -90,9 +90,16 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * One past the maximum type number of playing piece.
      * MAXPLUSONE == 3 up through all v1.x.xx versions.
-     * MAXPLUSONE == 6 in v2.0.00.
+     * MAXPLUSONE == 6 in v2.x.xx so far.
      */
     public static final int MAXPLUSONE = 6;
+
+    /**
+     * Piece type unique technical names, for {@link #getTypeName(int)} and {@link #getType(String)}.
+     * @since 2.4.00
+     */
+    private static final String[] PIECETYPE_NAMES
+        = { "ROAD", "SETTLEMENT", "CITY", "SHIP", "FORTRESS", "VILLAGE" };
 
     /**
      * The type of this playing piece, within range {@link #MIN} to ({@link #MAXPLUSONE} - 1)
@@ -121,6 +128,10 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Special Victory Points (SVP) awarded for placing this piece, if any.
      * Used with the {@link SOCGame#hasSeaBoard large sea board} game scenarios.
      * When {@link #specialVP} != 0, the source is {@link #specialVPEvent}.
+     *<P>
+     * When setting or incrementing this field, should also increment/add to player's {@code specialVP} field.
+     * Don't just increase player's SVP by the piece's new {@code specialVP}, because piece may have accumulated SVP
+     * from multiple events which are already part of player's SVP amount.
      *<P>
      * <b>Note:</b> This is set when the piece was placed, so it's always accurate at server.
      * At client it may be 0 if the client joined the game after this piece was placed.
@@ -290,6 +301,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * </UL>
      *
      * @param other The object to compare with, or null.
+     * @since 1.1.00
      */
     @Override
     public boolean equals(Object other)
@@ -302,7 +314,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
             &&  (this.coord == ((SOCPlayingPiece) other).coord)
             &&  (this.player == ((SOCPlayingPiece) other).player));
 
-        // board is based on player; no need to check board too.
+        // board field is based on player, so no need to compare it too.
     }
 
     /**
@@ -335,4 +347,116 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
             throw new IllegalArgumentException("pieceType: " + pieceType);
         }
     }
+
+    /**
+     * Get a piece type's unique technical name, which is similar to constant field names like {@link #CITY}.
+     *
+     * @param pieceType  A constant such as {@link #CITY}
+     * @return Piece type's unique technical name, all-uppercase and following the pattern {@code [A-Z][A-Z0-9_]+},
+     *     or {@link Integer#toString(int) Integer.toString(pieceType)} if not a recognized type constant
+     * @throws IllegalArgumentException if {@code pieceType} &lt; 0
+     * @see #getType(String)
+     * @since 2.4.00
+     */
+    public static String getTypeName(final int pieceType)
+        throws IllegalArgumentException
+    {
+        return getTypeName(pieceType, PIECETYPE_NAMES);
+    }
+
+    /**
+     * For game items which have different type constants ({@link SOCPlayingPiece}, {@link SOCDevCard}, etc),
+     * get an item type's unique technical name for a constant value.
+     *
+     * @param typeNum  A constant such as {@link SOCDevCardConstants#UNIV}
+     *     or {@link SOCPlayingPiece#CITY}
+     * @param allTypeNames  All known item types' unique technical names, indexed same as their int constant values.
+     *     See return javadoc for expected name format.
+     *     Null elements are ignored, in case your type has no constant at index 0 or some other index;
+     *     if element 7 is null, will return "7" for it.
+     * @return That type constant's unique technical name,
+     *     all-uppercase and following the pattern {@code [A-Z][A-Z0-9_]+},
+     *     or {@link Integer#toString(int) Integer.toString(typeNum)} if {@code typeNum} not a recognized type constant
+     *     from {@code allTypeNames}
+     * @throws IllegalArgumentException if {@code typeNum} &lt; 0
+     * @see #getType(String, String[], int)
+     * @since 2.4.00
+     */
+    public static String getTypeName(final int typeNum, final String[] allTypeNames)
+        throws IllegalArgumentException
+    {
+        if (typeNum < 0)
+            throw new IllegalArgumentException("typeNum: " + typeNum);
+
+        String name = null;
+        if (typeNum < allTypeNames.length)
+            name = allTypeNames[typeNum];
+
+        return (name != null) ? name : Integer.toString(typeNum);
+    }
+
+    /**
+     * Given a piece type's unique technical name like {@code "CITY"}, return its piece type constant
+     * like {@link #CITY} if recognized.
+     * @param typeName Piece type's technical name, as returned by {@link #getTypeName(int)},
+     *     or a numeric string like {@code "42"} for any recognized or unrecognized type's numeric value
+     * @return That type's constant such as {@link #CITY} or {@link #SETTLEMENT} if recognized,
+     *     or its parsed value if starts with a digit, or -1 if type string is unrecognized
+     * @throws IllegalArgumentException if {@code typeName} is null or "",
+     *     or doesn't start with an uppercase {@code 'A'}-{@code 'Z'} or digit {@code '0'}-{@code '9'}
+     * @throws NumberFormatException if {@code typeName} starts with a digit but {@link Integer#parseInt(String)} fails
+     * @see #getTypeName(int)
+     * @since 2.4.00
+     */
+    public static int getType(final String typeName)
+        throws IllegalArgumentException, NumberFormatException
+    {
+        return getType(typeName, PIECETYPE_NAMES, -1);
+    }
+
+    /**
+     * For game items which have different type constants ({@link SOCPlayingPiece}, {@link SOCDevCard}, etc),
+     * get an item type's constant value from its unique technical name returned by {@link #getType(String, String[])}.
+     *
+     * @param typeName Type's technical name, as returned by {@link #getTypeName(int, String[])},
+     *     or a numeric string like {@code "42"} for any recognized or unrecognized type's numeric value
+     * @param allTypeNames  All known item types' unique technical names, indexed same as their int constant values.
+     *     See {@link #getTypeName(int, String[])} javadoc for expected name format.
+     *     Null elements are ignored, in case your type has no constant at index 0 or some other index.
+     * @param unknownValue  Value to return if {@code typeName} is unrecognized, because it isn't in {@code allTypeNames}
+     * @return That type's constant if {@code typeName} recognized from {@code allTypeNames},
+     *     or its parsed intValue if starts with a digit, or {@code unknownValue} if type string is unrecognized
+     * @throws IllegalArgumentException if {@code typeName} is null or ""
+     *     or doesn't start with an uppercase {@code 'A'}-{@code 'Z'} or digit {@code '0'}-{@code '9'},
+     *     or if {@code AllTypeNames} is null
+     * @throws NumberFormatException if {@code typeName} starts with a digit but {@link Integer#parseInt(String)} fails
+     * @see #getTypeName(int, String[])
+     * @since 2.4.00
+     */
+    public static int getType(final String typeName, final String[] allTypeNames, final int unknownValue)
+        throws IllegalArgumentException, NumberFormatException
+    {
+        if ((typeName == null) || typeName.isEmpty())
+            throw new IllegalArgumentException("typeName empty or null");
+        if (allTypeNames == null)
+            throw new IllegalArgumentException("allTypeNames");
+
+        final char c0 = typeName.charAt(0);
+        if ((c0 >= '0') && (c0 <= '9'))
+        {
+            return Integer.parseInt(typeName);
+        }
+        else if ((c0 >= 'A') && (c0 <= 'Z'))
+        {
+            // for these very small arrays, linear search is fast enough
+            for (int i = 0; i < allTypeNames.length; ++i)
+                if (typeName.equals(allTypeNames[i]))
+                    return i;
+
+            return unknownValue;
+        } else {
+            throw new IllegalArgumentException("typeName format");
+        }
+    }
+
 }

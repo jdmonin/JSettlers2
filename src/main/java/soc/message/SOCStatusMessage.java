@@ -335,6 +335,15 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int VERSION_FOR_SV_SERVER_SHUTDOWN = 2100;
 
+    /**
+     * Client has sent server a message type which requires authentication before sending,
+     * such as a channel chat message or in-game action. Client must authenticate
+     * ({@link SOCAuthRequest} or another message with nickname/password fields)
+     * for server to process that message type.
+     * @since 2.4.00
+     */
+    public static final int SV_MUST_AUTH_FIRST = 24;
+
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
     // Be sure to update statusValidAtVersion() and statusFallbackForVersion().
@@ -426,6 +435,7 @@ public class SOCStatusMessage extends SOCMessage
 
     /**
      * @return the status value, as in {@link #SV_OK}
+     * @since 1.1.06
      */
     public int getStatusValue()
     {
@@ -506,16 +516,18 @@ public class SOCStatusMessage extends SOCMessage
             {
             if (cliVersion < 1106)       // for 1000 - 1105 inclusive
                 return (statusValue == 0);
-            else if (cliVersion < 1119)  // for 1111 - 1118 inclusive
+            else if (cliVersion < 1119)  // 1111 - 1118
                 return (statusValue < SV_PW_REQUIRED);
-            else if (cliVersion < 2000)  // for 1201 - 1999 inclusive
+            else if (cliVersion < 2000)  // 1201 - 1999
                 return (statusValue < SV_OK_DEBUG_MODE_ON);
-            else if (cliVersion < 2100)  // for 2000 - 2999 inclusive
+            else if (cliVersion < 2100)  // 2000 - 2099
                 return (statusValue < SV_SERVER_SHUTDOWN);
+            else if (cliVersion < 2400)  // 2100 - 2399
+                return (statusValue < SV_MUST_AUTH_FIRST);
             else
-                // 2100 or newer; check vs highest constant that we know
-                // (since none has been added yet after 2100)
-                return (statusValue <= SV_SERVER_SHUTDOWN);
+                // 2400 or newer; check vs highest constant that we know
+                // (since none has been added yet after 2400)
+                return (statusValue <= SV_MUST_AUTH_FIRST);
             }
         }
     }

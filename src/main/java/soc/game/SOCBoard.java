@@ -674,6 +674,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * On the large sea board, there can optionally be multiple "land areas"
      * (groups of islands), if {@link SOCBoardLarge#getLandAreasLegalNodes()} != null.
      * In that case, <tt>nodesOnLand</tt> contains all nodes of all land areas.
+     *<P>
+     * Before v2.0.00 this was {@code nodesOnBoard}.
      */
     protected HashSet<Integer> nodesOnLand = new HashSet<Integer>();
 
@@ -1357,9 +1359,11 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * The number of ports is {@link #getPortsCount()}.
      *<P>
      * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
-     * within the port layout array.  The port types are stored at the beginning, from index
-     * 0 to {@link #getPortsCount()}-1.  If you call {@link #setPortsLayout(int[])}, be sure
-     * to give it the entire array returned from here.
+     * within the port layout array:  If you call {@link #setPortsLayout(int[])},
+     * be sure to give it the entire array returned from here.
+     * Total length is 3 * {@link #getPortsCount()}. The port types are stored at the beginning
+     * from index 0 to {@code getPortsCount()}-1, followed by all the ports' edge coordinates,
+     * then all ports' facing directions.
      *
      * @return the ports layout, or null if not used in this board encoding format
      * @see #getPortTypeFromNodeCoord(int)
@@ -1796,7 +1800,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     /**
      * remove a piece from the board.
      *<P>
-     * If you're calling {@link SOCPlayer#undoPutPiece(SOCPlayingPiece)},
+     * If you're calling {@link SOCPlayer#undoPutPiece(SOCPlayingPiece, boolean)},
      * call this method first.
      * @param piece  Piece to be removed from the board
      *     (identified by its piece type, coordinate, and player number)
@@ -2959,6 +2963,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *
      * @param nodeCoord Location coordinate (as returned by SOCBoardPanel.findNode)
      * @return  Settlement or city at <tt>nodeCoord</tt>, or null
+     * @see SOCPlayer#getSettlementOrCityAtNode(int)
+     * @since 1.1.00
      */
     public SOCPlayingPiece settlementAtNode(final int nodeCoord)
     {
@@ -2990,6 +2996,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @return road or ship, or null.  Use {@link SOCPlayingPiece#getType()}
      *   or {@link SOCRoutePiece#isRoadNotShip()} to determine the returned piece type.
      *   At most one road or ship can be placed at any one edge.
+     * @see SOCPlayer#getRoadOrShip(int)
+     * @since 1.1.00
      */
     public SOCRoutePiece roadOrShipAtEdge(int edgeCoord)
     {
@@ -3004,6 +3012,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * Is this node on a land hex, and thus a legal settlement location?
+     *<P>
+     * Before v2.0.00 this was {@code isNodeOnBoard}.
+     *
      * @param node  Node coordinate, not checked for validity
      * @return  True if node is on a land hex (including if coastal), not water,
      *     and thus a legal settlement coordinate, based on the set of all nodes on land

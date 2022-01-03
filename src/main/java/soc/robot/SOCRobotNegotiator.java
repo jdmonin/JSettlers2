@@ -31,7 +31,6 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.proto.Data;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.Vector;
@@ -86,14 +85,24 @@ public class SOCRobotNegotiator
      */
     protected Stack<SOCPossiblePiece> buildingPlan;
 
-    protected HashMap<Integer, SOCPlayerTracker> playerTrackers;
+    /**
+     * Player trackers, one per player number; vacant seats are null.
+     * Same format as {@link SOCRobotBrain#getPlayerTrackers()}.
+     * @see #ourPlayerTracker
+     */
+    protected SOCPlayerTracker[] playerTrackers;
+
+    /** Player tracker for {@link #ourPlayerData}. */
     protected SOCPlayerTracker ourPlayerTracker;
+
     protected final SOCPlayer ourPlayerData;
+
     /**
      * {@link #ourPlayerData}'s player number.
      * @since 2.0.00
      */
     protected final int ourPlayerNumber;
+
     protected SOCRobotDM decisionMaker;
     protected boolean[][] isSellingResource;
     protected boolean[][] wantsAnotherOffer;
@@ -835,7 +844,7 @@ public class SOCRobotNegotiator
                         (! game.isSeatVacant(i)) &&
                         (game.getPlayer(i).getResources().getTotal() >= getResourceSet.getTotal()))
                     {
-                        final SOCPlayerTracker tracker = playerTrackers.get(Integer.valueOf(i));
+                        final SOCPlayerTracker tracker = playerTrackers[i];
 
                         if ((tracker != null) && (tracker.getWinGameETA() >= WIN_GAME_CUTOFF))
                         {
@@ -860,7 +869,7 @@ public class SOCRobotNegotiator
                 {
                     D.ebugPrintln("** isSellingResource[" + curpn + "][" + neededResource + "] = " + isSellingResource[curpn][neededResource]);
 
-                    final SOCPlayerTracker tracker = playerTrackers.get(Integer.valueOf(curpn));
+                    final SOCPlayerTracker tracker = playerTrackers[curpn];
 
                     if ((tracker != null) && (tracker.getWinGameETA() >= WIN_GAME_CUTOFF))
                     {
@@ -981,14 +990,14 @@ public class SOCRobotNegotiator
 
         D.ebugPrintln("targetPieces[" + receiverNum + "] = " + receiverTargetPiece);
 
-        SOCPlayerTracker receiverPlayerTracker = playerTrackers.get(Integer.valueOf(receiverNum));
+        SOCPlayerTracker receiverPlayerTracker = playerTrackers[receiverNum];
 
         if (receiverPlayerTracker == null)
         {
             return response;
         }
 
-        SOCPlayerTracker senderPlayerTracker = playerTrackers.get(Integer.valueOf(senderNum));
+        SOCPlayerTracker senderPlayerTracker = playerTrackers[senderNum];
 
         if (senderPlayerTracker == null)
         {

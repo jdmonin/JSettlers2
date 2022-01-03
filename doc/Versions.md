@@ -1,6 +1,7 @@
 # Released Versions of JSettlers
 
-Project home and source history are at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2)
+Project home and source history are at [https://github.com/jdmonin/JSettlers2](https://github.com/jdmonin/JSettlers2).
+Source history for version `1.1.06` and earlier is at [https://github.com/jdmonin/JSettlers1](https://github.com/jdmonin/JSettlers1).
 
 JARs for recent JSettlers versions can be downloaded from
 [https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases) .
@@ -17,12 +18,140 @@ and backport minor new features until `2.0.00` was ready.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.3.00` (build JM2020xxxx)
+## `2.4.10` (build JM20200xxx)
 - Currently being developed
-- Server can save/load games using local files and debug commands
-	- This is work in progress: Currently works with classic and sea board games, but no scenarios
-	- Server config must designate a directory
-	- Optional GSON jar must be on classpath or same dir as server
+- For developers:
+	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
+	    - Various player and game statistic fields/methods and misc code
+	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
+	- More accessible robot-related methods and data classes
+	- Made some data classes Serializable
+
+
+## `2.4.00` (build JM20200704)
+- Gameplay:
+	- Pirate can be placed next to any coastline, even those near edge of board
+	- For consistency, calculate Longest Route and Largest Army only at server, not also at client
+- Client:
+	- Add client preference: Remember face icon when changed
+	- Game window:
+	  - Game stats: If player leaves at end of game, keep showing their statistics
+	  - If connection to server is lost during game, don't hide Current Player arrow
+	  - Clarify in tooltip that "right-click to trade" is for bank trades
+	  - Bugfix: If face icon chooser window was still open when closing the game window, chooser would stay open
+- Server:
+	- If connecting client has limited features, send all unsupported game options as unknowns
+- Network/Message traffic:
+	- When client joins a game:
+	  - Server sends players' current trade offers
+	  - Server sends seat locks before player info SitDown messages, not after them
+	- When client is sitting down at new game or to take over a bot's seat, send their preferred face icon
+	- During game play:
+	  - When longest route or largest army player changes, announce from server instead of having client calculate it
+	- Bugfix: When client is v1.x, send seat lock state CLEAR_ON_RESET as UNLOCKED not LOCKED
+	  so they can take over a "marked" bot seat
+- Database:
+	- If saving all completed game results in database, each game's options are sorted alphabetically
+- For developers:
+	- Save/load games:
+	  - SavedGameModel: Players' piece types and dev cards are written to file as
+	    user-friendly type name strings like `"SETTLEMENT"` or `"UNIV"`, not ints.
+	    Can still read them from ints if needed.
+	  - Simple scenario support: Can save and load scenarios which have only a board layout and
+	    optionally game option `_SC_SANY` or `_SC_SEAC`, no other scenario game opts
+	    (option names starting with "\_SC\_"). Sets PlayerElements SCENARIO_SVP,
+	    SCENARIO_SVP_LANDAREAS_BITMASK. Adds PlayerInfo.specialVPInfo.
+	  - Load:
+	    - Rename any bot players with same names as those logged into the server
+	      to avoid problems during random bot assignment while joining the game
+	    - If game is already over, don't change robot player names by asking bots to join and sit
+	    - Fix incorrect SOCPlayer.potentialSettlements additions
+	    - If can't parse gameOptions, don't load game
+	    - Bugfix: Players' Longest Route lengths were incorrect after load
+	  - Adds PlayerInfo.earlyElements list to set before piece placement
+	  - SavedGameModel: gameOptions now sorted, adds playerSeatLocks, PlayerInfo adds currentTradeOffer
+	  - Omit writing pieces' specialVP field when it's 0, ships' isClosed when false
+	  - MODEL_VERSION increased to 2400
+	  - Unit tests using saved-game artifacts
+	- Game window: If observing a robot-only game and it's deleted when over,
+	  keep showing winner with Current Player arrow
+	- For unit tests, SOCGameListAtServer.addMember now succeeds even if game was added using client-side addGame method
+
+
+## `2.3.00` (build JM20200525)
+- Gameplay:
+	- New optional house rule: On 6-player board, allow Special Building phase only if game actually has 5 or 6 players
+	- Bugfixes at server:
+	  - Forgotten Tribe scenario: If a ship claimed a Special Victory Point and was later moved,
+	    player silently lost that SVP
+	    (thanks Michi-3 for reporting github issue #71)
+	  - Forgotten Tribe scenario: While Special Building a ship, if a port was picked up and placed,
+	    turn order afterwards was incorrectly resumed at next clockwise player (also issue #71)
+	  - Through The Desert scenario: Could not build roads on some edges of desert strip (also #71)
+- Client:
+	- Game window:
+	  - Hotkeys:
+	    - Roll dice with Ctrl-R/Alt-R/Cmd-R
+	    - End turn (Done) with Ctrl-D/Alt-D/Cmd-D
+	    - Accept/ReJect/Counter trade offers when just one is visible, with Ctrl or Alt or Cmd + A/J/C
+	      - Since chat input field already has a hotkey for Ctrl/Alt/Cmd-A when focused:  
+	        When cursor is in chat, hit Ctrl/Alt/Cmd-A once to select all text, again to Accept the trade offer
+	  - Draw ships with slimmer sails, for better spacing next to other pieces
+	  - Bugfix: If player had SVP, square showing SVP amount overlapped trade offer display  
+	    and, at end of game, their revealed VP cards
+	  - Bugfix: Wonders scenario: Player's Wonder shown in hand panel overlapped trade offer display
+	  - Chat textarea, server textarea: Add context menu with Select All and Copy, since new hotkeys claim Ctrl-A and Ctrl-C
+	- Bugfix: If started a practice game, then connected to a server game:
+	  - Practice game trades stopped working
+	  - Might've joined server game as "Player" or "null"
+	- Bugfix: Sometimes if client was observing a game and sat to take over a robot player
+	  right after it bought a dev card, inventory would include unknown card(s) alongside the correct ones
+	- If nickname or channel/game name contains disallowed character ',' or '|', explanation text mentions that character
+- Bots/AI:
+	- When offering a trade to human players, shorten max wait to 30 seconds (was 100)
+	- Fix occasional SOCCity NPE in SOCPlayerTracker.recalcWinGameETA
+- Server:
+	- Game `*STATS*`: When game over, keep its duration constant instead of still increasing
+	- Administration:
+	  - Customized client welcome message, with optional server property `jsettlers.admin.welcome`  
+	    (see `jsserver.properties.sample` comments for details)
+	  - Admin users can chat and run commands while observing a game
+	  - Can now run these commands from any admin account, not only as Debug:  
+	    `*BCAST*, *BOTLIST*, *BOTLIST*, *RESETBOT*, *KILLBOT*, *GC*`
+	  - Daily Stats file: New optional server property `jsettlers.stats.file.name`: Appends output of `*STATS*` command daily
+	    (see `jsserver.properties.sample` comments for details)
+	  - `*STATS*` also counts number of finished games which had bots, number of bots in those games
+	  - `*STATS*` uptime shows "days" not "d", uses leading zeros for minutes:seconds
+	  - `*STATS*`, `*GC*` also show memory as MB or GB, % free of total
+	  - `*BCAST*` broadcast text now starts with admin username who sent it
+	  - `*BOTLIST*` no longer invites all bots to join admin user's game
+	  - `*DBSETTINGS*` also shows whether game results are saved in DB
+- For developers:
+	- Can save/load games using local files and debug commands
+	  - This is work in progress: Currently works with classic and sea board games, but no scenarios
+	  - Server config must designate a directory
+	  - Optional GSON jar must be on classpath or same dir as server
+	  - For details see [Readme.developer.md](Readme.developer.md): Search text for `*SAVEGAME*`
+	- Bugfix: Free Placement debug mode with Forgotten Tribe scenario:
+	  - Handle Gift Port pickup and placement for current player, decline it for other players
+	  - Use new ship's player, not current player, for SVP and dev card gifts
+- For AI/Robot development:
+	- SOCRobotBrain debug stack trace: Print bot name
+	- When server starts robot-only games (jsettlers.bots.botgames.total > 0),
+	  can specify a mix of game sizes and board types with new startup option:  
+	  `-Djsettlers.bots.botgames.gametypes=3`  
+	  For details, search for that property in src/main/bin/jsserver.properties.sample
+	- Increased `jsettlers.bots.botgames.parallel` default to 4 from 2
+- Network/Message traffic:
+	- Game/board data sent by server to client joining a game:
+	  - For 6-player game, send players' ASK_SPECIAL_BUILD flag if set
+	  - For scenario Cloth Villages, send updated General Supply count if game has started
+	- Game data sent to client sitting down to play:
+	  - If client is this version or newer, omit messages meant to clear player's inventory contents:  
+	    Client player now clears inventory when SitDown message received
+	  - When client is joining and sitting down to take over a frozen connection, omit unneeded messages
+	    which add and then clear unknown cards in that player's inventory
+	- Client: Omit unneeded player name/number in some message types
 
 
 ## `2.2.00` (build JM20200229)
@@ -134,8 +263,9 @@ and backport minor new features until `2.0.00` was ready.
 	  Their option keynames all start with '_' and are hidden in the New Game options window.
 	- Player's inventory can hold more than just development cards
 - For AI/Robot development:
-	- The server can run bot-only games with new startup option:  
-	  `-Djsettlers.bots.botgames.total=7`
+	- The server can run bot-only games with new startup options:  
+	  `-Djsettlers.bots.botgames.total=7`  
+	  `-Djsettlers.bots.botgames.parallel=3`
 	- Those bot-only games begin at server startup, or can be delayed with startup option:  
 	  `-Djsettlers.bots.botgames.wait_sec=30`
 	  (this example uses 30 seconds) to give bot clients more time to connect first.

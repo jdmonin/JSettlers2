@@ -21,8 +21,6 @@
  **/
 package soc.client;
 
-import soc.disableDebug.D;
-
 import soc.game.SOCBoard;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
@@ -50,6 +48,7 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -60,6 +59,9 @@ import java.util.MissingResourceException;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
@@ -82,6 +84,9 @@ import javax.swing.UIManager;
  * a {@link soc.message.SOCPlayerElement} message or after something
  * else changes the game state.
  *<P>
+ * Has keyboard shortcuts for Roll and Done, since v2.3.00.
+ * See {@link #addHotkeysInputMap()} for details if adding others.
+ *<P>
  * Custom layout: see {@link #doLayout()}.
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update {@link #getBlankStandIn()}.
@@ -90,7 +95,10 @@ import javax.swing.UIManager;
 /*package*/ class SOCHandPanel extends JPanel
     implements ActionListener, MouseListener
 {
-    /** Minimum desired width, in pixels */
+    /**
+     * Minimum desired width, in pixels.
+     * @since 1.1.00
+     */
     public static final int WIDTH_MIN = 218;
 
     /** Items to update via {@link #updateValue(PlayerClientListener.UpdateType)};
@@ -108,7 +116,10 @@ import javax.swing.UIManager;
         LARGESTARMY = -8,
         SPECIALVICTORYPOINTS = 9;
 
-    /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
+    /**
+     * Auto-roll timer countdown, 5 seconds unless changed at program start.
+     * @since 1.1.00
+     */
     public static final int AUTOROLL_TIME = 5;
 
     /** Array of five zeroes, one per resource type; for {@link #sqPanel}. */
@@ -118,8 +129,12 @@ import javax.swing.UIManager;
      *  @since 2.0.00 */
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
-    /** Before game starts, use {@link #pname} to show if a seat is no-robots-allowed. */
+    /**
+     * Before game starts, use {@link #pname} to show if a seat is no-robots-allowed.
+     * @since 1.1.00
+     */
     protected static final String SITLOCKED = strings.get("hpan.sit.locked.norobot");  // "Locked: No robot"
+
     protected static final String SIT = strings.get("hpan.sit.here");  // "Sit Here"
     protected static final String START = strings.get("hpan.start.game");  // "Start Game"
     protected static final String ROBOT = strings.get("hpan.sit.robot");
@@ -134,8 +149,14 @@ import javax.swing.UIManager;
     protected static final String ROLL = strings.get("hpan.roll");
     protected static final String QUIT = strings.get("hpan.quit");
     protected static final String DONE = strings.get("hpan.done");
-    /** Text of Done button at end of game becomes Restart button. If you set this, set {@link #doneButIsRestart}. */
+
+    /**
+     * Text of Done button at end of game becomes Restart button.
+     * If you set this, set {@link #doneButIsRestart}.
+     * @since 1.1.00
+     */
     protected static final String DONE_RESTART = strings.get("base.restart");
+
     protected static final String CLEAR = strings.get("hpan.trade.clear");
     protected static final String SEND = strings.get("hpan.trade.offer");
     protected static final String BANK = strings.get("hpan.trade.bankport");  // "Bank/Port"
@@ -150,12 +171,33 @@ import javax.swing.UIManager;
     private static final String DEVCARD_NEW = strings.get("hpan.devcards.prefix.new");
     private static final String RESOURCES = strings.get("hpan.rsrc") + " ";  // for other players (! playerIsClient)
     private static final String RESOURCES_TOTAL = strings.get("hpan.rsrc.total") + " ";  // "Total: " for playerIsClient
+
+    /**
+     * Auto-roll countdown text.
+     * @since 1.1.00
+     */
     protected static final String AUTOROLL_COUNTDOWN = strings.get("hpan.roll.auto_countdown");  // "Auto-Roll in: {0}"
+
+    /**
+     * Prompt text to roll or play a card.
+     * @since 1.1.00
+     */
     protected static final String ROLL_OR_PLAY_CARD = strings.get("hpan.roll.rollorplaycard");  // "Roll or Play Card"
+
+    /**
+     * Trade Offer button Tooltip text when enabled.
+     * @since 1.1.00
+     */
     private static final String OFFERBUTTIP_ENA = strings.get("hpan.trade.offer.tip.send");
         // "Send trade offer to other players"
+
+    /**
+     * Trade Offer button Tooltip text/hint message when disabled: "First, click resources".
+     * @since 1.1.00
+     */
     private static final String OFFERBUTTIP_DIS = strings.get("hpan.trade.offer.tip.first");
         // "To offer a trade, first click resources"
+
     private static final String ROBOTLOCKBUT_U = strings.get("hpan.sit.unlocked");
     private static final String ROBOTLOCKBUT_L = strings.get("hpan.sit.locked");
     private static final String ROBOTLOCKBUT_M = strings.get("hpan.sit.marked");  // for lockstate Clear on Reset
@@ -186,7 +228,10 @@ import javax.swing.UIManager;
      */
     private static final String TRADEMSG_PICKING = strings.get("hpan.picking.rsrcs");  // "Picking\nResources..."
 
-    /** Panel text color, and player name color when not current player */
+    /**
+     * Panel text color, and player name color when not current player.
+     * @since 1.1.00
+     */
     protected static final Color COLOR_FOREGROUND = Color.BLACK;
 
     /**
@@ -196,7 +241,16 @@ import javax.swing.UIManager;
      */
     private static boolean didSwingTooltipDefaults;
 
-    /** Player name background color when current player (foreground does not change) */
+    /**
+     * True if {@link #addHotkeysInputMap()} has already been called once from {@link #addPlayer(String)}.
+     * @since 2.3.00
+     */
+    private boolean didHotkeyBindings;
+
+    /**
+     * Player name background color when current player (foreground does not change)
+     * @since 1.1.00
+     */
     protected Color pnameActiveBG;
 
     /**
@@ -241,6 +295,7 @@ import javax.swing.UIManager;
      *  This affects {@link #sitBut} and not {@link #sittingRobotLockBut}.
      *  @see #addPlayer(String)
      *  @see #updateSeatLockButton()
+     *  @since 1.1.00
      */
     protected boolean sitButIsLock;
 
@@ -290,6 +345,7 @@ import javax.swing.UIManager;
      * of bank/port trade per resource. Index 0 unused; index 1 is
      * {@link Data.ResourceType#CLAY_VALUE}, etc. Highest index is 5.
      * Null, unless playerIsClient and addPlayer has been called.
+     * @since 1.1.00
      */
     protected int[] resourceTradeCost;
 
@@ -298,6 +354,7 @@ import javax.swing.UIManager;
      * to bank/port trade resources. Index 0 unused; index 1 is
      * {@link Data.ResourceType#CLAY_VALUE}, etc. Highest index is 5.
      * Null, unless playerIsClient and addPlayer has been called.
+     * @since 1.1.00
      */
     protected ResourceTradeTypeMenu[] resourceTradeMenu;
 
@@ -447,16 +504,33 @@ import javax.swing.UIManager;
 
     /** displays auto-roll countdown, or prompts to roll/play card.
      * @see #setRollPrompt(String, boolean)
+     * @since 1.1.00
      */
     protected JLabel rollPromptCountdownLab;
+
+    /**
+     * If true, roll prompt is not empty.
+     * @see #setRollPrompt(String, boolean)
+     * @since 1.1.00
+     */
     protected boolean rollPromptInUse;
-    protected TimerTask autoRollTimerTask;  // Created every turn when countdown needed
+
+    /**
+     * Reference to auto-roll timer when active, otherwise null.
+     * Created each time {@link #autoRollSetupTimer()} is called.
+     * @since 1.1.00
+     */
+    protected TimerTask autoRollTimerTask;
+
     protected JButton rollBut;
 
     /** "Done" with turn during play; also "Restart" for board reset at end of game */
     protected JButton doneBut;
 
-    /** True when {@link #doneBut}'s label is Restart ({@link #DONE_RESTART}) */
+    /**
+     * True when {@link #doneBut}'s label is Restart ({@link #DONE_RESTART}).
+     * @since 1.1.00
+     */
     protected boolean doneButIsRestart;
 
     protected JButton quitBut;
@@ -468,6 +542,7 @@ import javax.swing.UIManager;
 
     /**
      * Our player; should use only when {@link #inPlay} and {@link SOCPlayer#getName()} is not null.
+     * See {@link #getPlayer()}.
      * @see #playerNumber
      * @see #playerIsClient
      * @see #playerIsCurrent
@@ -483,10 +558,17 @@ import javax.swing.UIManager;
      */
     private final int playerNumber;
 
-    /** Does this panel represent our client's own hand?  If true, implies {@link #interactive}. */
+    /**
+     * Does this panel represent our client's own hand?  If true, implies {@link #interactive}.
+     * Updated by {@link #addPlayer(String)}, cleared by {@link #removePlayer()}.
+     * @since 1.1.00
+     */
     protected boolean playerIsClient;
 
-    /** Is this panel's player the game's current player?  Used for hilight - set in updateAtTurn() */
+    /**
+     * Is this panel's player the game's current player?  Used for highlight - set in {@link #updateAtTurn()}.
+     * @since 1.1.00
+     */
     protected boolean playerIsCurrent;
 
     /**
@@ -595,6 +677,7 @@ import javax.swing.UIManager;
      *
      * @see #messageIsDiscardOrPick
      * @see #offerIsHiddenByMessage
+     * @since 1.1.00
      */
     protected boolean messageIsReset;
 
@@ -609,6 +692,7 @@ import javax.swing.UIManager;
      *
      * @see #messageIsReset
      * @see #offerIsHiddenByMessage
+     * @since 1.1.00
      */
     private boolean messageIsDiscardOrPick;
 
@@ -618,6 +702,7 @@ import javax.swing.UIManager;
      * and the message was temporarily hidden.
      *<P>
      * Before v2.0.00 this field was {@code offerIsMessageWasTrade}.
+     * @since 1.1.00
      */
     protected boolean offerIsHiddenByMessage;
 
@@ -796,6 +881,8 @@ import javax.swing.UIManager;
         });
         inventoryScroll = new JScrollPane(inventory);
         add(inventoryScroll);
+        init_removeInventoryHotkeyCtrlA();
+            // useless Ctrl-A binding conflicts with hotkey to Accept trade offer; see javadoc
 
         final String pieces_available_to_place = strings.get("hpan.pieces.available");
 
@@ -1009,6 +1096,8 @@ import javax.swing.UIManager;
         quitBut.setEnabled(interactive);
         add(quitBut);
 
+        // see also addHotkeysInputMap: ActionMap/InputMap setup for client player
+
         messagePanel = new MessagePanel(((isOSColorHighContrast) ? null : pcolor), displayScale);
         messagePanel.setVisible(false);
         add(messagePanel);
@@ -1098,7 +1187,6 @@ import javax.swing.UIManager;
                 if (shouldClearButtonBGs)
                     co.setBackground(null);  // inherit panel's bg color; required on win32 to avoid gray corners
             }
-
         }
 
         // set the starting state of the panel
@@ -1131,7 +1219,7 @@ import javax.swing.UIManager;
         createColorSqRetSq = new ColorSquare(rc, 0, sqSize, sqSize);
         add(createColorSqRetSq);
         createColorSqRetSq.setToolTipText
-            (strings.get("hpan.trade.rightclick", rtxt.toLowerCase()));  // "Right-click to trade clay"
+            (strings.get("hpan.trade.rightclick", rtxt.toLowerCase()));  // "Right-click to trade clay with the bank"
     }
 
     /**
@@ -1143,7 +1231,9 @@ import javax.swing.UIManager;
     }
 
     /**
-     * @return the player
+     * Get our player; should use only after calling {@link #addPlayer(String)},
+     * only when {@link SOCPlayer#getName()} is not null.
+     * @return the player passed into constructor; never null
      */
     public SOCPlayer getPlayer()
     {
@@ -1219,8 +1309,7 @@ import javax.swing.UIManager;
         }
         else if (target == DONE)
         {
-            // sqPanel.setValues(zero, zero);
-            messageSender.endTurn(game);
+            clickDoneButton();
         }
         else if (target == DONE_RESTART)
         {
@@ -1521,6 +1610,7 @@ import javax.swing.UIManager;
      * If one of these is chosen, this method calls {@link #clickPlayInventorySpecialItem(SOCInventoryItem)}.
      *<P>
      * Called from actionPerformed()
+     * @since 1.1.00
      */
     public void clickPlayCardButton()
     {
@@ -1710,15 +1800,27 @@ import javax.swing.UIManager;
         // clickPlayCardButton checks these and prints a message to the user.
     }
 
-    /** Handle a click on the roll button.
-     *  Called from actionPerformed() and the auto-roll timer task.
+    /**
+     * Handle a click on the Roll button. Assumes button is enabled.
+     * Called from actionPerformed(), the auto-roll timer task, and the hotkey InputMap/ActionMap.
+     * @since 1.1.00
      */
-    public void clickRollButton()
+    public final void clickRollButton()
     {
         if (rollPromptInUse)
             setRollPrompt(null, false);  // Clear it
         messageSender.rollDice(game);
         rollBut.setEnabled(false);  // Only one roll per turn
+    }
+
+    /**
+     * Handle a click on the Done button. Assumes button is enabled.
+     * Called from actionPerformed() and the hotkey InputMap/ActionMap.
+     * @since 2.3.00
+     */
+    private void clickDoneButton()
+    {
+        messageSender.endTurn(game);
     }
 
     /**
@@ -1729,7 +1831,7 @@ import javax.swing.UIManager;
      * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
      * @since 2.0.00
      */
-    private void clickOfferAcceptButton()
+    /* package */ void clickOfferAcceptButton()
     {
         if (! offerPanel.canPlayerGiveTradeResources())
         {
@@ -1758,7 +1860,7 @@ import javax.swing.UIManager;
      * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
      * @since 2.0.00
      */
-    private void clickOfferRejectButton()
+    /* package */ void clickOfferRejectButton()
     {
         offerPanel.setVisible(false);
         counterOfferPanel.setVisible(false);  // might already be hidden
@@ -1774,7 +1876,7 @@ import javax.swing.UIManager;
      * Before v2.0.00 this was handled in {@code TradeOfferPanel.OfferPanel.actionPerformed}.
      * @since 2.0.00
      */
-    private void clickOfferCounterButton()
+    /* package */ void clickOfferCounterButton()
     {
         counterOfferPanel.setVisible(true);
         offerPanel.setButtonRowVisible(false, true);
@@ -1792,7 +1894,7 @@ import javax.swing.UIManager;
     {
         // cancelRejectCountdown();  -- TODO soon
 
-        final SOCPlayer cliPlayer = game.getPlayer(client.getNickname());
+        final SOCPlayer cliPlayer = playerInterface.getClientPlayer();
 
         if (game.getGameState() != SOCGame.PLAY1)
             return;  // send button should've been disabled
@@ -2065,8 +2167,11 @@ import javax.swing.UIManager;
                     }
                 }
             }
+
             playerIsClient = false;
-        } else if (game.getGameState() == SOCGame.NEW)
+            faceImg.clearFacePopupPreviousChooser();
+        }
+        else if (game.getGameState() == SOCGame.NEW)
         {
             // Un-hide "Sit Here" or "Lock" button
             boolean clientAlreadySitting = (playerInterface.getClientHand() != null);
@@ -2143,6 +2248,76 @@ import javax.swing.UIManager;
     }
 
     /**
+     * From constructor, try to remove {@link #inventory} JList's Ctrl-A hotkey binding (Select All):
+     * It conflicts with the hotkey to Accept a trade offer, and is useless because
+     * inventory items are used one at a time, never all at once.
+     *<P>
+     * Once the client player has double-clicked an inventory item to play it, inventory becomes focused
+     * and its Ctrl-A binding is active and interferes with the trade offer hotkey.
+     *<P>
+     * Also removes Cmd-A on MacOSX or Alt-A on Windows.
+     *
+     * @see #addHotkeysInputMap()
+     * @since 2.3.00
+     */
+    private void init_removeInventoryHotkeyCtrlA()
+    {
+        SOCPlayerInterface.removeHotkeysInputMap_one
+            (inventory.getInputMap(JComponent.WHEN_FOCUSED), KeyEvent.VK_A);
+        SOCPlayerInterface.removeHotkeysInputMap_one
+            (inventory.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), KeyEvent.VK_A);
+    }
+
+    /**
+     * Add hotkey bindings to the panel's InputMap and ActionMap,
+     * as part of first time adding player when {@link #playerIsClient}.
+     *<P>
+     * Other hotkeys affecting {@code SOCHandPanel}:
+     * Trade offer Accept/reJect/Counter-offer ({@link KeyEvent#VK_A}, {@code VK_J}, {@code VK_C})
+     * set up by {@link SOCPlayerInterface#addHotkeysInputMap()}.
+     *<P>
+     * Does nothing if already called.
+     * @see #init_removeInventoryHotkeyCtrlA()
+     * @since 2.3.00
+     */
+    private void addHotkeysInputMap()
+    {
+        if (didHotkeyBindings)
+            return;
+
+        final ActionMap am = getActionMap();
+        am.put("hotkey_roll", new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                if (! rollBut.isEnabled())
+                    return;
+
+                if (autoRollTimerTask != null)
+                {
+                    autoRollTimerTask.cancel();
+                    autoRollTimerTask = null;
+                }
+                clickRollButton();
+            }
+        });
+        am.put("hotkey_done", new AbstractAction()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                if (doneBut.isEnabled())
+                    clickDoneButton();
+            }
+        });
+
+        final InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        SOCPlayerInterface.addHotkeysInputMap_one(im, KeyEvent.VK_R, "hotkey_roll", rollBut);
+        SOCPlayerInterface.addHotkeysInputMap_one(im, KeyEvent.VK_D, "hotkey_done", doneBut);
+
+        didHotkeyBindings = true;
+    }
+
+    /**
      * Remove elements to clean up this panel.
      * Calls removePlayer() as part of cleanup.
      * @see #gameDisconnected()
@@ -2174,7 +2349,8 @@ import javax.swing.UIManager;
 
     /**
      * Add a player (human or robot) at this currently-vacant seat position.
-     * Update controls at this handpanel.
+     * Update controls at this handpanel. Also calls {@link #addHotkeysInputMap()}.
+     *<P>
      * Also update ALL OTHER handpanels in our {@link #playerInterface} this way:
      * Remove all of the sit and take over buttons.
      * If game still forming, can lock seats (for fewer players/robots).
@@ -2185,19 +2361,17 @@ import javax.swing.UIManager;
      */
     public void addPlayer(String name)
     {
+        // hide temporarily to avoid flicker
         if (blankStandIn != null)
             blankStandIn.setVisible(true);
         setVisible(false);
 
-        /* This is visible for both our hand and opponent hands */
+        /* Items which are visible for any hand, client player or opponent */
+
         if (! game.isBoardReset())
-        {
             faceImg.setDefaultFace();
-        }
         else
-        {
             changeFace(player.getFaceId());
-        }
         faceImg.setVisible(true);
 
         pname.setText(name);
@@ -2246,7 +2420,7 @@ import javax.swing.UIManager;
 
         playerIsCurrent = (game.getCurrentPlayerNumber() == playerNumber);
 
-        if (player.getName().equals(client.getNickname()))
+        if (player.getName().equals(playerInterface.getClientNickname()))
         {
             // this is our hand
 
@@ -2360,26 +2534,22 @@ import javax.swing.UIManager;
             }
 
             updateButtonsAtAdd();  // Enable,disable the proper buttons
+            addHotkeysInputMap();
         }
         else
         {
             /* This is another player's hand */
 
             final boolean isRobot = player.isRobot();
-            D.ebugPrintln("**** SOCHandPanel.addPlayer(name) ****");
-            D.ebugPrintln("player.getPlayerNumber() = " + playerNumber);
-            D.ebugPrintln("player.isRobot() = " + isRobot);
-            D.ebugPrintln("player.getSeatLock(" + playerNumber + ") = " + game.getSeatLock(playerNumber));
-            D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
             knightsSq.setToolTipText(strings.get("hpan.soldiers.sizeoppoarmy"));  // "Size of this opponent's army"
 
             // To see if client already sat down at this game,
-            // we can't call playerInterface.getClientHand() yet,
+            // we can't call playerInterface.getClientHand() or .getClientPlayer() yet
             // because it may not have been set at this point.
-            // Use game.getPlayer(client.getNickname()) instead:
+            // Use game.getPlayer(clientNickname) instead:
 
-            final boolean clientIsASeatedPlayer = (game.getPlayer(client.getNickname()) != null);
+            final boolean clientIsASeatedPlayer = (game.getPlayer(playerInterface.getClientNickname()) != null);
 
             if (isRobot && (! clientIsASeatedPlayer)
                 && (game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED))
@@ -2547,7 +2717,8 @@ import javax.swing.UIManager;
         updateRollDoneBankButtons();
     }
 
-    /** Enable, disable the proper buttons
+    /**
+     * Enable, disable the proper buttons
      * when the client (player) is added to a game.
      * Call only if {@link #playerIsClient}.
      * @since 1.1.00
@@ -2833,6 +3004,7 @@ import javax.swing.UIManager;
 
     /**
      * DOCUMENT ME!
+     * @since 1.1.00
      */
     public void removeRobotBut()
     {
@@ -2887,6 +3059,7 @@ import javax.swing.UIManager;
      *    only show or hide "Accept" button based on the client player's current resources.
      *    Calls {@link TradePanel#updateOfferButtons()}.
      *    If no offer is currently visible, does nothing.
+     * @see #isShowingOfferToClientPlayer()
      */
     public void updateCurrentOffer(final boolean isNewOffer, final boolean resourcesOnly)
     {
@@ -2932,6 +3105,18 @@ import javax.swing.UIManager;
                 clearOffer(false);
             }
         }
+    }
+
+    /**
+     * Is this handpanel currently showing a trade offered to the client player?
+     * @return true if this is a non-client-player hand panel that's currently showing a trade offer
+     *     and {@link TradePanel#isOfferToPlayer()}.
+     * @see #updateCurrentOffer(boolean, boolean)
+     * @since 2.3.00
+     */
+    /* package */ boolean isShowingOfferToClientPlayer()
+    {
+        return inPlay && (! playerIsClient) && offerPanel.isOfferToPlayer();
     }
 
     /**
@@ -3185,6 +3370,7 @@ import javax.swing.UIManager;
      *      will not automatically wrap based on message length.
      * @see #hideMessage()
      * @see #showMiscInfo(String)
+     * @since 1.1.00
      */
     private void showMessage(String message)
     {
@@ -3249,6 +3435,7 @@ import javax.swing.UIManager;
      * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
      * @param isDiscard  True to show {@link #TRADEMSG_DISCARD}, false for {@link #TRADEMSG_PICKING}.
      * @return true if set, false if not set because was in reset-mode already.
+     * @since 1.1.00
      */
     public boolean setDiscardOrPickMsg(final boolean isDiscard)
     {
@@ -3267,6 +3454,7 @@ import javax.swing.UIManager;
      * Assumes player can't be discarding and asking for board-reset at same time.
      * If wasn't in discardMessage mode, do nothing.
      * @see #setDiscardOrPickMsg(boolean)
+     * @since 1.1.00
      */
     public void clearDiscardOrPickMsg()
     {
@@ -3322,7 +3510,9 @@ import javax.swing.UIManager;
     public void updateTakeOverButton()
     {
         if ((game.getSeatLock(playerNumber) != SOCGame.SeatLockState.LOCKED) &&
-            (game.getCurrentPlayerNumber() != playerNumber))
+            ((game.getCurrentPlayerNumber() != playerNumber)
+             || (game.getGameState() == SOCGame.NEW)
+             || (game.getGameState() == SOCGame.LOADING)))
         {
             takeOverBut.setText(TAKEOVER);
         } else {
@@ -3558,15 +3748,11 @@ import javax.swing.UIManager;
             break;
 
         case LongestRoad:
-
             setLRoad(player.hasLongestRoad());
-
             break;
 
         case LargestArmy:
-
             setLArmy(player.hasLargestArmy());
-
             break;
 
         case Clay:
@@ -3631,9 +3817,7 @@ import javax.swing.UIManager;
             break;
 
         case DevCards:
-
             developmentSq.setIntValue(player.getInventory().getTotal());
-
             break;
 
         case Knight:
@@ -3742,6 +3926,7 @@ import javax.swing.UIManager;
      * Update resourceTradeCost numbers and resourceTradeMenu text.
      *
      * @param doInit If true, fill resourceTradeMenu[] with newly constructed menus.
+     * @since 1.1.00
      */
     public void updateResourceTradeCosts(boolean doInit)
     {
@@ -3800,6 +3985,7 @@ import javax.swing.UIManager;
      * Is this panel showing the client's player?
      * @see #isClientAndCurrentPlayer()
      * @see SOCPlayerInterface#getClientHand()
+     * @since 1.1.00
      */
     public boolean isClientPlayer()
     {
@@ -3959,7 +4145,7 @@ import javax.swing.UIManager;
             lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
                 (dim.width - (topStuffW + inset + space)) / 2, lineH);
 
-            // SVP goes below Victory Points count; usually invisible
+            // SVP goes below Victory Points count; usually unused or 0, thus invisible
             if (svpSq != null)
             {
                 y += (lineH + 1);
@@ -4197,7 +4383,7 @@ import javax.swing.UIManager;
                         yb -= (lineH + space);
 
                     final int pix9 = 9 * displayScale;
-                    if (game.getPlayer(client.getNickname()) == null)
+                    if (playerInterface.getClientPlayer() == null)
                     {
                         takeOverBut.setBounds(pix9, yb, dim.width - 2 * pix9, lineH + space);
                         hasTakeoverBut = true;
@@ -4223,10 +4409,19 @@ import javax.swing.UIManager;
                         : ColorSquare.HEIGHT;  // small stand-in
                 if (isCounterOfferMode)
                     offerMinHeight += counterOfferHeight + space;
+
                 // TODO chk num lines here
-                final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4,
-                          topFaceAreaHeight = inset + faceW + space,
-                          availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
+                final int numBottomLines = (hasTakeoverBut || hasSittingRobotLockBut) ? 5 : 4;
+                int topFaceAreaHeight = inset + faceW + space;
+                if (((svpSq != null) && svpSq.isVisible())
+                    || ((wonderLab != null) && wonderLab.isVisible()))
+                {
+                    final int ybelow = svpSq.getY() + svpSq.getHeight() + space;
+                    if (ybelow > topFaceAreaHeight)
+                        topFaceAreaHeight = ybelow;
+                }
+                final int availHeightNoHide = (dim.height - topFaceAreaHeight - (numBottomLines * (lineH + space)));
+                int miy = 0, mih = 0;  // miscInfoArea y and height, if visible
 
                 if ((availHeightNoHide < offerMinHeight) && ! playerTradingDisabled)
                 {
@@ -4263,15 +4458,15 @@ import javax.swing.UIManager;
                     // pname, vpLab and vpSq, to make room for it.
                     if (offerCounterHidingFace)
                     {
+                        py = inset;
                         ph = Math.min(dim.height - (2 * inset), offerPrefSize.height);
                         // messagePanel is hidden, since offerCounterHidingFace.
-                        py = inset;
                         offerPanel.setBounds(inset, py, offerW, ph);
                         counterOfferPanel.setBounds
                             (inset, py + ph + space, offerW, counterOfferHeight);
                     } else {
-                        ph = Math.min(dim.height - (inset + faceW + 2 * space), offerPrefSize.height);
-                        py = inset + faceW + space;
+                        py = topFaceAreaHeight;
+                        ph = Math.min(dim.height - (py + space), offerPrefSize.height);
                         messagePanel.setBounds(inset, py, offerW, ph);
                         offerPanel.setBounds
                             (inset, py, offerW, ph);
@@ -4285,15 +4480,15 @@ import javax.swing.UIManager;
                         {
                             miscInfoArea.setVisible(false);
                         } else {
-                            miscInfoArea.setBounds(inset, py, offerW, ph + counterOfferHeight);
-                            miscInfoArea.setVisible(true);
+                            miy = py;
+                            mih = ph + counterOfferHeight;
                         }
                     }
 
                 } else {
                     // usual size & position
 
-                    int py = inset + faceW + space;
+                    int py = topFaceAreaHeight;
 
                     if (offerPanel != null)
                     {
@@ -4322,12 +4517,19 @@ import javax.swing.UIManager;
                         {
                             miscInfoArea.setVisible(false);
                         } else {
-                            miscInfoArea.setBounds(inset, py, dim.width - 2 * inset, availHeightNoHide - inset);
-                            miscInfoArea.setVisible(true);
+                            miy = py + space;
+                            mih = availHeightNoHide - inset - space;
                         }
                     }
 
                     offerCounterHidesFace = false;
+                }
+                if (mih != 0)
+                {
+                    if (mih < lineH)
+                        mih = lineH;
+                    miscInfoArea.setBounds(inset, miy, dim.width - 2 * inset, mih);
+                    miscInfoArea.setVisible(true);
                 }
                 if (offerPanel != null)
                 {

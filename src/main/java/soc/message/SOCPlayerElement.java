@@ -85,7 +85,8 @@ public class SOCPlayerElement extends SOCMessage
      * To send over the network as an int, use {@link #getValue()}.
      * When received from network as int, use {@link #valueOf(int)} to convert to {@link PEType}.
      *<P>
-     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization.
+     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization
+     * for {@link soc.server.savegame.SavedGameModel}.
      * @since 2.3.00
      */
     public enum PEType
@@ -137,11 +138,12 @@ public class SOCPlayerElement extends SOCMessage
         /**
          * Number of knights in player's army; sent after a Soldier card is played.
          *<P>
+         * If server is older than v2.4.00 ({@link SOCGame#VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}):
          * During normal gameplay, "largest army" indicator at client is updated
          * by examining game state, not by {@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER} message from server:
          *<BR>
-         * Client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
-         * then game's largest army by calling {@link SOCGame#updateLargestArmy()},
+         * client should update player's number of knights with {@link SOCPlayer#setNumKnights(int)},
+         * then (for &lt; v2.4.00) game's largest army by calling {@link SOCGame#updateLargestArmy()},
          * then update any related displays.
          */
         NUMKNIGHTS(15),
@@ -150,6 +152,10 @@ public class SOCPlayerElement extends SOCMessage
          * For the 6-player board, player element type for asking to build
          * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
          * This element is {@link #SET} to 1 or 0.
+         *<P>
+         * Also used by {@link soc.server.savegame.SavedGameModel}, omitted when value is 0.
+         *
+         * @see #HAS_SPECIAL_BUILT
          * @since 1.1.08
          */
         ASK_SPECIAL_BUILD(16),
@@ -188,6 +194,30 @@ public class SOCPlayerElement extends SOCMessage
          * @since 2.0.00
          */
         PLAYED_DEV_CARD_FLAG(19),
+
+        /**
+         * Is {@link SOCPlayer#getNeedToDiscard()} true?
+         * This element is 1 if so, otherwise 0 or omitted.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel}.
+         * Clients are sent {@link SOCDiscardRequest} instead.
+         *
+         * @since 2.3.00
+         */
+        DISCARD_FLAG(20),
+
+        /**
+         * In 6-player game's Special Building Phase, has the player already Special Built this turn?
+         * From {@link SOCPlayer#hasSpecialBuilt()}.
+         * This element is 1 or 0.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel}
+         * when gameState is {@link SOCGame#SPECIAL_BUILDING}.
+         *
+         * @see #ASK_SPECIAL_BUILD
+         * @since 2.3.00
+         */
+        HAS_SPECIAL_BUILT(21),
 
         //
         // Elements related to scenarios and sea boards:
@@ -233,8 +263,9 @@ public class SOCPlayerElement extends SOCMessage
         SCENARIO_SVP_LANDAREAS_BITMASK(104),
 
         /**
-         * Player's starting land area numbers.
+         * Player's starting land area numbers, from {@link SOCPlayer#getStartingLandAreasEncoded()}.
          * Sent only at reconnect, because these are also tracked during play at the client.
+         * At client, should be set before placing any pieces to avoid SVP scoring problems.
          * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
          * @since 2.0.00
          */

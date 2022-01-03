@@ -69,6 +69,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.JTextComponent;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -181,9 +182,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     private static final String MESSAGE_PANEL = "message";
 
     /** Connect-or-practice panel (if jar launch), in cardlayout.
-      * Panel field is {@link #connectOrPracticePane}.
-      * Available if {@link #hasConnectOrPractice}.
-      */
+     * Panel field is {@link #connectOrPracticePane}.
+     * Available if {@link #hasConnectOrPractice}.
+     * @since 1.1.00
+     */
     private static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
 
     /**
@@ -282,7 +284,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     private final Color miscLabelFGColor;
 
     /**
-     * The player interfaces for the {@link SOCPlayerClient#games} we're playing.
+     * The player interfaces for all the {@link SOCPlayerClient#games} we're playing.
      * Accessed from GUI thread and network MessageHandler thread.
      */
     private final Map<String, SOCPlayerInterface> playerInterfaces = new Hashtable<String, SOCPlayerInterface>();
@@ -321,6 +323,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Uses {@link SOCConnectOrPracticePanel}.
      *
      * @see #cardLayout
+     * @since 1.1.00
      */
     protected final boolean hasConnectOrPractice;
 
@@ -328,6 +331,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * If applicable, is set up in {@link #initVisualElements()}.
      * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
      * @see #hasConnectOrPractice
+     * @since 1.1.00
      */
     protected SOCConnectOrPracticePanel connectOrPracticePane;
 
@@ -370,7 +374,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /**
      * Nickname (username) to connect to server and use in games.
-     * Default value is set in {@link #guardedActionPerform_games(Object)} if still blank.
+     * After auth, once a game or channel is successfully joined,
+     * client calls {@link JTextComponent#setEditable(boolean) nick.setEditable(false)}.
+     *<P>
+     * Default value is set in {@link #guardedActionPerform_games(Object)} if still blank,
+     * so Practice game can be joined from {@link SOCConnectOrPracticePanel} which doesn't show this field.
      */
     protected JTextField nick;
 
@@ -454,6 +462,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Local Server indicator in main panel: blank, or 'server is running' if
      * {@link ClientNetwork#localTCPServer} has been started.
      * If so, localTCPServer's port number is shown in {@link #versionOrlocalTCPPortLabel}.
+     * @since 1.1.00
      */
     private JLabel localTCPServerLabel;
 
@@ -462,6 +471,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * When running {@link ClientNetwork#localTCPServer}, shows that
      * server's port number (see also {@link #localTCPServerLabel}).
      * In either mode, has a tooltip with more info.
+     *<P>
+     * Before v1.1.06 this field was {@code localTCPPortLabel}.
+     *
+     * @since 1.1.00
      */
     private JLabel versionOrlocalTCPPortLabel;
 
@@ -1275,11 +1288,6 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         cardLayout.show(this, MESSAGE_PANEL);
     }
 
-    public String getNickname()
-    {
-        return client.getNickname();
-    }
-
     public void clickPracticeButton()
     {
         guardedActionPerform(pgm);
@@ -1341,7 +1349,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * If target is {@link #chlist} itself, will call {@link JList#getSelectedValue()}
      * to get which channel name was clicked.
      * @param target Target as in actionPerformed
-     * @return True if OK, false if caller needs to show popup "cannot join"
+     * @return True if OK or no action taken, false if caller needs to show popup "cannot join"
+     * @see #guardedActionPerform_games(Object)
      * @since 1.1.06
      */
     private boolean guardedActionPerform_channels(Object target)
@@ -1368,9 +1377,18 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 return false;
 
             ch = itm.name.trim();
+        } else if (! ch.isEmpty()) {
+            String errMsg = checkNameFormat(ch);
+
+            if (errMsg != null)
+            {
+                status.setText(errMsg);
+                channel.requestFocusInWindow();
+                ch = "";
+            }
         }
 
-        if (ch.length() == 0)
+        if (ch.isEmpty())
         {
             return true;
         }
@@ -1381,6 +1399,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         {
             if (channels.isEmpty())
             {
+                // Prepare to auth.
                 // May set hint message if empty, like NEED_NICKNAME_BEFORE_JOIN
                 if (! readValidNicknameAndPassword())
                     return true;  // not filled in yet
@@ -1402,17 +1421,16 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * {@inheritDoc}
      *<P>
-     * This method may set status bar to a hint message if username is empty,
-     * such as {@link #NEED_NICKNAME_BEFORE_JOIN}.
-     * @see #getValidNickname(boolean)
+     * Calls {@link #getValidNickname(boolean) getValidNickname(false)} which may set status bar to
+     * a hint message if username/nickname field is empty.
      * @since 1.1.07
      */
     public boolean readValidNicknameAndPassword()
     {
-        client.nickname = getValidNickname(true);  // May set hint message if empty,
-                                        // like NEED_NICKNAME_BEFORE_JOIN
-        if (client.nickname == null)
-           return false;  // not filled in yet
+        // May set hint message if empty,
+        // like NEED_NICKNAME_BEFORE_JOIN
+        if (getValidNickname(false) == null)
+            return false;  // nickname field blank or invalid, client.nickname not set yet
 
         if (! client.gotPassword)
         {
@@ -1429,7 +1447,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * If target is {@link #gmlist} itself, will call {@link JList#getSelectedValue()}
      * to get which game name was clicked.
      * @param target Target as in actionPerformed
-     * @return True if OK, false if caller needs to show popup "cannot join"
+     * @return True if OK or if feedback was handled here; false if caller needs to show popup "cannot join"
+     * @see #guardedActionPerform_channels(Object)
      * @since 1.1.06
      */
     private boolean guardedActionPerform_games(Object target)
@@ -1442,20 +1461,18 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             gm = client.DEFAULT_PRACTICE_GAMENAME;  // "Practice"
 
             // If blank, fill in player name
+            // (v1.x used DEFAULT_PLAYER_NAME const field here)
 
             if (0 == nick.getText().trim().length())
-            {
                 nick.setText(client.strings.get("default.name.practice.player"));  // "Player"
-            }
         }
         else if (target == ng)  // "New Game" button
         {
-            if (null != getValidNickname(false))  // that method does a name check, but doesn't set nick field yet
-            {
+            if (null != getValidNickname(true))  // name check, but don't set nick field yet
                 gameWithOptionsBeginSetup(false, false);  // Also may set status, WAIT_CURSOR
-            } else {
+            else
                 nick.requestFocusInWindow();  // Not a valid player nickname
-            }
+
             return true;
         }
         else  // "Join Game" Button jg, or game list
@@ -1569,10 +1586,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         {
             if (client.games.isEmpty())
             {
-                client.nickname = getValidNickname(true);  // May set hint message if empty,
-                                           // like NEED_NICKNAME_BEFORE_JOIN
-                if (client.nickname == null)
-                    return true;  // not filled in yet
+                // May set hint message if empty,
+                // like NEED_NICKNAME_BEFORE_JOIN
+                if (getValidNickname(false) == null)
+                    return true;  // nickname blank or invalid, client.nickname not set yet
 
                 if (! client.gotPassword)
                 {
@@ -1593,6 +1610,14 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             else
             {
                 // Join a game on the remote server.
+
+                // Check nickname field, unless is read-only because of previous successful auth
+                if (nick.isEditable() && (getValidNickname(false) == null))
+                {
+                    nick.requestFocusInWindow();  // Not a valid player nickname
+                    return true;
+                }
+
                 // Send JOINGAME right away.
                 // (Create New Game is done above; see calls to gameWithOptionsBeginSetup)
 
@@ -1615,17 +1640,27 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     }
 
     /**
-     * Validate and return the nickname textfield, or null if blank or not ready.
-     * If successful, also set {@link #nickname} field.
-     * @param precheckOnly If true, only validate the name, don't set {@link #nickname}.
+     * Trim, validate, and return the nickname textfield if valid.
+     * If successful, can also set {@link SOCPlayerClient} nickname fields.
+     * May set status bar to a hint message if textfield is empty,
+     * such as {@link #NEED_NICKNAME_BEFORE_JOIN}.
+     *<P>
+     * Unless {@code precheckOnly}:
+     *<UL>
+     * <LI> Sets {@code SOCPlayerClient.nickname} field
+     * <LI> Sets {@code SOCPlayerClient.practiceNickname} field if that field is null
+     *</UL>
+     *
+     * @param precheckOnly  If true, only validate the name, don't set {@code nickname} client-object fields
+     * @return Validated nickname from textfield, or {@code null} if blank or not successfully validated
      * @see #readValidNicknameAndPassword()
      * @since 1.1.07
      */
-    protected String getValidNickname(boolean precheckOnly)
+    protected String getValidNickname(final boolean precheckOnly)
     {
-        String n = nick.getText().trim();
+        final String n = nick.getText().trim();
 
-        if (n.length() == 0)
+        if (n.isEmpty())
         {
             final String stat = status.getText();
             if (stat.equals(NEED_NICKNAME_BEFORE_JOIN) || stat.equals(NEED_NICKNAME_BEFORE_JOIN_G))
@@ -1644,18 +1679,54 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             return null;
         }
 
-        if (! SOCMessage.isSingleLineAndSafe(n))
+        String errMsg = checkNameFormat(n);
+        if (errMsg != null)
         {
-            status.setText(client.strings.get("netmsg.status.common.newgame_name_rejected"));
-                // "This name is not permitted, please choose a different name."
+            status.setText(errMsg);
+
             return null;
         }
 
         nick.setText(n);
+
         if (! precheckOnly)
+        {
             client.nickname = n;
+            if (client.practiceNickname == null)
+                client.practiceNickname = n;
+        }
 
         return n;
+    }
+
+    /**
+     * Check format of an entered nickname or channel name;
+     * if problems, return error text to explain.
+     *<UL>
+     * <LI> Can't contain {@code '|'} or {@code ','}
+     * <LI> Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
+     *</UL>
+     * Doesn't check a few additional requirements that don't apply to channels.
+     *
+     * @param n Name to check; should not be null or empty
+     * @return {@code null} if name is OK, otherwise localized error text
+     * @since 2.3.00
+     */
+    private String checkNameFormat(final String n)
+    {
+        String errMsg = null;
+
+        if (-1 != n.indexOf(SOCMessage.sep_char))  // '|'
+            errMsg = client.strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep_char);
+                // Name must not contain "|", please choose a different name.
+        else if (-1 != n.indexOf(SOCMessage.sep2_char))  // ','
+            errMsg = client.strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep2_char);
+                // Name must not contain ",", please choose a different name.
+        else if (! SOCMessage.isSingleLineAndSafe(n))
+            errMsg = client.strings.get("netmsg.status.common.newgame_name_rejected");
+                // "This name is not permitted, please choose a different name."
+
+        return errMsg;
     }
 
     /**
@@ -1727,7 +1798,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             status.setText(client.strings.get("pcli.message.talkingtoserv"));  // "Talking to server..."
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // NGOF create calls setCursor(DEFAULT_CURSOR)
             net.putNet(SOCAuthRequest.toCmd
-                (SOCAuthRequest.ROLE_GAME_PLAYER, client.nickname, client.password,
+                (SOCAuthRequest.ROLE_GAME_PLAYER, client.getNickname(forPracticeServer), client.password,
                  SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, net.getHost()));
 
             return;
@@ -1892,7 +1963,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     /**
      * {@inheritDoc}
      *<P>
-     * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()},
+     * Assumes {@link #getValidNickname(boolean) getValidNickname(false)}, {@link #getPassword()},
      * {@link ClientNetwork#connect(String, int)}, and {@link #gotPassword} are already called and valid.
      *
      * @since 1.1.07
@@ -1939,9 +2010,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Look for active games that we're playing
      *
      * @param fromPracticeServer  Enumerate games from {@link ClientNetwork#practiceServer},
-     *     instead of {@link #playerInterfaces}?
-     * @return Any found game of ours which is active (state not OVER), or null if none.
+     *     instead of all games in {@link #playerInterfaces}?
+     * @return Any found game of ours which is active (state &lt; {@link SOCGame#OVER}), or null if none.
+     * @see #hasAnyActiveGame(boolean)
      * @see ClientNetwork#anyHostedActiveGames()
+     * @since 1.1.00
      */
     protected SOCPlayerInterface findAnyActiveGame(boolean fromPracticeServer)
     {
@@ -1984,6 +2057,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
 
         return pi;  // Active game, or null
+    }
+
+    @Override
+    public boolean hasAnyActiveGame(final boolean fromPracticeServer)
+    {
+        return (null != findAnyActiveGame(fromPracticeServer));
     }
 
     /**
@@ -2038,7 +2117,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             validate();
             if (canPractice)
             {
-                if (null == findAnyActiveGame(true))
+                if (! hasAnyActiveGame(true))
                     pgm.requestFocus();  // No practice games: put this msg as topmost window
                 else
                     pgm.requestFocusInWindow();  // Practice game is active; don't interrupt to show this
@@ -2109,6 +2188,15 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     public void setPassword(final String pw)
     {
         pass.setText(pw);
+    }
+
+    public void repaintGameAndChannelLists()
+    {
+        if (chlist.isVisible())
+            chlist.repaint();
+
+        if (gmlist.isVisible())
+            gmlist.repaint();
     }
 
     public void channelJoined(String channelName)
@@ -2437,6 +2525,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         } else {
             lm.addElement(item);
         }
+        gmlist.repaint();
     }
 
     public boolean deleteFromGameList(String gameName, final boolean isPractice, final boolean withUnjoinablePrefix)
@@ -2524,7 +2613,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
     }
 
-    /** Print the current chat ignorelist in a channel. */
+    /**
+     * Print the current chat ignorelist to a channel window.
+     * @since 1.1.00
+     */
     protected void printIgnoreList(ChannelFrame fr)
     {
         fr.print("* "+/*I*/"Ignore list:"/*18N*/);
@@ -2535,6 +2627,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
     }
 
+    /**
+     * Print the current chat ignorelist to a game window.
+     * @since 1.1.00
+     */
     public void printIgnoreList(SOCPlayerInterface pi)
     {
         pi.print("* "+/*I*/"Ignore list:"/*18N*/);
@@ -2750,7 +2846,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     }   // JoinableListItem
 
 
-    /** React to windowOpened, windowClosing events for SwingMainDisplay's Frame. */
+    /**
+     * React to windowOpened, windowClosing events for SwingMainDisplay's Frame.
+     *<P>
+     * Before v2.0.00 this class was {@code SOCPlayerClient.MyWindowAdapter}.
+     */
     private static class ClientWindowAdapter extends WindowAdapter
     {
         private final SwingMainDisplay md;

@@ -92,7 +92,8 @@ To no longer show those coordinates, type: `=*= hidecoords`
 
 Coding is done in Java 8, but should compile cleanly in newer JDKs.
 (v2.2 used java 7 for backwards compatibility; v2.0 and 2.1 used 6; 1.2 used java 5.)
-The build system is gradle 5.6 or 6.x. Use any IDE you want, including vi.
+The build system is gradle 5.6 or 6.x; the newest tested version is gradle 6.4.
+Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
 
@@ -120,10 +121,13 @@ to browse and re-send debug commands.
 
 To help with security and prevent cheats, by default debug commands are disabled
 except for practice games.  If you need to use debug commands on a multi-player
-server, start that server with `-Djsettlers.allow.debug=Y` and connect with username `debug`.
-For security, please use sqlite or another database and make a "debug" account with
-a password (see [Readme.md](../Readme.md) section "Database Setup").  Except for
-practice games, no other username can use debug commands.
+server, start that server with `-Djsettlers.allow.debug=Y` on its command line,
+then connect with username `debug`. Except for practice games, no other username can
+use debug commands.
+
+For security, if you must use the "debug" user outside of your own laptop or workstation,
+please use sqlite or another database and make a "debug" account with a password
+(see [Readme.md](../Readme.md) section "Database Setup").
 
 `D.ebugPrintln` is turned on or off for each java class by the import at the top of the file.
 For example if you wanted to see D.ebugPrintln output for soc.game.SOCPlayer,
@@ -589,12 +593,12 @@ jsettlers JAR from the command line, not running inside the IDE.
 ## To do: The current TODO list
 
 Work on these possible roadmap items has not yet begun. This list is ranked
-from easier, to more difficult. You can also search the source for TODO for
+from easier to more difficult. You can also search the source for TODO for
 ideas.
 
 - Visual reminder to player when they've made a trade offer
 - Show # VP when choosing where to sit, if game is in progress
-- Keyboard shortcuts for "roll", "done" buttons
+- Refactor: `new Date().getTime()` -> `System.currentTimeMillis()`
 - Occasionally the board does not re-scale at game reset
 - Docs: State diagram for `SOCGame` states, or sequence of important message flows
   (log into server, create/join game, roll dice, etc)
@@ -608,7 +612,7 @@ ideas.
   - For clarity, decide case-by-case whether to use diamond with deeply nested types like  
     `new Stack<Pair<NodeLenVis<Integer>, List<Integer>>>()`
 - Add more scenarios' unit tests to `soctest.game.TestScenarioRules`
-- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
+- Kick and replace robots if inactive but current player in game, assume they're buggy (see forceEndTurn, SOCPlayer.isStubbornRobot())
 - Control the speed of robots, in practice games and with other humans
   - Adjust `SOCRobotBrain.pause`, `ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS`, etc
 - For bot test runs with `-Djsettlers.bots.botgames.shutdown=Y` (`SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_SHUTDOWN`):
@@ -620,6 +624,7 @@ ideas.
   - Medium-level example: Add a board-geometry unit test to `soctest.game.TestBoardLayouts`
     to check all scenarios' layouts against the "Layout placement rules for special situations"
     mentioned in `SOCBoardAtServer` class javadocs
+  - Could add a test flag or method to server to load a saved game from JSON to test specific situations
 - Possibly: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
@@ -627,7 +632,9 @@ ideas.
 - Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
 - Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(SOCResourceSet),
   subtract(SOCResourceSet) with playing piece `COST` constants
-- Refactor: `SOCGameOption` static methods to check and change values within a set
+- Refactor `SOCGameOption`:
+  - Static methods to check and change values within a set
+  - Create SOCGameOptionAtServer for methods used only there, like static optionsNotSupported and optionsTrimmedForSupport
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
@@ -653,7 +660,7 @@ ideas.
     - Show remaining supply in Statistics popup and `*STATS*` debug command
     - Game window is probably too cluttered already to always show remaining supply;
       any way to cleanly do so would be a bonus
-    - Add house rule `SOCGameOption` for unlimited resources
+    - Add a house rule to `SOCGameOption` for unlimited resources
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
 - Bots on sea boards: Help bots decide when it makes sense to move a ship (versus build another)
@@ -692,22 +699,39 @@ ideas.
 To help with testing, the server can save a game and board's state to a file
 and load it later, using debug commands.
 
-**Usage/UI** TBD; might be something like:
+This feature is experimental and still being developed, so the notes here are very basic.
+
+Most games with a scenario can't yet be saved, because of their special pieces
+or game/player data fields. Basic scenarios like "Four Islands" which don't have
+special rules or pieces can be saved and loaded.
+
+**Usage/UI**
 
 - Set value of server property `jsettlers.savegame.dir` to point to the game-saves directory
-- Start a game, place pieces as needed, etc
-- Debug command to save a snapshot: \*SAVEGAME\* mygamename
-- Debug command to load a snapshot: \*LOADGAME\* mygamename  
-  Server parses the snapshot and create a game with its contents.
-  Debug user joins, bots are then asked to join. (Maybe optionally require certain types of bots?)
-  Temporarily set gamestate to a new hold/pause state, so current player won't take action until everyone has joined.
+- Log in as `debug` or an admin user
+- Start a game, place pieces as needed, begin game play
+- Debug command to save a snapshot: \*SAVEGAME\* savename
+  - savename can contain letters and digits (Character.isLetterOrDigit), dashes (`-`), underscores (`_`)
+  - If snapshot already exists, use flag `-f` to force overwriting it with the new save
+- Debug command to load a snapshot: \*LOADGAME\* savename
+  - Server parses the snapshot and create a game with its contents
+  - Debug/admin user joins, bots are asked to join
+  - A later version might optionally support requiring certain types of bots
+  - Temporarily sets gamestate to new hold/pause state `LOADING`, so current player won't take action until everyone has joined
+- If other human players will be playing, have them join and sit down now
+  - Note: If joining human has same name as any player in loaded game, their client will automatically sit down and can't be an observer
 - Debug command to resume play of loaded game: \*RESUMEGAME\*
+  - If game was saved with human players who haven't rejoined, bots will join now for those players
+  - If no human players have sat down, game will play as robots-only even if server isn't set to allow bot-only games
+  - Game play now resumes, at the current player and state it was saved with
 
-Optional GSON jar must be on classpath, or named `gson.jar` (no version number)
+This feature requires a GSON jar which must be on the classpath, or named `gson.jar` (no version number)
 in same directory as JSettlersServer.jar. Download GSON 2.8.6 or higher from
 https://search.maven.org/artifact/com.google.code.gson/gson/2.8.6/jar or
 https://mvnrepository.com/artifact/com.google.code.gson/gson/2.8.6 .  
 If using Eclipse, also add GSON to the project's build path -> Libraries -> Add External JAR
+
+If you're not using this feature, JSettlers doesn't require or use the GSON jar.
 
 
 ## Developing with a database (JDBC)
@@ -803,9 +827,7 @@ agents, so there's some instrumentation for the bots but it's not entirely
 documented.  For a technical overview of how the bots plan their actions, start
 at the SOCRobotBrain class javadoc.
 
-You can also build pieces for the bots using "Free Placement" debug mode (see
-above) to help set up debugging or testing situations, including the game's
-initial placement.
+### Testing/Debugging
 
 When testing with the robots, you may need to send them resources or commands
 on their turn. The easiest way to do that is to type the debug command but don't
@@ -814,6 +836,14 @@ few seconds to send the command. On the other hand if you want the bots to move
 quickly, use the No Trading house rule and play on the 6-player board, where the
 bots have shorter delays since there might be more players (but you can also use
 this board with 2-4 players).
+
+You can also build pieces for the bots using "Free Placement" debug mode (see
+above) to help set up debugging or testing situations, including the game's
+initial placement.
+
+Games with bots can be set up, pieces built or dev cards given, then saved and
+reloaded by the debug user with the optional "savegame" feature: See section
+"Saving and loading games at server".
 
 There are a few bot debugging commands, such as print-vars and stats. To send
 them, type `botname:command` into the chat textbox while playing or observing a
@@ -836,6 +866,8 @@ then click the location you're asking the bot about:
 | `\clt-road ` _botname_ | _botname_`:consider-target road ` _coord_ |
 | `\clt-set ` _botname_  |  _botname_`:consider-target settlement ` _coord_ |
 | `\clt-city ` _botname_ | _botname_`:consider-target city ` _coord_ |
+
+### Development
 
 If you're looking to make minor changes, it's probably best to fork or extend
 the `soc.robot` package and go from the classes and javadocs there.
@@ -869,18 +901,32 @@ be set at the server command line with
 and then read in the bot's brain class. For an example see
 `Sample3PBrain.setOurPlayerData()`.
 
+### Running robot-only games
+
 For bot testing and statistics, you can have the server run some robot-only
 games (no human players) with the `jsettlers.bots.botgames.total` server property.
 To run 7 robot-only games in a row, with each game randomly choosing from 10
 robot players, you could start the server with:
-`-Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7`. The robot-only
-games run at a quick pace, about 2 minutes for a 4-player game. You can use the
-jsettlers client to observe a bot game as it plays.
+`-Djsettlers.startrobots=10 -Djsettlers.bots.botgames.total=7`.
+To start more of them at once, increase parallel property (default 4):
+`-Djsettlers.bots.botgames.parallel=7`
+
+The robot-only games run at a quick pace, about 2 minutes for a 4-player game.
+You can use the jsettlers client to observe a bot game as it plays.
 
 To speed up or slow down robot-only games, start the server with this tuning
 option to set the length of SOCRobotBrain pauses during bot-only games: For
 example `-Djsettlers.bots.fast_pause_percent=10` will pause for only 10% as long
 as in normal games.
+
+To start robot-only games with an equal mix of different sizes and boards,
+set optional property `jsettlers.bots.botgames.gametypes`:
+
+| Value | Game sizes and board types |
+| --- | --- |
+| 1 (default) | Classic 4-player only |
+| 2 | Classic 4- and 6-player |
+| 3 | Classic and sea board (no scenarios), both 4- and 6-player |
 
 For testing purposes, if you want the server to exit after running all its
 robot-only games, start the server with `-Djsettlers.bots.botgames.shutdown=Y` .
@@ -1021,7 +1067,7 @@ In emacs, you can place this in your .emacs file to use spaces instead of tabs:
 (setq indent-tabs-mode nil)
 ```
 
-(courtesy http://www.jwz.org/doc/tabs-vs-spaces.html, which also mentions vi)
+(courtesy https://www.jwz.org/doc/tabs-vs-spaces.html, which also mentions vi)
 
 You will also want this to have this, which disables auto-reindenting:
 `(setq-default c-electric-flag nil)`
@@ -1127,10 +1173,14 @@ updates VERSIONS.txt with the final build number, with a commit message like:
 Then: `git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'`
 
 The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
-http://sourceforge.net/projects/jsettlers2/ through 2012-09-28.
+https://sourceforge.net/projects/jsettlers2/ , converted to git on 2012-09-28
+with cvs2git (cvs2svn 2.4.0).
+
 The old 1.0.x source history (2004-2005) from Robert S Thomas and Chad McHenry
 can be found at https://github.com/jdmonin/JSettlers1
-or http://sourceforge.net/projects/jsettlers/ .
+or https://sourceforge.net/projects/jsettlers/ .
+That JSettlers1 repo also includes jsettlers-1-1-branch which has
+Jeremy Monin's first JSettlers releases 1.1.00 through 1.1.06.
 
 
 ### Reference: Required library JARs

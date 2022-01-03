@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -55,13 +55,12 @@ public class SOCAcceptOffer extends SOCMessage
     private String game;
 
     /**
-     * The number of the accepting player.
-     * Sent from server, ignored if sent from client.
+     * The accepting player number from server; see {@link #getAcceptingNumber()}.
      */
     private int accepting;
 
     /**
-     * The number of the offering player
+     * The offering player number; see {@link #getOfferingNumber()}.
      */
     private int offering;
 
@@ -69,8 +68,8 @@ public class SOCAcceptOffer extends SOCMessage
      * Create an AcceptOffer message.
      *
      * @param ga  the name of the game
-     * @param ac  the player number of the accepting player.
-     *     Sent from server, ignored if sent from client.
+     * @param ac  the player number of the accepting player
+     *     when sent from server; always ignored if sent from client
      * @param of  the player number of the offering player
      */
     public SOCAcceptOffer(String ga, int ac, int of)
@@ -90,10 +89,11 @@ public class SOCAcceptOffer extends SOCMessage
     }
 
     /**
-     * Get the player number accepting the trade offered by
+     * When sent from server, get the player number accepting the trade offered by
      * {@link #getOfferingNumber()}.
+     * From client, server has always ignored this field; could be any value.
      * @return the number of the accepting player from server,
-     *     or any value sent from client (not used by server)
+     *     or any value sent from client (server has always ignored this field)
      */
     public int getAcceptingNumber()
     {
@@ -124,8 +124,8 @@ public class SOCAcceptOffer extends SOCMessage
      * ACCEPTOFFER sep game sep2 accepting sep2 offering
      *
      * @param ga  the name of the game
-     * @param ac  the player number of the accepting player.
-     *     Sent from server, ignored if sent from client.
+     * @param ac  the player number of the accepting player
+     *     when sent from server; always ignored if sent from client
      * @param of  the player number of the offering player
      * @return the command string
      */
@@ -182,4 +182,5 @@ public class SOCAcceptOffer extends SOCMessage
     {
         return "SOCAcceptOffer:game=" + game + "|accepting=" + accepting + "|offering=" + offering;
     }
+
 }

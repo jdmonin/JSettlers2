@@ -46,6 +46,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
@@ -73,6 +74,7 @@ import javax.swing.text.Document;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
@@ -508,7 +510,7 @@ import soc.util.Version;
 
     /**
      * Interface setup: {@link SOCGameOption}s, user's client preferences, per-game local preferences.
-     * One row per option, except for 3-letter options which group with 2-letter ones.
+     * One row per option; groups 3-letter options under their matching 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
      * When showing options to create a new game, option keys starting with '_' are hidden.
@@ -563,28 +565,36 @@ import soc.util.Version;
 
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Look for options that should be on the same
-        // line as other options (based on key length)
-        // instead of at the start of a line.
-        // TODO: for now these are on subsequent lines
-        //   instead of sharing the same line.
-        HashMap<String,String> sameLineOpts = new HashMap<String,String>();  // key=on-same-line opt, value=opt to start line
-        for (final String kf3 : opts.keySet())
+        // Look for options that should be grouped together and indented
+        // under another option (based on key length and common prefix)
+        // instead of aligned to the start of a line.
+        HashMap<String,String> sameGroupOpts = new HashMap<>();  // key=in-same-group opt, value=opt which heads that group
+        for (final SOCGameOption opt : opts.values())
         {
-            if (kf3.length() <= 2)
+            final String okey = opt.key;
+            if ((okey.length() <= 2) || (opt.optType == SOCGameOption.OTYPE_UNKNOWN))
                 continue;
-            final String kf2 = kf3.substring(0, 2);
-            if (opts.containsKey(kf2))
-                sameLineOpts.put(kf3, kf2);
+
+            final String kf2 = okey.substring(0, 2);
+            SOCGameOption op2 = opts.get(kf2);
+            if ((op2 != null) && (op2.optType != SOCGameOption.OTYPE_UNKNOWN))
+                sameGroupOpts.put(okey, kf2);
         }
 
         // Sort and lay out options; remove unknowns and internal-onlys from opts.
+
         // TreeSet sorts game options by description, using gameopt.compareTo.
         // The array lets us remove from opts without disrupting an iterator.
         SOCGameOption[] optArr = new TreeSet<SOCGameOption>(opts.values()).toArray(new SOCGameOption[0]);
+
+        // Some game options from sameGroupOpts, sorted by key.
+        // Declared up here for occasional reuse within the loop.
+        TreeMap<String, SOCGameOption> optGroup = new TreeMap<>();
+
         for (int i = 0; i < optArr.length; ++i)
         {
-            SOCGameOption op = optArr[i];
+            final SOCGameOption op = optArr[i];
+
             if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             {
                 opts.remove(op.key);
@@ -607,25 +617,33 @@ import soc.util.Version;
                     continue;  // <-- Don't show options which are scenario names (use SC dropdown to pick at most one)
             }
 
-            if (sameLineOpts.containsKey(op.key))
-                continue;  // <-- Shares a line, Go to next entry --
-            final boolean sharesLine = sameLineOpts.containsValue(op.key);
+            if (sameGroupOpts.containsKey(op.key))
+                continue;  // <-- Part of a group: We'll init this opt soon with rest of that group --
+
+            final boolean sharesGroup = sameGroupOpts.containsValue(op.key);
 
             initInterface_OptLine(op, bp, gbl, gbc);
-            if (sharesLine)
+            if (sharesGroup)
             {
                 // Group them under this one.
-                // TODO group on same line, not following lines, if there's only 1.
-                for (final String kf3 : sameLineOpts.keySet())
+                // Sort by each opt's key, for stability across localizations.
+
+                optGroup.clear();
+
+                for (final String kf3 : sameGroupOpts.keySet())
                 {
-                    final String kf2 = sameLineOpts.get(kf3);
+                    final String kf2 = sameGroupOpts.get(kf3);
                     if ((kf2 == null) || ! kf2.equals(op.key))
                         continue;  // <-- Goes with a a different option --
 
-                    final SOCGameOption op3 = opts.get(kf3);
-                    if (op3 != null)
-                        initInterface_OptLine(op3, bp, gbl, gbc);
+                    SOCGameOption groupHeadOpt = opts.get(kf3);
+                    if (groupHeadOpt == null)
+                        continue;  // apparently was removed after initializing sameGroupOpts (internal-use opt?)
+                    optGroup.put(kf3, groupHeadOpt);
                 }
+
+                for (final SOCGameOption op3 : optGroup.values())
+                    initInterface_OptLine(op3, bp, gbl, gbc);
             }
 
         }  // for(opts)
@@ -1093,6 +1111,14 @@ import soc.util.Version;
                  true, true, bval, ival, null);
         }
 
+        bval = (0 < UserPreferences.getPref(SOCPlayerClient.PREF_FACE_ICON, SOCPlayer.FIRST_HUMAN_FACE_ID));
+        localPrefs.put(SOCPlayerClient.PREF_FACE_ICON, Boolean.valueOf(bval));
+        initInterface_Pref1
+            (bp, gbl, gbc, SOCPlayerClient.PREF_FACE_ICON,
+             strings.get("game.options.ui.remember_face_icon"),  // "Remember face icon"
+             true, false,
+             bval, 0, null);
+
         int ival = UserPreferences.getPref(SOCPlayerClient.PREF_UI_SCALE_FORCE, 0);
         localPrefs.put(SOCPlayerClient.PREF_UI_SCALE_FORCE, Integer.valueOf(ival));
         bval = (ival > 0);
@@ -1418,20 +1444,21 @@ import soc.util.Version;
 
         String errMsg = null;
         if (L > SOCGameList.GAME_NAME_MAX_LENGTH)
-        {
             errMsg = strings.get("netmsg.status.common.name_too_long", SOCGameList.GAME_NAME_MAX_LENGTH);
                 // "Please choose a shorter name; maximum length: {0}"
-        }
+        else if (-1 != gmName.indexOf(SOCMessage.sep_char))  // '|'
+            errMsg = strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep_char);
+                // Name must not contain "|", please choose a different name.
+        else if (-1 != gmName.indexOf(SOCMessage.sep2_char))  // ','
+            errMsg = strings.get("netmsg.status.client.newgame_name_rejected_char", SOCMessage.sep2_char);
+                // Name must not contain ",", please choose a different name.
         else if ((gmName.charAt(0) == '?') || ! SOCMessage.isSingleLineAndSafe(gmName))
-        {
             errMsg = strings.get("netmsg.status.common.newgame_name_rejected");
                 // "This name is not permitted, please choose a different name."
-        }
         else if (SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher(gmName).matches())
-        {
             errMsg = strings.get("netmsg.status.common.newgame_name_rejected_digits_or_punct");
                 // "A name with only digits or punctuation is not permitted, please add a letter."
-        }
+
         if (errMsg != null)
         {
             msgText.setText(errMsg);
@@ -1592,6 +1619,39 @@ import soc.util.Version;
         {
             UserPreferences.putPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, setIdx);
             mainDisplay.getClient().reloadBoardGraphics();  // refresh all current PIs
+        }
+
+        k = SOCPlayerClient.PREF_FACE_ICON;
+        boolean wantsSet = ((Boolean) localPrefs.get(k)).booleanValue();
+        setIdx = UserPreferences.getPref(SOCPlayerClient.PREF_FACE_ICON, 0);
+        if (wantsSet != (0 < setIdx))
+        {
+            final SOCPlayerClient cli = mainDisplay.getClient();
+            final boolean newAndNoActives = forNewGame && ! mainDisplay.hasAnyActiveGame(false);
+
+            if (newAndNoActives && wantsSet && (cli.lastFaceChange == SOCPlayer.FIRST_HUMAN_FACE_ID) && (setIdx != 0))
+            {
+                // No active PI showing, wants to remember face icons.
+                // Use saved pref's non-default face now, if available
+
+                if (setIdx < 0)
+                    setIdx = -setIdx;
+
+                cli.lastFaceChange = setIdx;
+            }
+
+            if (newAndNoActives && ! wantsSet)
+            {
+                // No active PI showing, so reset PI's icon to default
+                // but don't lose previously-saved value in prefs
+
+                cli.lastFaceChange = SOCPlayer.FIRST_HUMAN_FACE_ID;
+                UserPreferences.putPref(SOCPlayerClient.PREF_FACE_ICON, -setIdx);
+            } else {
+                UserPreferences.putPref(SOCPlayerClient.PREF_FACE_ICON,
+                    (wantsSet) ? cli.lastFaceChange : -(cli.lastFaceChange));
+            }
+
         }
     }
 

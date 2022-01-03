@@ -35,7 +35,7 @@ import soc.util.SOCFeatureSet;
  * A facade for the SOCPlayerClient to use to invoke actions in the main GUI
  * (as opposed to in-game {@link PlayerClientListener}):
  * Connect, list games and chat channels, etc.
- * Classic implementation is {@link SwingMainDisplay}.
+ * Underlying implementation is {@link SwingMainDisplay}.
  * @since 2.0.00
  */
 public interface MainDisplay
@@ -94,6 +94,7 @@ public interface MainDisplay
      * @param tport  TCP port number to host on
      * @throws IllegalArgumentException If port is 0 or negative
      * @throws IllegalStateException  if already connected to a server
+     * @since 1.1.00
      */
     void startLocalTCPServer(final int tport)
         throws IllegalArgumentException, IllegalStateException;
@@ -106,6 +107,18 @@ public interface MainDisplay
      * @see #askStartGameWithOptions(String, boolean, Map, Map)
      */
     boolean readValidNicknameAndPassword();
+
+    /**
+     * Are there any active games that we're playing?
+     *
+     * @param fromPracticeServer  If true, only look through practice server's games,
+     *     instead of all games with {@link PlayerInterface}s
+     * @return True if there are games found which are active (state &lt; {@link SOCGame#OVER})
+     * @see SwingMainDisplay#findAnyActiveGame(boolean)
+     * @see ClientNetwork#anyHostedActiveGames()
+     * @since 2.4.00
+     */
+    boolean hasAnyActiveGame(final boolean fromPracticeServer);
 
     /**
      * Ask server to start a game with options.
@@ -134,8 +147,10 @@ public interface MainDisplay
     /**
      * Act as if the "practice game" button has been clicked.
      * Assumes the dialog panels are all initialized.
+     * @since 1.1.00
      */
     void clickPracticeButton();
+
     void practiceGameStarting();
 
     void setMessage(String string);
@@ -197,6 +212,12 @@ public interface MainDisplay
     void setPassword(final String pw);
 
     /**
+     * Repaint displayed game list and channel list after a change to their contents.
+     * @since 2.4.00
+     */
+    void repaintGameAndChannelLists();
+
+    /**
      * Server has sent authorization for client to create and/or join a channel.
      * Client should create a UI to interact with that channel.
      */
@@ -216,6 +237,7 @@ public interface MainDisplay
      * The server sends the list when the client successfully connects.
      * @param channelNames  List of server's chat channels, from server message
      * @param isPractice  True if this is the practice server, not a TCP server
+     * @see #repaintGameAndChannelLists()
      */
     void channelList(Collection<String> channelNames, boolean isPractice);
 
@@ -270,7 +292,7 @@ public interface MainDisplay
      * Server has sent authorization for client to join a game.
      * Client should create a UI to watch or interact with that game.
      * @param game  New game's data received from server
-     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     * @param layoutVS  Optional board layout "visual shift and trim" (Added Layout Part "VS")
      *     to use when sizing and drawing the new game's board, or {@code null}
      * @param localPrefs  Local prefs relevant to the new game
      * @return  A new {@link PlayerClientListener} for interacting with that game or its UI
@@ -341,6 +363,7 @@ public interface MainDisplay
      *            True except for practice games, which should not be added.
      * @see SOCPlayerClient#addToGameList(String, String, boolean)
      * @see #deleteFromGameList(String, boolean, boolean)
+     * @see #repaintGameAndChannelLists()
      */
     void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList);
 

@@ -41,6 +41,9 @@ import soc.proto.Message;
  * Announces a player is moving a piece that's already on the board to a new location.
  * This is a response to all player clients, following a player's {@link SOCMovePiece} request.
  * If pieceType == ship, the client should also print a line of text such as "* Joe moved a ship."
+ *<P>
+ * If MovePiece leads to Longest Route player changing, server sends that after its MovePiece message:
+ * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER}).
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00

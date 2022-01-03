@@ -84,8 +84,8 @@ appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 
 - MariaDB: https://downloads.mariadb.org/ -> Connector/J
-- MySQL:   http://www.mysql.com/products/connector/
-- PostgreSQL:  http://jdbc.postgresql.org/download.html
+- MySQL:   https://www.mysql.com/products/connector/
+- PostgreSQL:  https://jdbc.postgresql.org/download.html
 - SQLite:  https://bitbucket.org/xerial/sqlite-jdbc/downloads/
 
 In some cases, adding to the classpath won't work because of JVM restrictions
@@ -276,7 +276,9 @@ Game scores and stats can optionally be saved for reports or community-building.
         jsettlers.db.save.games=Y
 
   Game stats and scores are kept in the `games2` and `games2_players` tables.
-  (Or if DB hasn't been upgraded, `games`.)
+  (Or if DB hasn't been upgraded to schema v2000, `games`.)
+  Server v2.4.00 and newer will sort game option names alphabetically as a canonical form;
+  game results saved by earlier versions have unsorted game options.
 
 ### Creating JSettlers Player Accounts in the DB (optional)
 
@@ -341,18 +343,24 @@ this option when you start your server:
 
 	-Djsettlers.accounts.required=y
 
-To specify the Account Admin Users who can create new accounts, list them when you start your server:
+To specify the Account Admin Users who can create new accounts
+and run privileged commands, list them when you start your server:
 
 	-Djsettlers.accounts.admins=bob,joe,lily
+
+Admin Users must log in with an account and password stored in the database.
+Their accounts are created as if they were a regular player; see section
+"Creating JSettlers Player Accounts". Being listed in `jsettlers.accounts.admins`
+is what gives them admin privileges.
 
 Note:
 The server doesn't require or check at startup that the named accounts all
 already exist; the User Account Admins list is only a comma-separated list
 of names, to simplify initial setup.
 
-### Account Admin Commands
+### Admin Commands
 
-Only the account admins on that list can create accounts and run user-related commands,
+Only the Admin Users on that list can create accounts and run privileged commands,
 such as listing all users in a game with
 
 	*WHO* gamename
@@ -360,6 +368,11 @@ such as listing all users in a game with
 or listing all users connected to the server with
 
 	*WHO* *
+	
+along with commands unrelated to users, like:
+
+	*GC*
+	*RESETBOT* botname
 	
 For a list of all available commands, type
 

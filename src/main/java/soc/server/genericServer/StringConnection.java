@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.
- * This file Copyright (C) 2007-2010,2012-2013,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2007-2010,2012-2013,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -47,7 +47,7 @@ import soc.message.SOCMessage;
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
  *  1.0.1 - 2008-06-28 - add getConnectTime
  *  1.0.2 - 2008-07-30 - check if s already null in disconnect
- *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion
+ *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion (jsettlers 1.1.00 release)
  *  1.0.4 - 2008-09-04 - add appData
  *  1.0.5 - 2009-05-31 - add isVersionKnown, setVersion(int,bool), setVersionTracking,
  *                       isInputAvailable, callback to processFirstCommand,
@@ -60,6 +60,7 @@ import soc.message.SOCMessage;
  *                       LocalStringConnection -> StringConnection.
  *                       Connection is now a superclass, not an interface.
  *  2.1.0 - 2020-01-09 - Only server-side changes: See {@link SOCServerSocket}
+ *  2.3.0 - 2020-04-27 - no change in this file
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -130,6 +131,7 @@ public class StringConnection
 
     /**
      * Constructor common-fields initialization
+     * @since 1.0.5
      */
     private void init()
     {

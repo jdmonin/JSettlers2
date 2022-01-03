@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2012-2013,2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2012-2013,2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,19 +34,19 @@ import soc.game.SOCVersionedItem;
  * server for new games.  In v2.0.00+ the option description text sent may be localized for the client if available;
  * see also {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_GAMEOPT TYPE_GAMEOPT}).
  *<P>
+ * This message is for clients to find out about options which were
+ * introduced in versions newer than the client's version, but which
+ * may be applicable to their version or all versions.
+ *<P>
  * If the server doesn't know this option, the returned option type is
  * {@link SOCGameOption#OTYPE_UNKNOWN}.
  * If the client asks about an option too new for it to use,
  * by sending the option name or GAMEOPTIONGETINFOS("-"),
  * the server will respond with {@link SOCGameOption#OTYPE_UNKNOWN}.
  *<P>
- * Special case: If the client is asking for any new options, by sending
+ * Special case: If the client is asking for any new options by sending
  * GAMEOPTIONGETINFOS("-"), but there aren't any new options, server responds with
  * {@link #OPTINFO_NO_MORE_OPTS}, a GAMEOPTIONINFO named "-" with type {@code OTYPE_UNKNOWN}.
- *<P>
- * This message is for clients to find out about options which were
- * introduced in versions newer than the client's version, but which
- * may be applicable to their version or all versions.
  *<P>
  * Introduced in 1.1.07; check client version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.
@@ -65,9 +65,9 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     private static final long serialVersionUID = 2000L;
 
     /**
-     * If the client is asking for any new options, by sending GAMEOPTIONGETINFOS("-"),
-     * server responds with set of GAMEOPTIONINFOs. Mark end of this list with a
-     * GAMEOPTIONINFO named "-" with type OTYPE_UNKNOWN.
+     * If the client is asking for any new options by sending GAMEOPTIONGETINFOS("-"),
+     * server responds with set of GAMEOPTIONINFOs. End of this list is marked with a
+     * GAMEOPTIONINFO named "-" with type {@link SOCGameOption#OTYPE_UNKNOWN}.
      */
     public static final SOCGameOptionInfo OPTINFO_NO_MORE_OPTS
         = new SOCGameOptionInfo(new SOCGameOption("-"), 0, null);

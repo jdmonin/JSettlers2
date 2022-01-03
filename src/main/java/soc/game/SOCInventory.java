@@ -101,11 +101,13 @@ public class SOCInventory
      *
      * @param set  the inventory set to copy
      * @throws CloneNotSupportedException  Should not occur; {@link SOCInventoryItem}s should be Cloneable
+     * @see #add(SOCInventory)
      */
     public SOCInventory(SOCInventory set)
         throws CloneNotSupportedException
     {
         this();
+
         for (SOCInventoryItem c : set.news)
             news.add(c.clone());
         for (SOCInventoryItem c : set.playables)
@@ -303,6 +305,7 @@ public class SOCInventory
      * @param item  The special item or dev card being added
      * @since 2.0.00
      * @see #addDevCard(int, int, int)
+     * @see #add(SOCInventory)
      * @see #removeItem(int, int)
      * @see #keepPlayedItem(int)
      */
@@ -317,17 +320,20 @@ public class SOCInventory
     }
 
     /**
-     * Add an amount to a type of dev card.
-     * VP cards will be added with state {@link #KEPT}.  Otherwise, cards with {@code age} == {@link #OLD}
+     * Add an amount of a type of dev card.
+     * VP cards (for which {@link SOCDevCard#isVPCard(int) SOCDevCard.isVPCard(ctype)} is true)
+     * will be added with state {@link #KEPT}.
+     * Otherwise, cards with {@code age} == {@link #OLD}
      * will have state {@link #PLAYABLE}, new cards will have {@link #NEW}.
      *<P>
      * Before v2.0.00, this method was {@code add(amt, age, ctype)}.
      *
+     * @param amt   the amount; 1, except for debugging or maybe joining a game in progress
      * @param age   either {@link #OLD} or {@link #NEW}
      * @param ctype the type of development card, at least
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
-     * @param amt   the amount
      * @see #addItem(SOCInventoryItem)
+     * @see #add(SOCInventory)
      * @see #removeDevCard(int, int)
      */
     public void addDevCard(int amt, final int age, final int ctype)
@@ -348,6 +354,31 @@ public class SOCInventory
             clist.add(new SOCDevCard(ctype, isNew));
             --amt;
         }
+    }
+
+    /**
+     * Add contents of another inventory to this one.
+     * Does a deep copy: All contained {@link SOCDevCard}/{@link SOCInventoryItem} objects are cloned.
+     *
+     * @param inv  Inventory set to add from, or {@code null} to do nothing
+     * @throws CloneNotSupportedException  Should not occur; {@link SOCInventoryItem}s should be Cloneable
+     * @see #addDevCard(int, int, int)
+     * @see #addItem(SOCInventoryItem)
+     * @see #SOCInventory(SOCInventory)
+     * @since 2.4.10
+     */
+    public void add(final SOCInventory inv)
+        throws CloneNotSupportedException
+    {
+        if (inv == null)
+            return;
+
+        for (SOCInventoryItem c : inv.news)
+            news.add(c.clone());
+        for (SOCInventoryItem c : inv.playables)
+            playables.add(c.clone());
+        for (SOCInventoryItem c : inv.kept)
+            kept.add(c.clone());
     }
 
     /**
@@ -418,7 +449,8 @@ public class SOCInventory
 
     /**
      * Remove one dev card of a type from the set.
-     * If that type isn't available, remove from {@link SOCDevCardConstants#UNKNOWN} instead.
+     * If that type isn't found in the inventory, remove a {@link SOCDevCardConstants#UNKNOWN} instead;
+     * if inventory has no {@code UNKNOWN} card, does nothing.
      *<P>
      * Before v2.0.00, this method was {@code subtract(amt, age, ctype)}.
      *
@@ -488,6 +520,7 @@ public class SOCInventory
      * @see #getNumVPItems()
      * @see #getTotal()
      * @see #getByState(int)
+     * @since 1.1.00
      */
     public int getNumUnplayed()
     {

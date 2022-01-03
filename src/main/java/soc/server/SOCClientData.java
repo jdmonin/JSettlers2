@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008-2010,2013,2015,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2010,2013,2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,15 +30,15 @@ import soc.util.SOCGameList;
 import soc.util.SOCStringManager;  // for javadoc
 
 /**
- * The server's place to track client-specific information across games.
- * The win-loss count is kept here.
+ * The server's place to track client-specific information across games
+ * for a {@link Connection} session: Win-loss count, features, localization status, etc.
  * Not tied to the optional database; information here is only for the current
  * session, not persistent across disconnects/reconnects by clients.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.04
  */
-/*package*/ class SOCClientData
+public class SOCClientData
 {
     /**
      * For a scenario keyname in {@link #scenariosInfoSent}, value indicating that the client
@@ -61,13 +61,14 @@ import soc.util.SOCStringManager;  // for javadoc
     private int wins, losses;
 
     /**
-     * Client's reported optional features, or {@code null}.
-     * Sent as an optional part of the SOCVersion message from clients 2.0.00 or newer;
+     * Client's reported optional features, or {@code null} if not reported. May be an empty set.
+     * Sent as an optional part of the SOCVersion message from clients v2.0 or newer;
      * third-party clients or simple bots may have no features.
-     * For older 1.x.xx clients, this field has the default features from
+     * For v1.x clients, this field is given the default features from
      * {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) new SOCFeatureSet(true, false)}.
      * @see #hasLimitedFeats
      * @see #scenVersion
+     * @see soc.game.SOCGameOption#optionsNotSupported(SOCFeatureSet)
      * @since 2.0.00
      */
     public SOCFeatureSet feats;
@@ -131,6 +132,14 @@ import soc.util.SOCStringManager;  // for javadoc
      * @since 1.1.10
      */
     private int currentCreatedGames, currentCreatedChannels;
+
+    /**
+     * Human client's most recently requested face icon ID for {@link soc.game.SOCPlayer#setFaceId(int)},
+     * or 0 if none requested yet. Useful when taking over a robot player's seat. Not updated if {@link #isRobot}.
+     * Assumes that only messages from the client will update this field, so synchronization isn't required.
+     * @since 2.4.00
+     */
+    public int faceId;
 
     /** Synchronization for win-loss count and other counter fields */
     private Object countFieldSync;

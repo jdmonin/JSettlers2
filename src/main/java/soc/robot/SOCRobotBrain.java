@@ -4,6 +4,7 @@
  * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -174,6 +175,7 @@ public class SOCRobotBrain extends Thread
      * requests that the server denies, stop trying.
      *
      * @see #failedBuildingAttempts
+     * @since 1.1.00
      */
     public static int MAX_DENIED_BUILDING_PER_TURN = 3;
 
@@ -181,9 +183,13 @@ public class SOCRobotBrain extends Thread
      * When a trade has been offered to humans (and maybe also to bots),
      * maximum wait in seconds for responses: {@link #tradeResponseTimeoutSec}.
      * Longer than {@link #TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY}.
+     *<P>
+     * Before v2.3.00 this was 100 seconds, which felt glacially slow
+     * compared to the quick pace of most bot activity.
+     *
      * @since 2.0.00
      */
-    protected static final int TRADE_RESPONSE_TIMEOUT_SEC_HUMANS = 100;
+    protected static final int TRADE_RESPONSE_TIMEOUT_SEC_HUMANS = 30;
 
     /**
      * When a trade has been offered to only bots (not to any humans),
@@ -276,6 +282,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Dummy player for cancelling bad placements
+     * @since 1.1.00
      */
     protected SOCPlayer dummyCancelPlayerData;
 
@@ -348,6 +355,7 @@ public class SOCRobotBrain extends Thread
      *
      * @see #whatWeWantToBuild
      * @see #failedBuildingAttempts
+     * @since 1.1.00
      */
     protected SOCPlayingPiece whatWeFailedToBuild;
 
@@ -359,6 +367,7 @@ public class SOCRobotBrain extends Thread
      *
      * @see #whatWeFailedToBuild
      * @see #MAX_DENIED_BUILDING_PER_TURN
+     * @since 1.1.00
      */
     protected int failedBuildingAttempts;
 
@@ -369,14 +378,22 @@ public class SOCRobotBrain extends Thread
     protected SOCResourceSet resourceChoices;
 
     /**
-     * our player tracker
+     * Our player tracker within {@link #playerTrackers}.
      */
     protected SOCPlayerTracker ourPlayerTracker;
 
     /**
-     * trackers for all players (one per player, including this robot)
+     * Trackers for all players (one per player number, including this robot).
+     * Null until {@link #setOurPlayerData()}; see {@link #addPlayerTracker(int)} for lifecycle info.
+     * Elements for vacant seats are {@code null}.
+     *<P>
+     * Before v2.3.00 this was a {@link HashMap}.
+     * Converted to array to avoid iterator ConcurrentModificationExceptions
+     * during {@code *LOADGAME*} debug command.
+     *
+     * @see #ourPlayerTracker
      */
-    protected HashMap<Integer, SOCPlayerTracker> playerTrackers;
+    protected SOCPlayerTracker[] playerTrackers;
 
     /**
      * the thing that determines what we want to build next
@@ -839,9 +856,9 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * @return the player trackers (one per player, including this robot)
+     * @return the player trackers (one per player number, including this robot; vacant seats are null)
      */
-    public HashMap<Integer, SOCPlayerTracker> getPlayerTrackers()
+    public SOCPlayerTracker[] getPlayerTrackers()
     {
         return playerTrackers;
     }
@@ -869,6 +886,7 @@ public class SOCRobotBrain extends Thread
      * each SITDOWN received after our player's.
      *
      * @param pn Player number
+     * @since 1.1.00
      */
     public void addPlayerTracker(int pn)
     {
@@ -880,11 +898,9 @@ public class SOCRobotBrain extends Thread
 
             return;
         }
-        if (null == playerTrackers.get(Integer.valueOf(pn)))
-        {
-            SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
-            playerTrackers.put(Integer.valueOf(pn), tracker);
-        }
+
+        if (null == playerTrackers[pn])
+            playerTrackers[pn] = new SOCPlayerTracker(game.getPlayer(pn), this);
     }
 
     /**
@@ -1005,15 +1021,15 @@ public class SOCRobotBrain extends Thread
         ourPlayerData = game.getPlayer(client.getNickname());
         ourPlayerTracker = new SOCPlayerTracker(ourPlayerData, this);
         ourPlayerNumber = ourPlayerData.getPlayerNumber();
-        playerTrackers = new HashMap<Integer, SOCPlayerTracker>();
-        playerTrackers.put(Integer.valueOf(ourPlayerNumber), ourPlayerTracker);
+        playerTrackers = new SOCPlayerTracker[game.maxPlayers];
+        playerTrackers[ourPlayerNumber] = ourPlayerTracker;
 
         for (int pn = 0; pn < game.maxPlayers; pn++)
         {
             if ((pn != ourPlayerNumber) && ! game.isSeatVacant(pn))
             {
                 SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
-                playerTrackers.put(Integer.valueOf(pn), tracker);
+                playerTrackers[pn] = tracker;
             }
         }
 
@@ -1098,7 +1114,7 @@ public class SOCRobotBrain extends Thread
         if (waitingForPickSpecialItem != null)
             rbSta.add("  waitingForPickSpecialItem = " + waitingForPickSpecialItem);
         if (game.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-            rbSta.add("  bot card count = " + ourPlayerData.getResources().getTotal());
+            rbSta.add("  bot resource count = " + ourPlayerData.getResources().getTotal());
         if (rejectedPlayDevCardType != -1)
             rbSta.add("  rejectedPlayDevCardType = " + rejectedPlayDevCardType);
         if (rejectedPlayInvItem != null)
@@ -1267,6 +1283,7 @@ public class SOCRobotBrain extends Thread
                     {
                         handleGAMESTATE(((SOCGameState) mes).getState());
                             // clears waitingForGameState, updates oldGameState, calls ga.setGameState
+                            // If state is LOADING, sets waitingForGameState
                     }
 
                     else if (mesType == SOCMessage.STARTGAME)
@@ -1727,8 +1744,10 @@ public class SOCRobotBrain extends Thread
                              * and if we haven't given up building attempts this turn.
                              */
 
-                            if (buildingPlan.empty() && (ourPlayerData.getResources().getTotal() > 1)
-                                && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+                            if (buildingPlan.empty()
+                                && (ourPlayerData.getResources().getTotal() > 1)
+                                && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN)
+                                && ! (game.isGameOptionSet("PLP") && (game.getPlayerCount() < 5)))
                             {
                                 planBuilding();
 
@@ -2132,8 +2151,8 @@ public class SOCRobotBrain extends Thread
                         ++turnExceptionCount;  // TODO end our turn if too many
 
                         String eMsg = (turnExceptionCount == 1)
-                            ? "*** Robot caught an exception - " + e
-                            : "*** Robot caught an exception (" + turnExceptionCount + " this turn) - " + e;
+                            ? "*** Robot " + ourPlayerName + " caught an exception - " + e
+                            : "*** Robot " + ourPlayerName + " caught an exception (" + turnExceptionCount + " this turn) - " + e;
                         D.ebugPrintln(eMsg);
                         System.out.println(eMsg);
                         e.printStackTrace();
@@ -2168,10 +2187,11 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Handle a game state change from {@link SOCGameState} or another message
-     * which has a Game State field. Clears {@link #waitingForGameState},
+     * which has a Game State field. Clears {@link #waitingForGameState}
+     * (unless {@code gs} is {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}),
      * updates {@link #oldGameState} if state value is actually changing, then calls
      * {@link SOCDisplaylessPlayerClient#handleGAMESTATE(SOCGame, int)}.
-     * @param gs  New game state; if 0, does nothing
+     * @param gs  New game state, like {@link SOCGame#ROLL_OR_CARD}; if 0, does nothing
      * @since 2.0.00
      */
     protected void handleGAMESTATE(final int gs)
@@ -2179,10 +2199,11 @@ public class SOCRobotBrain extends Thread
         if (gs == 0)
             return;
 
-        waitingForGameState = false;
+        waitingForGameState = ((gs == SOCGame.LOADING) || (gs == SOCGame.LOADING_RESUMING));  // almost always false
         int currGS = game.getGameState();
         if (currGS != gs)
             oldGameState = currGS;  // if no actual change, don't overwrite previously known oldGameState
+
         SOCDisplaylessPlayerClient.handleGAMESTATE(game, gs);
     }
 
@@ -2289,7 +2310,7 @@ public class SOCRobotBrain extends Thread
      * clear {@link #waitingForTradeResponse} and {@link #counter}.
      * @since 1.1.09
      */
-    private void tradeStopWaitingClearOffer()
+    protected void tradeStopWaitingClearOffer()
     {
         ///
         /// record which players said no by not saying anything
@@ -2428,7 +2449,7 @@ public class SOCRobotBrain extends Thread
      * @see #buildRequestPlannedPiece()
      * @since 1.1.09
      */
-    private void placeIfExpectPlacing()
+    protected void placeIfExpectPlacing()
     {
         if (waitingForGameState)
             return;
@@ -2664,7 +2685,7 @@ public class SOCRobotBrain extends Thread
      * @see #playKnightCardIfShould()
      * @since 1.1.08
      */
-    private void rollOrPlayKnightOrExpectDice()
+    protected void rollOrPlayKnightOrExpectDice()
     {
         expectROLL_OR_CARD = false;
 
@@ -2743,7 +2764,7 @@ public class SOCRobotBrain extends Thread
      * @since 1.1.08
      * @throws IllegalStateException  if {@link #buildingPlan}{@link Stack#isEmpty() .isEmpty()}
      */
-    private void buildOrGetResourceByTradeOrCard()
+    protected void buildOrGetResourceByTradeOrCard()
         throws IllegalStateException
     {
         if (buildingPlan.isEmpty())
@@ -3043,7 +3064,7 @@ public class SOCRobotBrain extends Thread
      * In general, most tracking is done a bit later in {@link #handlePUTPIECE_updateTrackers(int, int, int)}.
      * @since 1.1.08
      */
-    private void handlePUTPIECE_updateGameData(SOCPutPiece mes)
+    protected void handlePUTPIECE_updateGameData(SOCPutPiece mes)
     {
         switch (mes.getPieceType())
         {
@@ -3057,7 +3078,7 @@ public class SOCRobotBrain extends Thread
                 // This was deferred until road placement, in case a human player decides
                 // to cancel their settlement and place it elsewhere.
                 //
-                SOCPlayerTracker tr = playerTrackers.get(Integer.valueOf(mes.getPlayerNumber()));
+                SOCPlayerTracker tr = playerTrackers[mes.getPlayerNumber()];
                 SOCSettlement se = tr.getPendingInitSettlement();
                 if (se != null)
                     trackNewSettlement(se, false);
@@ -3088,7 +3109,7 @@ public class SOCRobotBrain extends Thread
      *
      * @since 1.1.08
      */
-    private void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
+    protected void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
     {
         final int gstate = game.getGameState();
         switch (gstate)
@@ -3125,7 +3146,7 @@ public class SOCRobotBrain extends Thread
                 // "forget" to track this cancelled initial settlement.
                 // Wait for human player to place a new one.
                 //
-                SOCPlayerTracker tr = playerTrackers.get(Integer.valueOf(pnum));
+                SOCPlayerTracker tr = playerTrackers[pnum];
                 tr.setPendingInitSettlement(null);
             }
             break;
@@ -3174,7 +3195,7 @@ public class SOCRobotBrain extends Thread
      * Ignore our own MAKEOFFERs echoed from server.
      * @since 1.1.08
      */
-    private void handleMAKEOFFER(SOCMakeOffer mes)
+    protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
         SOCTradeOffer offer = mes.getOffer();
         game.getPlayer(offer.getFrom()).setCurrentOffer(offer);
@@ -3300,7 +3321,7 @@ public class SOCRobotBrain extends Thread
      * If everyone's rejected our offer, clear {@link #waitingForTradeResponse}.
      * @since 1.1.08
      */
-    private void handleREJECTOFFER(SOCRejectOffer mes)
+    protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
         ///
         /// see if everyone has rejected our offer
@@ -3398,15 +3419,19 @@ public class SOCRobotBrain extends Thread
      * Handle a DEVCARDACTION for 1 card in this game.
      * No brain-specific action.
      * Ignores messages where {@link SOCDevCardAction#getCardTypes()} != {@code null}.
+     *<P>
+     * Before v2.0.00 this method was {@code handleDEVCARD}.
+     *
      * @since 1.1.08
      */
-    private void handleDEVCARDACTION(SOCDevCardAction mes)
+    protected void handleDEVCARDACTION(SOCDevCardAction mes)
     {
         if (mes.getCardTypes() != null)
             return;  // <--- ignore: bots don't care about game-end VP card reveals ---
 
-        SOCInventory cardsInv = game.getPlayer(mes.getPlayerNumber()).getInventory();
         final int cardType = mes.getCardType();
+        SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
+        SOCInventory cardsInv = pl.getInventory();
 
         switch (mes.getAction())
         {
@@ -3416,6 +3441,7 @@ public class SOCRobotBrain extends Thread
 
         case SOCDevCardAction.PLAY:
             cardsInv.removeDevCard(SOCInventory.OLD, cardType);
+            pl.updateDevCardsPlayed(cardType);
             break;
 
         case SOCDevCardAction.ADD_OLD:
@@ -3448,7 +3474,7 @@ public class SOCRobotBrain extends Thread
      * @param pieceType  Piece type, as in {@link SOCPlayingPiece#SETTLEMENT}
      * @since 1.1.08
      */
-    private void handlePUTPIECE_updateTrackers(final int pn, final int coord, final int pieceType)
+    public void handlePUTPIECE_updateTrackers(final int pn, final int coord, final int pieceType)
     {
         switch (pieceType)
         {
@@ -3468,7 +3494,7 @@ public class SOCRobotBrain extends Thread
                 // Track it soon, after the road is placed
                 // (in handlePUTPIECE_updateGameData)
                 // but not yet, in case player cancels placement.
-                SOCPlayerTracker tr = playerTrackers.get(Integer.valueOf(newSettlementPl.getPlayerNumber()));
+                SOCPlayerTracker tr = playerTrackers[newSettlementPl.getPlayerNumber()];
                 tr.setPendingInitSettlement(newSettlement);
             }
             else
@@ -3583,7 +3609,7 @@ public class SOCRobotBrain extends Thread
      * @see #placeIfExpectPlacing()
      * @since 1.1.08
      */
-    private void buildRequestPlannedPiece()
+    protected void buildRequestPlannedPiece()
     {
         final SOCPossiblePiece targetPiece = buildingPlan.pop();
         D.ebugPrintln("$ POPPED " + targetPiece);
@@ -3706,7 +3732,7 @@ public class SOCRobotBrain extends Thread
      *
      * @since 1.1.08
      */
-    private final void planBuilding()
+    protected void planBuilding()
     {
         decisionMaker.planStuff(robotParameters.getStrategyType());
 
@@ -3722,7 +3748,7 @@ public class SOCRobotBrain extends Thread
      * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, PEType, int)} for actions taken.
      * @since 2.0.00
      */
-    private void handlePLAYERELEMENTS(SOCPlayerElements mes)
+    protected void handlePLAYERELEMENTS(SOCPlayerElements mes)
     {
         final int pn = mes.getPlayerNumber();
         final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
@@ -3738,7 +3764,7 @@ public class SOCRobotBrain extends Thread
      * See {@link #handlePLAYERELEMENT(SOCPlayer, int, int, PEType, int)} for actions taken.
      * @since 1.1.08
      */
-    private void handlePLAYERELEMENT(SOCPlayerElement mes)
+    protected void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
         final int pn = mes.getPlayerNumber();
         final int action = mes.getAction(), amount = mes.getAmount();
@@ -3769,7 +3795,7 @@ public class SOCRobotBrain extends Thread
      * @param amount  The new value to set, or the delta to gain/lose
      * @since 2.0.00
      */
-    private void handlePLAYERELEMENT
+    protected void handlePLAYERELEMENT
         (SOCPlayer pl, final int pn, final int action, final PEType etype, final int amount)
     {
         if (etype == null)
@@ -3917,6 +3943,7 @@ public class SOCRobotBrain extends Thread
      * @param rtype    Type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @param rtypeStr Resource type name, for debugging
      * @param amount   The new value to set, or the delta to gain/lose
+     * @since 1.1.00
      */
     @SuppressWarnings("unused")  // unnecessary dead-code warning "if (D.ebugOn)"
     protected void handlePLAYERELEMENT_numRsrc
@@ -3987,25 +4014,26 @@ public class SOCRobotBrain extends Thread
      * @param newSettlement The newly placed settlement for the playerTrackers
      * @param isCancel Is this our own robot's settlement placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data.
+     * @since 1.1.00
      */
     protected void trackNewSettlement(SOCSettlement newSettlement, final boolean isCancel)
     {
-        Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             if (! isCancel)
                 tracker.addNewSettlement(newSettlement, playerTrackers);
             else
                 tracker.cancelWrongSettlement(newSettlement);
         }
 
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             Iterator<SOCPossibleRoad> posRoadsIter = tracker.getPossibleRoads().values().iterator();
 
             while (posRoadsIter.hasNext())
@@ -4021,12 +4049,10 @@ public class SOCRobotBrain extends Thread
             }
         }
 
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
-            tracker.updateThreats(playerTrackers);
+            if (tracker != null)
+                tracker.updateThreats(playerTrackers);
         }
 
         if (isCancel)
@@ -4057,19 +4083,11 @@ public class SOCRobotBrain extends Thread
                     ///
                     /// this settlement bisects another players road
                     ///
-                    trackersIter = playerTrackers.values().iterator();
-
-                    while (trackersIter.hasNext())
+                    final SOCPlayerTracker tracker = playerTrackers[roadPN];
+                    if (tracker != null)
                     {
-                        SOCPlayerTracker tracker = trackersIter.next();
-
-                        if (tracker.getPlayer().getPlayerNumber() == roadPN)
-                        {
-                            //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
-                            //tracker.updateLRValues();
-                        }
-
-                        //tracker.recalcLongestRoadETA();
+                        //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
+                        //tracker.updateLRValues();
                     }
                 }
 
@@ -4082,44 +4100,28 @@ public class SOCRobotBrain extends Thread
         ///
         /// update the speedups from possible settlements
         ///
-        trackersIter = playerTrackers.values().iterator();
+        final SOCPlayerTracker tracker = playerTrackers[pNum];
 
-        while (trackersIter.hasNext())
+        if (tracker != null)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            Iterator<SOCPossibleSettlement> posSetsIter = tracker.getPossibleSettlements().values().iterator();
 
-            if (tracker.getPlayer().getPlayerNumber() == pNum)
+            while (posSetsIter.hasNext())
             {
-                Iterator<SOCPossibleSettlement> posSetsIter = tracker.getPossibleSettlements().values().iterator();
-
-                while (posSetsIter.hasNext())
-                {
-                    posSetsIter.next().updateSpeedup();
-                }
-
-                break;
+                posSetsIter.next().updateSpeedup();
             }
         }
 
         ///
         /// update the speedups from possible cities
         ///
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        if (tracker != null)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            Iterator<SOCPossibleCity> posCitiesIter = tracker.getPossibleCities().values().iterator();
 
-            if (tracker.getPlayer().getPlayerNumber() == pNum)
+            while (posCitiesIter.hasNext())
             {
-                Iterator<SOCPossibleCity> posCitiesIter = tracker.getPossibleCities().values().iterator();
-
-                while (posCitiesIter.hasNext())
-                {
-                    posCitiesIter.next().updateSpeedup();
-                }
-
-                break;
+                posCitiesIter.next().updateSpeedup();
             }
         }
     }
@@ -4129,16 +4131,16 @@ public class SOCRobotBrain extends Thread
      * @param newCity  The newly placed city
      * @param isCancel Is this our own robot's city placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data.
+     * @since 1.1.00
      */
-    private void trackNewCity(final SOCCity newCity, final boolean isCancel)
+    protected void trackNewCity(final SOCCity newCity, final boolean isCancel)
     {
         final int newCityPN = newCity.getPlayerNumber();
 
-        Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
 
             if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
@@ -4159,11 +4161,10 @@ public class SOCRobotBrain extends Thread
         ///
         /// update the speedups from possible settlements
         ///
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
 
             if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
@@ -4181,11 +4182,10 @@ public class SOCRobotBrain extends Thread
         ///
         /// update the speedups from possible cities
         ///
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
 
             if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
@@ -4203,20 +4203,23 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Run a newly placed road or ship through the playerTrackers.
+     *<P>
+     * Before v2.0.00 this method was {@code trackNewRoad}.
      *
      * @param newPiece  The newly placed road or ship
      * @param isCancel Is this our own robot's placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data.
+     * @since 1.1.00
      */
     protected void trackNewRoadOrShip(final SOCRoutePiece newPiece, final boolean isCancel)
     {
         final int newRoadPN = newPiece.getPlayerNumber();
 
-        Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             tracker.takeMonitor();
 
             try
@@ -4234,16 +4237,16 @@ public class SOCRobotBrain extends Thread
                     System.out.println("Exception caught - " + e);
                     e.printStackTrace();
                 }
+            } finally {
+                tracker.releaseMonitor();
             }
-
-            tracker.releaseMonitor();
         }
 
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             tracker.takeMonitor();
 
             try
@@ -4270,19 +4273,19 @@ public class SOCRobotBrain extends Thread
                     System.out.println("Exception caught - " + e);
                     e.printStackTrace();
                 }
+            } finally {
+                tracker.releaseMonitor();
             }
-
-            tracker.releaseMonitor();
         }
 
         ///
         /// update LR values and ETA
         ///
-        trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
+        for (final SOCPlayerTracker tracker : playerTrackers)
         {
-            SOCPlayerTracker tracker = trackersIter.next();
+            if (tracker == null)
+                continue;
+
             tracker.updateThreats(playerTrackers);
             tracker.takeMonitor();
 
@@ -4304,9 +4307,9 @@ public class SOCRobotBrain extends Thread
                     System.out.println("Exception caught - " + e);
                     e.printStackTrace();
                 }
+            } finally {
+                tracker.releaseMonitor();
             }
-
-            tracker.releaseMonitor();
         }
     }
 
@@ -4336,6 +4339,7 @@ public class SOCRobotBrain extends Thread
      *</UL>
      *
      * @param mes  Cancel message from server, including piece type
+     * @since 1.1.00
      */
     protected void cancelWrongPiecePlacement(SOCCancelBuildRequest mes)
     {
@@ -4505,6 +4509,7 @@ public class SOCRobotBrain extends Thread
      * clearPotentialRoad, or clearPotentialCity.
      *
      * @param cancelPiece Type and coordinates of the piece to cancel; null is allowed but not very useful.
+     * @since 1.1.00
      */
     protected void cancelWrongPiecePlacementLocal(SOCPlayingPiece cancelPiece)
     {
@@ -5218,7 +5223,7 @@ public class SOCRobotBrain extends Thread
      * @return  true if we need <tt>numChoose</tt> resources
      * @since 2.0.00
      */
-    private boolean chooseFreeResourcesIfNeeded
+    protected boolean chooseFreeResourcesIfNeeded
         (SOCResourceSet targetResources, final int numChoose, final boolean chooseIfNotNeeded)
     {
         if (targetResources == null)

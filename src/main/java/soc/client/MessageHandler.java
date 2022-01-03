@@ -719,6 +719,7 @@ import soc.util.Version;
      * @param isPractice Is the server {@link ClientNetwork#practiceServer}, not remote?  Client can be connected
      *                only to one at a time.
      * @param mes  the message
+     * @since 1.1.00
      */
     private void handleVERSION(final boolean isPractice, SOCVersion mes)
     {
@@ -858,6 +859,9 @@ import soc.util.Version;
                 client.nickname = statusText.substring(0, i);
                 statusText = statusText.substring(i + 1);
                 client.getMainDisplay().setNickname(client.nickname);
+
+                // SV_OK_SET_NICKNAME won't ever come from to the practice server;
+                // leave client.practiceNickname unchanged.
             }
         }
 
@@ -1020,9 +1024,17 @@ import soc.util.Version;
      * @param mes  the message
      * @param isPractice is the server actually {@link ClientNetwork#practiceServer} (practice game)?
      */
-    protected void handleCHANNELS(SOCChannels mes, final boolean isPractice)
+    protected void handleCHANNELS(final SOCChannels mes, final boolean isPractice)
     {
-        client.getMainDisplay().channelList(mes.getChannels(), isPractice);
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                MainDisplay mdisp = client.getMainDisplay();
+                mdisp.channelList(mes.getChannels(), isPractice);
+                mdisp.repaintGameAndChannelLists();
+            }
+        });
     }
 
     /**
@@ -1039,12 +1051,18 @@ import soc.util.Version;
      * @param txt  the message text
      * @since 2.1.00
      */
-    protected void handleBCASTTEXTMSG(String txt)
+    protected void handleBCASTTEXTMSG(final String txt)
     {
-        client.getMainDisplay().chatMessageBroadcast(txt);
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                client.getMainDisplay().chatMessageBroadcast(txt);
 
-        for (PlayerClientListener pcl : client.getClientListeners().values())
-            pcl.messageBroadcast(txt);
+                for (PlayerClientListener pcl : client.getClientListeners().values())
+                    pcl.messageBroadcast(txt);
+            }
+        });
     }
 
     /**
@@ -1072,14 +1090,22 @@ import soc.util.Version;
      */
     protected void handleDELETECHANNEL(SOCDeleteChannel mes)
     {
-        client.getMainDisplay().channelDeleted(mes.getChannel());
+        final String chName = mes.getChannel();
+
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                client.getMainDisplay().channelDeleted(chName);
+            }
+        });
     }
 
     /**
      * handle the "list of games" message
      * @param mes  the message
      */
-    protected void handleGAMES(SOCGames mes, final boolean isPractice)
+    protected void handleGAMES(final SOCGames mes, final boolean isPractice)
     {
         // Any game's name in this msg may start with the "unjoinable" prefix
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
@@ -1098,15 +1124,20 @@ import soc.util.Version;
             // We may still ask for GAMEOPTIONGETDEFAULTS if asking to create a game,
             // but that will happen when user clicks that button, not yet.
             client.tcpServGameOpts.noMoreOptions(false);
-
-            // Reset enum for addToGameList call; client.serverGames.addGames has consumed it.
-            gameNames = mes.getGames();
         }
 
-        for (String gn : gameNames)
+        // update displayed list on AWT event thread, not network message thread,
+        // to ensure right timing for repaint to avoid appearing empty.
+        EventQueue.invokeLater(new Runnable()
         {
-            client.addToGameList(gn, null, false);
-        }
+            public void run()
+            {
+                for (String gn : mes.getGames())
+                    client.addToGameList(gn, null, false);
+
+                client.getMainDisplay().repaintGameAndChannelLists();
+            }
+        });
     }
 
     /**
@@ -1153,6 +1184,8 @@ import soc.util.Version;
         if (ga != null)
         {
             ga.isPractice = isPractice;
+            ga.serverVersion = (isPractice) ? Version.versionNumber() : client.sVersion;
+
             PlayerClientListener clientListener =
                 client.getMainDisplay().gameJoined(ga, mes.getLayoutVS(), client.getGameReqLocalPrefs().get(gaName));
             client.getClientListeners().put(gaName, clientListener);
@@ -1207,6 +1240,10 @@ import soc.util.Version;
      */
     protected void handleNEWGAME(SOCNewGame mes, final boolean isPractice)
     {
+        // Run in network message thread, not AWT event thread,
+        // in case client is about to be auth'd to join this game:
+        // messages must take effect in the order sent
+
         client.addToGameList(mes.getGame(), null, ! isPractice);
     }
 
@@ -1218,12 +1255,22 @@ import soc.util.Version;
     {
         final String gaName = mes.getGame();
 
-        if (! client.getMainDisplay().deleteFromGameList(gaName, isPractice, false))
-            client.getMainDisplay().deleteFromGameList(gaName, isPractice, true);
+        // run on AWT event thread, not network thread, to avoid occasional ArrayIndexOutOfBoundsException
+        // console stack trace (javax.swing.DefaultListModel.getElementAt) after deleteFromGameList
 
-        PlayerClientListener pcl = client.getClientListener(gaName);
-        if (pcl != null)
-            pcl.gameDisconnected(true, null);
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                final MainDisplay mdisp = client.getMainDisplay();
+                if (! mdisp.deleteFromGameList(gaName, isPractice, false))
+                    mdisp.deleteFromGameList(gaName, isPractice, true);
+
+                PlayerClientListener pcl = client.getClientListener(gaName);
+                if (pcl != null)
+                    pcl.gameDisconnected(true, null);
+            }
+        });
     }
 
     /**
@@ -1286,15 +1333,16 @@ import soc.util.Version;
         final SOCGame ga = client.games.get(mes.getGame());
         if (ga == null)
             return;
-        final int mesPN = mes.getPlayerNumber();
+
+        final int pn = mes.getPlayerNumber();
+        final String plName = mes.getNickname();
+        SOCPlayer player = null;
 
         ga.takeMonitor();
-        SOCPlayer player = null;
         try
         {
-            ga.addPlayer(mes.getNickname(), mesPN);
-
-            player = ga.getPlayer(mesPN);
+            ga.addPlayer(plName, pn);
+            player = ga.getPlayer(pn);
             player.setRobotFlag(mes.isRobot(), false);
         }
         catch (Exception e)
@@ -1309,25 +1357,29 @@ import soc.util.Version;
             ga.releaseMonitor();
         }
 
+        final boolean playerIsClient = client.getNickname(ga.isPractice).equals(plName);
+
+        if (playerIsClient
+            && (ga.isPractice || (client.sVersion >= SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY)))
+        {
+            // server is about to send our dev-card inventory contents
+            player.getInventory().clear();
+        }
+
         /**
          * tell the GUI that a player is sitting
          */
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
-        pcl.playerSitdown(mesPN, mes.getNickname());
+        pcl.playerSitdown(pn, plName);
 
         /**
-         * let the board panel & building panel find our player object if we sat down
+         * if player is client, use face icon from last requested change instead of default
+         * (this is so that an old face isn't requested anew); skip if reset.
          */
-        if (client.getNickname().equals(mes.getNickname()))
+        if (playerIsClient && ! ga.isBoardReset())
         {
-            /**
-             * change the face (this is so that old faces don't 'stick')
-             */
-            if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
-            {
-                ga.getPlayer(mesPN).setFaceId(client.lastFaceChange);
-                gms.changeFace(ga, client.lastFaceChange);
-            }
+            player.setFaceId(client.lastFaceChange);
+            gms.changeFace(ga, client.lastFaceChange);
         }
     }
 
@@ -1633,7 +1685,7 @@ import soc.util.Version;
 
         case ASK_SPECIAL_BUILD:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, null);
             // This case is not really an element update, so route as a 'request'
             pcl.requestedSpecialBuild(pl);
             break;
@@ -1648,7 +1700,7 @@ import soc.util.Version;
                     //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
                 }
 
-                boolean isClientPlayer = pl.getName().equals(client.getNickname());
+                boolean isClientPlayer = pl.getName().equals(client.getNickname(ga.isPractice));
 
                 //
                 //  fix it
@@ -1665,7 +1717,7 @@ import soc.util.Version;
 
         case NUM_PICK_GOLD_HEX_RESOURCES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, null);
             pcl.requestedGoldResourceCountUpdated(pl, 0);
             break;
 
@@ -1686,13 +1738,13 @@ import soc.util.Version;
 
         case SCENARIO_WARSHIP_COUNT:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, null);
             utype = PlayerClientListener.UpdateType.Warship;
             break;
 
         default:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
-                (ga, pl, pn, action, etype, amount, client.getNickname());
+                (ga, pl, pn, action, etype, amount, null);
         }
 
         if ((pcl != null) && (utype != null))
@@ -2167,6 +2219,7 @@ import soc.util.Version;
 
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            player.updateDevCardsPlayed(ctype);
             break;
 
         case SOCDevCardAction.ADD_OLD:
@@ -2268,6 +2321,7 @@ import soc.util.Version;
      *   either set the auto-roll timer, or prompt to roll or choose card.
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleROLLDICEPROMPT(SOCRollDicePrompt mes)
     {
@@ -2290,6 +2344,7 @@ import soc.util.Version;
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @see soc.game.SOCGame#resetAsCopy()
+     * @since 1.1.00
      */
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
@@ -2313,6 +2368,7 @@ import soc.util.Version;
      * local game state, and vote unless we are the requester.
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleRESETBOARDVOTEREQUEST(SOCResetBoardVoteRequest mes)
     {
@@ -2332,6 +2388,7 @@ import soc.util.Version;
      * another player has voted on a board reset request: display the vote.
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleRESETBOARDVOTE(SOCResetBoardVote mes)
     {
@@ -2351,6 +2408,7 @@ import soc.util.Version;
      * voting complete, board reset request rejected
      *
      * @param mes  the message
+     * @since 1.1.00
      */
     protected void handleRESETBOARDREJECT(SOCResetBoardReject mes)
     {
@@ -2437,16 +2495,22 @@ import soc.util.Version;
      * process the "new game with options" message
      * @since 1.1.07
      */
-    private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, final boolean isPractice)
+    private void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes, final boolean isPractice)
     {
+        // Note: Must run in network message thread, not AWT event thread,
+        // in case client is about to be auth'd to join this game:
+        // messages must take effect in the order sent
+
         String gname = mes.getGame();
-        String opts = mes.getOptionsString();
+        final String opts = mes.getOptionsString();
+
         boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
         if (gname.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
         {
             gname = gname.substring(1);
             canJoin = false;
         }
+
         client.getMainDisplay().addToGameList(! canJoin, gname, opts, ! isPractice);
     }
 
@@ -2460,7 +2524,7 @@ import soc.util.Version;
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
         // This is recognized and removed in mes.getGameList.
 
-        SOCGameList msgGames = mes.getGameList();
+        final SOCGameList msgGames = mes.getGameList();
         if (msgGames == null)
             return;
 
@@ -2478,9 +2542,22 @@ import soc.util.Version;
             client.tcpServGameOpts.noMoreOptions(false);
         }
 
-        for (String gaName : msgGames.getGameNames())
-            client.getMainDisplay().addToGameList
-                (msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
+        // update displayed list on AWT event thread, not network message thread,
+        // to ensure right timing for repaint to avoid appearing empty.
+        EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                final MainDisplay mdisp = client.getMainDisplay();
+
+                for (String gaName : msgGames.getGameNames())
+                    mdisp.addToGameList
+                        (msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
+
+                mdisp.repaintGameAndChannelLists();
+            }
+        });
+
     }
 
     /**
@@ -2681,7 +2758,7 @@ import soc.util.Version;
         if (pcl == null)
             return;
 
-        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga, client.getNickname(), true);
+        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES(mes, ga, null, true);
         pcl.diceRolledResources(mes.playerNum, mes.playerRsrc);
 
         // handle total counts here, visually updating any discrepancies

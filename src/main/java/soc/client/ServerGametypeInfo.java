@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>:
  *     - parameterize types
  * This file's contents were formerly part of SOCPlayerClient.java:
@@ -111,6 +111,9 @@ import soc.message.SOCNewGameWithOptions;
      * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS} (1.1.07).
      * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
      * and update from server as needed.
+     * May contain {@link SOCGameOption#OTYPE_UNKNOWN} opts sent from server
+     * as part of gameopt info synchronization, although {@link NewGameOptionsFrame}
+     * may later remove such unknown options from this shared set.
      */
     public Map<String,SOCGameOption> optionSet = null;
 
@@ -200,21 +203,23 @@ import soc.message.SOCNewGameWithOptions;
         // we already parsed these servOpts for all SGO fields, including current value.
         // Option objects are always accessed by key name, so replacement is OK.
 
+        HashSet<String> prevKnown = null;
+
         if ((optionSet == null) || optionSet.isEmpty())
         {
             optionSet = servOpts;
         } else {
+            prevKnown = new HashSet<>();
             for (String oKey : servOpts.keySet())
             {
                 SOCGameOption op = servOpts.get(oKey);
-                SOCGameOption oldcopy = optionSet.get(oKey);
-                if (oldcopy != null)
-                    optionSet.remove(oKey);
-                optionSet.put(oKey, op);  // Even OTYPE_UNKNOWN are added
+                SOCGameOption oldCopy = optionSet.put(oKey, op);  // even OTYPE_UNKNOWN are added
+                if (oldCopy != null)
+                    prevKnown.add(oKey);
             }
         }
 
-        List<String> unknowns = SOCVersionedItem.findUnknowns(servOpts);
+        List<String> unknowns = SOCVersionedItem.findUnknowns(servOpts, prevKnown);
         allOptionsReceived = (unknowns == null);
         defaultsReceived = true;
 
@@ -223,10 +228,14 @@ import soc.message.SOCNewGameWithOptions;
 
     /**
      * After calling receiveDefaults, call this as each GAMEOPTIONGETINFO is received.
-     * Updates allOptionsReceived.
+     * May update allOptionsReceived.
+     * If client already had information about this game option, that old info is discarded
+     * but any {@link SOCGameOption.ChangeListener} is copied to the message's new {@link SOCGameOption}.
      *
-     * @param gi  Message from server with info on one parameter
-     * @return true if all are known, false if more are unknown after this one
+     * @param gi  Message from server with info on one parameter, or end-of-list marker
+     *     {@link SOCGameOptionInfo#OPTINFO_NO_MORE_OPTS}
+     * @return true if all are known, false if more are still unknown after this
+     *     because {@code gi} isn't the end-of-list marker
      */
     public boolean receiveInfo(SOCGameOptionInfo gi)
     {
@@ -238,10 +247,13 @@ import soc.message.SOCNewGameWithOptions;
         {
             // end-of-list marker: no more options from server.
             // That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
+
             noMoreOptions(false);
+
             return true;
         } else {
             // remove old, replace with new from server (if any)
+
             if (oldcopy != null)
             {
                 optionSet.remove(oKey);
@@ -250,8 +262,8 @@ import soc.message.SOCNewGameWithOptions;
                     oinfo.addChangeListener(cl);
             }
             SOCGameOption.addKnownOption(oinfo);
-            if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
-                optionSet.put(oKey, oinfo);
+            optionSet.put(oKey, oinfo);  // even OTYPE_UNKNOWN are added
+
             return false;
         }
     }

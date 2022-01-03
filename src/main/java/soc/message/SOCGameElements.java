@@ -53,7 +53,8 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * To send over the network as an int, use {@link #getValue()}.
      * When received from network as int, use {@link #valueOf(int)} to convert to {@link GEType}.
      *<P>
-     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization.
+     * Converted from int constants to enum in v2.3.00 for cleaner design and human-readable serialization
+     * for {@link soc.server.savegame.SavedGameModel}.
      * @since 2.3.00
      */
     public enum GEType
@@ -95,24 +96,43 @@ public class SOCGameElements extends SOCMessageTemplateMi
         CURRENT_PLAYER(4),
 
         /**
-         * Player number of player with largest army, or -1, from {@link SOCGame#getPlayerWithLargestArmy()}.
-         * Sent when a client joins a game. Not sent during game play when Largest Army player changes:
-         * Client updates that display by examining game state;
-         * see {@link SOCPlayerElement.PEType#NUMKNIGHTS} javadoc.
+         * Player number of player with Largest Army, or -1, from {@link SOCGame#getPlayerWithLargestArmy()}.
+         * Sent when client joins a game, and when changes occur during normal gameplay
+         * in response to a player's <tt>{@link SOCPlayDevCardRequest}(KNIGHT)</tt>.
          *<P>
-         * Versions before v2.0.00 sent {@link SOCLargestArmy} instead.
+         * In versions before v2.4.00, was not sent by server during game play when Largest Army player changed:
+         * Client updated that display by examining game state;
+         * see {@link SOCPlayerElement.PEType#NUMKNIGHTS} javadoc.
+         * Such clients can be sent this element during gameplay, they'll process it just like newer clients do.
+         *<P>
+         * Versions before v2.0.00 sent {@link SOCLargestArmy} instead of this element.
          */
         LARGEST_ARMY_PLAYER(5),
 
         /**
-         * Player number of player with longest road, or -1, from {@link SOCGame#getPlayerWithLongestRoad()}.
-         * Sent when a client joins a game. Not sent during game play when Longest Road player changes:
-         * Client updates that display by examining game state;
-         * see {@link SOCPutPiece} javadoc section on {@link soc.game.SOCPlayingPiece#ROAD}.
+         * Player number of player with Longest Road/Route, or -1, from {@link SOCGame#getPlayerWithLongestRoad()}.
+         * Sent when client joins a game, and when changes occur during normal gameplay
+         * in response to a player's {@link SOCPutPiece}, {@link SOCMovePiece}, or {@link SOCDebugFreePlace}.
          *<P>
-         * Versions before v2.0.00 sent {@link SOCLongestRoad} instead.
+         * In versions before v2.4.00, was not sent by server during game play when Longest Route player changed:
+         * Client updated that display by examining game state;
+         * see {@link SOCPutPiece} javadoc section on {@link soc.game.SOCPlayingPiece#ROAD}.
+         * Such clients can be sent this element during gameplay, they'll process it just like newer clients do.
+         *<P>
+         * Versions before v2.0.00 sent {@link SOCLongestRoad} instead of this element.
          */
-        LONGEST_ROAD_PLAYER(6);
+        LONGEST_ROAD_PLAYER(6),
+
+        /**
+         * During 6-player game's Special Building Phase,
+         * the value of {@link SOCGame#getSpecialBuildingPlayerNumberAfter()}.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel}
+         * when gameState is {@link SOCGame#SPECIAL_BUILDING}.
+         * 
+         * @since 2.3.00
+         */
+        SPECIAL_BUILDING_AFTER_PLAYER(7);
 
         private int value;
 

@@ -6,7 +6,7 @@ When preparing to release a new version, testing should include:
 
 - Before building the JARs to be tested, `git status` should have no untracked or uncommitted changes
     - Run `gradle distCheckSrcDirty` to check that and list any files with such changes
-- `gradle clean test` runs without failures, under gradle 4 and also gradle 5
+- `gradle clean test` runs without failures, under gradle 5.6 and also gradle 6.4
 - These should print the expected version and build number:
     - `java -jar build/libs/JSettlers-3.*.jar --version`
     - `java -jar build/libs/JSettlersServer-3.*.jar --version`
@@ -27,12 +27,13 @@ When preparing to release a new version, testing should include:
     - In the new game's chat, say a few lines ("x", "y", "z" etc)
     - Start another client, join first client's local server and that game
     - Joining client should see "recap" of the game chat ("x", "y", "z")
-    - Start the game (will have 2 human clients & 2 bots)
+    - Start the game (will have 2 human clients & 2 bots), finish initial placement
     - Ensure the 2 clients can talk to each other in the game's chat area
-    - Client leaves game (not on their turn): A bot should join to replace them & play their next turn (not unresponsive)
+    - Client leaves game (not on their turn): A bot should join, replace them, and play their entire next turn (not unresponsive)
     - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
+    - Have a client rejoin and take over for a bot
     - Lock the only remaining bot seat (use lock button's "Marked" state, or "Locked" if client is v1.x)
       and reset game: no bots in new game, it begins immediately
 - Game play: (as debug user or in practice game)
@@ -72,10 +73,15 @@ When preparing to release a new version, testing should include:
     - If you have a linux or windows server, use that instead of your laptop/desktop;
       on linux, end the command line with ` &` to keep running in background
     - Should stay up for several days including activity (bot games)
-    - Run several bot games (`-Djsettlers.bots.botgames.total=5`);
-      join one as observer to make sure the pause is shorter than normal games
+    - Run several bot games (`-Djsettlers.bots.botgames.total=5 -Djsettlers.bots.botgames.gametypes=3`)
+      - Join one as observer; pause should be shorter than normal games
+      - View Game Info of each; should be a mix of 4- and 6-player, classic and sea board
 - New features in previous 2 versions from [Versions.md](Versions.md)
 - Each available game option
+    - For house rule game opt "6-player board: Can Special Build only if 5 or 6 players in game",  
+      also test latest server version against client v2.2.00 or older:
+        - Client can create a game with this option, 4 players, on 6-player board
+        - When client clicks Special Building button, server sends text explaining the house rule is active
 - Basic rules and game play
     - Can build pieces by right-clicking board or with the Build Panel
     - Can trade with ports by right-clicking board or using Trade Offer Bank/Port button
@@ -89,10 +95,14 @@ When preparing to release a new version, testing should include:
         - Move robber to an unoccupied hex
         - Move to steal from 1 player
         - Move to a hex with 2 players' settlements, choose a player to steal from
-        - Sea board: Move pirate next to another player's ship to steal
-        - Sea board: Move next to 2 players' ships, choose a player to steal from
-        - Cloth Trade scenario: Move pirate, steal cloth instead of resources
-        - Cloth Trade scenario: Move pirate to a hex with 2 players' ships, choose 1, steal cloth or resources
+        - Sea board:
+          - Move pirate next to another player's ship to steal
+          - Move next to 2 players' ships, choose a player to steal from
+        - Cloth Trade scenario:
+          - Move pirate, steal cloth instead of resources
+          - Move pirate to a hex with 2 players' ships, choose 1, steal cloth or resources
+          - Move pirate to a hex with 2 players' ships, choose 1 who has only resources not cloth;
+            shouldn't be asked whether to steal cloth or resources
         - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
     - Gain Longest Road/Route
         - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
@@ -103,20 +113,33 @@ When preparing to release a new version, testing should include:
           - Build roads/ships to take Longest Route from another player
           - Build settlement to split another player's Longest Route, giving a 3rd player the new Longest Route.
             (Skip this situation if testing for "move a ship".)
-            If this ends the game, 3rd player should win only when their turn begins
+            If this ends the game, 3rd player should win only when their turn begins.  
+            To save time, you can test with server Savegame feature enabled:  
+            Copy src/test/resources/resources/savegame/reletest-longest-3p.game.json and reletest-longest-3p-sea.game.json
+            to your server's configured savegame directory, then run `*LOADGAME* reletest-longest-3p`
+            or `*LOADGAME* reletest-longest-3p-sea`
         - Piece types to test each situation with:
           - Build roads only
           - Build a route that has roads and ships (through a coastal settlement)
           - Move a ship to gain Longest Route
     - Can win by gaining Longest Road/Route
-        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces for VP totals;
+        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces until you have 8 VP;
           be careful to not gain longest route before the test begins
         - With 8 VP, test each item in "Gain Longest Road/Route" list above
     - Can win by gaining Largest Army
-        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces for VP totals
+        - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces until you have 8 VP,
+          `dev: 9 debug` to get 2 soldier cards, play them
         - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above.
           When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP.
           Card should fully play out (choose player, etc) before server announces game is over.
+- Unprivileged info commands  
+    As a non-admin non-debug user, start playing a game. These should all work:
+    - `*WHO*` lists all players and observers in game
+    - `*STATS*` shows game's duration ("started x minutes ago") and number of rounds, server's count of started and completed games
+    - Finish the game (win or lose)
+    - `*STATS*` now shows game's duration as "took x minutes", server's count of completed games has increased, player's win/loss count has increased
+    - Start and finish another game
+    - `*STATS*` shows server's count of started and completed games have increased, player's win/loss count has increased
 - Game info sent to observer
     - Start and begin playing a game as `debug` player
     - Give another player enough Victory Point dev cards to win: `dev: 5 playername` etc
@@ -130,12 +153,13 @@ When preparing to release a new version, testing should include:
         - 2 humans 1 bot
         - 2 humans 0 bots
 - Fog Hex reveal gives resources, during initial placement and normal game play:
-     - Start server with vm property: `-Djsettlers.debug.board.fog=Y`
+     - Start server with vm property `-Djsettlers.debug.board.fog=Y`
      - Start and begin playing a game with the Use Sea Board option
-       - Place an initial settlement at a fog hex
+       - Place an initial settlement at a fog hex; should receive resources from each revealed hex
+     - Stop server, start it without `-Djsettlers.debug.board.fog=Y`
      - Start and begin playing a game with the Fog Islands scenario
        - Place initial coastal settlements next to the fog island, with initial ships to reveal hexes from the fog
-       - Keep restarting (reset the board) until you've revealed a gold hex and picked a free resource
+       - Keep restarting game (reset the board) until you've revealed a gold hex and picked a free resource
 - Scenario-specific behaviors:
      - Cloth Trade
        - Start a game on the 6-player board
@@ -151,7 +175,8 @@ When preparing to release a new version, testing should include:
        - Check for depletion of villages (should turn gray when cloth is depleted)
        - Check that when a village has 1 remaining cloth, but 2 established players,
          the board's general supply gives cloth to the 2nd player
-       - Note your cloth total, then leave and rejoin game: Hover over villages; cloth counts should be accurate
+       - Join as observer: Check general supply count, hover over villages; cloth counts should be accurate
+       - Note your player's cloth total, then leave and rejoin game: Hover over villages; cloth counts should be accurate
        - Move the pirate to rob cloth from another player;
          cloth count and VP total should update accurately  
          (Before you can move the pirate, you must establish a shipping route with any village)
@@ -175,6 +200,31 @@ When preparing to release a new version, testing should include:
            - Build another coastal settlement
            - Should now be able to play that trading port out of inventory
            - Should be able to trade that port's resources at expected ratio (not 4:1)
+       - Trading ports during Special Building phase
+           - Start a 6-player game
+           - Sit at seat number 5 (middle left); lock seat 0 (top left)
+           - Start the game; during initial placement, build a costal settlement and a ship north towards the Tribe's ports
+           - Start a second client, sit at seat 3 (bottom right) to help observe and confirm turn order
+           - In first client, end your turn; ask for Special Building during bot player 2's turn
+           - During Special Building, build ships to one of the Tribe's ports; pick up the port and place it
+           - End Special Building; next player should be number 3, not number 1
+           - During all that, second client should observe same sequence of current players
+       - Claiming gift Dev Cards and Ports with ship moves
+           - Build ships towards a gift Dev Card (yellow diamond) and gift Trading port
+           - Move a ship from elsewhere to claim the Dev Card: Should work as expected
+           - On next turn, move a ship from elsewhere to claim the port: Should work as expected
+           - Have observer briefly join game: Should see correct dev card count, port in new location
+       - Claiming Special Victory Points (SVPs) and ship moves
+           - Without using Free Placement debug mode:
+           - Build ships to claim 2 SVPs (green diamonds)
+           - Have observer briefly join game: Player and observer should see 2 SVPs, correct total VP amount
+           - On next turn, move furthest SVP ship to an empty edge
+           - Have observer briefly join game: Player and observer should still see 2 SVPs, correct total VP
+           - On next turn, move other SVP ship to claim a different SVP
+           - Have observer briefly join game: Player and observer should see 3 SVPs, correct total VP
+           - Build another ship on an empty edge
+           - On next turn, move that new ship to claim an SVP
+           - Have observer briefly join game: Player and observer should see 4 SVPs, correct total VP
        - Move the Robber, then make sure Robber can't be moved back to the small islands
      - Pirate Islands and Fortresses
        - Test visibility of Legal Sea Edges (dotted lines to fortress) for all 6 players
@@ -196,32 +246,76 @@ When preparing to release a new version, testing should include:
        - If observer joins after Wonder started, sees accurate ship count
 - Client preferences
     - Auto-reject bot trade offers:
-        - Practice game: Test UI's trade behavior with and without preference
+        - 6-player Practice game: Test UI's trade behavior with and without preference
         - Re-launch client, new practice game, check setting is remembered
     - Sound: See section "Platform-specific"
+    - Remember face icon:
+        - For clean first run: Launch client with jvm property `-Djsettlers.debug.clear_prefs=faceIcon`, exit immediately
+        - Launch new client as usual, without `-Djsettlers.debug.clear_prefs=faceIcon`
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be set
+          - Start game, change player's icon from default, exit during initial placement
+          - Start another game, sit down; player's icon should be the one just chosen
+          - Exit game and client
+        - Launch new client as usual
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be set
+          - Sit down at game; player's face icon should be non-default from previous run
+          - Exit game and client
+        - Launch new client
+          - Connect to server, click New Game
+          - In New Game dialog, clear "Remember face icon" checkbox
+          - Sit down at game; player's face icon should be back to default
+          - Exit game and client
+        - Launch new client
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be cleared; set it
+          - Sit down at game; player's face icon should be previously saved non-default
+          - Exit game
+          - Click New Game
+          - In New Game dialog, clear "Remember face icon" checkbox
+          - Sit down; icon should be default
+          - Exit game and client
+        - Launch new client
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be cleared
+          - Sit down at game; player's face icon should be default
+          - Start game
+          - Change player's icon to a different non-default, leave game running
+          - Click New Game
+          - In New Game dialog, set "Remember face icon" checkbox
+          - Sit down at game; player's face icon should be the one from still-running game
+          - Exit games and client
+        - Launch new client
+          - Connect to server, click New Game
+          - In New Game dialog, "Remember face icon" checkbox should be set
+          - Sit down at game; player's face icon should be the different non-default one from previous run
+          - Exit game and client
     - Hex Graphics Sets: Test switching between "Classic" and the default "Pastel":
         - All games mentioned here are Practice games, no server needed. "Start a game" here means to
           create a game, sit down, and start the game so a board will be generated.
         - For clean first run: Launch client with jvm property `-Djsettlers.debug.clear_prefs=hexGraphicsSet`
-        - Start a practice game, default options (board graphics should appear as pastel)
-        - Options button: [X] Hex graphics: Use Classic theme; close window instead of hit OK (board should not change)
-        - Options button: [X] Hex graphics: Use Classic theme; hit OK (board should change to Classic)
+        - Start a practice game, default options; board graphics should appear as pastel
+        - Options button: [X] Hex graphics: Use Classic theme  
+          Close window instead of hit OK; board should not change
+        - Options button: [X] Hex graphics: Use Classic theme  
+          Hit OK; board should change to Classic
         - Leave that game running, start another game
             - In New Game options: Fog scenario, 6 players, and un-check Use Classic theme
             - Create Game, start as usual
-            - (Both games' boards should now be pastel)
+            - Both games' boards should now be pastel
         - Options: Change theme to Classic; OK (Both games should change)
         - Leave running, Start another: Un-check Scenario, 6-player board, un-check Sea board (Should also be Classic)
         - Options: Un-check Use Classic; OK (All 3 games should change to pastel)
         - Options: Use Classic; OK (All 3 should change)
         - Close client main window: Quit all games
         - Re-launch client, without any jvm properties
-        - Start game: 4 players, no scenario (should remember preference & be classic)
+        - Start practice game: 4 players, no scenario (should remember preference & be classic)
         - Start another: 6 players (should also be classic)
         - Options: Un-check Use Classic; OK (Both should change)
         - Close client main window: Quit all games
         - Re-launch client
-        - Start a game (should remember preference & be pastel)
+        - Start a practice game (should remember preference & be pastel)
 - Network robustness: Client reconnect when scenario's board layout has "special situations"  
     Tests that the board layout, including potential and legal nodes and edges, is reconstructed when
     client leaves/rejoins the game. (For more info see "Layout placement rules for special situations"
@@ -261,16 +355,27 @@ When preparing to release a new version, testing should include:
     - Server and client versions to test v3 against: **2.0.00** (oldest client that can connect to v3 server);
       latest **2.x.xx** (v2.x doesn't use SOCBoardLarge for classic boards)
     - More server versions to test v3 client against: **1.1.06** (before Game Options);
-      **1.1.11** (has 6-player option and client bugfixes); latest **1.x.xx** (before Scenarios/sea boards)
+      **1.1.11** (has 6-player option and client bugfixes); latest **1.x.xx** (before Scenarios/sea boards);
+      **2.0.00** (many message format changes, i18n)
     - New client, old server
+        - If server is >= 1.1.09 but older than 1.1.19, add property at end of command line: `-Djsettlers.startrobots=5`
+        - If server >= 1.1.14, also add at end of command line: `-Djsettlers.allow.debug=Y`
+        - If server older than 1.1.15, also add at end of command line: `8880 99 dbu pw`
     - New server, old client
     - Test these specific things for each version:
+        - Server config:
+            - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`;  
+              all client versions should see that custom text when they connect
         - With an older client connected to a newer server, available new-game options
           should adapt to the older client version.  
           With a newer client connected to an older server, available new-game options
           should adapt to the older server version.  
-        - Create and start playing a 4-player game with no options (this uses an older message type)
         - Create and start playing a 4-player game with No Trading option
+            - Click Options button: Game options should be those chosen in this game's New Game dialog
+            - Give a robot player some new dev cards: VP, playable  
+              `dev: 4 botname`  
+              `dev: 9 botname`
+            - Have another client join (same version as first client) and take over that bot; should see dev card details correctly
         - Create and start playing a 6-player game
         - In the 6-player game, request and use the Special Building Phase
         - On a 3.x server, have 3.x client create game with an option or scenario that older versions can't join;
@@ -281,6 +386,18 @@ When preparing to release a new version, testing should include:
             - Join 1st game, take over for a robot
             - Should see all info for the player (resources, cards, etc)
             - Play at least 2 rounds; trade, build something, buy and use a soldier card
+            - When server >= 2.4:
+                - Have an observing client join game right after a player offers a trade; should see current trade offer
+                - A few turns later, have an observing client join game; shouldn't see trade offer from a previous turn
+        - When testing 2.3 or newer against older than 2.3:
+            - Start a game with robot player at seat number 2
+            - Give dev cards to bot player:  
+              `dev: 3 #2`  
+              `dev: 6 #2`
+            - Have second client join as observer (same version as first client)
+            - Should see correct number of dev cards for bot
+            - Sit down observer to take over bot's seat
+            - Should see correct card types in inventory (Monopoly, University); shouldn't see any unknown cards
         - When testing a 3.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
@@ -306,7 +423,7 @@ When preparing to release a new version, testing should include:
         - In `SOCGameOption.initAllOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
           Update its version parameters to current versionnum and current + 1. Example:  
           `("DEBUGBOOL", 3000, 3001, false, ...)`
-        - In `version.info`, add 1 to versionnum and version. Example: 3000 -> 3001, 3.0.00 -> 3.0.01
+        - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 3000 -> 3001, 3.0.00 -> 3.0.01
         - Build and launch client (at that "new" version), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
           Scenario dropdown should include those 2 "new" scenarios
@@ -321,7 +438,7 @@ When preparing to release a new version, testing should include:
         - Quit client and server
     - Then, test server newer than client:
         - Temporarily "localize" the test option and scenarios by adding to
-          `/src/main/resources/resources/strings/server/toClient_es.properties`:  
+          `src/main/resources/resources/strings/server/toClient_es.properties`:  
           `gameopt.DEBUGBOOL = test debugbool localized-es`  
           `gamescen.SC_TSTNC.n = test-localizedname-es`  
         - Build server JAR and start a server from it (has the "new" version number)
@@ -361,7 +478,7 @@ When preparing to release a new version, testing should include:
         - Cancel out of New Game dialog
         - Quit clients and server
 - i18n/Localization
-    - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `/src/main/resources/resources/strings/server/toClient_es.properties`:  
+    - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `src/main/resources/resources/strings/server/toClient_es.properties`:  
 
           # gamescen.SC_FOG.n = ...
           # gamescen.SC_FOG.d = ...
@@ -455,7 +572,7 @@ When preparing to release a new version, testing should include:
     - For standalone/third-party robot clients, which server invites to games:
         - Start a server which expects third-party bots, with these command-line parameters:  
           `-Djsettlers.bots.cookie=foo  -Djsettlers.bots.percent3p=50`
-        - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which does not use the Game Scenarios client feature, with these command-line parameters:  
+        - Start the `soc.robot.sample3p.Sample3PClient` "third-party" bot, which is limited to not use the Game Scenarios client feature, with these command-line parameters:  
           `localhost 8880 samplebot1 x foo`
         - Start another Sample3PClient:  
           `localhost 8880 samplebot2 x foo`
@@ -473,6 +590,90 @@ When preparing to release a new version, testing should include:
         - Start that game (with the two human players)
         - After initial placement, have one player leave
         - Server should tell game it can't find a robot
+    - SOCGameOption negotiation when connecting client has limited features:
+        - Start a standard server using its jar (not the IDE)
+        - Start a client, limited by using vm property `-Djsettlers.debug.client.features=;6pl;` and connect
+	  - Click New Game; dialog shouldn't show scenarios or sea board game options,
+	    should show options related to 6-player board; max players dropdown should have range 2 - 6
+          - Client's console (traffic debug trace) should show GameOptionInfo messages for the unsupported game options
+          - Start a 6-player game, bots should join and play as usual
+          - During initial placement, exit the client
+        - Start a client, limited by using vm property `-Djsettlers.debug.client.features=` and connect
+	  - Click New Game; dialog shouldn't show scenarios or sea board game options
+	    or 6-player board options; max players dropdown should have range 2 - 4
+          - Client's console (traffic debug trace) should show GameOptionInfo messages for the unsupported game options
+          - Start a 4-player game, bots should join and play as usual
+          - During initial placement, exit the client
+        - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2400 -> 2401, 2.4.00 -> 2.4.01
+        - Repeat those 2 client tests with client at that "new" version; should behave the same as above
+        - Repeat those 2 client tests with previous release's client jar; should behave the same as above
+        - Exit server and reset `version.info` to the actual versions (2401 -> 2400, etc)
+- Saving and loading games at server
+    - Basics
+        - Start server with debug user enabled, but not savegame feature: command-line arg `-Djsettlers.allow.debug=Y`
+          - Log in as debug user, start a game
+          - Try command `*SAVEGAME* tmp`
+          - Should fail with a message like: "SAVEGAME is disabled: Must set jsettlers.savegame.dir property"
+          - Shut down the server
+        - Saving basics
+          - Start server with debug user and savegame: Use command-line property to set path to save-dir, like  
+            `-Djsettlers.savegame.dir=/tmp/jsgame`
+          - Log in as debug user, start a game, play past initial placement
+          - Try command `*SAVEGAME* tmp`
+          - If that directory doesn't exist, should fail with a message like: "savegame.dir not found: /tmp/jsgame"
+          - Make the directory
+          - Again try command `*SAVEGAME* tmp`
+          - Should succeed with a message like: "Saved game to tmp.game.json"
+          - Again try command `*SAVEGAME* tmp`
+          - Should fail with a message like: "Game file already exists: Add -f flag to force, or use a different name"
+          - Again try command, adding that flag: `*SAVEGAME* -f tmp`
+          - Should succeed
+          - Run `*STATS*` command, note the game duration ("game started 4 minutes ago")
+          - Make and start a new game
+          - Try to save during initial placement: Should fail with a message like: "Must finish initial placement before saving"
+        - Loading basics
+          - As debug user in any game, run command `*LOADGAME* tmp`
+          - Game and its window should get created
+            - Debug user should be sitting at a player position
+            - Bots should be sitting at bot player positions
+            - If loaded game would duplicate name of a game already on server, should have a numeric suffix like "-2"
+          - In loaded game, run `*STATS*`; duration should match what's noted in previous test
+          - In loaded game, run `*LOADGAME* tmp` again
+          - Should create another game with a numeric suffix like "-2" or "-3"
+          - Run `*RESUMEGAME*` to resume game play; should do so
+          - Play 2 rounds; bots and human player actions should function normally
+          - Close all loaded games' windows
+    - Loading and resuming games
+        - Second human client should be able to sit, taking over a robot position, and have debug user resume game as usual
+        - Save and then load a game containing a human player who's connected to server but not part of the resumed game.  
+          When resuming that game, server shouldn't send that client any messages, but instead should get a bot to sit at their seat
+        - Load a game and have a second human player also sit down. Resume game. Have debug player leave; play should continue for human player still in game
+        - Save a 6-player game where debug isn't current player, has Asked to Special Build.  
+          Load; when joining, debug player's game window should indicate wants to special build
+        - Can load and start game which doesn't include debug player
+          - Edit a saved game file to change player name from "debug"
+          - Load that game
+          - Should see "Take Over" buttons for every occupied player seat (bot or human)
+          - Sit down as current player, make sure resumes properly
+          - Re-test, sitting as non-current player
+          - Re-test, resume without sitting: Should resume as robots-only game
+          - Exit robots-only game: Should continue running, not be deleted; should be able to rejoin as observer
+    - Saved bot properties
+        - Save a game having no bots, mix of smart/fast bots, one with at least 1 Sample3PClient
+        - For each of those, examine the players in the save file for correct values for: isRobot, isBuiltInRobot, isRobotWithSmartStrategy, and (for Sample3PClient) `"robot3rdPartyBrainClass": "soc.robot.sample3p.Sample3PClient"`
+    - Loading sample savegames from unit tests
+        - Copy \*.game.json (except bad-\*) from `src/test/resources/resources/savegame/` to your test server's savegame dir
+        - Each one should load without error, and resume without error (except "classic-over")
+        - "classic-botturn" should have bots playing in the upper-right and lower-right seats, even though those seats are marked/locked
+    - Server config options/properties
+        - Start server with savegame, but not debug user or Admin Users list:  
+            `-Djsettlers.savegame.dir=/tmp/jsgame`
+          - Startup should fail with a message like: "Config: jsettlers.savegame.dir requires debug user or jsettlers.accounts.admins"
+        - Start server with savegame, database, and Admin Users list, but not debug user:  
+            `-Djsettlers.savegame.dir=/tmp/jsgame -Djsettlers.accounts.admins=adm,name2`
+          - Startup should succeed
+          - Log in as admin user `adm` or `name2`
+          - Should be able to save, load, and resume games
 - Command line and jsserver.properties
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
@@ -488,7 +689,13 @@ When preparing to release a new version, testing should include:
     - Server prop for no chat channels (`jsettlers.client.maxcreatechannels=0`):  
       Client main panel should not see channel create/join/list controls
     - Start server with prop `jsettlers.startrobots=0`:  
-      Connect client and try to start a game, should see "No robots on this server" in game text area
+      Connect client, create and try to start a game;  
+      should see "No robots on this server" in game text area
+    - Start server with prop `jsettlers.startrobots=1`:  
+      Connect client, create and try to start a game;  
+      should see "Not enough robots to fill all the seats. Lock some seats. Only 1 robot is available"
+    - Start server with prop `jsettlers.stats.file.name=/tmp/stats.txt`:  
+      After 60 minutes, server should write `*STATS*` output to that file
 
 ## Database setup and Account Admins list
 
@@ -511,8 +718,6 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Run SOCPlayerClient: Nonexistent usernames with a password specified should have a pause before returning
   status from server, as if they were found but password was wrong
 - SOCPlayerClient: Log in with a case-insensitive account nickname (use all-caps or all-lowercase)
-- SOCPlayerClient: Log in as non-admin user, create game: `*who*` works (not an admin command),
-  `*who* testgame` and `*who* *` shouldn't ; `*help*` shouldn't show any admin commands
 - Test SOCServer parameter `--pw-reset username`  
   SOCPlayerClient: Log in afterwards with new password and start a game
 - Server prop to require accounts (`jsettlers.accounts.required=Y`):  
@@ -602,6 +807,25 @@ Start with a recently-created database with latest schema/setup scripts.
       TU1: W 4 L 0  
       TU2: W 2 L 4  
       TU3: W 0 L 4
+- Admin commands
+    - Be sure server is started with savegame feature: Use command-line property to set path to save-dir, like  
+      `-Djsettlers.savegame.dir=/tmp/jsgame`
+    - SOCPlayerClient: Log in as non-admin user, create game
+        - `*who*` works (not an admin command)
+        - `*who* testgame` and `*who* *` shouldn't work
+        - `*help*` shouldn't show any admin commands
+        - In a different game where user is observing (ongoing, past initial placement),
+          shouldn't be able to use commands or chat
+    - SOCPlayerClient: Log in as admin user, join an ongoing game but don't sit down
+        - `*who* testgame` and `*who* *` should work
+        - `*help*` should show admin commands
+        - Should be able to chat in game
+    - As an admin user, save and load games
+        - Start a game, play past initial placement
+        - Try command `*SAVEGAME* tmp`
+        - Should succeed with a message like: "Saved game to tmp.game.json"
+        - As admin user in any other game, run command `*LOADGAME* tmp`
+        - Should succeed and load game into a new window
 - DB schema upgrade rollback/recovery
     - Get a copy of the original schema SQL file (not latest version):
         - `git show release-1.1.20:src/bin/sql/jsettlers-tables.sql > ../tmp/jsettlers-tables-1120.sql`
@@ -676,19 +900,37 @@ Start with a recently-created database with latest schema/setup scripts.
 
 ## Other misc testing
 
+- Client/player nickname and game/channel names:
+    - When entering your nickname or starting a game and a channel, check for enforcement and a helpful error message:
+        - Name can't be entirely digits (is OK for channel)
+        - Name can't contain `,` or `|`
+        - Game name can't start with `?`
 - "Replace/Take Over" on lost connection:
     - Start a game at server with player client
     - Start a second client under your IDE's debugger & join that game
     - Start game, go through initial placement and into normal game play
+    - Buy at least 1 dev card, don't use it
+    - Note your player's "private info": Resource counts, dev card inventory, etc
     - In your IDE, pause the debugged client to simulate network connection loss
-    - Start a new client and connect as that same username; should allow connect after appropriate number of seconds
+    - Start a new client and connect as that same username
+      - Should allow connect after appropriate number of seconds
+      - Player's private info should be correct
 - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
 - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
   should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+- Practice Games vs Server connection:
+    - Launch the player client and start a practice game (past end of initial placement)
+    - Connect to a server, change client's nickname from "Player", start or join a game there
+    - In practice game, should still be able to accept/reject trade offers from bots
+    - Should be able to create and start playing a new practice game
+    - In non-practice game, note the current player
+    - Stop the server
+    - Non-practice game should announce disconnect but still show current player
+    - Practice games should continue
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  
-      `java -jar JSettlersServer-3.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+      `java -jar JSettlersServer-3.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.gametypes=3 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
     - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
     - These games should complete in under 10 minutes
     - Once the games complete, that server will exit
@@ -698,7 +940,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Board layout generator stability:
     - See `TestBoardLayoutsRounds` in "extraTest" section
 - Build contents and built artifacts:
-    - `gradle dist` runs without errors, under gradle 4 and also gradle 5
+    - `gradle dist` runs without errors, under gradle 5.6 and also gradle 6.4
     - Full jar and server jar manifests should include correct JSettlers version and git commit id:
         - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
         - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
@@ -717,7 +959,7 @@ Start with a recently-created database with latest schema/setup scripts.
             git clone https://github.com/jdmonin/JSettlers2.git
             cd JSettlers2
             X_IGNORES="-x .git -x build -x target -x tmp"
-			diff -ur $X_IGNORES . "$MYTOPDIR" | grep ^Only  # check for missing/extra files
+            diff -ur $X_IGNORES . "$MYTOPDIR" | grep ^Only  # check for missing/extra files
             diff -ur $X_IGNORES . "$MYTOPDIR"  # check for uncommitted or unpushed changes
             cd .. && rm -rf JSettlers2
             cd .. && rmdir jt
@@ -732,7 +974,7 @@ Open a terminal or command prompt, go to the project's top-level directory
 (containing `build.gradle`), and run:  
 `gradle extraTest`
 
-These tests will run for several minutes, and end without errors:  
+These tests will run for several minutes, and should end without errors:  
 `BUILD SUCCESSFUL`
 
 The current Extra Tests are:
@@ -752,8 +994,27 @@ The current Extra Tests are:
 ## Platform-specific
 
 On most recent and less-recent OSX and Windows; JRE 8 and a new JDK:
+(Can download installer from https://jdk.java.net/ )
 
 - Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
+- Hotkey shortcuts
+    - Generic modifier key: Ctrl on all platforms (Ctrl-R, Ctrl-D, etc)
+    - MacOSX or Windows: also test modifier Cmd or Alt
+    - Roll and Done buttons: R, D + modifier
+    - Accept, Reject, Counter trade offer when just one is visible: A, J, C + modifier
+    - Click in chat text input field
+      - Try Ctrl-A, Ctrl-C, Ctrl-V (or Cmd on MacOSX); should be Select All, Copy, Paste as usual
+      - With another client, join the game and make a trade offer
+      - In first client, enter text into chat but don't select it
+      - Ctrl-A (or Cmd) should Select All
+      - Ctrl-A again should Accept the sole visible trade offer, since chat input's text is all selected
+      - Clear out the chat text input, or hit Enter to send it
+      - With that other client, make a trade offer
+      - Ctrl-A should Accept the sole visible trade offer, since chat input contains no text
+      - Exit out of other client
+    - Send a few lines of chat text
+    - Right-click in chat text output area, server text area (or Ctrl-click on MacOSX);
+      should be able to Select All, Copy to clipboard
 - Sound, including 2 clients in same game for overlapping piece-place sound
 - Start, join networked games
 - Graphics, including scaling and antialiasing after window resize
@@ -771,8 +1032,8 @@ On most recent and less-recent OSX and Windows; JRE 8 and a new JDK:
       - Resize game window sightly, to save preference for next run
     - Quick re-test with "Force UI scale" user pref unset, set to 1, set to 2;
       make sure this pref's checkbox can be cleared
-- Persistent user prefs (sound, auto-reject bot offer, window size, hex graphics set)  
-  Then, re-run to check default size with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
+- Persistent user prefs (sound, auto-reject bot offer, window size, hex graphics set, face icon)  
+  Then, re-run to check default size, with jvm property `-Djsettlers.debug.clear_prefs=PI_width,PI_height`
 - Accessibility/High-Contrast mode
     - Test debug jvm property `-Djsettlers.uiContrastMode=light`
     - On Windows, test high-contrast dark and light themes, and high-contrast accessibility mode
@@ -796,7 +1057,7 @@ On most recent and less-recent OSX and Windows; JRE 8 and a new JDK:
 
 ## Instructions and Setup
 
-- [Readme.md](../Readme.md), `Readme.developer.md`, [Database.md](Database.md):
+- [Readme.md](../Readme.md), [Readme.developer.md](Readme.developer.md), [Database.md](Database.md), and this file:  
   Validate all URLs, including JDBC driver downloads
 - Follow server setup instructions in [Readme.md](../Readme.md)
 - Set up a new DB: Covered above in "Platform-specific"

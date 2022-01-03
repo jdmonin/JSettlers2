@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2010,2012-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2010,2012-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -94,14 +94,13 @@ public class SOCGameTextMsg extends SOCMessage
     private String game;
 
     /**
-     * Nickname of sender, or {@link #SERVERNAME}.
-     * In v2.0.00 and newer, can also be {@code ":"} ({@link #SERVER_FOR_CHAT}) for server messages
-     * which should appear in the chat area (recent-chat recap, etc).
+     * Nickname of sender from server, or {@link #SERVERNAME} or {@link #SERVER_FOR_CHAT}, or "-";
+     * see {@link #getNickname()}.
      */
     private String nickname;
 
     /**
-     * Text message.
+     * The message text.
      * For expected format when {@link #nickname} is {@link #SERVER_FOR_CHAT}, see that nickname constant's javadoc.
      */
     private String text;
@@ -110,9 +109,10 @@ public class SOCGameTextMsg extends SOCMessage
      * Create a GameTextMsg message.
      *
      * @param ga  name of game
-     * @param nn  nickname of sender; announcements from the server (not from a player) use {@link #SERVERNAME}
-     *     or {@link #SERVER_FOR_CHAT}
-     * @param tm  text message. For expected format when {@code nn} is {@link #SERVER_FOR_CHAT},
+     * @param nn  nickname of sender, when message sent from server; announcements from the server (not from a player)
+     *     use {@link #SERVERNAME} or {@link #SERVER_FOR_CHAT}.
+     *     Server has always ignored this field from client, can send "-" but not blank.
+     * @param tm  message text. For expected format when {@code nn} is {@link #SERVER_FOR_CHAT},
      *     see that constant's javadoc.
      */
     public SOCGameTextMsg(String ga, String nn, String tm)
@@ -132,7 +132,12 @@ public class SOCGameTextMsg extends SOCMessage
     }
 
     /**
-     * Get the player's nickname for a chat message, or the server for game announcement text
+     * When sent from server, get the player's nickname for a chat message, or the server for game announcement text.
+     * In v2.0.00 and newer, can also be {@code ":"} ({@link #SERVER_FOR_CHAT}) for server messages
+     * which should appear in the chat area (recent-chat recap, etc).
+     *<P>
+     * When from client, server has always ignored this field; can send "-" but not blank.
+     *
      * @return the player's nickname, or {@link #SERVERNAME},
      *     or {@link #SERVER_FOR_CHAT} ({@code ":"}) for server messages which should appear in
      *     the chat area (recap, etc)
@@ -143,7 +148,7 @@ public class SOCGameTextMsg extends SOCMessage
     }
 
     /**
-     * @return the text message.
+     * @return the message text.
      *    For expected format when {@link #getNickname()} is {@link #SERVER_FOR_CHAT},
      *    see that constant's javadoc.
      */
@@ -166,8 +171,9 @@ public class SOCGameTextMsg extends SOCMessage
      * GAMETEXTMSG sep game sep2 nickname sep2 text
      *
      * @param ga  the game name
-     * @param nn  the nickname
-     * @param tm  the text message
+     * @param nn  the nickname of sender, when message sent from server;
+     *     when from client, server has always ignored this field, can send "-" but not blank
+     * @param tm  the message text
      * @return    the command string
      */
     public static String toCmd(String ga, String nn, String tm)

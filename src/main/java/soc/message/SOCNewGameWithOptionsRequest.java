@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2013-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ import soc.game.SOCGameOption;
  * If it can create the game, server's reply is a broadcast {@link SOCNewGameWithOptions}.
  *<P>
  * Once a client has successfully joined or created any game or channel, the
- * nickname and password fields can be left blank in later join/create requests.
+ * nickname and password fields can be left blank or "-" in later join/create requests.
  * All server versions ignore the password field after a successful request.
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
@@ -49,10 +49,11 @@ import soc.game.SOCGameOption;
  * @since 1.1.07
  */
 public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
+    implements SOCMessageFromUnauthClient
 {
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
-    /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Map, boolean)} format. */
+    /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)} format. */
     private String optsStr;
 
     /** may be null */
@@ -61,13 +62,13 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     /**
      * Create a NewGameWithOptionsRequest message.
      *
-     * @param nn  nickname, or "-" if already auth'd to server
+     * @param nn  player's nickname, or "-" if already auth'd to server
      * @param pw  optional password, or "" if none
      * @param hn  unused; the optional server host name to which client is connected,
      *     or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     *             {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      */
     public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, String optstr)
     {
@@ -99,13 +100,13 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     /**
      * NEWGAMEWITHOPTIONSREQUEST sep nickname sep2 password sep2 host sep2 game sep2 options
      *
-     * @param nn  the nickname, or "-" if already auth'd to server
+     * @param nn  player's nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none; not null
      * @param hn  unused; the optional server host name to which client is connected,
      *     or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  the game name
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link SOCGameOption#packOptionsToString(Map, boolean)}.
+     *             {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      * @return    the command string
      */
     public static String toCmd(String nn, String pw, String hn, String ga, String optstr)
@@ -119,7 +120,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     /**
      * NEWGAMEWITHOPTIONSREQUEST sep nickname sep2 password sep2 host sep2 game sep2 options
      *
-     * @param nn  the nickname, or "-" if already auth'd to server
+     * @param nn  player's nickname, or "-" if already auth'd to server
      * @param pw  the optional password, or "" if none
      * @param hn  unused; the optional server host name to which client is connected,
      *     or "-" or {@link SOCMessage#EMPTYSTR}
@@ -129,7 +130,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      */
     public static String toCmd(String nn, String pw, String hn, String ga, Map<String, SOCGameOption> opts)
     {
-        return toCmd(nn, pw, hn, ga, SOCGameOption.packOptionsToString(opts, false));
+        return toCmd(nn, pw, hn, ga, SOCGameOption.packOptionsToString(opts, false, false));
     }
 
     /**

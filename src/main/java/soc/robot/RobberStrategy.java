@@ -22,8 +22,6 @@
  **/
 package soc.robot;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Random;
 
 import soc.disableDebug.D;
@@ -94,10 +92,11 @@ public class RobberStrategy
        for (int i = game.maxPlayers - 1; i >= 0; --i)
            winGameETAs[i] = 100;
 
-       Iterator<SOCPlayerTracker> trackersIter = brain.playerTrackers.values().iterator();
-       while (trackersIter.hasNext())
+       for (final SOCPlayerTracker tracker : brain.playerTrackers)
        {
-           SOCPlayerTracker tracker = trackersIter.next();
+           if (tracker == null)
+               continue;
+
            final int trackerPN = tracker.getPlayer().getPlayerNumber();
            log.debug("%%%%%%%%% TRACKER FOR PLAYER " + trackerPN);
 
@@ -225,7 +224,7 @@ public class RobberStrategy
    public int chooseRobberVictim
        (final boolean[] isVictim, final boolean canChooseNone)
    {
-       final HashMap<Integer, SOCPlayerTracker> playerTrackers = brain.playerTrackers;
+       final SOCPlayerTracker[] playerTrackers = brain.playerTrackers;
 
        int choice = -1;
 
@@ -243,8 +242,8 @@ public class RobberStrategy
            }
            else
            {
-               SOCPlayerTracker tracker1 = playerTrackers.get(Integer.valueOf(i));
-               SOCPlayerTracker tracker2 = playerTrackers.get(Integer.valueOf(choice));
+               SOCPlayerTracker tracker1 = playerTrackers[i];
+               SOCPlayerTracker tracker2 = playerTrackers[choice];
 
                if ((tracker1 != null) && (tracker2 != null) && (tracker1.getWinGameETA() < tracker2.getWinGameETA()))
                {

@@ -69,7 +69,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      *            minVers also designates if the game is joinable.
      * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
+     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)},
      *            or null
      * @param minVers Minimum client version required for this game, or -1
      */
@@ -97,7 +97,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     public SOCNewGameWithOptions(final SOCGame game, final int cliVers)
     {
         this(game.getName(),
-            SOCGameOption.packOptionsToString(game.getGameOptions(), false, cliVers),
+            SOCGameOption.packOptionsToString(game.getGameOptions(), false, false, cliVers),
             game.getClientVersionMinRequired());
     }
 
@@ -105,7 +105,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * Create a SOCNewGameWithOptions message, optionally for a specific client version, at server.
      * This constructor may adjust encoded option values for backwards compatibility with the client version.
      * If so, contents of the referenced {@code opts} map aren't changed: Calls
-     * {@link SOCGameOption#packOptionsToString(Map, boolean, int) SOCGameOption.packOptionsToString(opts, false, cliVers)}.
+     * {@link SOCGameOption#packOptionsToString(Map, boolean, boolean, int) SOCGameOption.packOptionsToString(opts, false, false, cliVers)}.
      *
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
@@ -118,13 +118,13 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     public SOCNewGameWithOptions
         (final String ga, final Map<String, SOCGameOption> opts, final int minVers, final int cliVers)
     {
-        this(ga, SOCGameOption.packOptionsToString(opts, false, cliVers), minVers);
+        this(ga, SOCGameOption.packOptionsToString(opts, false, false, cliVers), minVers);
     }
 
     /**
      * Get the encoded game options, if any.
      * @return the options for the new game, in the format returned by
-     *     {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
+     *     {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)},
      *     or null if no options
      */
     public String getOptionsString()
@@ -147,7 +147,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean) SOCGameOption.packOptionsToString(opts, false)},
+     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)},
      *            or null
      * @param minVers Minimum client version required, or -1
      * @return the command string

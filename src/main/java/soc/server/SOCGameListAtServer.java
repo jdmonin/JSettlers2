@@ -26,7 +26,11 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import soc.debug.D;
 import soc.game.SOCGame;
@@ -92,11 +96,20 @@ public class SOCGameListAtServer extends SOCGameList
     protected final Hashtable<String, SOCChatRecentBuffer> gameChatBuffer;
 
     /**
-     * constructor
+     * Server's random number generator, for occasional use by
+     * methods like {@link #randomAlphanumericLegibles(int)}.
+     * @since 2.3.00
      */
-    public SOCGameListAtServer()
+    private final Random rand;
+
+    /**
+     * constructor
+     * @param rand  Server's random number generator, for occasional misc use here
+     */
+    public SOCGameListAtServer(final Random rand)
     {
         super();
+        this.rand = rand;
 
         // Make sure server games have SOCBoardAtServer, for makeNewBoard.
         // Double-check class in case server is started at client after a client SOCGame.
@@ -206,7 +219,7 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * get a game's members (client connections)
-     * @param   gaName  game name
+     * @param   gaName  game name; not null
      * @return  list of members: a Vector of {@link Connection}s
      */
     public synchronized Vector<Connection> getMembers(String gaName)
@@ -216,18 +229,45 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * is this connection a member of the game?
-     * @param  gaName   the name of the game
-     * @param  conn     the member's connection
-     * @return true if memName is a member of the game
+     * @param  gaName   the name of the game; not null
+     * @param  conn     the member's connection; null is safe
+     * @return true if {@code conn} is a member of the game
+     * @see #isMember(String, String)
      */
-    public synchronized boolean isMember(Connection conn, String gaName)
+    public boolean isMember(Connection conn, String gaName)
     {
-        Vector<Connection> members = getMembers(gaName);
+        final Vector<Connection> members = getMembers(gaName);
 
         if ((members != null) && (members.contains(conn)))
             return true;
         else
             return false;
+    }
+
+    /**
+     * Is this member name in the game?
+     * Will compare {@code memberName} to game members' {@link Connection#getData()}.
+     * @param memberName  member name, from {@link Connection#getData()}.
+     *     {@code null} is safe.
+     * @param gaName  the name of the game; not null
+     * @return true if {@code memberName} is a member of the game
+     * @see {@link #isMember(Connection, String)}
+     * @since 2.3.00
+     */
+    public boolean isMember(String memberName, String gaName)
+    {
+        final Vector<Connection> members = getMembers(gaName);
+        if (members == null)
+            return false;
+
+        for (final Connection c : members)
+        {
+            final String na = c.getData();
+            if ((na != null) && na.equals(memberName))
+                return true;
+        }
+
+        return false;
     }
 
     /**
@@ -242,13 +282,27 @@ public class SOCGameListAtServer extends SOCGameList
     {
         Vector<Connection> members = getMembers(gaName);
 
-        if ((members != null) && (!members.contains(conn)))
+        if (members == null)
+        {
+            if (! isGame(gaName))
+                return;
+
+            // won't be null, except during some unit tests
+            // which use client-side SOCGameList.addGame for simplicity
+            members = new Vector<>();
+            gameMembers.put(gaName, members);
+        }
+
+        if (! members.contains(conn))
         {
             final boolean firstMember = members.isEmpty();
             members.addElement(conn);
 
             // Check version range
             SOCGame ga = getGameData(gaName);
+            if (ga == null)
+                return;  // happens only in some unit tests
+
             final int cliVers = conn.getVersion();
             if (firstMember)
             {
@@ -392,10 +446,10 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * create a new game, and add to the list; game will expire in {@link #GAME_TIME_EXPIRE_MINUTES} minutes.
-     * If a game already exists (per {@link #isGame(String)}), do nothing.
+     * If a game already exists (per {@link #isGame(String)}), tries to add suffix to {@code gaName} to get an unused name.
      * Uses {@code handler} to call {@link SOCGame#setClientFeaturesRequired(SOCFeatureSet)}.
      *
-     * @param gaName  the name of the game
+     * @param gaName  the requested name of the game
      * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)
      * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed (added in 2.0.00)
      * @param gaOpts  if game has options, its {@link SOCGameOption}s; otherwise null.
@@ -418,28 +472,36 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * Add a game to the list; game will expire in {@link #GAME_TIME_EXPIRE_MINUTES} minutes.
-     * If a game already exists (per {@link #isGame(String)}), do nothing.
+     * If a game already exists (per {@link #isGame(String)}), tries to rename or add suffix to get an unused name.
      * Uses {@code handler} to call {@link SOCGame#setClientFeaturesRequired(SOCFeatureSet)}.
      *
      * @param game  the game to be added
      * @param handler  game type handler for this game; not null
      * @param gaOwner the game owner/creator's player name, or null
-     * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed
-     * @return new game object, or null if it already existed
+     * @param gaLocaleStr  the game owner/creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed;
+     *     ignored if {@code gaOwner} is null
+     * @return new game object, or null if it already existed and couldn't find an unused name
      * @throws IllegalArgumentException  if {@code handler} is null
+     * @throws NoSuchElementException if {@code loadedGame != null}, its game name is already in use,
+     *             and an unused name couldn't be generated in a reasonable amount of tries
      * @see #createGame(String, String, String, Map, GameHandler)
      * @since 2.3.00
      */
     protected synchronized SOCGame addGame
         (final SOCGame game, final GameHandler handler, final String gaOwner, final String gaLocaleStr)
-        throws IllegalArgumentException
+        throws IllegalArgumentException, NoSuchElementException
     {
-        final String gaName = game.getName();
-
-        if (isGame(gaName))
-            return null;
         if (handler == null)
             throw new IllegalArgumentException("handler");
+
+        String gaName = game.getName();
+        if (isGame(gaName))
+        {
+            gaName = makeUnusedName(gaName);
+            if (gaName == null)
+                throw new NoSuchElementException("gaName");
+            game.setName(gaName);
+        }
 
         if (gaOwner != null)
             game.setOwner(gaOwner, gaLocaleStr);
@@ -455,6 +517,87 @@ public class SOCGameListAtServer extends SOCGameList
         gameData.put(gaName, game);
 
         return game;
+    }
+
+    /**
+     * Try to generate a game name that isn't already in use;
+     * try base name plus a suffix, then random names.
+     * @param baseName Game name which is in use
+     * @return An unused game name, or {@code null} if can't get a name after about 240 tries
+     * @since 2.3.00
+     */
+    private synchronized String makeUnusedName(final String baseName)
+    {
+        // + digits suffix
+        int i0 = 2;
+        String base = baseName;
+        if (Character.isDigit(baseName.charAt(baseName.length() - 1)))
+        {
+            // if name is already -\d+ , start at that + 1 instead of at 2;
+            // tries to avoid making a name like "mygame-6-2"
+
+            final Matcher m = Pattern.compile("-(\\d+)$").matcher(baseName);
+            if (m.find())
+            {
+                base = baseName.substring(0, m.start());  // "mygame-6" -> "mygame"
+                try
+                {
+                    i0 = Integer.parseInt(m.group(1));
+                    if (i0 < Integer.MAX_VALUE)
+                        ++i0;
+                    else
+                        i0 = 2;
+                }
+                catch(NumberFormatException e) {}
+            }
+        }
+        for (int i = i0; i <= (i0 + 20); ++i)
+        {
+            String name = base + '-' + i;
+            if (! isGame(name))
+                return name;
+        }
+
+        // + random alphanumeric suffix
+        for (int i = 1; i < 20; ++i)
+        {
+            String name = baseName + '-' + randomAlphanumericLegibles(5);
+            if (! isGame(name))
+                return name;
+        }
+
+        // "game-" + just random alphanumeric
+        for (int i = 1; i < 200; ++i)
+        {
+            String name = "game-" + randomAlphanumericLegibles(6);
+            if (! isGame(name))
+                return name;
+        }
+
+        return null;
+    }
+
+    /**
+     * Possible choices for {@link #randomAlphanumericLegibles(int)}.
+     * @since 2.3.00
+     */
+    private final static String ALPHANUMERIC_LEGIBLE_CHOICES = "234678abcdefhjkmnpqrstwxyz";
+
+    /**
+     * Make a string out of random letters and digits which can't be easily mistaken for others;
+     * avoids 0 and o, 1 and l, 6 and g, etc.
+     * @param length Length for created string
+     * @return A random string of that length
+     * @since 2.3.00
+     */
+    private final StringBuffer randomAlphanumericLegibles(final int length)
+    {
+        final int L = ALPHANUMERIC_LEGIBLE_CHOICES.length();
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < length; ++i)
+            sb.append(ALPHANUMERIC_LEGIBLE_CHOICES.charAt(rand.nextInt(L)));
+
+        return sb;
     }
 
     /**
@@ -545,22 +688,17 @@ public class SOCGameListAtServer extends SOCGameList
     @Override
     public synchronized void deleteGame(String gaName)
     {
-        SOCGame game = gameData.get(gaName);
+        SOCGame game = gameData.remove(gaName);
         if (game != null)
-        {
             game.destroyGame();
-            gameData.remove(gaName);
-        }
 
         // delete from super to destroy GameInfo and set its gameDestroyed flag
         // (Removes game from list before dealing with members, in case of locks)
         super.deleteGame(gaName);
 
-        Vector<Connection> members = gameMembers.get(gaName);
+        Vector<Connection> members = gameMembers.remove(gaName);
         if (members != null)
-        {
             members.removeAllElements();
-        }
 
         SOCChatRecentBuffer buf = gameChatBuffer.remove(gaName);
         if (buf != null)

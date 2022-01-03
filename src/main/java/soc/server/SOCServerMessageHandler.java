@@ -5,6 +5,7 @@
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.NoSuchElementException;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -44,6 +46,7 @@ import java.util.regex.Pattern;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionVersionException;
 import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
@@ -52,9 +55,9 @@ import soc.server.database.SOCDBHelper;
 import soc.server.genericServer.Connection;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.*;
+import soc.util.I18n;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
-import soc.util.SOCRobotParameters;
 import soc.util.SOCStringManager;
 import soc.util.Version;
 
@@ -120,9 +123,11 @@ public class SOCServerMessageHandler
      *       to do.
      * @param mes  Message from {@code c}. Never {@code null}.
      * @param c    Connection (client) sending this message. Never null.
+     *     {@link Connection#getData()} won't be {@code null}
+     *     unless {@code mes} implements {@link SOCMessageFromUnauthClient}.
      * @throws NullPointerException  if {@code mes} is {@code null}
      * @throws Exception  Caller must catch any exceptions thrown because of
-     *    conditions or bugs in any server methods called from here.
+     *     conditions or bugs in any server methods called from here.
      */
     final void dispatch(final SOCMessage mes, final Connection c)
         throws NullPointerException, Exception
@@ -442,7 +447,7 @@ public class SOCServerMessageHandler
             }
         }
 
-        final String txt = c.getLocalized("netmsg.status.welcome");  // "Welcome to Java Settlers of Catan!"
+        final String txt = srv.getClientWelcomeMessage(c);  // "Welcome to Java Settlers of Catan!"
         if (0 == (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
             c.put(new SOCStatusMessage
                 (SOCStatusMessage.SV_OK, txt));
@@ -465,7 +470,7 @@ public class SOCServerMessageHandler
      * {@link SOCServer#removeConnection(Connection, boolean)}.
      *<P>
      * Bot tuning parameters are sent here to the bot, from
-     * {@link SOCDBHelper#retrieveRobotParams(String, boolean) SOCDBHelper.retrieveRobotParams(botName, true)}.
+     * {@link SOCServer#getRobotParameters(String)}.
      * See that method for default bot params.
      * See {@link SOCServer#authOrRejectClientRobot(Connection, String, String, String)}
      * for {@link SOCClientData} flags and fields set for the bot's connection
@@ -511,25 +516,7 @@ public class SOCServerMessageHandler
         //
         // send the current robot parameters
         //
-        SOCRobotParameters params = null;
-        try
-        {
-            params = SOCDBHelper.retrieveRobotParams(botName, true);
-                // if no DB in use, returns srv.ROBOT_PARAMS_SMARTER (uses SOCRobotDM.SMART_STRATEGY)
-                // or srv.ROBOT_PARAMS_DEFAULT (SOCRobotDM.FAST_STRATEGY).
-            if ((params != null) && (params != SOCServer.ROBOT_PARAMS_SMARTER)
-                && (params != SOCServer.ROBOT_PARAMS_DEFAULT) && D.ebugIsEnabled())
-                D.ebugPrintln("*** Robot Parameters for " + botName + " = " + params);
-        }
-        catch (SQLException sqle)
-        {
-            System.err.println("Error retrieving robot parameters from db: Using defaults.");
-        }
-
-        if (params == null)
-            params = SOCServer.ROBOT_PARAMS_DEFAULT;  // fallback in case of SQLException
-
-        c.put(new SOCUpdateRobotParams(params));
+        c.put(new SOCUpdateRobotParams(srv.getRobotParameters(botName)));
     }
 
 
@@ -643,6 +630,10 @@ public class SOCServerMessageHandler
      * this client's version, is sent as {@link SOCGameOption#OTYPE_UNKNOWN}.
      * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
      * options with long names won't be sent.
+     *<P>
+     * If {@link SOCClientData#hasLimitedFeats c.hasLimitedFeats} and any known options require client features
+     * not supported by client {@code c}, they'll be sent to the client as {@link SOCGameOption#OTYPE_UNKNOWN}
+     * even if not asked for. Also sends info for any game options whose value range is limited by client features.
      *
      * @param c  the connection
      * @param mes  the message
@@ -655,8 +646,10 @@ public class SOCServerMessageHandler
 
         final int cliVers = c.getVersion();
         final SOCClientData scd = (SOCClientData) c.getAppData();
+        final boolean hasLimitedFeats = scd.hasLimitedFeats;
+
         boolean alreadyTrimmedEnums = false;
-        final List<String> okeys = mes.optionKeys;
+        List<String> okeys = mes.optionKeys;
         List<SOCGameOption> opts = null;  // opts to send as SOCGameOptionInfo
         final Map<String, SOCGameOption> optsToLocal;  // opts to send in a SOCLocalizedStrings instead
 
@@ -672,7 +665,7 @@ public class SOCServerMessageHandler
         {
             // Gather all game opts we have that we could possibly localize;
             // this list will be narrowed down soon
-            optsToLocal = new HashMap<String, SOCGameOption>();
+            optsToLocal = new HashMap<>();
             for (final SOCGameOption opt : SOCGameOption.optionsForVersion(cliVers, null))
                 optsToLocal.put(opt.key, opt);
         } else {
@@ -703,6 +696,53 @@ public class SOCServerMessageHandler
             }
         }
 
+        // If any known opts which require client features limited/not supported by this client,
+        // add them to opts or okeys so unknowns will be sent as OTYPE_UNKNOWN
+
+        final Map<String, SOCGameOption> unsupportedOpts =
+            (hasLimitedFeats) ? SOCGameOption.optionsNotSupported(scd.feats) : null;
+        if (unsupportedOpts != null)
+        {
+            if (opts != null)
+                opts.addAll(unsupportedOpts.values());
+            else if (okeys != null)
+                okeys.addAll(unsupportedOpts.keySet());
+            else
+                okeys = new ArrayList<>(unsupportedOpts.keySet());
+        }
+
+        final Map<String, SOCGameOption> trimmedOpts =
+            (hasLimitedFeats) ? SOCGameOption.optionsTrimmedForSupport(scd.feats) : null;
+        if (trimmedOpts != null)
+        {
+            if (opts != null)
+            {
+                for (SOCGameOption tr : trimmedOpts.values())
+                {
+                    // replace if key already in opts, otherwise add
+                    final String okey = tr.key;
+                    boolean match = false;
+                    for (int i = 0; i < opts.size(); ++i)
+                    {
+                        if (opts.get(i).key.equals(okey))
+                        {
+                            opts.set(i, tr);
+                            match = true;
+                            break;
+                        }
+                    }
+                    if (! match)
+                        opts.add(tr);
+                }
+            } else if (okeys != null) {
+                for (String okey : trimmedOpts.keySet())
+                    if (! okeys.contains(okey))
+                        okeys.add(okey);
+            } else {
+                okeys = new ArrayList<>(trimmedOpts.keySet());
+            }
+        }
+
         // Iterate through requested okeys or calculated opts list.
         // Send requested options' info, and remove them from optsToLocal to
         // avoid sending separate message with those opts' localization info:
@@ -718,21 +758,9 @@ public class SOCServerMessageHandler
                 if (opts != null)
                 {
                     opt = opts.get(i);
-                    if (opt.minVersion > cliVers)
-                    {
-                        opt = new SOCGameOption(opt.key);  // OTYPE_UNKNOWN
-                    }
-                    else if (wantsLocalDescs)
-                    {
-                        try {
-                            localDesc = c.getLocalized("gameopt." + opt.key);
-                        } catch (MissingResourceException e) {}
-                    }
-                } else {
-                    final String okey = okeys.get(i);
-                    opt = SOCGameOption.getOption(okey, false);
-
-                    if ((opt == null) || (opt.minVersion > cliVers))  // Don't use dynamic opt.getMinVersion(Map) here
+                    final String okey = opt.key;
+                    if ((opt.minVersion > cliVers)
+                        || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
                     {
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
                     }
@@ -741,6 +769,25 @@ public class SOCServerMessageHandler
                         try {
                             localDesc = c.getLocalized("gameopt." + okey);
                         } catch (MissingResourceException e) {}
+                    }
+                } else {
+                    final String okey = okeys.get(i);
+                    opt = SOCGameOption.getOption(okey, false);
+
+                    if ((opt == null) || (opt.minVersion > cliVers)  // Don't use dynamic opt.getMinVersion(Map) here
+                        || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
+                    {
+                        opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                    }
+                    else 
+                    {
+                        if ((trimmedOpts != null) && trimmedOpts.containsKey(okey))
+                            opt = trimmedOpts.get(okey);
+
+                        if (wantsLocalDescs)
+                            try {
+                                localDesc = c.getLocalized("gameopt." + okey);
+                            } catch (MissingResourceException e) {}
                     }
                 }
 
@@ -770,7 +817,7 @@ public class SOCServerMessageHandler
         // send any opts which are localized but otherwise unchanged between server's/client's version
         if (optsToLocal != null)  // empty is OK
         {
-            List<String> strs = new ArrayList<String>(2 * optsToLocal.size());
+            List<String> strs = new ArrayList<>(2 * optsToLocal.size());
             for (final SOCGameOption opt : optsToLocal.values())
             {
                 try {
@@ -925,6 +972,10 @@ public class SOCServerMessageHandler
 
         player.setFaceId(id);
         srv.messageToGame(gaName, new SOCChangeFace(gaName, player.getPlayerNumber(), id));
+
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        if ((scd != null) && ! scd.isRobot)
+            scd.faceId = id;
     }
 
     /**
@@ -957,7 +1008,7 @@ public class SOCServerMessageHandler
                 srv.messageToGameForVersions
                     (ga, 2000, Integer.MAX_VALUE, mes, true);
                 srv.messageToGameForVersions
-                    (ga, -1, 1999, new SOCSetSeatLock(gaName, pn, SOCGame.SeatLockState.LOCKED), true);
+                    (ga, -1, 1999, new SOCSetSeatLock(gaName, pn, SOCGame.SeatLockState.UNLOCKED), true);
             }
         }
         catch (IllegalStateException e) {
@@ -1036,9 +1087,15 @@ public class SOCServerMessageHandler
      * <LI> *WHO*
      *</UL>
      * These commands are processed in this method.
+     *<P>
+     * Some admin/debug commands like {@code *BCAST*} and {@code *DBSETTINGS*} are processed here,
+     * by calling {@link #processAdminCommand(Connection, SOCGame, String, String)}.
+     *<P>
      * Others can be run only by certain users or when certain server flags are set.
      * Those are processed in {@link SOCServer#processDebugCommand(Connection, SOCGame, String, String)}.
      *
+     * @param c  User sending the text message which may be a debug/admin command
+     * @param gameTextMsgMes  Text message/command to process
      * @since 1.1.07
      */
     void handleGAMETEXTMSG(Connection c, SOCGameTextMsg gameTextMsgMes)
@@ -1060,11 +1117,15 @@ public class SOCServerMessageHandler
             // 1.1.07: all practice games are debug mode, for ease of debugging;
             //         not much use for a chat window in a practice game anyway.
 
-        final boolean canChat = userIsDebug
-            || (null != ga.getPlayer(plName))
-            || (gameList.isMember(c, gaName) && (ga.getGameState() < SOCGame.ROLL_OR_CARD));
+        boolean canChat = userIsDebug || (null != ga.getPlayer(plName)) || srv.isUserDBUserAdmin(plName);
+        if ((! canChat) && gameList.isMember(c, gaName))
+        {
             // To avoid disruptions by game observers, only players can chat after initial placement.
             // To help form the game, non-seated members can also participate in the chat until then.
+            final int gstate = ga.getGameState();
+            canChat =
+                (gstate < SOCGame.ROLL_OR_CARD) || (gstate == SOCGame.LOADING) || (gstate == SOCGame.LOADING_RESUMING);
+        }
 
         //currentGameEventRecord.setSnapshot(ga);
 
@@ -1148,12 +1209,10 @@ public class SOCServerMessageHandler
             {
                 processDebugCommand_who(c, ga, cmdText);
             }
-            else if (cmdTxtUC.startsWith("*DBSETTINGS*"))
+            else if (userIsDebug || srv.isUserDBUserAdmin(plName))
             {
-                processDebugCommand_dbSettings(c, ga);
-            }
-            else
-            {
+                matchedHere = processAdminCommand(c, ga, cmdText, cmdTxtUC);
+            } else {
                 matchedHere = false;
             }
 
@@ -1181,8 +1240,7 @@ public class SOCServerMessageHandler
             for (int i = 0; i < SOCServer.GENERAL_COMMANDS_HELP.length; ++i)
                 srv.messageToPlayer(c, gaName, SOCServer.GENERAL_COMMANDS_HELP[i]);
 
-            if ((userIsDebug && ! (c instanceof StringConnection))  // no user admins in practice games
-                || srv.isUserDBUserAdmin(plName))
+            if (userIsDebug || srv.isUserDBUserAdmin(plName))
             {
                 srv.messageToPlayer(c, gaName, SOCServer.ADMIN_COMMANDS_HEADING);
                 for (int i = 0; i < SOCServer.ADMIN_USER_COMMANDS_HELP.length; ++i)
@@ -1226,23 +1284,112 @@ public class SOCServerMessageHandler
     }
 
     /**
-     * Process the {@code *DBSETTINGS*} privileged admin command:
-     * Checks {@link SOCServer#isUserDBUserAdmin(String)} and if OK and {@link SOCDBHelper#isInitialized()},
-     * sends the client a formatted list of server DB settings from {@link SOCDBHelper#getSettingsFormatted()}.
+     * Recognize and process admin commands, runnable if
+     * {@link SOCServer#isUserDBUserAdmin(String)} or is debug user.
+     * Handles the commands listed in {@link SOCServer#ADMIN_USER_COMMANDS_HELP}.
+     *<P>
+     * <B>Security:</B> Assumes caller has already checked authorization; does not do so here.
+     *
      * @param c  Client sending the admin command
-     * @param gaName  Game in which to reply
+     * @param ga  Game in which to reply
+     * @param cmdText  Command text
+     * @param cmdTextUC  For convenience, {@link String#toUpperCase() cmdText.toUpperCase(Locale.US)} from caller
+     * @return true if {@code cmdText} is an admin command and has been handled here, false otherwise
+     * @since 2.3.00
+     */
+    boolean processAdminCommand
+        (final Connection c, final SOCGame ga, final String cmdText, final String cmdTextUC)
+    {
+        final String gaName = ga.getName();
+        boolean matchedHere = true;
+
+        if (cmdTextUC.startsWith("*GC*"))
+        {
+            Runtime rt = Runtime.getRuntime();
+            rt.gc();
+            srv.messageToGame(gaName, "> GARBAGE COLLECTING DONE");
+            srv.messageToGame
+                (gaName, "> Free Memory: "
+                 + getSettingsFormatted_freeMemory(rt.freeMemory(), rt.totalMemory()));  // as MB, % total
+        }
+        else if (cmdTextUC.startsWith("*BCAST* "))
+        {
+            srv.broadcast(new SOCBCastTextMsg(c.getData() + ": " + cmdText.substring(8).trim()));
+        }
+        else if (cmdTextUC.startsWith("*BOTLIST*"))
+        {
+            StringBuilder sb = new StringBuilder("Currently connected bots: ");
+            if (! srv.getConnectedRobotNames(sb))
+                sb.append("(None)");
+            srv.messageToPlayer(c, gaName, sb.toString());
+        }
+        else if (cmdTextUC.startsWith("*RESETBOT* "))
+        {
+            String botName = cmdText.substring(11).trim();
+            srv.messageToGame(gaName, "> Admin: RESETBOT " + botName);
+
+            final Connection robotConn = srv.getRobotConnection(botName);
+            if (robotConn != null)
+            {
+                srv.messageToGame(gaName, "> Admin: SENDING RESET COMMAND TO " + botName);
+                robotConn.put(new SOCAdminReset());
+            } else {
+                srv.messageToPlayer(c, gaName, "Bot not found to reset: " + botName);
+            }
+        }
+        else if (cmdTextUC.startsWith("*KILLBOT* "))
+        {
+            final String botName = cmdText.substring(10).trim();
+            srv.messageToGame(gaName, "> Admin: KILLBOT " + botName);
+
+            final Connection robotConn = srv.getRobotConnection(botName);
+            if (robotConn != null)
+            {
+                srv.messageToGame(gaName, "> Admin: DISCONNECTING " + botName);
+                srv.removeConnection(robotConn, true);
+            } else {
+                srv.messageToPlayer(c, gaName, "Bot not found to disconnect: " + botName);
+            }
+        }
+        else if (cmdTextUC.startsWith("*LOADGAME*"))
+        {
+            processDebugCommand_loadGame(c, gaName, cmdText.substring(10).trim());
+        }
+        else if (cmdTextUC.startsWith("*RESUMEGAME*"))
+        {
+            processDebugCommand_resumeGame(c, ga, cmdText.substring(12).trim());
+        }
+        else if (cmdTextUC.startsWith("*SAVEGAME*"))
+        {
+            processDebugCommand_saveGame(c, ga, cmdText.substring(10).trim());
+        }
+        else if (cmdTextUC.startsWith("*DBSETTINGS*"))
+        {
+            processDebugCommand_dbSettings(c, ga);
+        }
+        else
+        {
+            matchedHere = false;
+        }
+
+        return matchedHere;
+    }
+
+    /**
+     * Process the {@code *DBSETTINGS*} privileged admin command:
+     * If {@link SOCDBHelper#isInitialized()},
+     * sends the client a formatted list of server DB settings
+     * from {@link SOCDBHelper#getSettingsFormatted(SOCServer)}.
+     *<P>
+     * Assumes caller has verified the client is an admin; doesn't check {@link SOCServer#isUserDBUserAdmin(String)}.
+     *
+     * @param c  Client sending the admin command
+     * @param ga  Game in which to reply
      * @since 1.2.00
      * @see #processDebugCommand_serverStats(Connection, SOCGame)
      */
     private void processDebugCommand_dbSettings(final Connection c, final SOCGame ga)
     {
-        final String msgUser = c.getData();
-        if (! (srv.isUserDBUserAdmin(msgUser)
-               || (srv.isDebugUserEnabled() && msgUser.equals("debug"))))
-        {
-            return;
-        }
-
         final String gaName = ga.getName();
 
         if (! SOCDBHelper.isInitialized())
@@ -1252,7 +1399,7 @@ public class SOCServerMessageHandler
         }
 
         srv.messageToPlayer(c, gaName, "Database settings:");
-        Iterator<String> it = SOCDBHelper.getSettingsFormatted().iterator();
+        Iterator<String> it = SOCDBHelper.getSettingsFormatted(srv).iterator();
         while (it.hasNext())
             srv.messageToPlayer(c, gaName, "> " + it.next() + ": " + it.next());
     }
@@ -1334,14 +1481,22 @@ public class SOCServerMessageHandler
         }
 
         // time
-        Date gstart = gameData.getStartTime();
-        if (gstart != null)
-        {
-            long gameSeconds = ((new Date().getTime() - gstart.getTime())+500L) / 1000L;
-            long gameMinutes = (gameSeconds+29L)/60L;
-            srv.messageToPlayerKeyed(c, gaName, "stats.game.startedago", gameMinutes);  // "This game started 5 minutes ago."
-            // Ignore possible "1 minutes"; that game is too short to worry about.
-        }
+        int gameSeconds = gameData.getDurationSeconds();
+        int gameMinutes = (gameSeconds + 29) / 60;
+        gameSeconds = gameSeconds % 60;
+        if (gameData.getGameState() < SOCGame.OVER)
+            srv.messageToPlayerKeyed
+                (c, gaName, "stats.game.startedago", gameMinutes);
+                // "This game started 5 minutes ago."
+        else if (gameSeconds == 0)
+            srv.messageToPlayerKeyed
+                (c, gaName, "stats.game.was.minutes", gameMinutes);
+                // "This game took # minutes."
+        else
+            srv.messageToPlayerKeyed
+                (c, gaName, "stats.game.was.minutessec", gameMinutes, gameSeconds);
+                // "This game took # minutes # seconds." [or 1 second.]
+        // Ignore possible "1 minutes"; that game is too short to worry about.
 
         if (! gameData.isPractice)   // practice games don't expire
         {
@@ -1351,6 +1506,109 @@ public class SOCServerMessageHandler
                 ((isCheckTime) ? "stats.game.willexpire.urgent" : "stats.game.willexpire"),
                 Integer.valueOf((int) ((gameData.getExpiration() - System.currentTimeMillis()) / 60000)));
         }
+    }
+
+    /**
+     * Convenience method to add a pair of strings (a statistic's name and value)
+     * to this list of server statistics.
+     * @param li  List to add to; not null
+     * @param name  Stat name to add
+     * @param val  Stat value
+     * @see #listAddStat(List, String, int)
+     * @see #getSettingsFormatted(SOCStringManager)
+     * @since 2.3.00
+     */
+    private void listAddStat(final List<String> li, final String name, final String val)
+    {
+        li.add(name);
+        li.add(val);
+    }
+
+    /**
+     * Convenience method to add a pair of strings (a statistic's name and int value as string)
+     * to this list of server statistics.
+     * @param li  List to add to; not null
+     * @param name  Stat name to add
+     * @param val  Stat value
+     * @see #listAddStat(List, String, String)
+     * @see #getSettingsFormatted(SOCStringManager)
+     * @since 2.3.00
+     */
+    private void listAddStat(final List<String> li, final String name, final int val)
+    {
+        li.add(name);
+        li.add(Integer.toString(val));
+    }
+
+    /**
+     * Build a list of server stats for {@link #processDebugCommand_serverStats(Connection, SOCGame)}.
+     * @param strings  String manager for localization if this is for a client connection,
+     *     or {@code null} to use {@link SOCStringManager#getFallbackServerManagerForClient()}
+     * @return Formatted list of server stats strings.
+     *     Always an even number of items, a name and then a value for each setting.
+     *     A few stats are multi-line lists; each continuation lines is a pair whose "name" is {@code "  "}.
+     * @see SOCDBHelper#getSettingsFormatted(SOCServer)
+     * @since 2.3.00
+     */
+    final List<String> getSettingsFormatted(SOCStringManager strings)
+    {
+        if (strings == null)
+            strings = SOCStringManager.getFallbackServerManagerForClient();
+        // TODO i18n: localize field names
+
+        final Runtime rt = Runtime.getRuntime();
+
+        ArrayList<String> li = new ArrayList<>();
+
+        listAddStat(li, "Uptime", I18n.durationToDaysHoursMinutesSeconds
+            (System.currentTimeMillis() - srv.startTime, strings));
+        listAddStat(li, "Connections since startup", srv.getRunConnectionCount());
+        listAddStat(li, "Current named connections", srv.getNamedConnectionCount());
+        listAddStat(li, "Current connections including unnamed", srv.getCurrentConnectionCount());
+        listAddStat(li, "Total Users", srv.numberOfUsers);
+        listAddStat(li, "Games started", srv.numberOfGamesStarted);
+        listAddStat(li, "Games finished", srv.numberOfGamesFinished);
+        listAddStat(li, "Games finished which had bots", srv.numberOfGamesFinishedWithBots);
+        listAddStat(li, "Number of bots in finished games", srv.numberOfBotsInFinishedGames);
+        final long totalMem = rt.totalMemory(), freeMem = rt.freeMemory();
+        listAddStat
+            (li, "Total Memory", totalMem + " (" + I18n.bytesToHumanUnits(totalMem) + ')');
+        listAddStat
+            (li, "Free Memory", getSettingsFormatted_freeMemory(freeMem, totalMem));  // as MB, % total
+        listAddStat
+            (li, "Version", Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+
+        if (! srv.clientPastVersionStats.isEmpty())
+        {
+            if (srv.clientPastVersionStats.size() == 1)
+            {
+                listAddStat
+                    (li, "Client versions since startup",
+                     "all " + Version.version(srv.clientPastVersionStats.keySet().iterator().next()));
+            } else {
+                // TODO sort it
+                listAddStat(li, "Client versions since startup", "(includes bots)");
+                for (Integer v : srv.clientPastVersionStats.keySet())
+                    listAddStat
+                        (li, "  ", Version.version(v) + ": " + srv.clientPastVersionStats.get(v));
+            }
+        }
+
+        return li;
+    }
+
+    /**
+     * For display, format the runtime Free Memory stat for {@code *STATS*} and {@code *GC*},
+     * incuding MB or GB and % of total: {@code "92384376 (88.1 MB: 71%)"}
+     * @param freeMem  Free memory in bytes, from {@link Runtime#freeMemory()}
+     * @param totalMem  Total memory in bytes, from {@link Runtime#totalMemory()}
+     * @return Formatted display string for free memory
+     * @since 2.3.00
+     */
+    private String getSettingsFormatted_freeMemory(final long freeMem, final long totalMem)
+    {
+        return freeMem + " (" + I18n.bytesToHumanUnits(freeMem) + ": "
+            + ((100 * freeMem) / totalMem) + "%)";
     }
 
     /**
@@ -1368,49 +1626,15 @@ public class SOCServerMessageHandler
      */
     final void processDebugCommand_serverStats(final Connection c, final SOCGame ga)
     {
-        final long diff = System.currentTimeMillis() - srv.startTime;
-        final long hours = diff / (60 * 60 * 1000),
-            minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000),
-            seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
-        Runtime rt = Runtime.getRuntime();
         final String gaName = ga.getName();
 
-        if (hours < 24)
-        {
-            srv.messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
-        } else {
-            final int days = (int) (hours / 24),
-                      hr   = (int) (hours - (days * 24L));
-            srv.messageToPlayer(c, gaName, "> Uptime: " + days + "d " + hr + ":" + minutes + ":" + seconds);
-        }
-        srv.messageToPlayer(c, gaName, "> Connections since startup: " + srv.getRunConnectionCount());
-        srv.messageToPlayer(c, gaName, "> Current named connections: " + srv.getNamedConnectionCount());
-        srv.messageToPlayer(c, gaName, "> Current connections including unnamed: " + srv.getCurrentConnectionCount());
-        srv.messageToPlayer(c, gaName, "> Total Users: " + srv.numberOfUsers);
-        srv.messageToPlayer(c, gaName, "> Games started: " + srv.numberOfGamesStarted);
-        srv.messageToPlayer(c, gaName, "> Games finished: " + srv.numberOfGamesFinished);
-        srv.messageToPlayer(c, gaName, "> Total Memory: " + rt.totalMemory());
-        srv.messageToPlayer(c, gaName, "> Free Memory: " + rt.freeMemory());
-        final int vers = Version.versionNumber();
-        srv.messageToPlayer(c, gaName, "> Version: "
-            + vers + " (" + Version.version() + ") build " + Version.buildnum());
-
-        if (! srv.clientPastVersionStats.isEmpty())
-        {
-            if (srv.clientPastVersionStats.size() == 1)
-            {
-                srv.messageToPlayer(c, gaName, "> Client versions since startup: all "
-                        + Version.version(srv.clientPastVersionStats.keySet().iterator().next()));
-            } else {
-                // TODO sort it
-                srv.messageToPlayer(c, gaName, "> Client versions since startup: (includes bots)");
-                for (Integer v : srv.clientPastVersionStats.keySet())
-                    srv.messageToPlayer(c, gaName, ">   " + Version.version(v) + ": " + srv.clientPastVersionStats.get(v));
-            }
-        }
+        Iterator<String> it = getSettingsFormatted(c.getI18NStringManager()).iterator();
+        while (it.hasNext())
+            srv.messageToPlayer(c, gaName, "> " + it.next() + ": " + it.next());
 
         // show range of current game's member client versions if not server version (added to *STATS* in 1.1.19)
-        if ((ga.clientVersionLowest != vers) || (ga.clientVersionLowest != ga.clientVersionHighest))
+        if ((ga.clientVersionLowest != Version.versionNumber())
+            || (ga.clientVersionLowest != ga.clientVersionHighest))
             srv.messageToPlayer(c, gaName, "> This game's client versions: "
                 + Version.version(ga.clientVersionLowest) + " - " + Version.version(ga.clientVersionHighest));
 
@@ -1419,24 +1643,27 @@ public class SOCServerMessageHandler
     }
 
     /**
-     * Process the {@code *LOADGAME*} debug command: Load the named game and have this client join it.
-     * @param c  Client sending the debug command
+     * Process the {@code *LOADGAME*} debug/admin command: Load the named game and have this client join it.
+     * @param c  Client sending the command
      * @param connGaName  Client's current game in which the command was sent, for sending response messages
-     * @param argsStr  Args for debug command (trimmed) or ""
+     * @param argsStr  Args for command (trimmed), or ""
      * @since 2.3.00
      */
     /* package */ void processDebugCommand_loadGame(final Connection c, final String connGaName, final String argsStr)
     {
         if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
         {
-            srv.messageToPlayer(c, connGaName, /*I*/"Usage: *LOADGAME* gamename"/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, connGaName, "admin.loadgame.resp.usage");
+                // "Usage: *LOADGAME* gamename"
             return;
         }
 
         if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(argsStr).matches())
         {
-            srv.messageToPlayer
-                (c, connGaName, /*I*/"gamename can only include letters, numbers, dashes, underscores."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, connGaName, "admin.loadsavegame.resp.gamename.chars");
+                // "gamename can only include letters, numbers, dashes, underscores."
             return;
         }
 
@@ -1446,87 +1673,157 @@ public class SOCServerMessageHandler
         if (SavedGameModel.glas == null)
             SavedGameModel.glas = srv.gameList;
 
-        final SavedGameModel sgm;
+        SavedGameModel sgm = null;
+        String errText = null;
         try
         {
             sgm = GameLoaderJSON.loadGame
-                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION));
-        } catch(Throwable th) {
-            srv.messageToPlayer
-                (c, connGaName, /*I*/"Problem loading " + argsStr + ": " + th /*18N*/);
+                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION), srv);
+        } catch (SOCGameOptionVersionException e) {
+            errText = c.getLocalized("admin.loadgame.err.too_new.vers", argsStr, e.gameOptsVersion);
+                // "Problem loading {0}: Too new: gameMinVersion is {1}"
+        } catch (NoSuchElementException e) {
+            errText = c.getLocalized("admin.loadgame.err.too_new", argsStr, e.getMessage());
+                // "Problem loading {0}: Too new: {1}"
+        } catch (SavedGameModel.UnsupportedSGMOperationException e) {
+            String hasWhat = e.getMessage();
+            try
+            {
+                // "admin.savegame.cannot_save.scen" -> "a scenario", etc
+                hasWhat = c.getLocalized(hasWhat, e.param1, e.param2);
+            } catch (MissingResourceException mre) {}
+            errText = c.getLocalized("admin.loadgame.err.too_new", argsStr, hasWhat);
+        } catch (IOException|StringIndexOutOfBoundsException e) {
+            errText = c.getLocalized("admin.loadgame.err.problem_loading", argsStr, e.getMessage());
+                // "Problem loading {0}: {1}"
+        } catch (IllegalArgumentException e) {
+            errText = c.getLocalized("admin.loadgame.err.cant_create", argsStr, e.getCause());
+                // "Problem loading {0}: Can't create game: {1}"
+        } catch (Throwable th) {
+            errText = c.getLocalized("admin.loadgame.err.problem_loading", argsStr, th);
+                // "Problem loading {0}: {1}"
+            if ("debug".equals(c.getData()))
+            {
+                soc.debug.D.ebugPrintStackTrace(th, errText);
+                errText += c.getLocalized("admin.loadgame.err.append__see_console");
+                    // ": See server console"
+            }
+        }
+        if (errText != null)
+        {
+            srv.messageToPlayer(c, connGaName, errText);
             return;
         }
 
         final SOCGame ga = sgm.getGame();
 
-        // validate name and opts, add to gameList, announce "new" game, have client join;
-        // sends error text if validation fails
+        // Validate name and opts, add to gameList, announce "new" game, have client join;
+        // sends error text if validation fails. Might rename loaded game if its name is already taken
+        // by an existing game.
+        // If debug/admin user isn't a player, will send each sitDown with isRobot=true
+        // to let them sit down at any player's seat.
         if (! srv.createOrJoinGame
                (c, c.getVersion(), connGaName, ga.getGameOptions(), ga, SOCServer.AUTH_OR_REJECT__OK))
         {
             return;
         }
 
-        // Must tell debug player to sit down for debug user if they're a player here,
+        // Must tell debug/admin player to sit down at this point if they're a player,
         // since PI will show as seated if nickname matches player name
+        int clientPN = -1;
         for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
         {
             final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
             if (pi.isSeatVacant || ! pi.name.equals(c.getData()))
                 continue;
 
-            srv.sitDown(ga, c, pn, false, false);
+            clientPN = pn;
+            srv.sitDown(ga, c, clientPN, false, false);
             break;
         }
 
-        // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
         final String gaName = ga.getName();
-        final GameHandler gh = gameList.getGameTypeHandler(gaName);
-        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+
+        boolean foundNoRobots = false;
+        if (sgm.gameState < SOCGame.OVER)
         {
-            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
-            if (pi.isSeatVacant || ! pi.isRobot)
-                continue;
+            // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
 
-            // TODO once we have bot details/constraints (fast or smart, 3rd-party bot class),
-            //   request those when calling findRobotAskJoinGame
-            //   instead of marking their seat as vacant
+            final GameHandler gh = gameList.getGameTypeHandler(gaName);
+            for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+            {
+                final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+                if (pi.isSeatVacant || ! pi.isRobot)
+                    continue;
 
-            if (! ga.isSeatVacant(pn))
-                ga.removePlayer(ga.getPlayer(pn).getName(), true);
-            boolean foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
-            if (foundNoRobots)
-                break;
-            // TODO chk retval before break; send error msg to debug user in loaded game?
+                // TODO once we have bot details/constraints (fast or smart, 3rd-party bot class),
+                //   request those when calling findRobotAskJoinGame
+                //   instead of marking their seat as vacant
+
+                if (! ga.isSeatVacant(pn))
+                    ga.removePlayer(ga.getPlayer(pn).getName(), true);
+                foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
+                if (foundNoRobots)
+                    break;
+            }
         }
 
-        // Send Resume reminder prompt after delay, or announce winner if over,
+        // If all OK: Send Resume reminder prompt after delay, or announce winner if over,
         //     to appear after bots have joined
-        //     TODO if any problems, don't send this prompt
+        final SavedGameModel sgmf = sgm;  // satify compiler
+        final boolean noBots = foundNoRobots;
         srv.miscTaskTimer.schedule(new TimerTask()
         {
             public void run()
             {
-                if (sgm.gameState < SOCGame.OVER)
+                if (! gaName.equals(sgmf.gameName))
+                    srv.messageToPlayerKeyed
+                        (c, gaName, "admin.loadgame.ok.game_renamed", sgmf.gameName);
+                        // "Game was renamed: Original name {0} is already used."
+
+                if (sgmf.warnDevCardDeckHasUnknownType)
+                    srv.messageToGameKeyed
+                        (ga, true, "admin.resumegame.warn.dev_card_deck_contains_unknown_card_type");
+                        // ">>> Warning: Dev card deck contains an unknown card type"
+                if (sgmf.warnHasHumanPlayerWithBotName)
+                    srv.messageToGameKeyed
+                        (ga, true, "admin.resumegame.warn.human_with_bot_name");
+                        // ">>> Warning: At least 1 player is named like a robot, but isRobot flag is false. Can cause problems when resuming game."
+
+                if (noBots)
                 {
-                    srv.messageToGameUrgent(gaName, /*I*/"To continue playing, type *RESUMEGAME*"/*18N*/ );
+                    srv.messageToPlayerKeyed
+                        (c, gaName, "admin.resumegame.err.not_enough_robots");
+                        // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
+                } else if (sgmf.gameState < SOCGame.OVER) {
+                    srv.messageToGameKeyed
+                        (ga, true, "admin.loadgame.ok.to_continue_resumegame");
+                        // ">>> To continue playing, type *RESUMEGAME*"
                 } else {
-                    sgm.resumePlay(true);
+                    sgmf.resumePlay(true);
                     final GameHandler hand = gameList.getGameTypeHandler(gaName);
                     if (hand != null)
                         hand.sendGameState(ga);
                 }
             }
         }, 350 /* ms */ );
+
+        // In case game duration/expire time was extended before save and would now expire very soon,
+        // postpone expiration long enough to run at least 1 expiration check before warning
+        final long now = System.currentTimeMillis();
+        final long thresholdMin = SOCServer.GAME_TIME_EXPIRE_CHECK_MINUTES + SOCServer.GAME_TIME_EXPIRE_WARN_MINUTES;
+        if (thresholdMin >= (int) ((ga.getExpiration() - now) / (60 * 1000L)))
+            ga.setExpiration(now + (60 * 1000 * (1 + thresholdMin)));
     }
 
     /**
-     * Process the {@code *RESUMEGAME*} debug command: Resume the current game,
+     * Process the {@code *RESUMEGAME*} debug/admin command: Resume the current game,
      * which was recently loaded with {@code *LOADGAME*}.
-     * Must be in state {@link SOCGame#LOADING}.
-     * @param c  Client sending the debug command
+     * Must be in state {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}.
+     * @param c  Client sending the command, game owner if being called by server after last bot has sat down,
+     *     or null if owner not available
      * @param ga  Game in which the command was sent
-     * @param argsStr  Args for debug command (trimmed) or ""
+     * @param argsStr  Args for command (trimmed), or ""
      * @since 2.3.00
      */
     /* package */ void processDebugCommand_resumeGame(final Connection c, final SOCGame ga, final String argsStr)
@@ -1537,78 +1834,187 @@ public class SOCServerMessageHandler
         {
             // TODO once constraints are implemented: have an arg to override them
 
-            srv.messageToPlayer(c, gaName, /*I*/"Usage: *RESUMEGAME* with no arguments"/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.resumegame.resp.usage");
+                // "Usage: *RESUMEGAME* with no arguments"
             return;
         }
 
-        Object sgm = ga.savedGameModel;
-        if ((ga.getGameState() != SOCGame.LOADING) || (sgm == null))
+        SavedGameModel sgm = (SavedGameModel) ga.savedGameModel;
+        if (((ga.getGameState() != SOCGame.LOADING) && (ga.getGameState() != SOCGame.LOADING_RESUMING))
+            || (sgm == null))
         {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"This game is not waiting to be resumed."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.resumegame.resp.not_waiting");
+                // "This game is not waiting to be resumed."
             return;
         }
 
-        ((SavedGameModel) sgm).resumePlay(false);
-        final GameHandler hand = gameList.getGameTypeHandler(gaName);
-        if (hand != null)
-            hand.sendGameState(ga);
+        final boolean[] botsNeeded = sgm.findSeatsNeedingBots();
+        if (botsNeeded != null)
+        {
+            ga.setGameState(SOCGame.LOADING_RESUMING);
+            final GameHandler hand = gameList.getGameTypeHandler(gaName);
+            if (hand != null)
+                hand.sendGameState(ga);
 
-        // Would anything else change besides state? If so, should it return a list of bots that joined etc?
-        // Maybe nothing else would change, until constraints are done
+            boolean invitedBots = false;
+            IllegalStateException e = null;
+            try
+            {
+                invitedBots = srv.readyGameAskRobotsJoin(ga, botsNeeded, null, 0);
+                    // will also send game a text message like "Fetching a robot..."
+            } catch (IllegalStateException ex) {
+                e = ex;
+            }
 
-        srv.messageToGameUrgent(gaName, /*I*/"Resuming game play."/*18N*/);
+            if (! invitedBots)
+            {
+                // recover, so human players can try and fill those seats
+                ga.setGameState(SOCGame.LOADING);
+                if (hand != null)
+                    hand.sendGameState(ga);
+
+                if (e != null)
+                    srv.messageToPlayerKeyed
+                        (c, gaName,"start.robots.cannot.join.problem", e.getMessage());
+                        // "Sorry, robots cannot join this game: {0}"
+                else
+                    srv.messageToPlayerKeyed
+                        (c, gaName, "admin.resumegame.err.not_enough_robots");
+                        // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
+            }
+
+            return;
+        }
+
+        // if no human players, set game's isBotsOnly flag so it won't be destroyed
+        boolean isBotsOnly = true;
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            if (! (ga.isSeatVacant(pn) || ga.getPlayer(pn).isRobot()))
+            {
+                isBotsOnly = false;
+                break;
+            }
+        }
+        if (isBotsOnly)
+            ga.isBotsOnly = true;
+
+        try
+        {
+            sgm.resumePlay(false);
+            final GameHandler hand = gameList.getGameTypeHandler(gaName);
+            if (hand != null)
+                hand.sendGameState(ga);
+
+            srv.messageToGameKeyed
+                (ga, true, "admin.resumegame.ok.resuming");
+                // ">>> Resuming game play."
+        } catch (MissingResourceException e) {
+            srv.messageToGameKeyed
+                (ga, true, "admin.resumegame.err.not_enough_robots");
+                // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
+        }
     }
 
     /**
-     * Process the {@code *SAVEGAME*} debug command: Save the current game.
-     * @param c  Client sending the debug command
+     * Process the {@code *SAVEGAME*} debug/admin command: Save the current game.
+     * @param c  Client sending the command
      * @param ga  Game in which the command was sent
-     * @param argsStr  Args for debug command (trimmed) or ""
+     * @param argsStr  Args for command (trimmed), or ""
      * @since 2.3.00
      */
-    /* package */ void processDebugCommand_saveGame(final Connection c, final SOCGame ga, final String argsStr)
+    /* package */ void processDebugCommand_saveGame(final Connection c, final SOCGame ga, String argsStr)
     {
         final String gaName = ga.getName();
+        boolean askedForce = false;
+
+        // very basic flag parse, as a stopgap until something better is needed
+        if (argsStr.startsWith("-f "))
+        {
+            askedForce = true;
+            argsStr = argsStr.substring(3).trim();
+        } else {
+            int i = argsStr.indexOf(' ');
+            if ((i != -1) && (argsStr.substring(i + 1).trim().equals("-f")))
+            {
+                askedForce = true;
+                argsStr = argsStr.substring(0, i);
+            }
+        }
 
         if (argsStr.isEmpty() || argsStr.indexOf(' ') != -1)
         {
-            srv.messageToPlayer(c, gaName, /*I*/"Usage: *SAVEGAME* gamename"/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.resp.usage");
+                // "Usage: *SAVEGAME* [-f] gamename"
             return;
         }
 
         if (! processDebugCommand_loadSaveGame_checkDir("SAVEGAME", c, gaName))
             return;
 
-        if (ga.getGameState() < SOCGame.ROLL_OR_CARD)
+        final String fname = argsStr + GameSaverJSON.FILENAME_EXTENSION;
+
+        if (! askedForce)
+            try
+            {
+                File f = new File(srv.savegameDir, fname);
+                if (f.exists())
+                {
+                    srv.messageToPlayerKeyed
+                        (c, gaName, "admin.savegame.resp.file_exists");
+                        // "Game file already exists: Add -f flag to force, or use a different name"
+                    return;
+                }
+            } catch (SecurityException e) {}
+                // ignore until actual save; that code covers this & other situations
+
+        final int gstate = ga.getGameState();
+        if (gstate < SOCGame.ROLL_OR_CARD)
         {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Must finish initial placement before saving."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.resp.must_initial_placement");
+                // "Must finish initial placement before saving."
             return;
         }
-        else if (ga.getGameState() == SOCGame.LOADING)
+        else if ((gstate == SOCGame.LOADING) || (gstate == SOCGame.LOADING_RESUMING))
         {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Must resume loaded game before saving again."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.resp.must_resume");
+                // "Must resume loaded game before saving again."
             return;
         }
 
         if (! DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX.matcher(argsStr).matches())
         {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"gamename can only include letters, numbers, dashes, underscores."/*18N*/);
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.loadsavegame.resp.gamename.chars");
+                // "gamename can only include letters, numbers, dashes, underscores."
             return;
         }
 
         try
         {
-            final String fname = argsStr + GameSaverJSON.FILENAME_EXTENSION;
-            GameSaverJSON.saveGame(ga, srv.savegameDir, fname);
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Saved game to " + fname /*18N*/);
-        } catch(IllegalArgumentException|IOException e) {
-            srv.messageToPlayer
-                (c, gaName, /*I*/"Problem saving " + argsStr + ": " + e /*18N*/);
+            GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);
+
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.ok.saved_to", fname);
+                // "Saved game to {0}"
+        } catch (SavedGameModel.UnsupportedSGMOperationException e) {
+            String hasWhat = e.getMessage();
+            try
+            {
+                // "admin.savegame.cannot_save.scen" -> "a scenario", etc
+                hasWhat = c.getLocalized(hasWhat, e.param1, e.param2);
+            } catch (MissingResourceException mre) {}
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.err.cannot_save_has", hasWhat);
+                // "Cannot save this game, because it has {0}"
+        } catch (IllegalArgumentException|IllegalStateException|IOException e) {
+            srv.messageToPlayerKeyed
+                (c, gaName, "admin.savegame.err.problem_saving", e); // "Problem saving game: {0}"
         }
     }
 
@@ -1628,14 +2034,19 @@ public class SOCServerMessageHandler
     {
         final File dir = srv.savegameDir;
 
-        String errMsgKey = null;  // i18n message key (TODO)
-        Object errMsgObj, errMsgO2 = null;
+        String errMsgKey = null;  // i18n message key
+        Object errMsgObj, errMsgO1 = null;
 
         if (srv.savegameInitFailed)
         {
-            errMsgKey = /*I*/cmdName + " is disabled: Initialization failed. See startup messages on server console."/*18N*/;
+            errMsgKey = "admin.loadsavegame.resp.disabled_init";
+                // "{0} is disabled: Initialization failed. Check startup messages on server console."
+            errMsgObj = cmdName;
         } else if (dir == null) {
-            errMsgKey = /*I*/cmdName + " is disabled: Must set " + SOCServer.PROP_JSETTLERS_SAVEGAME_DIR + " property"/*18N*/;
+            errMsgKey = "admin.loadsavegame.resp.disabled_prop";
+                // "{0} is disabled: Must set {1} property"
+            errMsgObj = cmdName;
+            errMsgO1 = SOCServer.PROP_JSETTLERS_SAVEGAME_DIR;
         } else {
             errMsgObj = dir.getPath();
 
@@ -1643,20 +2054,22 @@ public class SOCServerMessageHandler
             {
                 if (! dir.exists())
                 {
-                    errMsgKey = /*I*/"savegame.dir not found: " + errMsgObj/*18N*/;
+                    errMsgKey = "admin.loadsavegame.err.dir_not_found";
+                        // "savegame.dir not found: {0}"
                 } else if (! dir.isDirectory()) {
-                    errMsgKey = /*I*/"savegame.dir file exists but isn't a directory: " + errMsgObj/*18N*/;
+                    errMsgKey = "admin.loadsavegame.err.dir_not_dir";
+                        // "savegame.dir file exists but isn't a directory: {0}"
                 }
             } catch (SecurityException e) {
-                errMsgO2 = e;
-                errMsgKey = /*I*/"Warning: Can't access savegame.dir " + errMsgObj + ": " + e /*18N*/;
+                errMsgKey = "admin.loadsavegame.err.dir_no_access";
+                    // "Warning: Can't access savegame.dir {0}: {1}"
+                errMsgO1 = e;
             }
         }
 
         if (errMsgKey != null)
         {
-            // TODO i18n
-            srv.messageToPlayer(c, connGaName, errMsgKey);
+            srv.messageToPlayerKeyed(c, connGaName, errMsgKey, errMsgObj, errMsgO1);
             return false;
         }
 
@@ -1693,9 +2106,10 @@ public class SOCServerMessageHandler
                 // Check if using user admins; if not, if using debug user
 
                 final String uname = c.getData();
-                boolean isAdmin = srv.isUserDBUserAdmin(uname);
-                if (! isAdmin)
-                    isAdmin = (srv.isDebugUserEnabled() && uname.equals("debug"));
+                final boolean isAdmin =
+                    (c instanceof StringConnection)  // practice game
+                    || srv.isUserDBUserAdmin(uname)
+                    || (srv.isDebugUserEnabled() && uname.equals("debug"));
                 if (! isAdmin)
                 {
                     srv.messageToPlayerKeyed(c, gaName, "reply.must_be_admin.view");
@@ -1888,7 +2302,7 @@ public class SOCServerMessageHandler
         /**
          * Tell the client that everything is good to go
          */
-        final String txt = c.getLocalized("netmsg.status.welcome");  // "Welcome to Java Settlers of Catan!"
+        final String txt = srv.getClientWelcomeMessage(c);  // "Welcome to Java Settlers of Catan!"
         if (! mustSetUsername)
         {
             if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))
@@ -2137,7 +2551,7 @@ public class SOCServerMessageHandler
     private void handleLEAVEGAME_maybeGameReset_oldRobot(final String gaName)
     {
         SOCGame cg = gameList.getGameData(gaName);
-        if (cg.getGameState() != SOCGame.READY_RESET_WAIT_ROBOT_DISMISS)
+        if ((cg == null) || (cg.getGameState() != SOCGame.READY_RESET_WAIT_ROBOT_DISMISS))
             return;
 
         boolean gameResetRobotsAllDismissed = false;
@@ -2172,7 +2586,7 @@ public class SOCServerMessageHandler
         if (ga == null)
         {
             // Out of date client info, or may be observing a deleted game.
-            // Already authenticated (c != null), so replying is OK by security.
+            // Already authenticated (dispatcher enforces c.getData != null); replying won't reveal too much
             srv.messageToPlayerKeyed(c, gaName, "reply.game.not.found");  // "Game not found."
 
             return;  // <--- Early return: No active game found ---
@@ -2212,8 +2626,15 @@ public class SOCServerMessageHandler
          *
          * If a human leaves after game is started, seat will appear vacant when the
          * requested bot sits to replace them, so let the bot sit at that vacant seat.
+         *
+         * Special case: While loading or resuming a savegame, server can ask bots to join
+         * and sit at places which (in the savegame data) have seated players already,
+         * which may be marked as human or possibly as a bot with same name as
+         * the random joining bot by coincidence. Since server asked those bots to join,
+         * don't restrict the joining bot client at this point.
          */
         final int pn = mes.getPlayerNumber();
+        final int gameState = ga.getGameState();
 
         ga.takeMonitor();
 
@@ -2221,58 +2642,115 @@ public class SOCServerMessageHandler
         {
             if (ga.isSeatVacant(pn))
             {
-                gameAlreadyStarted = (ga.getGameState() >= SOCGame.START2A);
+                gameAlreadyStarted = (gameState >= SOCGame.START2A);
                 if (! gameAlreadyStarted)
                     gameIsFull = (1 > ga.getAvailableSeatCount());
 
                 if (gameIsFull || (gameAlreadyStarted && ! isBotJoinRequest))
                     canSit = false;
             } else {
-                SOCPlayer seatedPlayer = ga.getPlayer(pn);
+                canSit = false;
+                final SOCPlayer seatedPlayer = ga.getPlayer(pn);
+                final String seatedName = seatedPlayer.getName();
 
-                if (seatedPlayer.isRobot()
-                    && (ga.getSeatLock(pn) != SOCGame.SeatLockState.LOCKED)
-                    && (ga.getCurrentPlayerNumber() != pn))
+                /**
+                 * if loading a savegame: allow taking over current player,
+                 * and taking over a saved non-bot seat if not claimed by a current game member
+                 */
+                final boolean isLoadingState =
+                    (gameState == SOCGame.LOADING) || (gameState == SOCGame.LOADING_RESUMING);
+                boolean isloadingBot =
+                    isLoadingState && ((SOCClientData) c.getAppData()).isRobot;
+                final boolean canTakeOverPlayer =
+                    seatedPlayer.isRobot() || isloadingBot;
+
+                if (isloadingBot && c.getData().equals(seatedName))
+                {
+                    canSit = true;
+
+                    // The other clients think this client's already seated
+                    // because when they joined the game, there was already a seated player
+                    // with this name from the loaded savegame data.
+                    // So, don't announce "seated" bot is leaving or tell it to leave.
+                    // Ideally, no sit-down announcement would be made to the game at this point,
+                    // and we'd send player's private info only to the arriving bot, but this is
+                    // a corner case, not worth complicating the code that much.
+                }
+                else if (canTakeOverPlayer
+                    && (((ga.getSeatLock(pn) != SOCGame.SeatLockState.LOCKED) && (ga.getCurrentPlayerNumber() != pn))
+                        || isLoadingState))
                 {
                     /**
                      * boot the robot out of the game
                      */
-                    Connection robotCon = srv.getConnection(seatedPlayer.getName());
-                    robotCon.put(new SOCRobotDismiss(gaName));
+                    final Connection robotCon = srv.getConnection(seatedName);
 
-                    /**
-                     * this connection has to wait for the robot to leave,
-                     * will then be told they've sat down
-                     */
-                    Vector<SOCReplaceRequest> disRequests = srv.robotDismissRequests.get(gaName);
-                    SOCReplaceRequest req = new SOCReplaceRequest(c, robotCon, mes);
+                    if ((robotCon != null) && gameList.isMember(robotCon, gaName))
+                    {
+                        robotCon.put(new SOCRobotDismiss(gaName));
 
-                    if (disRequests == null)
-                    {
-                        disRequests = new Vector<SOCReplaceRequest>();
-                        disRequests.addElement(req);
-                        srv.robotDismissRequests.put(gaName, disRequests);
-                    }
-                    else
-                    {
-                        disRequests.addElement(req);
+                        /**
+                         * this connection has to wait for the robot to leave,
+                         * will then be told they've sat down
+                         */
+                        Vector<SOCReplaceRequest> disRequests = srv.robotDismissRequests.get(gaName);
+                        SOCReplaceRequest req = new SOCReplaceRequest(c, robotCon, mes);
+
+                        if (disRequests == null)
+                        {
+                            disRequests = new Vector<SOCReplaceRequest>();
+                            disRequests.addElement(req);
+                            srv.robotDismissRequests.put(gaName, disRequests);
+                        } else {
+                            disRequests.addElement(req);
+                        }
+                    } else {
+                        /**
+                         * robotCon wasn't in the game.
+                         * Is this a game being reloaded, where robotCon player was
+                         * originally a human player, relabeled as a bot during load?
+                         * If so, tell game robotCon has left so clients see seat as available
+                         * for player sitting now to take over.
+                         */
+                        if ((ga.savedGameModel != null) && (gameState >= SOCGame.LOADING))
+                        {
+                            canSit = true;
+                            srv.messageToGame(gaName, new SOCLeaveGame(seatedName, "-", gaName));
+                        }
                     }
                 }
-
-                canSit = false;
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught at handleSITDOWN");
+        } finally {
+            ga.releaseMonitor();
         }
-
-        ga.releaseMonitor();
 
         //D.ebugPrintln("canSit 2 = "+canSit);
         if (canSit)
         {
             srv.sitDown(ga, c, pn, mes.isRobot(), false);
+
+            // loadgame: If seat was temporarily unlocked while fetching bot to sit here, re-lock it.
+            // Don't do so in state LOADING_RESUMING, because that change might have been done by a human player.
+
+            if ((gameState == SOCGame.LOADING) && (ga.savedGameModel != null)
+                && (((SavedGameModel) ga.savedGameModel).playerSeatLocks != null))
+            {
+                final SOCClientData scd = (SOCClientData) c.getAppData();
+                if ((scd != null) && scd.isRobot)
+                {
+                    SOCGame.SeatLockState gaLock = ga.getSeatLock(pn),
+                        modelLock = ((SavedGameModel) ga.savedGameModel).playerSeatLocks[pn];
+                    if ((gaLock != modelLock) && (modelLock != null))
+                    {
+                        ga.setSeatLock(pn, modelLock);
+                        srv.messageToGame(gaName, new SOCSetSeatLock(gaName, pn, modelLock));
+                    }
+                }
+            }
         }
         else
         {
@@ -2295,8 +2773,9 @@ public class SOCServerMessageHandler
 
     /**
      * handle "start game" message.  Game state must be NEW, or this message is ignored.
-     * {@link SOCServer#readyGameAskRobotsJoin(SOCGame, Connection[], int) Ask some robots} to fill
-     * empty seats, or {@link GameHandler#startGame(SOCGame) begin the game} if no robots needed.
+     * Calls {@link SOCServer#readyGameAskRobotsJoin(SOCGame, boolean[], Connection[], int)}
+     * to ask some robots to fill empty seats,
+     * or {@link GameHandler#startGame(SOCGame) begin the game} if no robots needed.
      *<P>
      * Called when clients have sat at a new game and a client asks to start it,
      * not called during game board reset.
@@ -2438,10 +2917,8 @@ public class SOCServerMessageHandler
                             IllegalStateException e = null;
                             try
                             {
-                                invitedBots = srv.readyGameAskRobotsJoin(ga, null, numEmpty);
-                            }
-                            catch (IllegalStateException ex)
-                            {
+                                invitedBots = srv.readyGameAskRobotsJoin(ga, null, null, numEmpty);
+                            } catch (IllegalStateException ex) {
                                 e = ex;
                             }
 

@@ -61,15 +61,22 @@ import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.TextArea;
+import java.awt.TextComponent;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
@@ -90,7 +97,13 @@ import java.io.PrintWriter;  // For chatPrintStackTrace
 import java.io.StringWriter;
 
 import javax.sound.sampled.LineUnavailableException;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -107,6 +120,9 @@ import javax.swing.event.DocumentListener;
  * When we join a game, the client will update visible game state by calling methods here like
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
  * ready for interaction, the client calls {@link #began(List)}.
+ *<P>
+ * Has keyboard shortcuts for Accept/Reject/Counter trade offers, since v2.3.00.
+ * See {@link TradeHotkeyActionListener} for details if adding others.
  *<P>
  * <B>Chat text history:</B>
  * Remembers chat text sent by client player to the game/server, including local debug commands.
@@ -525,19 +541,21 @@ public class SOCPlayerInterface extends Frame
      * begins (state changes from {@link SOCGame#START2B} or {@link SOCGame#START3B}
      * to {@link SOCGame#ROLL_OR_CARD}). Initially set in {@link #startGame()} while leaving
      * state {@link SOCGame#NEW}. Checked/cleared in {@link #updateAtGameState()}.
+     * @since 1.1.00
      */
     protected boolean gameIsStarting;
 
     /**
      * Flag to set true if game has been deleted while we're observing it,
-     * or was stopped by a server or network error. Is set in {@link #over(boolean, String)}.
+     * or was stopped by a server or network error. Is set in {@link #gameDisconnected(boolean, String)}.
      * @since 1.2.01
      */
     protected boolean gameHasErrorOrDeletion;
 
     /**
-     * Optional board layout "visual shift" (Added Layout Part "VS") to use
+     * Optional board layout "visual shift and trim" (Added Layout Part "VS") to use
      * when sizing and laying out the game's {@link SOCBoardPanel}, or {@code null}.
+     * @see SOCBoardPanel#getExtraSizeFromBoard(boolean)
      * @since 2.0.00
      */
     private final int[] layoutVS;
@@ -547,27 +565,34 @@ public class SOCPlayerInterface extends Frame
      * Null if no board reset vote is under way.
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
+     * @since 1.1.00
      */
     protected SOCHandPanel boardResetRequester;
 
     /**
      * Board reset voting: If voting is active and we haven't yet voted,
      * track our dialog; this lets us dispose of it if voting is cancelled.
+     * @since 1.1.00
      */
     protected ResetBoardVoteDialog boardResetVoteDia;
 
     /** Is one or more {@link SOCHandPanel} (of other players) showing a
      *  "Discarding..." or "Picking resource..." message?
+     * @since 1.1.00
      */
     private boolean showingPlayerDiscardOrPick;
 
     /**
      * Synchronize access to {@link #showingPlayerDiscardOrPick}
      * and {@link #showingPlayerDiscardOrPick_task}
+     * @since 1.1.00
      */
     private Object showingPlayerDiscardOrPick_lock;
 
-    /** May be null if not {@link #showingPlayerDiscardOrPick}. */
+    /**
+     * Task reference, in case need to cancel. May be null if not {@link #showingPlayerDiscardOrPick}.
+     * @since 1.1.00
+     */
     private SOCPIDiscardOrPickMsgTask showingPlayerDiscardOrPick_task;
 
     /**
@@ -694,6 +719,62 @@ public class SOCPlayerInterface extends Frame
     volatile Dialog nbdForEvent;
 
     /**
+     * Add one hotkey's bindings to an {@link InputMap}.
+     * Hotkey shortcuts always respond to Ctrl + letter, and also Cmd on MacOSX or Alt on Windows.
+     * On Windows, also calls {@link JButton#setMnemonic(int) btn.setMnemonic(vkChar)}.
+     * @param im  InputMap to add to
+     * @param vkChar  Unmasked key to use, like {@link KeyEvent#VK_R}
+     * @param eventStr  Unique event to pair InputMap to ActionMap, like {@code "hotkey_roll"}
+     * @param btn  Button, to call {@link JButton#setMnemonic(int)} for Alt + {@code vkChar};
+     *     {@code null} if there's no associated button and on Windows this method should
+     *     directly add the mapping with {@link InputEvent#ALT_DOWN_MASK}
+     * @see #removeHotkeysInputMap_one(InputMap, int)
+     * @since 2.3.00
+     */
+    /* package */ static void addHotkeysInputMap_one
+        (final InputMap im, final int vkChar, final String eventStr, final JButton btn)
+    {
+        im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.CTRL_DOWN_MASK), eventStr);
+
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+        {
+            // also respond to Alt on win32/win64;
+            // setMnemonic works only on the Windows L&F; does nothing on MacOSX for Cmd
+            if (btn != null)
+                btn.setMnemonic(vkChar);
+            else
+                im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.ALT_DOWN_MASK), eventStr);
+        } else if (SOCPlayerClient.IS_PLATFORM_MAC_OSX) {
+            // also respond to Cmd on MacOSX
+            im.put(KeyStroke.getKeyStroke(vkChar, InputEvent.META_DOWN_MASK), eventStr);
+        }
+    }
+
+    /**
+     * Remove one hotkey's bindings from an {@link InputMap}.
+     * Will clear bindings for Ctrl + letter, and also Cmd on MacOSX or Alt on Windows,
+     * by setting their action to {@code "none"}.
+     * @param im  InputMap to remove from
+     * @param vkChar  Unmasked key to use, like {@link KeyEvent#VK_R}
+     * @see #addHotkeysInputMap_one(InputMap, int, String, JButton)
+     * @since 2.3.00
+     */
+    /* package */ static void removeHotkeysInputMap_one
+        (final InputMap im, final int vkChar)
+    {
+        KeyStroke[] ksMods = new KeyStroke[2];
+        ksMods[0] = KeyStroke.getKeyStroke(vkChar, InputEvent.CTRL_DOWN_MASK);
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS)
+            ksMods[1] = KeyStroke.getKeyStroke(vkChar, InputEvent.ALT_DOWN_MASK);
+        else if (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
+            ksMods[1] = KeyStroke.getKeyStroke(vkChar, InputEvent.META_DOWN_MASK);
+
+        for (final KeyStroke ks : ksMods)
+            if (ks != null)
+                im.put(ks, "none");
+    }
+
+    /**
      * Create and show a new player interface.
      * If the game options have a {@link SOCScenario} description, it will be shown now in a popup
      * by {@link #showScenarioInfoDialog()}.
@@ -701,7 +782,7 @@ public class SOCPlayerInterface extends Frame
      * @param title  title for this interface - game name
      * @param md     the client main display that spawned us
      * @param ga     the game associated with this interface; must not be {@code null}
-     * @param layoutVS  Optional board layout "visual shift" (Added Layout Part "VS")
+     * @param layoutVS  Optional board layout "visual shift and trim" (Added Layout Part "VS")
      *     to use when sizing and laying out the new game's {@link SOCBoardPanel}, or {@code null}
      * @param localPrefs  optional map of per-game local preferences to use in this {@code SOCPlayerInterface},
      *     or {@code null}. Preference name keys are {@link #PREF_SOUND_MUTE}, etc.
@@ -716,7 +797,7 @@ public class SOCPlayerInterface extends Frame
         throws IllegalArgumentException
     {
         super(strings.get("interface.title.game", title)
-              + (ga.isPractice ? "" : " [" + md.getClient().getNickname() + "]"));
+              + (ga.isPractice ? "" : " [" + md.getClient().getNickname(false) + "]"));
             // "Settlers of Catan Game: {0}"
 
         layoutNotReadyYet = true;  // will set to false at end of doLayout
@@ -810,6 +891,7 @@ public class SOCPlayerInterface extends Frame
         textInputHistory.add("");
 
         final Dimension boardExtraSize = boardPanel.getExtraSizeFromBoard(false);
+            // add to minimum size, to make enough room for board height, width, layoutVS
             // use unscaled board-internal pixels, to simplify assumptions at this early part of init/layout setup
 
         int piHeight = HEIGHT_MIN_4PL;
@@ -1013,6 +1095,7 @@ public class SOCPlayerInterface extends Frame
         add(textDisplay);
         if (is6player)
             textDisplay.addMouseListener(this);
+        textComponentAddClipboardContextMenu(textDisplay);
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
         chatDisplay.setFont(sans10Font);
@@ -1025,6 +1108,7 @@ public class SOCPlayerInterface extends Frame
         if (is6player)
             chatDisplay.addMouseListener(this);
         add(chatDisplay);
+        textComponentAddClipboardContextMenu(chatDisplay);
 
         textInput = new JTextField();
         if (SOCPlayerClient.IS_PLATFORM_MAC_OSX)
@@ -1128,6 +1212,113 @@ public class SOCPlayerInterface extends Frame
             addWindowListener(new PIWindowAdapter(mainDisplay, this));
         }
 
+    }
+
+    /**
+     * Add client player hotkey bindings to PI's InputMap and ActionMap.
+     * Because PI itself isn't a Swing component, we use JPanel {@link #buildingPanel}
+     * which may one day get its own hotkeys. Also overrides {@link #textInput}'s Ctrl-A
+     * to keep its functionality or accept the trade offer if all text is already selected.
+     * @since 2.3.00
+     */
+    private void addHotkeysInputMap()
+        throws IllegalStateException
+    {
+        final TradeHotkeyActionListener acceptTrade
+            = new TradeHotkeyActionListener(TradeHotkeyActionListener.ACCEPT);
+
+        final ActionMap am = buildingPanel.getActionMap();
+        am.put("hotkey_accept", acceptTrade);
+        am.put("hotkey_reject", new TradeHotkeyActionListener(TradeHotkeyActionListener.REJECT));
+        am.put("hotkey_counteroffer", new TradeHotkeyActionListener(TradeHotkeyActionListener.COUNTER));
+
+        final InputMap im = buildingPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        addHotkeysInputMap_one(im, KeyEvent.VK_A, "hotkey_accept", null);
+        addHotkeysInputMap_one(im, KeyEvent.VK_J, "hotkey_reject", null);
+        addHotkeysInputMap_one(im, KeyEvent.VK_C, "hotkey_counteroffer", null);
+
+        textInput.getActionMap().put("hotkey_selectAllOrTradeAccept", new AbstractAction()
+        {
+            /** If empty of text, or if all text's already selected, accept trade offer instead of re-selecting all. */
+            public void actionPerformed(final ActionEvent e)
+            {
+                String txt = textInput.getText();
+                final int L = (txt != null) ? txt.length() : 0;
+
+                if ((L == 0) || ((textInput.getSelectionStart() == 0) && (textInput.getSelectionEnd() == L)))
+                    acceptTrade.actionPerformed(e);
+                else
+                    textInput.selectAll();
+            }
+        });
+        addHotkeysInputMap_one
+            (textInput.getInputMap(JComponent.WHEN_FOCUSED),
+             KeyEvent.VK_A, "hotkey_selectAllOrTradeAccept", null);
+    }
+
+    /**
+     * Add context menu to a TextField/TextArea for Select All and Copy to Clipboard.
+     * Assumes {@code tfield} is read-only, not editable, so doesn't include Cut or Paste.
+     *<P>
+     * This menu is useful because the usual keyboard shortcuts (Ctrl-A, Ctrl-C)
+     * were claimed by new Trade Offer keyboard shortcuts in v2.3.00.
+     * Not needed for {@link #textInput} because that editable field can claim focus,
+     * so the standard shortcuts work there.
+     *<P>
+     * The standard {@link TextArea} already has a menu for this on Windows, but not on MacOSX.
+     * {@code TextArea} on Windows ignores this custom popup menu and keeps using that standard one.
+     * Other platforms can use this one, they have no such standard menu.
+     *
+     * @param tfield Textfield to add to, like {@link #chatDisplay} or {@link #textDisplay}
+     * @since 2.3.00
+     */
+    private void textComponentAddClipboardContextMenu(final TextComponent tfield)
+    {
+        final PopupMenu menu = new PopupMenu();
+
+        MenuItem mi = new MenuItem(strings.get("menu.copy"));  // "Copy"
+        mi.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                try
+                {
+                    final StringSelection data = new StringSelection(tfield.getSelectedText());
+                    final Clipboard cb = getToolkit().getSystemClipboard();
+                    if (cb != null)
+                        cb.setContents(data, data);
+                } catch (Exception e) {}  // security, or clipboard unavailable
+            }
+        });
+        menu.add(mi);
+
+        mi = new MenuItem(strings.get("menu.select_all"));  // "Select All"
+        mi.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                tfield.selectAll();
+                tfield.repaint();
+            }
+        });
+        menu.add(mi);
+
+        tfield.add(menu);
+        tfield.addMouseListener(new MouseAdapter()
+        {
+            // different platforms have different popupTriggers for their context menus,
+            // so check several types of mouse event:
+            public void mouseReleased(MouseEvent e) { mouseClicked(e); }
+            public void mousePressed(MouseEvent e)  { mouseClicked(e); }
+            public void mouseClicked(MouseEvent e)
+            {
+                if (! e.isPopupTrigger())
+                    return;
+
+                e.consume();
+                menu.show(tfield, e.getX(), e.getY());
+            }
+        });
     }
 
     /**
@@ -1332,6 +1523,7 @@ public class SOCPlayerInterface extends Frame
      * @return the normal or "ghosted" color of a player
      * @param pn  the player number
      * @param isGhost Do we want the "ghosted" color, not the normal color?
+     * @since 1.1.00
      */
     public Color getPlayerColor(int pn, boolean isGhost)
     {
@@ -1370,6 +1562,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @see SOCHandPanel#autoRollSetupTimer()
      * @see SOCBoardPanel#popupSetBuildRequest(int, int)
+     * @since 1.1.00
      */
     public Timer getEventTimer()
     {
@@ -1439,6 +1632,7 @@ public class SOCPlayerInterface extends Frame
      * @param isRoadNotArmy Longest-road, not largest-army, has just changed
      * @param oldp  Previous player with longest/largest, or null if none
      * @param newp  New player with longest/largest, or null if none
+     * @since 1.1.00
      */
     public void updateLongestLargest
         (boolean isRoadNotArmy, SOCPlayer oldp, SOCPlayer newp)
@@ -1639,6 +1833,7 @@ public class SOCPlayerInterface extends Frame
      * @return our player's hand interface, or null if not in a game.
      * @see #clientIsCurrentPlayer()
      * @see #isClientPlayer(SOCPlayer)
+     * @see #getClientPlayer()
      * @see #getClientPlayerNumber()
      * @since 1.1.00
      */
@@ -1649,11 +1844,14 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Update the client player's {@link SOCHandPanel} reference, for joining
-     * or leaving a game.
-     *
-     * Set by SOCHandPanel's removePlayer() and addPlayer() methods.
+     * or leaving a game. Also updates {@link #getClientPlayerNumber()}.
+     *<P>
+     * Called by {@link SOCHandPanel#removePlayer()} and {@link SOCHandPanel#addPlayer(String)}.
      *
      * @param h  The SOCHandPanel for us, or null if none (leaving).
+     *     Will update {@link #getClientPlayerNumber()} from
+     *     {@link SOCHandPanel#getPlayer() h.getPlayer()}{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()},
+     *     or -1 if null.
      * @see #getClientHand()
      * @since 1.1.00
      */
@@ -1682,11 +1880,41 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * If client player is active in game, their player number.
-     *
-     * @return client's player ID, or -1.
-     * @see #clientIsCurrentPlayer()
+     * Client player's nickname used on the remote/TCP server or practice server,
+     * depending on this game's {@link SOCGame#isPractice} flag.
+     * Unlike {@link #getClientHand()} or {@link #getClientPlayer()},
+     * this return value doesn't change before/after client player sits down.
+     * @return Client player's nickname, from {@link SOCPlayerClient#getNickname(boolean)}
+     * @since 2.3.00
+     */
+    public final String getClientNickname()
+    {
+        return client.getNickname(game.isPractice);
+    }
+
+    /**
+     * If client player is seated and active in game, their player object.
+     * Set by {@link #setClientHand(SOCHandPanel)}.
+     * @return Client's player if active, or {@code null}
+     * @see #getClientPlayerNumber()
      * @see #getClientHand()
+     * @see #getClientNickname()
+     * @since 2.3.00
+     */
+    public final SOCPlayer getClientPlayer()
+    {
+        return (clientHandPlayerNum >= 0) ? game.getPlayer(clientHandPlayerNum) : null;
+    }
+
+    /**
+     * If client player is seated and active in game, their player number.
+     * Set by {@link #setClientHand(SOCHandPanel)}.
+     *
+     * @return client's player ID, or -1 if not seated
+     * @see #clientIsCurrentPlayer()
+     * @see #getClientPlayer()
+     * @see #getClientHand()
+     * @see #getClientNickname()
      * @since 1.1.00
      */
     public final int getClientPlayerNumber()
@@ -1959,9 +2187,8 @@ public class SOCPlayerInterface extends Frame
         SOCPlayer pl = game.getPlayer(botPlName.trim());
         if (pl != null)
         {
-            final SOCBoardPanel bp = getBoardPanel();
-            bp.setOtherPlayer(pl);
-            bp.setMode(mode);
+            boardPanel.setOtherPlayer(pl);
+            boardPanel.setMode(mode);
 
             String modeName;
             try
@@ -1980,12 +2207,15 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * leave this game
+     * Leave this game and close this window.
      */
     public void leaveGame()
     {
         mainDisplay.leaveGame(game);
+        if (clientHand != null)
+            clientHand.removePlayer();  // cleanup, possibly close open non-modal dialogs, etc
         client.getGameMessageSender().leaveGame(game);
+
         dispose();
     }
 
@@ -2039,6 +2269,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Another player has voted on a board reset request.
      * Show the vote.
+     * @since 1.1.00
      */
     public void resetBoardVoted(int pn, boolean vyes)
     {
@@ -2056,6 +2287,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Voting complete, board reset was rejected.
      * Display text message and clear the offer.
+     * @since 1.1.00
      */
     public void resetBoardRejected()
     {
@@ -2088,6 +2320,7 @@ public class SOCPlayerInterface extends Frame
      * but don't vote.
      *
      * @param pnRequester Player number of the player requesting the board reset
+     * @since 1.1.00
      */
     public void resetBoardAskVote(int pnRequester)
     {
@@ -2122,6 +2355,7 @@ public class SOCPlayerInterface extends Frame
 
     /** Callback from ResetBoardVoteDialog, to clear our reference when
      *  button is clicked and dialog is going away.
+     * @since 1.1.00
      */
     private void resetBoardClearDia()
     {
@@ -2287,11 +2521,14 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Game was deleted or a server/network error occurred; stop playing.
+     *<P>
+     * Before v2.4.00 this method was called {@code over(..)}.
+     *
      * @param wasDeleted  True if game was deleted, isn't from an error;
      *     this can happen while observing a game
      * @param errorMessage  Error message if any, or {@code null}
      */
-    public void over(final boolean wasDeleted, final String errorMessage)
+    public void gameDisconnected(final boolean wasDeleted, final String errorMessage)
     {
         gameHasErrorOrDeletion = true;
 
@@ -2300,6 +2537,7 @@ public class SOCPlayerInterface extends Frame
         textInput.setEditable(false);
         if (errorMessage != null)
             textInput.setText(errorMessage);
+
         if (wasDeleted)
         {
             textDisplay.append("*** " + strings.get("interface.error.game.has_been_deleted") + " ***\n");
@@ -2311,7 +2549,6 @@ public class SOCPlayerInterface extends Frame
                 // "Game stopped."
         }
 
-        game.setCurrentPlayerNumber(-1);
         boardPanel.repaint();
         for (int i = 0; i < game.maxPlayers; i++)
             hands[i].gameDisconnected();
@@ -2349,7 +2586,7 @@ public class SOCPlayerInterface extends Frame
             final String mname = members.get(i);
             if (null != game.getPlayer(mname))
                 continue;
-            if (mname.equals(client.getNickname()))
+            if (mname.equals(getClientNickname()))
                 continue;
             if (obs == null)
                 obs = new ArrayList<String>();
@@ -2365,26 +2602,31 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * A player has sat down to play. Update the display.
-     * Calls {@link SOCHandPanel#addPlayer(String)}, which does additional actions if the
-     * player sitting down now is the client (not another human or robot).
+     * A player has sat down to play. Update the display:
+     *<UL>
+     * <LI> Calls {@link SOCHandPanel#addPlayer(String)} which does additional actions if that
+     *     player is the client (not a different human or robot), including a call back up
+     *     to {@link #setClientHand(SOCHandPanel)}.
+     * <LI> Calls {@link SOCBoardPanel#setPlayer()} and {@link SOCBuildingPanel#setPlayer()}
+     *     if being called for client player (based on {@code name}).
+     * <LI> Updates {@link SOCHandPanel}'s displayed values.
+     *</UL>
      *
-     * @param n   the name of the player. Checks if is client player by calling {@link SOCPlayerClient#getNickname()}.
+     * @param name   the name of the player. Checks if is client player by calling {@link #getClientNickname()}.
      * @param pn  the seat number of the player
+     * @see #removePlayer(int)
      */
-    public void addPlayer(String n, int pn)
+    public void addPlayer(final String name, final int pn)
     {
-        hands[pn].addPlayer(n);  // This will also update all other hands' buttons ("sit here" -> "lock", etc)
+        hands[pn].addPlayer(name);  // This will also update all other hands' buttons ("sit here" -> "lock", etc)
 
-        if (n.equals(client.getNickname()))
+        final boolean sitterIsClientPlayer = (name.equals(getClientNickname()));
+
+        if (sitterIsClientPlayer)
         {
             for (int i = 0; i < game.maxPlayers; i++)
-            {
                 if (game.getPlayer(i).isRobot())
-                {
                     hands[i].addSittingRobotLockBut();
-                }
-            }
 
             if (is6player)
             {
@@ -2395,6 +2637,8 @@ public class SOCPlayerInterface extends Frame
                 repaint(hands[pn].getX(), 0, hands[pn].getWidth(), getHeight());
                     // must repaint entire column's handpanels and wide borders
             }
+
+            addHotkeysInputMap();
         }
 
         if (game.isGameOptionDefined("PL"))
@@ -2404,6 +2648,41 @@ public class SOCPlayerInterface extends Frame
         {
             // Retain face after reset
             hands[pn].changeFace(hands[pn].getPlayer().getFaceId());
+        }
+
+        /**
+         * if client sat down, let the board panel & building panel find our player object
+         */
+        if (sitterIsClientPlayer)
+        {
+            boardPanel.setPlayer();
+            buildingPanel.setPlayer();
+        }
+
+        if (is6player)
+            buildingPanel.updatePlayerCount();
+
+        /**
+         * update the hand panel's displayed values
+         */
+        final SOCHandPanel hp = getPlayerHandPanel(pn);
+        hp.updateValue(PlayerClientListener.UpdateType.Road);
+        hp.updateValue(PlayerClientListener.UpdateType.Settlement);
+        hp.updateValue(PlayerClientListener.UpdateType.City);
+        if (game.hasSeaBoard)
+            hp.updateValue(PlayerClientListener.UpdateType.Ship);
+        hp.updateValue(PlayerClientListener.UpdateType.Knight);
+        hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
+        hp.updateValue(PlayerClientListener.UpdateType.LongestRoad);
+        hp.updateValue(PlayerClientListener.UpdateType.LargestArmy);
+
+        if (sitterIsClientPlayer)
+        {
+            hp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+            hp.updateDevCards(false);
+        } else {
+            hp.updateValue(PlayerClientListener.UpdateType.Resources);
+            hp.updateValue(PlayerClientListener.UpdateType.DevCards);
         }
     }
 
@@ -2416,6 +2695,7 @@ public class SOCPlayerInterface extends Frame
      * {@link SOCGame#removePlayer(String, boolean)}.
      *
      * @param pn the number of the player
+     * @see #addPlayer(String, int)
      */
     public void removePlayer(int pn)
     {
@@ -2425,11 +2705,16 @@ public class SOCPlayerInterface extends Frame
         else
             hands[pn].addSitButton(clientHand != null);  // Is the client player already sitting down at this game?
 
-        if (is6player && (clientHand == null))
+        if (is6player)
         {
-            // handpanel sizes change when client leaves in a 6-player game.
-            invalidate();
-            doLayout();
+            buildingPanel.updatePlayerCount();
+
+            if (clientHand == null)
+            {
+                // handpanel sizes change when client leaves in a 6-player game
+                invalidate();
+                doLayout();
+            }
         }
     }
 
@@ -2487,8 +2772,8 @@ public class SOCPlayerInterface extends Frame
         {
             game.checkForWinner();  // Assumes "current player" set to winner already, by SETTURN msg
         }
-        for (int i = 0; i < finalScores.length; ++i)
-            hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
+        for (int pn = 0; pn < finalScores.length; ++pn)
+            hands[pn].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
 
         // reveal each player's VP cards
         for (int pn = 0; pn < finalScores.length; ++pn)
@@ -2501,7 +2786,7 @@ public class SOCPlayerInterface extends Frame
         }
 
         setTitle(strings.get("interface.title.game.over", game.getName()) +
-                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+                 (game.isPractice ? "" : " [" + getClientNickname() + "]"));
                 // "Settlers of Catan Game Over: {0}"
 
         boardPanel.updateMode();
@@ -2775,16 +3060,16 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-        getBoardPanel().updateMode();
-        getBuildingPanel().updateButtonStatus();
-        getBoardPanel().repaint();
+        boardPanel.updateMode();
+        buildingPanel.updateButtonStatus();
+        boardPanel.repaint();
 
         // Check for placement states (board panel popup, build via right-click)
         if ((gs == SOCGame.PLACING_ROAD) || (gs == SOCGame.PLACING_SETTLEMENT)
             || (gs == SOCGame.PLACING_CITY) || (gs == SOCGame.PLACING_SHIP))
         {
-            if (getBoardPanel().popupExpectingBuildRequest())
-                getBoardPanel().popupFireBuildingRequest();
+            if (boardPanel.popupExpectingBuildRequest())
+                boardPanel.popupFireBuildingRequest();
         }
 
         if ((gs == SOCGame.PLACING_INV_ITEM) && clientIsCurrentPlayer()
@@ -3024,7 +3309,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void updateAtRobberMoved(final int newHex, final boolean isPirate)
     {
-        getBoardPanel().repaint();
+        boardPanel.repaint();
     }
 
     /**
@@ -3110,7 +3395,11 @@ public class SOCPlayerInterface extends Frame
      * Set up a timer to wait 1 second before showing "Discarding..."
      * or "Picking Resources..." balloons in players' handpanels.
      * Uses {@link SOCPIDiscardOrPickMsgTask}.
+     *<P>
+     * Before v2.0.00 this was {@code discardTimerSet}.
+     *
      * @param isDiscard  True for discard, false for picking gold-hex resources
+     * @since 1.1.00
      */
     private void discardOrPickTimerSet(final boolean isDiscard)
     {
@@ -3129,6 +3418,10 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Cancel any "discarding..." or "picking resources..." timer, and clear the message if showing.
+     *<P>
+     * Before v2.0.00 this was {@code discardTimerClear}.
+     *
+     * @since 1.1.00
      */
     private void discardOrPickTimerClear()
     {
@@ -3175,7 +3468,7 @@ public class SOCPlayerInterface extends Frame
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         // Clear out old state (similar to constructor)
-        int oldGameState = game.getResetOldGameState();
+        int oldGameState = game.getOldGameState();
         game = newGame;
         knowsGameState = (game.getGameState() != 0);
         if (gameStats != null)
@@ -3198,7 +3491,7 @@ public class SOCPlayerInterface extends Frame
 
         // Clear from possible "game over" titlebar
         setTitle(strings.get("interface.title.game", game.getName()) +
-                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+                 (game.isPractice ? "" : " [" + getClientNickname() + "]"));
                 // "Settlers of Catan Game: {0}"
         boardPanel.debugShowPotentials = boardDebugShow;
 
@@ -3237,6 +3530,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * if debug is enabled, print this in the chat display.
+     * @since 1.1.00
      */
     public void chatPrintDebug(String debugMsg)
     {
@@ -3256,6 +3550,7 @@ public class SOCPlayerInterface extends Frame
         chatPrintStackTrace(th, false);
     }
 
+    // @since 1.1.00
     private void chatPrintStackTrace(Throwable th, boolean isNested)
     {
         if (! D.ebugIsEnabled())
@@ -3764,6 +4059,14 @@ public class SOCPlayerInterface extends Frame
      */
     public void mouseReleased(MouseEvent e) { }
 
+    /**
+     * Is this player shown as the current player?
+     * Calls handPanels[{@link SOCPlayer#getPlayerNumber()}]
+     * {@link SOCHandPanel#isClientPlayer() .isClientPlayer()}.
+     * @param p  Player object; uses only its {@code playerNumber}
+     * @return True if {@link SOCHandPanel#isClientPlayer()}
+     * @since 2.0.00
+     */
     protected boolean isClientPlayer(SOCPlayer p)
     {
         if (p == null)
@@ -3867,45 +4170,14 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-        public void playerSitdown(int playerNumber, String sitterNickname)
+        /**
+         * {@inheritDoc}
+         *<P>
+         * Calls {@link SOCPlayerInterface#addPlayer(String, int)}.
+         */
+        public void playerSitdown(final int playerNumber, final String sitterNickname)
         {
             pi.addPlayer(sitterNickname, playerNumber);
-
-            String nickname = pi.getClient().getNickname();
-
-            /**
-             * let the board panel & building panel find our player object if we sat down
-             */
-            if (nickname.equals(sitterNickname))
-            {
-                pi.getBoardPanel().setPlayer();
-                pi.getBuildingPanel().setPlayer();
-            }
-
-            /**
-             * update the hand panel's displayed values
-             */
-            final SOCHandPanel hp = pi.getPlayerHandPanel(playerNumber);
-            hp.updateValue(PlayerClientListener.UpdateType.Road);
-            hp.updateValue(PlayerClientListener.UpdateType.Settlement);
-            hp.updateValue(PlayerClientListener.UpdateType.City);
-            if (pi.game.hasSeaBoard)
-                hp.updateValue(PlayerClientListener.UpdateType.Ship);
-            hp.updateValue(PlayerClientListener.UpdateType.Knight);
-            hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
-            hp.updateValue(PlayerClientListener.UpdateType.LongestRoad);
-            hp.updateValue(PlayerClientListener.UpdateType.LargestArmy);
-
-            if (nickname.equals(sitterNickname))
-            {
-                hp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
-                hp.updateDevCards(false);
-            }
-            else
-            {
-                hp.updateValue(PlayerClientListener.UpdateType.Resources);
-                hp.updateValue(PlayerClientListener.UpdateType.DevCards);
-            }
         }
 
         /**
@@ -4006,7 +4278,7 @@ public class SOCPlayerInterface extends Frame
                     hpan.updateValue(utype);
                     hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // 2 cloth = 1 VP
                 } else {
-                    pi.getBuildingPanel().updateClothCount();
+                    pi.buildingPanel.updateClothCount();
                 }
                 break;
 
@@ -4050,7 +4322,7 @@ public class SOCPlayerInterface extends Frame
             }
 
             if (hpan.isClientPlayer() && (pi.getGame().getGameState() != SOCGame.NEW))
-                pi.getBuildingPanel().updateButtonStatus();
+                pi.buildingPanel.updateButtonStatus();
         }
 
         public void requestedSpecialBuild(SOCPlayer player)
@@ -4058,7 +4330,7 @@ public class SOCPlayerInterface extends Frame
             if (player.hasAskedSpecialBuild())
                 pi.printKeyed("game.sbp.wants.to", player.getName());  // * "{0} wants to Special Build."
             if (pi.isClientPlayer(player))
-                pi.getBuildingPanel().updateButtonStatus();
+                pi.buildingPanel.updateButtonStatus();
         }
 
         public void requestedGoldResourceCountUpdated(SOCPlayer player, int countToPick)
@@ -4154,17 +4426,17 @@ public class SOCPlayerInterface extends Frame
 
         public void boardUpdated()
         {
-            pi.getBoardPanel().flushBoardLayoutAndRepaint();
+            pi.boardPanel.flushBoardLayoutAndRepaint();
         }
 
         public void pieceValueUpdated(final SOCPlayingPiece piece)
         {
-            pi.getBoardPanel().pieceValueUpdated(piece);
+            pi.boardPanel.pieceValueUpdated(piece);
         }
 
         public void boardPotentialsUpdated()
         {
-            pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
+            pi.boardPanel.flushBoardLayoutAndRepaintIfDebugShowPotentials();
         }
 
         public void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber)
@@ -4222,7 +4494,7 @@ public class SOCPlayerInterface extends Frame
 
         public void gameDisconnected(final boolean wasDeleted, final String errorMessage)
         {
-            pi.over(wasDeleted, errorMessage);
+            pi.gameDisconnected(wasDeleted, errorMessage);
         }
 
         public void messageBroadcast(String msg)
@@ -4346,7 +4618,7 @@ public class SOCPlayerInterface extends Frame
         public void buildRequestCanceled(SOCPlayer player)
         {
             pi.getPlayerHandPanel(player.getPlayerNumber()).updateResourcesVP();
-            pi.getBoardPanel().updateMode();
+            pi.boardPanel.updateMode();
         }
 
         public void invItemPlayRejected(final int type, final int reasonCode)
@@ -4615,7 +4887,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            md.getGameMessageSender().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
+            md.getGameMessageSender().resetBoardVote(pi.getGame(), true);
             pi.resetBoardClearDia();
         }
 
@@ -4625,7 +4897,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            md.getGameMessageSender().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
+            md.getGameMessageSender().resetBoardVote(pi.getGame(), false);
             pi.resetBoardClearDia();
         }
 
@@ -4862,7 +5134,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * Clean up after the window is closed.
-         * Close the GameStatisticsFrame if showing, etc.
+         * Close the GameStatisticsFrame if showing, maybe persist some client prefs, etc.
          * @since 2.0.00
          */
         @Override
@@ -4871,6 +5143,10 @@ public class SOCPlayerInterface extends Frame
             // Close stats frame if showing
             if (pi.buildingPanel != null)
                 pi.buildingPanel.gameWindowClosed();
+
+            // Remember last-chosen face icon
+            if (UserPreferences.getPref(SOCPlayerClient.PREF_FACE_ICON, 0) > 0)
+                UserPreferences.putPref(SOCPlayerClient.PREF_FACE_ICON, pi.client.lastFaceChange);
         }
 
     }  // MyWindowAdapter
@@ -5015,10 +5291,57 @@ public class SOCPlayerInterface extends Frame
 
     }  // SOCPITextfieldListener
 
+    /**
+     * Hotkey listener for client player to respond to a hand panel's trade offers.
+     * If more than one hand panel has {@link TradePanel#isOfferToPlayer()}, does nothing
+     * to avoid responding to the wrong offer.
+     * Initialized in {@link SOCPlayerInterface#addHotkeysInputMap()}.
+     * @since 2.3.00
+     */
+    private class TradeHotkeyActionListener extends AbstractAction
+    {
+        public static final int ACCEPT = 1, REJECT = 2, COUNTER = 3;
+
+        private final int forButton;
+
+        /**
+         * @param tradeButton The trade button to activate: {@link #ACCEPT}, {@link #REJECT}, or {@link #COUNTER}
+         */
+        public TradeHotkeyActionListener(final int tradeButton)
+        {
+            forButton = tradeButton;
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+            SOCHandPanel hpo = null;
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
+            {
+                SOCHandPanel hp = hands[pn];
+                if (! hp.isShowingOfferToClientPlayer())
+                    continue;
+                if (hpo != null)
+                    return;  // multiple offers
+                hpo = hp;
+            }
+            if (hpo == null)
+                return;
+
+            switch (forButton)
+            {
+            case ACCEPT:  hpo.clickOfferAcceptButton();  break;
+            case REJECT:  hpo.clickOfferRejectButton();  break;
+            case COUNTER: hpo.clickOfferCounterButton(); break;
+            }
+        }
+    }
 
     /**
      * When timer fires, show discard message or picking-resource message
      * for any other player (not client player) who must discard or pick.
+     *<P>
+     * Before v2.0.00 this class was {@code SOCPIDiscardMsgTask}.
+     *
      * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
      * @author jdmonin
      * @since 1.1.00

@@ -28,11 +28,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import soc.game.SOCGame;
+import soc.server.SOCServer;
 
 /**
  * Save a game and its board's current state to a JSON file.
  * Game state must be {@link SOCGame#ROLL_OR_CARD} or higher.
- * Uses {@link SavedGameModel}.
+ * Uses {@link SavedGameModel}, including some custom field serializers
+ * declared through its {@code @JsonAdapter} field annotations.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see GameLoaderJSON
@@ -47,27 +49,36 @@ public class GameSaverJSON
 
     /**
      * Save this game to a JSON file.
+     *<P>
+     * Assumes caller has checked that gson jar is on classpath
+     * by calling {@code Class.forName("com.google.gson.Gson")} or similar.
      *
-     * @param ga  Game to save
+     * @param ga  Game to save; not null
      * @param saveDir  Existing directory into which to save the file
      * @param saveFilename  Filename to save as; recommended suffix is {@link #FILENAME_EXTENSION}
+     * @param srv  Server, for game/player info lookups; not null
      * @throws IllegalArgumentException  if {@code saveDir} isn't a currently existing directory
+     * @throws SavedGameModel.UnsupportedSGMOperationException  if game has an option or feature not yet supported
+     *     by {@link SavedGameModel}; see {@link SavedGameModel#checkCanSave(SOCGame)} for details.
      * @throws IllegalStateException if game state &lt; {@link SOCGame#ROLL_OR_CARD}
      * @throws IOException  if a problem occurs while saving
      */
     public static void saveGame
-        (final SOCGame ga, final File saveDir, final String saveFilename)
-        throws IllegalArgumentException, IllegalStateException, IOException
+        (final SOCGame ga, final File saveDir, final String saveFilename, final SOCServer srv)
+        throws IllegalArgumentException, SavedGameModel.UnsupportedSGMOperationException,
+            IllegalStateException, IOException
     {
         if (! saveDir.isDirectory())
             throw new IllegalArgumentException("Not found as directory: " + saveDir.getPath());
 
-        final SavedGameModel sgm = new SavedGameModel(ga);
+        final SavedGameModel sgm = new SavedGameModel(ga, srv);
 
-        Gson gson;
+        final Gson gson;
         try
         {
-            gson = new GsonBuilder().setPrettyPrinting().create();
+            final GsonBuilder gb = new GsonBuilder();
+            SavedGameModel.initGsonRegisterAdapters(gb);
+            gson = gb.setPrettyPrinting().create();
         }
         catch (Throwable th)
         {

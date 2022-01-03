@@ -24,15 +24,23 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 import soc.game.*;
+import soc.message.SOCGameElements.GEType;
+import soc.message.SOCPlayerElement.PEType;
+import soc.server.genericServer.Server;
 
 /**
  * Load a game and board's current state from a JSON file into a {@link SavedGameModel}.
@@ -40,6 +48,9 @@ import soc.game.*;
  * its actual gameState will be in game's {@code oldGameState} field.
  * Once the debug user has connected necessary bots or otherwise satisfied possible constraints,
  * must call {@link SavedGameModel#resumePlay(boolean)} to check constraints and resume game play.
+ *<P>
+ * Some fields use custom deserializers, either registered in a private method here or in {@link SavedGameModel},
+ * or declared through {@code @JsonAdapter} field annotations in {@link SavedGameModel}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @see GameSaverJSON
@@ -58,31 +69,68 @@ public class GameLoaderJSON
 
     /**
      * Load a game from a JSON file.
+     * Loads into a Model and calls {@link SavedGameModel#createLoadedGame(Server)}.
+     *<P>
+     * Assumes caller has checked that gson jar is on classpath
+     * by calling {@code Class.forName("com.google.gson.Gson")} or similar.
      *
      * @param loadFrom File to load from; filename should end with {@link GameSaverJSON#FILENAME_EXTENSION}
+     * @param srv  Server reference to check for bot name collisions, or {@code null}.
+     *     Any bot players in the loaded game data with same names as those logged into the server
+     *     will be renamed to avoid problems during random bot assignment while joining the game.
      * @return  loaded game model
      * @throws IllegalStateException if required static game list field {@link SavedGameModel#glas} is null
-     * @throws IOException  if a problem occurs while loading
+     * @throws NoSuchElementException if file's model schema version is newer than the
+     *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#checkCanLoad()}
+     *     for details
+     * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
+     *     is newer than the server's {@link soc.util.Version#versionNumber()};
+     *     see {@link SavedGameModel#checkCanLoad()} for details
+     * @throws SavedGameModel.UnsupportedSGMOperationException if loaded game model has an option or feature
+     *     not yet supported by {@link SavedGameModel#createLoadedGame(Server)}; see {@link SavedGameModel#checkCanLoad()}
+     *     for details
+     * @throws StringIndexOutOfBoundsException  if a {@link JsonSyntaxException} occurs while loading, this wraps it
+     *     so the caller doesn't need to know GSON-specific exception types
+     * @throws IOException  if a problem occurs while loading, including a {@link JsonIOException}
+     * @throws IllegalArgumentException if there's a problem while creating the loaded game.
+     *     {@link Throwable#getCause()} will have the exception thrown by the SOCGame/SOCPlayer method responsible.
+     *     Catch subclass {@code SOCGameOptionVersionException} before this one.
      */
-    public static SavedGameModel loadGame(final File loadFrom)
-        throws IllegalStateException, IOException
+    public static SavedGameModel loadGame(final File loadFrom, final Server srv)
+        throws IllegalStateException, NoSuchElementException, SOCGameOptionVersionException,
+            SavedGameModel.UnsupportedSGMOperationException, StringIndexOutOfBoundsException,
+            IOException, IllegalArgumentException
     {
         if (SavedGameModel.glas == null)
             throw new IllegalStateException("SavedGameModel.glas is null");
 
         initGson();
 
-        InputStreamReader reader = new InputStreamReader
-            (new FileInputStream(loadFrom), "UTF-8");
-        SavedGameModel sgm = gsonb.create().fromJson(reader, SavedGameModel.class);
-        reader.close();
+        final SavedGameModel sgm;
+        try
+            (final FileInputStream fis = new FileInputStream(loadFrom);
+             final InputStreamReader reader = new InputStreamReader(fis, "UTF-8"); )
+        {
+            sgm = gsonb.create().fromJson(reader, SavedGameModel.class);
+        } catch (JsonIOException e) {
+            throw new IOException("JSON: " + e.getMessage(), e);
+        } catch (JsonSyntaxException e) {
+            StringIndexOutOfBoundsException wrap = new StringIndexOutOfBoundsException("JSON: " + e.getMessage());
+            wrap.initCause(e);
+            throw wrap;
+        }
 
-        sgm.createLoadedGame();
+        sgm.createLoadedGame(srv);
 
         return sgm;
     }
 
-    /** Initialize {@link #gsonb} once when needed, including registering a deserializer. */
+    /**
+     * Initialize {@link #gsonb} once when needed, including registering some deserializers.
+     * Assumes gson jar is on classpath, and caller has checked {@link soc.server.SOCServer#savegameInitFailed}.
+     * Some other custom deserializers are instead declared through {@code @JsonAdapter} field annotations
+     * in {@link SavedGameModel}.
+     */
     private static void initGson()
     {
         GsonBuilder gb = gsonb;
@@ -90,62 +138,70 @@ public class GameLoaderJSON
             return;
 
         gb = new GsonBuilder();
-        gb.registerTypeAdapter(SOCPlayingPiece.class, new PPieceDeserializer());
+        SavedGameModel.initGsonRegisterAdapters(gb);
+        gb.registerTypeAdapter
+            (new TypeToken<HashMap<GEType, Integer>>(){}.getType(),
+             new EnumKeyedMapDeserializer<GEType>(GEType.class));
+        gb.registerTypeAdapter
+            (new TypeToken<HashMap<PEType, Integer>>(){}.getType(),
+             new EnumKeyedMapDeserializer<PEType>(PEType.class));
 
         gsonb = gb;
     }
 
     /**
-     * Deserialize abstract {@link SOCPlayingPiece} as {@link SOCRoad}, {@link SOCSettlement}, etc
-     * based on {@code pieceType} field. Unknown pieceTypes throw {@link JsonParseException}.
+     * Custom deserializer for a {@link HashMap} that has enum keys, to ignore any unknown enum constant names
+     * it may possibly contain (for forwards compatibility).
+     *<P>
+     * GSON's built-in deserializer returns {@code null} for unknown enum constants, so one unknown puts a null
+     * key into the map, and a second halts parsing with a "duplicate key" exception for the two nulls.
+     * This custom class avoids the problem by not adding null unknown constants to the Map.
+     *<P>
+     * Used for loading {@link SavedGameModel}'s {@link GEType} and {@link PEType} maps.
      */
-    private static class PPieceDeserializer implements JsonDeserializer<SOCPlayingPiece>
+    public static class EnumKeyedMapDeserializer<E extends Enum<E>>
+        implements JsonDeserializer<HashMap<E, Integer>>
     {
-        public SOCPlayingPiece deserialize
-            (final JsonElement elem, final Type t, final JsonDeserializationContext ctx)
+        private final Class<E> enumClassType;
+
+        EnumKeyedMapDeserializer(final Class<E> enumClass)
+        {
+            enumClassType = enumClass;
+        }
+
+        public HashMap<E, Integer> deserialize
+            (JsonElement elem, final Type t, final JsonDeserializationContext ctx)
             throws JsonParseException
         {
-            final JsonObject elemo = elem.getAsJsonObject();
-            final int ptype = elemo.get("pieceType").getAsInt(),
-                      coord = elemo.get("coord").getAsInt();
+            HashMap<E, Integer> ret = new HashMap<>();
 
-            final SOCPlayingPiece pp;
-
-            switch (ptype)
+            for (Map.Entry<String, JsonElement> ent : elem.getAsJsonObject().entrySet())
             {
-            case SOCPlayingPiece.ROAD:
-                pp = new SOCRoad(dummyPlayer, coord, null);
-                break;
+                final String key = ent.getKey();
+                if (key == null)
+                    continue;  // unlikely
 
-            case SOCPlayingPiece.SETTLEMENT:
-                pp = new SOCSettlement(dummyPlayer, coord, null);
-                break;
+                final E ev;
+                try
+                {
+                    ev = E.valueOf(enumClassType, key);
+                    if (ev == null)
+                        continue;
+                } catch (IllegalArgumentException e) {
+                    continue;  // not found in enum
+                }
 
-            case SOCPlayingPiece.CITY:
-                pp = new SOCCity(dummyPlayer, coord, null);
-                break;
-
-            case SOCPlayingPiece.SHIP:
-                pp = new SOCShip(dummyPlayer, coord, null);
-                if (elemo.has("isClosed") && elemo.get("isClosed").getAsBoolean())
-                    ((SOCShip) pp).setClosed();
-                break;
-
-            // doesn't need to handle SOCPlayingPiece.FORTRESS,
-            // because that's not part of player's SOCPlayingPiece list
-
-            default:
-                throw new JsonParseException("unknown pieceType: " + ptype);
+                final JsonElement val = ent.getValue();
+                try
+                {
+                    ret.put(ev, val.getAsInt());
+                } catch (ClassCastException | IllegalStateException e) {
+                    throw new JsonParseException("Expected int values in map", e);
+                }
             }
 
-            if (elemo.has("specialVP"))
-            {
-                int n = elemo.get("specialVP").getAsInt();
-                if (n != 0)
-                    pp.specialVP = n;
-            }
-
-            return pp;
+            return ret;
         }
     }
+
 }

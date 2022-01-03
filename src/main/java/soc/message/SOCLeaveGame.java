@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,7 +42,7 @@ public class SOCLeaveGame extends SOCMessage
     private static final long serialVersionUID = 1111L;  // last structural change v1.1.11
 
     /**
-     * Nickname of the leaving member; ignored from client, can send "-" but not blank
+     * Nickname of the leaving member; server has always ignored this field from client, can send "-" but not blank
      */
     private String nickname;
 
@@ -59,7 +59,7 @@ public class SOCLeaveGame extends SOCMessage
     /**
      * Create a LeaveGame message.
      *
-     * @param nn  nickname; ignored from client, can send "-" but not blank
+     * @param nn  leaving member's nickname; server has always ignored this field from client, can send "-" but not blank
      * @param hn  unused optional host name, or "-"
      *            (Length 0 would fail {@link #parseDataStr(String)} at the receiver)
      * @param ga  name of game
@@ -112,7 +112,7 @@ public class SOCLeaveGame extends SOCMessage
     /**
      * LEAVEGAME sep nickname sep2 host sep2 game
      *
-     * @param nn  the nickname; ignored from client, can send "-" but not blank
+     * @param nn  leaving member's nickname; server has always ignored this field from client, can send "-" but not blank
      * @param hn  unused; the optional host name, or "-"
      * @param ga  the name of the game
      * @return    the command string

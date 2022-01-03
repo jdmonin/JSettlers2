@@ -20,6 +20,7 @@
 package soc.server;
 
 import soc.game.SOCGame;
+import soc.game.SOCPlayer;
 import soc.message.SOCGameState;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCRollDicePrompt;
@@ -27,7 +28,7 @@ import soc.server.genericServer.Connection;
 import soc.util.SOCGameList;
 
 /**
- * Server class to handle game-specific actions and messages for a type of game.
+ * Server class to handle game-specific actions for a type of game and send resulting messages to clients.
  * Each game type's inbound messages are processed through its {@link GameMessageHandler}.
  *<P>
  * Currently, these concepts are common to all hosted game types:
@@ -113,7 +114,7 @@ public abstract class GameHandler
 
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
-     * Unless <tt>isTakingOver</tt>, announce {@link SOCJoinGame} client join event to other players.
+     * Unless {@code isRejoinOrLoadgame}, announce {@link SOCJoinGame} client join event to other players.
      *<P>
      * Assumes {@link SOCServer#connectToGame(Connection, String, java.util.Map, SOCGame)} was already called.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
@@ -125,7 +126,7 @@ public abstract class GameHandler
      * If game has started (state &gt;= {@link SOCGame#START2A START2A}), they're
      * then prompted with a GAMESERVERTEXT to take over a bot in order to play.
      *<P>
-     * If <tt>isTakingOver</tt>, assume the game already started and also include any details
+     * If {@code isRejoinOrLoadgame}, assume the game already started and also include any details
      * about pieces, number of items, cards in hand, etc.
      *<P>
      * @param gameData Game to join
@@ -133,14 +134,16 @@ public abstract class GameHandler
      * @param isReset  Game is a board-reset of an existing game.  This is always false when
      *                 called from SOCServer instead of from inside the GameHandler.
      *                 Not all game types may be reset.
-     * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *                      is defunct because of a network problem.
-     *                      If <tt>isTakingOver</tt>, don't send anything to other players.
-     *
+     * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
+     * @param isRejoinOrLoadgame  If true, client is re-joining; {@code c} replaces an earlier connection which
+     *          is defunct/frozen because of a network problem. Also true when a human player joins a
+     *          game being reloaded and has the same nickname as a player there.
+     *          If {@code isRejoinOrLoadgame}, sends {@code c} their hand's private info for game in progress.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, java.util.Map)
      * @since 1.1.00
      */
-    public abstract void joinGame(SOCGame gameData, Connection c, boolean isReset, boolean isTakingOver);
+    public abstract void joinGame
+        (SOCGame gameData, Connection c, boolean isReset, boolean isLoading, boolean isRejoinOrLoadgame);
 
     /**
      * When player has just sat down at a seat, send them all the private information.
@@ -155,9 +158,13 @@ public abstract class GameHandler
      * @param ga     the game
      * @param c      the connection for the player
      * @param pn     which seat the player is taking
+     * @param isRejoinOrLoadgame  If true, client is re-joining; {@code c} replaces an earlier connection which
+     *          is defunct/frozen because of a network problem. Also true when a human player joins a
+     *          game being reloaded and has the same nickname as a player there.
      * @since 1.1.08
      */
-    public abstract void sitDown_sendPrivateInfo(SOCGame ga, Connection c, final int pn);
+    public abstract void sitDown_sendPrivateInfo
+        (SOCGame ga, Connection c, final int pn, final boolean isRejoinOrLoadgame);
 
     /**
      * Send all game members the current state of the game with a {@link SOCGameState} message.
@@ -189,6 +196,20 @@ public abstract class GameHandler
      * @param ga  the game
      */
     public abstract void startGame(SOCGame ga);
+
+    /**
+     * Announces this player's new trade offer to their game,
+     * or send that info to one client that's joining the game now.
+     * If player isn't currently offering, does nothing.
+     *<P>
+     * If announcing to entire game (not {@code toJoiningClient}),
+     * treats this as a new offer and calls {@link SOCServer#recordGameEvent(String, soc.message.SOCMessage)}.
+     *
+     * @param pl  Send this player's {@link SOCPlayer#getCurrentOffer()}, if any
+     * @param toJoiningClient  Null or a single client to send offer info to
+     * @since 2.4.00
+     */
+    public abstract void sendTradeOffer(SOCPlayer pl, Connection toJoiningClient);
 
     /**
      * The server's timer thread thinks this game is inactive because of a robot bug.
@@ -232,15 +253,16 @@ public abstract class GameHandler
      *           in case they are still connected and in other games.
      * @param hasReplacement  If true the leaving connection is a bot, and there's a waiting client who will be told
      *           next to sit down in this bot's seat, so that isn't really becoming vacant
+     * @param hasHumanReplacement  if true, {@code hasReplacement}'s client is human, not a bot
      * @return true if the game should be ended and deleted (does not have other observers or non-robot players,
-     *           and game's {@code isBotsOnly} flag is false).
+     *           not {@code hasHumanReplacement}, and game's {@code isBotsOnly} flag is false).
      *           <P>
      *           If {@code isBotsOnly} is false, and the game is now only robots and observers,
      *           game should end unless the "allow robots-only games" property is nonzero: Check
      *           {@link SOCServer#getConfigIntProperty(String, int) SOCServer.getConfigIntProperty}
      *           ({@link SOCServer#PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL}, 0).
      */
-    public abstract boolean leaveGame(SOCGame ga, Connection c, boolean hasReplacement);
+    public abstract boolean leaveGame(SOCGame ga, Connection c, boolean hasReplacement, boolean hasHumanReplacement);
 
     /**
      * When a human player has left an active game, or a game is starting and a

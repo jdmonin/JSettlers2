@@ -91,20 +91,20 @@ public class TestGameOptions
 
         // null map, sent to v3 client: no change
         assertEquals(3000, SOCGameOption.optionsMinimumVersion(null, true));
-        String ostr = SOCGameOption.packOptionsToString(null, false, 3000);
+        String ostr = SOCGameOption.packOptionsToString(null, false, false, 3000);
         assertFalse(ostr.contains("SBL="));
 
         // null map, sent to v2 client: add, set true
-        ostr = SOCGameOption.packOptionsToString(null, false, 2999);
+        ostr = SOCGameOption.packOptionsToString(null, false, false, 2999);
         assertTrue(ostr.contains("SBL=t"));
 
         // empty map, sent to v3 client: no change
         assertEquals(3000, SOCGameOption.optionsMinimumVersion(opts, true));
-        ostr = SOCGameOption.packOptionsToString(opts, false, 3000);
+        ostr = SOCGameOption.packOptionsToString(opts, false, false, 3000);
         assertFalse(ostr.contains("SBL="));
 
         // empty map, sent to v2 client: add, set true
-        ostr = SOCGameOption.packOptionsToString(opts, false, 2999);
+        ostr = SOCGameOption.packOptionsToString(opts, false, false, 2999);
         assertTrue(ostr.contains("SBL=t"));
 
         // map without SBL, sent to v3 client: no change
@@ -112,11 +112,11 @@ public class TestGameOptions
         optNT.setBoolValue(true);
         opts.put("NT", optNT);
         assertEquals(3000, SOCGameOption.optionsMinimumVersion(opts, true));
-        ostr = SOCGameOption.packOptionsToString(opts, false, 3000);
+        ostr = SOCGameOption.packOptionsToString(opts, false, false, 3000);
         assertFalse(ostr.contains("SBL="));
 
         // map without SBL, sent to v2 client: add, set true
-        ostr = SOCGameOption.packOptionsToString(opts, false, 2999);
+        ostr = SOCGameOption.packOptionsToString(opts, false, false, 2999);
         assertTrue(ostr.contains("SBL=t"));
 
         // map with SBL false, sent to v3 client: no change
@@ -124,21 +124,21 @@ public class TestGameOptions
         optSBL.setBoolValue(false);
         opts.put("SBL", optSBL);
         assertEquals(3000, SOCGameOption.optionsMinimumVersion(opts, true));
-        ostr = SOCGameOption.packOptionsToString(opts, false, 3000);
+        ostr = SOCGameOption.packOptionsToString(opts, false, false, 3000);
         assertTrue(ostr.contains("SBL=f"));
 
         // map with SBL false, sent to v2 client: set true
-        ostr = SOCGameOption.packOptionsToString(opts, false, 2999);
+        ostr = SOCGameOption.packOptionsToString(opts, false, false, 2999);
         assertTrue(ostr.contains("SBL=t"));
 
         // map with SBL true, sent to v3 client: no change
         optSBL.setBoolValue(true);
         assertEquals(SOCBoardLarge.MIN_VERSION, SOCGameOption.optionsMinimumVersion(opts, true));
-        ostr = SOCGameOption.packOptionsToString(opts, false, 3000);
+        ostr = SOCGameOption.packOptionsToString(opts, false, false, 3000);
         assertTrue(ostr.contains("SBL=t"));
 
         // map with SBL true, sent to v2 client: no change
-        ostr = SOCGameOption.packOptionsToString(opts, false, 2999);
+        ostr = SOCGameOption.packOptionsToString(opts, false, false, 2999);
         assertTrue(ostr.contains("SBL=t"));
     }
 

@@ -1,0 +1,574 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2400,
+  "gameMinVersion": 2000,
+  "gameName": "testgame-sea-closedships",
+  "comments": "Test some open and closed ship routes, and a long duration that server should auto-extend once",
+  "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d4,RD\u003df,SBL\u003dt",
+  "gameDurationSeconds": 6531,
+  "gameState": 20,
+  "oldGameState": 20,
+  "currentDice": 7,
+  "elements": {
+    "ROUND_COUNT": 14,
+    "FIRST_PLAYER": 1,
+    "CURRENT_PLAYER": 0,
+    "LARGEST_ARMY_PLAYER": -1,
+    "LONGEST_ROAD_PLAYER": 0
+  },
+  "devCardDeck": [
+    "TEMPLE",
+    "DISC",
+    "KNIGHT",
+    "MARKET",
+    "KNIGHT",
+    "KNIGHT",
+    "ROADS",
+    "KNIGHT",
+    "MONO",
+    "UNIV",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "CAP",
+    "CHAPEL",
+    "MONO",
+    "KNIGHT",
+    "ROADS"
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": true,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "shipsPlacedThisTurn": [
+    3074
+  ],
+  "boardInfo": {
+    "layout2": {
+      "game": "testgame-sea-closedships",
+      "boardEncodingFormat": 3,
+      "layoutParts": {
+        "RH": 2312,
+        "PH": 2316,
+        "PL": [
+            0,  0,    1,    3,    0,    5,    0,    2,   4,    0,    3,    4,    5,
+            3,  6,  521, 1291, 2057, 2566, 2563, 1794, 770, 1550, 2575, 3596, 3590,
+            3,  4,    4,    5,    6,    6,    1,    2,   2,    6,    4,    6,    3
+        ],
+        "LH": [
+          260,   4,  5,
+          262,   1,  2,
+          264,   3,  6,
+          270,   4,  8,
+          771,   5, 10,
+          773,   3,  9,
+          775,   3,  4,
+          777,   1,  3,
+          781,   2,  9,
+          783,   2,  5,
+          1282,  3,  8,
+          1284,  6,  0,
+          1286,  2, 11,
+          1288,  4,  5,
+          1290,  5,  8,
+          1294,  7, 10,
+          1296,  3,  5,
+          1795,  4,  4,
+          1797,  1,  3,
+          1799,  5,  6,
+          1801,  2, 10,
+          2308,  4, 11,
+          2310,  2, 12,
+          2312,  5,  9,
+          2829,  1,  6,
+          2831,  3,  4,
+          2833,  7,  4,
+          3330,  4,  9,
+          3332,  5, 11,
+          3340,  1,  5,
+          3342,  6,  0,
+          3845,  2, 10,
+          3847,  5,  3
+        ],
+        "VS": [
+          2,
+          1
+        ]
+      },
+      "messageType": 1084
+    },
+    "playerPotentials": [
+      {
+        "game": "testgame-sea-closedships",
+        "playerNumber": 0,
+        "psNodes": [
+          1542
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 4,
+        "startingLandArea": 0,
+        "landAreasLegalNodes": [
+          null,
+          [
+            1032,
+            1033,
+            1034,
+            3,
+            1035,
+            4,
+            5,
+            6,
+            7,
+            8,
+            1025,
+            9,
+            1026,
+            1027,
+            1028,
+            1029,
+            1030,
+            1031,
+            2050,
+            2051,
+            2052,
+            2053,
+            2054,
+            2055,
+            2056,
+            2057,
+            2058,
+            516,
+            517,
+            518,
+            519,
+            1544,
+            1545,
+            514,
+            1546,
+            515,
+            1547,
+            1540,
+            1541,
+            1542,
+            1543,
+            520,
+            1537,
+            521,
+            1538,
+            522,
+            1539,
+            2564,
+            2565,
+            2566,
+            2567,
+            2563,
+            2568,
+            2569
+          ],
+          [
+            1549,
+            1550,
+            1551,
+            1036,
+            1037,
+            1038,
+            1039,
+            524,
+            525,
+            526,
+            527,
+            13,
+            14,
+            15,
+            528,
+            1041,
+            1040,
+            1553,
+            1552
+          ],
+          [
+            2577,
+            2576,
+            2578,
+            3089,
+            3088,
+            3090,
+            3596,
+            3597,
+            3598,
+            3599,
+            3083,
+            3084,
+            3085,
+            3086,
+            3595,
+            3087,
+            2572,
+            2573,
+            2574,
+            2575
+          ],
+          [
+            4101,
+            4100,
+            4103,
+            4102,
+            4104,
+            3592,
+            3588,
+            3073,
+            3589,
+            3074,
+            3590,
+            3591,
+            3075,
+            3076,
+            3585,
+            3077,
+            3586,
+            3587
+          ]
+        ],
+        "messageType": 1057
+      },
+      {
+        "game": "testgame-sea-closedships",
+        "playerNumber": 1,
+        "psNodes": [
+          2054
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testgame-sea-closedships",
+        "playerNumber": 2,
+        "psNodes": [
+          8,
+          526
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "testgame-sea-closedships",
+        "playerNumber": 3,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeatLocks": [
+    "UNLOCKED",
+    "CLEAR_ON_RESET",
+    "UNLOCKED",
+    "UNLOCKED"
+  ],
+  "playerSeats": [
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 6,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 1,
+        "sheep": 0,
+        "wheat": 3,
+        "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "ROADS": 8,
+        "NUMKNIGHTS": 1,
+        "SETTLEMENTS": 1,
+        "CITIES": 4,
+        "SHIPS": 10
+      },
+      "resRollStats": [
+        0,
+        0,
+        2,
+        10,
+        10,
+        0,
+        0
+      ],
+      "oldDevCards": [
+        "KNIGHT",
+        "DISC"
+      ],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1538
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1538
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1031
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1287
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1542
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1794
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2050
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2307
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 2563
+        },
+        {
+          "isClosed": true,
+          "pieceType": "SHIP",
+          "coord": 2562
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 2561
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2563
+        },
+        {
+          "isClosed": true,
+          "pieceType": "SHIP",
+          "coord": 2818
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 2305
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 3074
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 3074
+        }
+      ]
+    },
+    {
+      "name": "robot 4",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "ROADS": 11,
+        "NUMKNIGHTS": 0,
+        "SETTLEMENTS": 3,
+        "CITIES": 4,
+        "SHIPS": 15
+      },
+      "resRollStats": [
+        0,
+        0,
+        1,
+        0,
+        5,
+        5,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1544
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1800
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 2567
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2311
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2054
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1544
+        }
+      ]
+    },
+    {
+      "name": "robot 2",
+      "isSeatVacant": false,
+      "totalVP": 5,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 1,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 1,
+        "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "ROADS": 9,
+        "NUMKNIGHTS": 0,
+        "SETTLEMENTS": 2,
+        "CITIES": 3,
+        "SHIPS": 13
+      },
+      "resRollStats": [
+        0,
+        4,
+        2,
+        6,
+        5,
+        8,
+        1
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1033
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1033
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 521
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 265
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 8
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1034
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1035
+        },
+        {
+          "isClosed": true,
+          "pieceType": "SHIP",
+          "coord": 1035
+        },
+        {
+          "isClosed": true,
+          "pieceType": "SHIP",
+          "coord": 1036
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1037
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 782
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 1037
+        }
+      ]
+    },
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "ROADS": 15,
+        "NUMKNIGHTS": 0,
+        "SETTLEMENTS": 5,
+        "CITIES": 4,
+        "SHIPS": 15
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    }
+  ]
+}

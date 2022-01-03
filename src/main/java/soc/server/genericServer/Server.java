@@ -39,6 +39,7 @@ import java.util.Vector;
 
 import soc.debug.D; // JM
 import soc.message.SOCMessage;
+import soc.message.SOCMessageFromUnauthClient;
 import soc.server.SOCServer;
 
 
@@ -108,6 +109,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Main server socket: a TCP {@link NetServerSocket} or (in Practice mode) {@link StringServerSocket}.
      * Runs on port number {@link #port}, or {@link #strSocketName} in Practice mode.
      * @see #protoSS
+     * @since 1.1.00
      */
     SOCServerSocket ss;
 
@@ -208,6 +210,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *  Adding/removing/naming/versioning of connections synchronizes on this Vector.
      *  @see #conns
      *  @see SOCServer#limitedConns
+     *  @since 1.1.00
      */
     protected Vector<Connection> unnamedConns = new Vector<Connection>();
 
@@ -399,6 +402,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Minor init tasks from both constructors.
      * Set up the recurring schedule of {@link #cliVersionsConnected} here.
      * If <tt>{@link #error} != null</tt> already, do nothing.
+     * @since 1.1.06
      */
     private void initMisc()
     {
@@ -415,9 +419,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      * Before v1.2.00 this method was protected and took an Object, not String, for {@code connKey}.
      *
-     * @param connKey Case-sensitive client name key, from {@link Connection#getData()}; if that's null, returns null
-     * @return The connection with this name, or null if none
+     * @param connKey Case-sensitive client name key, from {@link Connection#getData()}; if null, returns null
+     * @return The connection with this name, or null if not found
      * @see #getConnection(String, boolean)
+     * @see SOCServer#getClientData(String)
+     * @see SOCServer#getRobotConnection(String)
+     * @since 1.1.00
      */
     public Connection getConnection(final String connKey)
     {
@@ -430,7 +437,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Given a connection's name key, return the connected client; optionally case-insensitive.
      * @param connKey Client name key, from {@link Connection#getData()}; if that's null, returns null
-     * @param isCaseSensitive  Use case-insensitive lookup for {@code connKey}?
+     * @param isCaseSensitive  Use case-sensitive lookup for {@code connKey}?
+     *     If case-insensitive, calls {@link String#toLowerCase(Locale) connKey.toLowercase}({@link Locale#US}).
      * @return The connection with this name, or null if none
      * @see #getConnection(String)
      * @since 1.2.00
@@ -448,6 +456,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         else
             return null;
     }
+
     /**
      * @return the list of named connections: {@link Connection}s where {@link Connection#getData()}
      *         is not null
@@ -752,6 +761,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @return true if processed here, false if this message should be
      *     queued up and processed as normal by
      *     {@link Server.InboundMessageDispatcher#dispatch(SOCMessage, Connection)}.
+     * @since 1.1.06
      */
     public boolean processFirstCommand(SOCMessage mes, Connection con)
     {
@@ -805,6 +815,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #addConnection(Connection)
      * @see #newConnection2(Connection)
      * @see #nameConnection(Connection, boolean)
+     * @since 1.1.00
      */
     protected boolean newConnection1(Connection c) { return true; }
 
@@ -816,6 +827,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      *  This method is called within a per-client thread.
      *  You can send to client, but can't yet receive messages from them.
+     *
+     * @since 1.1.00
      */
     protected void newConnection2(Connection c) {}
 
@@ -872,6 +885,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
      * @param c Connection to remove; will call its disconnect() method and remove it from the server state.
+     *     {@link Connection#getData()} may be null.
      * @param doCleanup  If true, will also call {@link #removeConnectionCleanup(Connection)}.
      */
     public void removeConnection(final Connection c, final boolean doCleanup)
@@ -1032,6 +1046,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *          a connection with this name (case-insensitive) and {@code ! isReplacing}
      * @see #addConnection(Connection)
      * @see #getConnection(String, boolean)
+     * @since 1.1.00
      */
     public void nameConnection(Connection c, final boolean isReplacing)
         throws IllegalArgumentException
@@ -1400,9 +1415,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @param vmin Minimum version, as returned by {@link Connection#getVersion()},
      *             or {@link Integer#MIN_VALUE}
      * @param vmax Maximum version, or {@link Integer#MAX_VALUE}
-     * @since 1.1.06
      * @see #broadcast(SOCMessage)
      * @throws IllegalArgumentException if {@code m} is {@code null}
+     * @since 1.1.06
      */
     public synchronized void broadcastToVers(SOCMessage m, final int vmin, final int vmax)
         throws IllegalArgumentException
@@ -1467,6 +1482,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          *
          * @param mes Message from the client. Will never be {@code null}.
          *    Has been parsed by {@link SOCMessage#toMsg(String)}.
+         *    Should not dispatch unless <tt>{@link Connection#getData() con.getData()} != null</tt>
+         *    or {@code mes} implements {@link SOCMessageFromUnauthClient}.
          * @param con Connection (client) sending this message. Will never be {@code null}.
          * @throws IllegalStateException if not ready to dispatch because some
          *    initialization method needs to be called first;

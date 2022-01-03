@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012-2015,2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2015,2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +36,9 @@ import java.util.Stack;
  */
 public class SOCPossibleSettlement extends SOCPossiblePiece
 {
+    /** Last structural change v2.0.00 (2000) */
+    private static final long serialVersionUID = 2000L;
+
     protected List<SOCPossibleRoad> necessaryRoads;
     protected List<SOCPossibleSettlement> conflicts;
 
@@ -113,7 +116,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      * See {@link #setRoadPath(Stack)} for details.
      * @return the shortest road path to this settlement
      */
-    Stack<SOCPossibleRoad> getRoadPath()
+    public Stack<SOCPossibleRoad> getRoadPath()
     {
         return roadPath;
     }
@@ -127,7 +130,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      * and iteratively simulate building other things after picking such a road.
      * @param path  a stack containing the shortest road path to this settlement
      */
-    void setRoadPath(Stack<SOCPossibleRoad> path)
+    public void setRoadPath(Stack<SOCPossibleRoad> path)
     {
         roadPath = path;
     }

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -74,6 +74,7 @@ import javax.swing.SwingConstants;
     /**
      * Height of each label ({@link #msg}, {@link #msg2}). Should be {@link #oneLineHeight} + insets.
      * 0 if unknown.
+     * @since 1.1.00
      */
     private int msgHeight;
 

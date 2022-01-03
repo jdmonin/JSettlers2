@@ -19,6 +19,9 @@
  **/
 package soc.util;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -81,6 +84,113 @@ public abstract class I18n
             sb.append(strings.get("i18n.listitems.finalitem", items.get(L-1)));  // "and {0}"
             return sb.toString();
         }
+    }
+
+    /**
+     * Precision constant for {@link #numTo3SigFigs(BigDecimal, String)}.
+     * @since 2.3.00
+     */
+    private static final MathContext PRECISION_3_SIG_FIGS = new MathContext(3, RoundingMode.HALF_UP);
+
+    /**
+     * For {@link #bytesToHumanUnits(long)}, turn the number and unit into a string.
+     * See that method and its unit tests for examples of output format.
+     * @param amount  Amount to represent, such as 12.345; assumes non-negative
+     * @param unit  Unit of measurement to append: "MB", "GB", etc
+     * @return If amount >= 100, returns amount and unit.
+     *     Otherwise returns amount to 3 significant figures + unit.
+     * @since 2.3.00
+     */
+    private static String numTo3SigFigs(final BigDecimal amount, final String unit)
+    {
+        // TODO i18n: require locale/SOCStringManager param, to localize decimal point
+
+        final long wholeAmount = amount.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+        StringBuilder sb = new StringBuilder();
+        if (wholeAmount >= 100)
+        {
+            sb.append(wholeAmount);
+        } else {
+            sb.append(amount.round(PRECISION_3_SIG_FIGS).toPlainString());
+
+            if ((wholeAmount < 10) && (sb.lastIndexOf(".") == (sb.length() - 2)))
+                // fix "2.0" -> "2.00"
+                sb.append('0');
+        }
+
+        sb.append(' ');
+        sb.append(unit);
+        return sb.toString();
+    }
+
+    /**
+     * 1 MB constant for {@link #bytesToHumanUnits(long)}: 1024 * 1024.
+     * @since 2.3.00
+     */
+    private static final int BYTES_1_MB = 1024 * 1024;
+
+    /**
+     * 1 GB constant for {@link #bytesToHumanUnits(long)}: 1024 * {@link #BYTES_1_MB}.
+     * Is long to avoid conversion when comparing to method's input.
+     * @since 2.3.00
+     */
+    private static final long BYTES_1_GB = BYTES_1_MB * 1024;
+
+    /**
+     * For display, return bytes in "human-readable" units: MB or GB, to 3 significant figures
+     * (23.7 MB, 123 MB, 2.10 GB). This method uses binary kilobytes of 1024, not decimal 1000.
+     *<P>
+     * Because it currently has one specific use, it doesn't work with KB or TB
+     * or the user's locale, but always reports as MB or GB. Later versions can expand that if needed.
+     *
+     * @param bytes  Number of bytes to transform into "human-readable" units; non-negative
+     * @return  String with a number of MB or GB, with at least 2 decimal digits
+     * @throws IllegalArgumentException if {@code bytes} &lt; 0
+     * @since 2.3.00
+     */
+    public static String bytesToHumanUnits(final long bytes)
+        throws IllegalArgumentException
+    {
+        if (bytes < 0)
+            throw new IllegalArgumentException("bytes < 0");
+
+        return
+            (bytes >= BYTES_1_GB)
+            ? numTo3SigFigs(BigDecimal.valueOf(bytes / (double) BYTES_1_GB), "GB")
+            : numTo3SigFigs(BigDecimal.valueOf(bytes / (double) BYTES_1_MB), "MB");
+
+        // TODO i18n: require locale/SOCStringManager param, to localize decimal point
+    }
+
+    /**
+     * Localize a duration as either hours:minutes:seconds, leading with days if needed.
+     * @param millis Duration in milliseconds
+     * @param strings  StringManager to retrieve localized formatting
+     * @return localized equivalent of duration, like "1:03:52" or "2 days 1:03:52"
+     * @throws IllegalArgumentException if {@code millis} &lt; 0
+     * @throws NullPointerException if {@code strings} is null
+     * @since 2.3.00
+     */
+    public static String durationToDaysHoursMinutesSeconds(final long millis, final SOCStringManager strings)
+        throws IllegalArgumentException, NullPointerException
+    {
+        if (millis < 0)
+            throw new IllegalArgumentException("negative");
+
+        final long hours = millis / (60 * 60 * 1000),
+            hoursAsMillis = hours * 60 * 60 * 1000,
+            minutes = (millis - hoursAsMillis) / (60 * 1000),
+            seconds = (millis - hoursAsMillis - (minutes * 60 * 1000)) / 1000;
+
+        if (hours < 24)
+        {
+            return strings.get("i18n.duration.hours_min_sec", hours, minutes, seconds);
+        } else {
+            final int days = (int) (hours / 24),
+                      hr   = (int) (hours - (days * 24L));
+            return strings.get("i18n.duration.days_hours_min_sec", days, hr, minutes, seconds);
+        }
+
     }
 
 }

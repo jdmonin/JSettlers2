@@ -196,6 +196,21 @@ public class SOCPlayerClient
     public static final String PREF_UI_SCALE_FORCE = "uiScaleForce";
 
     /**
+     * Integer persistent {@link Preferences} key for remembering preferred face icon ID.
+     * Default value is 1 (default face ID from previous versions).
+     * See {@link SOCPlayer#setFaceId(int)} for face ID value range.
+     *<UL>
+     * <LI> Positive: Remember this face ID, use it by default when starting client.
+     *      Previous versions always defaulted to {@link SOCPlayer#FIRST_HUMAN_FACE_ID} (1).
+     * <LI> Negative or 0: Don't use this remembered value as default face ID.
+     *</UL>
+     *
+     * @see UserPreferences#getPref(String, int)
+     * @since 2.4.00
+     */
+    public static final String PREF_FACE_ICON = "faceIcon";
+
+    /**
      * i18n text strings in our {@link #cliLocale}.
      * @since 2.0.00
      */
@@ -284,6 +299,7 @@ public class SOCPlayerClient
      *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if version unknown.
      *  A local practice server's version is always {@link Version#versionNumber()}, not {@code sVersion},
      *  so always check {@link SOCGame#isPractice} before checking this field.
+     * @since 1.1.00
      */
     protected int sVersion;
 
@@ -321,8 +337,19 @@ public class SOCPlayerClient
     public final String DEFAULT_PRACTICE_GAMENAME;
 
     /**
-     * the nickname; null until validated and set by
-     * {@link SwingMainDisplay#getValidNickname(boolean) getValidNickname(true)}
+     * Client's nickname as a player in practice games; null until validated and set by
+     * {@link SwingMainDisplay#getValidNickname(boolean) SwingMainDisplay.getValidNickname(false)}.
+     * Returned by {@link #getNickname(boolean) getNickname(true)}.
+     * @see #nickname
+     * @since 2.3.00
+     */
+    protected String practiceNickname = null;
+
+    /**
+     * Client nickname as a player; null until validated and set by
+     * {@link SwingMainDisplay#getValidNickname(boolean) SwingMainDisplay.getValidNickname(false)}.
+     * Returned by {@link #getNickname(boolean) getNickname(false)}.
+     * @see #practiceNickname
      */
     protected String nickname = null;
 
@@ -357,12 +384,15 @@ public class SOCPlayerClient
     boolean debugTraffic;
 
     /**
-     * face ID chosen most recently (for use in new games)
+     * Face icon ID chosen most recently (for use in new games) for {@link SOCPlayer#setFaceId(int)};
+     * always >= {@link SOCPlayer#FIRST_HUMAN_FACE_ID}. Persisted to client pref {@link #PREF_FACE_ICON}
+     * by {@link SOCPlayerInterface} window listener's {@code windowClosed(..)}.
+     * @since 1.1.00
      */
     protected int lastFaceChange;
 
     /**
-     * The games we're currently playing.
+     * All the games we're currently playing. Includes networked or hosted games and those on practice server.
      * Accessed from GUI thread and network {@link MessageHandler} thread.
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
@@ -433,7 +463,11 @@ public class SOCPlayerClient
     public SOCPlayerClient()
     {
         gotPassword = false;
-        lastFaceChange = 1;  // Default human face
+
+        int id = UserPreferences.getPref(PREF_FACE_ICON, SOCPlayer.FIRST_HUMAN_FACE_ID);
+        if (id <= 0)
+            id = SOCPlayer.FIRST_HUMAN_FACE_ID;  // use default if not remembering
+        lastFaceChange = id;
 
         if (null != System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_TRAFFIC))
             debugTraffic = true;  // set flag if debug prop has any value at all
@@ -491,6 +525,7 @@ public class SOCPlayerClient
      * @param cport Port number to connect to
      * @param cuser User nickname
      * @param cpass User optional password
+     * @since 1.1.00
      */
     public void connect(final String chost, final int cport, final String cuser, final String cpass)
     {
@@ -508,12 +543,14 @@ public class SOCPlayerClient
     }
 
     /**
-     * @return the nickname of this user
-     * @see SwingMainDisplay#getValidNickname(boolean)
+     * Get the client user's nickname used on the remote/TCP server or practice server, if set.
+     * @param forPractice  If true return nickname for practice games, not for the remote server
+     * @return the nickname of this user, or {@code null}
+     *     if {@link SwingMainDisplay#getValidNickname(boolean)} hasn't been called
      */
-    public String getNickname()
+    public String getNickname(final boolean forPractice)
     {
-        return nickname;
+        return (forPractice) ? practiceNickname : nickname;
     }
 
     /**
@@ -781,7 +818,7 @@ public class SOCPlayerClient
     public void leaveChannel(String ch)
     {
         mainDisplay.channelLeft(ch);
-        net.putNet(SOCLeaveChannel.toCmd(nickname, "-", ch));
+        net.putNet(SOCLeaveChannel.toCmd("-", "-", ch));
     }
 
     /**

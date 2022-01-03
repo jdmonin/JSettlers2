@@ -23,7 +23,7 @@ package soc.server.database;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
-import soc.server.SOCServer;  // solely for javadocs and ROBOT_PARAMS_*
+import soc.server.SOCServer;  // solely for javadocs, ROBOT_PARAMS_*, and getSettingsFormatted callback
 import soc.util.IntPair;
 import soc.util.SOCRobotParameters;
 
@@ -102,7 +102,7 @@ import java.util.concurrent.Executors;
  *<H3>Settings:</H3>
  * When using {@link #SCHEMA_VERSION_1200} and above, the DB has a {@code settings} table to
  * store things like {@link #SETTING_BCRYPT_WORK__FACTOR}. See {@link #checkSettings(boolean, boolean)},
- * {@link #getSettingsFormatted()}, and {@link #PROP_JSETTLERS_DB_SETTINGS}.
+ * {@link #getSettingsFormatted(SOCServer)}, and {@link #PROP_JSETTLERS_DB_SETTINGS}.
  *
  *<H3>Password Hashing:</H3>
  * When using {@link #SCHEMA_VERSION_1200} and above, user account passwords are hashed
@@ -212,7 +212,7 @@ public class SOCDBHelper
 
     /**
      * Property <tt>jsettlers.db.save.games</tt> to ask to save
-     * all game results in the database.
+     * all game results and scores in the database.
      * Set this to 1 or Y to activate this feature.
      *<P>
      * If not set, but DB schema is new enough to save users' win-loss counts
@@ -1346,7 +1346,7 @@ public class SOCDBHelper
      *     Set this when running the initial DB setup script.
      * @throws SQLException  if any unexpected error occurs
      * @throws DBSettingMismatchException  if any value mismatches found in settings table versus props
-     * @see #getSettingsFormatted()
+     * @see #getSettingsFormatted(SOCServer)
      * @since 1.2.00
      */
     public static final void checkSettings(boolean checkAll, final boolean writeIfNeeded)
@@ -1954,7 +1954,7 @@ public class SOCDBHelper
      * User win-loss records require schema version &gt;= {@link SOCDBHelper#SCHEMA_VERSION_2000}.
      *
      * @param ga  Game that's just completed
-     * @param gameLengthSeconds  Duration of game
+     * @param gameLengthSeconds  Duration of game, from {@link SOCGame#getDurationSeconds()}
      * @param winLossOnly  If true don't store game details, only update users' win-loss counts.
      *     Caller should negate value of {@link #PROP_JSETTLERS_DB_SAVE_GAMES} to set this parameter.
      *
@@ -2004,7 +2004,7 @@ public class SOCDBHelper
                 final String gaName = ga.getName();
                 final long startTimeMillis = ga.getStartTime().getTime();
                 final Map<String, SOCGameOption> opts = ga.getGameOptions();
-                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false);
+                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false, true);
 
                 if (schemaVersion >= SCHEMA_VERSION_2000)
                 {
@@ -2295,34 +2295,14 @@ public class SOCDBHelper
 
     /**
      * Get this robot's specialized parameters from the database, if it has an entry there.
-     * Optionally, return defaults if not found or if no database: Default bot params are
-     * {@link SOCServer#ROBOT_PARAMS_SMARTER} if the robot name starts with "robot "
-     * or {@link SOCServer#ROBOT_PARAMS_DEFAULT} otherwise (starts with "droid ").
-     * This matches the bot names generated in {@link SOCServer#setupLocalRobots(int, int)}.
+     * If you need default params if bot not found or no database,
+     * call {@link SOCServer#getRobotParameters(String)} instead.
      *
      * @param robotName Name of robot for db lookup
-     * @param useDefaults  If true, return the server's default parameters if {@code robotName} not in the table
-     *    or if a database isn't in use.
-     * @return null if robotName not in database, or if db is empty and robotparams table doesn't exist;
-     *    if {@code useDefaults}, will return the server default parameters instead of {@code null}.
+     * @return null if robotName not in database, or if db is empty and robotparams table doesn't exist
      * @throws SQLException if unexpected problem retrieving the params
      */
-    public static final SOCRobotParameters retrieveRobotParams(final String robotName, final boolean useDefaults)
-        throws SQLException
-    {
-        SOCRobotParameters params = retrieveRobotParams(robotName);
-
-        if ((params == null) && useDefaults)
-            if (robotName.startsWith("robot "))
-                params = SOCServer.ROBOT_PARAMS_SMARTER;  // uses SOCRobotDM.SMART_STRATEGY
-            else  // startsWith("droid ")
-                params = SOCServer.ROBOT_PARAMS_DEFAULT;  // uses SOCRobotDM.FAST_STRATEGY
-
-        return params;
-    }
-
-    /** DB query portion (no defaults) of {@link #retrieveRobotParams(String, boolean)}. */
-    private static SOCRobotParameters retrieveRobotParams(final String robotName)
+    public static final SOCRobotParameters retrieveRobotParams(final String robotName)
         throws SQLException
     {
         SOCRobotParameters robotParams = null;
@@ -2407,13 +2387,15 @@ public class SOCDBHelper
      * formatted for printing for an admin user: friendly names and values, not technical name keys.
      * Includes all known settings, such as {@link #SETTING_BCRYPT_WORK__FACTOR}.
      * Also includes JDBC version, {@link DatabaseMetaData#supportsGetGeneratedKeys()}, etc.
+     *
+     * @param srv  Server, solely to call {@link SOCServer#getConfigBoolProperty(String, boolean)}
      * @return Formatted list of DB settings. Always an even number of items, a name and then a value
      *     for each setting. Some values might be {@code null}.
      * @throws IllegalStateException  if not connected to DB (! {@link #isInitialized()})
      * @see #checkSettings(boolean, boolean)
      * @since 1.2.00
      */
-    public static List<String> getSettingsFormatted()
+    public static List<String> getSettingsFormatted(final SOCServer srv)
     {
         if (! isInitialized())
             throw new IllegalStateException();
@@ -2462,6 +2444,10 @@ public class SOCDBHelper
             li.add("Error retrieving DB version info");
             li.add(e.getMessage());  // might be null
         }
+
+        li.add("Game results saved in DB?");
+        li.add(Boolean.toString
+            (srv.getConfigBoolProperty(SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false)));
 
         return li;
     }
@@ -2746,8 +2732,9 @@ public class SOCDBHelper
      * Used by {@link #saveGameScores(SOCGame, int, boolean)}.
      *
      * @param startTimeMillis  Game start time, from {@link SOCGame#getStartTime()}{@link java.util.Date#getTime() .getTime()}
+     * @param gameLengthSeconds  Game length, from {@link SOCGame#getDurationSeconds()}
      * @param optsStr  Null or game options, from {@link SOCGame#getGameOptions()}
-     *     passed to {@link SOCGameOption#packOptionsToString(Map, boolean)}
+     *     passed to {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}
      * @param scen  Scenario name key from game option {@code "SC"}, or {@code null} if none
      * @return  Newly inserted row's primary key ID
      * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails

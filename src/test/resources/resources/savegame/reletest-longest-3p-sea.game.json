@@ -1,0 +1,716 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2400,
+  "gameMinVersion": 2000,
+  "gameName": "longestroute-3p-sea",
+  "comments": "pn 1 robot 4 has longest road. After either other player breaks that road by building a settlement, pn 2 robot 2's route will be longer only if calculation correctly includes ships",
+  "author": "Jeremy D Monin  2020",
+  "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d3,RD\u003df,SBL\u003dt",
+  "gameDurationSeconds": 390,
+  "gameState": 20,
+  "oldGameState": 20,
+  "currentDice": 10,
+  "elements": {
+    "FIRST_PLAYER": 1,
+    "LARGEST_ARMY_PLAYER": -1,
+    "CURRENT_PLAYER": 3,
+    "LONGEST_ROAD_PLAYER": 1,
+    "ROUND_COUNT": 1
+  },
+  "devCardDeck": [
+    "DISC",
+    "KNIGHT",
+    "CAP",
+    "DISC",
+    "KNIGHT",
+    "MONO",
+    "MONO",
+    "UNIV",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "MARKET",
+    "KNIGHT",
+    "ROADS",
+    "KNIGHT",
+    "TEMPLE",
+    "KNIGHT",
+    "CHAPEL",
+    "ROADS",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT"
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "shipsPlacedThisTurn": [
+    2563,
+    2307,
+    1035,
+    1036,
+    1037
+  ],
+  "boardInfo": {
+    "layout2": {
+      "game": "longestroute-3p-sea",
+      "boardEncodingFormat": 3,
+      "layoutParts": {
+        "RH": 1284,
+        "LH": [
+          1795,
+          3,
+          8,
+          3843,
+          6,
+          0,
+          2308,
+          4,
+          4,
+          1284,
+          6,
+          0,
+          773,
+          1,
+          5,
+          2821,
+          2,
+          11,
+          1797,
+          5,
+          3,
+          3845,
+          3,
+          10,
+          1286,
+          3,
+          10,
+          2310,
+          2,
+          6,
+          4358,
+          4,
+          11,
+          775,
+          2,
+          2,
+          2823,
+          3,
+          12,
+          1799,
+          1,
+          11,
+          1288,
+          3,
+          9,
+          2312,
+          5,
+          5,
+          4360,
+          7,
+          4,
+          777,
+          1,
+          6,
+          2825,
+          5,
+          9,
+          1801,
+          4,
+          4,
+          1290,
+          5,
+          3,
+          2314,
+          4,
+          10,
+          1803,
+          4,
+          8,
+          3853,
+          2,
+          3,
+          1294,
+          4,
+          6,
+          3342,
+          1,
+          9,
+          783,
+          5,
+          5,
+          1807,
+          2,
+          4,
+          3855,
+          3,
+          9,
+          1296,
+          5,
+          5,
+          3344,
+          7,
+          5,
+          1809,
+          1,
+          10,
+          3346,
+          2,
+          8
+        ],
+        "PL": [
+          5,
+          1,
+          0,
+          0,
+          4,
+          0,
+          2,
+          3,
+          0,
+          4,
+          0,
+          3,
+          5,
+          516,
+          519,
+          1034,
+          1804,
+          2570,
+          3079,
+          3076,
+          2307,
+          1283,
+          2063,
+          3088,
+          4109,
+          4103,
+          3,
+          4,
+          4,
+          5,
+          6,
+          6,
+          1,
+          2,
+          2,
+          6,
+          4,
+          6,
+          3
+        ],
+        "VS": [
+          -2,
+          1,
+          3,
+          0
+        ]
+      },
+      "messageType": 1084
+    },
+    "playerPotentials": [
+      {
+        "game": "longestroute-3p-sea",
+        "playerNumber": 0,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 4,
+        "startingLandArea": 0,
+        "landAreasLegalNodes": [
+          null,
+          [
+            2050,
+            1538,
+            2563,
+            2051,
+            1539,
+            1027,
+            1028,
+            516,
+            3076,
+            2564,
+            2052,
+            1540,
+            517,
+            1029,
+            2565,
+            3077,
+            2053,
+            1541,
+            518,
+            1030,
+            3078,
+            2566,
+            1542,
+            2054,
+            519,
+            1031,
+            2567,
+            3079,
+            1543,
+            2055,
+            520,
+            1032,
+            3080,
+            2568,
+            1544,
+            2056,
+            521,
+            1033,
+            1545,
+            2569,
+            2057,
+            3081,
+            522,
+            1034,
+            1546,
+            2058,
+            2570,
+            3082,
+            1035,
+            1547,
+            2059,
+            2571,
+            1548,
+            2060
+          ],
+          [
+            1549,
+            1037,
+            1038,
+            526,
+            1550,
+            2062,
+            527,
+            1039,
+            1551,
+            2063,
+            528,
+            1040,
+            1552,
+            2064,
+            1041,
+            1553,
+            2065,
+            1554,
+            2066
+          ],
+          [
+            4108,
+            3596,
+            3597,
+            3085,
+            4109,
+            3086,
+            3598,
+            4110,
+            3087,
+            3599,
+            4111,
+            3088,
+            3600,
+            4112,
+            3089,
+            3601,
+            3090,
+            3602,
+            3091,
+            3603
+          ],
+          [
+            4098,
+            3586,
+            3587,
+            4099,
+            3588,
+            4100,
+            3589,
+            4101,
+            4613,
+            3590,
+            4102,
+            4614,
+            4103,
+            4615,
+            4104,
+            4616,
+            4105,
+            4617
+          ]
+        ],
+        "messageType": 1057
+      },
+      {
+        "game": "longestroute-3p-sea",
+        "playerNumber": 1,
+        "psNodes": [
+          2566,
+          2055,
+          2567,
+          2056,
+          2571,
+          1548,
+          2060
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "longestroute-3p-sea",
+        "playerNumber": 2,
+        "psNodes": [
+          1542,
+          2055,
+          1037,
+          1038
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "longestroute-3p-sea",
+        "playerNumber": 3,
+        "psNodes": [
+          2567
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeatLocks": [
+    "LOCKED",
+    "UNLOCKED",
+    "UNLOCKED",
+    "UNLOCKED"
+  ],
+  "playerSeats": [
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "SETTLEMENTS": 5,
+        "SHIPS": 15,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 15
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "robot 4",
+      "isSeatVacant": false,
+      "totalVP": 5,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 4,
+        "wood": 0
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "SETTLEMENTS": 2,
+        "SHIPS": 13,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 1
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 2051
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2051
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 2058
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1802
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2057
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2056
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2055
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2311
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2566
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2565
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2564
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 2564
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 2563,
+          "isClosed": true
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 2307,
+          "isClosed": true
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1546
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1547
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1804
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2059
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2315
+        }
+      ]
+    },
+    {
+      "name": "robot 2",
+      "isSeatVacant": false,
+      "totalVP": 8,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 1,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 1,
+        "wood": 1
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "SETTLEMENTS": 5,
+        "SHIPS": 12,
+        "NUMKNIGHTS": 0,
+        "CITIES": 0,
+        "ROADS": 6
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "ROAD",
+          "coord": 2053
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1032
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2054
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1033
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1034
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 1035
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1031
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1287
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1542
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1798
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 1035
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 1033
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 1031
+        },
+        {
+          "pieceType": "CITY",
+          "coord": 2053
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 1036
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 1037
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 2,
+      "resources": {
+        "clay": 2,
+        "ore": 0,
+        "sheep": 1,
+        "wheat": 2,
+        "wood": 4
+      },
+      "earlyElements": {
+        "STARTING_LANDAREAS": 1
+      },
+      "elements": {
+        "SETTLEMENTS": 3,
+        "SHIPS": 15,
+        "NUMKNIGHTS": 0,
+        "CITIES": 4,
+        "ROADS": 11
+      },
+      "resRollStats": [
+        0,
+        2,
+        0,
+        1,
+        1,
+        2,
+        0
+      ],
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 1029
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 1285
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 2569
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2569
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2568
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 2567
+        }
+      ]
+    }
+  ]
+}

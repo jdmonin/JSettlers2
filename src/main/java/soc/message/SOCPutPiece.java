@@ -43,11 +43,15 @@ import soc.proto.Message;
  * to the game along with the new {@link SOCGameState}. Otherwise server responds with an explanatory
  * {@link SOCGameServerText} and, if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link SOCGameState} and then a {@link SOCCancelBuildRequest}.
+ *<BR>
+ * If PutPiece leads to Longest Route player changing, server sends that
+ * after {@code SOCPlayerElement}s before {@code SOCGameState}:
+ * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER}).
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@link #getPlayerNumber()} is -1 in this message.
  *<P>
- * See also {@link SOCMovePiece}. The messages similar but opposite to this one
+ * See also {@link SOCMovePiece} and {@link SOCDebugFreePlace}. Messages similar but opposite to this one
  * are {@link SOCCancelBuildRequest} and the very-limited {@link SOCRemovePiece}.
  *<P>
  * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces

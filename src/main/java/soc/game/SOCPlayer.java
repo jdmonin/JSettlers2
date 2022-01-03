@@ -3,6 +3,7 @@
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,7 +51,7 @@ import java.util.Vector;
  * At the start of each player's turn, {@link SOCGame#updateAtTurn()} will call {@link SOCPlayer#updateAtTurn()},
  * then call the current player's {@link #updateAtOurTurn()}.
  *<P>
- * The player's hand holds resource cards, unplayed building pieces, and an inventory of development cards
+ * The player's hand holds resource cards, unplayed building pieces, and their {@link SOCInventory} of development cards
  * and sometimes scenario-specific items.
  *<P>
  * For more information about the "legal" and "potential" road/settlement/city terms,
@@ -115,6 +116,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public static final int SHIP_COUNT = 15;
 
     /**
+     * First/default/lowest-numbered human face icon number (1) for {@link #setFaceId(int)}.
+     * @since 2.4.00
+     */
+    public static final int FIRST_HUMAN_FACE_ID = 1;
+
+    /**
      * If a robot player's turn must be ended this many times,
      * consider it "stubborn" and give it less time to act on its own
      * in future turns. Default is 2.
@@ -160,6 +167,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * a list of this player's pieces in play
      * (does not include any {@link #fortress}).
+     * @see #getPieces()
      */
     private Vector<SOCPlayingPiece> pieces;
 
@@ -282,6 +290,27 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int numKnights;
 
     /**
+     * How many Road Building cards ({@link SOCDevCardConstants#ROADS}) this player has played.
+     * @see #updateDevCardsPlayed(int)
+     * @since 2.4.10
+     */
+    public int numRBCards = 0;
+
+    /**
+     * How many Discovery/Year of Plenty cards ({@link SOCDevCardConstants#DISC}) this player has played.
+     * @see #updateDevCardsPlayed(int)
+     * @since 2.4.10
+     */
+    public int numDISCCards = 0;
+
+    /**
+     * How many Monopoly cards ({@link SOCDevCardConstants#MONO}) this player has played.
+     * @see #updateDevCardsPlayed(int)
+     * @since 2.4.10
+     */
+    public int numMONOCards = 0;
+
+    /**
      * the number of victory points for settlements and cities
      */
     private int buildingVP;
@@ -302,6 +331,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * This is filled at the server (because it has the text strings) when
      * {@link SOCGame#gameEventListener} != null, and sent out to clients.
      * @see #addSpecialVPInfo(int, String)
+     * @since 2.0.00
      */
     private ArrayList<SpecialVPInfo> svpInfo;
 
@@ -310,6 +340,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * or 0 if no score has been forced.
      *
      * @see #forceFinalVP(int)
+     * @since 1.1.00
      */
     private int finalTotalVP;
 
@@ -599,7 +630,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean builtInRobotFlag;
 
     /**
-     * which face image this player is using
+     * Which face image this player is using.
+     * See {@link #getFaceId()} for details.
      */
     private int faceId;
 
@@ -703,6 +735,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         buildingVP = player.buildingVP;
         specialVP = player.specialVP;
         finalTotalVP = 0;
+        numRBCards = player.numRBCards;
+        numDISCCards = player.numDISCCards;
+        numMONOCards = player.numMONOCards;
         playedDevCard = player.playedDevCard;
         needToDiscard = player.needToDiscard;
         needToPickGoldHexResources = player.needToPickGoldHexResources;
@@ -813,7 +848,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         hasSpecialBuiltThisTurn = false;
         robotFlag = false;
         builtInRobotFlag = false;
-        faceId = 1;
+        faceId = FIRST_HUMAN_FACE_ID;
         SOCBoard board = ga.getBoard();
         ourNumbers = new SOCPlayerNumbers(board);
 
@@ -869,13 +904,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Called for each player, just before calling the current player's {@link #updateAtOurTurn()}.
      *<UL>
-     *<LI> Clear {@link #getRolledResources()}
+     * <LI> Clear {@link #getRolledResources()}
+     * <LI> Clear {@link #getCurrentOffer()} in v2.4.00 and newer.
+     *      In earlier versions this was cleared only at client, when server sent
+     *      a {@code SOCClearOffer} message while ending previous player's turn.
      *</UL>
      * @since 1.1.14
      */
     void updateAtTurn()
     {
         rolledResources.clear();
+        setCurrentOffer(null);
     }
 
     /**
@@ -973,6 +1012,34 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Update stats for player's Discovery/Year of Plenty, Monopoly, or Road Building dev cards
+     * when such a card is played: Increment {@link #numDISCCards}, {@link #numMONOCards},
+     * or {@link #numRBCards}.
+     * @param ctype  Any development card type such as {@link SOCDevCardConstants#ROADS},
+     *     {@link SOCDevCardConstants#UNIV}, or {@link SOCDevCardConstants#UNKNOWN}.
+     *     Ignores all types except {@link SOCDevCardConstants#DISC DISC},
+     *     {@link SOCDevCardConstants#MONO MONO}, {@link SOCDevCardConstants#ROADS ROADS}.
+     * @since 2.4.10
+     */
+    public void updateDevCardsPlayed(final int ctype)
+    {
+        switch (ctype)
+        {
+        case SOCDevCardConstants.DISC:
+            ++numDISCCards;
+            break;
+
+        case SOCDevCardConstants.MONO:
+            ++numMONOCards;
+            break;
+
+        case SOCDevCardConstants.ROADS:
+            ++numRBCards;
+            break;
+        }
+    }
+
+    /**
      * @return true if the player asked to reset the board this turn
      * @since 1.1.00
      */
@@ -1014,6 +1081,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param set  if the player has asked to build
      * @see SOCGame#askSpecialBuild(int, boolean)
+     * @see #setSpecialBuilt(boolean)
      * @since 1.1.08
      */
     public void setAskedSpecialBuild(boolean set)
@@ -1041,6 +1109,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * To read this flag, use {@link #hasSpecialBuilt()}.
      *
      * @param set  if the player special-built this turn
+     * @see #setAskedSpecialBuild(boolean)
      * @since 1.1.09
      */
     public void setSpecialBuilt(boolean set)
@@ -1059,12 +1128,28 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Does this player need to discard?
+     * If so, see {@link #getCountToDiscard()} for how many to discard.
+     *
      * @return true if this player needs to discard
      * @see #getNeedToPickGoldHexResources()
      */
     public boolean getNeedToDiscard()
     {
         return needToDiscard;
+    }
+
+    /**
+     * For {@link #getNeedToDiscard()}, get how many resources must be discarded.
+     * The amount is half, rounded down:
+     * <tt>{@link #getResources()}.{@link SOCResourceSet#getTotal() getTotal()} / 2</tt>.
+     * @return how many resources to discard. Always returns half of player's total,
+     *     even when {@link #getNeedToDiscard()} is false.
+     * @since 2.3.00
+     */
+    public int getCountToDiscard()
+    {
+        return resources.getTotal() / 2;
     }
 
     /**
@@ -1163,7 +1248,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * set the face image id
      *
-     * @param id  the image id. 1 is the first human face image; 0 is the robot.
+     * @param id  the image id. {@link #FIRST_HUMAN_FACE_ID} and higher are human face images; 0 and -1 are the robot.
      */
     public void setFaceId(int id)
     {
@@ -1172,7 +1257,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * get the face image id.
-     * @return  the face image id.  1 is the first human face image; 0 is the robot.
+     * @return the face image id. {@link #FIRST_HUMAN_FACE_ID} and higher are human face images; 0 and -1 are the robot.
      */
     public int getFaceId()
     {
@@ -1247,10 +1332,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Get this player's pieces on the board. Does not include {@link #getFortress()}, if any,
+     * Get this player's pieces on the board. Pieces here are in order of placement,
+     * except when a ship has been moved on the board (removed, then re-added at the end of this list).
+     * Does not include {@link #getFortress()}, if any,
      * because the player doesn't control that piece.
      * @return the list of pieces in play
      * @see #getNumPieces(int)
+     * @see #getRoadsAndShips()
      */
     public Vector<SOCPlayingPiece> getPieces()
     {
@@ -1262,9 +1350,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Note that if a ship is moved on the board, it may go to the end of this list.
      *<P>
      * Before v2.0.00 this method was {@code getRoads}.
+     *
      * @return the list of roads/ships in play
      * @see #getRoadOrShip(int)
      * @see #getMostRecentShip()
+     * @see #getPieces()
      */
     public Vector<SOCRoutePiece> getRoadsAndShips()
     {
@@ -1273,18 +1363,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's road or ship on an edge.
+     *<P>
+     * Before v2.0.00 this method was {@code getRoad}.
+     *
      * @param  edge  Edge coordinate of the road or ship
      * @return  The player's road or ship in play at this edge, or null
+     * @see SOCBoard#roadOrShipAtEdge(int)
      * @see #getMostRecentShip()
+     * @see #hasRoadOrShipAtEdge(int)
      * @since 2.0.00
      */
     public SOCRoutePiece getRoadOrShip(final int edge)
     {
         for (SOCRoutePiece roadOrShip : roadsAndShips)
-        {
             if (roadOrShip.getCoordinates() == edge)
                 return roadOrShip;
-        }
 
         return null;
     }
@@ -1310,6 +1403,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return the list of settlements in play
+     * @see #getSettlementOrCityAtNode(int)
      */
     public Vector<SOCSettlement> getSettlements()
     {
@@ -1317,7 +1411,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get this player's settlement or city at a node.
+     *
+     * @param  node  Node coordinate to check for a settlement or city
+     * @return  The player's settlement or city in play at this node, or null
+     * @see SOCBoard#settlementAtNode(int)
+     * @see #hasSettlementOrCityAtNode(int)
+     * @since 2.4.00
+     */
+    public SOCPlayingPiece getSettlementOrCityAtNode(final int node)
+    {
+        for (SOCSettlement sett : settlements)
+            if (sett.getCoordinates() == node)
+                return sett;
+
+        for (SOCCity city : cities)
+            if (city.getCoordinates() == node)
+                return city;
+
+        return null;
+    }
+
+    /**
      * @return the list of cities in play
+     * @see #getSettlementOrCityAtNode(int)
      */
     public Vector<SOCCity> getCities()
     {
@@ -1623,7 +1740,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Follow a trade route (a line of {@link SOCShip}s) away from a newly closed end, to
      * determine if the other end is closed or still open, and close this route if
-     * necessary.
+     * necessary. Calls {@link #isTradeRouteFarEndClosed(SOCShip, int, HashSet, List)}.
      *<P>
      * We check the route in one direction towards <tt>edgeFarNode</tt>, because we
      * assume that the other end of <tt>newShipEdge</tt>
@@ -1647,11 +1764,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param edgeFarNode  The unvisited node at the far end of <tt>fromEdge</tt>.
      *                  We'll examine this node and then continue to move along edges past it.
      * @return  null if open, otherwise all the newly-closed {@link SOCShip}s
-     * @since 2.0.00
      * @throws IllegalStateException  if not {@link SOCGame#hasSeaBoard}
+     * @throws IllegalArgumentException if {@link SOCShip#isClosed() newShipEdge.isClosed()} is already true
+     * @since 2.0.00
      */
     private List<SOCShip> checkTradeRouteFarEndClosed(final SOCShip newShipEdge, final int edgeFarNode)
-        throws IllegalStateException
+        throws IllegalStateException, IllegalArgumentException
     {
         if (! game.hasSeaBoard)
             throw new IllegalStateException();
@@ -2072,11 +2190,29 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   Index 0 is unused.
      *   In v2.0.00 and newer, index {@link SOCResourceConstants#GOLD_LOCAL} tracks how many
      *   resource picks the player has received from gold hexes.
+     * @see #addRolledResources(SOCResourceSet)
      * @since 1.1.09
      */
     public int[] getResourceRollStats()
     {
         return resourceStats;
+    }
+
+    /**
+     * On server, set this player's {@link #getResourceRollStats()}. Useful for reloading a saved game snapshot.
+     * @param stats  Resource roll stats to copy into player data; see {@link #getResourceRollStats()} for format.
+     *     If longer than required length, extra elements are ignored.
+     * @throws IllegalArgumentException if {@code stats} is null,
+     *     or length &lt; 1 + {@link SOCResourceConstants#GOLD_LOCAL}
+     * @since 2.3.00
+     */
+    public void setResourceRollStats(final int[] stats)
+        throws IllegalArgumentException
+    {
+        if ((stats == null) || (stats.length < resourceStats.length))
+            throw new IllegalArgumentException("stats.length < " + resourceStats.length);
+
+        System.arraycopy(stats, 0, resourceStats, 0, resourceStats.length);
     }
 
     /**
@@ -2117,6 +2253,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Resources gained from dice roll of the current turn.
      * Valid at server only, not at client.
      * Please treat the returned set as read-only.
+     * See {@link SOCGame#rollDice()} for details on what is and isn't included here.
      * @return the resources, if any, gained by this player from the
      *     current turn's {@link SOCGame#rollDice()}.
      * @since 2.0.00
@@ -2141,6 +2278,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return whether this player has any unplayed dev cards
      *
      * @see #getInventory()
+     * @since 1.1.00
      */
     public boolean hasUnplayedDevCards()
     {
@@ -2222,16 +2360,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * This player's number of publicly known victory points.
+     * Get this player's number of publicly known victory points:
+     * Buildings, longest/largest bonus, Special VP, etc.
      * Public victory points exclude VP development cards, except at
      * end of game, when they've been announced by server.
      * Special Victory Points (SVPs) are included, if the game scenario awards them.
      * Also includes any VP from {@link #getCloth() cloth}.
      *
-     * @return the number of publicly known victory points
+     * @return the number of publicly known victory points,
+     *     or "final" VP if {@link #forceFinalVP(int)} was called
      * @see #getTotalVP()
      * @see #getSpecialVP()
-     * @see #forceFinalVP(int)
      */
     public int getPublicVP()
     {
@@ -2260,9 +2399,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the actual number of victory points (including VP cards/items)
+     * Get this player's total VP: Buildings, longest/largest bonus, Special VP, VP cards/items.
+     * @return the actual number of victory points ({@link #getPublicVP()} + VP cards/items),
+     *     or "final" VP if {@link #forceFinalVP(int)} was called
      * @see #getPublicVP()
-     * @see #forceFinalVP(int)
      */
     public int getTotalVP()
     {
@@ -2282,6 +2422,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * getTotalVP() and getPublicVP() will report this, if set.
      *
      * @param score Total score for the player, or 0 for no forced total.
+     * @since 1.1.00
      */
     public void forceFinalVP(int score)
     {
@@ -2295,18 +2436,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Add details on Special Victory Points (SVP) just awarded.
      * This is called at the server (because it has the text strings) when
      * {@link SOCGame#gameEventListener} != null, and sent out to clients.
-     * Clients call it from the network message handler.
+     * Clients then call it from the network message handler.
      * @param svp  Number of SVP
      * @param desc  Description of player's action that led to the SVP.
      *     At the server this is an I18N string key, at the client it's
      *     localized text sent from the server.
      * @see #getSpecialVPInfo()
+     * @see #setSpecialVPInfo(ArrayList)
      * @since 2.0.00
      */
     public void addSpecialVPInfo(final int svp, final String desc)
     {
         if (svpInfo == null)
-            svpInfo = new ArrayList<SpecialVPInfo>();
+            svpInfo = new ArrayList<>();
 
         svpInfo.add(new SpecialVPInfo(svp, desc));
     }
@@ -2315,11 +2457,28 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get the details, if known, behind this player's {@link #getSpecialVP()} total.
      * In chronological order during game play.
      * @return Info on the Special Victory Points (SVP) awarded, or null; please treat as read-only
+     * @see #addSpecialVPInfo(int, String)
      * @since 2.0.00
      */
     public ArrayList<SpecialVPInfo> getSpecialVPInfo()
     {
         return svpInfo;
+    }
+
+    /**
+     * Set or clear player's SVP details. Replaces any previous info.
+     * See {@link #getSpecialVPInfo()} for more about {@link SpecialVPInfo}.
+     * Useful for reloading a saved game snapshot.
+     * @param info  New info for this player, or {@code null} to clear.
+     *     An empty list will be stored as {@code null}.
+     * @since 2.4.00
+     */
+    public void setSpecialVPInfo(ArrayList<SpecialVPInfo> info)
+    {
+        if ((info != null) && info.isEmpty())
+            info = null;
+
+        svpInfo = info;
     }
 
     /**
@@ -2406,7 +2565,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * At client, set the player's {@link #getPlayerEvents()} based on a server message.
-     * @param las  Land areas to set in player's bitmask; all others will be cleared.
+     * @param las  Land areas bitmask value to set for player, from {@link #getScenarioSVPLandAreas()}:
+     *     completely replaces previously set bits
      * @since 2.0.00
      */
     public void setScenarioSVPLandAreas(final int las)
@@ -2418,7 +2578,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board}, get
      * this player's starting settlement land areas, encoded to send over the network
      * from server to client. 0 otherwise.
-     * @return  Encoded starting land area numbers 1 and 2
+     * @return  Encoded starting land area numbers 1 and 2:
+     *     <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>
      * @see soc.message.SOCPlayerElement.PEType#STARTING_LANDAREAS
      * @since 2.0.00
      */
@@ -2490,6 +2651,38 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * During {@link SOCGame#isDebugFreePlacement()}, check whether this ship placement would
+     * run into any scenario-specific conditions not currently handled by Free Placement code
+     * at game, server, or client. Server should reject such a placement request.
+     *<P>
+     * Doesn't re-check the standard conditions in {@link SOCGame#canPlaceShip(SOCPlayer, int)}.
+     * Currently allows any placement, except:
+     *<UL>
+     * <LI> {@link SOCGameOption#K_SC_FTRI SC_FTRI}: If not current player,
+     *      can't Free Place at an edge which would pick up a free port for placement:
+     *      {@link SOCBoardLarge#canRemovePort(int)}
+     *</UL>
+     *
+     * @param shipEdge  Edge to check for placing a ship in Free Placement mode
+     * @return true if this player's ship could be placed there. Defaults to true.
+     * @since 2.3.00
+     */
+    public boolean canPlaceShip_debugFreePlace
+        (final int shipEdge)
+    {
+        // checks similar conditions to putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges(..)
+
+        if ((! game.hasSeaBoard) || (playerNumber == game.getCurrentPlayerNumber()))
+            return true;
+
+        if (game.isGameOptionSet(SOCGameOption.K_SC_FTRI)
+            && ((SOCBoardLarge) game.getBoard()).canRemovePort(shipEdge))
+            return false;
+
+        return true;
+    }
+
+    /**
      * Put a piece into play.
      * {@link #updatePotentials(SOCPlayingPiece) Update potential} piece lists.
      * For roads, update {@link #roadNodes} and {@link #roadNodeGraph}.
@@ -2498,7 +2691,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * <b>Note:</b> Placing a city automatically removes the settlement there
      * via {@link SOCGame#putPiece(SOCPlayingPiece)} calling
-     * {@link SOCPlayer#removePiece(SOCPlayingPiece, SOCPlayingPiece)}.
+     * {@link SOCPlayer#removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean)}.
      *<P>
      * Call this before calling {@link SOCBoard#putPiece(SOCPlayingPiece)}.
      *<P>
@@ -2784,14 +2977,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Their trade route probably contains pieces from a real player and a temporary dummy player,
      * and closing the route would call the real player's {@link SOCShip#setClosed()}.
      *
+     *<H5>Saving and Loading Game:</H5>
+     * When reloading a game at the server, its pieces' fields (including {@link SOCShip#isClosed()})
+     * already have been calculated during gameplay before game was saved, and then reloaded as part of the game model.
+     * So if game state is {@link SOCGame#LOADING} and we're at the server, won't re-check them here
+     * or throw exceptions for already-closed ship routes.
+     *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roadsAndShips}
      * @param board  game board
+     * @throws IllegalArgumentException if {@link SOCShip#isClosed() newShip.isClosed()} is already true
      * @since 2.0.00
      */
     private void putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
         (final SOCShip newShip, final SOCBoardLarge board)
+        throws IllegalArgumentException
     {
+        if (game.isAtServer && (game.getGameState() == SOCGame.LOADING))
+            return;  // <--- Early return ---
+
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
         final int edge = newShip.getCoordinates();
         final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
@@ -2840,8 +3044,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         final int seType = board.getSpecialEdgeType(edge);
         if (seType != 0)
         {
-            SOCPlayer currentPlayer = game.getPlayer(game.getCurrentPlayerNumber());
-
             switch (seType)
             {
             case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
@@ -2853,14 +3055,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         // Dev cards were set aside at start of game; get one now
                         Integer ctypeObj = board.drawItemFromStack();
                         cardtype = (ctypeObj != null) ? ctypeObj : SOCDevCardConstants.KNIGHT;
-                        currentPlayer.getInventory().addDevCard(1, SOCInventory.NEW, cardtype);
+                        newShip.player.getInventory().addDevCard(1, SOCInventory.NEW, cardtype);
                     } else {
                         cardtype = SOCDevCardConstants.UNKNOWN;
                     }
 
                     if (game.gameEventListener != null)
                         game.gameEventListener.playerEvent
-                            (game, currentPlayer, SOCPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
+                            (game, newShip.player, SOCPlayerEvent.DEV_CARD_REACHED_SPECIAL_EDGE,
                              false, new soc.util.IntPair(edge, cardtype));
                 }
                 break;
@@ -2876,7 +3078,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                     if (game.gameEventListener != null)
                         game.gameEventListener.playerEvent
-                            (game, currentPlayer, SOCPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
+                            (game, newShip.player, SOCPlayerEvent.SVP_REACHED_SPECIAL_EDGE,
                              false, edge);
                 }
                 break;
@@ -2977,6 +3179,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Undo the putting of a piece; backwards-compatibility shim which calls newer form
+     * {@link #undoPutPiece(SOCPlayingPiece, boolean) undoPutPiece(piece, false)}.
+     * See that method's javadoc for details.
+     */
+    public void undoPutPiece(final SOCPlayingPiece piece)
+    {
+        undoPutPiece(piece, false);
+    }
+
+    /**
      * undo the putting of a piece.
      *<P>
      * Among other actions,
@@ -2986,7 +3198,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Call this only after calling {@link SOCBoard#removePiece(SOCPlayingPiece)}.
      *<P>
-     * If the piece is ours, calls {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece) removePiece(piece, null)}.
+     * If the piece is ours, calls
+     * {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean) removePiece(piece, null, isMoveOrReplacement)}.
      *<P>
      * For roads, does not update longest road; if you need to,
      * call {@link #calcLongestRoad2()} after this call.
@@ -2995,9 +3208,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   will zero the player's resource cards.
      *
      * @param piece         the piece placement to be undone.
-     *
+     * @param isMoveOrReplacement  Is the piece really being moved to a new location, or replaced with another?
+     *            If so, don't remove its {@link SOCPlayingPiece#specialVP} from player.
+     * @since 2.3.00
      */
-    public void undoPutPiece(SOCPlayingPiece piece)
+    public void undoPutPiece(final SOCPlayingPiece piece, final boolean isMoveOrReplacement)
     {
         final boolean ours = (piece.getPlayerNumber() == playerNumber);
         final int pieceCoord = piece.getCoordinates();
@@ -3017,7 +3232,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 // update the potential places to build roads/ships
                 //
-                removePiece(piece, null);
+                removePiece(piece, null, isMoveOrReplacement);
             }
             else
             {
@@ -3068,7 +3283,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             if (ours)
             {
-                removePiece(piece, null);
+                removePiece(piece, null, isMoveOrReplacement);
                 ourNumbers.undoUpdateNumbers(piece, board);
 
                 //
@@ -3109,7 +3324,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             if (ours)
             {
-                removePiece(piece, null);
+                removePiece(piece, null, isMoveOrReplacement);
                 potentialCities.add(pieceCoordInt);
 
                 /**
@@ -3244,10 +3459,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Remove a player's piece from the board, and put it back in the player's hand;
+     * backwards-compatibility shim which calls newer form
+     * {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean) removePiece(piece, replacementPiece, false)}.
+     * See that method's javadoc for details.
+     */
+    public void removePiece
+        (final SOCPlayingPiece piece, final SOCPlayingPiece replacementPiece)
+    {
+        removePiece(piece, replacementPiece, false);
+    }
+
+    /**
      * remove a player's piece from the board,
      * and put it back in the player's hand.
      *<P>
-     * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece)}
+     * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece, boolean)}
      * which calls removePiece and does more.
      *<P>
      * Don't call removePiece for a {@link SOCFortress}; see {@link #getFortress()} javadoc.
@@ -3265,9 +3492,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *          If not null, and same player as <tt>piece</tt>, the removed piece's {@link SOCPlayingPiece#specialVP}
      *          and {@link SOCPlayingPiece#specialVPEvent} are copied to <tt>replacementPiece</tt>
      *          instead of being subtracted from the player's {@link #getSpecialVP()} count.
-     * @see #undoPutPiece(SOCPlayingPiece)
+     * @param isMoveOrReplacement  Is the piece really being moved to a new location, or replaced with another?
+     *            If so, don't remove its {@link SOCPlayingPiece#specialVP} from player.
+     *            If {@code replacementPiece != null}, this field is ignored and can be {@code false}.
+     * @since 2.3.00
      */
-    public void removePiece(SOCPlayingPiece piece, SOCPlayingPiece replacementPiece)
+    public void removePiece
+        (final SOCPlayingPiece piece, final SOCPlayingPiece replacementPiece, final boolean isMoveOrReplacement)
     {
         D.ebugPrintln("--- SOCPlayer.removePiece(" + piece + ")");
 
@@ -3291,7 +3522,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     if ((replacementPiece == null)
                         || (replacementPiece.player != piece.player))
                     {
-                        removePieceUpdateSpecialVP(p);
+                        if (! isMoveOrReplacement)
+                            removePieceUpdateSpecialVP(p);
                     } else {
                         replacementPiece.specialVP = p.specialVP;
                         replacementPiece.specialVPEvent = p.specialVPEvent;
@@ -3536,9 +3768,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * As part of {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece) removePiece(SOCPlayingPiece, null)},
+     * As part of
+     * {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean) removePiece(SOCPlayingPiece, null, false)},
      * update player's {@link #specialVP} and related fields.
-     * Not called if the removed piece is being replaced by another one (settlement upgrade to city).
+     * Not called if the removed piece is being moved (a ship) or replaced by another one (settlement upgrade to city).
      * @param p  Our piece being removed, which has {@link SOCPlayingPiece#specialVP} != 0
      * @since 2.0.00
      */
@@ -4859,6 +5092,64 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
         sb.append("}");
         return sb;
+    }
+
+    /**
+     * Checks if this player has a settlement or a city at specified coordinate
+     * @param node  the board node coordinate to check
+     * @return true if we have a settlement or city at {@code node}
+     * @see #hasSettlementAtNode(int)
+     * @see #hasCityAtNode(int)
+     * @see #getSettlementOrCityAtNode(int)
+     * @since 2.4.10
+     */
+    public boolean hasSettlementOrCityAtNode(final int node)
+    {
+        return (null != getSettlementOrCityAtNode(node));
+    }
+
+    /**
+     * Checks if this player has a settlement or a city at specified coordinate
+     * @param node  the board node coordinate to check
+     * @return true if we have a settlement at {@code node}
+     * @see #hasSettlementOrCityAtNode(int)
+     * @since 2.4.10
+     */
+    public boolean hasSettlementAtNode(final int node)
+    {
+        for (SOCSettlement p : settlements)
+            if (p.getCoordinates() == node)
+                return true;
+
+        return false;
+    }
+
+    /**
+     * Checks if this player has a settlement or a city at specified coordinate
+     * @param node  the board node coordinate to check
+     * @return true if we have a city at {@code node}
+     * @see #hasSettlementOrCityAtNode(int)
+     * @since 2.4.10
+     */
+    public boolean hasCityAtNode(final int node)
+    {
+        for (SOCCity p : cities)
+            if (p.getCoordinates() == node)
+                return true;
+
+        return false;
+    }
+
+    /**
+     * Checks if this player has a road or ship at specified edge coordinate.
+     * @param edge  the board edge coordinate to check
+     * @return true if we have a road or ship at {@code edge}
+     * @see #getRoadOrShip(int)
+     * @since 2.4.10
+     */
+    public boolean hasRoadOrShipAtEdge(final int edge)
+    {
+        return (null != getRoadOrShip(edge));
     }
 
     /**

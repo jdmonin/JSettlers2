@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,11 +40,12 @@ import soc.proto.Message;
  * @see SOCJoinGame
  */
 public class SOCJoinChannel extends SOCMessage
+    implements SOCMessageFromUnauthClient
 {
     private static final long serialVersionUID = 2000L;  // renamed in v2.0.00; previous structural change v1.0.0 or earlier
 
     /**
-     * Nickname of the joining member, or "-" if already auth'd to server
+     * Nickname of the joining member, or "-" from client; see {@link #getNickname()}.
      */
     private String nickname;
 
@@ -66,7 +67,8 @@ public class SOCJoinChannel extends SOCMessage
     /**
      * Create a Join Channel message.
      *
-     * @param nn  nickname, or "-" if already auth'd to server
+     * @param nn  nickname when announced from server, or "-" from client if already auth'd to server;
+     *     ignored from client by server 1.2.01 and newer, can send "-" but not blank
      * @param pw  optional password, or "" if none
      * @param hn  unused; optional server host name, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ch  name of chat channel
@@ -81,6 +83,8 @@ public class SOCJoinChannel extends SOCMessage
     }
 
     /**
+     * Nickname of the joining member, or "-" from client if already auth'd to server.
+     * ignored from client by server 1.2.01 and newer, can send "-" but not blank.
      * @return the nickname, or "-" if already auth'd to server
      */
     public String getNickname()
@@ -128,7 +132,8 @@ public class SOCJoinChannel extends SOCMessage
     /**
      * JOINCHANNEL sep nickname sep2 password sep2 host sep2 channel
      *
-     * @param nn  the nickname, or "-" if already auth'd to server
+     * @param nn  nickname when announced from server, or "-" from client if already auth'd to server;
+     *     ignored from client by server 1.2.01 and newer, can send "-" but not blank
      * @param pw  the optional password, or "" if none
      * @param hn  unused; optional server host name, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ch  the channel name

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014,2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2018-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -64,7 +64,8 @@ public class SOCDevCard
     }
 
     /**
-     * Resource type-and-count text keys for {@link #getCardTypeName(int, SOCGame, boolean, SOCStringManager)}.
+     * Resource type-and-count text keys for {@link #getCardTypeName(int, SOCGame, boolean, SOCStringManager)}
+     * and {@link #getCardTypeName(int)}.
      * Each subarray's indexes are the same values as constants in range {@link SOCDevCardConstants#UNKNOWN}
      * to {@link SOCDevCardConstants#KNIGHT}.
      */
@@ -78,11 +79,14 @@ public class SOCDevCard
             "spec.dcards.aunknown", "spec.dcards.aroadbuilding", "spec.dcards.adiscoveryplenty", "spec.dcards.amonopoly",
             "spec.dcards.acapgovhouse", "spec.dcards.amarket", "spec.dcards.auniversity",
             "spec.dcards.atemple", "spec.dcards.atowerchapel", "spec.dcards.aknightsoldier"
+        }, {  // technical names (like SOCDevCardConstants); do not change their values once established in a release
+            "UNKNOWN", "ROADS", "DISC", "MONO", "CAP", "MARKET", "UNIV",
+            "TEMPLE" /* not ambiguous abbreviation TEMP */, "CHAPEL", "KNIGHT"
         }
     };
 
     /**
-     * Get a card type's name key.
+     * Get a card type's name key for I18N localization.
      * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
@@ -116,7 +120,11 @@ public class SOCDevCard
     }
 
     /**
-     * Get a card type's name.
+     * Get a card type's localized name.
+     *<P>
+     * For the card type's unique technical name (like {@link SOCDevCardConstants} fields),
+     * call {@link #getCardTypeName(int)} instead.
+     *
      * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
@@ -140,6 +148,50 @@ public class SOCDevCard
         }
 
         return ctname;
+    }
+
+    /**
+     * Get a card's unique technical name, which is similar to {@link SOCDevCardConstants} field
+     * names like {@link SOCDevCardConstants#ROADS}.
+     *<P>
+     * For the card type's localized name to display to the user,
+     * call {@link #getCardTypeName(int, SOCGame, boolean, SOCStringManager)} instead.
+     *<P>
+     * The names are generally the same as those in {@code SOCDevCardConstants} as of v2.4.00.
+     * {@link SOCDevCardConstants#TEMP} is returned as {@code "TEMPLE"} so it won't possibly be viewed as "TEMPORARY".
+     *
+     * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
+     *     or {@link SOCDevCardConstants#ROADS}
+     * @return Dev card type's unique technical name, all-uppercase and following the pattern {@code [A-Z][A-Z0-9_]+},
+     *     or {@link Integer#toString(int) Integer.toString(devCardType)} if not a recognized type constant
+     * @throws IllegalArgumentException if {@code devCardType} &lt; 0
+     * @see #getCardType(String)
+     * @since 2.4.00
+     */
+    public static String getCardTypeName(final int devCardType)
+        throws IllegalArgumentException
+    {
+        return SOCPlayingPiece.getTypeName(devCardType, GETCARDTYPENAME_KEYS[2]);
+    }
+
+    /**
+     * Given a card type's unique technical name like {@code "ROADS"}, return its card type constant
+     * like {@link SOCDevCardConstants#ROADS} if recognized.
+     * @param ctypeName Dev card type's technical name, as returned by {@link #getCardTypeName(int)},
+     *     or a numeric string like {@code "42"} for any recognized or unrecognized type's numeric value
+     * @return That type's constant such as {@link SOCDevCardConstants#UNIV}
+     *     or {@link SOCDevCardConstants#ROADS} if recognized, or its parsed value if starts with a digit,
+     *     or 0 if type string is unrecognized.
+     * @throws IllegalArgumentException if {@code ctypeName} is null or "",
+     *     or doesn't start with an uppercase {@code 'A'}-{@code 'Z'} or digit {@code '0'}-{@code '9'}
+     * @throws NumberFormatException if {@code ctypeName} starts with a digit but {@link Integer#parseInt(String)} fails
+     * @see #getCardTypeName(int)
+     * @since 2.4.00
+     */
+    public static int getCardType(final String ctypeName)
+        throws IllegalArgumentException, NumberFormatException
+    {
+        return SOCPlayingPiece.getType(ctypeName, GETCARDTYPENAME_KEYS[2], 0);
     }
 
     /**

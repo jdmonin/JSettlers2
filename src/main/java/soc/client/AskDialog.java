@@ -731,9 +731,9 @@ public abstract class AskDialog extends JDialog
      *
      * @param c The Component.
      * @return The parent frame or dialog
-     * @since 1.1.06
      * @throws IllegalStateException if we find a null parent
      *         before a {@link Window}, or if any parent == itself
+     * @since 1.1.06
      */
     public static Window getParentWindow(Component c)
         throws IllegalStateException

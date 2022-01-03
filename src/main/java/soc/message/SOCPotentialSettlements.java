@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2014,2017-2019,2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2014,2017-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -224,6 +224,7 @@ public class SOCPotentialSettlements extends SOCMessage
      *     <P>
      *     From {@link soc.game.SOCBoardLarge#getStartingLandArea()}.
      * @param lan  Each land area's legal node lists. Not null. {@code lan[0]} is unused (null).
+     *     From {@link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      *     <P>
      *     If the game is just starting and the player can start anywhere (<tt>pan == 0</tt>),
      *     the {@link #getPotentialSettlements(boolean)} list

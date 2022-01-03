@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -162,11 +162,7 @@ import javax.swing.border.EmptyBorder;
 
         ga = pi.getGame();
         final int numWonders = 1 + ga.maxPlayers;
-        final SOCPlayer cliPlayer;
-        {
-            final int pn = pi.getClientPlayerNumber();
-            cliPlayer = (pn != -1) ? ga.getPlayer(pn) : null;
-        }
+        final SOCPlayer cliPlayer = pi.getClientPlayer();  // will be null if observer
 
         didSetLocation = false;
 

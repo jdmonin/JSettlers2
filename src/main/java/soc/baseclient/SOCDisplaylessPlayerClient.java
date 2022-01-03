@@ -145,11 +145,18 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected Socket s;
     protected DataInputStream in;
     protected DataOutputStream out;
-    protected StringConnection sLocal;  // if strSocketName not null
+
+    /**
+     * Local server connection, if {@link ServerConnectInfo#stringSocketName} != null.
+     * @see #sLocalVersion
+     * @since 1.1.00
+     */
+    protected StringConnection sLocal;
 
     /**
      * Server version number, sent soon after connect, or -1 if unknown.
      * {@link #sLocalVersion} should always equal our own version.
+     * @since 1.1.00
      */
     protected int sVersion, sLocalVersion;
 
@@ -166,6 +173,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * were we rejected from server? (full or robot name taken)
+     * @since 1.1.00
      */
     protected boolean rejected = false;
 
@@ -927,6 +935,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param isLocal  Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
      * @param mes  the message
+     * @since 1.1.00
      */
     private void handleVERSION(boolean isLocal, SOCVersion mes)
     {
@@ -1041,6 +1050,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final SOCGame ga = new SOCGame(mes.getGame(), opts);
         ga.isPractice = isPractice;
+        ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
         games.put(mes.getGame(), ga);
     }
 
@@ -1127,9 +1137,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Game players gain resources.
      * @param mes  Message data
      * @param ga  Game to update
-     * @param nickname  Our client player's nickname, needed for element data update
+     * @param nickname  Our client player's nickname, needed only if {@code skipResourceCount} is false.
+     *     Can be {@code null} otherwise.
+     *     See {@link #handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
      * @param skipResourceCount  If true, ignore the resource part of the message
-     *     because caller will handle that separately.
+     *     because caller will handle that separately; {@code nickname} can be {@code null}
      * @since 2.0.00
      */
     public static final void handleDICERESULTRESOURCES
@@ -1155,34 +1167,46 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * handle the "player sitting down" message
      * @param mes  the message
      */
-    protected void handleSITDOWN(SOCSitDown mes)
+    protected SOCGame handleSITDOWN(final SOCSitDown mes)
     {
         /**
          * tell the game that a player is sitting
          */
         SOCGame ga = games.get(mes.getGame());
         if (ga == null)
-            return;
+            return null;
+
+        final int pn = mes.getPlayerNumber();
+        final String plName = mes.getNickname();
+        SOCPlayer player = null;
 
         ga.takeMonitor();
-
         try
         {
-            ga.addPlayer(mes.getNickname(), mes.getPlayerNumber());
-
-            /**
-             * set the robot flag
-             */
-            ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
+            ga.addPlayer(plName, pn);
+            player = ga.getPlayer(pn);
+            player.setRobotFlag(mes.isRobot(), false);
         }
         catch (Exception e)
         {
-            ga.releaseMonitor();
             System.out.println("Exception caught - " + e);
             e.printStackTrace();
+
+            return null;
+        }
+        finally
+        {
+            ga.releaseMonitor();
         }
 
-        ga.releaseMonitor();
+        if (nickname.equals(plName)
+            && (ga.isPractice || (sVersion >= SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY)))
+        {
+            // server is about to send our dev-card inventory contents
+            player.getInventory().clear();
+        }
+
+        return ga;
     }
 
     /**
@@ -1531,6 +1555,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
             break;
 
+        case HAS_SPECIAL_BUILT:
+            pl.setSpecialBuilt((0 != val));
+            break;
+
         case RESOURCE_COUNT:
             if (val != pl.getResources().getTotal())
             {
@@ -1565,6 +1593,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                     for (int p = 0; p < ga.maxPlayers; ++p)
                         ga.getPlayer(p).setPlayedDevCard(changeTo);
             }
+            break;
+
+        case DISCARD_FLAG:
+            pl.setNeedToDiscard(val != 0);
             break;
 
         case NUM_PICK_GOLD_HEX_RESOURCES:
@@ -1627,7 +1659,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param pieceType Playing piece type, like {@link SOCPlayingPiece#ROAD}
      * @param amount    The new value to set, or the delta to gain/lose
-     * @since 2.0.00
+     * @since 1.1.00
      */
     public static void handlePLAYERELEMENT_numPieces
         (final SOCPlayer pl, final int action, final int pieceType, final int amount)
@@ -1664,6 +1696,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param action   {@link SOCPlayerElement#SET}, {@link SOCPlayerElement#GAIN GAIN},
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param amount    The new value to set, or the delta to gain/lose
+     * @since 1.1.00
      */
     public static void handlePLAYERELEMENT_numKnights
         (final SOCGame ga, final SOCPlayer pl, final int action, final int amount)
@@ -1709,6 +1742,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     or {@link SOCPlayerElement#LOSE LOSE}
      * @param rtype  Type of resource, like {@link Data.ResourceType#CLAY_VALUE}
      * @param amount    The new value to set, or the delta to gain/lose
+     * @since 1.1.00
      */
     public static void handlePLAYERELEMENT_numRsrc
         (final SOCPlayer pl, final int action, final int rtype, final int amount)
@@ -1808,6 +1842,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case LONGEST_ROAD_PLAYER:
             ga.setPlayerWithLongestRoad((value != -1) ? ga.getPlayer(value) : null);
+            break;
+
+        case SPECIAL_BUILDING_AFTER_PLAYER:
+            ga.setSpecialBuildingPlayerNumberAfter(value);
             break;
 
         case UNKNOWN_TYPE:
@@ -2088,6 +2126,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            player.updateDevCardsPlayed(ctype);
             break;
 
         case SOCDevCardAction.ADD_OLD:

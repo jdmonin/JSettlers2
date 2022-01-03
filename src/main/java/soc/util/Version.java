@@ -114,6 +114,7 @@ public class Version {
    *         If the version number cannot be read, 0 is returned.
    * @see #version()
    * @see #version(int)
+   * @since 1.1.00
    */
   public static int versionNumber() {
     int vnum;

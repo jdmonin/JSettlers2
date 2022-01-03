@@ -118,7 +118,7 @@ import soc.game.SOCGame;
             SOCPlayerInterface gamePI, int pnum, int faceID, int faceWidth)
         throws IllegalArgumentException
     {
-        super(strings.get("facechooser.title", gamePI.getGame().getName(), cli.getNickname()));
+        super(strings.get("facechooser.title", gamePI.getGame().getName(), gamePI.getClientNickname()));
             // "Choose Face Icon: {0} [{1}]"
 
         if (fbutton == null)
@@ -254,10 +254,14 @@ import soc.game.SOCGame;
      * Dispose of this window. Overrides to clear stillAvailable flag
      * and call faceButton.clearFacePopupPreviousChooser.
      */
+    @Override
     public void dispose()
     {
-        stillAvailable = false;
-        fb.clearFacePopupPreviousChooser();
+        if (stillAvailable)
+        {
+            stillAvailable = false;
+            fb.clearFacePopupPreviousChooser();
+        }
         super.dispose();
     }
 

@@ -116,6 +116,7 @@ import soc.util.Version;
      * Started via {@link SwingMainDisplay#startLocalTCPServer(int)}.
      * {@link #practiceServer} may still be activated at the user's request.
      * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
+     * @since 1.1.00
      */
     SOCServer localTCPServer = null;
 
@@ -152,7 +153,7 @@ import soc.util.Version;
     /**
      * Practice-server error (stringport pipes), or null.
      *<P>
-     * Before v2.0.00 this field was {@code ex_L}.
+     * Before v2.0.00 this field was {@code ex_L} (Local server).
      * @see #ex
      * @since 1.1.00
      */
@@ -166,8 +167,22 @@ import soc.util.Version;
      */
     boolean connected = false;
 
-    /** For debug, our last messages sent, over the net or practice server (pipes) */
-    protected String lastMessage_N, lastMessage_P;
+    /**
+     * For debug, our last message sent over the net.
+     *<P>
+     * Before v1.1.00 this field was {@code lastMessage}.
+     * @see #lastMessage_P
+     */
+    protected String lastMessage_N;
+
+    /**
+     * For debug, our last message sent to practice server (stringport pipes).
+     *<P>
+     * Before v2.0.00 this field was {@code lastMessage_L} (Local server).
+     * @see #lastMessage_N
+     * @since 1.1.00
+     */
+    protected String lastMessage_P;
 
     /**
      * Server for practice games via {@link #prCli}; not connected to the network,
@@ -264,10 +279,10 @@ import soc.util.Version;
                 prCli = StringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
                 new LocalStringReaderTask(prCli);  // Reader will start its own thread
 
-                // Send VERSION right away (1.1.06 and later)
+                // Send VERSION right away
                 sendVersion(true);
 
-                // Practice server will support per-game options
+                // Practice server supports per-game options
                 mainDisplay.enableOptions();
             }
             catch (ConnectException e)
@@ -280,10 +295,10 @@ import soc.util.Version;
 
         // Ask internal practice server to create the game
         if (gameOpts == null)
-            putPractice(SOCJoinGame.toCmd(client.nickname, "", SOCMessage.EMPTYSTR, practiceGameName));
+            putPractice(SOCJoinGame.toCmd(client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName));
         else
             putPractice(SOCNewGameWithOptionsRequest.toCmd
-                (client.nickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts));
+                (client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts));
 
         return true;
     }
@@ -506,6 +521,7 @@ import soc.util.Version;
      * Are we running a local tcp server?
      * @see #getLocalServerPort()
      * @see #anyHostedActiveGames()
+     * @since 1.1.00
      */
     public boolean isRunningLocalServer()
     {
@@ -516,7 +532,9 @@ import soc.util.Version;
      * Look for active games that we're hosting (state >= START1A, not yet OVER).
      *
      * @return If any hosted games of ours are active
+     * @see MainDisplay#hasAnyActiveGame(boolean)
      * @see SwingMainDisplay#findAnyActiveGame(boolean)
+     * @since 1.1.00
      */
     public boolean anyHostedActiveGames()
     {
@@ -550,6 +568,7 @@ import soc.util.Version;
      * @param s  the message
      * @return true if the message was sent, false if not
      * @see GameMessageSender#put(String, boolean)
+     * @see #putPractice(String)
      */
     public synchronized boolean putNet(String s)
     {
@@ -592,6 +611,7 @@ import soc.util.Version;
      * @return true if the message was sent, false if not
      * @see GameMessageSender#put(String, boolean)
      * @throws IllegalArgumentException if {@code s} is {@code null}
+     * @see #putNet(String)
      * @since 1.1.00
      */
     public synchronized boolean putPractice(String s)
@@ -617,6 +637,7 @@ import soc.util.Version;
 
     /**
      * resend the last message (to the network)
+     * @see #resendPractice()
      */
     public void resendNet()
     {
@@ -626,6 +647,7 @@ import soc.util.Version;
 
     /**
      * resend the last message (to the practice server)
+     * @see #resendNet()
      * @since 1.1.00
      */
     public void resendPractice()
@@ -643,6 +665,7 @@ import soc.util.Version;
      * discarding this object or calling System.exit.
      *</em>
      * @return Can we still start practice games? (No local exception yet in {@link #ex_P})
+     * @since 1.1.00
      */
     public boolean putLeaveAll()
     {

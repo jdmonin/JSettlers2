@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2015,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2015,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -25,6 +25,7 @@ package soc.robot;
 import soc.game.*;
 import soc.message.SOCSetSpecialItem;  // strictly for javadocs
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,11 +40,18 @@ import java.util.List;
  *<P>
  * Although it's not a board piece type, {@link SOCPossibleCard} is a type here
  * because the player could buy them as part of a building plan.
+ *<P>
+ * Note: {@link Serializable} form doesn't include {@link SOCPlayer} field,
+ * to avoid pulling that complex structure into the serialized data.
+ * If player info is needed later, an int {@code playerNumber} field would be simpler.
  *
  * @author Robert S. Thomas
  */
-public abstract class SOCPossiblePiece
+public abstract class SOCPossiblePiece implements Serializable
 {
+    /** Last structural change v2.4.10 (2410) */
+    private static final long serialVersionUID = 2410L;
+
     /**
      * Type constant for a possible road. Same value as {@link SOCPlayingPiece#ROAD}.
      */
@@ -94,7 +102,7 @@ public abstract class SOCPossiblePiece
     /**
      * The player who owns this piece
      */
-    protected SOCPlayer player;
+    protected transient SOCPlayer player;
 
     /**
      * Where this piece is on the board.

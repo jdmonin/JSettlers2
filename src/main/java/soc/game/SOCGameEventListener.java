@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@ package soc.game;
 
 /**
  * Listener for game-wide and per-player events on the {@link SOCGame#hasSeaBoard large sea board}.
+ * Usually related to a {@link SOCScenario} or its {@link SOCGameOption}s.
  *<P>
  * <em>Threads:</em> These events occur in game methods (or player methods) that change game state.
  * So, whatever thread changed the game state, that same thread will run the listener callback method.
@@ -31,7 +32,7 @@ package soc.game;
 public interface SOCGameEventListener
 {
     /**
-     * A scenario event has occurred which affects the overall game or board, not a specific player.
+     * A game event has occurred which affects the overall game or board, not a specific player.
      *<P>
      * <em>Threads:</em> The game's treater thread handles incoming client messages and calls
      * game methods that change state. Those same game methods will trigger the scenario events;
@@ -40,11 +41,12 @@ public interface SOCGameEventListener
      * @param ga  Game
      * @param evt  Event code
      * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>
+     * @see #playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)
      */
     public void gameEvent(final SOCGame ga, final SOCGameEvent evt, final Object detail);
 
     /**
-     * A per-player scenario event has occurred.
+     * A player-specific game event has occurred.
      * @param ga  Game
      * @param pl  Player
      * @param evt  Event code
@@ -53,6 +55,7 @@ public interface SOCGameEventListener
      *             {@link SOCPlayerEvent}
      * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCPlayerEvent}.
      *             Example: The {@link SOCVillage} for {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * @see #gameEvent(SOCGame, SOCGameEvent, Object)
      */
     public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCPlayerEvent evt,
         final boolean flagsChanged, final Object obj);

@@ -49,6 +49,7 @@ import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChangeFace;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
+import soc.message.SOCClearTradeMsg;
 import soc.message.SOCDebugFreePlace;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDevCardCount;
@@ -72,6 +73,7 @@ import soc.message.SOCLargestArmy;
 import soc.message.SOCLastSettlement;
 import soc.message.SOCLeaveGame;
 import soc.message.SOCLongestRoad;
+import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
@@ -619,6 +621,7 @@ public class SOCGameHandler extends GameHandler
      * @param callEndTurn  Almost always true; if false, don't call {@link SOCGame#endTurn()}
      *           because it was called before calling this method.
      *           If false, be sure to set {@code pl} to the player whose turn it was before {@code endTurn()} was called.
+     * @since 1.1.00
      */
     void endGameTurn(SOCGame ga, SOCPlayer pl, final boolean callEndTurn)
     {
@@ -701,7 +704,7 @@ public class SOCGameHandler extends GameHandler
      * </UL>
      * @param ga Game to force end turn
      * @param plName Current player's name. Needed because if they have been disconnected by
-     *          {@link #leaveGame(SOCGame, Connection, boolean)},
+     *          {@link #leaveGame(SOCGame, Connection, boolean, boolean)},
      *          their name within game object is already null.
      * @return true if the turn was ended and game is still active;
      *          false if we find that all players have left and
@@ -709,6 +712,7 @@ public class SOCGameHandler extends GameHandler
      *
      * @see #endGameTurnOrForce(SOCGame, int, String, Connection, boolean)
      * @see SOCGame#forceEndTurn()
+     * @since 1.1.00
      */
     private final boolean forceEndGameTurn(SOCGame ga, final String plName)
     {
@@ -887,7 +891,7 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Client has been approved to join game; send JOINGAMEAUTH and the entire state of the game to client.
-     * Unless <tt>isTakingOver</tt>, announce {@link SOCJoinGame} client join event to other players.
+     * Unless {@code isRejoinOrLoadgame}, announce {@link SOCJoinGame} client join event to other players.
      *<P>
      * Does not add the client to the game's or server's list of players,
      * that should be done before calling this method.
@@ -899,8 +903,8 @@ public class SOCGameHandler extends GameHandler
      *<P>
      * Among other messages, player names are sent via SITDOWN, and pieces on board
      * sent by PUTPIECE.  See comments here for further details.
-     * If <tt>isTakingOver</tt>, some details are sent by calling
-     * {@link #sitDown_sendPrivateInfo(SOCGame, Connection, int)}.
+     * If {@code isRejoinOrLoadgame}, some details are sent by calling
+     * {@link #sitDown_sendPrivateInfo(SOCGame, Connection, int, boolean)}.
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      * If state is {@link SOCGame#OVER}: Right after sending GAMESTATE, calls
      * {@link #sendGameStateOVER(SOCGame, Connection) sendGameStateOver(gameData, c)}.
@@ -916,15 +920,18 @@ public class SOCGameHandler extends GameHandler
      * @param c        The connection of joining client
      * @param isReset  Game is a board-reset of an existing game.  This is always false when
      *          called from SOCServer instead of from inside the SOCGameHandler.
-     * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
-     *          is defunct because of a network problem.
-     *          If <tt>isTakingOver</tt>, don't send anything to other players.
+     * @param isLoading  Game is being reloaded from snapshot by {@code c}'s request; state is {@link SOCGame#LOADING}
+     * @param isRejoinOrLoadgame  If true, client is re-joining; {@code c} replaces an earlier connection which
+     *          is defunct/frozen because of a network problem. Also true when a human player joins a
+     *          game being reloaded and has the same nickname as a player there.
+     *          If {@code isRejoinOrLoadgame}, sends {@code c} their hand's private info for game in progress.
      * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
      * @since 1.1.00
      */
     @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
     public void joinGame
-        (final SOCGame gameData, final Connection c, final boolean isReset, final boolean isTakingOver)
+        (final SOCGame gameData, final Connection c,
+         final boolean isReset, final boolean isLoading, final boolean isRejoinOrLoadgame)
     {
         boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         final String gameName = gameData.getName(), cliName = c.getData();
@@ -957,34 +964,39 @@ public class SOCGameHandler extends GameHandler
             if ((! scd.sentPostAuthWelcome) || (c.getVersion() < SOCStringManager.VERSION_FOR_I18N))
             {
                 c.put(new SOCStatusMessage
-                       (SOCStatusMessage.SV_OK, c.getLocalized("netmsg.status.welcome")));
-                           // "Welcome to Java Settlers of Catan!"
+                       (SOCStatusMessage.SV_OK, srv.getClientWelcomeMessage(c)));  // "Welcome to Java Settlers of Catan!"
                 scd.sentPostAuthWelcome = true;
             }
         }
 
+        /**
+         * When sending seated player info and this client is loading a saved game:
+         * if client isn't a player in the game, give them option to sit at any player's seat.
+         */
+        boolean allSeatsBots;
+        if (isLoading)
+        {
+            allSeatsBots = true;
+            for (int pn = 0; pn < gameData.maxPlayers; ++pn)
+            {
+                if ((! gameData.isSeatVacant(pn))
+                    && gameData.getPlayer(pn).getName().equals(cliName))
+                {
+                    allSeatsBots = false;
+                    break;
+                }
+            }
+        } else {
+            allSeatsBots = false;
+        }
+
+        if (cliVers >= SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
+            srv.messageToPlayer(c, new SOCSetSeatLock(gameName, gameData.getSeatLocks()));
+
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
             /**
-             * send them the already-seated player information;
-             * if isReset, don't send, because sitDown will
-             * be sent from resetBoardAndNotify.
-             */
-            if (! isReset)
-            {
-                SOCPlayer pl = gameData.getPlayer(i);
-                String plName = pl.getName();
-                if ((plName != null) && ! gameData.isSeatVacant(i))
-                {
-                    final boolean isRobot = pl.isRobot();
-                    if (isRobot)
-                        hasRobot = true;
-                    c.put(new SOCSitDown(gameName, plName, i, isRobot));
-                }
-            }
-
-            /**
-             * send the seat lock information, if client needs per-seat messages
+             * send the seat lock information, if client needs per-seat messages.
              */
             if (cliVers < SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
             {
@@ -992,12 +1004,35 @@ public class SOCGameHandler extends GameHandler
                 // old client doesn't have CLEAR_ON_RESET
                 srv.messageToPlayer(c, new SOCSetSeatLock
                     (gameName, i,
-                     (sl != SOCGame.SeatLockState.CLEAR_ON_RESET) ? sl : SOCGame.SeatLockState.LOCKED));
+                     (sl != SOCGame.SeatLockState.CLEAR_ON_RESET) ? sl : SOCGame.SeatLockState.UNLOCKED));
+            }
+
+            /**
+             * send them basic info on the already-seated players;
+             * if isReset, don't send, because sitDown will
+             * be sent from SOCServer.resetBoardAndNotify.
+             */
+            if (! isReset)
+            {
+                SOCPlayer pl = gameData.getPlayer(i);
+                String plName = pl.getName();
+                if ((plName != null) && ! gameData.isSeatVacant(i))
+                {
+                    boolean isRobot = pl.isRobot();
+                    if ((gameState == SOCGame.LOADING)
+                        && ! (isRobot || allSeatsBots || isLoading || srv.gameList.isMember(plName, gameName)))
+                    {
+                        // To make sure joining client shows "Take Over" buttons for unclaimed seats
+                        // left by human players when game was saved, show them as bots
+                        isRobot = true;
+                    }
+                    c.put(new SOCSitDown(gameName, plName, i, isRobot || allSeatsBots));
+
+                    if (isRobot)
+                        hasRobot = true;
+                }
             }
         }
-
-        if (cliVers >= SOCSetSeatLock.VERSION_FOR_ALL_SEATS)
-            srv.messageToPlayer(c, new SOCSetSeatLock(gameName, gameData.getSeatLocks()));
 
         /**
          * Send board layout info.
@@ -1021,10 +1056,12 @@ public class SOCGameHandler extends GameHandler
         if (gameState < SOCGame.START1A)
         {
             if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+                // Board's general supply of cloth:
                 c.put(new SOCPlayerElement
                     (gameName, -1, SOCPlayerElement.SET,
                      PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
-                // individual villages' cloth counts are sent soon below
+                // Individual villages' cloth counts are sent soon below.
+                // If game has started, will send board's cloth count after per-player info and putpieces.
         }
 
         /**
@@ -1177,7 +1214,8 @@ public class SOCGameHandler extends GameHandler
          */
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
-            SOCPlayer pl = gameData.getPlayer(i);
+            final SOCPlayer pl = gameData.getPlayer(i);
+            final boolean isTakingOverThisSeat = isRejoinOrLoadgame && c.getData().equals(pl.getName());
 
             /**
              * send scenario info before any putpiece, so they know their
@@ -1278,15 +1316,22 @@ public class SOCGameHandler extends GameHandler
                         (gameName, i, SOCPlayerElement.SET, ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC[j], counts[j]));
             }
 
-            final int numDevCards = pl.getInventory().getTotal();
-            final int unknownType =
-                (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
-                ? SOCDevCardConstants.UNKNOWN
-                : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final SOCMessage cardUnknownMsg =
-                new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
-            for (int j = 0; j < numDevCards; j++)
-                c.put(cardUnknownMsg);
+            if (pl.hasAskedSpecialBuild())
+                c.put(new SOCPlayerElement
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.PEType.ASK_SPECIAL_BUILD, 1));
+
+            if (! isTakingOverThisSeat)
+            {
+                final int numDevCards = pl.getInventory().getTotal();
+                final int unknownType =
+                    (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
+                    ? SOCDevCardConstants.UNKNOWN
+                    : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
+                final SOCMessage cardUnknownMsg =
+                    new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
+                for (int j = 0; j < numDevCards; j++)
+                    c.put(cardUnknownMsg);
+            }
 
             if (gameSITypes != null)
             {
@@ -1341,6 +1386,10 @@ public class SOCGameHandler extends GameHandler
 
                 c.put(new SOCDiceResult(gameName, gameData.getCurrentDice()));
             }
+
+            // more per-player data to send after dice result
+
+            sendTradeOffer(pl, c);
         }
 
         ///
@@ -1363,17 +1412,28 @@ public class SOCGameHandler extends GameHandler
         }
 
         /**
+         * Any other misc data to send after per-player/pieces, if game has started:
+         */
+        if (gameState >= SOCGame.START1A)
+        {
+            if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+                c.put(new SOCPlayerElement
+                    (gameName, -1, SOCPlayerElement.SET,
+                     PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
+        }
+
+        /**
          * If we're rejoining and taking over a seat after a network problem,
          * send our resource and hand information.
          */
-        if (isTakingOver)
+        if (isRejoinOrLoadgame && ! isLoading)
         {
             SOCPlayer cliPl = gameData.getPlayer(cliName);
             if (cliPl != null)
             {
                 int pn = cliPl.getPlayerNumber();
                 if ((pn != -1) && ! gameData.isSeatVacant(pn))
-                    sitDown_sendPrivateInfo(gameData, c, pn);
+                    sitDown_sendPrivateInfo(gameData, c, pn, true);
             }
         }
 
@@ -1437,17 +1497,21 @@ public class SOCGameHandler extends GameHandler
             D.ebugPrintln("*** " + cliName + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
 
-        //messageToGame(gameName, new SOCGameServerText(gameName, SERVERNAME, n+" joined the game"));
-        /**
-         * Let everyone else know about the change
-         */
-        if (isTakingOver)
+        if (isRejoinOrLoadgame && (gameState != SOCGame.LOADING))
         {
             return;
         }
-        srv.messageToGame(gameName, new SOCJoinGame(cliName, "", SOCMessage.EMPTYSTR, gameName));
 
-        if ((! isReset) && gameState >= SOCGame.START2A)
+        /**
+         * Let everyone else know about the change
+         */
+        srv.messageToGame(gameName, new SOCJoinGame(cliName, "", SOCMessage.EMPTYSTR, gameName));
+        if (isRejoinOrLoadgame)
+        {
+            return;
+        }
+
+        if ((! isReset) && (gameState >= SOCGame.START2A) && (gameState < SOCGame.OVER))
         {
             srv.messageToPlayerKeyed
                 (c, gameName,
@@ -1458,10 +1522,10 @@ public class SOCGameHandler extends GameHandler
 
     /**
      * Players' potential settlements and related values.
-     * Will have either 1 per player, or 1 for all players (playerNumber == -1):
+     * Will return either 1 per player, or 1 for all players with {@code playerNumber} == -1:
      *<P>
      * If game hasn't started yet, each player's potentialSettlements are identical,
-     * so gather that info once for all players (unless clients are too old for a message having pn == -1).
+     * so gather that info once for all players (unless clients are too old for a message having PN -1).
      *<P>
      * Otherwise each player has a unique potential settlement list,
      * to populate legal sets before sending any of their PutPieces.
@@ -1564,7 +1628,7 @@ public class SOCGameHandler extends GameHandler
      * {@link SOCBoardLarge#getAddedLayoutPart(String)} which defines special edges
      * (currently {@code "CE"}, {@code "VE"}).
      *<P>
-     * Called as part of {@link #joinGame(SOCGame, Connection, boolean, boolean)}.
+     * Called as part of {@link #joinGame(SOCGame, Connection, boolean, boolean, boolean)}.
      * @param game   Game being joined
      * @param board  Game's board layout
      * @param c      Client joining
@@ -1639,7 +1703,8 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler
-    public void sitDown_sendPrivateInfo(final SOCGame ga, final Connection c, final int pn)
+    public void sitDown_sendPrivateInfo
+        (final SOCGame ga, final Connection c, final int pn, final boolean isRejoinOrLoadgame)
     {
         final String gaName = ga.getName();
         final SOCPlayer pl = ga.getPlayer(pn);
@@ -1663,14 +1728,16 @@ public class SOCGameHandler extends GameHandler
         final boolean cliVersionRecent = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES);
 
         /**
-         * remove the unknown cards
+         * remove the unknown cards, if client's too old for receiving SITDOWN to imply doing so;
+         * skip if isRejoinOrLoadgame, unknowns weren't sent for that player during joinGame
          */
-        final SOCDevCardAction cardUnknown = (cliVersionRecent)
-            ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
-            : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
-        for (int i = cardsInv.getTotal(); i > 0; --i)
+        if ((! isRejoinOrLoadgame) && (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY))
         {
-            srv.messageToPlayer(c, cardUnknown);
+            final SOCDevCardAction cardUnknown = (cliVersionRecent)
+                ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
+                : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
+            for (int i = cardsInv.getTotal(); i > 0; --i)
+                srv.messageToPlayer(c, cardUnknown);
         }
 
         /**
@@ -1712,7 +1779,7 @@ public class SOCGameHandler extends GameHandler
 
         if ((ga.getCurrentDice() == 7) && pl.getNeedToDiscard())
         {
-            srv.messageToPlayer(c, new SOCDiscardRequest(gaName, pl.getResources().getTotal() / 2));
+            srv.messageToPlayer(c, new SOCDiscardRequest(gaName, pl.getCountToDiscard()));
         }
         else if (ga.hasSeaBoard)
         {
@@ -1729,12 +1796,13 @@ public class SOCGameHandler extends GameHandler
     }
 
     // javadoc inherited from GameHandler. Return true if game is empty and should be ended.
-    public boolean leaveGame(SOCGame ga, Connection c, final boolean hasReplacement)
+    public boolean leaveGame
+        (SOCGame ga, Connection c, final boolean hasReplacement, final boolean hasHumanReplacement)
     {
         final String gm = ga.getName();
         final String plName = c.getData();  // Retain name, since will become null within game obj.
 
-        boolean gameHasHumanPlayer = false;
+        boolean gameHasHumanPlayer = hasHumanReplacement;
         boolean gameHasObserver = false;
         @SuppressWarnings("unused")
         boolean gameVotingActiveDuringStart = false;  // TODO checks/messages; added in v1.1.01, TODO not used yet
@@ -1796,16 +1864,17 @@ public class SOCGameHandler extends GameHandler
         /**
          * check if there is at least one person playing the game
          */
-        for (int pn = 0; pn < ga.maxPlayers; pn++)
-        {
-            SOCPlayer player = ga.getPlayer(pn);
-
-            if ((player != null) && (player.getName() != null) && (!ga.isSeatVacant(pn)) && (!player.isRobot()))
+        if (! hasHumanReplacement)
+            for (int pn = 0; pn < ga.maxPlayers; pn++)
             {
-                gameHasHumanPlayer = true;
-                break;
+                SOCPlayer player = ga.getPlayer(pn);
+
+                if ((player != null) && (player.getName() != null) && ! (player.isRobot() || ga.isSeatVacant(pn)))
+                {
+                    gameHasHumanPlayer = true;
+                    break;
+                }
             }
-        }
 
         //D.ebugPrintln("*** gameHasHumanPlayer = "+gameHasHumanPlayer+" for "+gm);
 
@@ -1843,7 +1912,7 @@ public class SOCGameHandler extends GameHandler
                 }
             }
 
-            if (gameHasObserver && ! ((gameState == SOCGame.NEW) || ga.isBotsOnly))
+            if (gameHasObserver && ! ((gameState == SOCGame.NEW) || (gameState == SOCGame.LOADING) || ga.isBotsOnly))
             {
                 if (0 == srv.getConfigIntProperty(SOCServer.PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
                     gameHasObserver = false;
@@ -1863,7 +1932,7 @@ public class SOCGameHandler extends GameHandler
                 && ((ga.getPlayer(playerNumber).getPublicVP() > 0)
                     || (gameState == SOCGame.START1A)
                     || (gameState == SOCGame.START1B))
-                && (gameState < SOCGame.OVER)
+                && (gameState < SOCGame.LOADING)
                 && ! (gameState < SOCGame.START1A))
         {
             boolean foundNoRobots;
@@ -2254,8 +2323,8 @@ public class SOCGameHandler extends GameHandler
      * sent by {@code sendGameState}.
      *<P>
      * Checks each player's {@link SOCGame#isSeatVacant(int)} and {@link SOCPlayer#getNeedToDiscard()} flags.
-     * Number of resources to discard is calculated here:
-     * <tt>{@link SOCPlayer#getResources()}.{@link SOCResourceSet#getTotal() getTotal()} / 2</tt>.
+     * Number of resources to discard is {@link SOCPlayer#getCountToDiscard()}:
+     * Half of {@link SOCPlayer#getResources()}.
      *
      * @param ga  Game to prompt
      * @param gaName  Game name for convenience; not {@code null}
@@ -2268,10 +2337,9 @@ public class SOCGameHandler extends GameHandler
             final SOCPlayer pl = ga.getPlayer(pn);
             if (( ! ga.isSeatVacant(pn)) && pl.getNeedToDiscard())
             {
-                // Request to discard half (round down)
                 Connection con = srv.getConnection(pl.getName());
                 if (con != null)
-                    con.put(new SOCDiscardRequest(gaName, pl.getResources().getTotal() / 2));
+                    con.put(new SOCDiscardRequest(gaName, pl.getCountToDiscard()));
             }
         }
     }
@@ -2380,9 +2448,11 @@ public class SOCGameHandler extends GameHandler
      *  If game is OVER, send messages reporting winner, final score,
      *  and each player's victory-point cards.
      *<P>
-     *  If {@code joiningConn != null}, returns at that point.
+     *  If {@code joiningConn != null} or {@link SOCGame#hasDoneGameOverTasks}, returns at that point.
      *  The rest of the method has side effects, like stat increments and DB updates,
      *  which should happen only once per game.
+     *  Server structure more or less ensures sendGameStateOVER(ga, null) is called only once.
+     *  Sets {@code ga.hasDoneGameOverTasks} flag just in case.
      *<P>
      *  Give stats on game length, and send each player their connect time.
      *  If player has finished more than 1 game since connecting, send their win-loss count.
@@ -2502,35 +2572,32 @@ public class SOCGameHandler extends GameHandler
                 joiningConn.put(statsMsg);
         }
 
-        if (joiningConn != null)
+        if ((joiningConn != null) || ga.hasDoneGameOverTasks)
         {
             return;  // <--- Early return, to avoid side effects that should happen only once ---
         }
+
+        ga.hasDoneGameOverTasks = true;
 
         /**
          * send game-length and connect-length messages, possibly win-loss count.
          */
         {
-            Date now = new Date();
-            Date gstart = ga.getStartTime();
-            if (gstart != null)
-            {
-                final int gameRounds = ga.getRoundCount();
-                long gameSeconds = ((now.getTime() - gstart.getTime())+500L) / 1000L;
-                final long gameMinutes = gameSeconds / 60L;
-                gameSeconds = gameSeconds % 60L;
+            final int gameRounds = ga.getRoundCount();
+            int gameSeconds = ga.getDurationSeconds();
+            final int gameMinutes = gameSeconds / 60;
+            gameSeconds = gameSeconds % 60;
 
-                if (gameSeconds == 0)
-                    srv.messageToGameKeyed
-                        (ga, true, "stats.game.was.roundsminutes", gameRounds, gameMinutes);
-                        // "This game was # rounds, and took # minutes."
-                else
-                    srv.messageToGameKeyed
-                        (ga, true, "stats.game.was.roundsminutessec", gameRounds, gameMinutes, gameSeconds);
-                        // "This game was # rounds, and took # minutes # seconds." [or 1 second.]
+            if (gameSeconds == 0)
+                srv.messageToGameKeyed
+                    (ga, true, "stats.game.was.roundsminutes", gameRounds, gameMinutes);
+                    // "This game was # rounds, and took # minutes."
+            else
+                srv.messageToGameKeyed
+                    (ga, true, "stats.game.was.roundsminutessec", gameRounds, gameMinutes, gameSeconds);
+                    // "This game was # rounds, and took # minutes # seconds." [or 1 second.]
 
-                // Ignore possible "1 minutes"; that game is too short to worry about.
-            }
+            // Ignore possible "1 minutes"; that game is too short to worry about.
 
             /**
              * Update each player's win-loss count for this session.
@@ -2578,19 +2645,13 @@ public class SOCGameHandler extends GameHandler
 
         }  // send game timing stats, win-loss stats
 
-        if (null == ga.savedGameModel)
-        {
-            srv.gameOverIncrGamesFinishedCount();
-            srv.storeGameScores(ga);
-        }
+        srv.gameOverIncrGamesFinishedCount(ga);
+        srv.storeGameScores(ga);
 
         if (ga.isBotsOnly)
         {
             srv.destroyGameAndBroadcast(gname, "sendGameStateOVER");
         }
-
-        // Server structure more or less ensures sendGameStateOVER(ga, null) is called only once.
-        // TODO consider refactor to be completely sure, especially for storeGameScores.
     }
 
     /**
@@ -2668,6 +2729,67 @@ public class SOCGameHandler extends GameHandler
         srv.messageToPlayerKeyedSpecial(peCon, ga, "robber.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
         srv.messageToPlayerKeyedSpecial(viCon, ga, "robber.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
         srv.messageToGameKeyedSpecialExcept(ga, true, sendNotTo, "robber.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+    }
+
+    /**
+     * {@inheritDoc}
+     *<P>
+     * Before v2.4.00, this method's code was part of {@code SOCGameMessageHandler.handleMAKEOFFER(..)}.
+     */
+    public void sendTradeOffer(final SOCPlayer player, final Connection toJoiningClient)
+    {
+        final SOCTradeOffer offer = player.getCurrentOffer();
+        if (offer == null)
+            return;
+
+        final SOCGame ga = player.getGame();
+        final String gaName = ga.getName();
+        final int lowestVersion = (toJoiningClient != null)
+            ? toJoiningClient.getVersion()
+            : ga.clientVersionLowest;
+
+        // v2.0.00 and newer clients will announce this with localized text;
+        // older clients need it sent from the server
+        if (lowestVersion < SOCStringManager.VERSION_FOR_I18N)
+        {
+            // I18N OK: Pre-2.0.00 clients always use english
+            final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                (ga, "{0} offered to give {1,rsrcs} for {2,rsrcs}.", player.getName(), offer.getGiveSet(), offer.getGetSet());
+
+            if (toJoiningClient == null)
+                srv.messageToGameForVersions
+                    (ga, 0, SOCStringManager.VERSION_FOR_I18N - 1,
+                     new SOCGameTextMsg(gaName, SOCServer.SERVERNAME, txt), true);
+            else
+                srv.messageToPlayer(toJoiningClient, gaName, txt);
+        }
+
+        SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, offer);
+
+        if (toJoiningClient == null)
+        {
+            srv.messageToGame(gaName, makeOfferMessage);
+            srv.recordGameEvent(gaName, makeOfferMessage);
+        } else {
+            srv.messageToPlayer(toJoiningClient, makeOfferMessage);
+        }
+
+        if (toJoiningClient == null)
+        {
+            /**
+             * clear client UIs of any previous trade messages/responses, because a new offer has been made
+             */
+            if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
+            {
+                srv.messageToGame(gaName, new SOCClearTradeMsg(gaName, -1));
+            } else {
+                srv.gameList.takeMonitorForGame(gaName);
+                for (int i = 0; i < ga.maxPlayers; i++)
+                    srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
+                srv.gameList.releaseMonitorForGame(gaName);
+            }
+        }
+        // else client is joining now, so there aren't any previous to be cleared
     }
 
     /**
@@ -2799,6 +2921,7 @@ public class SOCGameHandler extends GameHandler
      * @see SOCGameMessageHandler#handleDISCARD(SOCGame, Connection, SOCDiscard)
      * @see SOCGameMessageHandler#handlePICKRESOURCES(SOCGame, Connection, SOCPickResources)
      * @see SOCGameMessageHandler#handleROLLDICE(SOCGame, Connection, SOCRollDice)
+     * @since 1.1.00
      */
     void reportRsrcGainLoss
         (final String gaName, final ResourceSet resourceSet, final boolean isLoss, boolean isNews,
@@ -2859,6 +2982,44 @@ public class SOCGameHandler extends GameHandler
             player.getName(), rsrcs);
         srv.messageToGame(gn, new SOCPlayerElement
             (gn, pn, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+    }
+
+    /**
+     * Check whether game's Longest Road/Longest Route player has changed, announce to game if so: Sends
+     * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER})
+     * or (if older clients) {@link SOCLongestRoad}.
+     * @param ga  Game to check
+     * @param prevLongestRoadPlayer  Previous {@link SOCGame#getPlayerWithLongestRoad()}, might be null,
+     *     from before the game action which might have changed it
+     * @param hasGameMonitor  If true, caller already has
+     *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gaName)}
+     *     and this method should use {@link SOCServer#messageToGameWithMon(String, SOCMessage)}.
+     *     Otherwise will take and release that monitor here by using
+     *     {@link SOCServer#messageToGame(String, SOCMessage)} instead.
+     * @since 2.4.00
+     */
+    final void reportLongestRoadIfChanged
+        (final SOCGame ga, final SOCPlayer prevLongestRoadPlayer, final boolean hasGameMonitor)
+    {
+        final int prevPN = (prevLongestRoadPlayer != null) ? prevLongestRoadPlayer.getPlayerNumber() : -1;
+
+        SOCPlayer pl = ga.getPlayerWithLongestRoad();
+        int newPN = (pl != null) ? pl.getPlayerNumber() : -1;
+        if (newPN == prevPN)
+            return;
+
+        final String gaName = ga.getName();
+        final SOCMessage msg;
+        if (ga.clientVersionLowest >= SOCGameElements.MIN_VERSION)
+            msg = new SOCGameElements
+                (gaName, GEType.LONGEST_ROAD_PLAYER, newPN);
+        else
+            msg = new SOCLongestRoad(gaName, newPN);
+
+        if (hasGameMonitor)
+            srv.messageToGameWithMon(gaName, msg);
+        else
+            srv.messageToGame(gaName, msg);
     }
 
     // javadoc inherited from GameHandler
@@ -3672,6 +3833,7 @@ public class SOCGameHandler extends GameHandler
      * @param pn  Player number who must discard/gain resources
      * @throws IllegalStateException if {@code pn} is current player, or if incorrect game state or incorrect
      *     player status; see {@link SOCGame#playerDiscardOrGainRandom(int, boolean)} for details
+     * @since 1.1.00
      */
     private final void forceGamePlayerDiscardOrGain
         (final SOCGame cg, final int cpn, final Connection c, final String plName, final int pn)
@@ -3781,7 +3943,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Listener callback for per-player scenario events on the large sea board.
+     * Listener callback for per-player game/scenario events on the large sea board.
      * For example, there might be an SVP awarded for settlements.
      * Server sends messages to the game to announce it (PLAYERELEMENT,
      * {@link #updatePlayerSVPPendingMessage(SOCGame, SOCPlayer, int, String)}, etc).

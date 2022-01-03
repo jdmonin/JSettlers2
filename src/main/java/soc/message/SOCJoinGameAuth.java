@@ -20,6 +20,8 @@
  **/
 package soc.message;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 import soc.game.SOCBoard;       // for javadocs only
 import soc.game.SOCBoardLarge;  // for javadocs only
@@ -36,7 +38,7 @@ import soc.proto.Message;
  * if game options call for {@link SOCBoardLarge} this message includes the board layout's
  * height, width, and optional "VS" part if any. Otherwise that wouldn't be sent until
  * a later {@link SOCBoardLayout2} message, after the interface was already sized and laid out.
- * See {@link #getLayoutVS()}.
+ * See {@link #getLayoutVS()} for details and allowed length.
  *<P>
  * <B>I18N:</B> If the game being joined uses a {@link soc.game.SOCScenario SOCScenario},
  * the client will need localized strings to explain the scenario as soon as the client
@@ -90,12 +92,13 @@ public class SOCJoinGameAuth extends SOCMessage
     /**
      * Create a JoinGameAuth message which may contain the optional {@link #getLayoutVS()}.
      * That parameter can be sent only to client version 2.0.00 or newer ({@link SOCBoardLarge#MIN_VERSION}).
+     * Clients older than 2.4.00 will parse only the first 2 elements of {@code layoutVS} and ignore any more.
      *
      * @param gaName  Game name
      * @param height  Board height for {@link SOCBoardLarge} from {@link SOCBoard#getBoardHeight()}, or 0
      * @param width   Board width for {@link SOCBoardLarge} from {@link SOCBoard#getBoardWidth()}, or 0
      * @param layoutVS  Optional Visual Shift of board layout, or {@code null}; see {@link #getLayoutVS()}.
-     * @throws IllegalArgumentException if {@code layoutVS} != {@code null} but its length != 2
+     * @throws IllegalArgumentException if {@code layoutVS} != {@code null} but its length &lt; 2
      * @see #SOCJoinGameAuth(String)
      * @since 2.0.00
      */
@@ -106,7 +109,7 @@ public class SOCJoinGameAuth extends SOCMessage
         game = gaName;
         this.boardHeight = height;
         this.boardWidth = width;
-        if ((layoutVS != null) && (layoutVS.length != 2))
+        if ((layoutVS != null) && (layoutVS.length < 2))
             throw new IllegalArgumentException("layoutVS");
         this.layoutVS = layoutVS;
     }
@@ -147,6 +150,9 @@ public class SOCJoinGameAuth extends SOCMessage
      * See {@link SOCBoardLarge#getAddedLayoutPart(String) SOCBoardLarge.getAddedLayoutPart("VS")}
      * for more details on "VS".
      *<P>
+     * If sending to a client older than v2.4.00, only the first 2 elements will be parsed,
+     * client will ignore any more. That version and newer permit any length &gt;= 2.
+     *<P>
      * Can't be sent to client v1.x.xx (&lt; {@link SOCBoardLarge#MIN_VERSION}), which would
      * interpret it as part of the game name. Not an issue because that client version can't join
      * any game which uses {@link SOCBoardLarge}.
@@ -162,7 +168,7 @@ public class SOCJoinGameAuth extends SOCMessage
     }
 
     /**
-     * JOINGAMEAUTH sep game [sep2 height sep2 width [sep2 'S' sep2 layoutVS[0] sep2 layoutVS[1]]]
+     * JOINGAMEAUTH sep game [sep2 height sep2 width [sep2 'S' sep2 layoutVS[0] sep2 layoutVS[1] ...]]
      *
      * @return the command String
      */
@@ -180,10 +186,11 @@ public class SOCJoinGameAuth extends SOCMessage
             {
                 sb.append(sep2_char);
                 sb.append('S');  // in case a later version adds other optional fields
-                sb.append(sep2_char);
-                sb.append(layoutVS[0]);
-                sb.append(sep2_char);
-                sb.append(layoutVS[1]);
+                for (final int elem : layoutVS)
+                {
+                    sb.append(sep2_char);
+                    sb.append(elem);
+                }
             }
         }
 
@@ -213,9 +220,16 @@ public class SOCJoinGameAuth extends SOCMessage
             {
                 if (! st.nextToken().equals("S"))
                     return null;  // unrecognized optional-field marker
-                vs = new int[2];
-                vs[0] = Integer.parseInt(st.nextToken());
-                vs[1] = Integer.parseInt(st.nextToken());
+                ArrayList<String> rest = new ArrayList<>();
+                while (st.hasMoreTokens())
+                    rest.add(st.nextToken());
+
+                int L = rest.size();
+                if (L < 2)
+                    return null;
+                vs = new int[L];
+                for (int i = 0; i < L; ++i)
+                    vs[i] = Integer.parseInt(rest.get(i));
             } else {
                 vs = null;
             }
@@ -257,7 +271,7 @@ public class SOCJoinGameAuth extends SOCMessage
         {
             sb.append("|bh=" + boardHeight + "|bw=" + boardWidth);
             if (layoutVS != null)
-                sb.append("|vs={" + layoutVS[0] + ", " + layoutVS[1] + '}');
+                sb.append("|vs=" + Arrays.toString(layoutVS));
         }
 
         return sb.toString();

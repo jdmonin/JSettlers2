@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2012-2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -180,11 +180,16 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         }
     }
 
+    /**
+     * Per-player roll result stats.
+     * One element per player number currently/formerly active in game;
+     * checkboxes hidden for never-active vacant seats with 0 VP.
+     */
     private class RollPanel extends JPanel
     {
         /** Value counters backing {@link #displays}; indexed by dice roll value, 0 and 1 are unused */
         int[] values;
-        /** One element per player number in game; vacant seats' checkboxes are hidden */
+        /** One element per player number in game; checkboxes hidden for never-active seats */
         List<JCheckBox> playerEnabled;
         /** Displays the amounts in {@link #values} */
         private RollBar[] displays;
@@ -213,8 +218,8 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                 for (SOCPlayer p : ga.getPlayers())
                 {
                     final int pn = p.getPlayerNumber();
-                    if (ga.isSeatVacant(pn))
-                        continue;  // player name is null
+                    if (ga.isSeatVacant(pn) && (p.getPublicVP() == 0))
+                        continue;  // player position was always vacant
                     if (! playerEnabled.get(pn).isSelected())
                         continue;  // not showing player's stats
 
@@ -222,7 +227,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                     if (v == -1)
                         continue;
 
-                    sb.append(p.getName()).append(": ").append(v).append("<br/>");
+                    sb.append(getPlayerName(p)).append(": ").append(v).append("<br/>");
                     r += v;
                 }
 
@@ -253,10 +258,11 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             selectPanel.add(all);
 
             playerEnabled = new ArrayList<JCheckBox>();
+            final SOCGame ga = pi.getGame();
             for (int pn = 0; pn < pi.getGame().maxPlayers; ++pn)
             {
-                JCheckBox cb = new JCheckBox(players[pn].getName(), true);
-                if (pi.getGame().isSeatVacant(pn))
+                JCheckBox cb = new JCheckBox(getPlayerName(players[pn]), true);
+                if (ga.isSeatVacant(pn) && (ga.getPlayer(pn).getPublicVP() == 0))
                     cb.setVisible(false);  // hidden but still present in playerEnabled at playerNumber
                 else
                     cb.addActionListener(new CheckActionListener());
@@ -292,6 +298,21 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
                 displayPanel.add(lbl);
             }
+        }
+
+        /**
+         * Get player name, or fall back to "Player 2" format if name is null or ""
+         * @param pl  Player to get name; not null
+         * @return Player name, or localized "Player #" with {@link SOCPlayer#getPlayerNumber()}
+         * @since 2.4.00
+         */
+        private String getPlayerName(final SOCPlayer pl)
+        {
+            String plName = pl.getName();
+            if ((plName == null) || plName.isEmpty())
+                plName = strings.get("base.player_n", pl.getPlayerNumber());  // "Player {0}"
+
+            return plName;
         }
 
         @Override

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013,2017-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -28,6 +28,11 @@ package soc.game;
  *<P>
  * Ships are open until their route has a settlement, city, or village on both ends.
  * Ships can be moved any turn after the turn they're placed, until {@link #isClosed()} is true.
+ *<P>
+ * When a ship is moved by {@link SOCGame#moveShip(SOCShip, int)}, it's removed from
+ * the board and game, and a replacement ship is created and placed.
+ * That replacement won't copy the old ship's {@link SOCPlayingPiece#specialVP} or
+ * {@link SOCPlayingPiece#specialVPEvent}, but the player keeps those {@code specialVP}.
  *<P>
  * In scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
  * {@code SOCShip} has no "isWarship" field: Ships are converted to warships in the
@@ -61,7 +66,7 @@ public class SOCShip extends SOCRoutePiece
      * @param board  board if known; otherwise will extract from {@code pl}
      * @throws IllegalArgumentException  if {@code pl} null, or board null and {@code pl.board} also null
      */
-    public SOCShip(SOCPlayer pl, final int edge, SOCBoard board)
+    public SOCShip(final SOCPlayer pl, final int edge, SOCBoard board)
         throws IllegalArgumentException
     {
         super(pl, SOCPlayingPiece.SHIP, edge, board);

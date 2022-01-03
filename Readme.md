@@ -1,6 +1,6 @@
 # ![logo](doc/graf/Logo32.png?raw=true) Java Settlers
 
-A client-server (optionally browser-based) version of Settlers of Catan
+A desktop client-server (optionally browser-based) version of Settlers of Catan
 
 
 ## Introduction
@@ -440,6 +440,17 @@ It's a simple process to upgrade to the latest version of JSettlers:
   the client window is the new JSettlers version.
 
 
+## Security and Admin Users
+
+The server has commands anyone can run by typing into a game's chat window, like `*STATS*` or `*WHO*`.
+It also has privileged commands that can be run only by named Admin Users or the `debug` user, like `*GC*` or `*SAVEGAME*`.
+
+The debug user shouldn't be enabled except on a developer's own computer, because of its unfair in-game powers.
+Admin Users let you manage your server without the debug user. They authenticate with passwords
+stored in a SQLite file or a database system. To set up Admin Users, see
+section "Security, Admin Users, Admin Commands" of [doc/Database.md](doc/Database.md).
+
+
 ## Development and Building JSettlers
 
 JSettlers is an open-source project licensed under the GPL. The project
@@ -474,6 +485,13 @@ Includes the jQuery JavaScript Library released under the MIT license.
 
 Includes the Konva JavaScript Library released under the MIT license,
 retrieved 2020-01-11 from https://unpkg.com/konva@4.0.0/konva.js, konva.min.js
+
+Miscellaneous code is attributed to the Strategic Conversation (STAC) Project -
+https://www.irit.fr/STAC/ - from their fork published at https://github.com/sorinMD/StacSettlers
+and reintegrated into JSettlers by Jeremy D Monin for v2.4.10.
+[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/master/README.md)
+says "Copyright (C) 2017  STAC" and that repo's most recent substantial change was in 2018.
+In the JSettlers repository, commits from that code use "STAC Project" as the author.
 
 The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>.
+ * Portions of this file Copyright (C) 2017,2020 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,30 +26,38 @@ import soc.server.genericServer.Connection;
 
 
 /**
- * This is a pair of connections, one is sitting at the
- * game and the other is leaving.
+ * This is a pair of connections, one is sitting at a game and the other is leaving;
+ * the arriving connection might be taking over the leaving one's seat.
+ * Server can then have info about one when dealing with messages/events from the other.
  */
 /*package*/ class SOCReplaceRequest
 {
-    private Connection arriving;
-    private Connection leaving;
-    private SOCSitDown sdMes;
+    private final Connection arriving;
+    private final Connection leaving;
+    private final SOCSitDown sdMes;
 
     /**
      * Make a new request
-     * @param arriv  the arriving connection
-     * @param leave  the leaving connection
+     * @param arriv  the arriving connection; not null
+     * @param leave  the leaving connection; not null
      * @param sm the SITDOWN message
+     * @throws IllegalArgumentException if {@code arriv} or {@code leave} is {@code null}
      */
     public SOCReplaceRequest(Connection arriv, Connection leave, SOCSitDown sm)
+        throws IllegalArgumentException
     {
+        if (arriv == null)
+            throw new IllegalArgumentException("arriving");
+        if (leave == null)
+            throw new IllegalArgumentException("leaving");
+
         arriving = arriv;
         leaving = leave;
         sdMes = sm;
     }
 
     /**
-     * @return the arriving connection
+     * @return the arriving connection; not null
      */
     public Connection getArriving()
     {
@@ -57,7 +65,7 @@ import soc.server.genericServer.Connection;
     }
 
     /**
-     * @return the leaving connection
+     * @return the leaving connection; not null
      */
     public Connection getLeaving()
     {

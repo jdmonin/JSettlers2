@@ -900,6 +900,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Status {@link SOCStatusMessage#SV_SERVER_SHUTDOWN} calls {@link #disconnect()}
      * so as to not print futile reconnect attempts on the terminal.
      * @param mes  the message
+     * @since 1.1.00
      */
     @Override
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
@@ -950,6 +951,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         SOCGame ga = new SOCGame(gaName, gameOpts);
         ga.isPractice = isPractice;
+        ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
         games.put(gaName, ga);
 
         CappedQueue<SOCMessage> brainQ = new CappedQueue<SOCMessage>();
@@ -961,7 +963,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * handle the "game members" message, which indicates the entire game state has now been sent.
-     * If we have a {@link #seatRequests} for this game, sit down now.
+     * If we have a {@link #seatRequests} for this game, request to sit down now: send {@link SOCSitDown}.
      * @param mes  the message
      */
     @Override
@@ -1267,69 +1269,69 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param mes  the message
      */
     @Override
-    protected void handleSITDOWN(SOCSitDown mes)
+    protected SOCGame handleSITDOWN(SOCSitDown mes)
     {
         final String gaName = mes.getGame();
 
         /**
          * tell the game that a player is sitting
          */
-        final SOCGame ga = games.get(gaName);
+        final SOCGame ga = super.handleSITDOWN(mes);
+        if (ga == null)
+            return null;
 
-        if (ga != null)
+        /**
+         * let the robot brain find our player object if we sat down
+         */
+        final int pn = mes.getPlayerNumber();
+        if (nickname.equals(mes.getNickname()))
         {
-            final String plName = mes.getNickname();
-            final int pn = mes.getPlayerNumber();
+            SOCRobotBrain brain = robotBrains.get(gaName);
 
-            ga.addPlayer(plName, pn);
+            if (brain.ourPlayerData != null)
+            {
+                if ((pn == brain.ourPlayerNumber) && nickname.equals(ga.getPlayer(pn).getName()))
+                    return ga;  // already sitting in this game at this position, OK (can happen during loadgame)
+
+                throw new IllegalStateException
+                    ("bot " + nickname + " game " + gaName
+                     + ": got sitdown(pn=" + pn + "), but already sitting at pn=" + brain.ourPlayerNumber);
+            }
 
             /**
-             * set the robot flag
+             * retrieve the proper face for our strategy
              */
-            ga.getPlayer(pn).setRobotFlag(mes.isRobot(), false);
+            int faceId;
+            switch (brain.getRobotParameters().getStrategyType())
+            {
+            case SOCRobotDM.SMART_STRATEGY:
+                faceId = -1;  // smarter robot face
+                break;
+
+            default:
+                faceId = 0;   // default robot face
+            }
+
+            brain.setOurPlayerData();
+            brain.start();
 
             /**
-             * let the robot brain find our player object if we sat down
+             * change our face to the robot face
              */
-            if (nickname.equals(plName))
-            {
-                SOCRobotBrain brain = robotBrains.get(gaName);
-
-                /**
-                 * retrieve the proper face for our strategy
-                 */
-                int faceId;
-                switch (brain.getRobotParameters().getStrategyType())
-                {
-                case SOCRobotDM.SMART_STRATEGY:
-                    faceId = -1;  // smarter robot face
-                    break;
-
-                default:
-                    faceId = 0;   // default robot face
-                }
-
-                brain.setOurPlayerData();
-                brain.start();
-
-                /**
-                 * change our face to the robot face
-                 */
-                put(SOCChangeFace.toCmd(ga.getName(), pn, faceId));
-            }
-            else
-            {
-                /**
-                 * add tracker for player in previously vacant seat
-                 */
-                SOCRobotBrain brain = robotBrains.get(gaName);
-
-                if (brain != null)
-                {
-                    brain.addPlayerTracker(mes.getPlayerNumber());
-                }
-            }
+            put(SOCChangeFace.toCmd(ga.getName(), pn, faceId));
         }
+        else
+        {
+            /**
+             * add tracker for player in previously vacant seat
+             */
+            SOCRobotBrain brain = robotBrains.get(gaName);
+
+            if (brain != null)
+                brain.addPlayerTracker(pn);
+        }
+
+        return ga;
     }
 
     /**
@@ -1458,6 +1460,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @see #handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest)
+     * @since 1.1.00
      */
     @Override
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
@@ -1485,6 +1488,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param key  Recorder key for strings to send; not {@code null}
      * @param oldNotCurrent  True if should use {@link SOCRobotBrain#getOldDRecorder()
      *     instead of {@link SOCRobotBrain#getDRecorder() .getDRecorder()}
+     * @since 1.1.00
      */
     protected void sendRecordsText
         (final String gaName, final String key, final boolean oldNotCurrent)

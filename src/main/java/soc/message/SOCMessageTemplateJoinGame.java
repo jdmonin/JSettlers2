@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2013-2014,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2013-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ package soc.message;
  * This message means that someone is joining or creating a game.
  *<P>
  * Once the client has successfully joined or created a game or channel, the
- * nickname and password fields can be left blank in its later join/create requests.
+ * nickname and password fields can be left blank or "-" in its later join/create requests.
  * All server versions ignore the password field after a successful request.
  *<P>
  * v1.1.07: This template class is copied from {@link SOCJoinGame} to
@@ -43,7 +43,8 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
-     * Nickname of the joining member, or "-" if already auth'd to server
+     * Nickname of the joining member when announced from server, or "-" from client if already auth'd to server.
+     * Server has always ignored this field from client after auth, can send "-" but not blank.
      */
     protected String nickname;
 
@@ -65,7 +66,7 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     /**
      * Create a Join message. Subclasses should set {@link #messageType} after calling.
      *
-     * @param nn  nickname, or "-" if already auth'd to server
+     * @param nn  player's nickname when announced from server, or "-" from client if already auth'd to server
      * @param pw  optional password, or ""
      * @param hn  unused; optional server host name, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
@@ -80,7 +81,9 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     }
 
     /**
-     * @return the nickname, or "-" if already auth'd to server
+     * Nickname of the joining member when announced from server, or "-" from client if already auth'd to server.
+     * Server has always ignored this field from client after auth, can send "-" but not blank.
+     * @return the nickname, or "-" from client if already auth'd to server
      */
     public String getNickname()
     {

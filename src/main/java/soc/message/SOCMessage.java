@@ -80,6 +80,8 @@ import soc.proto.Message;
  *      instead call <tt>yourMessageType.parseDataStr(multiData)</tt>:
  *      for details see {@link SOCMessageMulti} class javadoc.
  * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
+ * <LI> If the message can be sent to server from clients which haven't yet authenticated,
+ *      must implement marker {@link SOCMessageFromUnauthClient}.
  * <LI> Extend the SOCMessage class or a template class, including the required parseDataStr method.
  *      ({@link SOCRevealFogHex} and {@link SOCSetTurn} are good example subclasses.)
  *      Template parent-classes can help; the example subclasses extend them.
@@ -282,12 +284,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int STATUSMESSAGE = 1069;
     public static final int CREATEACCOUNT = 1070;
     public static final int UPDATEROBOTPARAMS = 1071;
-    public static final int ROLLDICEPROMPT = 1072;     // autoroll, 20071003, sf patch #1812254
-    public static final int RESETBOARDREQUEST = 1073;  // resetboard, 20080217, sf patch#tbd
-    public static final int RESETBOARDAUTH = 1074;     // resetboard, 20080217, sf patch#tbd
-    public static final int RESETBOARDVOTEREQUEST = 1075; // resetboard, 20080223, sf patch#tbd
-    public static final int RESETBOARDVOTE = 1076;     // resetboard, 20080223, sf patch#tbd
-    public static final int RESETBOARDREJECT = 1077;   // resetboard, 20080223, sf patch#tbd
+    public static final int ROLLDICEPROMPT = 1072;     // autoroll, 20071003, sf patch #1812254, v1.1.00
+    public static final int RESETBOARDREQUEST = 1073;  // resetboard, 20080217, v1.1.00
+    public static final int RESETBOARDAUTH = 1074;     // resetboard, 20080217, v1.1.00
+    public static final int RESETBOARDVOTEREQUEST = 1075; // resetboard, 20080223, v1.1.00
+    public static final int RESETBOARDVOTE = 1076;     // resetboard, 20080223, v1.1.00
+    public static final int RESETBOARDREJECT = 1077;   // resetboard, 20080223, v1.1.00
 
     /**
      * {@link SOCNewGameWithOptionsRequest}: Requesting creation of a new game
@@ -437,15 +439,21 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final String sep = "|";
 
     /**
-     * secondary separator token SEP2, as string. SEP2 is ",".
+     * Secondary separator token SEP2, as string. SEP2 is ",".
      * @see #sep2_char
      */
     public static final String sep2 = ",";
 
-    /** main separator token {@link #sep}, as character. SEP is '|'. */
+    /**
+     * Main separator token {@link #sep}, as character. SEP is '|'.
+     * @since 1.1.00
+     */
     public static final char sep_char = '|';
 
-    /** secondary separator token {@link #sep2}, as character. SEP2 is ','. */
+    /**
+     * Secondary separator token {@link #sep2}, as character. SEP2 is ','.
+     * @since 1.1.00
+     */
     public static final char sep2_char = ',';
 
     /**
@@ -495,6 +503,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * visibility of the version when searching the source code.
      *
      * @return Version number, as in 1006 for JSettlers 1.0.06.
+     * @since 1.1.00
      */
     public int getMinimumVersion() { return 1000; }
 
@@ -502,6 +511,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * To identify obsolete message types, give the maximum version where this
      * type is used.  Default (for active messages) returns {@link Integer#MAX_VALUE}.
      * @return Version number, as in 1006 for JSettlers 1.0.06, or {@link Integer#MAX_VALUE}.
+     * @since 1.1.00
      */
     public int getMaximumVersion()
     {
@@ -512,8 +522,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Converts the contents of this message into
      * a String that can be transferred by a client
      * or server.
-     * Your class' required method
-     * static SOCMessageSubclass parseDataStr(String)
+     * Your message class's required method
+     * {@code static SOCMessageSubclass parseDataStr(String)}
      * must be able to turn this String
      * back into an instance of the message class.
      *<P>
@@ -522,6 +532,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * For multi-messages (@link SOCMessageMulti}, multiple {@link #sep} tokens
      * are allowed.  Multi-messages are parsed with:
      * static SOCMessageSubclass parseDataStr(String[])
+     *<P>
+     * Overall conversion from {@code toCmd()} format is handled by {@link #toMsg(String)},
+     * which checks message type ID to call the appropriate class's {@code parseDataStr}.
      *<P>
      * <B>Note:</B> Server code should not call {@code toCmd()};
      * instead call {@link #makeCmd()} which caches the result from {@code toCmd()}
@@ -599,7 +612,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
         return proto;
     }
 
-    /** Simple human-readable representation, used for debug purposes. */
+    /**
+     * Simple human-readable representation, used for debug purposes.
+     * @see #toCmd()
+     * @since 1.1.00
+     */
     @Override
     public abstract String toString();
 
@@ -652,12 +669,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 (Character.isSpaceChar(c) && (Character.getType(c) != Character.SPACE_SEPARATOR)))
                 return false;
         }
+
         return true;
     }
 
     /**
-     * Convert a string into a SOCMessage.
-     * The string is in the form of "id SEP messagename {SEP2 messagedata}*".
+     * Convert a string from {@link #toCmd()} into a SOCMessage.
+     * The string is in the form of "id SEP messagename { SEP2 messagedata }*".
      * If the message type id is unknown, that is printed to System.err.
      * Otherwise calls message type's static {@code parseDataStr} method.
      *
