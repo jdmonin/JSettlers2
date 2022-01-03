@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,15 +59,15 @@ public class TestResourceSet
         SOCResourceSet rs = new SOCResourceSet();
         assertTrue(rs.isEmpty());
 
-        rs.add(1, SOCResourceConstants.SHEEP);
+        rs.add(1, Data.ResourceType.SHEEP_VALUE);
         assertFalse(rs.isEmpty());
 
-        rs.subtract(1, SOCResourceConstants.SHEEP);
+        rs.subtract(1, Data.ResourceType.SHEEP_VALUE);
         assertTrue(rs.isEmpty());
 
         // remove a resource, even though set is already empty
-        rs.subtract(1, SOCResourceConstants.SHEEP);
-        assertEquals(-1, rs.getAmount(SOCResourceConstants.UNKNOWN));
+        rs.subtract(1, Data.ResourceType.SHEEP_VALUE);
+        assertEquals(-1, rs.getAmount(Data.ResourceType.UNKNOWN_VALUE));
         assertFalse(rs.isEmpty());  // since total UNKNOWN is -1
     }
 
@@ -255,10 +255,10 @@ public class TestResourceSet
         assertTrue(rs1.equals(rs2));
         assertEquals(rs1.hashCode(), rs2.hashCode());
 
-        rs1.add(1, SOCResourceConstants.SHEEP);
+        rs1.add(1, Data.ResourceType.SHEEP_VALUE);
         assertFalse(rs1.equals(rs2));
         assertNotEquals(rs1.hashCode(), rs2.hashCode());
-        rs2.add(1, SOCResourceConstants.SHEEP);
+        rs2.add(1, Data.ResourceType.SHEEP_VALUE);
         assertTrue(rs1.equals(rs2));
         assertEquals(rs1.hashCode(), rs2.hashCode());
 
