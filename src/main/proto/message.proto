@@ -358,6 +358,7 @@ message ServerStatusText {
 }
 
 /* A text message for everyone connected to all games, all channels.
+ * Server prepends sendingUsername + ": " to the requested text.
  * @see GameServerText
  * @see ChannelText
  */
@@ -543,6 +544,8 @@ message Games {
 }
 
 /* Client's request to create a game, or server's announcement that a game has been created.
+ * If the client has requested creating this game, announcement will be followed by {@link JoinGame} to them.
+ *<P>
  * Before v3.0.00 this message was {@code SOCNewGameWithOptions} from the server,
  * and {@code SOCNewGameWithOptionsRequest} from the client with an optional password.
  */
@@ -639,6 +642,11 @@ message GameMembers {
 
 /* A game member client's request wants to sit down to play at a specific seat,
  * or server's announcement to all game members that a player has sat.
+ *<P>
+ * When client is sitting down to play and receives this message for their own player,
+ * they should clear their currently-unknown inventory contents/dev card count.
+ * The server is about to privately send it {@link InventoryItemAction}
+ * with the detailed contents of that inventory.
  *<P>
  * Although it's a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  */

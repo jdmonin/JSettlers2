@@ -278,6 +278,8 @@ message BuyInventoryItemRequest {
  *<P>
  * Player Number field is -1 for action type {@code CANNOT_PLAY}; see that enum value for details.
  *<P>
+ * Also sent to client when they sit down to play, to give the private details of their dev card inventory.
+ *<P>
  * At end of game (state {@code OVER}), server reveals players' hidden Victory Point cards by announcing an
  * InventoryItemAction(playerNumber, ADD_OLD, devCardsSet={cardType, cardType, ...})
  * for each player that has them. This is sent to all game members; a client player should ignore
