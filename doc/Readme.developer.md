@@ -429,11 +429,11 @@ Run `gradle war` or `gradle build` to assemble all components into **build/libs/
 
 The server has other run-time requirements (like protobuf JARs) which won't
 be part of its .war file: Those must be downloaded and placed into your Jetty
-or Tomcat installation. See
-https://github.com/jdmonin/JSettlers2/blob/v3/doc/Readme.developer.md
-sections "Download required library JARs" and "SOCServer Web Server for
-HTML5", and note any command-line flags you may need for Jetty or Tomcat to
-use those extra runtime JARs.
+or Tomcat installation. See sections "Required library JARs" and
+"SOCServer Web Server for HTML5", and note any command-line flags you may need for Jetty or Tomcat
+to use those extra runtime JARs.
+
+To run the web app, see [Readme](../Readme.md) section "Server Web App Deployment".
 
 
 ## Using protobuf (currently optional; work in progress)
@@ -447,8 +447,8 @@ Here are some brief notes:
 
 - Development and the JSettlers build require `protobuf-java-3.17.3.jar`,
   `protobuf-java-util-3.17.3.jar`, and other JARs.
-  Running `gradle test` can download them for you, or see above under
-  "Download required library JARs" for download URLs.
+  Running `gradle test` can download them for you, or see section
+  "Required library JARs" for download URLs.
 - `build.gradle` can generate Java classes from the *.proto files.
   There are no protobuf tasks in the Ant `build.xml`, you'll need to use gradle
   if you make changes to *.proto. If you don't need to change any proto files,
@@ -1186,7 +1186,8 @@ Jeremy Monin's first JSettlers releases 1.1.00 through 1.1.06.
 ### Reference: Required library JARs
 
 These are automatically downloaded by gradle and added to the project.
-They're listed here for reference or if you want to download them manually.
+They're listed here for reference or if you want to download them manually
+to deploy to Jetty or Tomcat for the web app.
 
 - For API JARs (protobuf, servlets, websockets):
      - Locate `protobuf-java-3.17.3.jar` by

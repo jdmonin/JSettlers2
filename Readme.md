@@ -10,14 +10,15 @@ written in Java and HTML5. This client-server system supports multiple
 simultaneous games between people and computer-controlled
 opponents. Initially created as an AI research project.
 
-The new in-progress client is browser-based in HTML5.
-The server is a Java web app hosted in a servlet container like Jetty or Tomcat,
+The new in-progress web app is a browser-based client using HTML5.
+Currently it can only chat and watch games, can't play yet.
+Its server is a Java web app hosted in a servlet container like Jetty or Tomcat,
 which also provides the client html to visiting players' browsers.
 
-The stable Java client can host a server, connect to dedicated JSettlers servers
+The Java client can host a server, connect and play on dedicated JSettlers servers
 over the net, or play practice games offline against bots.
 
-The server can optionally use a database to store player account
+The JSettlers server can optionally use a database to store player account
 information and game stats (details below).  A client java app to
 create user accounts is also provided.
 
@@ -82,11 +83,12 @@ https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
 
 ## Requirements
 
-To play JSettlers in a browser, you will need one new enough for HTML5
+To watch a JSettlers game in a browser, you will need one new enough for HTML5
 and Javascript version ES6. You will also need the `socweb.war` and `socserver.war`
-packages, and Java 8 servlet container software such as Jetty or Tomcat.
-Currently you must build `socweb.war` and `socserver.war` from source (see below),
-because no versions of it have yet been released.
+packages, and a Java 8 servlet container software such as Jetty or Tomcat.
+Currently you must build `socweb.war` and `socserver.war` from source,
+because no versions of it have yet been released:
+See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 To play JSettlers with the traditional Java client, you will need either the
 Java Development Kit (JDK) version 8 or higher, or version 8 of the smaller
@@ -263,6 +265,8 @@ such as:
 This deploys the optional part of the JSettlers Server which runs on a
 java web app server, and the HTML5 client web app.
 
+- Currently the HTML5 client can only chat and watch games, can't play yet.
+
 - If you've started the JSettlers Server from the instructions in the
   previous sections, make sure it isn't currenly running. Deploying the
   JSettlers Server web app will also start the server on the same default port.
@@ -273,7 +277,7 @@ java web app server, and the HTML5 client web app.
 
 - Place the server's other run-time requirements (like protobuf JARs) into your
   web app server's external libs directory: See [doc/Readme.developer.md](doc/Readme.developer.md)
-  sections "Download required library JARs" and "SOCServer Web Server for HTML5",
+  sections "Required library JARs" and "SOCServer Web Server for HTML5",
   and note any command-line flags you may need for Jetty or Tomcat to use those
   extra runtime JARs.
 
