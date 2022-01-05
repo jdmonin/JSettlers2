@@ -345,6 +345,14 @@ message ServerStatusText {
          */
         SV_SERVER_SHUTDOWN = 23;
 
+        /** Client has sent server a message type which requires authentication before sending,
+         * such as a channel chat message or in-game action. Client must authenticate
+         * ({@link AuthRequest} or another message with nickname/password fields)
+         * for server to process that message type.
+         * @since 2.4.00
+         */
+        SV_MUST_AUTH_FIRST = 24;
+
         // IF YOU ADD A STATUS VALUE:
         // Do not change or remove the numeric values of earlier ones.
         // Be sure to update server's statusValidAtVersion() and statusFallbackForVersion().
