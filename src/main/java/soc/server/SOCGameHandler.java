@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2022 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -4204,9 +4204,10 @@ public class SOCGameHandler extends GameHandler
         }
         robber = board.getRobberHex();
 
-        if ((bef == 1) && (ga.getClientVersionMinRequired() < SOCBoardLayout2.VERSION_FOR_BOARDLAYOUT2))
+        if ((bef == SOCBoard.BOARD_ENCODING_ORIGINAL)
+            && (ga.getClientVersionMinRequired() < SOCBoardLayout2.VERSION_FOR_BOARDLAYOUT2))
         {
-            // SOCBoard.BOARD_ENCODING_ORIGINAL: v1
+            // v1
             return new SOCBoardLayout(ga.getName(), hexes, numbers, robber);
         }
 
