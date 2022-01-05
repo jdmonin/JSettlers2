@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -73,6 +73,15 @@ public class TestLoadgame
     public static void setup()
         throws Exception
     {
+        try
+        {
+            assertTrue(null != Class.forName("com.google.gson.Gson"));
+        } catch(Throwable th) {
+            String msg = "TestLoadgame: can't load com.google.gson.Gson, check CLASSPATH: " + th;
+            System.err.println(msg);
+            fail(msg);
+        }
+
         srv = new SOCServer("dummy", 0, null, null);
 
         // - create the inactive game option used in bad-gameopt-inactive.game.json
