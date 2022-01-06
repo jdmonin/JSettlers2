@@ -601,6 +601,7 @@ public class TestLoadgame
      * Test loading a game with Dev Card stats elements for {@link SOCPlayer#numRBCards} etc.
      * @since 2.4.10
      */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testLoadPlayerElementStats()
         throws IOException

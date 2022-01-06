@@ -267,9 +267,9 @@ message BuyInventoryItemRequest {
     sint32 other_inv_item_type = 2;
 }
 
-/* Client player request, or server response or announcement, about
- * Development Cards or other {@link SOCInventoryItem}s in a player's inventory.
- * Server sometimes sends to a specific player, sometimes to all game members.
+/* Client player request, or server announcement or response to client's {@link BuyInventoryItemRequest} or
+ * {@link InventoryItemAction}, about Development Cards or other {@link SOCInventoryItem}s in a player's inventory.
+ * Server sometimes sends to a specific player, sometimes to all other members or to entire game.
  *<P>
  * Dev Cards:
  *<P>
