@@ -2331,7 +2331,7 @@ public class SOCPlayerInterface extends Frame
         }
         catch (RuntimeException re)
         {
-            D.ebugPrintln("resetBoardAskVote: Cannot: " + re);
+            D.ebugPrintlnINFO("resetBoardAskVote: Cannot: " + re);
             return;
         }
         boardResetRequester = hands[pnRequester];
@@ -2889,6 +2889,16 @@ public class SOCPlayerInterface extends Frame
             : "game.SVP.get.many";
 
         printKeyed(svpKey, plName, svp, desc);
+    }
+
+    /**
+     * Clear contents of the chat input text ("please wait" during setup, etc).
+     * @since 2.4.10
+     */
+    public void clearChatTextInput()
+    {
+        textInput.setText("");
+        textInputIsInitial = false;
     }
 
     /**
@@ -5163,10 +5173,15 @@ public class SOCPlayerInterface extends Frame
     private static class SOCPITextfieldListener
         extends KeyAdapter implements DocumentListener, FocusListener
     {
-        private SOCPlayerInterface pi;
+        /** our playerinterface; not null */
+        private final SOCPlayerInterface pi;
 
         public SOCPITextfieldListener(SOCPlayerInterface spi)
+            throws IllegalArgumentException
         {
+            if (spi == null)
+                throw new IllegalArgumentException("spi");
+
             pi = spi;
         }
 

@@ -172,16 +172,16 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     public void updateSpeedup()
     {
         /*
-           D.ebugPrintln("****************************** (SETTLEMENT) updateSpeedup at "+Integer.toHexString(coord));
-           D.ebugPrintln("SOCPN:"+player.getNumbers());
-           D.ebugPrint("PFLAGS:");
+           D.ebugPrintlnINFO("****************************** (SETTLEMENT) updateSpeedup at "+Integer.toHexString(coord));
+           D.ebugPrintlnINFO("SOCPN:"+player.getNumbers());
+           D.ebugPrintINFO("PFLAGS:");
            boolean portFlags[] = player.getPortFlags();
            if (D.ebugOn) {
              for (int port = SOCBoard.MISC_PORT; port <= SOCBoard.WOOD_PORT; port++) {
-               D.ebugPrint(portFlags[port]+",");
+               D.ebugPrintINFO(portFlags[port]+",");
              }
            }
-           D.ebugPrintln();
+           D.ebugPrintlnINFO();
            SOCBuildingSpeedEstimate bse1 = new SOCBuildingSpeedEstimate(player.getNumbers());
            int ourBuildingSpeed[] = bse1.getEstimatesFromNothingFast(player.getPortFlags());
            //
@@ -189,9 +189,9 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
            //
            SOCPlayerNumbers newNumbers = new SOCPlayerNumbers(player.getNumbers());
            newNumbers.updateNumbers(coord, player.getGame().getBoard());
-           D.ebugPrintln("----- new numbers and ports -----");
-           D.ebugPrintln("SOCPN:"+newNumbers);
-           D.ebugPrint("PFLAGS:");
+           D.ebugPrintlnINFO("----- new numbers and ports -----");
+           D.ebugPrintlnINFO("SOCPN:"+newNumbers);
+           D.ebugPrintINFO("PFLAGS:");
            //
            //  get new ports
            //
@@ -202,15 +202,15 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
              if (player.getGame().getBoard().getPortCoordinates(port).contains(coordInteger)) {
                newPortFlags[port] = true;
              }
-             D.ebugPrint(portFlags[port]+",");
+             D.ebugPrintINFO(portFlags[port]+",");
            }
-           D.ebugPrintln();
+           D.ebugPrintlnINFO();
            SOCBuildingSpeedEstimate bse2 = new SOCBuildingSpeedEstimate(newNumbers);
            int speed[] = bse2.getEstimatesFromNothingFast(newPortFlags);
            for (int buildingType = SOCBuildingSpeedEstimate.MIN;
                 buildingType < SOCBuildingSpeedEstimate.MAXPLUSONE;
                 buildingType++) {
-             D.ebugPrintln("!@#$% ourBuildingSpeed["+buildingType+"]="+ourBuildingSpeed[buildingType]+" speed["+buildingType+"]="+speed[buildingType]);
+             D.ebugPrintlnINFO("!@#$% ourBuildingSpeed["+buildingType+"]="+ourBuildingSpeed[buildingType]+" speed["+buildingType+"]="+speed[buildingType]);
              speedup[buildingType] = ourBuildingSpeed[buildingType] - speed[buildingType];
            }
          */

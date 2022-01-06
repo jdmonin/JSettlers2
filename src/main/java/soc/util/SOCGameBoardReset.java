@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2010,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2010,2016-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -216,7 +216,7 @@ public class SOCGameBoardReset
                         robotConns[pn] = pCon;
                     else
                         // should not happen
-                        D.ebugPrintln("findPlayerConnections assert failed: human player not copied: " + pn);
+                        D.ebugPrintlnINFO("findPlayerConnections assert failed: human player not copied: " + pn);
                 }
             }
         }
@@ -227,13 +227,13 @@ public class SOCGameBoardReset
             if (! newGame.isSeatVacant(pn))
             {
                 if ((humanConns[pn] == null) && (robotConns[pn] == null))
-                    D.ebugPrintln("findPlayerConnections assert failed: did not find player " + pn);
+                    D.ebugPrintlnINFO("findPlayerConnections assert failed: did not find player " + pn);
             }
             else
             {
                 if ((humanConns[pn] != null) ||
                     ((robotConns[pn] != null) && ((oldGame == null) || oldGame.isSeatVacant(pn))))
-                    D.ebugPrintln("findPlayerConnections assert failed: memberlist had vacant player " + pn);
+                    D.ebugPrintlnINFO("findPlayerConnections assert failed: memberlist had vacant player " + pn);
             }
         }
 

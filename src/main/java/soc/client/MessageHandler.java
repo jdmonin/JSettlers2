@@ -101,7 +101,7 @@ import soc.util.Version;
             return;  // Parsing error
 
         if (client.debugTraffic || D.ebugIsEnabled())
-            soc.debug.D.ebugPrintln(mes.toString());
+            soc.debug.D.ebugPrintlnINFO(mes.toString());
 
         try
         {
@@ -723,7 +723,7 @@ import soc.util.Version;
      */
     private void handleVERSION(final boolean isPractice, SOCVersion mes)
     {
-        D.ebugPrintln("handleVERSION: " + mes);
+        D.ebugPrintlnINFO("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
 
         if (! isPractice)

@@ -768,9 +768,9 @@ public class SOCBuildingSpeedEstimate
         (SOCResourceSet startingResources, SOCResourceSet targetResources, int cutoff, boolean[] ports)
         throws CutoffExceededException
     {
-        D.ebugPrintln("calculateRollsAccurate");
-        D.ebugPrintln("  start: " + startingResources);
-        D.ebugPrintln("  target: " + targetResources);
+        D.ebugPrintlnINFO("calculateRollsAccurate");
+        D.ebugPrintlnINFO("  start: " + startingResources);
+        D.ebugPrintlnINFO("  target: " + targetResources);
 
         SOCResourceSet ourResources = startingResources.copy();
         int rolls = 0;
@@ -793,8 +793,8 @@ public class SOCBuildingSpeedEstimate
         {
             if (D.ebugOn)
             {
-                D.ebugPrintln("roll: " + rolls);
-                D.ebugPrintln("resourcesOnRoll[lastRoll]:");
+                D.ebugPrintlnINFO("roll: " + rolls);
+                D.ebugPrintlnINFO("resourcesOnRoll[lastRoll]:");
 
                 Enumeration<SOCResourceSet> roltEnum = resourcesOnRoll[lastRoll].keys();
 
@@ -802,20 +802,20 @@ public class SOCBuildingSpeedEstimate
                 {
                     SOCResourceSet rs = roltEnum.nextElement();
                     Float prob = resourcesOnRoll[lastRoll].get(rs);
-                    D.ebugPrintln("---- prob:" + prob);
-                    D.ebugPrintln("---- rsrcs:" + rs);
-                    D.ebugPrintln();
+                    D.ebugPrintlnINFO("---- prob:" + prob);
+                    D.ebugPrintlnINFO("---- rsrcs:" + rs);
+                    D.ebugPrintlnINFO();
                 }
 
-                D.ebugPrintln("targetReachedProb: " + targetReachedProb);
-                D.ebugPrintln("===================================");
+                D.ebugPrintlnINFO("targetReachedProb: " + targetReachedProb);
+                D.ebugPrintlnINFO("===================================");
             }
 
             rolls++;
 
             if (rolls > cutoff)
             {
-                D.ebugPrintln("startingResources=" + startingResources + "\ntargetResources=" + targetResources + "\ncutoff=" + cutoff + "\nourResources=" + ourResources);
+                D.ebugPrintlnINFO("startingResources=" + startingResources + "\ntargetResources=" + targetResources + "\ncutoff=" + cutoff + "\nourResources=" + ourResources);
                 throw new CutoffExceededException();
             }
 
@@ -967,9 +967,9 @@ public class SOCBuildingSpeedEstimate
                     //
                     if (newResources.contains(targetResources))
                     {
-                        D.ebugPrintln("-----> TARGET HIT *");
-                        D.ebugPrintln("newResources: " + newResources);
-                        D.ebugPrintln("newProb: " + newProb);
+                        D.ebugPrintlnINFO("-----> TARGET HIT *");
+                        D.ebugPrintlnINFO("newResources: " + newResources);
+                        D.ebugPrintlnINFO("newProb: " + newProb);
                         targetReachedProb += newProb;
 
                         if (targetReachedResources == null)
@@ -1003,11 +1003,11 @@ public class SOCBuildingSpeedEstimate
         if (D.ebugOn)
         {
             float probSum = 0.0f;
-            D.ebugPrintln("**************** TARGET REACHED ************");
-            D.ebugPrintln("targetReachedResources: " + targetReachedResources);
-            D.ebugPrintln("targetReachedProb: " + targetReachedProb);
-            D.ebugPrintln("roll: " + rolls);
-            D.ebugPrintln("resourcesOnRoll[lastRoll]:");
+            D.ebugPrintlnINFO("**************** TARGET REACHED ************");
+            D.ebugPrintlnINFO("targetReachedResources: " + targetReachedResources);
+            D.ebugPrintlnINFO("targetReachedProb: " + targetReachedProb);
+            D.ebugPrintlnINFO("roll: " + rolls);
+            D.ebugPrintlnINFO("resourcesOnRoll[lastRoll]:");
 
             Enumeration<SOCResourceSet> roltEnum = resourcesOnRoll[lastRoll].keys();
 
@@ -1016,13 +1016,13 @@ public class SOCBuildingSpeedEstimate
                 SOCResourceSet rs = roltEnum.nextElement();
                 Float prob = resourcesOnRoll[lastRoll].get(rs);
                 probSum += prob.floatValue();
-                D.ebugPrintln("---- prob:" + prob);
-                D.ebugPrintln("---- rsrcs:" + rs);
-                D.ebugPrintln();
+                D.ebugPrintlnINFO("---- prob:" + prob);
+                D.ebugPrintlnINFO("---- rsrcs:" + rs);
+                D.ebugPrintlnINFO();
             }
 
-            D.ebugPrintln("probSum = " + probSum);
-            D.ebugPrintln("===================================");
+            D.ebugPrintlnINFO("probSum = " + probSum);
+            D.ebugPrintlnINFO("===================================");
         }
 
         return (new SOCResSetBuildTimePair(targetReachedResources, rolls));

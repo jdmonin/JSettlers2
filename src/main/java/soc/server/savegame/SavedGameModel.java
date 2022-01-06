@@ -145,6 +145,16 @@ public class SavedGameModel
      * <LI> While loading, robot player names are checked against server's connected bots to avoid naming conflicts
      *      and renamed using {@link #rand} if needed
      *</UL>
+     *
+     *<H4>Changed in 2.4.10:</H4>
+     *<UL>
+     * <LI> Model version is still 2400
+     * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_DISC NUM_PLAYED_DEV_CARD_DISC},
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}.
+     *      Earlier server versions will ignore them while loading a savegame.
+     *</UL>
      */
     public static final int MODEL_VERSION = 2400;
 
@@ -953,12 +963,23 @@ public class SavedGameModel
                 if (curr != null)
                     currentTradeOffer = new TradeOffer(curr);
             }
+
+            int n;
+            n = pl.numDISCCards;
+            if (n > 0)
+                elements.put(PEType.NUM_PLAYED_DEV_CARD_DISC, n);
+            n = pl.numMONOCards;
+            if (n > 0)
+                elements.put(PEType.NUM_PLAYED_DEV_CARD_MONO, n);
+            n = pl.numRBCards;
+            if (n > 0)
+                elements.put(PEType.NUM_PLAYED_DEV_CARD_ROADS, n);
+
             if (ga.hasSeaBoard)
             {
                 final HashMap<PEType, Integer> early = new HashMap<>();
 
                 elements.put(PEType.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP));
-                int n;
                 n = pl.getNumWarships();
                 if (n != 0)
                     elements.put(PEType.SCENARIO_WARSHIP_COUNT, n);

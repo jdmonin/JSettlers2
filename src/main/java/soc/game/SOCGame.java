@@ -4756,7 +4756,7 @@ public class SOCGame implements Serializable, Cloneable
             if (lastPlayerNumber == firstPlayerNumber)
             {
                 // Should not happen: All seats blank
-                D.ebugPrintln("** setFirstPlayer: Should not happen: All seats blank");
+                D.ebugPrintlnINFO("** setFirstPlayer: Should not happen: All seats blank");
                 lastPlayerNumber = -1;
                 break;
             }
@@ -7323,9 +7323,9 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canMakeTrade(final int offering, final int accepting)
     {
-        D.ebugPrintln("*** canMakeTrade ***");
-        D.ebugPrintln("*** offering = " + offering);
-        D.ebugPrintln("*** accepting = " + accepting);
+        D.ebugPrintlnINFO("*** canMakeTrade ***");
+        D.ebugPrintlnINFO("*** offering = " + offering);
+        D.ebugPrintlnINFO("*** accepting = " + accepting);
 
         if (gameState != PLAY1)
         {
@@ -7349,21 +7349,21 @@ public class SOCGame implements Serializable, Cloneable
         SOCPlayer acceptingPlayer = players[accepting];
         SOCTradeOffer offer = offeringPlayer.getCurrentOffer();
 
-        D.ebugPrintln("*** offer = " + offer);
+        D.ebugPrintlnINFO("*** offer = " + offer);
 
         if ((offer.getGiveSet().getTotal() == 0) || (offer.getGetSet().getTotal() == 0))
         {
             return false;
         }
 
-        D.ebugPrintln("*** offeringPlayer.getResources() = " + offeringPlayer.getResources());
+        D.ebugPrintlnINFO("*** offeringPlayer.getResources() = " + offeringPlayer.getResources());
 
         if (!(offeringPlayer.getResources().contains(offer.getGiveSet())))
         {
             return false;
         }
 
-        D.ebugPrintln("*** acceptingPlayer.getResources() = " + acceptingPlayer.getResources());
+        D.ebugPrintlnINFO("*** acceptingPlayer.getResources() = " + acceptingPlayer.getResources());
 
         if (!(acceptingPlayer.getResources().contains(offer.getGetSet())))
         {

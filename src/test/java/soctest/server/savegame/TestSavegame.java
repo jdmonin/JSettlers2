@@ -33,6 +33,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.Ignore;
 import static org.junit.Assert.*;
 
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGame.SeatLockState;
 import soc.game.SOCGameOption;
@@ -40,6 +41,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
 import soc.game.SOCTradeOffer;
+import soc.message.SOCPlayerElement.PEType;
 import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
 import soc.server.savegame.GameLoaderJSON;
@@ -222,6 +224,50 @@ public class TestSavegame
         assertArrayEquals(new boolean[]{true, false,  false, false}, offer.getTo());
         assertEquals(PL3_GIVES, offer.getGiveSet());
         assertEquals(PL3_GETS, offer.getGetSet());
+    }
+
+    /**
+     * Test whether player dev-card stats fields like {@link SOCPlayer#numRBCards} are properly added into SGM;
+     * doesn't need to actually save the file.
+     * @throws IOException
+     * @since 2.4.10
+     */
+    @Test
+    public void testSGM_playerDevCardStats()
+        throws IOException
+    {
+        SOCGame ga = new SOCGame("test");
+        ga.addPlayer("p0", 0);
+        ga.addPlayer("third", 3);
+        ga.startGame();  // create board layout
+        ga.setGameState(SOCGame.ROLL_OR_CARD);  // no pieces placed, but can't save during initial placement
+
+        SOCPlayer pl = ga.getPlayer(0);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
+        assertEquals(2, pl.numRBCards);
+        assertEquals(0, pl.numDISCCards);
+        assertEquals(0, pl.numMONOCards);
+
+        pl = ga.getPlayer(3);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
+        assertEquals(0, pl.numRBCards);
+        assertEquals(1, pl.numDISCCards);
+        assertEquals(1, pl.numMONOCards);
+
+        SavedGameModel sgm = new SavedGameModel(ga, srv);
+        assertNotNull(sgm);
+
+        SavedGameModel.PlayerInfo pi = sgm.playerSeats[0];
+        assertEquals(Integer.valueOf(2), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_ROADS));
+        assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_DISC));
+        assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_MONO));
+
+        pi = sgm.playerSeats[3];
+        assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_ROADS));
+        assertEquals(Integer.valueOf(1), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_DISC));
+        assertEquals(Integer.valueOf(1), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_MONO));
     }
 
     /**

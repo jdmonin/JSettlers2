@@ -655,7 +655,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 error = e;
                 if (up)
-                    D.ebugPrintln("Exception " + e + " during accept");
+                    D.ebugPrintlnINFO("Exception " + e + " during accept");
 
                 //System.out.println("STOPPING SERVER");
                 //stopServer();
@@ -936,7 +936,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 } else {
                     // no connection-name key data; we can't identify it later if it reconnects;
                     // just print the announcement right now.
-                    D.ebugPrintln
+                    D.ebugPrintlnINFO
                         (c.host() + " left (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  "
                          + (new Date()).toString() + ((cerr != null) ? (": " + cerr.toString()) : ""));
                 }
@@ -1025,7 +1025,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             }
             newConnection2(c);  // <-- App-specific #2 --
         } else {
-            D.ebugPrintln(c.host() + " came but rejected (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date()).toString());
+            D.ebugPrintlnINFO(c.host() + " came but rejected (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date()).toString());
         }
     }
 
@@ -1658,10 +1658,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             if (isArriveNotDepart)
             {
-                D.ebugPrintln(connHost + " came (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date(thrownAt)).toString());
+                D.ebugPrintlnINFO(connHost + " came (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date(thrownAt)).toString());
                 cliConnDisconPrintsPending.remove(arrivingConn);
             } else {
-                D.ebugPrintln(connHost + " left (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date(thrownAt)).toString() + ((excep != null) ? (": " + excep.toString()) : ""));
+                D.ebugPrintlnINFO(connHost + " left (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date(thrownAt)).toString() + ((excep != null) ? (": " + excep.toString()) : ""));
                 cliConnDisconPrintsPending.remove(connName);
             }
         }

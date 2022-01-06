@@ -391,7 +391,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     public void disconnectReconnect()
     {
-        D.ebugPrintln("(*)(*)(*)(*)(*)(*)(*) disconnectReconnect()");
+        D.ebugPrintlnINFO("(*)(*)(*)(*)(*)(*)(*) disconnectReconnect()");
         ex = null;
 
         for (int attempt = 3; attempt > 0; --attempt)
@@ -578,7 +578,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                   && (Math.abs(System.currentTimeMillis() - nextServerPingExpectedAt) <= 66000)))
                           // within 66 seconds of the expected time; see displaylesscli.handleSERVERPING
         {
-            soc.debug.D.ebugPrintln("IN - " + nickname + " - " + mes);
+            soc.debug.D.ebugPrintlnINFO("IN - " + nickname + " - " + mes);
         }
 
         try
@@ -801,7 +801,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleADMINPING(SOCAdminPing mes)
     {
-        D.ebugPrintln("*** Admin Ping message = " + mes);
+        D.ebugPrintlnINFO("*** Admin Ping message = " + mes);
 
         SOCGame ga = games.get(mes.getGame());
 
@@ -830,7 +830,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleADMINRESET(SOCAdminReset mes)
     {
-        D.ebugPrintln("*** Admin Reset message = " + mes);
+        D.ebugPrintlnINFO("*** Admin Reset message = " + mes);
         disconnectReconnect();
     }
 
@@ -850,7 +850,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             printedInitialWelcome = true;
         }
         if (D.ebugIsEnabled())
-            D.ebugPrintln("*** current robot parameters = " + currentRobotParameters);
+            D.ebugPrintlnINFO("*** current robot parameters = " + currentRobotParameters);
     }
 
     /**
@@ -866,7 +866,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleBOTJOINGAMEREQUEST(SOCBotJoinGameRequest mes)
     {
-        D.ebugPrintln("**** handleBOTJOINGAMEREQUEST ****");
+        D.ebugPrintlnINFO("**** handleBOTJOINGAMEREQUEST ****");
 
         final String gaName = mes.getGame();
 
@@ -889,7 +889,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         seatRequests.put(gaName, Integer.valueOf(mes.getPlayerNumber()));
         if (put(SOCJoinGame.toCmd(nickname, password, SOCMessage.EMPTYSTR, gaName)))
         {
-            D.ebugPrintln("**** sent SOCJoinGame ****");
+            D.ebugPrintlnINFO("**** sent SOCJoinGame ****");
         }
     }
 
@@ -1009,7 +1009,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                D.ebugPrintln("CutoffExceededException" + exc);
+                D.ebugPrintlnINFO("CutoffExceededException" + exc);
             }
         }
     }
@@ -1400,7 +1400,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                D.ebugPrintln("CutoffExceededException" + exc);
+                D.ebugPrintlnINFO("CutoffExceededException" + exc);
             }
 
             SOCGame ga = games.get(mes.getGame());
@@ -1430,7 +1430,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                D.ebugPrintln("CutoffExceededException" + exc);
+                D.ebugPrintlnINFO("CutoffExceededException" + exc);
             }
 
             /**
@@ -1465,7 +1465,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     @Override
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
-        D.ebugPrintln("**** handleRESETBOARDAUTH ****");
+        D.ebugPrintlnINFO("**** handleRESETBOARDAUTH ****");
 
         String gname = mes.getGame();
         SOCGame ga = games.get(gname);
@@ -1562,9 +1562,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 ? ("L1833 robot " + nickname + " leaving game " + gaName + " due to " + leaveReason)
                 : null;
             if (showReason)
-                soc.debug.D.ebugPrintln(r);
+                soc.debug.D.ebugPrintlnINFO(r);
             else if (r != null)
-                D.ebugPrintln(r);
+                D.ebugPrintlnINFO(r);
 
             if (showDebugTrace)
             {

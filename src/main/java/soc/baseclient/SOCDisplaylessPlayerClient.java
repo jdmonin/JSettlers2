@@ -308,7 +308,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         lastMessage = s;
 
         if (debugTraffic || D.ebugIsEnabled())
-            soc.debug.D.ebugPrintln("OUT - " + nickname + " - " + s);
+            soc.debug.D.ebugPrintlnINFO("OUT - " + nickname + " - " + s);
 
         if ((ex != null) || ! connected)
         {
@@ -386,7 +386,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                   && (Math.abs(System.currentTimeMillis() - nextServerPingExpectedAt) <= 66000)))
                           // within 66 seconds of the expected time; see handleSERVERPING
         {
-            soc.debug.D.ebugPrintln("IN - " + nickname + " - " + mes.toString());
+            soc.debug.D.ebugPrintlnINFO("IN - " + nickname + " - " + mes.toString());
         }
 
         final int typ = mes.getType();
@@ -939,7 +939,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     private void handleVERSION(boolean isLocal, SOCVersion mes)
     {
-        D.ebugPrintln("handleVERSION: " + mes);
+        D.ebugPrintlnINFO("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
         final SOCFeatureSet feats =
             (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
@@ -1597,6 +1597,18 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case DISCARD_FLAG:
             pl.setNeedToDiscard(val != 0);
+            break;
+
+        case NUM_PLAYED_DEV_CARD_DISC:
+            pl.numDISCCards = val;
+            break;
+
+        case NUM_PLAYED_DEV_CARD_MONO:
+            pl.numMONOCards = val;
+            break;
+
+        case NUM_PLAYED_DEV_CARD_ROADS:
+            pl.numRBCards = val;
             break;
 
         case NUM_PICK_GOLD_HEX_RESOURCES:

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,15 +28,15 @@ import soc.game.SOCGame;  // for javadocs only
 
 
 /**
- * This message (from client to server) means that a client player wants to
- * move the robber or pirate ship, or (from server to all players) a player
- * has moved the robber or pirate ship.
+ * This message means:
+ * (from client to server) Client player wants to move the robber or pirate ship;
+ * or (from server to all players) a player has moved the robber or pirate ship.
  *<P>
- * From current player's client, is sent in response to server's
+ * When sent from current player's client, is in response to server's
  * {@link SOCGameState}({@link SOCGame#PLACING_ROBBER PLACING_ROBBER}
  * or {@link SOCGame#PLACING_PIRATE PLACING_PIRATE}).
  *<P>
- * From the server, the message will be followed by other messages
+ * When sent from server, this message will be followed by other messages
  * about gaining/losing resources.  So for this message, the client
  * should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
  * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
@@ -47,7 +47,7 @@ import soc.game.SOCGame;  // for javadocs only
  * This message uses positive coordinates when moving the robber, and negative
  * when moving the pirate.  Moving the pirate to hex 0x0104 is done with a
  * SOCMoveRobber(-0x0104) message, which would cause the client to call
- * {@link soc.game.SOCBoardLarge#setPirateHex(int, boolean) board.setPirateHex(0x0104, boolean)}.
+ * {@link soc.game.SOCBoardLarge#setPirateHex(int, boolean) board.setPirateHex(0x0104, ...)}.
  *
  * @author Robert S Thomas
  * @see SOCMovePiece

@@ -1478,7 +1478,7 @@ public class SOCGameHandler extends GameHandler
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in SGH.joinGame (gameMembers) - " + e);
+            D.ebugPrintlnINFO("Exception in SGH.joinGame (gameMembers) - " + e);
         } finally {
             srv.gameList.releaseMonitorForGame(gameName);
         }
@@ -1494,7 +1494,7 @@ public class SOCGameHandler extends GameHandler
             sendGameStateOVER(gameData, c);
 
         if (D.ebugOn)
-            D.ebugPrintln("*** " + cliName + " joined the game " + gameName + " at "
+            D.ebugPrintlnINFO("*** " + cliName + " joined the game " + gameName + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
 
         if (isRejoinOrLoadgame && (gameState != SOCGame.LOADING))
@@ -1733,9 +1733,9 @@ public class SOCGameHandler extends GameHandler
          */
         if ((! isRejoinOrLoadgame) && (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY))
         {
-            final SOCDevCardAction cardUnknown = (cliVersionRecent)
-                ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
-                : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
+            final SOCDevCardAction cardUnknown = new SOCDevCardAction
+                (gaName, pn, SOCDevCardAction.PLAY,
+                 (cliVersionRecent) ? SOCDevCardConstants.UNKNOWN : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
             for (int i = cardsInv.getTotal(); i > 0; --i)
                 srv.messageToPlayer(c, cardUnknown);
         }
@@ -1857,7 +1857,7 @@ public class SOCGameHandler extends GameHandler
         srv.recordGameEvent(gm, leaveMessage);
 
         if (D.ebugOn)
-            D.ebugPrintln("*** " + plName + " left the game " + gm + " at "
+            D.ebugPrintlnINFO("*** " + plName + " left the game " + gm + " at "
                 + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
         srv.messageToGameKeyed(ga, false, "member.left.game", plName);  // "{0} left the game"
 

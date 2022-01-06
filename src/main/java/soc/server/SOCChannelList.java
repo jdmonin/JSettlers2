@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -79,7 +79,7 @@ import java.util.Vector;
      */
     public synchronized void takeMonitor()
     {
-        D.ebugPrintln("SOCChannelList : TAKE MONITOR");
+        D.ebugPrintlnINFO("SOCChannelList : TAKE MONITOR");
 
         while (inUse)
         {
@@ -101,7 +101,7 @@ import java.util.Vector;
      */
     public synchronized void releaseMonitor()
     {
-        D.ebugPrintln("SOCChannelList : RELEASE MONITOR");
+        D.ebugPrintlnINFO("SOCChannelList : RELEASE MONITOR");
         inUse = false;
         this.notify();
     }
@@ -114,7 +114,7 @@ import java.util.Vector;
      */
     public boolean takeMonitorForChannel(String channel)
     {
-        D.ebugPrintln("SOCChannelList : TAKE MONITOR FOR " + channel);
+        D.ebugPrintlnINFO("SOCChannelList : TAKE MONITOR FOR " + channel);
 
         MutexFlag mutex = channelMutexes.get(channel);
 
@@ -167,7 +167,7 @@ import java.util.Vector;
      */
     public boolean releaseMonitorForChannel(String channel)
     {
-        D.ebugPrintln("SOCChannelList : RELEASE MONITOR FOR " + channel);
+        D.ebugPrintlnINFO("SOCChannelList : RELEASE MONITOR FOR " + channel);
 
         MutexFlag mutex = channelMutexes.get(channel);
 
@@ -354,7 +354,7 @@ import java.util.Vector;
      */
     public synchronized void deleteChannel(String chName)
     {
-        D.ebugPrintln("SOCChannelList : deleteChannel(" + chName + ")");
+        D.ebugPrintlnINFO("SOCChannelList : deleteChannel(" + chName + ")");
         channelMembers.remove(chName);
 
         SOCChatRecentBuffer buf = channelChatBuffer.remove(chName);

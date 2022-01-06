@@ -832,7 +832,7 @@ public class SOCAccountClient extends Applet
     public synchronized boolean put(String s)
     {
         if (debugTraffic || D.ebugIsEnabled())
-            soc.debug.D.ebugPrintln("OUT - " + s);
+            soc.debug.D.ebugPrintlnINFO("OUT - " + s);
 
         if ((ex != null) || !connected)
         {
@@ -866,7 +866,7 @@ public class SOCAccountClient extends Applet
             return;  // Msg parsing error
 
         if (debugTraffic || D.ebugIsEnabled())
-            soc.debug.D.ebugPrintln("IN - " + mes.toString());
+            soc.debug.D.ebugPrintlnINFO("IN - " + mes.toString());
 
         try
         {

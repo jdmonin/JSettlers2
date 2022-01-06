@@ -69,10 +69,15 @@ public class D
     /**
      * Changes the debug level to one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
      * The default is WARNING.
+     * @throws IllegalArgumentException if level not in range {@code INFO} - {@code FATAL}
      * @since 2.4.10
      */
     public static void setLevel(int l)
+        throws IllegalArgumentException
     {
+        if ((l < INFO) || (l > FATAL))
+            throw new IllegalArgumentException("level");
+
         level = l;
     }
 
@@ -110,11 +115,13 @@ public class D
      * DOCUMENT ME!
      *
      * @param text DOCUMENT ME!
+     * @deprecated Use {@link #ebugPrintlnINFO(String)} added in v2.4.10
      */
     public static final void ebugPrintln(String text) {}
 
     /**
      * DOCUMENT ME!
+     * @deprecated Use {@link #ebugPrintlnINFO()} added in v2.4.10
      */
     public static final void ebugPrintln() {}
 
@@ -161,6 +168,7 @@ public class D
      * DOCUMENT ME!
      *
      * @param text DOCUMENT ME!
+     * @deprecated Use {@link #ebugPrintINFO(String)} added in v2.4.10
      */
     public static final void ebugPrint(String text) {}
 

@@ -43,6 +43,7 @@ import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
+import soc.message.SOCPlayerElement.PEType;
 import soc.server.SOCGameListAtServer;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.GameLoaderJSON;
@@ -104,8 +105,9 @@ public class TestLoadgame
      * @param locks  SeatLockStates to check, or {@code null} to skip;
      *     individual elements can also be {@code null} to skip checking them
      * @param totalVP Players' total VP
-     * @param resources Players' resources (clay, ore, sheep, wheat, wood)
+     * @param resources Players' resources (clay, ore, sheep, wheat, wood), or {@code null} to skip
      * @param pieceCounts Players' piece counts (roads, settlements, cities, and ships remaining; knights/soldiers played)
+     *     or {@code null} to skip
      * @param pieceLocations Some or all players' piece locations, or {@code null} to skip checking them:
      *     For each player, either {@code null} or an int[][] array of piece types' expected locations
      *     (roads, settlements, cities, ships)
@@ -133,15 +135,21 @@ public class TestLoadgame
             assertEquals("totalVP SGM[" + pn + "]", totalVP[pn], pi.totalVP);
             assertEquals("totalVP ga[" + pn + "]", totalVP[pn], pl.getTotalVP());
 
-            final SOCResourceSet rs = (resources[pn] != null)
-                ? new SOCResourceSet(resources[pn])
-                : new SOCResourceSet();
-            assertTrue(rs.equals(pl.getResources()));
+            if (resources != null)
+            {
+                final SOCResourceSet rs = (resources[pn] != null)
+                    ? new SOCResourceSet(resources[pn])
+                    : new SOCResourceSet();
+                assertTrue("resources[" + pn + "]", rs.equals(pl.getResources()));
+            }
 
-            for (int ptype = SOCPlayingPiece.ROAD; ptype <= SOCPlayingPiece.SHIP; ++ptype)
-                assertEquals("pieceCounts[" + pn + "][" + ptype + "]", pieceCounts[pn][ptype], pl.getNumPieces(ptype));
-                // ROAD, SETTLEMENT, CITY, SHIP == 0, 1, 2, 3: tested in TestPlayingPiece
-            assertEquals("pieceCounts[" + pn + "][4]", pieceCounts[pn][4], pl.getNumKnights());
+            if (pieceCounts != null)
+            {
+                for (int ptype = SOCPlayingPiece.ROAD; ptype <= SOCPlayingPiece.SHIP; ++ptype)
+                    assertEquals("pieceCounts[" + pn + "][" + ptype + "]", pieceCounts[pn][ptype], pl.getNumPieces(ptype));
+                    // ROAD, SETTLEMENT, CITY, SHIP == 0, 1, 2, 3: tested in TestPlayingPiece
+                assertEquals("pieceCounts[" + pn + "][4]", pieceCounts[pn][4], pl.getNumKnights());
+            }
 
             if ((pieceLocations != null) && (pieceLocations[pn] != null))
             {
@@ -587,6 +595,54 @@ public class TestLoadgame
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
+    }
+
+    /**
+     * Test loading a game with Dev Card stats elements for {@link SOCPlayer#numRBCards} etc.
+     * @since 2.4.10
+     */
+    @Test
+    public void testLoadPlayerElementStats()
+        throws IOException
+    {
+        final SavedGameModel sgm = load("devcard-stats.game.json");
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("game name", "devcard-stats", sgm.gameName);
+        assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
+        assertEquals(4, ga.maxPlayers);
+
+        final String[] NAMES = {null, "robot 4", "robot 3", "debug"};
+        final int[] TOTAL_VP = {0, 3, 3, 3};
+        checkPlayerData(sgm, NAMES, null, TOTAL_VP, null, null, null);
+
+        final int[][] PLAYER_DEVCARD_STATS = {{0, 0, 0}, {0, 0, 2}, {0, 0, 0}, {1, 1, 0}};
+        for (int pn = 0; pn < 4; ++pn)
+        {
+            final SOCPlayer pl = ga.getPlayer(pn);
+            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+
+            int amount = PLAYER_DEVCARD_STATS[pn][0];
+            assertEquals(amount, pl.numDISCCards);
+            if (amount != 0)
+                assertEquals(Integer.valueOf(amount), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_DISC));
+            else
+                assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_DISC));
+
+            amount = PLAYER_DEVCARD_STATS[pn][1];
+            assertEquals(amount, pl.numMONOCards);
+            if (amount != 0)
+                assertEquals(Integer.valueOf(amount), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_MONO));
+            else
+                assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_MONO));
+
+            amount = PLAYER_DEVCARD_STATS[pn][2];
+            assertEquals(amount, pl.numRBCards);
+            if (amount != 0)
+                assertEquals(Integer.valueOf(amount), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_ROADS));
+            else
+                assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_ROADS));
+        }
     }
 
     /**

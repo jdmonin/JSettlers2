@@ -324,7 +324,7 @@ public class SOCPlayerTracker
                     }
                     else
                     {
-                        D.ebugPrintln("*** ERROR in copyPlayerTrackers : necRoadCopy == null");
+                        D.ebugPrintlnINFO("*** ERROR in copyPlayerTrackers : necRoadCopy == null");
                     }
                 }
 
@@ -348,7 +348,7 @@ public class SOCPlayerTracker
                         }
                         else
                         {
-                            D.ebugPrintln("*** ERROR in copyPlayerTrackers : newPosRoadCopy == null");
+                            D.ebugPrintlnINFO("*** ERROR in copyPlayerTrackers : newPosRoadCopy == null");
                         }
 
                         break;
@@ -364,7 +364,7 @@ public class SOCPlayerTracker
                         }
                         else
                         {
-                            D.ebugPrintln("*** ERROR in copyPlayerTrackers : newPosSettlementCopy == null");
+                            D.ebugPrintlnINFO("*** ERROR in copyPlayerTrackers : newPosSettlementCopy == null");
                         }
 
                         break;
@@ -397,7 +397,7 @@ public class SOCPlayerTracker
                     }
                     else
                     {
-                        D.ebugPrintln("*** ERROR in copyPlayerTrackers : necRoadCopy == null");
+                        D.ebugPrintlnINFO("*** ERROR in copyPlayerTrackers : necRoadCopy == null");
                     }
                 }
 
@@ -413,7 +413,7 @@ public class SOCPlayerTracker
 
                     if (trackerCopy2 == null)
                     {
-                        D.ebugPrintln("*** ERROR in copyPlayerTrackers : trackerCopy2 == null");
+                        D.ebugPrintlnINFO("*** ERROR in copyPlayerTrackers : trackerCopy2 == null");
                     }
                     else
                     {
@@ -422,7 +422,7 @@ public class SOCPlayerTracker
 
                         if (conflictCopy == null)
                         {
-                            D.ebugPrintln("*** ERROR in copyPlayerTrackers : conflictCopy == null");
+                            D.ebugPrintlnINFO("*** ERROR in copyPlayerTrackers : conflictCopy == null");
                         }
                         else
                         {
@@ -1171,7 +1171,7 @@ public class SOCPlayerTracker
          * if another player's road is on one of our possible
          * roads, then remove it
          */
-        D.ebugPrintln("$$$ addTheirNewRoadOrShip : " + rs);
+        D.ebugPrintlnINFO("$$$ addTheirNewRoadOrShip : " + rs);
 
         Integer edge = Integer.valueOf(rs.getCoordinates());
         SOCPossibleRoad pr = possibleRoads.get(edge);
@@ -1456,7 +1456,7 @@ public class SOCPlayerTracker
          */
         Integer settlementCoords = Integer.valueOf(settlement.getCoordinates());
         SOCPossibleSettlement ps = possibleSettlements.get(settlementCoords);
-        D.ebugPrintln("$$$ removing (wrong) " + Integer.toHexString(settlement.getCoordinates()));
+        D.ebugPrintlnINFO("$$$ removing (wrong) " + Integer.toHexString(settlement.getCoordinates()));
         possibleSettlements.remove(settlementCoords);
         removeFromNecessaryRoads(ps);
 
@@ -1487,7 +1487,7 @@ public class SOCPlayerTracker
     public synchronized void addOurNewSettlement(final SOCSettlement settlement, final SOCPlayerTracker[] trackers)
     {
         //D.ebugPrintln();
-        D.ebugPrintln("$$$ addOurNewSettlement : " + settlement);
+        D.ebugPrintlnINFO("$$$ addOurNewSettlement : " + settlement);
         SOCBoard board = game.getBoard();
 
         final Integer settlementCoords = Integer.valueOf(settlement.getCoordinates());
@@ -1505,7 +1505,7 @@ public class SOCPlayerTracker
 
         if (ps != null)
         {
-            D.ebugPrintln("$$$ was a possible settlement");
+            D.ebugPrintlnINFO("$$$ was a possible settlement");
 
             /**
              * copy a list of all the conflicting settlements
@@ -1515,7 +1515,7 @@ public class SOCPlayerTracker
             /**
              * remove the possible settlement that is now a real settlement
              */
-            D.ebugPrintln("$$$ removing " + Integer.toHexString(settlement.getCoordinates()));
+            D.ebugPrintlnINFO("$$$ removing " + Integer.toHexString(settlement.getCoordinates()));
             possibleSettlements.remove(settlementCoords);
             removeFromNecessaryRoads(ps);
 
@@ -1524,12 +1524,12 @@ public class SOCPlayerTracker
              */
             for (SOCPossibleSettlement conflict : conflicts)
             {
-                D.ebugPrintln("$$$ checking conflict with " + conflict.getPlayer().getPlayerNumber() + ":" + Integer.toHexString(conflict.getCoordinates()));
+                D.ebugPrintlnINFO("$$$ checking conflict with " + conflict.getPlayer().getPlayerNumber() + ":" + Integer.toHexString(conflict.getCoordinates()));
 
                 SOCPlayerTracker tracker = trackers[conflict.getPlayer().getPlayerNumber()];
                 if (tracker != null)
                 {
-                    D.ebugPrintln("$$$ removing " + Integer.toHexString(conflict.getCoordinates()));
+                    D.ebugPrintlnINFO("$$$ removing " + Integer.toHexString(conflict.getCoordinates()));
                     tracker.getPossibleSettlements().remove(Integer.valueOf(conflict.getCoordinates()));
                     removeFromNecessaryRoads(conflict);
 
@@ -1538,7 +1538,7 @@ public class SOCPlayerTracker
                      */
                     for (SOCPossibleSettlement otherConflict : conflict.getConflicts())
                     {
-                        D.ebugPrintln("$$$ removing conflict " + Integer.toHexString(conflict.getCoordinates()) + " from " + Integer.toHexString(otherConflict.getCoordinates()));
+                        D.ebugPrintlnINFO("$$$ removing conflict " + Integer.toHexString(conflict.getCoordinates()) + " from " + Integer.toHexString(otherConflict.getCoordinates()));
                         otherConflict.removeConflict(conflict);
                     }
                 }
@@ -1550,7 +1550,7 @@ public class SOCPlayerTracker
              * if the new settlement wasn't a possible settlement,
              * we still need to cancel out other players possible settlements
              */
-            D.ebugPrintln("$$$ wasn't possible settlement");
+            D.ebugPrintlnINFO("$$$ wasn't possible settlement");
 
             ArrayList<SOCPossibleSettlement> trash = new ArrayList<SOCPossibleSettlement>();
             List<Integer> adjNodes = board.getAdjacentNodesToNode(settlement.getCoordinates());
@@ -1561,16 +1561,16 @@ public class SOCPlayerTracker
                     continue;
 
                 SOCPossibleSettlement posSet = tracker.getPossibleSettlements().get(settlementCoords);
-                D.ebugPrintln("$$$ tracker for player " + tracker.getPlayer().getPlayerNumber());
+                D.ebugPrintlnINFO("$$$ tracker for player " + tracker.getPlayer().getPlayerNumber());
 
                 /**
                  * check the node that the settlement is on
                  */
-                D.ebugPrintln("$$$ checking node " + Integer.toHexString(settlement.getCoordinates()));
+                D.ebugPrintlnINFO("$$$ checking node " + Integer.toHexString(settlement.getCoordinates()));
 
                 if (posSet != null)
                 {
-                    D.ebugPrintln("$$$ trashing " + Integer.toHexString(posSet.getCoordinates()));
+                    D.ebugPrintlnINFO("$$$ trashing " + Integer.toHexString(posSet.getCoordinates()));
                     trash.add(posSet);
 
                     /**
@@ -1578,7 +1578,7 @@ public class SOCPlayerTracker
                      */
                     for (SOCPossibleSettlement conflict : posSet.getConflicts())
                     {
-                        D.ebugPrintln("$$$ removing conflict " + Integer.toHexString(posSet.getCoordinates()) + " from " + Integer.toHexString(conflict.getCoordinates()));
+                        D.ebugPrintlnINFO("$$$ removing conflict " + Integer.toHexString(posSet.getCoordinates()) + " from " + Integer.toHexString(conflict.getCoordinates()));
                         conflict.removeConflict(posSet);
                     }
                 }
@@ -1588,12 +1588,12 @@ public class SOCPlayerTracker
                  */
                 for (Integer adjNode : adjNodes)
                 {
-                    D.ebugPrintln("$$$ checking node " + Integer.toHexString(adjNode.intValue()));
+                    D.ebugPrintlnINFO("$$$ checking node " + Integer.toHexString(adjNode.intValue()));
                     posSet = tracker.getPossibleSettlements().get(adjNode);
 
                     if (posSet != null)
                     {
-                        D.ebugPrintln("$$$ trashing " + Integer.toHexString(posSet.getCoordinates()));
+                        D.ebugPrintlnINFO("$$$ trashing " + Integer.toHexString(posSet.getCoordinates()));
                         trash.add(posSet);
 
                         /**
@@ -1601,7 +1601,7 @@ public class SOCPlayerTracker
                          */
                         for (SOCPossibleSettlement conflict : posSet.getConflicts())
                         {
-                            D.ebugPrintln("$$$ removing conflict " + Integer.toHexString(posSet.getCoordinates()) + " from " + Integer.toHexString(conflict.getCoordinates()));
+                            D.ebugPrintlnINFO("$$$ removing conflict " + Integer.toHexString(posSet.getCoordinates()) + " from " + Integer.toHexString(conflict.getCoordinates()));
                             conflict.removeConflict(posSet);
                         }
                     }
@@ -1611,11 +1611,11 @@ public class SOCPlayerTracker
                  * take out the trash
                  * (no-longer-possible settlements, roads that support it)
                  */
-                D.ebugPrintln("$$$ removing trash for " + tracker.getPlayer().getPlayerNumber());
+                D.ebugPrintlnINFO("$$$ removing trash for " + tracker.getPlayer().getPlayerNumber());
 
                 for (SOCPossibleSettlement pset : trash)
                 {
-                    D.ebugPrintln("$$$ removing " + Integer.toHexString(pset.getCoordinates()) + " owned by " + pset.getPlayer().getPlayerNumber());
+                    D.ebugPrintlnINFO("$$$ removing " + Integer.toHexString(pset.getCoordinates()) + " owned by " + pset.getPlayer().getPlayerNumber());
                     tracker.getPossibleSettlements().remove(Integer.valueOf(pset.getCoordinates()));
                     removeFromNecessaryRoads(pset);
                 }
@@ -1779,7 +1779,7 @@ public class SOCPlayerTracker
          */
 
         //D.ebugPrintln();
-        D.ebugPrintln("$$$ addTheirNewSettlement : " + settlement);
+        D.ebugPrintlnINFO("$$$ addTheirNewSettlement : " + settlement);
 
         ArrayList<SOCPossibleRoad> prTrash = new ArrayList<SOCPossibleRoad>();
         ArrayList<SOCPossibleRoad> nrTrash = new ArrayList<SOCPossibleRoad>();
@@ -1816,7 +1816,7 @@ public class SOCPlayerTracker
                                 && (threat.getCoordinates() == settleCoord)
                                 && (threat.getPlayer().getPlayerNumber() == settlePN))
                             {
-                                D.ebugPrintln("$$$ new settlement cuts off road at " + Integer.toHexString(pr.getCoordinates()));
+                                D.ebugPrintlnINFO("$$$ new settlement cuts off road at " + Integer.toHexString(pr.getCoordinates()));
                                 prTrash.add(pr);
 
                                 break;
@@ -1836,7 +1836,7 @@ public class SOCPlayerTracker
                         {
                             if (nrEdge == edge2.intValue())
                             {
-                                D.ebugPrintln("$$$ removing dependency " + Integer.toHexString(nrEdge)
+                                D.ebugPrintlnINFO("$$$ removing dependency " + Integer.toHexString(nrEdge)
                                     + " from " + Integer.toHexString(pr.getCoordinates()));
                                 nrTrash.add(nr);
 
@@ -1858,7 +1858,7 @@ public class SOCPlayerTracker
 
                         if (pr.getNecessaryRoads().isEmpty())
                         {
-                            D.ebugPrintln("$$$ no more dependencies, removing " + Integer.toHexString(pr.getCoordinates()));
+                            D.ebugPrintlnINFO("$$$ no more dependencies, removing " + Integer.toHexString(pr.getCoordinates()));
                             prTrash.add(pr);
                         }
                     }
@@ -2420,7 +2420,7 @@ public class SOCPlayerTracker
     {
         // TODO handle ships here (different resources, etc)
 
-        D.ebugPrintln("===  recalcLongestRoadETA for player " + playerNumber);
+        D.ebugPrintlnINFO("===  recalcLongestRoadETA for player " + playerNumber);
 
         final int roadETA;
         SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
@@ -2470,7 +2470,7 @@ public class SOCPlayerTracker
             }
         }
 
-        D.ebugPrintln("--- roadsToGo = " + roadsToGo);
+        D.ebugPrintlnINFO("--- roadsToGo = " + roadsToGo);
         longestRoadETA = roadsToGo * roadETA;
     }
 
@@ -2828,20 +2828,20 @@ public class SOCPlayerTracker
             {
                 if (laPlayer != null)
                 {
-                    D.ebugPrintln("laPlayer # = " + laPlayer.getPlayerNumber());
+                    D.ebugPrintlnINFO("laPlayer # = " + laPlayer.getPlayerNumber());
                 }
                 else
                 {
-                    D.ebugPrintln("laPlayer = null");
+                    D.ebugPrintlnINFO("laPlayer = null");
                 }
 
                 if (lrPlayer != null)
                 {
-                    D.ebugPrintln("lrPlayer # = " + lrPlayer.getPlayerNumber());
+                    D.ebugPrintlnINFO("lrPlayer # = " + lrPlayer.getPlayerNumber());
                 }
                 else
                 {
-                    D.ebugPrintln("lrPlayer = null");
+                    D.ebugPrintlnINFO("lrPlayer = null");
                 }
             }
 
@@ -2867,29 +2867,29 @@ public class SOCPlayerTracker
             vpLoop:
             while (points < vp_winner)
             {
-                D.ebugPrintln("WWW points = " + points);
-                D.ebugPrintln("WWW settlementPiecesLeft = " + settlementPiecesLeft);
-                D.ebugPrintln("WWW cityPiecesLeft = " + cityPiecesLeft);
-                D.ebugPrintln("WWW settlementSpotsLeft = " + posSetsCopy.size());
-                D.ebugPrintln("WWW citySpotsLeft = " + posCitiesCopy.size());
+                D.ebugPrintlnINFO("WWW points = " + points);
+                D.ebugPrintlnINFO("WWW settlementPiecesLeft = " + settlementPiecesLeft);
+                D.ebugPrintlnINFO("WWW cityPiecesLeft = " + cityPiecesLeft);
+                D.ebugPrintlnINFO("WWW settlementSpotsLeft = " + posSetsCopy.size());
+                D.ebugPrintlnINFO("WWW citySpotsLeft = " + posCitiesCopy.size());
 
                 if (D.ebugOn)
                 {
-                    D.ebugPrint("WWW tempPortFlags: ");
+                    D.ebugPrintINFO("WWW tempPortFlags: ");
 
                     for (int portType = SOCBoard.MISC_PORT;
                             portType <= SOCBoard.WOOD_PORT; portType++)
                     {
-                        D.ebugPrint(tempPortFlags[portType] + " ");
+                        D.ebugPrintINFO(tempPortFlags[portType] + " ");
                     }
 
-                    D.ebugPrintln();
+                    D.ebugPrintlnINFO();
                 }
 
-                D.ebugPrintln("WWW settlementETA = " + settlementETA);
-                D.ebugPrintln("WWW cityETA = " + cityETA);
-                D.ebugPrintln("WWW roadETA = " + roadETA);
-                D.ebugPrintln("WWW cardETA = " + cardETA);
+                D.ebugPrintlnINFO("WWW settlementETA = " + settlementETA);
+                D.ebugPrintlnINFO("WWW cityETA = " + cityETA);
+                D.ebugPrintlnINFO("WWW roadETA = " + roadETA);
+                D.ebugPrintlnINFO("WWW cardETA = " + cardETA);
 
                 if (points == (vp_winner - 1))
                 {
@@ -2925,10 +2925,10 @@ public class SOCPlayerTracker
                             final int totalNecRoads = calcTotalNecessaryRoads(chosenSet);
 
                             fastestETA = (settlementETA + (totalNecRoads * roadETA));
-                            D.ebugPrintln("WWW # necesesary roads = " + totalNecRoads);
-                            D.ebugPrintln("WWW this settlement eta = " + (settlementETA + (totalNecRoads * roadETA)));
-                            D.ebugPrintln("WWW settlement is " + chosenSet);
-                            D.ebugPrintln("WWW settlement eta = " + fastestETA);
+                            D.ebugPrintlnINFO("WWW # necesesary roads = " + totalNecRoads);
+                            D.ebugPrintlnINFO("WWW this settlement eta = " + (settlementETA + (totalNecRoads * roadETA)));
+                            D.ebugPrintlnINFO("WWW settlement is " + chosenSet);
+                            D.ebugPrintlnINFO("WWW settlement eta = " + fastestETA);
                         }
                         else
                         {
@@ -2938,19 +2938,19 @@ public class SOCPlayerTracker
 
                     if ((cityPiecesLeft > 0) && (citySpotsLeft > 0) && (cityETA <= fastestETA))
                     {
-                        D.ebugPrintln("WWW city eta = " + cityETA);
+                        D.ebugPrintlnINFO("WWW city eta = " + cityETA);
                         fastestETA = cityETA;
                     }
 
                     if (!haveLA && !needLA && (tempLargestArmyETA < fastestETA))
                     {
-                        D.ebugPrintln("WWW LA eta = " + tempLargestArmyETA);
+                        D.ebugPrintlnINFO("WWW LA eta = " + tempLargestArmyETA);
                         fastestETA = tempLargestArmyETA;
                     }
 
                     if (!haveLR && !needLR && (tempLongestRoadETA < fastestETA))
                     {
-                        D.ebugPrintln("WWW LR eta = " + tempLongestRoadETA);
+                        D.ebugPrintlnINFO("WWW LR eta = " + tempLongestRoadETA);
                         fastestETA = tempLongestRoadETA;
                     }
 
@@ -2988,7 +2988,7 @@ public class SOCPlayerTracker
                         }
                     }
 
-                    D.ebugPrintln("WWW Adding " + fastestETA + " to win eta");
+                    D.ebugPrintlnINFO("WWW Adding " + fastestETA + " to win eta");
                     winGameETA += fastestETA;
                     points += 2;
                 }
@@ -3059,7 +3059,7 @@ public class SOCPlayerTracker
 
                         if (twoCities <= fastestETA)
                         {
-                            D.ebugPrintln("WWW twoCities = " + twoCities);
+                            D.ebugPrintlnINFO("WWW twoCities = " + twoCities);
                             fastestETA = twoCities;
                         }
                     }
@@ -3212,8 +3212,8 @@ public class SOCPlayerTracker
                                 ///
                                 int totalNecRoads = calcTotalNecessaryRoads(chosenSet[i]);
 
-                                D.ebugPrintln("WWW # necesesary roads = " + totalNecRoads);
-                                D.ebugPrintln("WWW this settlement eta = " + (settlementETA + (totalNecRoads * roadETA)));
+                                D.ebugPrintlnINFO("WWW # necesesary roads = " + totalNecRoads);
+                                D.ebugPrintlnINFO("WWW this settlement eta = " + (settlementETA + (totalNecRoads * roadETA)));
 
                                 if ((i == 0) && (chosenSet[0] != null))
                                 {
@@ -3256,7 +3256,7 @@ public class SOCPlayerTracker
 
                         if (canBuild2Settlements && (twoSettlements <= fastestETA))
                         {
-                            D.ebugPrintln("WWW 2 * settlement = " + twoSettlements);
+                            D.ebugPrintlnINFO("WWW 2 * settlement = " + twoSettlements);
                             fastestETA = twoSettlements;
                         }
                     }
@@ -3470,8 +3470,8 @@ public class SOCPlayerTracker
                         ///
                         int totalNecRoads = calcTotalNecessaryRoads(chosenSet[0]);
 
-                        D.ebugPrintln("WWW # necesesary roads = " + totalNecRoads);
-                        D.ebugPrintln("WWW this settlement eta = " + (settlementETA + (totalNecRoads * roadETA)));
+                        D.ebugPrintlnINFO("WWW # necesesary roads = " + totalNecRoads);
+                        D.ebugPrintlnINFO("WWW this settlement eta = " + (settlementETA + (totalNecRoads * roadETA)));
 
                         //
                         // get a more accurate estimate by taking the
@@ -3501,7 +3501,7 @@ public class SOCPlayerTracker
 
                         if (oneOfEach <= fastestETA)
                         {
-                            D.ebugPrintln("WWW one of each = " + oneOfEach);
+                            D.ebugPrintlnINFO("WWW one of each = " + oneOfEach);
                             fastestETA = oneOfEach;
                         }
                     }
@@ -3528,7 +3528,7 @@ public class SOCPlayerTracker
                             ///
                             /// we have largest army
                             ///
-                            D.ebugPrintln("WWW ERROR CALCULATING LA ETA");
+                            D.ebugPrintlnINFO("WWW ERROR CALCULATING LA ETA");
                         }
                         else
                         {
@@ -3559,7 +3559,7 @@ public class SOCPlayerTracker
                             tempLargestArmyETA = 500;
                         }
 
-                        D.ebugPrintln("WWW LA eta = " + tempLargestArmyETA);
+                        D.ebugPrintlnINFO("WWW LA eta = " + tempLargestArmyETA);
 
                         if (tempLargestArmyETA < fastestETA)
                         {
@@ -3576,7 +3576,7 @@ public class SOCPlayerTracker
                     if (!haveLR && !needLR && (points > 5))
                     {
                         tempLongestRoadETA = roadETA * roadsToGo;
-                        D.ebugPrintln("WWW LR eta = " + tempLongestRoadETA);
+                        D.ebugPrintlnINFO("WWW LR eta = " + tempLongestRoadETA);
 
                         if (tempLongestRoadETA < fastestETA)
                         {
@@ -3587,10 +3587,10 @@ public class SOCPlayerTracker
                     ///
                     /// implement the fastest scenario
                     ///
-                    D.ebugPrintln("WWW Adding " + fastestETA + " to win eta");
+                    D.ebugPrintlnINFO("WWW Adding " + fastestETA + " to win eta");
                     points += 2;
                     winGameETA += fastestETA;
-                    D.ebugPrintln("WWW WGETA SO FAR FOR PLAYER " + playerNumber + " = " + winGameETA);
+                    D.ebugPrintlnINFO("WWW WGETA SO FAR FOR PLAYER " + playerNumber + " = " + winGameETA);
 
                     if ((settlementPiecesLeft > 1) && (posSetsCopy.size() > 1)
                         && canBuild2Settlements && (fastestETA == twoSettlements))
@@ -3639,9 +3639,9 @@ public class SOCPlayerTracker
                         roadETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.ROAD];
                         cityETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CITY];
                         cardETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CARD];
-                        D.ebugPrintln("WWW  * build two settlements");
-                        D.ebugPrintln("WWW    settlement 1: " + board.nodeCoordToString(chosenSet[0].getCoordinates()));
-                        D.ebugPrintln("WWW    settlement 2: " + board.nodeCoordToString(chosenSet[1].getCoordinates()));
+                        D.ebugPrintlnINFO("WWW  * build two settlements");
+                        D.ebugPrintlnINFO("WWW    settlement 1: " + board.nodeCoordToString(chosenSet[0].getCoordinates()));
+                        D.ebugPrintlnINFO("WWW    settlement 2: " + board.nodeCoordToString(chosenSet[1].getCoordinates()));
 
                         if (brain.getDRecorder().isOn())
                         {
@@ -3695,9 +3695,9 @@ public class SOCPlayerTracker
                         roadETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.ROAD];
                         cityETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CITY];
                         cardETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CARD];
-                        D.ebugPrintln("WWW  * build a settlement and a city");
-                        D.ebugPrintln("WWW    settlement at " + board.nodeCoordToString(chosenSet[0].getCoordinates()));
-                        D.ebugPrintln("WWW    city at " + board.nodeCoordToString(chosenCity[0].getCoordinates()));
+                        D.ebugPrintlnINFO("WWW  * build a settlement and a city");
+                        D.ebugPrintlnINFO("WWW    settlement at " + board.nodeCoordToString(chosenSet[0].getCoordinates()));
+                        D.ebugPrintlnINFO("WWW    city at " + board.nodeCoordToString(chosenCity[0].getCoordinates()));
 
                         if (brain.getDRecorder().isOn())
                         {
@@ -3734,7 +3734,7 @@ public class SOCPlayerTracker
                         {
                             SOCPossibleCity posCity1 = posCities1Iter.next();
                             tempPlayerNumbers.updateNumbers(posCity1.getCoordinates(), board);
-                            D.ebugPrintln("tempPlayerNumbers = " + tempPlayerNumbers);
+                            D.ebugPrintlnINFO("tempPlayerNumbers = " + tempPlayerNumbers);
                             tempBSE.recalculateEstimates(tempPlayerNumbers);
 
                             int[] tempBuildingSpeed = tempBSE.getEstimatesFromNothingFast(tempPortFlags);
@@ -3745,8 +3745,8 @@ public class SOCPlayerTracker
                                     buildingType < SOCBuildingSpeedEstimate.MAXPLUSONE;
                                     buildingType++)
                             {
-                                D.ebugPrintln("ourBuildingSpeed[" + buildingType + "] = " + ourBuildingSpeed[buildingType]);
-                                D.ebugPrintln("tempBuildingSpeed[" + buildingType + "] = " + tempBuildingSpeed[buildingType]);
+                                D.ebugPrintlnINFO("ourBuildingSpeed[" + buildingType + "] = " + ourBuildingSpeed[buildingType]);
+                                D.ebugPrintlnINFO("tempBuildingSpeed[" + buildingType + "] = " + tempBuildingSpeed[buildingType]);
 
                                 if ((ourBuildingSpeed[buildingType] - tempBuildingSpeed[buildingType]) >= 0)
                                 {
@@ -3773,8 +3773,8 @@ public class SOCPlayerTracker
                             //	System.out.println();
                             //      }
                             tempPlayerNumbers.undoUpdateNumbers(posCity1.getCoordinates(), board);
-                            D.ebugPrintln("tempPlayerNumbers = " + tempPlayerNumbers);
-                            D.ebugPrintln("WWW City at " + board.nodeCoordToString(posCity1.getCoordinates())
+                            D.ebugPrintlnINFO("tempPlayerNumbers = " + tempPlayerNumbers);
+                            D.ebugPrintlnINFO("WWW City at " + board.nodeCoordToString(posCity1.getCoordinates())
                                 + " has tempSpeedupTotal = " + tempSpeedupTotal);
 
                             if (tempSpeedupTotal >= bestCitySpeedupTotal)
@@ -3809,10 +3809,10 @@ public class SOCPlayerTracker
                         roadETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.ROAD];
                         cityETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CITY];
                         cardETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CARD];
-                        D.ebugPrintln("WWW  * build 2 cities");
-                        D.ebugPrintln("WWW    city 1: " + board.nodeCoordToString(chosenCity[0].getCoordinates()));
+                        D.ebugPrintlnINFO("WWW  * build 2 cities");
+                        D.ebugPrintlnINFO("WWW    city 1: " + board.nodeCoordToString(chosenCity[0].getCoordinates()));
                         if (chosenCity[1] != null)
-                            D.ebugPrintln("WWW    city 2: " + board.nodeCoordToString(chosenCity[1].getCoordinates()));
+                            D.ebugPrintlnINFO("WWW    city 2: " + board.nodeCoordToString(chosenCity[1].getCoordinates()));
 
                         if (brain.getDRecorder().isOn())
                         {
@@ -3824,7 +3824,7 @@ public class SOCPlayerTracker
                     else if (!haveLR && !needLR && (points > 5) && (fastestETA == tempLongestRoadETA))
                     {
                         needLR = true;
-                        D.ebugPrintln("WWW  * take longest road");
+                        D.ebugPrintlnINFO("WWW  * take longest road");
 
                         if (brain.getDRecorder().isOn())
                         {
@@ -3834,7 +3834,7 @@ public class SOCPlayerTracker
                     else if (!haveLA && !needLA && (points > 5) && (fastestETA == tempLargestArmyETA))
                     {
                         needLA = true;
-                        D.ebugPrintln("WWW  * take largest army");
+                        D.ebugPrintlnINFO("WWW  * take largest army");
 
                         if (brain.getDRecorder().isOn())
                         {
@@ -3844,7 +3844,7 @@ public class SOCPlayerTracker
                 }
             }
 
-            D.ebugPrintln("WWW TOTAL WGETA FOR PLAYER " + playerNumber + " = " + winGameETA);
+            D.ebugPrintlnINFO("WWW TOTAL WGETA FOR PLAYER " + playerNumber + " = " + winGameETA);
 
             if (brain.getDRecorder().isOn())
             {
@@ -4041,7 +4041,7 @@ public class SOCPlayerTracker
     /**
      * Print debug output for a set of player trackers.
      *<P>
-     * Calls <tt>D.ebugPrintln</tt>; no output will appear if this class
+     * Calls <tt>D.ebugPrintlnINFO</tt>; no output will appear if this class
      * imports <tt>soc.disableDebug.D</tt> instead of <tt>soc.debug.D</tt>.
      *
      * @param playerTrackers  the player trackers
@@ -4058,9 +4058,9 @@ public class SOCPlayerTracker
             if (tracker == null)
                 continue;
 
-            D.ebugPrintln("%%%%%%%%% TRACKER FOR PLAYER " + tracker.getPlayer().getPlayerNumber());
-            D.ebugPrintln("   LONGEST ROAD ETA = " + tracker.getLongestRoadETA());
-            D.ebugPrintln("   LARGEST ARMY ETA = " + tracker.getLargestArmyETA());
+            D.ebugPrintlnINFO("%%%%%%%%% TRACKER FOR PLAYER " + tracker.getPlayer().getPlayerNumber());
+            D.ebugPrintlnINFO("   LONGEST ROAD ETA = " + tracker.getLongestRoadETA());
+            D.ebugPrintlnINFO("   LARGEST ARMY ETA = " + tracker.getLargestArmyETA());
 
             Iterator<SOCPossibleRoad> prIter = tracker.getPossibleRoads().values().iterator();
 
@@ -4068,31 +4068,31 @@ public class SOCPlayerTracker
             {
                 SOCPossibleRoad pr = prIter.next();
                 if (pr.isRoadNotShip())
-                    D.ebugPrint("%%% possible road at ");
+                    D.ebugPrintINFO("%%% possible road at ");
                 else
-                    D.ebugPrint("%%% possible ship at ");
-                D.ebugPrintln(Integer.toHexString(pr.getCoordinates()));
-                D.ebugPrint("   eta:" + pr.getETA());
-                D.ebugPrint("   this road/ship needs:");
+                    D.ebugPrintINFO("%%% possible ship at ");
+                D.ebugPrintlnINFO(Integer.toHexString(pr.getCoordinates()));
+                D.ebugPrintINFO("   eta:" + pr.getETA());
+                D.ebugPrintINFO("   this road/ship needs:");
 
                 for (SOCPossibleRoad nr : pr.getNecessaryRoads())
-                    D.ebugPrint(" " + Integer.toHexString(nr.getCoordinates()));
+                    D.ebugPrintINFO(" " + Integer.toHexString(nr.getCoordinates()));
 
-                D.ebugPrintln();
-                D.ebugPrint("   this road/ship supports:");
+                D.ebugPrintlnINFO();
+                D.ebugPrintINFO("   this road/ship supports:");
 
                 for (SOCPossiblePiece pp : pr.getNewPossibilities())
-                    D.ebugPrint(" " + Integer.toHexString(pp.getCoordinates()));
+                    D.ebugPrintINFO(" " + Integer.toHexString(pp.getCoordinates()));
 
-                D.ebugPrintln();
-                D.ebugPrint("   threats:");
+                D.ebugPrintlnINFO();
+                D.ebugPrintINFO("   threats:");
 
                 for (SOCPossiblePiece threat : pr.getThreats())
-                    D.ebugPrint(" " + threat.getPlayer().getPlayerNumber() + ":" + threat.getType() + ":"
+                    D.ebugPrintINFO(" " + threat.getPlayer().getPlayerNumber() + ":" + threat.getType() + ":"
                         + Integer.toHexString(threat.getCoordinates()));
 
-                D.ebugPrintln();
-                D.ebugPrintln("   LR value=" + pr.getLRValue() + " LR Potential=" + pr.getLRPotential());
+                D.ebugPrintlnINFO();
+                D.ebugPrintlnINFO("   LR value=" + pr.getLRValue() + " LR Potential=" + pr.getLRPotential());
             }
 
             Iterator<SOCPossibleSettlement> psIter = tracker.getPossibleSettlements().values().iterator();
@@ -4100,33 +4100,33 @@ public class SOCPlayerTracker
             while (psIter.hasNext())
             {
                 SOCPossibleSettlement ps = psIter.next();
-                D.ebugPrintln("%%% possible settlement at " + Integer.toHexString(ps.getCoordinates()));
-                D.ebugPrint("   eta:" + ps.getETA());
-                D.ebugPrint("%%%   conflicts");
+                D.ebugPrintlnINFO("%%% possible settlement at " + Integer.toHexString(ps.getCoordinates()));
+                D.ebugPrintINFO("   eta:" + ps.getETA());
+                D.ebugPrintINFO("%%%   conflicts");
                 for (SOCPossibleSettlement conflict : ps.getConflicts())
-                    D.ebugPrint(" " + conflict.getPlayer().getPlayerNumber() + ":"
+                    D.ebugPrintINFO(" " + conflict.getPlayer().getPlayerNumber() + ":"
                         + Integer.toHexString(conflict.getCoordinates()));
 
-                D.ebugPrintln();
-                D.ebugPrint("%%%   necessary roads/ships");
+                D.ebugPrintlnINFO();
+                D.ebugPrintINFO("%%%   necessary roads/ships");
                 for (SOCPossibleRoad nr : ps.getNecessaryRoads())
-                    D.ebugPrint(" " + Integer.toHexString(nr.getCoordinates()));
+                    D.ebugPrintINFO(" " + Integer.toHexString(nr.getCoordinates()));
 
-                D.ebugPrintln();
-                D.ebugPrint("   threats:");
+                D.ebugPrintlnINFO();
+                D.ebugPrintINFO("   threats:");
                 for (SOCPossiblePiece threat : ps.getThreats())
-                    D.ebugPrint(" " + threat.getPlayer().getPlayerNumber() + ":" + threat.getType() + ":"
+                    D.ebugPrintINFO(" " + threat.getPlayer().getPlayerNumber() + ":" + threat.getType() + ":"
                         + Integer.toHexString(threat.getCoordinates()));
 
-                D.ebugPrintln();
+                D.ebugPrintlnINFO();
             }
 
             Iterator<SOCPossibleCity> pcIter = tracker.getPossibleCities().values().iterator();
             while (pcIter.hasNext())
             {
                 SOCPossibleCity pc = pcIter.next();
-                D.ebugPrintln("%%% possible city at " + Integer.toHexString(pc.getCoordinates()));
-                D.ebugPrintln("   eta:" + pc.getETA());
+                D.ebugPrintlnINFO("%%% possible city at " + Integer.toHexString(pc.getCoordinates()));
+                D.ebugPrintlnINFO("   eta:" + pc.getETA());
             }
         }
     }

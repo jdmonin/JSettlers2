@@ -580,7 +580,7 @@ import soc.util.Version;
         }
 
         if (client.debugTraffic || D.ebugIsEnabled())
-            soc.debug.D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
+            soc.debug.D.ebugPrintlnINFO("OUT - " + SOCMessage.toMsg(s));
 
         try
         {
@@ -628,7 +628,7 @@ import soc.util.Version;
         }
 
         if (client.debugTraffic || D.ebugIsEnabled())
-            soc.debug.D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
+            soc.debug.D.ebugPrintlnINFO("OUT L- " + SOCMessage.toMsg(s));
 
         prCli.put(s);
 
