@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014,2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -62,7 +62,8 @@ public class SOCSVPTextMessage extends SOCMessage
 
     /**
      * Description of the player's action that led to the SVP.
-     * At the server this is an I18N string key, at the client it's text which was localized by and sent from the server.
+     * At the server this is an I18N string key, at the client it's text which was localized by and sent from
+     * the server: see {@link #isLocalized}.
      * Constructor checks this against {@link SOCMessage#isSingleLineAndSafe(String, boolean)}.
      */
     public final String desc;
@@ -70,7 +71,7 @@ public class SOCSVPTextMessage extends SOCMessage
     /**
      * True if this message's {@link #desc} is localized text (for a specific client/locale),
      * false if it's an I18N string key (for server, to be localized to a game's member clients).
-     * @since 3.0.00
+     * @since 2.4.10
      */
     public final boolean isLocalized;
 
@@ -84,7 +85,7 @@ public class SOCSVPTextMessage extends SOCMessage
      *     At the server this is an I18N string key which the server will localize before sending,
      *     at the client it's text which was localized by and sent from the server.
      *     This allows new SVP actions and descriptions without client changes.
-     * @throws IllegalArgumentException if <tt>desc</tt> is null or
+     * @throws IllegalArgumentException if {@code desc} is null or
      *     fails {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(desc, true)}
      */
     public SOCSVPTextMessage(final String ga, final int pn, final int svp, final String desc)
@@ -103,8 +104,8 @@ public class SOCSVPTextMessage extends SOCMessage
      *     At the server this is an I18N string key which the server must localize before sending,
      *     at the client it's localized text sent from the server. This allows new SVP actions
      *     and descriptions without client changes.
-     * @param isLocal  True if description is localized, false if not
-     * @throws IllegalArgumentException if <tt>desc</tt> is null or
+     * @param isLocal  True if description is localized, false if not: {@link #isLocalized}
+     * @throws IllegalArgumentException if {@code desc} is null or
      *     fails {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(desc, true)}
      */
     public SOCSVPTextMessage(final String ga, final int pn, final int svp, final String desc, final boolean isLocal)

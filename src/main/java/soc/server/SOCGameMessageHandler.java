@@ -404,7 +404,7 @@ public class SOCGameMessageHandler
                  * If a gold hex is rolled, sendGameState will also say who
                  * must pick resources to gain (in a GAMETEXTMSG).
                  */
-                srv.messageToGame(gn, new SOCDiceResult(gn, ga.getCurrentDice()));
+                srv.messageToGame(gn, true, new SOCDiceResult(gn, ga.getCurrentDice()));
                 if (ga.clientVersionLowest < SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD)
                 {
                     // backwards-compat: this text message is redundant to v2.0.00 and newer clients
@@ -424,7 +424,7 @@ public class SOCGameMessageHandler
                 if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
                 {
                     // pirate moves on every roll
-                    srv.messageToGame(gn, new SOCMoveRobber
+                    srv.messageToGame(gn, true, new SOCMoveRobber
                         (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
 
                     if (roll.sc_piri_fleetAttackVictim != null)
@@ -446,7 +446,7 @@ public class SOCGameMessageHandler
                             {
                                 someoneWonFreeRsrc = true;
                                 srv.messageToGameKeyed
-                                    (ga, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
+                                    (ga, true, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
                                     // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
                             } else {
                                 /**
@@ -454,15 +454,15 @@ public class SOCGameMessageHandler
                                  */
                                 handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, vCon);
                                 srv.messageToPlayerKeyedSpecial
-                                    (vCon, ga, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
+                                    (vCon, ga, vpn, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
                                     // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
 
                                 /**
                                  * tell everyone else that the player lost unknown resources
                                  */
-                                srv.messageToGameExcept(gn, vCon, new SOCPlayerElement
+                                srv.messageToGameExcept(gn, vCon, vpn, new SOCPlayerElement
                                     (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal), true);
-                                srv.messageToGameKeyedSpecialExcept(ga, true, vCon,
+                                srv.messageToGameKeyedSpecialExcept(ga, vpn, true, vCon,
                                     "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
                                     // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
                                     // "Joe lost 3 resources to pirate fleet attack (strength 3)."
@@ -540,12 +540,12 @@ public class SOCGameMessageHandler
                                 ? "action.rolled.no_other_player_gets.resources"  // "No other player gets resources."
                                 : "action.rolled.no_player_gets.resources";       // "No player gets resources."
                         // debug_printPieceDiceNumbers(ga, message);
-                        srv.messageToGameKeyed(ga, true, key);
+                        srv.messageToGameKeyed(ga, true, true, key);
                     } else {
                         if (rollRsrcTxtOldCli == null)
-                            srv.messageToGame(gn, rollRsrcMsgNewCli);
+                            srv.messageToGame(gn, true, rollRsrcMsgNewCli);
                         else if (rollRsrcMsgNewCli == null)
-                            srv.messageToGame(gn, rollRsrcTxtOldCli);
+                            srv.messageToGame(gn, true, rollRsrcTxtOldCli);
                         else
                         {
                             // neither is null: we have old and new clients
@@ -555,6 +555,8 @@ public class SOCGameMessageHandler
                             srv.messageToGameForVersions
                                 (ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
                                  rollRsrcMsgNewCli, true);
+
+                            srv.recordGameEvent(gn, rollRsrcMsgNewCli);
                         }
 
                         //
@@ -574,16 +576,27 @@ public class SOCGameMessageHandler
                             final SOCResourceSet resources = pp.getResources();
                             final int[] counts = resources.getAmounts(false);
                             if (playerCon.getVersion() >= SOCPlayerElements.MIN_VERSION)
-                                srv.messageToPlayer(playerCon, new SOCPlayerElements
+                            {
+                                srv.messageToPlayer(playerCon, gn, pn, new SOCPlayerElements
                                     (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
-                            else
+                            } else {
                                 for (int i = 0; i < counts.length; ++i)
-                                    srv.messageToPlayer(playerCon, new SOCPlayerElement
-                                        (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
+                                    srv.messageToPlayer
+                                        (playerCon, null, SOCServer.PN_NON_EVENT,
+                                         new SOCPlayerElement
+                                             (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
+
+                                if (srv.recordGameEventsIsActive())
+                                    srv.recordGameEvent(gn, new SOCPlayerElements
+                                        (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
+                            }
 
                             if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                                srv.messageToGame(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
+                                srv.messageToGame(gn, false, new SOCResourceCount(gn, pn, resources.getTotal()));
                             // else, already-sent SOCDiceResultResources included players' new resource totals
+
+                            if ((rollRsrcMsgNewCli == null) && srv.recordGameEventsIsActive())
+                                srv.recordGameEvent(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
 
                             // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
                             // after the per-player loop
@@ -596,12 +609,12 @@ public class SOCGameMessageHandler
 
                         if (roll.clothVillages != null)
                             for (final SOCVillage vi : roll.clothVillages)
-                                srv.messageToGame(gn, new SOCPieceValue
+                                srv.messageToGame(gn, true, new SOCPieceValue
                                     (gn, SOCPlayingPiece.VILLAGE, vi.getCoordinates(), vi.getCloth(), 0));
 
                         if (roll.cloth[0] > 0)
                             // some taken from board general supply
-                            srv.messageToGame(gn, new SOCPlayerElement
+                            srv.messageToGame(gn, true, new SOCPlayerElement
                                 (gn, -1, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT,
                                  ((SOCBoardLarge) ga.getBoard()).getCloth()));
 
@@ -615,7 +628,7 @@ public class SOCGameMessageHandler
 
                             final int pn = i - 1;
                             final SOCPlayer clpl = ga.getPlayer(pn);
-                            srv.messageToGame(gn, new SOCPlayerElement
+                            srv.messageToGame(gn, true, new SOCPlayerElement
                                 (gn, pn, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
 
                             if (clplName == null)
@@ -635,10 +648,12 @@ public class SOCGameMessageHandler
                         }
 
                         if (clpls == null)
-                            srv.messageToGameKeyed(ga, true, "action.rolled.sc_clvi.received.cloth.1", clplName, clplAmount);
+                            srv.messageToGameKeyed
+                                (ga, true, true, "action.rolled.sc_clvi.received.cloth.1", clplName, clplAmount);
                                 // "{0} received {1} cloth from the villages."
                         else
-                            srv.messageToGameKeyedSpecial(ga, true, "action.rolled.sc_clvi.received.cloth.n", clpls);
+                            srv.messageToGameKeyedSpecial
+                                (ga, true, true, "action.rolled.sc_clvi.received.cloth.n", clpls);
                                 // "{0,list} each received cloth from the villages."
                     }
 
@@ -684,11 +699,11 @@ public class SOCGameMessageHandler
                                 Connection con = srv.getConnection(pp.getName());
                                 if (con != null)
                                 {
-                                    srv.messageToGame(gn, new SOCPlayerElement
+                                    srv.messageToGame(gn, true, new SOCPlayerElement
                                         (gn, pn, SOCPlayerElement.SET,
                                          PEType.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
-                                    con.put
-                                        (new SOCSimpleRequest
+                                    srv.messageToPlayer
+                                        (con, gn, pn, new SOCSimpleRequest
                                             (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
                                 }
                             }
@@ -698,15 +713,17 @@ public class SOCGameMessageHandler
             }
             else
             {
-                srv.messageToPlayer(c, gn, "You can't roll right now.");
+                srv.messageToPlayer(c, gn, pl.getPlayerNumber(), "You can't roll right now.");
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught at handleROLLDICE" + e);
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**
@@ -752,10 +769,10 @@ public class SOCGameMessageHandler
                  */
                 final int numRes = res.getTotal();
                 srv.messageToGameExcept
-                    (gn, c, new SOCPlayerElement
+                    (gn, c, pn, new SOCPlayerElement
                         (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
                      true);
-                srv.messageToGameKeyed(ga, true, "action.discarded", player.getName(), numRes);
+                srv.messageToGameKeyed(ga, true, true, "action.discarded", player.getName(), numRes);
                     // "{0} discarded {1} resources."
 
                 /**
@@ -777,15 +794,17 @@ public class SOCGameMessageHandler
                  * (TODO) client knows how many discards are needed and should prevent this,
                  * but there could be a better feedback message here
                  */
-                srv.messageToPlayer(c, gn, "You can't discard that many cards.");
+                srv.messageToPlayer(c, gn, pn, "You can't discard that many cards.");
             }
         }
         catch (Throwable e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
 
@@ -831,7 +850,7 @@ public class SOCGameMessageHandler
                     result = ga.moveRobber(pn, coord);
                     moveMsg = new SOCMoveRobber(gaName, pn, coord);
                 }
-                srv.messageToGame(gaName, moveMsg);
+                srv.messageToGame(gaName, true, moveMsg);
 
                 final List<SOCPlayer> victims = result.getVictims();
 
@@ -873,7 +892,7 @@ public class SOCGameMessageHandler
                             // "{0} moved the robber/pirate. Must choose a victim."
                     }
 
-                    srv.messageToGameKeyed(ga, true, msgKey, player.getName(), ((isPirate) ? 2 : 1));
+                    srv.messageToGameKeyed(ga, true, true, msgKey, player.getName(), ((isPirate) ? 2 : 1));
                 }
 
                 handler.sendGameState(ga);
@@ -884,11 +903,11 @@ public class SOCGameMessageHandler
                 if (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
                 {
                     final int vpn = victims.get(0).getPlayerNumber();
-                    srv.messageToPlayer(c, new SOCChoosePlayer(gaName, vpn));
+                    srv.messageToPlayer(c, gaName, pn, new SOCChoosePlayer(gaName, vpn));
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, ((coord < 0) ? "robber.cantmove.pirate" : "robber.cantmove"));
+                    (c, gaName, pn, ((coord < 0) ? "robber.cantmove.pirate" : "robber.cantmove"));
                     // "You can't move the pirate" / "You can't move the robber"
             }
         }
@@ -896,8 +915,10 @@ public class SOCGameMessageHandler
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**
@@ -913,6 +934,8 @@ public class SOCGameMessageHandler
 
         try
         {
+            final String gaName = ga.getName();
+
             if (handler.checkTurn(c, ga))
             {
                 final int choice = mes.getChoice();
@@ -927,7 +950,8 @@ public class SOCGameMessageHandler
                     if ((choice == SOCChoosePlayer.CHOICE_NO_PLAYER) && ga.canChoosePlayer(-1))
                     {
                         ga.choosePlayerForRobbery(-1);  // state becomes PLAY1
-                        srv.messageToGameKeyed(ga, true, "robber.declined", c.getData());  // "{0} declined to steal."
+                        srv.messageToGameKeyed
+                            (ga, true, true, "robber.declined", c.getData());  // "{0} declined to steal."
                         handler.sendGameState(ga);
                     }
                     else if (ga.canChoosePlayer(choice))
@@ -940,15 +964,18 @@ public class SOCGameMessageHandler
                             handler.reportRobbery
                                 (ga, ga.getPlayer(c.getData()), ga.getPlayer(choice), rsrc);
                         } else {
-                            srv.messageToGameKeyed(ga, true, "robber.moved.choose.cloth.rsrcs",
+                            srv.messageToGameKeyed(ga, true, true, "robber.moved.choose.cloth.rsrcs",
                                 c.getData(), ga.getPlayer(choice).getName());
                                 // "{0} moved the pirate, must choose to steal cloth or steal resources from {1}."
                         }
                         handler.sendGameState(ga);
                         if (waitingClothOrRsrc)
-                            srv.messageToPlayer(c, new SOCChoosePlayer(ga.getName(), choice));
+                            srv.messageToPlayer
+                                (c, gaName, ga.getCurrentPlayerNumber(), new SOCChoosePlayer(gaName, choice));
                     } else {
-                        srv.messageToPlayerKeyed(c, ga.getName(), "robber.cantsteal");  // "You can't steal from that player."
+                        srv.messageToPlayerKeyed
+                            (c, gaName, ga.getCurrentPlayerNumber(), "robber.cantsteal");
+                            // "You can't steal from that player."
                     }
                     break;
 
@@ -976,18 +1003,23 @@ public class SOCGameMessageHandler
                     }
 
                 default:
-                    srv.messageToPlayerKeyed(c, ga.getName(), "robber.cantsteal");  // "You can't steal from that player."
+                    srv.messageToPlayerKeyed
+                        (c, gaName, ga.getCurrentPlayerNumber(), "robber.cantsteal");
+                        // "You can't steal from that player."
                 }
             } else {
-                srv.messageToPlayerKeyed(c, ga.getName(), "reply.not.your.turn");  // "It's not your turn."
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Throwable e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
 
@@ -1031,33 +1063,35 @@ public class SOCGameMessageHandler
                         // msg = "The game is over; you are the winner!";
                         // msg = "The game is over; <someone> won.";
                         // msg = "The game is over; no one won.";
-                    srv.messageToPlayer(c, gname, msg);
+                    srv.messageToPlayer(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, msg);
                 }
             } else if (handler.checkTurn(c, ga)) {
                 SOCPlayer pl = ga.getPlayer(plName);
                 if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
                 {
                     if (gaState == SOCGame.PLACING_FREE_ROAD1)
-                        srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.cancel", pl.getName());
+                        srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", pl.getName());
                             // "{0} cancelled the Road Building card."
                     else if (gaState == SOCGame.PLACING_FREE_ROAD2)
-                        srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.r", pl.getName());
+                        srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.r", pl.getName());
                             // "{0} skipped placing the second road."
 
                     handler.endGameTurn(ga, pl, true);
                 }
                 else
-                    srv.messageToPlayer(c, gname, "You can't end your turn yet.");
+                    srv.messageToPlayer(c, gname, pl.getPlayerNumber(), "You can't end your turn yet.");
             } else {
-                srv.messageToPlayer(c, gname, "It's not your turn.");
+                srv.messageToPlayer(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, "It's not your turn.");
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught at handleENDTURN");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**
@@ -1087,7 +1121,7 @@ public class SOCGameMessageHandler
                 final SOCShip adjac = ga.canAttackPirateFortress();
                 if ((! clientIsPN) || (pn != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
                 {
-                    c.put(new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
+                    srv.messageToPlayer(c, gaName, pn, new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
                     return;  // <--- early return: deny ---
                 }
 
@@ -1102,26 +1136,26 @@ public class SOCGameMessageHandler
                 {
                     // lost 1 or 2 ships adjacent to fortress.  res[1] == adjac.coordinate
 
-                    srv.messageToGame(gaName, new SOCRemovePiece(gaName, adjac));
+                    srv.messageToGame(gaName, true, new SOCRemovePiece(gaName, adjac));
                     if (res.length > 2)
-                        srv.messageToGame(gaName, new SOCRemovePiece(gaName, cpn, SOCPlayingPiece.SHIP, res[2]));
+                        srv.messageToGame(gaName, true, new SOCRemovePiece(gaName, cpn, SOCPlayingPiece.SHIP, res[2]));
 
                     final int n = cp.getNumWarships();
                     if (n != prevNumWarships)
-                        srv.messageToGame(gaName, new SOCPlayerElement
+                        srv.messageToGame(gaName, true, new SOCPlayerElement
                             (gaName, cpn, SOCPlayerElement.SET, PEType.SCENARIO_WARSHIP_COUNT, n));
                 } else {
                     // player won battle
 
                     final int fortStrength = fort.getStrength();
-                    srv.messageToGame(gaName, new SOCPieceValue
+                    srv.messageToGame(gaName, true, new SOCPieceValue
                         (gaName, SOCPlayingPiece.FORTRESS, fort.getCoordinates(), fortStrength, 0));
                     if (0 == fortStrength)
-                        srv.messageToGame(gaName, new SOCPutPiece
+                        srv.messageToGame(gaName, true, new SOCPutPiece
                             (gaName, cpn, SOCPlayingPiece.SETTLEMENT, fort.getCoordinates()));
                 }
 
-                srv.messageToGame(gaName, new SOCSimpleAction
+                srv.messageToGame(gaName, true, new SOCSimpleAction
                     (gaName, cpn, SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT, res[0], res.length - 1));
 
                 // check for end of player's turn
@@ -1147,13 +1181,13 @@ public class SOCGameMessageHandler
                         final int ptype = ga.placePort(edge);
 
                         handler.sendGameState(ga);  // PLAY1 or SPECIAL_BUILDING
-                        srv.messageToGame(gaName, new SOCSimpleRequest
+                        srv.messageToGame(gaName, true, new SOCSimpleRequest
                             (gaName, cpn, SOCSimpleRequest.TRADE_PORT_PLACE, edge, ptype));
                     } else {
                         replyDecline = true;  // client will print a text message, no need to send one
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");
+                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");
                     replyDecline = true;
                 }
             }
@@ -1167,7 +1201,7 @@ public class SOCGameMessageHandler
         }
 
         if (replyDecline)
-            c.put(new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
+            srv.messageToPlayer(c, gaName, pn, new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
     }
 
 
@@ -1188,7 +1222,8 @@ public class SOCGameMessageHandler
         {
             // Check here as a fallback;
             // client should know to not show trade-offer UI when game has option NT
-            srv.messageToPlayer(c, gaName, "Trading is not allowed in this game.");  // i18n OK: is fallback only
+            srv.messageToPlayer
+                (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "Trading is not allowed in this game.");  // i18n OK: is fallback only
 
             return;  // <---- Early return: No Trading ----
         }
@@ -1240,28 +1275,36 @@ public class SOCGameMessageHandler
                 return;
 
             pl.setCurrentOffer(null);
-            srv.messageToGame(gaName, new SOCClearOffer(gaName, pl.getPlayerNumber()));
-            srv.recordGameEvent(gaName, mes);
+            srv.messageToGame(gaName, true, new SOCClearOffer(gaName, pl.getPlayerNumber()));
 
             /**
              * clear all the trade messages
              */
             srv.gameList.takeMonitorForGame(gaName);
-            if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
+            try
             {
-                srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));
-            } else {
-                for (int i = 0; i < ga.maxPlayers; i++)
-                    srv.messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
+                if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
+                {
+                    srv.messageToGameWithMon(gaName, true, new SOCClearTradeMsg(gaName, -1));
+                } else {
+                    for (int i = 0; i < ga.maxPlayers; i++)
+                        srv.messageToGameWithMon(gaName, false, new SOCClearTradeMsg(gaName, i));
+
+                    if (srv.recordGameEventsIsActive())
+                        srv.recordGameEvent(gaName, new SOCClearTradeMsg(gaName, -1));
+                }
+            } finally {
+                srv.gameList.releaseMonitorForGame(gaName);
             }
-            srv.gameList.releaseMonitorForGame(gaName);
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**
@@ -1287,10 +1330,7 @@ public class SOCGameMessageHandler
         }
 
         final String gaName = ga.getName();
-        SOCRejectOffer rejectMessage = new SOCRejectOffer(gaName, pn);
-        srv.messageToGame(gaName, rejectMessage);
-
-        srv.recordGameEvent(gaName, rejectMessage);
+        srv.messageToGame(gaName, true, new SOCRejectOffer(gaName, pn));
     }
 
     /**
@@ -1324,10 +1364,7 @@ public class SOCGameMessageHandler
                  * announce the accepted offer to game; won't re-send mes from client
                  * because its acceptingNumber isn't required or sanitized
                  */
-                final SOCAcceptOffer mesOut
-                    = new SOCAcceptOffer(gaName, acceptingNumber, offeringNumber);
-                srv.messageToGame(gaName, mesOut);
-                srv.recordGameEvent(gaName, mesOut);
+                srv.messageToGame(gaName, true, new SOCAcceptOffer(gaName, acceptingNumber, offeringNumber));
 
                 /**
                  * clear all offers
@@ -1339,15 +1376,20 @@ public class SOCGameMessageHandler
                 {
                     srv.gameList.takeMonitorForGame(gaName);
                     if (ga.clientVersionLowest >= SOCClearOffer.VERSION_FOR_CLEAR_ALL)
-                        srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, -1));
-                    else
+                    {
+                        srv.messageToGameWithMon(gaName, true, new SOCClearOffer(gaName, -1));
+                    } else {
                         for (int i = 0; i < ga.maxPlayers; i++)
                             srv.messageToGameWithMon(gaName, new SOCClearOffer(gaName, i));
+
+                        if (srv.recordGameEventsIsActive())
+                            srv.recordGameEvent(gaName, new SOCClearOffer(gaName, -1));
+                    }
                 } finally {
                     srv.gameList.releaseMonitorForGame(gaName);
                 }
             } else {
-                srv.messageToPlayer(c, gaName, /*I*/"You can't make that trade."/*18N*/ );
+                srv.messageToPlayer(c, gaName, acceptingNumber, /*I*/"You can't make that trade."/*18N*/ );
             }
         }
         catch (Exception e)
@@ -1384,22 +1426,24 @@ public class SOCGameMessageHandler
                     ga.makeBankTrade(give, get);
                     handler.reportBankTrade(ga, give, get);
                 } else {
-                    srv.messageToPlayer(c, gaName, "You can't make that trade.");
+                    srv.messageToPlayer(c, gaName, ga.getCurrentPlayerNumber(), "You can't make that trade.");
                     SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
                         D.ebugPrintlnINFO("ILLEGAL BANK TRADE: " + c.getData()
                           + ": give " + give + ", get " + get);
                 }
             } else {
-                srv.messageToPlayer(c, gaName, "It's not your turn.");
+                srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "It's not your turn.");
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
 
@@ -1442,25 +1486,25 @@ public class SOCGameMessageHandler
                     {
                         ga.askSpecialBuild(pn, true);
                         srv.messageToGame
-                            (gaName, new SOCPlayerElement
+                            (gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                         handler.endGameTurn(ga, player, true);  // triggers start of SBP
                     } catch (NoSuchElementException e) {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.special.PLP.common");
+                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.special.PLP.common");
                             // "House rule: Special Building phase requires 5 or 6 players."
                         sendDenyReply = true;
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
+                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.ask");  // "You can't ask to build now."
                         sendDenyReply = true;
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now");  // "You can't build now."
+                    srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now");  // "You can't build now."
                     sendDenyReply = true;
                 }
             } else {
                 if (ga.maxPlayers <= 4)
                 {
-                    srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
+                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");  // "It's not your turn."
                     sendDenyReply = true;
                 } else {
                     // 6-player board: Special Building Phase
@@ -1469,14 +1513,16 @@ public class SOCGameMessageHandler
                     {
                         ga.askSpecialBuild(pn, true);  // will validate that they can build now
                         srv.messageToGame
-                            (gaName, new SOCPlayerElement
+                            (gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                     } catch (NoSuchElementException e) {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.special.PLP.common");
+                        srv.messageToPlayerKeyed
+                            (c, gaName, pn, "action.build.cannot.special.PLP.common");
                             // "House rule: Special Building phase requires 5 or 6 players."
                         sendDenyReply = true;
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ask");  // "You can't ask to build now."
+                        srv.messageToPlayerKeyed
+                            (c, gaName, pn, "action.build.cannot.now.ask");  // "You can't ask to build now."
                         sendDenyReply = true;
                     }
                 }
@@ -1484,15 +1530,17 @@ public class SOCGameMessageHandler
 
             if (sendDenyReply && ga.getPlayer(pn).isRobot())
             {
-                srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, pieceType));
+                srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, pieceType));
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught at handleBUILDREQUEST");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**
@@ -1540,18 +1588,23 @@ public class SOCGameMessageHandler
                 ga.buyRoad(pn);
                 if (usePlayerElements)
                 {
-                    srv.messageToGame(gaName, new SOCPlayerElements
+                    srv.messageToGame(gaName, true, new SOCPlayerElements
                         (gaName, pn, SOCPlayerElement.LOSE, SOCRoad.COST));
                 } else {
-                    srv.messageToGame(gaName, new SOCPlayerElement
+                    srv.messageToGame(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.CLAY, 1));
-                    srv.messageToGame(gaName, new SOCPlayerElement
+                    srv.messageToGame(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
+
+                    if (srv.recordGameEventsIsActive())
+                        srv.recordGameEvent(gaName, new SOCPlayerElements
+                            (gaName, pn, SOCPlayerElement.LOSE, SOCRoad.COST));
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
-                srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.road");  // "You can't build a road now."
+                srv.messageToPlayerKeyed
+                    (c, gaName, pn, "action.build.cannot.now.road");  // "You can't build a road now."
                 sendDenyReply = true;
             }
 
@@ -1564,24 +1617,29 @@ public class SOCGameMessageHandler
                 ga.buySettlement(pn);
                 if (usePlayerElements)
                 {
-                    srv.messageToGame(gaName, new SOCPlayerElements
+                    srv.messageToGame(gaName, true, new SOCPlayerElements
                         (gaName, pn, SOCPlayerElement.LOSE, SOCSettlement.COST));
                 } else {
                     srv.gameList.takeMonitorForGame(gaName);
-                    srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.CLAY, 1));
-                    srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                    srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
-                    srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
                     srv.gameList.releaseMonitorForGame(gaName);
+
+                    if (srv.recordGameEventsIsActive())
+                        srv.recordGameEvent(gaName, new SOCPlayerElements
+                            (gaName, pn, SOCPlayerElement.LOSE, SOCSettlement.COST));
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
-                srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.stlmt");  // "You can't build a settlement now."
+                srv.messageToPlayerKeyed
+                    (c, gaName, pn, "action.build.cannot.now.stlmt");  // "You can't build a settlement now."
                 sendDenyReply = true;
             }
 
@@ -1594,18 +1652,23 @@ public class SOCGameMessageHandler
                 ga.buyCity(pn);
                 if (usePlayerElements)
                 {
-                    srv.messageToGame(gaName, new SOCPlayerElements
+                    srv.messageToGame(gaName, true, new SOCPlayerElements
                         (gaName, pn, SOCPlayerElement.LOSE, SOCCity.COST));
                 } else {
-                    srv.messageToGame(ga.getName(), new SOCPlayerElement
+                    srv.messageToGame(ga.getName(), false, new SOCPlayerElement
                         (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.ORE, 3));
-                    srv.messageToGame(ga.getName(), new SOCPlayerElement
+                    srv.messageToGame(ga.getName(), false, new SOCPlayerElement
                         (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.WHEAT, 2));
+
+                    if (srv.recordGameEventsIsActive())
+                        srv.recordGameEvent(gaName, new SOCPlayerElements
+                            (gaName, pn, SOCPlayerElement.LOSE, SOCCity.COST));
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
-                srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.city");  // "You can't build a city now."
+                srv.messageToPlayerKeyed
+                    (c, gaName, pn, "action.build.cannot.now.city");  // "You can't build a city now."
                 sendDenyReply = true;
             }
 
@@ -1618,25 +1681,31 @@ public class SOCGameMessageHandler
                 ga.buyShip(pn);
                 if (usePlayerElements)
                 {
-                    srv.messageToGame(gaName, new SOCPlayerElements
+                    srv.messageToGame(gaName, true, new SOCPlayerElements
                         (gaName, pn, SOCPlayerElement.LOSE, SOCShip.COST));
                 } else {
-                    srv.messageToGame(gaName, new SOCPlayerElement
+                    srv.messageToGame(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                    srv.messageToGame(gaName, new SOCPlayerElement
+                    srv.messageToGame(gaName, false, new SOCPlayerElement
                         (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
+
+                    if (srv.recordGameEventsIsActive())
+                        srv.recordGameEvent(gaName, new SOCPlayerElements
+                            (gaName, pn, SOCPlayerElement.LOSE, SOCShip.COST));
                 }
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
-                srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ship");  // "You can't build a ship now."
+                srv.messageToPlayerKeyed
+                    (c, gaName, pn, "action.build.cannot.now.ship");  // "You can't build a ship now."
                 sendDenyReply = true;
             }
 
             break;
 
         default:
-            srv.messageToPlayerKeyed(c, gaName, "reply.piece.type.unknown");  // "Unknown piece type."
+            srv.messageToPlayerKeyed
+                (c, gaName, pn, "reply.piece.type.unknown");  // "Unknown piece type."
             sendDenyReply = true;
         }
 
@@ -1678,20 +1747,24 @@ public class SOCGameMessageHandler
                         {
                             if (usePlayerElements)
                             {
-                                srv.messageToGame(gaName, new SOCPlayerElements
+                                srv.messageToGame(gaName, true, new SOCPlayerElements
                                     (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
                             } else {
-                                srv.messageToGame(gaName, new SOCPlayerElement
+                                srv.messageToGame(gaName, false, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.GAIN, PEType.CLAY, 1));
-                                srv.messageToGame(gaName, new SOCPlayerElement
+                                srv.messageToGame(gaName, false, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
+
+                                if (srv.recordGameEventsIsActive())
+                                    srv.recordGameEvent(gaName, new SOCPlayerElements
+                                        (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
                             }
                         } else {
-                            srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.r", player.getName());
+                            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.r", player.getName());
                                 // "{0} skipped placing the second road."
                         }
                     } else {
-                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a road."/*18N*/ );
+                        srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a road."/*18N*/ );
                         noAction = true;
                     }
 
@@ -1704,32 +1777,37 @@ public class SOCGameMessageHandler
                         ga.cancelBuildSettlement(pn);
                         if (usePlayerElements)
                         {
-                            srv.messageToGame(gaName, new SOCPlayerElements
+                            srv.messageToGame(gaName, true, new SOCPlayerElements
                                 (gaName, pn, SOCPlayerElement.GAIN, SOCSettlement.COST));
                         } else {
                             srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.GAIN, PEType.CLAY, 1));
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.GAIN, PEType.SHEEP, 1));
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 1));
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
                             srv.gameList.releaseMonitorForGame(gaName);
+
+                            if (srv.recordGameEventsIsActive())
+                                srv.recordGameEvent(gaName, new SOCPlayerElements
+                                    (gaName, pn, SOCPlayerElement.GAIN, SOCSettlement.COST));
+
                         }
                     }
                     else if ((gstate == SOCGame.START1B) || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B))
                     {
                         SOCSettlement pp = new SOCSettlement(player, player.getLastSettlementCoord(), null);
                         ga.undoPutInitSettlement(pp);
-                        srv.messageToGame(gaName, mes);  // Re-send to all clients to announce it
+                        srv.messageToGame(gaName, true, mes);  // Re-send to all clients to announce it
                             // (Safe since we've validated all message parameters)
-                        srv.messageToGameKeyed(ga, true, "action.built.stlmt.cancel", player.getName());
+                        srv.messageToGameKeyed(ga, true, true, "action.built.stlmt.cancel", player.getName());
                             //  "{0} cancelled this settlement placement."
                         // The handler.sendGameState below is redundant if client reaction changes game state
                     } else {
-                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a settlement."/*18N*/ );
+                        srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a settlement."/*18N*/ );
                         noAction = true;
                     }
 
@@ -1742,16 +1820,21 @@ public class SOCGameMessageHandler
                         ga.cancelBuildCity(pn);
                         if (usePlayerElements)
                         {
-                            srv.messageToGame(gaName, new SOCPlayerElements
+                            srv.messageToGame(gaName, true, new SOCPlayerElements
                                 (gaName, pn, SOCPlayerElement.GAIN, SOCCity.COST));
                         } else {
-                            srv.messageToGame(gaName, new SOCPlayerElement
+                            srv.messageToGame(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.GAIN, PEType.ORE, 3));
-                            srv.messageToGame(gaName, new SOCPlayerElement
+                            srv.messageToGame(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 2));
+
+
+                            if (srv.recordGameEventsIsActive())
+                                srv.recordGameEvent(gaName, new SOCPlayerElements
+                                    (gaName, pn, SOCPlayerElement.GAIN, SOCCity.COST));
                         }
                     } else {
-                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a city."/*18N*/ );
+                        srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a city."/*18N*/ );
                         noAction = true;
                     }
 
@@ -1766,20 +1849,24 @@ public class SOCGameMessageHandler
                         {
                             if (usePlayerElements)
                             {
-                                srv.messageToGame(gaName, new SOCPlayerElements
+                                srv.messageToGame(gaName, true, new SOCPlayerElements
                                     (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
                             } else {
-                                srv.messageToGame(gaName, new SOCPlayerElement
+                                srv.messageToGame(gaName, false, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.GAIN, PEType.SHEEP, 1));
-                                srv.messageToGame(gaName, new SOCPlayerElement
+                                srv.messageToGame(gaName, false, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
+
+                                if (srv.recordGameEventsIsActive())
+                                    srv.recordGameEvent(gaName, new SOCPlayerElements
+                                        (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
                             }
                         } else {
-                            srv.messageToGameKeyed(ga, true, "action.card.roadbuilding.skip.s", player.getName());
+                            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.s", player.getName());
                                 // "{0} skipped placing the second ship."
                         }
                     } else {
-                        srv.messageToPlayer(c, gaName, /*I*/"You didn't buy a ship."/*18N*/ );
+                        srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a ship."/*18N*/ );
                         noAction = true;
                     }
 
@@ -1791,16 +1878,16 @@ public class SOCGameMessageHandler
                         item = ga.cancelPlaceInventoryItem(false);
 
                     if (item != null)
-                        srv.messageToGame(gaName, new SOCInventoryItemAction
+                        srv.messageToGame(gaName, true, new SOCInventoryItemAction
                             (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, item.itype,
                              item.isKept(), item.isVPItem(), item.canCancelPlay));
 
                     if ((item != null) || (gstate != ga.getGameState()))
                     {
-                        srv.messageToGameKeyed(ga, true, "reply.placeitem.cancel", player.getName());
+                        srv.messageToGameKeyed(ga, true, true, "reply.placeitem.cancel", player.getName());
                             // "{0} canceled placement of a special item."
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, "reply.placeitem.cancel.cannot");
+                        srv.messageToPlayerKeyed(c, gaName, pn, "reply.placeitem.cancel.cannot");
                             // "Cannot cancel item placement."
                         noAction = true;
                     }
@@ -1817,18 +1904,21 @@ public class SOCGameMessageHandler
                     // bot is waiting for a gamestate reply, not text
                     final SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
-                        c.put(new SOCGameState(gaName, gstate));
+                        srv.messageToPlayer(c, gaName, pn, new SOCGameState(gaName, gstate));
                 }
             } else {
-                srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**
@@ -1928,9 +2018,10 @@ public class SOCGameMessageHandler
                             srv.gameList.takeMonitorForGame(gaName);
                             try
                             {
-                                srv.messageToGameKeyed(ga, false, "action.built.road", plName);  // "Joe built a road."
+                                srv.messageToGameKeyed
+                                    (ga, true, false, "action.built.road", plName);  // "Joe built a road."
                                 srv.messageToGameWithMon
-                                    (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
+                                    (gaName, true, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
                                 handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
                                 if (! ga.pendingMessagesOut.isEmpty())
                                     handler.sendGamePendingMessages(ga, false);
@@ -1958,12 +2049,12 @@ public class SOCGameMessageHandler
                                 D.ebugPrintlnINFO(" - roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.road");
+                            srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.there.road");
                                 // "You can't build a road there."
                             sendDenyReply = true;
                         }
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.road");
+                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.road");
                             // "You can't build a road now."
                     }
 
@@ -1984,9 +2075,10 @@ public class SOCGameMessageHandler
                             srv.gameList.takeMonitorForGame(gaName);
                             try
                             {
-                                srv.messageToGameKeyed(ga, false, "action.built.stlmt", plName);  // "Joe built a settlement."
+                                srv.messageToGameKeyed
+                                    (ga, true, false, "action.built.stlmt", plName);  // "Joe built a settlement."
                                 srv.messageToGameWithMon
-                                    (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
+                                    (gaName, true, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
                                 handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
                                 if (! ga.pendingMessagesOut.isEmpty())
                                     handler.sendGamePendingMessages(ga, false);
@@ -2016,12 +2108,12 @@ public class SOCGameMessageHandler
                                 D.ebugPrintlnINFO(" - settlementAtNode: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.stlmt");
+                            srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.there.stlmt");
                                 // "You can't build a settlement there."
                             sendDenyReply = true;
                         }
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.stlmt");
+                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.stlmt");
                             // "You can't build a settlement now."
                     }
 
@@ -2048,13 +2140,14 @@ public class SOCGameMessageHandler
                             srv.gameList.takeMonitorForGame(gaName);
                             try
                             {
-                                srv.messageToGameKeyed(ga, false, "action.built.city", plName);  // "Joe built a city."
+                                srv.messageToGameKeyed
+                                    (ga, true, false, "action.built.city", plName);  // "Joe built a city."
                                 srv.messageToGameWithMon
-                                    (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
+                                    (gaName, true, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
                                 if (! ga.pendingMessagesOut.isEmpty())
                                     handler.sendGamePendingMessages(ga, false);
                                 if (houseRuleFirstCity)
-                                    srv.messageToGameKeyed(ga, false, "action.built.nextturn.7.houserule");
+                                    srv.messageToGameKeyed(ga, true, false, "action.built.nextturn.7.houserule");
                                     // "Starting next turn, dice rolls of 7 may occur (house rule)."
                             } finally {
                                 srv.gameList.releaseMonitorForGame(gaName);
@@ -2075,12 +2168,12 @@ public class SOCGameMessageHandler
                                 D.ebugPrintlnINFO(" - city/settlementAtNode: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.city");
+                            srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.there.city");
                                 // "You can't build a city there."
                             sendDenyReply = true;
                         }
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.city");
+                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.city");
                             // "You can't build a city now."
                     }
 
@@ -2101,9 +2194,10 @@ public class SOCGameMessageHandler
                             srv.gameList.takeMonitorForGame(gaName);
                             try
                             {
-                                srv.messageToGameKeyed(ga, false, "action.built.ship", plName);  // "Joe built a ship."
+                                srv.messageToGameKeyed
+                                    (ga, true, false, "action.built.ship", plName);  // "Joe built a ship."
                                 srv.messageToGameWithMon
-                                    (gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
+                                    (gaName, true, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
                                 handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
                                 if (! ga.pendingMessagesOut.isEmpty())
                                     handler.sendGamePendingMessages(ga, false);
@@ -2131,12 +2225,12 @@ public class SOCGameMessageHandler
                                 D.ebugPrintlnINFO(" - ship/roadAtEdge: " + ((pp != null) ? pp : "none"));
                             }
 
-                            srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.there.ship");
+                            srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.there.ship");
                                 // "You can't build a ship there."
                             sendDenyReply = true;
                         }
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.now.ship");
+                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.now.ship");
                             // "You can't build a ship now."
                     }
 
@@ -2148,7 +2242,7 @@ public class SOCGameMessageHandler
                 {
                     if (isBuyAndPut)
                         handler.sendGameState(ga);  // is probably now PLACING_*, was PLAY1 or SPECIAL_BUILDING
-                    srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, mes.getPieceType()));
+                    srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, mes.getPieceType()));
                     if (player.isRobot())
                     {
                         // Set the "force end turn soon" field
@@ -2156,7 +2250,8 @@ public class SOCGameMessageHandler
                     }
                 }
             } else {
-                srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -2196,7 +2291,7 @@ public class SOCGameMessageHandler
 
                 ga.moveShip(moveShip, toEdge);
 
-                srv.messageToGame(gaName, new SOCMovePiece
+                srv.messageToGame(gaName, true, new SOCMovePiece
                     (gaName, pn, SOCPlayingPiece.SHIP, fromEdge, toEdge));
                 // client will also print "* Joe moved a ship.", no need to send a SOCGameServerText.
                 handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, false);
@@ -2224,8 +2319,10 @@ public class SOCGameMessageHandler
         {
             D.ebugPrintlnINFO("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
                 + ": player " + c.getData());
-            srv.messageToPlayerKeyed(c, gaName, "reply.movepiece.cannot.now.ship");  // "You can't move that ship now."
-            srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, SOCPlayingPiece.SHIP));
+            srv.messageToPlayerKeyed
+                (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.movepiece.cannot.now.ship");  // "You can't move that ship now."
+            srv.messageToPlayer
+                (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, new SOCCancelBuildRequest(gaName, SOCPlayingPiece.SHIP));
         }
     }
 
@@ -2381,32 +2478,54 @@ public class SOCGameMessageHandler
                     {
                         if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
                         {
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElements
+                            srv.messageToGameWithMon(gaName, true, new SOCPlayerElements
                                 (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
                             srv.messageToGameWithMon
-                                (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
+                                (gaName, true, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
                         } else {
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.LOSE, PEType.ORE, 1));
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
                             srv.messageToGameWithMon
-                                (gaName, new SOCDevCardCount(gaName, devCount));
+                                (gaName, false, new SOCDevCardCount(gaName, devCount));
+
+                            if (srv.recordGameEventsIsActive())
+                            {
+                                srv.recordGameEvent(gaName, new SOCPlayerElements
+                                    (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
+                                srv.recordGameEvent
+                                    (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
+                            }
                         }
                     } finally {
                         srv.gameList.releaseMonitorForGame(gaName);
                     }
 
-                    if ((card == SOCDevCardConstants.KNIGHT)
-                        && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
-                        card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
-                    srv.messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, card));
+                    // Let the player know, and record that event
+                    {
+                        if ((card == SOCDevCardConstants.KNIGHT)
+                            && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
+                            card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
+
+                        SOCDevCardAction drawMsg = new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.DRAW, card);
+                        srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, drawMsg);
+
+                        if (srv.recordGameEventsIsActive())
+                        {
+                            if (card == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
+                                drawMsg = new SOCDevCardAction
+                                    (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT);
+                            srv.recordGameEventTo(gaName, pn, drawMsg);
+                        }
+                    }
 
                     if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                     {
-                        srv.messageToGameExcept(gaName, c, new SOCDevCardAction
+                        srv.messageToGameExcept(gaName, c, pn, new SOCDevCardAction
                             (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     } else {
                         srv.messageToGameForVersionsExcept
@@ -2417,6 +2536,10 @@ public class SOCGameMessageHandler
                             (ga, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
                              c, new SOCDevCardAction
                                  (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+
+                        if (srv.recordGameEventsIsActive())
+                            srv.recordGameEventNotTo(gaName, pn, new SOCDevCardAction
+                                (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN));
                     }
 
                     final int remain = ga.getNumDevCards();
@@ -2425,8 +2548,10 @@ public class SOCGameMessageHandler
 
                     if (ga.clientVersionLowest >= SOCSimpleAction.VERSION_FOR_SIMPLEACTION)
                     {
-                        srv.messageToGame(gaName, actmsg);
+                        srv.messageToGame(gaName, true, actmsg);
                     } else {
+                        srv.recordGameEvent(gaName, actmsg);
+
                         srv.gameList.takeMonitorForGame(gaName);
 
                         try
@@ -2455,7 +2580,7 @@ public class SOCGameMessageHandler
                                     // I18N OK: for old version compat
                             }
                             srv.messageToGameForVersions(ga, -1, SOCSimpleAction.VERSION_FOR_SIMPLEACTION - 1,
-                                    new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, remainTxt), false);
+                                new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, remainTxt), false);
                         } finally {
                             srv.gameList.releaseMonitorForGame(gaName);
                         }
@@ -2463,45 +2588,52 @@ public class SOCGameMessageHandler
 
                     handler.sendGameState(ga);
                 } else {
-                    if (ga.getNumDevCards() == 0)
-                        srv.messageToPlayer(c, gaName, /*I*/"There are no more Development cards."/*18N*/ );
-                    else
-                        srv.messageToPlayer(c, gaName, /*I*/"You can't buy a development card now."/*18N*/ );
+                    // unlikely; client should know to not send request in those conditions
+
+                    final String denyText = (ga.getNumDevCards() == 0)
+                        ? /*I*/"There are no more Development cards."/*18N*/
+                        : /*I*/"You can't buy a development card now."/*18N*/ ;
+                    srv.messageToPlayer(c, gaName, pn, denyText);
+
                     sendDenyReply = true;
                 }
             } else {
+                // is asking "buy" to trigger SBP if 6-player, otherwise request not allowed at this time
+
                 sendDenyReply = true;
+
                 if (ga.maxPlayers <= 4)
                 {
-                    srv.messageToPlayer(c, gaName, /*I*/"It's not your turn."/*18N*/ );
+                    final String denyText = /*I*/"It's not your turn."/*18N*/ ;
+                    srv.messageToPlayer(c, gaName, pn, denyText);
                 } else {
                     // 6-player board: Special Building Phase
                     try
                     {
                         ga.askSpecialBuild(pn, true);
-                        srv.messageToGame(gaName, new SOCPlayerElement
+                        srv.messageToGame(gaName, true, new SOCPlayerElement
                             (gaName, pn, SOCPlayerElement.SET, PEType.ASK_SPECIAL_BUILD, 1));
                         sendDenyReply = false;
                     } catch (NoSuchElementException e) {
-                        srv.messageToPlayerKeyed(c, gaName, "action.build.cannot.special.PLP.common");
+                        srv.messageToPlayerKeyed(c, gaName, pn, "action.build.cannot.special.PLP.common");
                             // "House rule: Special Building phase requires 5 or 6 players."
                     } catch (IllegalStateException e) {
-                        srv.messageToPlayer(c, gaName, /*I*/"You can't ask to buy a card now."/*18N*/ );
+                        srv.messageToPlayer(c, gaName, pn, /*I*/"You can't ask to buy a card now."/*18N*/ );
                     }
                 }
             }
 
             if (sendDenyReply && ga.getPlayer(pn).isRobot())
             {
-                srv.messageToPlayer(c, new SOCCancelBuildRequest(gaName, -2));  // == SOCPossiblePiece.CARD
+                srv.messageToPlayer(c, gaName, pn, new SOCCancelBuildRequest(gaName, -2));  // == SOCPossiblePiece.CARD
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
+        } finally {
+            ga.releaseMonitor();
         }
-
-        ga.releaseMonitor();
     }
 
     /**
@@ -2554,10 +2686,10 @@ public class SOCGameMessageHandler
                             : "action.card.soldier";         // "played a Soldier card."
                         srv.gameList.takeMonitorForGame(gaName);
 
-                        srv.messageToGameKeyed(ga, false, cardplayed, player.getName());
+                        srv.messageToGameKeyed(ga, true, false, cardplayed, player.getName());
                         if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                         {
-                            srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                            srv.messageToGameWithMon(gaName, true, new SOCDevCardAction
                                 (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
                         } else {
                             srv.messageToGameForVersions
@@ -2568,14 +2700,20 @@ public class SOCGameMessageHandler
                                 (ga, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
                                  new SOCDevCardAction
                                      (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
+
+                            if (srv.recordGameEventsIsActive())
+                                srv.recordGameEvent(gaName, new SOCDevCardAction
+                                (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
                         }
+
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 1));
                         else
-                            srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
+                            srv.messageToGameWithMon(gaName, true, new SOCSetPlayedDevCard(gaName, pn, true));
+
                         srv.messageToGameWithMon
-                            (gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, peType, 1));
+                            (gaName, true, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, peType, 1));
 
                         srv.gameList.releaseMonitorForGame(gaName);
 
@@ -2592,7 +2730,7 @@ public class SOCGameMessageHandler
                                 else
                                     msg = new SOCLargestArmy(gaName, newPNwithLargestArmy);
 
-                                srv.messageToGame(gaName, msg);
+                                srv.messageToGame(gaName, true, msg);
                             }
 
                             handler.sendGameState(ga);
@@ -2611,24 +2749,25 @@ public class SOCGameMessageHandler
                         ga.playRoadBuilding();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                        srv.messageToGameWithMon(gaName, true, new SOCDevCardAction
                             (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 1));
                         else
-                            srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        srv.messageToGameKeyed(ga, false, "action.card.roadbuilding", player.getName());
+                            srv.messageToGameWithMon(gaName, true, new SOCSetPlayedDevCard(gaName, pn, true));
+                        srv.messageToGameKeyed(ga, true, false, "action.card.roadbuilding", player.getName());
                             // "played a Road Building card."
                         srv.gameList.releaseMonitorForGame(gaName);
+
                         handler.sendGameState(ga);
                         if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
                             srv.messageToPlayerKeyed
-                                (c, gaName, (ga.hasSeaBoard) ? "action.card.road.place.2s" : "action.card.road.place.2r");
+                                (c, gaName, pn, (ga.hasSeaBoard) ? "action.card.road.place.2s" : "action.card.road.place.2r");
                             // "You may place 2 roads/ships." or "You may place 2 roads."
                         else
                             srv.messageToPlayerKeyed
-                                (c, gaName, (ga.hasSeaBoard) ? "action.card.road.place.1s" : "action.card.road.place.1r");
+                                (c, gaName, pn, (ga.hasSeaBoard) ? "action.card.road.place.1s" : "action.card.road.place.1r");
                             // "You may place your 1 remaining road or ship." or "... place your 1 remaining road."
                     } else {
                         denyPlayCardNow = true;  // "You can't play a Road Building card now."
@@ -2643,16 +2782,17 @@ public class SOCGameMessageHandler
                         ga.playDiscovery();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                        srv.messageToGameWithMon(gaName, true, new SOCDevCardAction
                             (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 1));
                         else
-                            srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        srv.messageToGameKeyed(ga, false, "action.card.discoveryplenty", player.getName());
+                            srv.messageToGameWithMon(gaName, true, new SOCSetPlayedDevCard(gaName, pn, true));
+                        srv.messageToGameKeyed(ga, true, false, "action.card.discoveryplenty", player.getName());
                             // "played a Year of Plenty card."
                         srv.gameList.releaseMonitorForGame(gaName);
+
                         handler.sendGameState(ga);
                     } else {
                         denyPlayCardNow = true;  // "You can't play a Year of Plenty card now."
@@ -2667,15 +2807,16 @@ public class SOCGameMessageHandler
                         ga.playMonopoly();
 
                         srv.gameList.takeMonitorForGame(gaName);
-                        srv.messageToGameWithMon(gaName, new SOCDevCardAction
+                        srv.messageToGameWithMon(gaName, true, new SOCDevCardAction
                             (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
                         if (ga.clientVersionLowest >= SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
-                            srv.messageToGameWithMon(gaName, new SOCPlayerElement
+                            srv.messageToGameWithMon(gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.PLAYED_DEV_CARD_FLAG, 1));
                         else
-                            srv.messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        srv.messageToGameKeyed(ga, false, "action.card.mono", player.getName());  // "played a Monopoly card."
+                            srv.messageToGameWithMon(gaName, true, new SOCSetPlayedDevCard(gaName, pn, true));
+                        srv.messageToGameKeyed(ga, true, false, "action.card.mono", player.getName());  // "played a Monopoly card."
                         srv.gameList.releaseMonitorForGame(gaName);
+
                         handler.sendGameState(ga);
                     } else {
                         denyPlayCardNow = true;  // "You can't play a Monopoly card now."
@@ -2707,11 +2848,15 @@ public class SOCGameMessageHandler
                 if ((scd == null) || ! scd.isRobot)
                 {
                     if (denyTextKey != null)
-                        srv.messageToPlayerKeyed(c, gaName, denyTextKey);
+                        srv.messageToPlayerKeyed
+                            (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, denyTextKey);
                     else
-                        srv.messageToPlayerKeyedSpecial(c, ga, "reply.playdevcard.cannot.now", mes.getDevCard());
+                        srv.messageToPlayerKeyedSpecial
+                            (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.playdevcard.cannot.now", mes.getDevCard());
                 } else {
-                    srv.messageToPlayer(c, new SOCDevCardAction(gaName, -1, SOCDevCardAction.CANNOT_PLAY, mes.getDevCard()));
+                    srv.messageToPlayer
+                        (c, null, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                         new SOCDevCardAction(gaName, -1, SOCDevCardAction.CANNOT_PLAY, mes.getDevCard()));
                 }
             }
         }
@@ -2719,8 +2864,10 @@ public class SOCGameMessageHandler
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**
@@ -2764,15 +2911,16 @@ public class SOCGameMessageHandler
                         ga.doDiscoveryAction(rsrcs);
 
                         handler.reportRsrcGainLoss(gaName, rsrcs, false, false, pn, -1, null);
-                        srv.messageToGameKeyedSpecial(ga, true, "action.card.discov.received", player.getName(), rsrcs);
+                        srv.messageToGameKeyedSpecial
+                            (ga, true, true, "action.card.discov.received", player.getName(), rsrcs);
                             // "{0} received {1,rsrcs} from the bank."
                         handler.sendGameState(ga);
                     } else {
-                        srv.messageToPlayerKeyed(c, gaName, "action.card.discov.notlegal");
+                        srv.messageToPlayerKeyed(c, gaName, pn, "action.card.discov.notlegal");
                             // "That is not a legal Year of Plenty pick."
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
+                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");  // "It's not your turn."
                 }
             } else {
                 // Message is Gold Hex picks
@@ -2841,18 +2989,18 @@ public class SOCGameMessageHandler
                     if (npick != rsrcs.getTotal())
                     {
                         srv.messageToPlayerKeyed
-                            (c, gaName, "reply.pick.gold.cannot.that_many");  // "You can't pick that many resources."
+                            (c, gaName, pn, "reply.pick.gold.cannot.that_many");  // "You can't pick that many resources."
                         if ((npick > 0) && (gstate < SOCGame.OVER))
-                            srv.messageToPlayer(c, new SOCSimpleRequest
+                            srv.messageToPlayer(c, gaName, pn, new SOCSimpleRequest
                                 (gaName, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, npick));
                         else
-                            srv.messageToPlayer(c, new SOCPlayerElement
+                            srv.messageToPlayer(c, gaName, pn, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, PEType.NUM_PICK_GOLD_HEX_RESOURCES, 0));
                     } else {
                         // Probably a game logic bug:
                         // Some recent action/event gave the player free resource(s)
                         // but didn't follow up with a state where they're expected to claim them.
-                        srv.messageToGame(gaName,
+                        srv.messageToGame(gaName, true,
                             "Recovering from buggy state: " + player.getName()
                             + " won free resources but game state didn't allow them to be picked; giving them anyway.");
                             // i18n OK: won't appear in normal gameplay
@@ -2867,8 +3015,10 @@ public class SOCGameMessageHandler
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
     /**
@@ -2916,8 +3066,10 @@ public class SOCGameMessageHandler
 
                     if (ga.clientVersionLowest >= SOCStringManager.VERSION_FOR_I18N)
                     {
-                        srv.messageToGameWithMon(gaName, actMsg);
+                        srv.messageToGameWithMon(gaName, true, actMsg);
                     } else {
+                        srv.recordGameEvent(gaName, actMsg);
+
                         srv.messageToGameForVersions
                             (ga, SOCStringManager.VERSION_FOR_I18N, Integer.MAX_VALUE, actMsg, false);
 
@@ -2942,7 +3094,7 @@ public class SOCGameMessageHandler
                         if ((pn == cpn) || isVictim[pn])
                             // sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
                             srv.messageToGameWithMon
-                                (gaName, new SOCPlayerElement
+                                (gaName, true, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.SET,
                                      rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), (pn != cpn)));
 
@@ -2957,12 +3109,13 @@ public class SOCGameMessageHandler
                     {
                         if (! isVictim[pn])
                             continue;
+
                         int picked = monoPicks[pn];
                         String viName = ga.getPlayer(pn).getName();
                         Connection viCon = srv.getConnection(viName);
                         if ((viCon != null) && ! ((SOCClientData) viCon.getAppData()).isRobot)
                             srv.messageToPlayerKeyedSpecial
-                                (viCon, ga,
+                                (viCon, ga, pn,
                                  ((picked == 1) ? "action.mono.took.your.1" : "action.mono.took.your.n"),
                                  monoPlayerName, picked, rsrc);
                                 // "Joe's Monopoly took your 3 sheep."
@@ -2970,19 +3123,23 @@ public class SOCGameMessageHandler
 
                     handler.sendGameState(ga);
                 } else {
-                    srv.messageToPlayerKeyedSpecial(c, ga, "reply.playdevcard.cannot.now", SOCDevCardConstants.MONO);
+                    srv.messageToPlayerKeyedSpecial
+                        (c, ga, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.playdevcard.cannot.now", SOCDevCardConstants.MONO);
                         // "You can't play a Monopoly card now."  Before v2.0.00, was "You can't do a Monopoly pick now."
                 }
             } else {
-                srv.messageToPlayerKeyed(c, gaName, "reply.not.your.turn");  // "It's not your turn."
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception caught");
         }
-
-        ga.releaseMonitor();
+        finally
+        {
+            ga.releaseMonitor();
+        }
     }
 
 

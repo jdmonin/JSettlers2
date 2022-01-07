@@ -24,6 +24,7 @@ and backport minor new features until `2.0.00` was ready.
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
+	- Enhanced server's recordGameEvent framework for more detailed game recording
 	- More accessible robot-related methods and data classes
 	- Made some data classes Serializable
 	- Save/load games:
