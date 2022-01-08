@@ -190,10 +190,13 @@ message PieceValue {
  * disallowed it, the current {@link State} and then a {@link CancelBuild}.
  * After rejection the gamestate may be a placement state such as {@code PLACING_ROAD}.
  *<P>
+ * If PutPiece leads to Longest Route player changing, server sends that
+ * after {@code PlayerElement}s before {@code State}: {@link GameElements}(LONGEST_ROAD_PLAYER).
+ *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@code player_number} is -1 in this message.
  *<P>
- * See also {@link MovePiece}. The messages similar but opposite to this one
+ * See also {@link MovePiece} and DebugFreePlace. Messages similar but opposite to this one
  * are {@link CancelBuild} and the very-limited {@link RemovePiece}.
  *<P>
  * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
@@ -273,8 +276,16 @@ message BuyInventoryItemRequest {
  *<P>
  * Dev Cards:
  *<P>
- * If a robot asks to play a dev card that they can't right now, the server
- * replies to that bot with InventoryItemAction(-1, {@code CANNOT_PLAY}, cardType).
+ * If client player can play it, server will respond to all players with
+ * {@code InventoryItemAction}({@code PLAY}, cardType),
+ * {@link PlayerElement}(PLAYED_DEV_CARD_FLAG),
+ * and other messages, followed by {@link State} if it changed.
+ *<P>
+ * If playing a {@code KNIGHT} card leads to Largest Army, server announces that
+ * after {@link PlayerElement} before {@link State}: {@link GameElements}(LARGEST_ARMY_PLAYER).
+ *<P>
+ * If client player can't play the card, server will reply to human player with {@link GameServerText}
+ * or robot with InventoryItemAction(-1, {@code CANNOT_PLAY}, cardType).
  *<P>
  * Player Number field is -1 for action type {@code CANNOT_PLAY}; see that enum value for details.
  *<P>
@@ -452,6 +463,9 @@ message CancelBuild {
  * a piece on the board to a new location.
  *<H3>From Server:</H3>
  * The client should also print a line of text such as "* Joe moved a ship."
+ *<P>
+ * If MovePiece leads to Longest Route player changing, server sends that after its MovePiece message:
+ * {@link GameElements}(LONGEST_ROAD_PLAYER).
  *<H3>From Client:</H3>
  * The server will reply to all players with {@link MovePiece} if piece can be moved,
  * or reply to the requesting client with {@link CancelBuildRequest}.
@@ -849,16 +863,15 @@ message GameElements {
         /* Player number of current player, or -1, from {@link soc.game.SOCGame#getCurrentPlayerNumber()}. */
         CURRENT_PLAYER = 4;
 
-        /* Player number of player with largest army, or -1, from {@link soc.game.SOCGame#getPlayerWithLargestArmy()}.
-         * Sent when a client joins a game. Not sent during game play when Largest Army player changes:
-         * Client updates that display by examining game state; see {@link _PlayerElementType#NUMKNIGHTS}.
+        /* Player number of player with Largest Army, or -1, from {@link soc.game.SOCGame#getPlayerWithLargestArmy()}.
+         * Sent when a client joins a game, and when changes occur during normal gameplay
+         * in response to a player's {@link InventoryItemAction}(PLAY, KNIGHT).
          */
         LARGEST_ARMY_PLAYER = 5;
 
-        /* Player number of player with longest road, or -1, from {@link soc.game.SOCGame#getPlayerWithLongestRoad()}.
-         * Sent when a client joins a game. Not sent during game play when Longest Road player changes:
-         * Client updates that display by examining game state;
-         * see {@link PutPiece}(ROAD).
+        /* Player number of player with Longest Road/Route, or -1, from {@link soc.game.SOCGame#getPlayerWithLongestRoad()}.
+         * Sent when a client joins a game, and when changes occur during normal gameplay
+         * in response to a player's {@link BuildPiece}, {@link MovePiece}, or DebugFreePlace.
          */
         LONGEST_ROAD_PLAYER = 6;
     }
