@@ -382,20 +382,107 @@ public class SOCDevCardAction extends SOCMessage
     }
 
     /**
+     * Action string map from action constants ({@link #ADD_NEW}, etc) for {@link #toString()}
+     * and {@link #stripAttribNames(String, String)}.
+     * @since 2.4.10
+     */
+    public static final String[] ACTION_STRINGS
+        = { "DRAW", "PLAY", "ADD_NEW", "ADD_OLD", "CANNOT_PLAY"};
+        // if you add to this array:
+        // - watch compatibility with older versions, which won't know the new entries
+        // - update its unit test in soctest.message.TestStringConstants
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Undoes mapping of action constant integers -> strings ({@code "ADD_NEW"} etc).
+     * In multi-card form, removes array brackets: {@code ,[5, 4]} -> {@code ,5,4}.
+     * @param messageTypeName  Message type: v1.x {@code "SOCDevCard"} or current {@code "SOCDevCardAction"}.
+     *     The {@link SOCDevCardConstants#KNIGHT} constant has different values in v1.x vs current.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(final String messageTypeName, final String messageStrParams)
+    {
+        final boolean isV1Format = ("SOCDevCard".equals(messageTypeName));
+        final boolean hasArray = (! isV1Format) && (messageStrParams.indexOf("|cardTypes=[") > 0);
+
+        String s = SOCMessage.stripAttribNames(messageStrParams);
+        if (s == null)
+            return null;
+
+        String[] pieces = s.split(SOCMessage.sep2);
+        if ((pieces.length <= 2) || pieces[2].isEmpty())
+            return s;  // probably malformed, but there's no action string to un-map
+
+        // Look up action type integer. If already an int, won't match any string in this short array of actions
+        {
+            String act = pieces[2];
+            int actType = -1;
+            for (int ac = 0; ac < ACTION_STRINGS.length; ++ac)
+            {
+                if (ACTION_STRINGS[ac].equals(act))
+                {
+                    actType = ac;
+                    break;
+                }
+            }
+
+            if (actType != -1)
+                pieces[2] = Integer.toString(actType);
+        }
+
+        if (hasArray)
+        {
+            // {"ga", "3", "2", "[5", " 4]"} -> {"ga", "3", "2", "5", "4"}
+            int ilast = pieces.length - 1;
+
+            for (int i = 3; i < ilast; ++i)
+            {
+                String piece = pieces[i];
+                char ch0 = piece.charAt(0);
+                if ((ch0 == '[') || (ch0 == ' '))
+                    pieces[i] = piece.substring(1);
+            }
+
+            String piece = pieces[ilast];
+            int charIdxFirst = (piece.charAt(0) == ' ') ? 1 : 0;
+            int charIdxLast = piece.length() - 1;
+            if ((charIdxLast >= 0) && (piece.charAt(charIdxLast) == ']'))
+                pieces[ilast] = piece.substring(charIdxFirst, charIdxLast);
+        } else if (isV1Format) {
+            try
+            {
+                int cardType = Integer.parseInt(pieces[3]);
+                if (cardType == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
+                    pieces[3] = Integer.toString(SOCDevCardConstants.KNIGHT);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0; i < pieces.length; ++i)
+        {
+            if (i > 0)
+                ret.append(sep2_char);
+            ret.append(pieces[i]);
+        }
+
+        return ret.toString();
+    }
+
+    /**
      * @return a human readable form of the message
      */
     public String toString()
     {
         final String act;
-        switch (actionType)
-        {
-        case DRAW:    act = "DRAW";  break;
-        case PLAY:    act = "PLAY"; break;
-        case ADD_NEW: act = "ADD_NEW"; break;
-        case ADD_OLD: act = "ADD_OLD"; break;
-        case CANNOT_PLAY: act = "CANNOT_PLAY"; break;
-        default:      act = Integer.toString(actionType);
-        }
+        if ((actionType >= 0) && (actionType < ACTION_STRINGS.length))
+            act = ACTION_STRINGS[actionType];
+        else
+            act = Integer.toString(actionType);
 
         return "SOCDevCardAction:game=" + game + "|playerNum=" + playerNumber
             + "|actionType=" + act +

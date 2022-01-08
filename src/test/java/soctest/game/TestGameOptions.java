@@ -257,6 +257,43 @@ public class TestGameOptions
         // TODO expand beyond empty/null tests
     }
 
+    /**
+     * Test {@link SOCGameOption#equals(Object)}.
+     * @since 2.4.10
+     */
+    @Test
+    public void testEquals()
+    {
+        SOCGameOption opt = SOCGameOption.getOption("PL", true);
+        assertFalse(opt.equals(null));
+        assertTrue(opt.equals(opt));
+
+        // int value
+        SOCGameOption op2 = SOCGameOption.getOption("PL", true);
+        assertTrue(opt.equals(op2));
+        assertEquals(4, opt.getIntValue());
+        op2.setIntValue(5);
+        assertFalse(opt.equals(op2));
+
+        // bool value
+        SOCGameOption optPLB = SOCGameOption.getOption("PLB", true);
+        assertFalse(opt.equals(optPLB));
+        op2 = SOCGameOption.getOption("PLB", true);
+        assertFalse(op2.getBoolValue());
+        assertTrue(optPLB.equals(op2));
+        op2.setBoolValue(true);
+        assertFalse(optPLB.equals(op2));
+
+        // string value
+        SOCGameOption optSC = SOCGameOption.getOption("SC", true);
+        assertFalse(opt.equals(optSC));
+        op2 = SOCGameOption.getOption("SC", true);
+        assertEquals("", optSC.getStringValue());
+        assertTrue(optSC.equals(op2));
+        op2.setStringValue("xyz");
+        assertFalse(optSC.equals(op2));
+    }
+
     public static void main(String[] args)
     {
         org.junit.runner.JUnitCore.main("soctest.game.TestGameOptions");

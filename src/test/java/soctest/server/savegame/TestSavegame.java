@@ -42,7 +42,6 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCPlayerElement.PEType;
-import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
 import soc.server.savegame.GameLoaderJSON;
 import soc.server.savegame.GameSaverJSON;
@@ -68,7 +67,6 @@ public class TestSavegame
         throws Exception
     {
         srv = new SOCServer("dummy", 0, null, null);
-        SavedGameModel.glas = new SOCGameListAtServer(null);
     }
 
     /** This folder and all contents are created at start of each test method, deleted at end of it */
@@ -142,7 +140,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("basic.game.json");
         GameSaverJSON.saveGame(gaSave, testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, null);
+        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv);
         assertNotNull(sgm);
         assertEquals(SavedGameModel.MODEL_VERSION, sgm.modelVersion);
         assertEquals(Version.versionNumber(), sgm.savedByVersion);
@@ -195,7 +193,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("trades.game.json");
         GameSaverJSON.saveGame(gaSave, testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, null);
+        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv);
         assertNotNull(sgm);
         final SOCGame ga = sgm.getGame();
 
@@ -280,7 +278,7 @@ public class TestSavegame
     public void testRoundtripReload_ClassicBotturn()
         throws IOException
     {
-        SavedGameModel sgm1 = TestLoadgame.load("classic-botturn.game.json");
+        SavedGameModel sgm1 = TestLoadgame.load("classic-botturn.game.json", srv);
         TestLoadgame.checkReloaded_ClassicBotturn(sgm1);  // detailed check of game and player data
 
         // must resume before can save
@@ -290,7 +288,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("classic-copy.game.json");
         GameSaverJSON.saveGame(sgm1.getGame(), testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile, null);
+        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile, srv);
         TestLoadgame.checkReloaded_ClassicBotturn(sgm2);  // looks for same details again
     }
 
@@ -305,7 +303,7 @@ public class TestSavegame
     public void testRoundtripReload_BadFieldContents()
         throws IOException
     {
-        SavedGameModel sgm1 = TestLoadgame.load("bad-field-contents.game.json");
+        SavedGameModel sgm1 = TestLoadgame.load("bad-field-contents.game.json", srv);
         TestLoadgame.checkReloaded_BadFieldContents(sgm1, false);  // detailed check of game and player data
 
         TestLoadgame.fillSeatsForResume(sgm1);
@@ -314,7 +312,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("bad-fields-copy.game.json");
         GameSaverJSON.saveGame(sgm1.getGame(), testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile, null);
+        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile, srv);
         sgm2.playerSeatLocks[0] = null;  // this unknown field isn't preserved during roundtrip; that's OK
         TestLoadgame.checkReloaded_BadFieldContents(sgm2, false);  // looks for same details again
     }

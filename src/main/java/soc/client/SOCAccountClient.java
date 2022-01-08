@@ -705,8 +705,8 @@ public class SOCAccountClient extends Applet
         }
 
         conn_sentAuth = true;
-        put(SOCAuthRequest.toCmd
-            (SOCAuthRequest.ROLE_USER_ADMIN, user, pw, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
+        put(new SOCAuthRequest
+            (SOCAuthRequest.ROLE_USER_ADMIN, user, pw, SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host).toCmd());
     }
 
     /**
@@ -1040,9 +1040,9 @@ public class SOCAccountClient extends Applet
 
             if (sv == SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE)
                 // auth to server with new account
-                put(SOCAuthRequest.toCmd
+                put(new SOCAuthRequest
                     (SOCAuthRequest.ROLE_USER_ADMIN, nickname, password,
-                     SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host));
+                     SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, host).toCmd());
         }
 
         submitLock = false;

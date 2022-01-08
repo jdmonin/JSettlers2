@@ -59,7 +59,7 @@ import java.util.List;
  * against the strings' {@code UTF-8} encoding, not the internal encoding used with {@link String#length()}.
  * If unsure, you can test length of the final message string with code like:
  * <pre><code>
- *   final String msg = {@link SOCLocalizedStrings#toCmd(String, int, List) SOCLocalizedStrings.toCmd}(...);
+ *   final String msg = {@link SOCLocalizedStrings#SOCLocalizedStrings(String, int, List) new SOCLocalizedStrings(...)}{@link #toCmd() .toCmd()};
  *   final int len = msg.{@link String#getBytes(String) getBytes("utf-8")}.length;
  *   if (len > {@link soc.server.genericServer.Connection#MAX_MESSAGE_SIZE_UTF8 Connection.MAX_MESSAGE_SIZE_UTF8})
  *   {
@@ -171,7 +171,42 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     private int flags;
 
     /**
-     * Server-side constructor, to send this message to clients.
+     * Client-side request constructor, for a single string key.
+     *<P>
+     * Before v2.4.10, a static {@code toCmd(..)} method was called by the client.
+     *
+     * @param type  String type such as {@link #TYPE_SCENARIO};
+     *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param flags  Any flags such as {@link #FLAG_SENT_ALL}, or 0
+     * @param str  String key being requested, with type-specific meaning; see {@code type} constant javadocs.
+     *     Must pass
+     *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
+     *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
+     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker
+     *     (like {@link #MARKER_KEY_UNKNOWN}) declared in this class.
+     * @throws IllegalArgumentException  If {@code type} or (if not empty) {@code str} fails
+     *     {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @throws NullPointerException if {@code str} is null
+     * @since 2.4.10
+     */
+    public SOCLocalizedStrings(final String type, final int flags, String str)
+        throws IllegalArgumentException, NullPointerException
+    {
+        this(type, flags, (List<String>) null);
+        if (str == null)
+            throw new NullPointerException("str");
+
+        // checkParams validator needs a list
+        ArrayList<String> strs = new ArrayList<>();
+        strs.add(str);
+        checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(non-empty str), etc
+
+        // add to actual list field
+        pa.add(str);
+    }
+
+    /**
+     * Server-side constructor.
      *
      * @param type  String type such as {@link #TYPE_SCENARIO};
      *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
@@ -197,8 +232,8 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     public SOCLocalizedStrings(final String type, final int flags, final List<String> strs)
         throws IllegalArgumentException
     {
-        super(LOCALIZEDSTRINGS, ((strs != null) ? strs : new ArrayList<String>()));
-              // strs becomes pa field
+        super(LOCALIZEDSTRINGS, ((strs != null) ? new ArrayList<>(strs) : new ArrayList<String>()));
+              // pa field gets copy of strs, if any
         checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each non-empty str), etc
 
         pa.add(0, type);  // client will expect first list element is the type
@@ -265,49 +300,15 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     }
 
     /**
-     * Build the command string from a type and list of strings.
-     *
-     * @param type  String type such as {@link #TYPE_SCENARIO};
-     *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param flags  Any flags such as {@link #FLAG_SENT_ALL}, or 0
-     * @param strs  the list of strings, organized in a type-specific way; see {@code type} constant javadocs.
-     *     Ignored if using {@link #FLAG_SENT_ALL}.
-     *     Each element must pass
-     *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
-     *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
-     *    <P>
-     *     The list may be empty or null.  Empty or null elements in {@code strs} are automatically replaced here
-     *     with {@link SOCMessage#EMPTYSTR}, and at the receiver {@link #parseDataStr(List)} will automatically
-     *     replace {@code EMPTYSTR} with "".
-     *    <P>
-     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker
-     *     (like {@link #MARKER_KEY_UNKNOWN}) declared in this class.
-     *    <P>
-     *     <B>Max Length:</B> See {@link SOCLocalizedStrings class javadoc} for combined max length of list's strings.
-     *
-     * @return    the command string
-     * @throws IllegalArgumentException  If {@code type} or any element of {@code strs} fails
-     *     {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @throws NullPointerException if {@code strs} is null
-     */
-    public static String toCmd(final String type, final int flags, List<String> strs)
-        throws IllegalArgumentException
-    {
-        return toCmd(type, flags, strs, false);
-    }
-
-    /**
-     * Implement server-side {@code toCmd(..)}: See {@link #toCmd(String, int, List)} for details.
+     * See {@link #SOCLocalizedStrings(String, int, List)} for field/parameter details.
+     * Will build empty or null elements as {@link SOCMessage#EMPTYSTR}.
+     * Relies on callers to make sure {@code type} and every element of {@code strs} passes
+     * {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param skipFirstStr  If true, {@code str}'s first element is {@code type}: skip it while building cmd.
-     * @throws IllegalArgumentException  If {@code type} or any element of {@code strs} fails
-     *     {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
     private static String toCmd
         (final String type, final int flags, List<String> strs, final boolean skipFirstStr)
-        throws IllegalArgumentException
     {
-        checkParams(type, strs);  // isSingleLineAndSafe(type), isSingleLineAndSafe(each non-empty str), etc
-
         StringBuilder sb = new StringBuilder(Integer.toString(SOCMessage.LOCALIZEDSTRINGS));
         sb.append(sep);
         sb.append(type);
@@ -335,49 +336,20 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
     }
 
     /**
-     * Build the command string from a type and single string key; used for requests from client side.
-     * @param type  String type such as {@link #TYPE_SCENARIO};
-     *     must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param flags  Any flags such as {@link #FLAG_SENT_ALL}, or 0
-     * @param str  String key being requested, with type-specific meaning; see {@code type} constant javadocs.
-     *     Must pass
-     *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
-     *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
-     *     If any string starts with {@link #MARKER_PREFIX}, it must be a recognized marker
-     *     (like {@link #MARKER_KEY_UNKNOWN}) declared in this class.
-     * @return    the command string
-     * @throws IllegalArgumentException  If {@code type} or {@code str} fails
-     *     {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @throws NullPointerException if {@code str} is null
-     */
-    public static String toCmd(final String type, final int flags, String str)
-        throws IllegalArgumentException, NullPointerException
-    {
-        if (str == null)
-            throw new NullPointerException();
-
-        // Convenience method: create a List of Strings
-        // instead of constructing toCmd from the single str,
-        // because required checkParams validator needs a List anyway.
-
-        ArrayList<String> strs = new ArrayList<String>();
-        strs.add(str);
-        return toCmd(type, flags, strs);
-    }
-
-    /**
      * Build the command string; used at server side.
-     * See {@link #toCmd(String, int, List)} for details.
+     * Empty or null elements will be built as {@link SOCMessage#EMPTYSTR}.
+     * At the receiver, {@link #parseDataStr(List)} will automatically replace {@code EMPTYSTR} with "".
+     * See {@link #SOCLocalizedStrings(String, int, List)} for field/parameter details.
      */
     public String toCmd()
     {
-        return toCmd(pa.get(0), flags, pa, true);  // won't throw anything: constructor checked those conditions
+        return toCmd(pa.get(0), flags, pa, true);
     }
 
     /**
      * Check parameter format.
-     * Used by {@link #toCmd(String, int, List)} and {@link #SOCLocalizedStrings(String, int, List)};
-     * see {@code toCmd(..)} for required format and thus the checks performed.
+     * See {@link #SOCLocalizedStrings(String, int, List)} constructor for
+     * required format and checks performed.
      */
     private static void checkParams(final String type, final List<String> strs)
         throws IllegalArgumentException

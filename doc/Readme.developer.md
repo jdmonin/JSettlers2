@@ -965,6 +965,13 @@ for popular languages), looking for the message types they need to work with
 `SOCDisplaylessPlayerClient`, `SOCRobotClient`,
 `soc.server.genericServer.Server`, and `SOCServer`.
 
+Unit tests and extraTests check consistency of core game action message
+sequences, and informally document examples of those expected sequences.
+See `src/test/java/soctest/server/TestRecorder.java` and
+`src/extraTest/java/soctest/server/TestActionsMessages.java`.
+Those classes also show how you can start up a SOCServer and non-GUI clients
+and connect and control them as needed.
+
 **protobuf** conversion is under way in the experimental v3 branch.
 The `FromServer` and `FromClient` message types are sent over TCP using
 Message.writeDelimitedTo(..) and Message.parseDelimitedFrom(..); see also

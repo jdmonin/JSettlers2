@@ -441,7 +441,8 @@ When preparing to release a new version, testing should include:
           `src/main/resources/resources/strings/server/toClient_es.properties`:  
           `gameopt.DEBUGBOOL = test debugbool localized-es`  
           `gamescen.SC_TSTNC.n = test-localizedname-es`  
-        - Build server JAR and start a server from it (has the "new" version number)
+        - Build server JAR and start a server from it (has the "new" version number);  
+          use `gradle assemble` here to skip the usual unit tests
         - Reset `version.info`, `toClient_es.properties`, `SOCGameOption.initAllOptions()`,
           and `SOCScenario.initAllScenarios()` to their actual versions (3001 -> 3000, re-comment, etc)
         - Build and launch client (at actual version)
@@ -487,14 +488,14 @@ When preparing to release a new version, testing should include:
           # gamescen.SC_TTD.d = ...
 
     - 3 rounds, to test with clients in english (`en_US`), spanish (`es`), and your computer's default locale:  
-      Launch each client with specified locale by using JVM parameter: `-Djsettlers.locale=es`
+      Launch each client with specified locale by using a JVM parameter value like: `-Djsettlers.locale=es`
     - If client's default locale is `en_US` or `es`, can combine that testing round with "default locale" round
     - If other languages/locales are later added, don't need to do more rounds of testing for them;
       the 3 rounds cover english (the fallback locale), non-english, and client's default locale
     - Reminder: To show a debug trace of network message traffic in the terminal/client output,
       also use JVM param `-Djsettlers.debug.traffic=Y`
 
-    For each round, all these items should appear in the expected language/locale:
+    For each of those rounds of testing, all these items should appear in the expected language/locale:
 
     - Client user interface
       - Initial connect window (welcome text, buttons, version and build-number label)
@@ -532,24 +533,24 @@ When preparing to release a new version, testing should include:
           - Game Info dialog: Click Scenario Info button: Except Fog Islands,
             game's scenario info should be localized as expected
           - In message traffic, should see `SOCLocalizedStrings:type=S` with text for only that game's scenario
-            (except Fog Islands, except for english client)
+            (except for english client), or for Fog Islands, `SC_FOG|K` as visible part of the marker for "unknown"
         - Join each of those 3 games
           - In message traffic, shouldn't see another `SOCLocalizedStrings:type=S`, because server tracks already-sent ones
         - Re-launch client, to clear that server-side and client-side tracking
         - Join each of those 3 games
-          - Popup when joining, or game Options button: Scenario info should be localized same as Game Info dialog
+          - Popup when joining, or game Options button: Scenario info should be localized same way Game Info dialog was
 - Client Feature handling
     - For human players:
         - Start a server (dedicated or client-hosted)
     	- Launch a pair of SOCPlayerClients which report limited features, using vm property `-Djsettlers.debug.client.features=;6pl;sb;`
     	  and connect to server. Don't give a Nickname or create any game from these clients.  
-          (A pair let us test more than the code which handles the server's first limited client.)
+    	  (Using 2 such clients lets us test more than the code which handles the server's first limited client.)
     	- Launch a standard client, connect to server, create a game having any Scenario (New Shores, etc)
     	- Limited client pair's game list should show that game as "(cannot join)"
     	- Launch another pair of SOCPlayerClients which report no features, using vm property `-Djsettlers.debug.client.features=`
           (empty value) and connect to server
-        - In each client of that second limited pair, give a Nickname and create any game on the server, in order to authenticate.
-	      Leave those new games (close their windows) to delete them.
+        - In each client of that second limited pair, to authenticate, give a Nickname and create a classic 4-player game on the server.
+	      Don't need to sit down. Leave those new games (close their windows) to delete them.
     	- In standard client, create a game having 6 players but no scenario
         - First pair of limited clients should connect to that game
         - Second pair of limited clients' game list should show that game as "(cannot join)"

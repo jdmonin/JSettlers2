@@ -106,25 +106,14 @@ public class SOCBotJoinGameRequest extends SOCMessage
     }
 
     /**
-     * BOTJOINGAMEREQUEST sep game sep2 playerNumber
+     * BOTJOINGAMEREQUEST sep game sep2 playerNumber sep2 optionstring
      *
      * @return the command String
      */
     @Override
     public String toCmd()
     {
-        return toCmd(game, playerNumber, opts);
-    }
-
-    /**
-     * BOTJOINGAMEREQUEST sep game sep2 playerNumber sep2 optionstring
-     *
-     * @param ga  the game name
-     * @return    the command string
-     */
-    public static String toCmd(String ga, int pn, Map<String,SOCGameOption> opts)
-    {
-        return BOTJOINGAMEREQUEST + sep + ga + sep2 + pn + sep2
+        return BOTJOINGAMEREQUEST + sep + game + sep2 + playerNumber + sep2
             + SOCGameOption.packOptionsToString(opts, false, false);
     }
 
@@ -169,14 +158,17 @@ public class SOCBotJoinGameRequest extends SOCMessage
     }
 
     /**
+     * Simple human-readable delimited representation, used for debug purposes.
+     *<P>
+     * Before v2.4.10, opts didn't contain game option details, only "null" or "(non-null)".
      * @return a human readable form of the message
      */
     @Override
     public String toString()
     {
-        String s = "SOCBotJoinRequest:game=" + game + "|playerNumber=" + playerNumber;
+        String s = "SOCBotJoinGameRequest:game=" + game + "|playerNumber=" + playerNumber;
         if (opts != null)
-            s += "|opts=(non-null)";
+            s += "|opts=" + SOCGameOption.packOptionsToString(opts, false, false);
         else
             s += "|opts=null";
         return s;

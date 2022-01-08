@@ -88,6 +88,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *
      * @param rset resource set, of length 5 or 6 (clay, ore, sheep, wheat, wood, unknown).
      *     If length is 5, unknown == 0.
+     * @see #getAmounts(boolean)
      * @since 1.1.08
      */
     public SOCResourceSet(int[] rset)
@@ -180,6 +181,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *    If {@code withUnknown}, index 5 is the amount of {@link SOCResourceConstants#UNKNOWN}.
      * @see #getAmount(int)
      * @see #isEmpty()
+     * @see #SOCResourceSet(int[])
      * @since 2.0.00
      */
     public int[] getAmounts(final boolean withUnknown)

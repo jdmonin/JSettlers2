@@ -51,26 +51,9 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
-     * Constructor for client to parse server's list of games.
-     * This collects the paired games and options into a string list,
-     * but doesn't parse the game option strings into {@link soc.game.SOCGameOption}
-     * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String)} for that.
+     * Constructor from a set of game names/objects; used at server side.
      *<P>
-     * The server instead calls {@link #SOCGamesWithOptions(List, int)}.
-     *
-     * @param gl  Game list; can be empty, but not null
-     */
-    private SOCGamesWithOptions(List<String> gl)
-    {
-        super(GAMESWITHOPTIONS, parseData_FindEmptyStrs(gl));
-            // Transforms EMPTYSTR -> "" to sanitize;
-            // won't find any EMPTYSTR unless data was malformed when passed to toCmd() at server
-    }
-
-    /**
-     * Constructor from a set of game objects; used at server side.
-     *<P>
-     * Before v3.0.00 this was a static {@code toCmd(..)} method.
+     * Before v2.4.10 this was a static {@code toCmd(..)} method.
      *
      * @param ga  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *            if a client can't join a game, it should be a String prefixed with
@@ -78,6 +61,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      * @return    the command string
+     * @since 2.4.10
      */
     public SOCGamesWithOptions(List<?> ga, final int cliVers)
     {
@@ -96,6 +80,23 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
                 pa.add("-");
             }
         }
+    }
+
+    /**
+     * Constructor for client to parse server's list of games.
+     * This collects the paired games and options into a string list,
+     * but doesn't parse the game option strings into {@link soc.game.SOCGameOption}
+     * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String)} for that.
+     *<P>
+     * The server instead calls {@link #SOCGamesWithOptions(List, int)}.
+     *
+     * @param gl  Game list; can be empty, but not null
+     */
+    private SOCGamesWithOptions(List<String> gl)
+    {
+        super(GAMESWITHOPTIONS, parseData_FindEmptyStrs(gl));
+            // Transforms EMPTYSTR -> "" to sanitize;
+            // won't find any EMPTYSTR unless data was malformed when passed to toCmd() at server
     }
 
     /**

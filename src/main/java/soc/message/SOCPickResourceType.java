@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -98,20 +98,7 @@ public class SOCPickResourceType extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, resource);
-    }
-
-    /**
-     * PICKRESOURCETYPE sep game sep2 resourceType
-     *
-     * @param ga  the name of the game
-     * @param rs  the chosen resource type,
-     *     such as {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
-     * @return the command string
-     */
-    public static String toCmd(String ga, int rs)
-    {
-        return PICKRESOURCETYPE + sep + ga + sep2 + rs;
+        return PICKRESOURCETYPE + sep + game + sep2 + resource;
     }
 
     /**
@@ -147,4 +134,5 @@ public class SOCPickResourceType extends SOCMessage
     {
         return "SOCPickResourceType:game=" + game + "|resType=" + resource;
     }
+
 }

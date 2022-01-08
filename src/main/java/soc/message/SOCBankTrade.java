@@ -1,7 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -218,6 +219,24 @@ public class SOCBankTrade extends SOCMessage
         if (playerNumber >= 0)
             gb.setPlayerNumber(playerNumber);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String message)
+    {
+        // Strip the give= and get= from the message, then do the normal strip
+        message = message.replace("give=", "");
+        message = message.replace("get=", "");
+        // strip with leading delim (hardcode here for now)
+        message = message.replaceAll("\\|unknown=0", "");
+
+        return SOCMessage.stripAttribNames(message);
     }
 
     /**

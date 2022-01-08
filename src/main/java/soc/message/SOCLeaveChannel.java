@@ -59,7 +59,7 @@ public class SOCLeaveChannel extends SOCMessage
      *
      * @param nn  the nickname when sent from server;
      *     server has always ignored this field from client, can send "-" but not blank
-     * @param hn  unused; optional host name, or "-"
+     * @param hn  unused; optional host name, or "-"; not blank
      * @param ch  name of chat channel
      */
     public SOCLeaveChannel(String nn, String hn, String ch)

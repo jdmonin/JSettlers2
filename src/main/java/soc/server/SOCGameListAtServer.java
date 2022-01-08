@@ -228,10 +228,12 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
-     * is this connection a member of the game?
+     * Is this connection a member of this game?
+     * More specific than {@link #isMember(String, String)},
+     * especially while reloading and joining a saved game.
      * @param  gaName   the name of the game; not null
-     * @param  conn     the member's connection; null is safe
-     * @return true if {@code conn} is a member of the game
+     * @param  conn     connection to check game for; null is safe
+     * @return true if game exists and {@code conn} is a member
      * @see #isMember(String, String)
      */
     public boolean isMember(Connection conn, String gaName)
@@ -250,8 +252,8 @@ public class SOCGameListAtServer extends SOCGameList
      * @param memberName  member name, from {@link Connection#getData()}.
      *     {@code null} is safe.
      * @param gaName  the name of the game; not null
-     * @return true if {@code memberName} is a member of the game
-     * @see {@link #isMember(Connection, String)}
+     * @return true if game exists and {@code memberName} is a member
+     * @see #isMember(Connection, String)
      * @since 2.3.00
      */
     public boolean isMember(String memberName, String gaName)

@@ -1578,6 +1578,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param hex  the coordinates for a hex
      *
      * @return the dice-roll number on that hex, or 0 if no number or not a hex coordinate
+     * @see #getHexTypeFromCoord(int)
      */
     @Override
     public int getNumberOnHexFromCoord(final int hex)
@@ -1648,6 +1649,7 @@ public class SOCBoardLarge extends SOCBoard
      *         Invalid hex coordinates return -1.
      *
      * @see #getLandHexCoords()
+     * @see #getNumberOnHexFromCoord(int)
      */
     @Override
     public int getHexTypeFromCoord(final int hex)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2012,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2012,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -215,6 +215,46 @@ public class SOCChoosePlayerRequest extends SOCMessage
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGameName(game).setChoosePlayerPrompt(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
+    }
+
+    /**
+     * Parse the parameters/attributes from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        String[] pieces = messageStrParams.split(sepRE);
+        if (pieces.length < 2)
+            return null;
+
+        StringBuilder ret = new StringBuilder();
+
+        if (pieces[0].startsWith("game="))
+            ret.append(pieces[0].substring(5));
+        else
+            return null;
+
+        int i = 1;
+        if (pieces[1].startsWith("canChooseNone="))
+        {
+            ++i;
+            if (! pieces[1].equals("canChooseNone=true"))
+                return null;
+
+            ret.append(",NONE");
+        }
+
+        String s = pieces[i];  // "choices=[true, false, false, true]"
+        int L = s.length();
+        if (! ((s.charAt(8) == '[') && (s.charAt(L - 1) == ']')))
+            return null;
+        for (String piece : s.substring(9, L - 1).split(", "))
+            ret.append(sep2_char).append(piece);
+
+        return ret.toString();
     }
 
     /**

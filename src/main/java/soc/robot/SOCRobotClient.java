@@ -342,6 +342,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * Initialize the robot player; connect to server and send first messages
      * including our version, features from {@link #buildClientFeats()}, and {@link #rbclass}.
+     * If fails to connect, sets {@link #ex} and prints it to {@link System#err}.
      */
     public void init()
     {
@@ -1318,7 +1319,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             /**
              * change our face to the robot face
              */
-            put(SOCChangeFace.toCmd(ga.getName(), pn, faceId));
+            put(new SOCChangeFace(ga.getName(), pn, faceId).toCmd());
         }
         else
         {
@@ -1533,7 +1534,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         List<String> rbSta = brain.debugPrintBrainStatus();
         if (sendTextToGame)
             for (final String st : rbSta)
-                put(SOCGameTextMsg.toCmd(gameName, nickname, st));
+                put(new SOCGameTextMsg(gameName, nickname, st).toCmd());
         else
             for (final String st : rbSta)
                 System.err.println(st);

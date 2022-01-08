@@ -39,6 +39,7 @@ import soc.server.genericServer.Connection;
 import soc.server.genericServer.InboundMessageQueue;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
+import soc.server.savegame.SavedGameModel;
 
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
@@ -135,7 +136,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *<LI> To get a client's nickname, use {@link Connection#getData()}.
  *<LI> To get the rest of a client's data, use {@link #getClientData(String)}
  *     or <tt>({@link SOCClientData}) {@link Connection#getAppData()}</tt>.
- *<LI> To send a message to all players in a game, use {@link #messageToGame(String, SOCMessage)}
+ *<LI> To send a message to all players in a game, use {@link #messageToGame(String, boolean, SOCMessage)}
  *     and related methods. Send text with {@link #messageToGameKeyed(SOCGame, boolean, boolean, String)}.
  *<LI> For i18n, nearly all text sent from the server starts as a unique key
  *     appearing in {@code soc/server/strings/*.properties} and is localized
@@ -773,6 +774,9 @@ public class SOCServer extends Server
     /**
      * For {@link #messageToPlayer(Connection, String, int, SOCMessage)} and similar methods,
      * "event playerNumber" parameter value to indicate message isn't an event and shouldn't be recorded.
+     *<P>
+     * Example: Explaining a syntax error in a debug/admin command they sent.
+     *
      * @see #PN_OBSERVER
      * @see #PN_REPLY_TO_UNDETERMINED
      * @since 2.4.10
@@ -781,10 +785,11 @@ public class SOCServer extends Server
 
     /**
      * For {@link #messageToPlayer(Connection, String, int, SOCMessage)} and similar methods,
-     * "event playerNumber" parameter value to indicate this is the server's reply to an observing client
+     * "event playerNumber" parameter value to indicate this is from the server to an observing client
      * who's joined the game but isn't sitting as a player.
      *<P>
      * Also used when inviting a bot client to join a game, although they aren't a game member yet.
+     *
      * @see #PN_NON_EVENT
      * @see #PN_REPLY_TO_UNDETERMINED
      * @since 2.4.10
@@ -794,8 +799,9 @@ public class SOCServer extends Server
     /**
      * For {@link #messageToPlayer(Connection, String, int, SOCMessage)} and similar methods,
      * "event playerNumber" parameter value to indicate this is the server's reply to a client player, and
-     * their player number is undetermined, probably because current player's name isn't the client nickname
+     * their player number is undetermined, possibly because current player's name isn't the client nickname
      * so server knows client can't take an action right now.
+     *
      * @see #PN_NON_EVENT
      * @see #PN_OBSERVER
      * @since 2.4.10
@@ -1425,11 +1431,6 @@ public class SOCServer extends Server
         super(p, new SOCMessageDispatcher(), props);
         props = this.props;  // if was null, use empty props created by super constructor
 
-        maxConnections = getConfigIntProperty(PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
-        allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
-        CLIENT_MAX_CREATE_GAMES = getConfigIntProperty(PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
-        CLIENT_MAX_CREATE_CHANNELS = getConfigIntProperty(PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
-
         String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
         String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
 
@@ -1460,6 +1461,7 @@ public class SOCServer extends Server
      * @throws SQLException   If db setup script or upgrade fails,
      *       or if required tests failed in {@link SOCDBHelper#testDBHelper()}
      * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
+     * @see #SOCServer(String, Properties)
      * @since 1.1.00
      */
     public SOCServer(String s, int mc, String databaseUserName, String databasePassword)
@@ -1469,6 +1471,37 @@ public class SOCServer extends Server
 
         maxConnections = mc;
         initSocServer(databaseUserName, databasePassword);
+    }
+
+    /**
+     * Create a Settlers of Catan server listening on local stringport {@code s} with properties {@code props}.
+     * Most server threads are started here; you must start its main thread yourself.
+     *<P>
+     * Will also print game options to stderr if any option defaults require a minimum client version,
+     * or if {@link #hasSetGameOptions} is set.
+     *
+     * @param s  the stringport that the server listens on.
+     *             If this is a "practice game" server on the user's local computer,
+     *             please use {@link #PRACTICE_STRINGPORT}.
+     * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
+     *       and any other desired properties.
+     *       <P>
+     *       Property names are held in PROP_* and SOCDBHelper.PROP_* constants; see {@link #PROPS_LIST}.
+     * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
+     * @see {@link #SOCServer(String, int, String, String)}
+     * @since 2.4.10
+     */
+    public SOCServer(String s, Properties props)
+        throws IllegalStateException
+    {
+        super(s, new SOCMessageDispatcher(), props);
+
+        try
+        {
+            initSocServer(null, "");
+        } catch (SocketException | SQLException | EOFException e) {
+            throw new IllegalStateException("Internal error, not expected to encounter " + e.toString(), e);
+        }
     }
 
     /**
@@ -1532,6 +1565,14 @@ public class SOCServer extends Server
         {
             throw new IllegalStateException("Packaging error: Cannot determine JSettlers version");
         }
+
+        if (maxConnections == 0)
+            maxConnections = getConfigIntProperty(PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
+        allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
+        CLIENT_MAX_CREATE_GAMES = getConfigIntProperty
+            (PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
+        CLIENT_MAX_CREATE_CHANNELS = getConfigIntProperty
+            (PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
 
         /**
          * If true, connect to DB (like validate_config_mode does) but start no threads.
@@ -1659,7 +1700,7 @@ public class SOCServer extends Server
                         ("Config: " + PROP_JSETTLERS_ADMIN_WELCOME + ": " + err);
 
                 if (! txt.equals(txt0))
-                    props.put(PROP_JSETTLERS_ADMIN_WELCOME, txt);  // use trimmed text
+                    props.setProperty(PROP_JSETTLERS_ADMIN_WELCOME, txt);  // use trimmed text
             }
         }
 
@@ -1866,8 +1907,8 @@ public class SOCServer extends Server
      *<P>
      * Before v2.2.00 this code was part of {@code initSocServer}.
      *
-     * @param databaseUserName  DB username given to {@code initSocServer}
-     * @param databasePassword  DB password given to {@code initSocServer}
+     * @param databaseUserName  DB username given to {@code initSocServer}, or {@code null}
+     * @param databasePassword  DB password given to {@code initSocServer}, or ""
      * @param wants_upg_schema  True if {@link SOCDBHelper#PROP_JSETTLERS_DB_UPGRADE__SCHEMA} flag is set
      * @param accountsRequired  True if {@link #PROP_JSETTLERS_ACCOUNTS_REQUIRED} flag is set
      * @param db_test_bcrypt_mode  True if {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} == "test"
@@ -1886,6 +1927,9 @@ public class SOCServer extends Server
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
+            if (databaseUserName == null)
+                return;
+
             features.add(SOCFeatureSet.SERVER_ACCOUNTS);
             System.err.println("User database initialized.");
 
@@ -2490,6 +2534,7 @@ public class SOCServer extends Server
                 if (D.ebugOn)
                     D.ebugPrintlnINFO("*** " + c.getData() + " joined the channel " + ch + " at "
                         + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
+
                 channelList.addMember(c, ch);
             }
         }
@@ -2977,8 +3022,6 @@ public class SOCServer extends Server
                 {
                     if (cannotJoinMsg == null)
                         cannotJoinMsg = new SOCNewGame(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName);
-                        // cannotJoinMsg will be used during this loop, but discarded between first and
-                        // second call to this method; second call will create it again, which is OK
                     c.put(cannotJoinMsg);
 
                     continue;  // can't join
@@ -3178,6 +3221,8 @@ public class SOCServer extends Server
 
         try
         {
+            // is the leaving player a bot who was told to leave so a
+            // human client can take over their seat?
             // check for robot-replace request; if so,
             // we'll soon tell waiting client to sit down
             if (reqList != null)
@@ -3200,6 +3245,7 @@ public class SOCServer extends Server
             final SOCClientData repScd = (hasReplacement)
                 ? (SOCClientData) (req.getArriving().getAppData())
                 : null;
+
             gameDestroyed = leaveGame
                 (c, game, gaName, hasReplacement, (repScd != null) && ! repScd.isRobot, true, false);
         }
@@ -3486,9 +3532,22 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in " + descForStackTrace);
         }
+        finally
+        {
+            gameList.releaseMonitor();
+        }
 
-        gameList.releaseMonitor();
         broadcast(new SOCDeleteGame(gaName));
+    }
+
+    /**
+     * This server's game list. Treat as read-only.
+     * Useful for membership checks like {@link SOCGameListAtServer#isMember(String, String)}.
+     * @since 2.4.10
+     */
+    public SOCGameListAtServer getGameList()
+    {
+        return gameList;
     }
 
     /**
@@ -3682,20 +3741,24 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in leaveAllChannels");
         }
+        finally
+        {
+            try
+            {
+                /** After iterating through all channels, destroy newly empty ones */
+                for (String ch : toDestroy)
+                    destroyChannel(ch);
+            } finally {
+                channelList.releaseMonitor();
+            }
+        }
 
-        /** After iterating through all channels, destroy newly empty ones */
-        for (String ch : toDestroy)
-            destroyChannel(ch);
-
-        channelList.releaseMonitor();
 
         /**
          * let everyone know about the destroyed channels
          */
         for (String ga : toDestroy)
-        {
             broadcast(new SOCDeleteChannel(ga));
-        }
     }
 
     /**
@@ -3744,12 +3807,17 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in leaveAllGames");
         }
-
-        /** After iterating through all games, destroy newly empty ones */
-        for (String ga : toDestroy)
-            destroyGame(ga);
-
-        gameList.releaseMonitor();
+        finally
+        {
+            /** After iterating through all games, destroy newly empty ones */
+            try
+            {
+                for (String ga : toDestroy)
+                    destroyGame(ga);
+            } finally {
+                gameList.releaseMonitor();
+            }
+        }
 
         /**
          * let everyone know about the destroyed games
@@ -3827,13 +3895,13 @@ public class SOCServer extends Server
         }
     }
 
-    // TODO soon mark deprecated for +eventPN form
     /**
-     * Send a message to a player.
+     * Send a message to a player or other game member.
      *
      * @param c   the player connection
      * @param mes the message to send
      * @see #messageToPlayer(Connection, String, int, SOCMessage)
+     * @deprecated Use {@link #messageToPlayer(Connection, String, int, SOCMessage)} instead, starting at v2.4.10
      */
     public void messageToPlayer(Connection c, SOCMessage mes)
     {
@@ -3841,7 +3909,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a message to a player. Optionally call
+     * Send a message to a player or other game member. Optionally call
      * {@link #recordGameEventTo(String, int, SOCMessage) recordGameEventTo(eventGameName, eventPN, mes)}.
      *
      * @param c   the player connection; does nothing if {@code null}
@@ -3864,7 +3932,6 @@ public class SOCServer extends Server
         c.put(mes);
     }
 
-    // TODO soon mark deprecated for eventPN form
     /**
      * Send a {@link SOCGameServerText} or {@link SOCGameTextMsg} game text message to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga, txt));
@@ -3876,6 +3943,7 @@ public class SOCServer extends Server
      * @since 1.1.08
      * @see #messageToPlayer(Connection, String, int, String)
      * @see #messageToPlayerKeyed(Connection, String, int, String)
+     * @deprecated Use {@link #messageToPlayer(Connection, String, int, String)} instead, starting at v2.4.10
      */
     public void messageToPlayer(Connection c, final String ga, final String txt)
     {
@@ -3915,7 +3983,6 @@ public class SOCServer extends Server
         }
     }
 
-    // TODO deprecate for +eventPN form
     /**
      * Send a localized {@link SOCGameServerText} game text message to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
@@ -3930,6 +3997,7 @@ public class SOCServer extends Server
      * @see #messageToPlayerKeyed(Connection, String, int, String)
      * @see #messageToPlayerKeyed(Connection, String, int, String, Object...)
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
+     * @deprecated Use {@link #messageToPlayerKeyed(Connection, String, int, String)} instead, starting at v2.4.10
      */
     public final void messageToPlayerKeyed(Connection c, final String gaName, final String key)
     {
@@ -3950,7 +4018,6 @@ public class SOCServer extends Server
      * @param eventPN  {@code c}'s player number if this is a game event which should be recorded;
      *     can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}. Otherwise {@link #PN_NON_EVENT}.
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
-     * @see #messageToPlayerKeyed(Connection, String, String, Object...)
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
      * @since 2.4.10
      */
@@ -3960,7 +4027,6 @@ public class SOCServer extends Server
             messageToPlayer(c, gameName, eventPN, c.getLocalized(key));
     }
 
-    // TODO soon deprecate for +eventPN form
     /**
      * Send a localized {@link SOCGameServerText} game text message with arguments to a player.
      * Equivalent to: messageToPlayer(conn, new {@link SOCGameServerText}(ga,
@@ -3979,6 +4045,8 @@ public class SOCServer extends Server
      * @see #messageToPlayerKeyed(Connection, String, int, String)
      * @see #messageToPlayerKeyedSpecial(Connection, SOCGame, int, String, Object...)
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
+     * @deprecated Use {@link #messageToPlayerKeyed(Connection, String, int, String, Object...)} instead,
+     *     starting at v2.4.10
      */
     public final void messageToPlayerKeyed
         (Connection c, final String gaName, final String key, final Object ... args)
@@ -4036,7 +4104,6 @@ public class SOCServer extends Server
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @param args  Any parameters within {@code txt}'s placeholders
      * @since 2.0.00
-     * @see #messageToPlayerKeyed(Connection, String, String, Object...)
      * @see #messageToPlayerKeyed(Connection, String, int, String)
      */
     public final void messageToPlayerKeyedSpecial
@@ -4080,7 +4147,6 @@ public class SOCServer extends Server
             pl.pendingMessagesOut.add(new SOCGameTextMsg(gaName, SERVERNAME, c.getLocalized(key)));
     }
 
-    // TODO mark deprecated for +isEvent form
     /**
      * Send a message to the given game.
      *<P>
@@ -4095,6 +4161,7 @@ public class SOCServer extends Server
      * @see #messageToGame(String, boolean, String)
      * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
+     * @deprecated Use {@link #messageToGame(String, boolean, SOCMessage)} instead, starting at v2.4.10
      */
     public void messageToGame(String gameName, SOCMessage mes)
     {
@@ -4114,7 +4181,6 @@ public class SOCServer extends Server
      *     text begins with ">>>", the client should consider this
      *     an urgent message, and draw the user's attention in some way.
      *     (See {@link #messageToGameUrgent(String, boolean, String)})
-     * @see #messageToGame(String, SOCMessage)
      * @see #messageToGame(String, boolean, String)
      * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
@@ -4156,7 +4222,6 @@ public class SOCServer extends Server
         gameList.releaseMonitorForGame(gameName);
     }
 
-    // TODO mark deprecated for +isEvent version
     /**
      * Send a server text message to the given game.
      * Equivalent to: messageToGame(ga, new SOCGameServerText(ga, txt));
@@ -4180,6 +4245,7 @@ public class SOCServer extends Server
      * @see #messageToGame(String, SOCMessage)
      * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameExcept(String, Connection, int, String, boolean)
+     * @deprecated Use {@link #messageToGame(String, boolean, String)} instead, starting at v2.4.10
      * @since 1.1.08
      */
     public void messageToGame(final String ga, final String txt)
@@ -4209,7 +4275,6 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, boolean, String)})
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
-     * @see #messageToGame(String, SOCMessage)
      * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameExcept(String, Connection, int, String, boolean)
      * @since 2.4.10
@@ -4256,7 +4321,7 @@ public class SOCServer extends Server
 
     /**
      * Send a game a message containing data fields and also a text field to be localized.
-     * Same as {@link #messageToGame(String, SOCMessage)} but calls each member connection's
+     * Same as {@link #messageToGame(String, boolean, SOCMessage)} but calls each member connection's
      * {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send.
      * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
      *<P>
@@ -4371,7 +4436,6 @@ public class SOCServer extends Server
         }
     }
 
-    // TODO soon mark deprecated for +isEvent form
     /**
      * Send a localized {@link SOCGameServerText} game text message to a game.
      * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
@@ -4398,6 +4462,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @deprecated Use {@link #messageToGameKeyed(SOCGame, boolean, boolean, String)} instead, starting at v2.4.10
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key)
@@ -4443,7 +4508,6 @@ public class SOCServer extends Server
         messageToGameKeyed(ga, isEvent, takeMon, key, (Object[]) null);
     }
 
-    // TODO soon mark deprecated for +isEvent form
     /**
      * Send a localized {@link SOCGameServerText} game text message (with parameters) to a game.
      * Same as {@link #messageToGame(String, boolean, String)} but calls each member connection's
@@ -4472,6 +4536,8 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @deprecated Use {@link #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)} instead,
+     *     starting at v2.4.10
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key, final Object ... params)
@@ -4598,7 +4664,7 @@ public class SOCServer extends Server
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int[], boolean, List, String, Object...)
-     * @see #messageToGameKeyed(SOCGame, boolean, String)
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @since 2.0.00
      */
     public final void messageToGameKeyedSpecialExcept
@@ -4793,7 +4859,6 @@ public class SOCServer extends Server
         }
     }
 
-    // TODO soon mark deprecated for +isEvent form
     /**
      * Send a message to the given game.
      *<P>
@@ -4806,6 +4871,7 @@ public class SOCServer extends Server
      * @see #messageToGame(String, boolean, SOCMessage)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
+     * @deprecated Use {@link #messageToGameWithMon(String, boolean, SOCMessage)} instead, starting at v2.4.10
      */
     public void messageToGameWithMon(final String gameName, final SOCMessage mes)
     {
@@ -4933,9 +4999,11 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in messageToGameExcept");
         }
-
-        if (takeMon)
-            gameList.releaseMonitorForGame(gn);
+        finally
+        {
+            if (takeMon)
+                gameList.releaseMonitorForGame(gn);
+        }
     }
 
     /**
@@ -4986,14 +5054,20 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in messageToGameExcept");
         }
-
-        if (takeMon)
-            gameList.releaseMonitorForGame(gn);
+        finally
+        {
+            if (takeMon)
+                gameList.releaseMonitorForGame(gn);
+        }
     }
 
     /**
      * Send a message to all the connections in a game in a certain version range.
      * Used for backwards compatibility.
+     *<P>
+     * If the message sent here should be recorded as a game event and
+     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *
      * @param ga  the game
      * @param vmin  Minimum version to send to, or -1.  Same format as
@@ -5015,6 +5089,10 @@ public class SOCServer extends Server
     /**
      * Send a message to all the connections in a game in a certain version range, excluding one.
      * Used for backwards compatibility.
+     *<P>
+     * If the message sent here should be recorded as a game event and
+     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *
      * @param ga  the game
      * @param vmin  Minimum version to send to, or -1.  Same format as
@@ -5067,9 +5145,11 @@ public class SOCServer extends Server
         {
             D.ebugPrintStackTrace(e, "Exception in messageToGameForVersions");
         }
-
-        if (takeMon)
-            gameList.releaseMonitorForGame(gn);
+        finally
+        {
+            if (takeMon)
+                gameList.releaseMonitorForGame(gn);
+        }
     }
 
     /**
@@ -5835,7 +5915,8 @@ public class SOCServer extends Server
                 srvShutPassword = sb.toString();
                 System.err.println("** Shutdown password generated: " + srvShutPassword);
                 broadcast(new SOCBCastTextMsg(debugCli.getData() + " WANTS TO STOP THE SERVER"));
-                messageToPlayer(debugCli, gaName, "Send stop command again with the password.");
+                messageToPlayer(debugCli, gaName, PN_REPLY_TO_UNDETERMINED,
+                    "Send stop command again with the password.");
             }
 
             if (shutNow)
@@ -5849,7 +5930,7 @@ public class SOCServer extends Server
         {
             if (0 == getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0))
             {
-                messageToPlayer(debugCli, gaName,
+                messageToPlayer(debugCli, gaName, PN_REPLY_TO_UNDETERMINED,
                     "To start a bots-only game, must restart server with "
                     + PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL + " != 0.");
                 return true;
@@ -5857,7 +5938,8 @@ public class SOCServer extends Server
 
             if (ga.getGameState() != SOCGame.NEW)
             {
-                messageToPlayer(debugCli, gaName, "This game has already started; you must create a new one.");
+                messageToPlayer(debugCli, gaName, PN_REPLY_TO_UNDETERMINED,
+                    "This game has already started; you must create a new one.");
                 return true;
             }
 
@@ -6067,7 +6149,7 @@ public class SOCServer extends Server
          */
         if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
         {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
                      c.getLocalized("netmsg.status.common.name_too_long", PLAYER_NAME_MAX_LENGTH)));
                          // "Please choose a shorter name; maximum length: 20"
@@ -6086,23 +6168,23 @@ public class SOCServer extends Server
             {
                 isTakingOver = true;
             } else {
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          MSG_NICKNAME_ALREADY_IN_USE));
                 return;
             }
         } else if (nameTimeout == -2) {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_NAME_NOT_ALLOWED, cliVers,
                      c.getLocalized("netmsg.status.nickname_not_allowed")));  // "This nickname is not allowed."
             return;
         } else if (nameTimeout <= -1000) {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      checkNickname_getVersionText(-nameTimeout)));
             return;
         } else if (nameTimeout > 0) {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      (allowTakeover) ? checkNickname_getRetryText(nameTimeout) : MSG_NICKNAME_ALREADY_IN_USE));
             return;
@@ -6115,7 +6197,7 @@ public class SOCServer extends Server
         {
             if (msgPass.length() == 0)
             {
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                         (SOCStatusMessage.SV_PW_REQUIRED, cliVers,
                          "This server requires user accounts and passwords."));
                 return;
@@ -6127,7 +6209,7 @@ public class SOCServer extends Server
 
         if (msgPass.length() > SOCAuthRequest.PASSWORD_LEN_MAX)
         {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                      (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
                       c.getLocalized("netmsg.status.incorrect_password", msgUser)));  // "Incorrect password for "msgUser"."
             return;
@@ -6166,7 +6248,7 @@ public class SOCServer extends Server
         }
         catch (SQLException sqle)
         {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
                      "Problem connecting to database, please try again later."));
         }
@@ -6193,7 +6275,7 @@ public class SOCServer extends Server
         {
             // Password too long, or user found in database but password incorrect
 
-            final SOCStatusMessage msg = new SOCStatusMessage
+            final SOCMessage msg = SOCStatusMessage.buildForVersion
                 (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
                  c.getLocalized("netmsg.status.incorrect_password", msgUser));  // "Incorrect password for "msgUser"."
             if (hadDelay)
@@ -6213,7 +6295,7 @@ public class SOCServer extends Server
         if (mustSetUsername && (cliVers < 1200))
         {
             // Case differs: must reject if client too old for SOCStatusMessage.SV_OK_SET_NICKNAME
-            final SOCStatusMessage msg = new SOCStatusMessage
+            final SOCMessage msg = SOCStatusMessage.buildForVersion
                 (SOCStatusMessage.SV_NAME_NOT_FOUND, cliVers,
                  "Nickname is case-sensitive: Use " + authUsername);
             if (hadDelay)
@@ -6500,12 +6582,12 @@ public class SOCServer extends Server
                 txt.append(' ');
                 txt.append(c.getLocalized("netmsg.status.welcome"));  // "Welcome to Java Settlers of Catan!"
             }
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers, txt.toString()));
         }
         else if (warnText != null)
         {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_OK, cvers, warnText));
         }
 
@@ -6799,9 +6881,11 @@ public class SOCServer extends Server
      *<P>
      * Before v2.3.00 this method was {@code createOrJoinGameIfUserOK_postAuth}.
      *
-     * @param gaName  Name of game to create or join.
+     * @param connGaName  Name of game to create or join.
      *     If {@code loadingGame != null}: Will instead check {@link SOCGame#getName() loadingGame.getGameName()} for
-     *     validity, and use {@code gaName} as the game name in which to send any error messages back to user {@code c}.
+     *     validity, and use {@code connGaName} as the game name in which to send any error messages back to user {@code c};
+     *     in that case, {@code connGaName} can be null if no error reporting is needed;
+     *     will use {@link SOCStatusMessage} to report errors if null.
      * @param gameOpts  New or reloaded game's {@link SOCGameOption}s, or null
      *     to join an existing game as usual (not one that's currently being reloaded).
      * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
@@ -6813,6 +6897,7 @@ public class SOCServer extends Server
      * @return  True if succeeded, false if failed and a message was sent to user {@code c}.
      * @throws IllegalStateException if {@code loadedGame != null} but its gameState isn't {@link SOCGame#LOADING}
      *     or {@link SOCGame#OVER}
+     * @see #createAndJoinReloadedGame(SavedGameModel, Connection, String)
      * @since 1.2.00
      */
     /*package*/ boolean createOrJoinGame
@@ -6846,7 +6931,7 @@ public class SOCServer extends Server
                 // "Please choose a shorter name; maximum length: 30"
 
             if (sendErrorViaStatus)
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                        (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers, txt));
             else
                 messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
@@ -6867,7 +6952,7 @@ public class SOCServer extends Server
                 && (CLIENT_MAX_CREATE_GAMES >= 0)
                 && (CLIENT_MAX_CREATE_GAMES <= ((SOCClientData) c.getAppData()).getCurrentCreatedGames()))
             {
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                        (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
                          c.getLocalized("netmsg.status.newgame_too_many_created", CLIENT_MAX_CREATE_GAMES)));
                 // "Too many of your games still active; maximum: 5"
@@ -6893,7 +6978,7 @@ public class SOCServer extends Server
             if (rejectText != null)
             {
                 if (sendErrorViaStatus)
-                    c.put(new SOCStatusMessage
+                    c.put(SOCStatusMessage.buildForVersion
                            (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers, rejectText));
                 else
                     messageToPlayer(c, connGaName, PN_NON_EVENT, rejectText);
@@ -6916,7 +7001,7 @@ public class SOCServer extends Server
                     // "A game with this name already exists, please choose a different name."
 
                 if (sendErrorViaStatus)
-                    c.put(new SOCStatusMessage
+                    c.put(SOCStatusMessage.buildForVersion
                            (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers, txt));
                 else
                     messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
@@ -6934,7 +7019,7 @@ public class SOCServer extends Server
                 final String txt = "Unknown game option(s) were requested, cannot create this game. " + optProblems;
 
                 if (sendErrorViaStatus)
-                    c.put(new SOCStatusMessage
+                    c.put(SOCStatusMessage.buildForVersion
                            (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers, txt));
                 else
                     messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
@@ -7025,7 +7110,7 @@ public class SOCServer extends Server
             // Let them know they can't join; include the game's version.
             // This cli asked to created it, otherwise gameOpts would be null.
             // I18N note: If localizing "Cannot create" text, can't use sep2_char in that localized text
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
               (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, cliVers,
                 "Cannot create game with these options; requires version "
                 + Integer.toString(e.gameOptsVersion)
@@ -7040,7 +7125,7 @@ public class SOCServer extends Server
             // show a localized message instead of the raw status text.
             final String verb = (gameList.isGame(gameName)) ? "join" : "create";  // I18N OK
             final String feats = e.getKey();  // semicolon-separated (';')
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
               (SOCStatusMessage.SV_GAME_CLIENT_FEATURES_NEEDED, cliVers,
                 "Cannot " + verb + "; this client is incompatible with features of the game"
                 + SOCMessage.sep2_char + gameName
@@ -7055,7 +7140,7 @@ public class SOCServer extends Server
                     // Troubleshooting note: Before v2.3.00, was "Exception in createOrJoinGameIfUserOK"
             } else {
                 // Let them know they can't join; include the game's version.
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                   (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, cliVers,
                     "Cannot join game; requires version "
                     + Integer.toString(game.getClientVersionMinRequired())
@@ -7074,6 +7159,253 @@ public class SOCServer extends Server
         }
 
         return true;
+    }
+
+    /**
+     * Create a reloaded savegame and have a client join it.
+     * Calls {@link #createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
+     * with player info from {@code sgm} and current contents of {@link SavedGameModel#getGame() sgm.getGame()}.
+     *<P>
+     * Will ask bots to join and sit down for any players marked as robots in {@code sgm}.
+     *<P>
+     * Before v2.4.10, this code was part of <tt>{@link SOCServerMessageHandler}.processDebugCommand_loadGame</tt>.
+     *
+     * @param sgm  Loaded game data
+     * @param c  Client to have join game, as observer or player depending on nickname; not null
+     * @param connGaName  Client's current game in which the command was sent, for sending response messages.
+     *     Can be null; see {@link #createOrJoinGame(Connection, int, String, Map, SOCGame, int)}.
+     * @return Name of loaded game, which might have been renamed if conflicts with another game on the server,
+     *     or {@code null} if game could not be created
+     * @see #resumeReloadedGame()
+     * @since 2.4.10
+     */
+    public String createAndJoinReloadedGame
+        (final SavedGameModel sgm, final Connection c, final String connGaName)
+    {
+        final SOCGame ga = sgm.getGame();
+
+        // Validate name and opts, add to gameList, announce "new" game, have client join;
+        // sends error text if validation fails. Might rename loaded game if its name is already taken
+        // by an existing game.
+        // If debug/admin user isn't a player, will send each sitDown with isRobot=true
+        // to let them sit down at any player's seat.
+        if (! createOrJoinGame
+               (c, c.getVersion(), connGaName, ga.getGameOptions(), ga, SOCServer.AUTH_OR_REJECT__OK))
+        {
+            return null;
+        }
+
+        // Must tell debug/admin player to sit down at this point if they're a player,
+        // since PI will show as seated if nickname matches player name
+        int clientPN = -1;
+        for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+        {
+            final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+            if (pi.isSeatVacant || ! pi.name.equals(c.getData()))
+                continue;
+
+            clientPN = pn;
+            sitDown(ga, c, clientPN, false, false);
+            break;
+        }
+
+        final String gaName = ga.getName();
+
+        boolean foundNoRobots = false;
+        if (sgm.gameState < SOCGame.OVER)
+        {
+            // look for bots, ask them to join like in handleSTARTGAME/SGH.leaveGame
+
+            final GameHandler gh = gameList.getGameTypeHandler(gaName);
+            for (int pn = 0; pn < sgm.playerSeats.length; ++pn)
+            {
+                final SavedGameModel.PlayerInfo pi = sgm.playerSeats[pn];
+                if (pi.isSeatVacant || ! pi.isRobot)
+                    continue;
+
+                // TODO once we have bot details/constraints (fast or smart, 3rd-party bot class),
+                //   request those when calling findRobotAskJoinGame
+                //   instead of marking their seat as vacant
+
+                if (! ga.isSeatVacant(pn))
+                    ga.removePlayer(ga.getPlayer(pn).getName(), true);
+                foundNoRobots = ! gh.findRobotAskJoinGame(ga, Integer.valueOf(pn), true);
+                if (foundNoRobots)
+                    break;
+            }
+        }
+
+        // If all OK: Send Resume reminder prompt after delay, or announce winner if over,
+        //     to appear after bots have joined
+        final boolean noBots = foundNoRobots;
+        miscTaskTimer.schedule(new TimerTask()
+        {
+            public void run()
+            {
+                if (! gaName.equals(sgm.gameName))
+                    messageToPlayerKeyed
+                        (c, gaName, PN_REPLY_TO_UNDETERMINED,
+                         "admin.loadgame.ok.game_renamed", sgm.gameName);
+                        // "Game was renamed: Original name {0} is already used."
+
+                if (sgm.warnDevCardDeckHasUnknownType)
+                    messageToGameKeyed
+                        (ga, true, true, "admin.resumegame.warn.dev_card_deck_contains_unknown_card_type");
+                        // ">>> Warning: Dev card deck contains an unknown card type"
+                if (sgm.warnHasHumanPlayerWithBotName)
+                    messageToGameKeyed
+                        (ga, true, true, "admin.resumegame.warn.human_with_bot_name");
+                        // ">>> Warning: At least 1 player is named like a robot, but isRobot flag is false. Can cause problems when resuming game."
+
+                if (noBots)
+                {
+                    messageToPlayerKeyed
+                        (c, gaName, PN_REPLY_TO_UNDETERMINED,
+                         "admin.resumegame.err.not_enough_robots");
+                        // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
+                } else if (sgm.gameState < SOCGame.OVER) {
+                    messageToGameKeyed
+                        (ga, false, true, "admin.loadgame.ok.to_continue_resumegame");
+                        // ">>> To continue playing, type *RESUMEGAME*"
+                } else {
+                    sgm.resumePlay(true);
+                    final GameHandler hand = gameList.getGameTypeHandler(gaName);
+                    if (hand != null)
+                        hand.sendGameState(ga);
+                }
+            }
+        }, 350 /* ms */ );
+
+        // In case game duration/expire time was extended before save and would now expire very soon,
+        // postpone expiration long enough to run at least 1 expiration check before warning
+        final long now = System.currentTimeMillis();
+        final long thresholdMin = SOCServer.GAME_TIME_EXPIRE_CHECK_MINUTES + SOCServer.GAME_TIME_EXPIRE_WARN_MINUTES;
+        if (thresholdMin >= (int) ((ga.getExpiration() - now) / (60 * 1000L)))
+            ga.setExpiration(now + (60 * 1000 * (1 + thresholdMin)));
+
+        return gaName;
+    }
+
+    /**
+     * Return value from {@link #resumeReloadedGame(Connection, SOCGame)} when game
+     * couldn't immediately be resumed, but robot players are available and have been invited
+     * to cover the unclaimed human player seats.
+     * @since 2.4.10
+     */
+    public static final String RESUME_RELOADED_FETCHING_ROBOTS = "member.bot.join.fetching";
+
+    /**
+     * Resume the current game, which was recently loaded with {@code *LOADGAME*},
+     * or start that process by inviting bots if possible to fill unclaimed human player seats.
+     *<P>
+     * Must be in state {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}.
+     *<P>
+     * If no problems, sets game state to the regular game state saved within {@link SavedGameModel#gameState}.
+     * If game had unclaimed human seats (game has no member with that player name),
+     * sets game state to {@link SOCGame#LOADING_RESUMING} and tries to invite bots
+     * if available to join and sit down. If enough bots are available, once they've
+     * all sat down the game will resume automatically.
+     *
+     * @param c  Client sending the command, game owner if being called by server after last bot has sat down,
+     *     or null if owner not available
+     * @param ga  Game in which the command was sent
+     * @return null if game was resumed, or details of why not:
+     *     Server text with details is sent to the game to explain the problem
+     *     (or "fetching a robot" etc); same text is returned from here
+     *     in case it's useful for debug logs/unit test output.
+     *     If bots were available and invited, returns {@link #RESUME_RELOADED_FETCHING_ROBOTS}.
+     * @throws IllegalStateException if game state isn't {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING},
+     *     or {@link SOCGame#savedGameModel} is null or not a {@link SavedGameModel}
+     * @see #createAndJoinReloadedGame(SavedGameModel, Connection, String)
+     * @since 2.4.10
+     */
+    public String resumeReloadedGame(final Connection c, final SOCGame ga)
+        throws IllegalStateException
+    {
+        if (((ga.getGameState() != SOCGame.LOADING) && (ga.getGameState() != SOCGame.LOADING_RESUMING))
+            || ! (ga.savedGameModel instanceof SavedGameModel))
+            throw new IllegalStateException("game not waiting to be resumed");
+
+        final SavedGameModel sgm = (SavedGameModel) ga.savedGameModel;
+        final String gaName = ga.getName();
+        final boolean[] botsNeeded = sgm.findSeatsNeedingBots();
+        if (botsNeeded != null)
+        {
+            ga.setGameState(SOCGame.LOADING_RESUMING);
+            final GameHandler hand = gameList.getGameTypeHandler(gaName);
+            if (hand != null)
+                hand.sendGameState(ga);
+
+            boolean invitedBots = false;
+            IllegalStateException e = null;
+            try
+            {
+                invitedBots = readyGameAskRobotsJoin(ga, botsNeeded, null, 0);
+                    // will also send game a text message like "Fetching a robot..."
+            } catch (IllegalStateException ex) {
+                e = ex;
+            }
+
+            if (invitedBots)
+            {
+                return RESUME_RELOADED_FETCHING_ROBOTS;  // "member.bot.join.fetching": "Fetching a robot player..."
+            } else {
+                // recover, so human players can try and fill those seats
+                ga.setGameState(SOCGame.LOADING);
+                if (hand != null)
+                    hand.sendGameState(ga);
+
+                String retTxtKey = null;
+                String[] retParams = null;
+                if (e != null)
+                {
+                    retTxtKey = "start.robots.cannot.join.problem";
+                        // "Sorry, robots cannot join this game: {0}"
+                    retParams = new String[]{e.getMessage()};
+                    messageToPlayerKeyed(c, gaName, PN_REPLY_TO_UNDETERMINED, retTxtKey, (Object[]) retParams);
+                } else {
+                    retTxtKey = "admin.resumegame.err.not_enough_robots";
+                        // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
+                    messageToPlayerKeyed(c, gaName, PN_REPLY_TO_UNDETERMINED, retTxtKey);
+                }
+
+                return SOCStringManager.getFallbackServerManagerForClient().get
+                    (retTxtKey, (Object[]) retParams);
+            }
+        }
+
+        // if no human players, set game's isBotsOnly flag so it won't be destroyed
+        boolean isBotsOnly = true;
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            if (! (ga.isSeatVacant(pn) || ga.getPlayer(pn).isRobot()))
+            {
+                isBotsOnly = false;
+                break;
+            }
+        }
+        if (isBotsOnly)
+            ga.isBotsOnly = true;
+
+        try
+        {
+            sgm.resumePlay(false);
+            final GameHandler hand = gameList.getGameTypeHandler(gaName);
+            if (hand != null)
+                hand.sendGameState(ga);
+
+            messageToGameKeyed
+                (ga, true, true, "admin.resumegame.ok.resuming");
+                // ">>> Resuming game play."
+
+            return null;
+        } catch (MissingResourceException e) {
+            String retTxtKey = "admin.resumegame.err.not_enough_robots";
+                // ">>> Cannot resume: Not enough robots to fill non-vacant seats."
+            messageToGameKeyed(ga, true, true, retTxtKey);
+
+            return SOCStringManager.getFallbackServerManagerForClient().get(retTxtKey);
+        }
     }
 
     /**
@@ -7546,7 +7878,7 @@ public class SOCServer extends Server
             // Register in game
             votingComplete = ga.resetVoteRegister(pn, vyes);
             // Tell other players
-            messageToGame (gaName, new SOCResetBoardVote(gaName, pn, vyes));
+            messageToGame (gaName, true, new SOCResetBoardVote(gaName, pn, vyes));
         }
         catch (IllegalArgumentException e)
         {
@@ -7572,7 +7904,7 @@ public class SOCServer extends Server
         else
         {
             // Vote rejected - Let everyone know.
-            messageToGame(gaName, new SOCResetBoardReject(gaName));
+            messageToGame(gaName, true, new SOCResetBoardReject(gaName));
         }
     }
 
@@ -7915,7 +8247,7 @@ public class SOCServer extends Server
             // Send same SV_ status code as previous versions (before 1.1.19) which didn't check db.isInitialized
             // but instead fell through and sent "Account not created due to error."
 
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers,
                      c.getLocalized("account.common.no_accts")));  // "This server does not use accounts and passwords."
             return;
@@ -7927,7 +8259,7 @@ public class SOCServer extends Server
 
         if ((databaseUserAdmins == null) && ! isOpenReg)
         {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
                      c.getLocalized("account.create.not_auth")));  // "Your account is not authorized to create accounts."
 
@@ -7957,7 +8289,7 @@ public class SOCServer extends Server
 
             if (cliVers < SOCAuthRequest.VERSION_FOR_AUTHREQUEST)
             {
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                         (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION,  // cli knows this status value: defined in 1.1.06
                          cliVers, c.getLocalized
                              ("account.create.client_version_minimum",
@@ -7976,7 +8308,7 @@ public class SOCServer extends Server
             }
             catch (SQLException e)
             {
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                         (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
                          c.getLocalized("account.create.error_db_conn")));
                              // "Problem connecting to database, please try again later."
@@ -7985,7 +8317,7 @@ public class SOCServer extends Server
 
             if (count > 0)
             {
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                         (SOCStatusMessage.SV_PW_WRONG, cliVers, c.getLocalized("account.common.must_auth")));
                              // "You must log in with a username and password before you can create accounts."
                 return;
@@ -8001,7 +8333,7 @@ public class SOCServer extends Server
 
         if (! SOCMessage.isSingleLineAndSafe(userName))
         {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
                      c.getLocalized("netmsg.status.common.newgame_name_rejected")));
                          // "This name is not permitted, please choose a different name."
@@ -8010,7 +8342,7 @@ public class SOCServer extends Server
 
         if (userName.length() > PLAYER_NAME_MAX_LENGTH)
         {
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_NAME_TOO_LONG, cliVers,
                      c.getLocalized("netmsg.status.common.name_too_long", PLAYER_NAME_MAX_LENGTH)));
                          // "Please choose a shorter name; maximum length: 20"
@@ -8036,7 +8368,7 @@ public class SOCServer extends Server
             {
                 // Requester not on user-admins list.
 
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                         (SOCStatusMessage.SV_ACCT_NOT_CREATED_DENIED, cliVers,
                          c.getLocalized("account.create.not_auth")));  // "Your account is not authorized to create accounts."
 
@@ -8064,7 +8396,7 @@ public class SOCServer extends Server
             final String dbUserName = SOCDBHelper.getUser(userName);
             if (dbUserName != null)
             {
-                c.put(new SOCStatusMessage
+                c.put(SOCStatusMessage.buildForVersion
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          c.getLocalized("account.create.already_exists", dbUserName)));
                              // "The nickname "{0}" is already in use."
@@ -8079,7 +8411,7 @@ public class SOCServer extends Server
         catch (SQLException sqle)
         {
             // Indicates a db problem: don't continue
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
                      c.getLocalized("account.create.error_db_conn")));
                          // "Problem connecting to database, please try again later."
@@ -8109,7 +8441,7 @@ public class SOCServer extends Server
             final int stat = (isDBCountedEmpty)
                 ? SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE
                 : SOCStatusMessage.SV_ACCT_CREATED_OK;
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (stat, cliVers,
                      c.getLocalized("account.create.created", userName)));  // "Account created for "{0}"."
 
@@ -8124,7 +8456,7 @@ public class SOCServer extends Server
                 ((pwTooLong)
                  ? "account.common.password_too_long"  // "That password is too long."
                  : "account.create.error");  // "Account not created due to error."
-            c.put(new SOCStatusMessage
+            c.put(SOCStatusMessage.buildForVersion
                     (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers, errText));
         }
     }
@@ -8335,7 +8667,7 @@ public class SOCServer extends Server
         {
             final SOCGame ga = gameList.getGameData(gaName);
             if (ga != null)
-                messageToGameKeyed(ga, true, "resetboard.doit.interror", gaName);
+                messageToGameKeyed(ga, true, true, "resetboard.doit.interror", gaName);
                     // ">>> Internal error, Game {0} board reset failed"
 
             return;  // <---- Early return: reset failed ----
@@ -8348,7 +8680,7 @@ public class SOCServer extends Server
             final String key = (plName != null)
                 ? "resetboard.doit.announce.requester"       // ">>> Game {0} board reset by {1}"
                 : "resetboard.doit.announce.playerwholeft";  // ">>> Game {0} board reset by a player who left"
-            messageToGameKeyed(reGame, true, key, gaName, plName);
+            messageToGameKeyed(reGame, true, true, key, gaName, plName);
         }
 
         // If game is still initial-placing or was over, we'll shuffle the robots
@@ -8375,14 +8707,14 @@ public class SOCServer extends Server
         {
             if (huConns[pn] != null)
             {
-                messageToPlayer(huConns[pn], resetMsg);
+                messageToPlayer(huConns[pn], gaName, pn, resetMsg);
             }
             else if (roConns[pn] != null)
             {
                 if (! resetWithShuffledBots)
-                    messageToPlayer(roConns[pn], resetMsg);  // same robot will rejoin
+                    messageToPlayer(roConns[pn], gaName, pn, resetMsg);  // same robot will rejoin
                 else
-                    messageToPlayer(roConns[pn], new SOCRobotDismiss(gaName));  // could be different bot
+                    messageToPlayer(roConns[pn], gaName, pn, new SOCRobotDismiss(gaName));  // could be different bot
             }
         }
 
@@ -8584,6 +8916,9 @@ public class SOCServer extends Server
         }
     }
 
+    // Game "event" recording:
+    // If this group of method stubs is changed, also update soctest.server.TestRecorder.
+
     /**
      * Are game events being recorded by {@link #recordGameEvent(String, SOCMessage)} and similar methods?
      * If not, server shouldn't waste extra effort for ensuring consistent game event log contents,
@@ -8606,6 +8941,7 @@ public class SOCServer extends Server
      *<P>
      * This stub can be overridden.
      * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     * For a sample implementation, see unit test helper {@code soctest.server.RecordingTesterServer}.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      *<P>
@@ -8730,7 +9066,7 @@ public class SOCServer extends Server
                 {
                     final String gameName = gameData.getName();
                     expired.add(gameName);
-                    messageToGameKeyed(gameData, true, "game.time.expire.deleted");
+                    messageToGameKeyed(gameData, true, true, "game.time.expire.deleted");
                         // ">>> The time limit on this game has expired, it will now be deleted."
                 }
                 else if ((gameExpir - warn_ms) <= currentTimeMillis)
@@ -8751,7 +9087,7 @@ public class SOCServer extends Server
                         }
                     }
 
-                    messageToGameKeyed(gameData, true, "game.time.expire.soon.addtime", Integer.valueOf(minutes));
+                    messageToGameKeyed(gameData, true, true, "game.time.expire.soon.addtime", Integer.valueOf(minutes));
                         // ">>> Less than {0} minutes remaining. Type *ADDTIME* to extend this game another 30 minutes."
 
                     if (! hasWarned)
@@ -8762,7 +9098,7 @@ public class SOCServer extends Server
                     // If game is idle since previous check, send keepalive ping to its clients
                     // so the network doesn't disconnect while all players are taking a break
 
-                    messageToGame(gameData.getName(), new SOCServerPing(GAME_TIME_EXPIRE_CHECK_MINUTES * 60));
+                    messageToGame(gameData.getName(), false, new SOCServerPing(GAME_TIME_EXPIRE_CHECK_MINUTES * 60));
                 }
             }
         }

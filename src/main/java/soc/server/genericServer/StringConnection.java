@@ -61,6 +61,8 @@ import soc.message.SOCMessage;
  *                       Connection is now a superclass, not an interface.
  *  2.1.0 - 2020-01-09 - Only server-side changes: See {@link SOCServerSocket}
  *  2.3.0 - 2020-04-27 - no change in this file
+ *  2.4.1 - 2020-07-17 - put: fix cosmetic "IllegalStateException: Not accepted by server yet" seen when
+ *                       sending message during disconnect/server shutdown
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -218,8 +220,11 @@ public class StringConnection
         if (dat == null)
             throw new IllegalArgumentException("null");
 
-        if (! accepted)
+        if (! (accepted || (data != null)))
         {
+            // accepted is false before server accepts connection,
+            // and after disconnect() (data != null at that point if auth'd)
+
             error = new IllegalStateException("Not accepted by server yet");
             throw (IllegalStateException) error;
         }

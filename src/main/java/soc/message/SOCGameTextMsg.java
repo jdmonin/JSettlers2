@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2008-2010,2012-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -84,7 +85,8 @@ public class SOCGameTextMsg extends SOCMessage
     public static final int VERSION_FOR_DICE_RESULT_INSTEAD = 2000;
 
     /**
-     * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}
+     * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}.
+     * Same separator as {@link SOCChannelTextMsg}.
      */
     private static String sep2 = "" + (char) 0;
 
@@ -112,7 +114,8 @@ public class SOCGameTextMsg extends SOCMessage
      * @param nn  nickname of sender, when message sent from server; announcements from the server (not from a player)
      *     use {@link #SERVERNAME} or {@link #SERVER_FOR_CHAT}.
      *     Server has always ignored this field from client, can send "-" but not blank.
-     * @param tm  message text. For expected format when {@code nn} is {@link #SERVER_FOR_CHAT},
+     * @param tm  message text, which may contain {@link SOCMessage#sep2} but not {@link SOCMessage#sep}.
+     *     For expected format when {@code nn} is {@link #SERVER_FOR_CHAT},
      *     see that constant's javadoc.
      */
     public SOCGameTextMsg(String ga, String nn, String tm)
@@ -164,21 +167,7 @@ public class SOCGameTextMsg extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, nickname, text);
-    }
-
-    /**
-     * GAMETEXTMSG sep game sep2 nickname sep2 text
-     *
-     * @param ga  the game name
-     * @param nn  the nickname of sender, when message sent from server;
-     *     when from client, server has always ignored this field, can send "-" but not blank
-     * @param tm  the message text
-     * @return    the command string
-     */
-    public static String toCmd(String ga, String nn, String tm)
-    {
-        return GAMETEXTMSG + sep + ga + sep2 + nn + sep2 + tm;
+        return GAMETEXTMSG + sep + game + sep2 + nickname + sep2 + text;
     }
 
     /**
@@ -207,6 +196,47 @@ public class SOCGameTextMsg extends SOCMessage
         }
 
         return new SOCGameTextMsg(ga, nn, tm);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a list formatted for {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @see #stripAttribNamesToTextMsg(String, String)
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        return stripAttribNamesToTextMsg("game=", messageStrParams);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a list formatted for {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * @param prefix  Expected prefix and first parameter name: {@code "game="}, {@code "channel="}, etc
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}.
+     *     Example: {@code "SOCGameTextMsg:game=ga|nickname=Server|text=testp3 built a road."}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNamesToTextMsg(final String prefix, final String messageStrParams)
+    {
+        if (! messageStrParams.startsWith(prefix))
+            return null;
+
+        int pipeIdx = messageStrParams.indexOf("|nickname=");
+        if (pipeIdx < 0)
+            return null;
+
+        int pipe2Idx = messageStrParams.indexOf("|text=", pipeIdx + 10);
+        if (pipe2Idx < 0)
+            return null;
+
+        // This type uses special separators, to handle standard separator chars in the message itself
+        return messageStrParams.substring(prefix.length(), pipeIdx)
+            + SOCGameTextMsg.sep2 + messageStrParams.substring(pipeIdx + 10, pipe2Idx)
+            + SOCGameTextMsg.sep2 + messageStrParams.substring(pipe2Idx + 6);
     }
 
     /**

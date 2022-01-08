@@ -244,6 +244,38 @@ public class TestResourceSet
     }
 
     /**
+     * Test {@link SOCResourceSet#getAmounts(boolean)}.
+     * @since 2.4.10
+     */
+    @Test
+    public void testGetAmounts()
+    {
+        SOCResourceSet rs = new SOCResourceSet();
+        assertArrayEquals(new int[]{0, 0, 0, 0, 0}, rs.getAmounts(false));
+        assertArrayEquals(new int[]{0, 0, 0, 0, 0, 0}, rs.getAmounts(true));
+
+        rs = onePerType();
+        assertArrayEquals(new int[]{1, 1, 1, 1, 1}, rs.getAmounts(false));
+        assertArrayEquals(new int[]{1, 1, 1, 1, 1, 0}, rs.getAmounts(true));
+        rs.add(2, SOCResourceConstants.UNKNOWN);
+        assertArrayEquals(new int[]{1, 1, 1, 1, 1}, rs.getAmounts(false));
+        assertArrayEquals(new int[]{1, 1, 1, 1, 1, 2}, rs.getAmounts(true));
+
+        rs = new SOCResourceSet(1, 0, 2, 0, 3, 1);
+        assertArrayEquals(new int[]{1, 0, 2, 0, 3}, rs.getAmounts(false));
+        assertArrayEquals(new int[]{1, 0, 2, 0, 3, 1}, rs.getAmounts(true));
+
+        assertArrayEquals
+            (new int[]{2, 1, 2, 3, 4, 0},
+             new SOCResourceSet(new int[]{2, 1, 2, 3, 4}).getAmounts(true));  // constructor: array without unknowns
+
+        int[] counts = new int[]{2, 1, 2, 3, 4, 7};
+        rs =  new SOCResourceSet(counts);  // constuctor: array with unknowns
+        assertArrayEquals(counts, rs.getAmounts(true));
+        assertArrayEquals(new int[]{2, 1, 2, 3, 4}, rs.getAmounts(false));
+    }
+
+    /**
      * Test {@link SOCResourceSet#hashCode()}
      * @since 2.4.10
      */

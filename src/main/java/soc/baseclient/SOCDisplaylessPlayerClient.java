@@ -482,6 +482,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * list of games with options on the server
+             */
+            case SOCMessage.GAMESWITHOPTIONS:
+                handleGAMESWITHOPTIONS((SOCGamesWithOptions) mes);
+                break;
+
+            /**
              * join game authorization
              */
             case SOCMessage.JOINGAMEAUTH:
@@ -507,6 +514,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.NEWGAME:
                 handleNEWGAME((SOCNewGame) mes);
+                break;
+
+            /**
+             * new game with options has been created
+             */
+            case SOCMessage.NEWGAMEWITHOPTIONS:
+                handleNEWGAMEWITHOPTIONS((SOCNewGameWithOptions) mes);
                 break;
 
             /**
@@ -937,7 +951,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      * @since 1.1.00
      */
-    private void handleVERSION(boolean isLocal, SOCVersion mes)
+    protected void handleVERSION(boolean isLocal, SOCVersion mes)
     {
         D.ebugPrintlnINFO("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
@@ -1027,6 +1041,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleGAMES(SOCGames mes) {}
 
     /**
+     * handle the "list of games with options" message
+     * @since 2.4.10
+     */
+    protected void handleGAMESWITHOPTIONS(final SOCGamesWithOptions mes) {}
+
+    /**
      * handle the "join game authorization" message
      * @param mes  the message
      * @param isPractice Is the server local for practice, or remote?
@@ -1085,6 +1105,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      */
     protected void handleNEWGAME(SOCNewGame mes) {}
+
+    /**
+     * handle the "new game with options" message
+     * @since 2.4.10
+     */
+    protected void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes) {}
 
     /**
      * handle the "delete game" message
@@ -2648,7 +2674,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void chSend(String ch, String mes)
     {
-        put(SOCChannelTextMsg.toCmd(ch, nickname, mes));
+        put(new SOCChannelTextMsg(ch, nickname, mes).toCmd());
     }
 
     /**
@@ -2664,6 +2690,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * disconnect from the net, and from any local practice server
+     * Called by {@link #destroy()}.
      */
     protected void disconnect()
     {
@@ -2691,11 +2718,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void buyDevCard(SOCGame ga)
     {
-        put(SOCBuyDevCardRequest.toCmd(ga.getName()));
+        put(new SOCBuyDevCardRequest(ga.getName()).toCmd());
     }
 
     /**
-     * request to build something
+     * Request to build something or ask for the 6-player Special Building Phase (SBP).
      *
      * @param ga     the game
      * @param piece  the type of piece, from {@link soc.game.SOCPlayingPiece} constants,
@@ -2705,7 +2732,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public void buildRequest(SOCGame ga, int piece)
         throws IllegalArgumentException
     {
-        put(SOCBuildRequest.toCmd(ga.getName(), piece));
+        put(new SOCBuildRequest(ga.getName(), piece).toCmd());
     }
 
     /**
@@ -2716,11 +2743,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
-        put(SOCCancelBuildRequest.toCmd(ga.getName(), piece));
+        put(new SOCCancelBuildRequest(ga.getName(), piece).toCmd());
     }
 
     /**
-     * put a piece on the board
+     * Send request to put a piece on the board.
      *
      * @param ga  the game where the action is taking place
      * @param pp  the piece being placed; {@link SOCPlayingPiece#getCoordinates() pp.getCoordinates()}
@@ -2739,6 +2766,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
          * send the command
          */
         put(SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pt, pp.getCoordinates()));
+    }
+
+    /**
+     * Ask the server to move this piece to a different coordinate.
+     * @param ga  the game where the action is taking place
+     * @param pn  The piece's player number
+     * @param ptype    The piece type, such as {@link SOCPlayingPiece#SHIP}; must be >= 0
+     * @param fromCoord  Move the piece from here; must be >= 0
+     * @param toCoord    Move the piece to here; must be >= 0
+     * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code fromCoord} &lt; 0, or {@code toCoord} &lt; 0
+     * @since 2.4.10
+     */
+    public void movePieceRequest
+        (final SOCGame ga, final int pn, final int ptype, final int fromCoord, final int toCoord)
+        throws IllegalArgumentException
+    {
+        put(new SOCMovePiece(ga.getName(), pn, ptype, fromCoord, toCoord).toCmd());
     }
 
     /**
@@ -2816,7 +2860,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me));
+        put(new SOCGameTextMsg(ga.getName(), nickname, me).toCmd());
     }
 
     /**
@@ -2978,8 +3022,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user picked 2 resources to discover (Year of Plenty),
-     * or picked these resources to gain from the gold hex.
+     * the user picked 2 resources to discover (Discovery/Year of Plenty),
+     * or picked these resources to gain from a gold hex.
      *<P>
      * Before v2.0.00, this method was {@code discoveryPick(..)}.
      *
@@ -2988,7 +3032,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void pickResources(SOCGame ga, SOCResourceSet rscs)
     {
-        put(SOCPickResources.toCmd(ga.getName(), rscs));
+        put(new SOCPickResources(ga.getName(), rscs).toCmd());
     }
 
     /**
@@ -3002,7 +3046,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void pickResourceType(SOCGame ga, int res)
     {
-        put(SOCPickResourceType.toCmd(ga.getName(), res));
+        put(new SOCPickResourceType(ga.getName(), res).toCmd());
     }
 
     /**
@@ -3013,7 +3057,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void changeFace(SOCGame ga, int id)
     {
-        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), id));
+        put(new SOCChangeFace(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), id).toCmd());
     }
 
     /**

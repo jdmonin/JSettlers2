@@ -74,6 +74,7 @@ import soc.util.Version;
  *        {@link ClientNetwork#localTCPServer}
  *  <LI>  A "practice game" server, not bound to any TCP port, for practicing
  *        locally against robots: {@link ClientNetwork#practiceServer}
+ *        launched by {@link #startPracticeGame()}
  *</UL>
  * A running client can be connected to at most one TCP server at a time, plus the practice server.
  * Its single shared list of games shows those on the server and any practice games.
@@ -684,7 +685,7 @@ public class SOCPlayerClient
             net.putNet(new SOCScenarioInfo(scKey, false).toCmd());
         } else {
             // same version: need localization strings, at most
-            net.putNet(SOCLocalizedStrings.toCmd(SOCLocalizedStrings.TYPE_SCENARIO, 0, scKey));
+            net.putNet(new SOCLocalizedStrings(SOCLocalizedStrings.TYPE_SCENARIO, 0, scKey).toCmd());
             tcpServGameOpts.scenKeys.add(scKey);  // don't ask again later
         }
     }

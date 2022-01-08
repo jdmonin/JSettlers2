@@ -68,8 +68,28 @@ public class TestBoardLayouts
      * How many rounds to test each single layout.
      * If more than 1, assumes not in "unit-testing" mode and performs extra layout checks
      * using {@link SOCBoardAtServer.NewBoardProgressListener}.
+     * Will try to perform this many rounds, but will stop early if needed to avoid test failure from
+     * the 30-second single-round timeout, completing at least half of the requested roundCount;
+     * if so, the number of completed and requested rounds is printed to {@link System#out}.
      */
     public static int roundCount = 1;
+
+    /**
+     * If {@link #roundCount} is this large, add an outer loop to get through the
+     * whole list of layout types before possible timeout.
+     * @see #ROUNDCOUNT_OUTER_LOOP_COUNT
+     * @since 2.4.10
+     */
+    private static final int ROUNDCOUNT_OUTER_LOOP_THRESHOLD = 500;
+
+    /**
+     * If {@link #roundCount} is this large enough to use an outer loop
+     * ({@link #ROUNDCOUNT_OUTER_LOOP_THRESHOLD}), run this many outer loops
+     * and within each one, divide {@code roundCount} by this many
+     * for the same overall total.
+     * @since 2.4.10
+     */
+    private static final int ROUNDCOUNT_OUTER_LOOP_COUNT = 10;
 
     /** All known scenarios, from {@link SOCScenario#getAllKnownScenarios()} */
     private static Map<String, SOCScenario> allScens;
@@ -133,7 +153,10 @@ public class TestBoardLayouts
         final boolean checkSC_CLVI = ((sc != null) && sc.key.equals(SOCScenario.K_SC_CLVI));
         boolean noFails = true;
 
-        for (int i = roundCount; i >= 1; --i)
+        final int roundsHere = (roundCount < ROUNDCOUNT_OUTER_LOOP_THRESHOLD)
+            ? roundCount
+            : roundCount / ROUNDCOUNT_OUTER_LOOP_COUNT;
+        for (int i = roundsHere; i >= 1; --i)
         {
             for (int j = 0; j < 2; ++j)
             {
@@ -159,7 +182,7 @@ public class TestBoardLayouts
                     if (checkSC_CLVI)
                         testLayout_SC_CLVI(ga);
 
-                    if (i == roundCount)
+                    if (i == roundsHere)
                         // structural test that doesn't need repeating every round
                         testLayout_movePirateCoastal(ga, sc);
                 }
@@ -397,6 +420,7 @@ public class TestBoardLayouts
      * Test board layouts for classic games and all {@link SOCScenario}s for 2, 3, 4 and 6 players.
      * Tests each one for {@link #roundCount} rounds, with and without game option {@code "BC=t3"},
      * by calling {@link #testSingleLayout(SOCScenario, int)}.
+     * If {@link #roundCount} &gt; 1, does multiple rounds of all that.
      * @see SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)
      * @see SOCBoardAtServer#makeNewBoard(Map)
      */
@@ -412,16 +436,42 @@ public class TestBoardLayouts
             // TODO init a total count/% display
         }
 
-        for (int pl : PL)
-            if (! testSingleLayout(null, pl))
-                badLayouts.add(layoutNameKey(null, pl));
+        // if roundCount is large, add an outer loop to get through the
+        // whole list of layout types before possible timeout
+        final int outerLoopCount = (roundCount >= ROUNDCOUNT_OUTER_LOOP_THRESHOLD)
+            ? ROUNDCOUNT_OUTER_LOOP_COUNT
+            : 1;
+        final long startAt = System.currentTimeMillis();
+        final long stopAt = startAt + 29000;  // avoid timeout when roundCount is large
+        long oneOuterDurationMillis = 0;
 
-        for (final SOCScenario sc : allScens.values())
+        for (int i = 0; i < outerLoopCount; ++i)
         {
-            // TODO chk total count/% display
+            if ((outerLoopCount > 1) && (oneOuterDurationMillis > 0)
+                && (stopAt <= System.currentTimeMillis() + (1.7 * oneOuterDurationMillis))
+                && (i >= (outerLoopCount / 2)))  // should get through at least half of requested rounds before timeout
+            {
+                System.out.println
+                    ("TestBoardLayouts.testLayouts: Stopping after "
+                     + (roundCount * i / ROUNDCOUNT_OUTER_LOOP_COUNT)
+                     + " of " + roundCount + " rounds to stay under single-round timeout");
+                break;
+            }
+
             for (int pl : PL)
-                if (! testSingleLayout(sc, pl))
-                    badLayouts.add(layoutNameKey(sc, pl));
+                if (! testSingleLayout(null, pl))
+                    badLayouts.add(layoutNameKey(null, pl));
+
+            for (final SOCScenario sc : allScens.values())
+            {
+                // TODO chk total count/% display
+                for (int pl : PL)
+                    if (! testSingleLayout(sc, pl))
+                        badLayouts.add(layoutNameKey(sc, pl));
+            }
+
+            if ((outerLoopCount > 1) && (oneOuterDurationMillis == 0))
+                oneOuterDurationMillis = System.currentTimeMillis() - startAt;
         }
 
         // TODO if roundCount>1, print all done 100% with stats of #fails per layout etc

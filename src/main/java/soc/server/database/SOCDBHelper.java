@@ -767,7 +767,7 @@ public class SOCDBHelper
      * The default driver is "com.mysql.jdbc.Driver".
      * These can be changed by supplying <code>props</code>.
      *
-     * @param user  the user name for accessing the database
+     * @param user  the user name for accessing the database, or {@code null} to not attempt connection
      * @param pswd  the password for the user, or ""
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_DB_DRIVER},
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
@@ -810,6 +810,9 @@ public class SOCDBHelper
         dbType = DBTYPE_MYSQL;
         dbURL = "jdbc:mysql://localhost/socdata";
         SOCDBHelper.props = props;
+
+        if (user == null)
+            return;
 
         if (props != null)
         {

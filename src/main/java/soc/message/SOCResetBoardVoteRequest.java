@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2014,2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2014,2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -55,18 +55,6 @@ public class SOCResetBoardVoteRequest extends SOCMessageTemplate1i
     public int getRequestingPlayer()
     {
         return p1;
-    }
-
-    /**
-     * RESETBOARDVOTEREQUEST sep game sep2 playernumber
-     *
-     * @param ga  the name of the game
-     * @param reqpn  player number who requested the reset
-     * @return the command string
-     */
-    public static String toCmd(String ga, int reqpn)
-    {
-        return RESETBOARDVOTEREQUEST + sep + ga + sep2 + reqpn;
     }
 
     /**

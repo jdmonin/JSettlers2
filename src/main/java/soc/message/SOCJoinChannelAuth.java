@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -84,19 +84,7 @@ public class SOCJoinChannelAuth extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(nickname, channel);
-    }
-
-    /**
-     * JOINCHANNELAUTH sep nickname sep2 channel
-     *
-     * @param nn  the nickname
-     * @param ch  the channel name
-     * @return    the command string
-     */
-    public static String toCmd(String nn, String ch)
-    {
-        return JOINCHANNELAUTH + sep + nn + sep2 + ch;
+        return JOINCHANNELAUTH + sep + nickname + sep2 + channel;
     }
 
     /**
@@ -145,4 +133,5 @@ public class SOCJoinChannelAuth extends SOCMessage
 
         return s;
     }
+
 }

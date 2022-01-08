@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -85,18 +85,7 @@ public class SOCServerPing extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(sleepTime);
-    }
-
-    /**
-     * SERVERPING sep sleepTime
-     *
-     * @param  st  the sleep time
-     * @return the command String
-     */
-    public static String toCmd(int st)
-    {
-        return SERVERPING + sep + st;
+        return SERVERPING + sep + sleepTime;
     }
 
     /**
@@ -117,4 +106,5 @@ public class SOCServerPing extends SOCMessage
     {
         return "SOCServerPing:sleepTime=" + sleepTime;
     }
+
 }

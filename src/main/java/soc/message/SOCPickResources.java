@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -116,50 +117,22 @@ public class SOCPickResources extends SOCMessage
     }
 
     /**
+     * Build a command string for this message:
      * PICKRESOURCES sep game sep2 clay sep2 ore sep2 sheep sep2 wheat sep2 wood
      *
      * @return the command string
      */
     public String toCmd()
     {
-        return toCmd(game, resources);
-    }
-
-    /**
-     * Build a command string for this message.
-     *
-     * @param ga  the name of the game
-     * @param rs  the resources being picked
-     * @return the command string
-     */
-    public static String toCmd(String ga, SOCResourceSet rs)
-    {
-        String cmd = PICKRESOURCES + sep + ga;
+        StringBuilder cmd = new StringBuilder(PICKRESOURCES + sep + game);
 
         for (int i = Data.ResourceType.CLAY_VALUE; i <= Data.ResourceType.WOOD_VALUE;
              i++)
         {
-            cmd += (sep2 + rs.getAmount(i));
+            cmd.append(sep2_char).append(resources.getAmount(i));
         }
 
-        return cmd;
-    }
-
-    /**
-     * PICKRESOURCES sep game sep2 clay sep2 ore sep2 sheep sep2 wheat sep2 wood
-     *
-     * @param ga  the name of the game
-     * @param cl  the amount of clay being picked
-     * @param or  the amount of ore being picked
-     * @param sh  the amount of sheep being picked
-     * @param wh  the amount of wheat being picked
-     * @param wo  the amount of wood being picked
-     * @return the command string
-     * @since 2.0.00
-     */
-    public static String toCmd(String ga, int cl, int or, int sh, int wh, int wo)
-    {
-        return PICKRESOURCES + sep + ga + sep2 + cl + sep2 + or + sep2 + sh + sep2 + wh + sep2 + wo;
+        return cmd.toString();
     }
 
     /**
@@ -194,6 +167,20 @@ public class SOCPickResources extends SOCMessage
         }
 
         return new SOCPickResources(ga, cl, or, sh, wh, wo);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String message)
+    {
+        message = message.replace("resources=",  "");
+
+        return SOCMessage.stripAttribNames(message);
     }
 
     /**

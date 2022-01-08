@@ -3,6 +3,7 @@
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +21,16 @@
 package soc.message;
 
 import java.io.Serializable;
-
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -67,8 +76,10 @@ import soc.proto.Message;
  *
  *<H3>To create and add a new message type:</H3>
  *<UL>
- * <LI> Decide on the message type name.  Add to the end of the constant list in this
- *      class.  Add a comment to note the JSettlers version in which it was introduced, and the date.
+ * <LI> Decide on the message type name.
+ *      Make sure the new name has never been used (check {@link #MESSAGE_RENAME_MAP}).
+ *      Add to the end of the constant list in this class.
+ *      Add a comment to note the JSettlers version in which it was introduced, and the date.
  * <LI> If the new message is for something that any kind of game can use,
  *      give it the next available type ID number in the list (1xxx).
  *      If the message is specific to the JSettlers game and its interface,
@@ -435,8 +446,15 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * For multi-messages, multiple SEP are allowed; see {@link SOCMessageMulti}.
      * SEP is "|".
      * @see #sep_char
+     * @see #sepRE
      */
     public static final String sep = "|";
+
+    /**
+     * Main {@link #sep SEP} separator, in regexp form for splits and replacements.
+     * @since 2.4.10
+     */
+    public static final String sepRE = "\\|";
 
     /**
      * Secondary separator token SEP2, as string. SEP2 is ",".
@@ -521,7 +539,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /**
      * Converts the contents of this message into
      * a String that can be transferred by a client
-     * or server.
+     * or server. For a human-readable alternative, see {@link #toString()}.
+     *<P>
      * Your message class's required method
      * {@code static SOCMessageSubclass parseDataStr(String)}
      * must be able to turn this String
@@ -613,7 +632,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
     }
 
     /**
-     * Simple human-readable representation, used for debug purposes.
+     * Simple human-readable delimited representation, used for debug purposes:
+     * {@code SOCPutPiece:game=test5|playerNumber=3|pieceType=0|coord=40a}
+     *<BR>
+     * Could also be used by a {@link soc.server.SOCServer#recordGameEvent(String, SOCMessage)} implementation.
+     *<P>
+     * Within this representation, message parameters should be in same order used by {@link #toCmd()} and
+     * {@code parseDataStr(..)}. Should be parseable by {@link #parseMsgStr(String)} which calls
+     * {@link #stripAttribNames(String)}, which your class can override if needed.
      * @see #toCmd()
      * @since 1.1.00
      */
@@ -1421,6 +1447,252 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             return null;
         }
+    }
+
+    /**
+     * Map of renamed classes for backwards compatibility in {@link #parseMsgStr(String)}:
+     * Key is old name of message type, value is new name (SOCMessage subclass).
+     * @since 2.4.10
+     */
+    public static Map<String, String> MESSAGE_RENAME_MAP = new HashMap<>();
+    static
+    {
+        for (final String[] fromTo : new String[][]
+            {
+                {"SOCBuyCardRequest", "SOCBuyDevCardRequest"},
+                {"SOCDevCard", "SOCDevCardAction"},
+                {"SOCDiscoveryPick", "SOCPickResources"},
+                {"SOCJoin", "SOCJoinChannel"},
+                {"SOCJoinAuth", "SOCJoinChannelAuth"},
+                {"SOCJoinGameRequest", "SOCBotJoinGameRequest"},
+                {"SOCLeave", "SOCLeaveChannel"},
+                {"SOCMembers", "SOCChannelMembers"},
+                {"SOCMonopolyPick", "SOCPickResourceType"},
+                {"SOCTextMsg", "SOCChannelTextMsg"},
+            })
+            MESSAGE_RENAME_MAP.put(fromTo[0], fromTo[1]);
+    }
+
+    /**
+     * Parse a delimited message in {@link SOCMessage#toString()} format:
+     * {@code SOCPutPiece:game=test5|playerNumber=3|pieceType=0|coord=40a}
+     *<BR>
+     * Strips parameter/attribute names from values to get the format expected by
+     * message types' {@code parseDataStr(..)}, calls that.
+     *<P>
+     * Message types which have been renamed and noted in {@link #MESSAGE_RENAME_MAP},
+     * and the old name used an incompatibly different toString format,
+     * should declare a static {@code stripAttribNames(String messageTypeName, String messageStrParams)} method
+     * to know whether to parse using the old or new format.
+     *<P>
+     * Uses reflection to call the message type's static stripAttribNames and parseDataStr methods
+     * if available, otherwise {@link SOCMessage#stripAttribNames(String)}.
+     * @param messageStr  Message as delimited string from {@link #toString()}; not null
+     * @return parsed message if successful, throws exception otherwise
+     * @throws InputMismatchException if message can't be parsed and
+     *     {@link #parseMsgStr(String)} returned null
+     * @throws ParseException if message class name not parsed or class not found,
+     *     reflection error (method not static, etc), or if message's
+     *     {@link #stripAttribNames(String)} or {@link #parseMsgStr(String)} threw an exception
+     * @since 2.4.10
+     */
+    public static SOCMessage parseMsgStr(final String messageStr)
+        throws ParseException, InputMismatchException
+    {
+        // pieces[0] = classname
+        // pieces[1] = params
+
+        if (messageStr == null)
+            throw new ParseException("null messageStr", 0);
+        final int colonIdx = messageStr.indexOf(':');
+        if (colonIdx < 1)
+            throw new ParseException("Missing \"SomeMsgClassName:\" prefix", 0);
+        String className = null;
+        String currentCall = null;
+
+        try
+        {
+            className = messageStr.substring(0, colonIdx);
+            String msgBody = messageStr.substring(colonIdx+1);
+
+            final String origClassName = className,
+                renamedClassName = MESSAGE_RENAME_MAP.get(className);
+            if (renamedClassName != null)
+                className = renamedClassName;
+
+            @SuppressWarnings("unchecked")
+            Class<SOCMessage> c = (Class<SOCMessage>) Class.forName("soc.message." + className);
+
+            Method m;
+
+            // if SOCMessageMulti, look for stripAttribsToList first
+            if (SOCMessageMulti.class.isAssignableFrom(c))
+            {
+                try
+                {
+                    m = c.getMethod("stripAttribsToList", String.class);
+                    if (! Modifier.isStatic(m.getModifiers()))
+                        throw new ParseException
+                            (className + ".stripAttribsToList must be static", 0);
+                    currentCall = m.getDeclaringClass().getName() + "." + "stripAttribsToList";
+                    @SuppressWarnings("unchecked")
+                    List<String> treatedAttribs = (List<String>) m.invoke(null, msgBody);
+                    if (treatedAttribs == null)
+                        throw new InputMismatchException
+                            ("Unparsable message: stripAttribsToList: " + messageStr);
+
+                    try
+                    {
+                        m = c.getMethod("parseDataStr", List.class);
+                    } catch (NoSuchMethodException e) {
+                        throw new ParseException
+                            (className + ".parseDataStr(List) not found", 0);
+                    }
+                    if (! Modifier.isStatic(m.getModifiers()))
+                        throw new ParseException
+                            (className + ".parseDataStr(List) must be static", 0);
+                    currentCall = m.getDeclaringClass().getName() + "." + "parseDataStr";
+                    Object o = m.invoke(null, treatedAttribs);
+                    if (o == null)
+                        throw new InputMismatchException
+                            ("Unparsable message: parseDataStr(List): " + messageStr);
+
+                    return (SOCMessage) o;
+                } catch (NoSuchMethodException e) {}
+            }
+
+            String treatedAttribs = null;  // output from stripAttribNames
+
+            try
+            {
+                // in case this is a renamed message type's old or new name,
+                // look first for stripAttribNames(String,String) to pass message type name
+
+                m = c.getMethod("stripAttribNames", String.class, String.class);
+                currentCall = m.getDeclaringClass().getName() + "." + "stripAttribNames(String,String)";
+                if (! Modifier.isStatic(m.getModifiers()))
+                    throw new ParseException
+                        (currentCall + " must be static", 0);
+                if (! m.getReturnType().equals(String.class))
+                    throw new ParseException
+                        (currentCall + " must return String", 0);
+
+                treatedAttribs = (String) m.invoke
+                    (null, (origClassName != null) ? origClassName : className, msgBody);
+                if (treatedAttribs == null)
+                    throw new InputMismatchException
+                        ("Unparsable message: stripAttribNames(String,String): " + messageStr);
+            } catch (NoSuchMethodException e) {}
+
+            if (treatedAttribs == null)
+            {
+                // call message class's or SOCMessage's stripAttribNames(String)
+
+                m = c.getMethod("stripAttribNames", String.class);
+                currentCall = m.getDeclaringClass().getName() + "." + "stripAttribNames(String)";
+                if (! Modifier.isStatic(m.getModifiers()))
+                    throw new ParseException
+                        (currentCall + " must be static", 0);
+                // no need to check return type, because it's declared in SOCMessage as String
+                // and any change in a subclass is a syntax error
+
+                treatedAttribs = (String) m.invoke(null,  msgBody);
+            }
+            if (treatedAttribs == null)
+                throw new InputMismatchException
+                    ("Unparsable message: stripAttribNames: " + messageStr);
+
+            m = c.getMethod("parseDataStr", String.class);
+            currentCall = m.getDeclaringClass().getName() + "." + "parseDataStr";
+            if (! Modifier.isStatic(m.getModifiers()))
+                throw new ParseException
+                    (currentCall + " must be static", 0);
+
+            Object o = m.invoke(null, treatedAttribs);
+            if (o == null)
+            {
+                // This occurs when a message can't be parsed.  Likely means stripAttribNames
+                //  needs to be overridden.  Doesn't seem to happen for any replay-relevant messages.
+                // Generally a good idea to put a breakpoint here and debug any time you handle a new
+                //  log file, just in case.
+
+                throw new InputMismatchException
+                    ("Unparsable message: parseDataStr: " + messageStr);
+            }
+
+            return (SOCMessage) o;
+        } catch (ClassNotFoundException ex) {
+            throw new ParseException
+                ("Class not found" + ((className != null) ? ": " + className : "") + ": " + messageStr, 0);
+        } catch (InvocationTargetException ex) {
+            throw new ParseException
+                ("Exception from " + currentCall + ": " + ex.getCause(), 0);
+        } catch (NoSuchMethodException | SecurityException
+            | IllegalAccessException | ExceptionInInitializerError ex) {
+            throw new ParseException
+                ("Reflection error calling " + currentCall + ": " + ex, 0);
+        } catch (InputMismatchException ex) {
+            throw ex;  // probably from recursive or "super" call of this method
+        } catch (Exception ex) {
+            throw new ParseException
+                ("Exception from " + currentCall + ": " + ex, 0);
+        }
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}
+     * to pass to the message class's {@code parseDataStr(String)}.
+     *<P>
+     * Some messages will need to override this (new game with options,
+     * any of the types which use hex encoding of coordinates).
+     * Message types which have been renamed, and the old name used an incompatibly different toString format,
+     * should instead declare a static {@code stripAttribNames(String messageTypeName, String messageStrParams)} method:
+     * See {@link #parseMsgStr(String)} javadoc.
+     *<P>
+     * For {@link SOCMessageMulti} subclasses, use or override {@link #stripAttribsToList(String)} instead.
+     *
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed.
+     *     If {@code messageStrParams} is "", returns "".
+     * @see #stripAttribsToList(String)
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        for (String s : messageStrParams.split(sepRE))
+        {
+            int eqIdx = s.indexOf('=');
+            // if no '=', appends entire string
+            sb.append(s.substring(eqIdx + 1)).append(sep2_char);
+        }
+
+        return sb.substring(0, sb.length() - 1);  // omit final ','
+    }
+
+    /**
+     * For a {@link SOCMessageMulti} message, strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a list for {@link #parseMsgStr(String)} to pass to the
+     * message class's {@code parseDataStr(List)}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed.
+     *     If {@code messageStrParams} is "", returns a list with "" as its sole element.
+     * @see #stripAttribNames(String)
+     * @since 2.4.10
+     */
+    public static List<String> stripAttribsToList(String messageStrParams)
+    {
+        String[] params = messageStrParams.split(sepRE);
+        for (int i = 0; i < params.length; ++i)
+        {
+            int eqIdx = params[i].indexOf('=');
+            if (eqIdx > 0)
+                params[i] = params[i].substring(eqIdx + 1);
+        }
+
+        return Arrays.asList(params);
     }
 
 }

@@ -262,6 +262,43 @@ public class SOCJoinGameAuth extends SOCMessage
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Removes [] around {@code vs} int array and adds delimiter expected by {@link #parseDataStr(String)}:
+     * {@code "gameName,20,21,S,-2,1,3,0"}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        final boolean hasVS = (messageStrParams.indexOf("|vs=[") > 0);
+        String s = SOCMessage.stripAttribNames(messageStrParams);
+        if ((s == null) || ! hasVS)
+            return s;
+
+        // "ga,20,21,[-2, 1, 3, 0]" -> "ga,20,21,S,-2,1,3,0"
+        int i = s.indexOf(",[");
+        if (i <= 0)
+            return s;
+        final StringBuilder sb = new StringBuilder(s.substring(0, i + 1));
+        i += 2;  // move past '['
+        final int L = s.length() - 1;
+        if (s.charAt(L) != ']')
+            return s;  // probably malformed
+
+        sb.append("S,");  // added at this position in toCmd()
+        for (; i < L; ++i)
+        {
+            char ch = s.charAt(i);
+            if (ch != ' ')
+                sb.append(ch);
+        }
+
+        return sb.toString();
+    }
+
+    /**
      * @return a human readable form of the message
      */
     public String toString()

@@ -45,6 +45,7 @@ import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCPlayerElement.PEType;
 import soc.server.SOCGameListAtServer;
+import soc.server.SOCServer;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.GameLoaderJSON;
 import soc.server.savegame.SavedGameModel;
@@ -64,27 +65,35 @@ import static org.junit.Assert.*;
  */
 public class TestLoadgame
 {
-    /** dummy server setup, to avoid IllegalStateException from {@link GameLoaderJSON} */
+    private static SOCServer srv;
+
+    /** dummy server setup, to avoid IllegalStateException etc from {@link GameLoaderJSON} */
     @BeforeClass
     public static void setup()
+        throws Exception
     {
-        SavedGameModel.glas = new SOCGameListAtServer(null);
+        srv = new SOCServer("dummy", 0, null, null);
     }
 
     /**
      * Attempt to load a savegame test artifact by calling
-     * {@link GameLoaderJSON#loadGame(File, soc.server.genericServer.Server)}.
+     * {@link GameLoaderJSON#loadGame(File, SOCServer)}.
      * Doesn't postprocess or call {@link SavedGameModel#resumePlay(boolean)}.
      * If not found, will fail an {@code assertNotNull}. Doesn't try to catch
      * {@link SavedGameModel.UnsupportedSGMOperationException} or SGM's other declared runtime exceptions.
      * @param testResFilename  Base name of test artifact, like {@code "classic-botturn.game.json"},
      *     to be loaded from {@code /src/test/resources/resources/savegame/}
+     * @param server  SOCServer that will host this game later; its {@link SOCServer#getGameList()} is needed here
+     * @throws IllegalArgumentException if {@code server} is null
      * @throws IOException if file can't be loaded
      * @throws SavedGameModel.UnsupportedSGMOperationException if unsupported feature; see {@code GameLoaderJson.loadGame}
      */
-    static SavedGameModel load(final String testRsrcFilename)
-        throws IOException, SavedGameModel.UnsupportedSGMOperationException
+    public static SavedGameModel load(final String testRsrcFilename, final SOCServer server)
+        throws IllegalArgumentException, IOException, SavedGameModel.UnsupportedSGMOperationException
     {
+        if (server == null)
+            throw new IllegalArgumentException("server");
+
         final String rsrcPath = "/resources/savegame/" + testRsrcFilename;
         final URL u = TestLoadgame.class.getResource(rsrcPath);
         assertNotNull("Couldn't find " + rsrcPath, u);
@@ -96,7 +105,7 @@ public class TestLoadgame
             throw new RuntimeException("unlikely internal error", e);
         }
 
-        return GameLoaderJSON.loadGame(f, null);
+        return GameLoaderJSON.loadGame(f, server);
     }
 
     /**
@@ -252,8 +261,9 @@ public class TestLoadgame
         final SOCGame ga = sgm.getGame();
         final String gaName = ga.getName();
 
-        SavedGameModel.glas.addGame(gaName, null, false);
-            // this isn't the server-side call, but that one's much more work to set up for
+        SOCGameListAtServer glas = sgm.glas;
+        glas.addGame(gaName, null, false);
+            // this isn't the proper server-side addGame call, but that one's much more work to set up for
 
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
@@ -264,11 +274,11 @@ public class TestLoadgame
                 continue;
 
             // GameList membership required by findSeatsNeedingBots
-            assertFalse(SavedGameModel.glas.isMember(pName, gaName));
+            assertFalse(glas.isMember(pName, gaName));
             StringConnection sc = new StringConnection();
             sc.setData(pName);
-            SavedGameModel.glas.addMember(sc, gaName);
-            assertTrue(SavedGameModel.glas.isMember(pName, gaName));
+            glas.addMember(sc, gaName);
+            assertTrue(glas.isMember(pName, gaName));
         }
     }
 
@@ -277,7 +287,7 @@ public class TestLoadgame
     public void testBasicLoading()
         throws IOException
     {
-        checkReloaded_ClassicBotturn(load("classic-botturn.game.json"));
+        checkReloaded_ClassicBotturn(load("classic-botturn.game.json", srv));
     }
 
     /**
@@ -365,7 +375,7 @@ public class TestLoadgame
     public void testNeedPlayers()
         throws IOException
     {
-        final SavedGameModel sgm = load("classic-botturn.game.json");
+        final SavedGameModel sgm = load("classic-botturn.game.json", srv);
         sgm.resumePlay(true);
     }
 
@@ -376,7 +386,7 @@ public class TestLoadgame
         throws IOException
     {
         final String GAME_NAME = "classic";
-        final SavedGameModel sgm = load("classic-botturn.game.json");
+        final SavedGameModel sgm = load("classic-botturn.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", GAME_NAME, sgm.gameName);
@@ -393,7 +403,7 @@ public class TestLoadgame
     public void testLoadResumeGameOver()
         throws IOException
     {
-        final SavedGameModel sgm = load("classic-over.game.json");
+        final SavedGameModel sgm = load("classic-over.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "classic", sgm.gameName);
@@ -420,7 +430,7 @@ public class TestLoadgame
     public void testLoadModelVersion2300()
         throws IOException
     {
-        final SavedGameModel sgm = load("modelversion-2300.game.json");
+        final SavedGameModel sgm = load("modelversion-2300.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "testmodel-2300-3h", sgm.gameName);
@@ -485,13 +495,17 @@ public class TestLoadgame
         assertEquals(SOCDevCardConstants.UNIV, cards.get(0).itype);
     }
 
-    /** Test loading and resuming a 6-player game, during Special Building Phase. */
+    /**
+     * Test loading and resuming a 6-player game, during Special Building Phase.
+     * Artifact {@code "test6p-sbp.game.json"} is used here and in
+     * extraTest {@code soctest.server.TestActionsMessages.test6pAskSpecialBuild()}.
+     */
     @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testLoad6PlayerSBP()
         throws IOException
     {
-        final SavedGameModel sgm = load("test6p-sbp.game.json");
+        final SavedGameModel sgm = load("test6p-sbp.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "test6p-sbp", sgm.gameName);
@@ -529,7 +543,7 @@ public class TestLoadgame
     public void testLoadSeaBoard()
         throws IOException
     {
-        final SavedGameModel sgm = load("testsea-closed.game.json");
+        final SavedGameModel sgm = load("testsea-closed.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "testgame-sea-closedships", sgm.gameName);
@@ -606,7 +620,7 @@ public class TestLoadgame
     public void testLoadPlayerElementStats()
         throws IOException
     {
-        final SavedGameModel sgm = load("devcard-stats.game.json");
+        final SavedGameModel sgm = load("devcard-stats.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "devcard-stats", sgm.gameName);
@@ -654,7 +668,7 @@ public class TestLoadgame
     public void testLoadBadFieldContents()
         throws IOException
     {
-        final SavedGameModel sgm = load("bad-field-contents.game.json");
+        final SavedGameModel sgm = load("bad-field-contents.game.json", srv);
         checkReloaded_BadFieldContents(sgm, true);
     }
 
@@ -740,7 +754,7 @@ public class TestLoadgame
     public void testLoadTradeOffers()
         throws IOException
     {
-        final SavedGameModel sgm = load("tradeoffers.game.json");
+        final SavedGameModel sgm = load("tradeoffers.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "tradeoffers", sgm.gameName);
@@ -773,7 +787,7 @@ public class TestLoadgame
     public void testLoadScenSimple4ISL()
         throws IOException
     {
-        final SavedGameModel sgm = load("testscen-simple-4isl.game.json");
+        final SavedGameModel sgm = load("testscen-simple-4isl.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "testscen-simple-4isl", sgm.gameName);
@@ -853,7 +867,7 @@ public class TestLoadgame
     {
         try
         {
-            final SavedGameModel sgm = load("bad-scen-unsupported.game.json");
+            final SavedGameModel sgm = load("bad-scen-unsupported.game.json", srv);
             // should throw exception before here
             assertEquals("game name", "hopefully-unreached-code", sgm.gameName);
         } catch (SavedGameModel.UnsupportedSGMOperationException e) {

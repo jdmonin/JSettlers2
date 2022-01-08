@@ -1,7 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -122,7 +123,8 @@ public class SOCBoardLayout extends SOCMessage
     private int robberHex;
 
     /**
-     * Create a SOCBoardLayout message
+     * Create a SOCBoardLayout message. Hex type numbers and dice numbers
+     * will be mapped from their game-object values to the old compatibility values sent over the network.
      *
      * @param ga   the name of the game
      * @param hl   the hex layout; not mapped yet from SOCBoard's value range,
@@ -131,6 +133,7 @@ public class SOCBoardLayout extends SOCMessage
      *               will map it from the {@link SOCBoard#getNumberLayout()} value
      *               range to the BOARDLAYOUT message's value range.
      * @param rh   the robber hex
+     * @see #SOCBoardLayout(String, int[], int[], int, boolean)
      */
     public SOCBoardLayout(String ga, int[] hl, int[] nl, int rh)
     {
@@ -138,16 +141,19 @@ public class SOCBoardLayout extends SOCMessage
     }
 
     /**
-     * Create a SOCBoardLayout message
+     * Create a SOCBoardLayout message, which may have already mapped hex type numbers and dice numbers
+     * from their game-object values to the old compatibility values sent over the network.
      *
      * @param ga   the name of the game
      * @param hl   the hex layout
      * @param nl   the number layout
      * @param rh   the robber hex
      * @param alreadyMapped  have the hex layout and number layout already been mapped?
+     *     Callers should use {@code false}, except from {@link #parseDataStr(String)} or certain unit tests.
+     * @see #SOCBoardLayout(String, int[], int[], int)
      * @since 1.1.08
      */
-    private SOCBoardLayout
+    public SOCBoardLayout
         (String ga, final int[] hl, final int[] nl, final int rh, final boolean alreadyMapped)
     {
         messageType = BOARDLAYOUT;
@@ -194,7 +200,7 @@ public class SOCBoardLayout extends SOCMessage
     }
 
     /**
-     * Get the hex layout, already mapped from the BOARDLAYOUT message value range
+     * Get the hex layout, as mapped from the BOARDLAYOUT message value range
      * to the {@link SOCBoard#setHexLayout(int[])} value range.
      * @return the hex layout
      */
@@ -219,7 +225,7 @@ public class SOCBoardLayout extends SOCMessage
     }
 
     /**
-     * Get the dice number layout, already mapped from the BOARDLAYOUT message value range
+     * Get the dice number layout, as mapped from the BOARDLAYOUT message value range
      * to the {@link soc.game.SOCBoard#setNumberLayout(int[])} value range.
      * @return the number layout
      */
@@ -258,33 +264,17 @@ public class SOCBoardLayout extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, hexLayout, numberLayout, robberHex);
-    }
-
-    /**
-     * Formatted string to send this BOARDLAYOUT over the network.
-     * BOARDLAYOUT sep game sep2 hexLayout[0] sep2 ... sep2 hexLayout[36]
-     * sep2 numberLayout[0] sep2 ... sep2 numberLayout[36] sep2 robberHex
-     *
-     * @return the command string
-     */
-    public static String toCmd(String ga, int[] hl, int[] nl, int rh)
-    {
-        String cmd = BOARDLAYOUT + sep + ga;
+        StringBuilder cmd = new StringBuilder(BOARDLAYOUT + sep + game);
 
         for (int i = 0; i < 37; i++)
-        {
-            cmd += (sep2 + hl[i]);
-        }
+            cmd.append(sep2_char).append(hexLayout[i]);
 
         for (int i = 0; i < 37; i++)
-        {
-            cmd += (sep2 + nl[i]);
-        }
+            cmd.append(sep2_char).append(numberLayout[i]);
 
-        cmd += (sep2 + rh);
+        cmd.append(sep2_char).append(robberHex);
 
-        return cmd;
+        return cmd.toString();
     }
 
     /**
@@ -326,9 +316,45 @@ public class SOCBoardLayout extends SOCMessage
     }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Converts robber hex coordinate to decimal from hexadecimal format.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(final String messageStrParams)
+    {
+        // Totally different format - it's just one long CSV
+
+        String sp = SOCMessage.stripAttribNames(messageStrParams);
+        if (sp == null)
+            return null;
+        String[] pieces = sp.split(SOCMessage.sep2);
+        StringBuffer ret = new StringBuffer();
+        ret.append(pieces[0]);
+        ret.append(sep2);
+        for (int i = 0; i < 2; i++)
+        {
+            // strip leading "{ " and trailing "}". The space before the trailer will become a comma, exactly as we want
+            String s = pieces[i + 1];
+            s = s.substring(2, s.length() - 1);
+            ret.append(s.replace(' ', sep2_char));
+        }
+
+        // robber hex: need to convert from hex string to int - strip 0x and parse with radix=16
+        int robber = Integer.parseInt(pieces[3].substring(2), 16);
+        ret.append(robber);
+
+        return ret.toString();
+    }
+
+    /**
      * Render the SOCBoardLayout in human-readable form.
      * In version 1.1.09 and later, the hexLayout and numberLayout contents are included,
-     *   and for convenience, robberHex is in hexadecimal instead of base-10
+     * and for convenience robberHex is in hexadecimal instead of base-10.
+     * Returns the same remapped "network" values for WATER_HEX, DESERT_HEX, and dice numbers as {@link #toCmd()},
+     * not the "standard" ones returned by {@link #getHexLayout() and {@link #getNumberLayout()}.
      * @return a human readable form of the message
      */
     public String toString()
@@ -344,4 +370,5 @@ public class SOCBoardLayout extends SOCMessage
 
         return sb.toString();
     }
+
 }

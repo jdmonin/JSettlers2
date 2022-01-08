@@ -36,6 +36,7 @@ import soc.util.SOCGameBoardReset;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -820,6 +821,7 @@ public class SOCGame implements Serializable, Cloneable
      * a game with this flag, the game should continue play unless its state is {@link #OVER}.
      * @since 2.0.00
      * @see soc.robot.SOCRobotBrain#BOTS_ONLY_FAST_PAUSE_FACTOR
+     * @see soc.server.SOCGameHandler#DESTROY_BOT_ONLY_GAMES_WHEN_OVER
      */
     public boolean isBotsOnly;
 
@@ -948,15 +950,17 @@ public class SOCGame implements Serializable, Cloneable
     private Map<String, SOCGameOption> opts;
 
     /**
-     * the players; never contains a null element, use {@link #isSeatVacant(int)}
+     * the players; never contains a null element during play, use {@link #isSeatVacant(int)}
      * to see if a position is occupied.  Length is {@link #maxPlayers}.
      *<P>
      * If the game is reset or restarted by {@link #resetAsCopy()},
      * the new game gets new player objects, not the ones in this array.
+     *<P>
+     * Contains nulls after {@link #destroyGame()} is called.
      *
      * @see #currentPlayerNumber
      */
-    private SOCPlayer[] players;
+    private final SOCPlayer[] players;
 
     /**
      * State of each player number's seat: {@link #OCCUPIED}, {@link #VACANT}, etc.
@@ -5660,6 +5664,7 @@ public class SOCGame implements Serializable, Cloneable
      *         such as {@link RollResult#cloth}.  The game reuses the same instance
      *         each turn, so its field contents will change when <tt>rollDice()</tt>
      *         is called again.
+     * @see #getResourcesGainedFromRoll(SOCPlayer, int)
      */
     public RollResult rollDice()
     {
@@ -5869,7 +5874,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return the resource set
      */
-    private SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, final int roll)
+    public SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, final int roll)
     {
         SOCResourceSet resources = new SOCResourceSet();
         final int robberHex = board.getRobberHex();
@@ -6297,6 +6302,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Assumes {@link #canMoveRobber(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_ROBBER}.
+     * Also updates {@link #getRobberyResult()}.
      *
      * @param pn  the number of the player that is moving the robber
      * @param rh  the robber's new hex coordinate; must be &gt; 0, not validated beyond that
@@ -6306,6 +6312,7 @@ public class SOCGame implements Serializable, Cloneable
      *         what was stolen and who was the victim.
      *         The private <tt>robberResult</tt> field is updated to this return value.
      * @throws IllegalArgumentException if <tt>rh</tt> &lt;= 0
+     * @see #movePirate(int, int)
      */
     public SOCMoveRobberResult moveRobber(final int pn, final int rh)
         throws IllegalArgumentException
@@ -6383,7 +6390,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Move the pirate ship.  Update the private {@link #robberResult} field.
+     * Move the pirate ship.
      *<P>
      * Called only at server.  Client gets messages with results of the move, and
      * calls {@link SOCBoardLarge#setPirateHex(int, boolean)}.
@@ -6404,6 +6411,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Assumes {@link #canMovePirate(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_PIRATE}.
+     * Also updates {@link #getRobberyResult()}.
      *<P>
      * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
      * but by the game at every dice roll.  See {@link #movePirate(int, int, int)} instead of this method.
@@ -6418,6 +6426,7 @@ public class SOCGame implements Serializable, Cloneable
      *         In scenario <tt>_SC_PIRI</tt> only, might contain {@link SOCResourceConstants#GOLD_LOCAL}
      *         if the player wins; see {@link #movePirate(int, int, int)} for details.
      * @throws IllegalArgumentException if <tt>ph</tt> &lt;= 0
+     * @see #moveRobber(int, int)
      * @since 2.0.00
      */
     public SOCMoveRobberResult movePirate(final int pn, final int ph)
@@ -6961,9 +6970,22 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the results of the most recent {@link #moveRobber(int, int)} or {@link #movePirate(int, int)}.
+     * Is set at server only.
+     * @return Robbery results at server, or {@code null} if none so far or at client
+     * @see #getRobberyPirateFlag()
+     * @since 2.4.10
+     */
+    public SOCMoveRobberResult getRobberyResult()
+    {
+        return robberResult;
+    }
+
+    /**
      * Does the current or most recent robbery use the pirate ship, not the robber?
      * If true, victims will be based on adjacent ships, not settlements/cities.
      * @return true for pirate ship, false for robber
+     * @see #getRobberyResult()
      * @since 2.0.00
      */
     public boolean getRobberyPirateFlag()
@@ -6978,6 +7000,8 @@ public class SOCGame implements Serializable, Cloneable
      * Victims are players with resources; for scenario option
      * {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, also players with cloth
      * when robbing with the pirate.
+     *<P>
+     * Calls {@link #getPlayersOnHex(int, Set)} or {@link #getPlayersShipsOnHex(int)}.
      *
      *<H3>For scenario option {@link SOCGameOption#K_SC_PIRI}:</H3>
      * This is called after a 7 is rolled, or after the game moves the pirate ship (fleet).
@@ -8764,7 +8788,7 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
-        players = null;
+        Arrays.fill(players, null);
         board = null;
         rand = null;
         pendingMessagesOut = null;

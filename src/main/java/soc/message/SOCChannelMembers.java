@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014,2016-2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -58,12 +58,41 @@ public class SOCChannelMembers extends SOCMessage
     private String channel;
 
     /**
+     * Create a Channel Members message at server.
+     *
+     * @param ch  the new channel name
+     * @param ml  the list of members (String or {@link Connection})
+     * @return    the command string
+     * @since 2.4.10
+     */
+    public SOCChannelMembers(String ch, List<?> ml)
+    {
+        this(ch, new ArrayList<String>(), false);
+
+        try
+        {
+            for (Object obj : ml)
+            {
+                if (obj instanceof Connection)
+                    members.add(((Connection) obj).getData());
+                else if (obj instanceof String)
+                    members.add((String) obj);
+                else
+                    members.add(obj.toString());  // fallback; expecting String or conn
+            }
+        }
+        catch (Exception e) {}
+    }
+
+    /**
      * Create a Channel Members message.
      *
      * @param ch  name of chat channel
-     * @param ml  list of members
+     * @param ml  list of member names
+     * @param clientMarker  Parameter is here only to differentiate the public server-side (List&lt;Object>) constructor
+     *     from this private/client-side (List&lt;String>) one
      */
-    public SOCChannelMembers(String ch, List<String> ml)
+    private SOCChannelMembers(String ch, List<String> ml, final boolean clientMarker)
     {
         messageType = CHANNELMEMBERS;
         members = ml;
@@ -112,46 +141,16 @@ public class SOCChannelMembers extends SOCMessage
     @Override
     public String toCmd()
     {
-        return toCmd(channel, members);
-    }
-
-    /**
-     * CHANNELMEMBERS sep channel sep2 members
-     *<P>
-     * Used from instance method {@link #toCmd()} with Strings,
-     * and from other callers with {@link Connection}s for convenience.
-     *
-     * @param ch  the new channel name
-     * @param ml  the list of members (String or {@link Connection})
-     * @return    the command string
-     */
-    public static String toCmd(String ch, List<?> ml)
-    {
-        String cmd = CHANNELMEMBERS + sep + ch;
+        StringBuilder cmd = new StringBuilder(CHANNELMEMBERS + sep + channel);
 
         try
         {
-            for (Object obj : ml)
-            {
-                String msg;
-                if (obj instanceof Connection)
-                {
-                    msg = ((Connection) obj).getData();
-                }
-                else if (obj instanceof String)
-                {
-                    msg = (String) obj;
-                }
-                else
-                {
-                    msg = obj.toString();  // fallback; expecting String or conn
-                }
-                cmd += (sep2 + msg);
-            }
+            for (String mname : members)
+                cmd.append(sep2_char).append(mname);
         }
         catch (Exception e) {}
 
-        return cmd;
+        return cmd.toString();
     }
 
     /**
@@ -180,7 +179,24 @@ public class SOCChannelMembers extends SOCMessage
             return null;
         }
 
-        return new SOCChannelMembers(ch, ml);
+        return new SOCChannelMembers(ch, ml, true);
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for
+     * {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * Handles square brackets around list of members.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Member list for {@link #parseDataStr(String)}, or {@code null} if params are malformed
+     * @see #stripAttribNamesToMemberList(String, String)
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        // "channel=chn|members=[player0, droid 1, robot 2, debug]"
+
+        return SOCGameMembers.stripAttribNamesToMemberList("channel=", messageStrParams);
     }
 
     @Override
@@ -204,6 +220,8 @@ public class SOCChannelMembers extends SOCMessage
         sb.append("|members=");
         if (members != null)
             sb.append(members);  // "[joe, bob, lily, ...]"
+
         return sb.toString();
     }
+
 }

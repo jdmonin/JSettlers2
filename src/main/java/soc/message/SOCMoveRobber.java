@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -185,6 +186,29 @@ public class SOCMoveRobber extends SOCMessage
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGameName(game).setMoveRobber(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * Converts robber hex coordinate to decimal from hexadecimal format.
+     * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String message)
+    {
+        String s = SOCMessage.stripAttribNames(message);
+        if (s == null)
+            return null;
+        int i = s.lastIndexOf(SOCMessage.sep2_char);
+
+        StringBuilder ret = new StringBuilder();
+        ret.append(s.substring(0, i + 1));
+        String robberHex = s.substring(i + 1);
+        ret.append(Integer.parseInt(robberHex, 16));
+
+        return ret.toString();
     }
 
     /**

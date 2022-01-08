@@ -40,7 +40,7 @@ import com.google.gson.reflect.TypeToken;
 import soc.game.*;
 import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
-import soc.server.genericServer.Server;
+import soc.server.SOCServer;
 
 /**
  * Load a game and board's current state from a JSON file into a {@link SavedGameModel}.
@@ -69,17 +69,16 @@ public class GameLoaderJSON
 
     /**
      * Load a game from a JSON file.
-     * Loads into a Model and calls {@link SavedGameModel#createLoadedGame(Server)}.
+     * Loads into a Model and calls {@link SavedGameModel#createLoadedGame(SOCServer)}.
      *<P>
      * Assumes caller has checked that gson jar is on classpath
      * by calling {@code Class.forName("com.google.gson.Gson")} or similar.
      *
      * @param loadFrom File to load from; filename should end with {@link GameSaverJSON#FILENAME_EXTENSION}
-     * @param srv  Server reference to check for bot name collisions, or {@code null}.
+     * @param srv  Server reference to check for bot name collisions; not {@code null}.
      *     Any bot players in the loaded game data with same names as those logged into the server
      *     will be renamed to avoid problems during random bot assignment while joining the game.
      * @return  loaded game model
-     * @throws IllegalStateException if required static game list field {@link SavedGameModel#glas} is null
      * @throws NoSuchElementException if file's model schema version is newer than the
      *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#checkCanLoad()}
      *     for details
@@ -87,7 +86,7 @@ public class GameLoaderJSON
      *     is newer than the server's {@link soc.util.Version#versionNumber()};
      *     see {@link SavedGameModel#checkCanLoad()} for details
      * @throws SavedGameModel.UnsupportedSGMOperationException if loaded game model has an option or feature
-     *     not yet supported by {@link SavedGameModel#createLoadedGame(Server)}; see {@link SavedGameModel#checkCanLoad()}
+     *     not yet supported by {@link SavedGameModel#createLoadedGame(SOCServer)}; see {@link SavedGameModel#checkCanLoad()}
      *     for details
      * @throws StringIndexOutOfBoundsException  if a {@link JsonSyntaxException} occurs while loading, this wraps it
      *     so the caller doesn't need to know GSON-specific exception types
@@ -95,14 +94,15 @@ public class GameLoaderJSON
      * @throws IllegalArgumentException if there's a problem while creating the loaded game.
      *     {@link Throwable#getCause()} will have the exception thrown by the SOCGame/SOCPlayer method responsible.
      *     Catch subclass {@code SOCGameOptionVersionException} before this one.
+     *     Also thrown if {@code srv} is null.
      */
-    public static SavedGameModel loadGame(final File loadFrom, final Server srv)
-        throws IllegalStateException, NoSuchElementException, SOCGameOptionVersionException,
+    public static SavedGameModel loadGame(final File loadFrom, final SOCServer srv)
+        throws NoSuchElementException, SOCGameOptionVersionException,
             SavedGameModel.UnsupportedSGMOperationException, StringIndexOutOfBoundsException,
             IOException, IllegalArgumentException
     {
-        if (SavedGameModel.glas == null)
-            throw new IllegalStateException("SavedGameModel.glas is null");
+        if (srv == null)
+            throw new IllegalArgumentException("srv");
 
         initGson();
 

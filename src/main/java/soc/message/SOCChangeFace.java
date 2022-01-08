@@ -101,20 +101,7 @@ public class SOCChangeFace extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, playerNumber, faceId);
-    }
-
-    /**
-     * CHANGEFACE sep game sep2 playerNumber sep2 faceId
-     *
-     * @param ga  the name of the game
-     * @param pn  the player number changing their face; sent from server, always ignored when sent from client
-     * @param id  the id of the face image; see {@link #getFaceId()} for values
-     * @return the command string
-     */
-    public static String toCmd(String ga, int pn, int id)
-    {
-        return CHANGEFACE + sep + ga + sep2 + pn + sep2 + id;
+        return CHANGEFACE + sep + game + sep2 + playerNumber + sep2 + faceId;
     }
 
     /**

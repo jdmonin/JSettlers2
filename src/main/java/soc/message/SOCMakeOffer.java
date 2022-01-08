@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2009,2010,2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -220,6 +221,45 @@ public class SOCMakeOffer extends SOCMessage
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGameName(game).setPlayerNumber(fromPN).setTradeMakeOffer(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
+    }
+
+    // Special handling:
+    // 1) There is a bizarre "offer=game=gameName" in the second position
+    // 2) Give and get are specified as give=clay=x|ore=y...
+    //  When we strip attrip names, we get a meaningless second entry, which we can skip, and due to manner of parsing, clay is inserted before give and get sets.
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String message)
+    {
+        // Strip the give= and get= from the message, then do the normal strip, then strip index 1
+        message = message.replace("give=", "");
+        message = message.replace("get=", "");
+        // strip with leading delim (hardcode here for now)
+        message = message.replaceAll("\\|unknown=0", "");
+        String s = SOCMessage.stripAttribNames(message);
+        if (s == null)
+            return null;
+        String[] pieces = s.split(SOCMessage.sep2);
+
+        StringBuilder ret = new StringBuilder();
+        int[] skipIds = new int[]{1, -1};  // Append a -1 at the end so we don't have to worry about running off the end
+        int si = 0; // Which index of skipIds are we currently looking for?
+        for (int i = 0; i < pieces.length; i++)
+        {
+            if (skipIds[si]==i)
+                // skip, but increment si
+                si++;
+            else
+                ret.append(pieces[i]).append(SOCMessage.sep2);
+        }
+
+        // trim the last separator - it interferes with the parse, which dynamically determines number of players based on number of tokens.
+        return ret.substring(0, ret.length() - 1);
     }
 
     /**

@@ -39,7 +39,8 @@ public class SOCChannelTextMsg extends SOCMessage
     private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
 
     /**
-     * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}
+     * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}.
+     * Same separator as {@link SOCGameTextMsg}.
      */
     private static String sep2 = "" + (char) 0;
 
@@ -67,7 +68,8 @@ public class SOCChannelTextMsg extends SOCMessage
      * @param nn  nickname of sender;
      *     announcements from the server (not from a player) use {@link SOCGameTextMsg#SERVER_FOR_CHAT}.
      *     Ignored from client by server 1.2.01 and newer, can send "-" but not blank.
-     * @param tm  text message. For expected format when {@code nn} is {@link SOCGameTextMsg#SERVER_FOR_CHAT},
+     * @param tm  message text, which may contain {@link SOCMessage#sep2} but not {@link SOCMessage#sep}.
+     *     For expected format when {@code nn} is {@link SOCGameTextMsg#SERVER_FOR_CHAT},
      *     see that constant's javadoc.
      * @param tm  text message
      */
@@ -115,20 +117,7 @@ public class SOCChannelTextMsg extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(channel, nickname, text);
-    }
-
-    /**
-     * CHANNELTEXTMSG sep channel sep2 nickname sep2 text
-     *
-     * @param ch  the channel name
-     * @param nn  the nickname; ignored from client by server 1.2.01 and newer, can send "-" but not blank
-     * @param tm  the text message
-     * @return    the command string
-     */
-    public static String toCmd(String ch, String nn, String tm)
-    {
-        return CHANNELTEXTMSG + sep + ch + sep2 + nn + sep2 + tm;
+        return CHANNELTEXTMSG + sep + channel + sep2 + nickname + sep2 + text;
     }
 
     /**
@@ -169,6 +158,18 @@ public class SOCChannelTextMsg extends SOCMessage
             .setText(text);
         return Message.FromServer.newBuilder()
             .setChText(b).build();
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a list formatted for {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        return SOCGameTextMsg.stripAttribNamesToTextMsg("channel=", messageStrParams);
     }
 
     /**

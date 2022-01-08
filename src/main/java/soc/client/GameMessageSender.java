@@ -124,7 +124,7 @@ import soc.message.SOCStartGame;
      */
     public void buyDevCard(SOCGame ga)
     {
-        put(SOCBuyDevCardRequest.toCmd(ga.getName()), ga.isPractice);
+        put(new SOCBuyDevCardRequest(ga.getName()).toCmd(), ga.isPractice);
     }
 
     /**
@@ -138,7 +138,7 @@ import soc.message.SOCStartGame;
     public void buildRequest(SOCGame ga, int piece)
         throws IllegalArgumentException
     {
-        put(SOCBuildRequest.toCmd(ga.getName(), piece), ga.isPractice);
+        put(new SOCBuildRequest(ga.getName(), piece).toCmd(), ga.isPractice);
     }
 
     /**
@@ -149,7 +149,7 @@ import soc.message.SOCStartGame;
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
-        put(SOCCancelBuildRequest.toCmd(ga.getName(), piece), ga.isPractice);
+        put(new SOCCancelBuildRequest(ga.getName(), piece).toCmd(), ga.isPractice);
     }
 
     /**
@@ -247,12 +247,12 @@ import soc.message.SOCStartGame;
      * send a text message to the people in the game
      *
      * @param ga   the game
-     * @param me   the message text
+     * @param txt  the message text
      * @see MainDisplay#sendToChannel(String, String)
      */
-    public void sendText(SOCGame ga, String me)
+    public void sendText(SOCGame ga, String txt)
     {
-        put(SOCGameTextMsg.toCmd(ga.getName(), "-", me), ga.isPractice);
+        put(new SOCGameTextMsg(ga.getName(), "-", txt).toCmd(), ga.isPractice);
     }
 
     /**
@@ -319,8 +319,8 @@ import soc.message.SOCStartGame;
     }
 
     /**
-     * The user has picked these resources to gain from the gold hex.
-     * Or, in game state {@link SOCGame#WAITING_FOR_DISCOVERY}, has picked these
+     * The user has picked these resources to gain from a gold hex,
+     * or in game state {@link SOCGame#WAITING_FOR_DISCOVERY} has picked these
      * 2 free resources from a Discovery/Year of Plenty card.
      *
      * @param ga  the game
@@ -329,7 +329,7 @@ import soc.message.SOCStartGame;
      */
     public void pickResources(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
+        put(new SOCPickResources(ga.getName(), rs).toCmd(), ga.isPractice);
     }
 
     /**
@@ -484,7 +484,7 @@ import soc.message.SOCStartGame;
      */
     public void pickResourceType(SOCGame ga, int res)
     {
-        put(SOCPickResourceType.toCmd(ga.getName(), res), ga.isPractice);
+        put(new SOCPickResourceType(ga.getName(), res).toCmd(), ga.isPractice);
     }
 
     /**
@@ -496,7 +496,7 @@ import soc.message.SOCStartGame;
     public void changeFace(SOCGame ga, int id)
     {
         client.lastFaceChange = id;
-        put(SOCChangeFace.toCmd(ga.getName(), 0, id), ga.isPractice);
+        put(new SOCChangeFace(ga.getName(), 0, id).toCmd(), ga.isPractice);
     }
 
     /**
@@ -580,7 +580,7 @@ import soc.message.SOCStartGame;
         }
 
         msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), client.getNickname(ga.isPractice), msg), ga.isPractice);
+        sendText(ga, msg);
     }
 
     /**
@@ -619,7 +619,7 @@ import soc.message.SOCStartGame;
         }
 
         msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), client.getNickname(ga.isPractice), msg), ga.isPractice);
+        sendText(ga, msg);
     }
 
 }

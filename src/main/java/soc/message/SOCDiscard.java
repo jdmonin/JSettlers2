@@ -1,7 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,9 +33,13 @@ import java.util.StringTokenizer;
  * This message gives the resources that a player has chosen to discard;
  * client's response to server's {@link SOCDiscardRequest}.
  *<P>
- * The server will report the discard's resource total to the other
- * players via {@link SOCPlayerElement} and text, but will not send
- * a {@code SOCDiscard} message to other players.
+ * If the resource total isn't correct, server v2.4.10 and newer will
+ * resend {@code SOCDiscardRequest} with the required resource count.
+ *<P>
+ * If this is the right total amount to discard, server will respond to player
+ * with {@link SOCPlayerElement} LOSE messages to confirm the details,
+ * then report only the discard's resource total to the other players
+ * via {@link SOCPlayerElement} and text.
  *<P>
  * If no other players need to discard, server will then send the new {@link SOCGameState}.
  * If waiting for others to discard, server sends the game a {@link SOCGameServerText} that lists
@@ -182,6 +187,20 @@ public class SOCDiscard extends SOCMessage
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGameName(game).setLoseResources(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String message)
+    {
+        message = message.replace("resources=",  "");
+
+        return SOCMessage.stripAttribNames(message);
     }
 
     /**

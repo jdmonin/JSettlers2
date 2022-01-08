@@ -63,6 +63,25 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     private int gameMinVers = -1;
 
     /**
+     * Create a SOCNewGameWithOptions message at server, to send to a specific client version.
+     * Game otions and minimum required version will be extracted from {@code ga}.
+     *<P>
+     * Before v2.4.10 this constructor was a static {@code toCmd(..)} method.
+     *
+     * @param ga  the game; will call {@link SOCGame#getGameOptions()}
+     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+     *            If any game's options need adjustment for an older client, cliVers triggers that.
+     *            Use -2 if the client version doesn't matter.
+     * @since 2.4.10
+     */
+    public SOCNewGameWithOptions(final SOCGame ga, final int cliVers)
+    {
+        this(ga.getName(),
+            SOCGameOption.packOptionsToString(ga.getGameOptions(), false, false, cliVers),
+            ga.getClientVersionMinRequired());
+    }
+
+    /**
      * Create a SOCNewGameWithOptions message at client.
      *
      * @param ga  the name of the game; may have the
@@ -80,25 +99,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
               Integer.toString(minVers),
               ((optstr != null) && (optstr.length() > 0) ? optstr : "-"));
         gameMinVers = minVers;
-    }
-
-    /**
-     * Create a SOCNewGameWithOptions message to send to a specific client version, at server,
-     * with the game's options and minimum required version info taken from its {@code game} object.
-     *<P>
-     * Before v3.0.00 this constructor was a static {@code toCmd(..)} method.
-     *
-     * @param game  the game
-     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
-     *            If any game's options need adjustment for an older client, cliVers triggers that.
-     *            Use -2 if the client version doesn't matter.
-     * @since 3.0.00
-     */
-    public SOCNewGameWithOptions(final SOCGame game, final int cliVers)
-    {
-        this(game.getName(),
-            SOCGameOption.packOptionsToString(game.getGameOptions(), false, false, cliVers),
-            game.getClientVersionMinRequired());
     }
 
     /**
@@ -139,23 +139,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     public int getMinVersion()
     {
         return gameMinVers;
-    }
-
-    /**
-     * NEWGAMEWITHOPTIONS sep game sep2 minVers sep2 optionstring
-     *
-     * @param ga  the name of the game; the game name may have
-     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)},
-     *            or null
-     * @param minVers Minimum client version required, or -1
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final String optstr, final int minVers)
-    {
-        return NEWGAMEWITHOPTIONS + sep + ga + sep2 + Integer.toString(minVers) + sep2
-               + (((optstr != null) && (optstr.length() > 0)) ? optstr : "-");
     }
 
     /**

@@ -2869,6 +2869,7 @@ public class SOCGameOption
      * {@link SOCVersionedItem#getDesc() desc}.{@link String#compareTo(String) compareTo()}.
      * @param other A SOCGameOption to compare, or another object;  if other isn't a
      *              gameoption, the {@link #hashCode()}s are compared.
+     * @see #equals(Object)
      */
     public int compareTo(Object other)
     {
@@ -2881,6 +2882,29 @@ public class SOCGameOption
         } else {
             return hashCode() - other.hashCode();
         }
+    }
+
+    /**
+     * Check for equality to another {@link SOCGameOption} or other object.
+     *
+     * @return true if {@code other} is a {@link SOCGameOption} having the same {@link #key},
+     *     {@link #optType}, {@link #optFlags}, {@link #getBoolValue()},
+     *     {@link #getIntValue()}, and {@link #getStringValue()} as this option.
+     * @see Object#equals(Object)
+     * @see #compareTo(Object)
+     * @since 2.4.10
+     */
+    public boolean equals(final Object other)
+    {
+        if (! (other instanceof SOCGameOption))
+            return false;
+
+        final SOCGameOption oopt = (SOCGameOption) other;
+        return (optType == oopt.optType) && (optFlags == oopt.optFlags) && key.equals(oopt.key)
+            && (boolValue == oopt.boolValue) && (intValue == oopt.intValue)
+            && ((strValue == null)
+                ? (oopt.strValue == null)
+                : strValue.equals(oopt.strValue));
     }
 
     /**

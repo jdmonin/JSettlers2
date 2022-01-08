@@ -23,6 +23,7 @@ and backport minor new features until `2.0.00` was ready.
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
+	    - soc.message methods to parse human-readable toString logging format: parseMsgStr, stripAttribNames
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
 	- Enhanced server's recordGameEvent framework for more detailed game recording
 	- More accessible robot-related methods and data classes
@@ -30,6 +31,17 @@ and backport minor new features until `2.0.00` was ready.
 	- Save/load games:
 	    - SavedGameModel:
 	        - PlayerInfo: Include number of Discovery, Monopoly, Road Building cards played
+	        - GLAS field made non-static so unit tests can safely run in parallel for quicker builds
+	- Unit tests and extraTests against running server for core game actions and message sequences
+	- Server consistently uses Properties if passed into constructors
+	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
+	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
+	- Refactored message classes: Server now mostly calls constructors, not static toCmd methods
+- Server:
+	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
+	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
+- Network/Message traffic:
+	- If client's discard has incorrect total, server re-sends SOCDiscardRequest which includes required total
 
 
 ## `2.4.00` (build JM20200704)

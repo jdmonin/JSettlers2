@@ -64,18 +64,7 @@ public class SOCBCastTextMsg extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(text);
-    }
-
-    /**
-     * BCASTTEXTMSG sep text
-     *
-     * @param tm  the text message
-     * @return    the command string
-     */
-    public static String toCmd(String tm)
-    {
-        return BCASTTEXTMSG + sep + tm;
+        return BCASTTEXTMSG + sep + text;
     }
 
     /**
@@ -98,4 +87,5 @@ public class SOCBCastTextMsg extends SOCMessage
 
         return s;
     }
+
 }
