@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -517,9 +517,9 @@ public class TestToCmdToStringParse
         {new SOCMoveRobber("ga", 3, 0x305), "1034|ga,3,773", "SOCMoveRobber:game=ga|playerNumber=3|coord=305"},
         {new SOCNewGame("ga"), "1016|ga", "SOCNewGame:game=ga"},
         {
-            new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToMap("BC=t4,RD=f,N7=t7,PL=4"), -1, 0),
-            "1079|ga,-1,BC=t4,RD=f,N7=t7,PL=4",
-            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,N7=t7,PL=4"
+            new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToMap("BC=t4,RD=f,N7=t7,PL=4,SBL=t"), -1, 0),
+            "1079|ga,-1,BC=t4,RD=f,N7=t7,PL=4,SBL=t",
+            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,N7=t7,PL=4,SBL=t"
         },
         {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0)), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
         {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},

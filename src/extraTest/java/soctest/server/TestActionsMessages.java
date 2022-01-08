@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,7 @@ import java.util.Vector;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -100,6 +101,7 @@ public class TestActionsMessages
      * Re-run unit test {@link TestRecorder#testBasics_Loadgame(SOCServer)},
      * to rule out test setup problems if other tests fail.
      */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testBasics_Loadgame()
         throws IOException

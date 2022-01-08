@@ -1074,6 +1074,8 @@ message TradeAcceptOffer {
  * - If no other players need to discard, server will then send the new {@link GameState}.
  *   Or if waiting for others to discard, server sends the game a {@link GameServerText} that lists
  *   who we're still waiting for.
+ *<P>
+ * Before v3.0.00 this message type was SOCDiscardRequest and SOCDiscard.
  */
 message LoseResources {
     int32 amount = 1;  // prompt or announcement from server: player must lose this many resources

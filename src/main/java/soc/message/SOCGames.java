@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2014,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2014,2016-2017,2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
  * created on a server, without their {@link soc.game.SOCGameOption game options}.
  * It's constructed and sent to each connecting client
  * having an old version which doesn't support game options.
+ *<P>
  * Sent only by servers older than v3.0 ({@link soc.game.SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC});
  * v3.0 and higher always send {@link SOCGamesWithOptions} instead.
  *<P>
@@ -85,12 +86,7 @@ public class SOCGames extends SOCMessage
 
     /**
      * Create a Games message at server.
-     *
-     * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
-     *     if a client can't join a game, it should be a String prefixed with
-     *     {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}. Any {@link SOCGame#getGameOptions()} will be ignored.
-     * @since 2.4.10
-     */
+     * Not used in v3; source is here only for reference during v2 -> v3 merges.
     public SOCGames(final List<?> ga)
     {
         this(new ArrayList<String>(), false);
@@ -101,6 +97,7 @@ public class SOCGames extends SOCMessage
             else
                 games.add(ob.toString());  // ob's almost certainly a String already
     }
+     */
 
     /**
      * Create a Games message at client.
@@ -132,6 +129,7 @@ public class SOCGames extends SOCMessage
      */
     @Override
     public String toCmd()
+        throws UnsupportedOperationException
     {
         throw new UnsupportedOperationException();
     }
