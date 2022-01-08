@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -422,30 +422,6 @@ public class SOCStatusMessage extends SOCMessage
         messageType = STATUSMESSAGE;
         status = st;
         svalue = sv;
-    }
-
-    /**
-     * Create a StatusMessage message with a nonzero status value {@code sv}
-     * which is compatible with the client version {@code cliVers} it's sent to.
-     * See {@link #statusFallbackForVersion(int, int)} for specific status fallbacks
-     * and more info.
-     *<P>
-     * Before v3.0.00 this constructor was a static {@code toCmd(..)} method.
-     *
-     * @param sv  status value (from constants defined here, such as {@link #SV_OK})
-     * @param cliVers Client's version, same format as {@link soc.util.Version#versionNumber()}
-     * @param st  the status message text.
-     *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
-     *            in your string, and they will be passed on for the receiver to parse.
-     * @throws IllegalArgumentException If a {@code sv} has no successful fallback at {@code cliVers},
-     *     such as with {@link #SV_OK_SET_NICKNAME}, and the client must reauthenticate instead;
-     *     the exception is thrown to prevent continued server processing as if the fallback was successful.
-     * @since 3.0.00
-     * @see #SOCStatusMessage(int, String)
-     */
-    public SOCStatusMessage(int sv, int cliVers, String st)
-    {
-        this(statusFallbackForVersion(sv, cliVers), st);
     }
 
     /**
