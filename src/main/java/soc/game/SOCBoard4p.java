@@ -22,6 +22,7 @@
 
 package soc.game;
 
+
 /**
  * The classic 4-player board with 19 land hexes, surrounded by a ring of
  * 18 sea hexes/ports. Implements {@link SOCBoard#BOARD_ENCODING_ORIGINAL}.

@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Vector;
@@ -35,6 +34,7 @@ import java.util.regex.Pattern;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.message.SOCDeleteGame;
 import soc.message.SOCGames;
 import soc.message.SOCGamesWithOptions;
@@ -55,7 +55,7 @@ import soc.util.Version;
  *<P>
  * In 1.1.07, parent class SOCGameList was refactored, with
  * some methods moved to this new subclass, such as
- * {@link #createGame(String, String, String, Map, GameHandler) createGame}.
+ * {@link #createGame(String, String, String, SOCGameOptionSet, GameHandler) createGame}.
  *
  * @see SOCBoardAtServer
  * @see SOCChannelList
@@ -71,7 +71,7 @@ public class SOCGameListAtServer extends SOCGameList
      * Before v2.0.00 this field was named {@code GAME_EXPIRE_MINUTES}. <BR>
      * Before v1.2.01 the default was 90.
      *
-     * @see #createGame(String, String, String, Map, GameHandler)
+     * @see #createGame(String, String, String, SOCGameOptionSet, GameHandler)
      * @see SOCGame#setExpiration(long)
      * @see SOCServer#checkForExpiredGames(long)
      * @since 1.1.00
@@ -105,11 +105,17 @@ public class SOCGameListAtServer extends SOCGameList
     /**
      * constructor
      * @param rand  Server's random number generator, for occasional misc use here
+     * @param knownOpts  All Known Options at server, in case needed for parsing game options; not null
+     * @throws IllegalArgumentException if {@code knownOpts} is null
      */
-    public SOCGameListAtServer(final Random rand)
+    public SOCGameListAtServer(final Random rand, final SOCGameOptionSet knownOpts)
+        throws IllegalArgumentException
     {
-        super();
+        super(knownOpts);
         this.rand = rand;
+
+        if (knownOpts == null)
+            throw new IllegalArgumentException("knownOpts");
 
         // Make sure server games have SOCBoardAtServer, for makeNewBoard.
         // Double-check class in case server is started at client after a client SOCGame.
@@ -396,6 +402,8 @@ public class SOCGameListAtServer extends SOCGameList
      *
      * @param  oldConn  the member's old connection
      * @param  newConn  the member's new connection
+     * @param alwaysCheckFeats  If true, client features against each game as if {@link SOCClientData#hasLimitedFeats}.
+     *     Useful when server has {@link SOCGameOption#FLAG_3RD_PARTY} options active.
      * @return  {@code null} if replacement was done in all games; otherwise those games having {@code oldConn} which
      *            {@code newConn} can't join because of its more limited client features (this is unlikely to occur)
      * @throws IllegalArgumentException  if oldConn's keyname (via {@link Connection#getData()})
@@ -404,7 +412,8 @@ public class SOCGameListAtServer extends SOCGameList
      * @see #memberGames(Connection, String)
      * @since 1.1.08
      */
-    public synchronized List<SOCGame> replaceMemberAllGames(Connection oldConn, Connection newConn)
+    public synchronized List<SOCGame> replaceMemberAllGames
+        (final Connection oldConn, final Connection newConn, final boolean alwaysCheckFeats)
         throws IllegalArgumentException
     {
         if (! oldConn.getData().equals(newConn.getData()))
@@ -414,7 +423,7 @@ public class SOCGameListAtServer extends SOCGameList
 
         final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
         final SOCClientData scd = (SOCClientData) newConn.getAppData();
-        final boolean cliHasLimitedFeats = scd.hasLimitedFeats;
+        final boolean cliHasLimitedFeats = alwaysCheckFeats || scd.hasLimitedFeats;
 
         for (String gaName : getGameNames())
         {
@@ -456,7 +465,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param gaLocaleStr  the game creator's locale, to later set {@link SOCGame#hasMultiLocales} if needed (added in 2.0.00)
      * @param gaOpts  if game has options, its {@link SOCGameOption}s; otherwise null.
      *                Must already be validated, by calling
-     *                {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
+     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *                with <tt>doServerPreadjust</tt> true.
      *                That call is also needed to add any {@code "SC"} options into {@code gaOpts}.
      * @param handler  game type handler for this game; not null
@@ -466,10 +475,10 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public synchronized SOCGame createGame
         (final String gaName, final String gaOwner, final String gaLocaleStr,
-         final Map<String, SOCGameOption> gaOpts, final GameHandler handler)
+         final SOCGameOptionSet gaOpts, final GameHandler handler)
         throws IllegalArgumentException
     {
-        return addGame(new SOCGame(gaName, gaOpts), handler, gaOwner, gaLocaleStr);
+        return addGame(new SOCGame(gaName, gaOpts, knownOpts), handler, gaOwner, gaLocaleStr);
     }
 
     /**
@@ -486,7 +495,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @throws IllegalArgumentException  if {@code handler} is null
      * @throws NoSuchElementException if {@code loadedGame != null}, its game name is already in use,
      *             and an unused name couldn't be generated in a reasonable amount of tries
-     * @see #createGame(String, String, String, Map, GameHandler)
+     * @see #createGame(String, String, String, SOCGameOptionSet, GameHandler)
      * @since 2.3.00
      */
     protected synchronized SOCGame addGame
@@ -718,7 +727,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  plConn   the previous connection of the player, which might be taken over
      * @return Minimum version, in same format as {@link SOCGame#getClientVersionMinRequired()},
      *         or 0 if player isn't in any games.
-     * @see #replaceMemberAllGames(Connection, Connection)
+     * @see #replaceMemberAllGames(Connection, Connection, boolean)
      * @since 1.1.08
      */
     public int playerGamesMinVersion(Connection plConn)
@@ -752,7 +761,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @return The games, in no particular order (past firstGameName),
      *           or a 0-length Vector, if member isn't in any game.
      *
-     * @see #replaceMemberAllGames(Connection, Connection)
+     * @see #replaceMemberAllGames(Connection, Connection, boolean)
      * @since 1.1.08
      */
     public List<SOCGame> memberGames(Connection c, final String firstGameName)
@@ -829,9 +838,12 @@ public class SOCGameListAtServer extends SOCGameList
      * @param c Client's connection; will call getVersion() on it
      * @param prevVers  Previously assumed version of this client;
      *                  if re-sending the list, should be less than c.getVersion.
+     * @param alwaysCheckFeats  If true, client features against each game as if {@link SOCClientData#hasLimitedFeats}.
+     *     Useful when server has {@link SOCGameOption#FLAG_3RD_PARTY} options active.
      * @since 1.1.06
      */
-    public void sendGameList(Connection c, int prevVers)
+    public void sendGameList
+        (final Connection c, final int prevVers, final boolean alwaysCheckFeats)
     {
         final int cliVers = c.getVersion();   // Need to know this before sending
         final SOCClientData scd = (SOCClientData) c.getAppData();
@@ -849,7 +861,7 @@ public class SOCGameListAtServer extends SOCGameList
         // that it isn't capable of joining.
         boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
         final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
-        final boolean cliNotLimitedFeats = ! scd.hasLimitedFeats;
+        final boolean cliNotLimitedFeats = ! (alwaysCheckFeats || scd.hasLimitedFeats);
         final SOCFeatureSet cliLimitedFeats = cliNotLimitedFeats ? null : scd.feats;
 
         ArrayList<Object> gl = new ArrayList<Object>();  // contains Strings and/or SOCGames;
@@ -967,7 +979,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
      */
-    protected static class GameInfoAtServer extends GameInfo
+    protected class GameInfoAtServer extends GameInfo
     {
         /** Game type handler */
         public final GameHandler handler;
@@ -982,7 +994,7 @@ public class SOCGameListAtServer extends SOCGameList
          * @throws IllegalArgumentException  if {@code handler} is null
          */
         public GameInfoAtServer
-            (final Map<String, SOCGameOption> gameOpts, final GameHandler typeHandler)
+            (final SOCGameOptionSet gameOpts, final GameHandler typeHandler)
             throws IllegalArgumentException
         {
             super(true, gameOpts);

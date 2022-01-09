@@ -68,7 +68,7 @@ public class SOCClientData
      * {@link SOCFeatureSet#SOCFeatureSet(boolean, boolean) new SOCFeatureSet(true, false)}.
      * @see #hasLimitedFeats
      * @see #scenVersion
-     * @see soc.game.SOCGameOption#optionsNotSupported(SOCFeatureSet)
+     * @see soc.game.SOCGameOptionSet#optionsNotSupported(SOCFeatureSet)
      * @since 2.0.00
      */
     public SOCFeatureSet feats;
@@ -77,6 +77,7 @@ public class SOCClientData
      * If true, client is missing some optional features that the server expects
      * the built-in client to have. This client might not be able to join some games.
      * @see #feats
+     * @see SOCServer#checkLimitClientFeaturesForServerDisallows(SOCFeatureSet)
      * @since 2.0.00
      */
     public boolean hasLimitedFeats;

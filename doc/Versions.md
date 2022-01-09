@@ -6,12 +6,9 @@ Source history for version `1.1.06` and earlier is at [https://github.com/jdmoni
 JARs for recent JSettlers versions can be downloaded from
 [https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases) .
 
-From `1.0` up through `1.1.13`, there was a single line of development.
-Right after `1.1.13` the master branch started work on 2.0, with a
-stable branch for further 1.x versions to release bugfixes
-and backport minor new features until `2.0.00` was ready.
 
 ## `3.0.00` (build JX202xxxxx)
+- Experimental branch `v3`, not currently the main line of development
 - Experimental features: html5 client, jetty/tomcat servlet; protobuf option for bots
 - Major refactoring: SOCBoard types combined, removing 'classic' v1.x.xx coordinate system:
   Connecting clients or servers must now be v2.0.00 or higher.
@@ -20,28 +17,72 @@ and backport minor new features until `2.0.00` was ready.
 
 ## `2.4.10` (build JM20200xxx)
 - Currently being developed
+- Gameplay:
+	- When a trade is offered to bots and humans, bots wait longer before responding.
+	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
+	  (thank you Lee Passey)
+- Network/Message traffic:
+	- For efficiency and third-party bots' parsing, use data messages instead of text when clients are new enough:
+		- Report robbery with `SOCReportRobbery`
+		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
+	- When Monopoly card played, server announces amount gained instead of player's total amount of that resource
 - For developers:
 	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
+	    - Encapsulate robot's build stack as SOCBuildPlan
 	    - soc.message methods to parse human-readable toString logging format: parseMsgStr, stripAttribNames
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
+	    - SOCDBHelper is no longer a static/unextendable singleton
 	- Enhanced server's recordGameEvent framework for more detailed game recording
 	- More accessible robot-related methods and data classes
+	- For third-party bots, added more granular override points like
+	  `endTurnActions`, `handleTradeResponse`, `planAndDoActionForPLAY1`, `SOCBuildingSpeedEstimateFactory`
 	- Made some data classes Serializable
 	- Save/load games:
 	    - SavedGameModel:
-	        - PlayerInfo: Include number of Discovery, Monopoly, Road Building cards played
+	        - PlayerInfo: add fields for number of Discovery, Monopoly, Road Building cards played,
+	          list of dev cards played; TradeOffer add timestamp
+	        - MODEL_VERSION still 2400; earlier server versions will ignore these added fields while loading a savegame
 	        - GLAS field made non-static so unit tests can safely run in parallel for quicker builds
 	- Unit tests and extraTests against running server for core game actions and message sequences
 	- Server consistently uses Properties if passed into constructors
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
 	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
-	- Refactored message classes: Server now mostly calls constructors, not static toCmd methods
+	- Refactored message classes:
+	    - Server now mostly calls constructors, not static toCmd methods
+	    - Add toString to several message types to clarify fields
+	    - SOCLocalizedStrings, SOCStatusMessage, SOCVersion: toString: Use standard delimiter `|`, not `,`
+	- Game Options:
+	    - "Inactive Options" concept: Developer-only or specialty gameopts
+	        - To avoid clutter, normally hidden and not sent to connecting clients
+	        - Activate in server config if needed: `jsettlers.gameopts.activate=PLAY_VPO,OTHEROPT`
+	        - For details see [Readme.developer.md](Readme.developer.md) section "Game rules, Game Options"
+	    - New inactive options, to show or help debug gameplay details:
+	        - `PLAY_VPO`: Show all players' VP/dev card info
+	        - `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
+	    - "Third-Party Options" concept: Gameopts defined by a 3rd-party client, server, bot, or JSettlers fork,
+	      which might not be known by all currently connected clients/servers at the same version
+	        - When connecting, client must ask server if it knows about all such gameopts, regardless of version
+	        - Associated with a given client feature; server looks for feature when a client connects
+	    - Refactored option maps to SOCGameOptionSet
+	    - Robot clients no longer ignore game option info sync messages
+	    - SGH.calcGameClientFeaturesRequired checks each gameopt for features
 - Server:
+	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
 	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
 	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
 	- If client's discard has incorrect total, server re-sends SOCDiscardRequest which includes required total
+- Client:
+	- New Game dialog:
+	    - Sort game option descriptions case-insensitively, in case of acronyms
+	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
+	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
+	- Game window:
+	    - Hand Panel: Shrink unused space above trading squares
+	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
+- Code internals:
+	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields
 
 
 ## `2.4.00` (build JM20200704)

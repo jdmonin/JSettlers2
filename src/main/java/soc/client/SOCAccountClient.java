@@ -179,7 +179,8 @@ public class SOCAccountClient extends Applet
 
     protected String host;
     protected int port;
-    protected Socket s;
+    /** Network socket. Before v2.4.10 this field was {@code s}. */
+    protected Socket sock;
     protected DataInputStream in;
     protected DataOutputStream out;
     protected Thread reader = null;
@@ -652,9 +653,9 @@ public class SOCAccountClient extends Applet
 
         try
         {
-            s = new Socket(host, port);
-            in = new DataInputStream(s.getInputStream());
-            out = new DataOutputStream(s.getOutputStream());
+            sock = new Socket(host, port);
+            in = new DataInputStream(sock.getInputStream());
+            out = new DataOutputStream(sock.getOutputStream());
             connected = true;
             (reader = new Thread(this)).start();
 
@@ -810,7 +811,12 @@ public class SOCAccountClient extends Applet
             while (connected)
             {
                 String s = in.readUTF();
-                treat((SOCMessage) SOCMessage.toMsg(s));
+                SOCMessage msg = SOCMessage.toMsg(s);
+
+                if (msg != null)
+                    treat(msg);
+                else if (debugTraffic)
+                    soc.debug.D.ebugERROR("Could not parse net message: " + s);
             }
         } catch (IOException e) {
             // purposefully closing the socket brings us here too
@@ -858,13 +864,10 @@ public class SOCAccountClient extends Applet
      *<P>
      * If {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_TRAFFIC} is set, debug-prints message contents.
      *
-     * @param mes    the message
+     * @param mes    the message; not null
      */
     public void treat(SOCMessage mes)
     {
-        if (mes == null)
-            return;  // Msg parsing error
-
         if (debugTraffic || D.ebugIsEnabled())
             soc.debug.D.ebugPrintlnINFO("IN - " + mes.toString());
 
@@ -1059,7 +1062,7 @@ public class SOCAccountClient extends Applet
 
         try
         {
-            s.close();
+            sock.close();
         } catch (Exception e) {
             ex = e;
         }

@@ -31,7 +31,7 @@ import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
@@ -176,11 +176,15 @@ public class SOCPlayerTracker
     /**
      * Constructor.
      *
-     * @param pl  the player being tracked
-     * @param br  the robot brain using this tracker
+     * @param pl  the player being tracked; not null
+     * @param br  the robot brain using this tracker; not null
      */
     public SOCPlayerTracker(SOCPlayer pl, SOCRobotBrain br)
+        throws IllegalArgumentException
     {
+        if ((pl == null) || (br == null))
+            throw new IllegalArgumentException("null pl or br");
+
         inUse = false;
         brain = br;
         player = pl;
@@ -860,7 +864,7 @@ public class SOCPlayerTracker
         //
         // in scenario _SC_PIRI, update the closest ship to our fortress
         //
-        if ((rs instanceof SOCShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if ((rs instanceof SOCShip) && game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             updateScenario_SC_PIRI_closestShipToFortress((SOCShip) rs, true);
     }
 
@@ -883,7 +887,7 @@ public class SOCPlayerTracker
      * Before v2.0.00 this method was {@code expandRoad}.
      *
      * @param targetRoad   the possible road
-     * @param player    the player who owns the original road
+     * @param pl        the player who owns the original road
      * @param dummy     the dummy player used to see what's legal; created by caller copying {@code player}
      * @param trackers  player trackers
      * @param level     how many levels (additional pieces) to expand;
@@ -894,7 +898,7 @@ public class SOCPlayerTracker
      *                  acts as if {@code level == 0}.
      */
     public void expandRoadOrShip
-        (final SOCPossibleRoad targetRoad, final SOCPlayer player, final SOCPlayer dummy,
+        (final SOCPossibleRoad targetRoad, final SOCPlayer pl, final SOCPlayer dummy,
          final SOCPlayerTracker[] trackers, final int level)
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
@@ -960,7 +964,7 @@ public class SOCPlayerTracker
                     List<SOCPossibleRoad> nr = new ArrayList<SOCPossibleRoad>();
                     nr.add(targetRoad);
 
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), nr);
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(pl, adjNode.intValue(), nr);
                     newPosSet.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
                     possibleSettlements.put(adjNode, newPosSet);
                     targetRoad.addNewPossibility(newPosSet);
@@ -979,7 +983,7 @@ public class SOCPlayerTracker
             ArrayList<SOCPossibleRoad> roadsToExpand = new ArrayList<SOCPossibleRoad>();
 
             // ships in _SC_PIRI never expand east
-            final boolean isShipInSC_PIRI = (! isRoadNotShip) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+            final boolean isShipInSC_PIRI = (! isRoadNotShip) && game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
 
             //D.ebugPrintln("$$$ checking roads adjacent to "+Integer.toHexString(targetRoad.getCoordinates()));
             //
@@ -1112,9 +1116,9 @@ public class SOCPlayerTracker
 
                         if (isRoad && ! isCoastal)
                         {
-                            newPR = new SOCPossibleRoad(player, edge, neededRoads);
+                            newPR = new SOCPossibleRoad(pl, edge, neededRoads);
                         } else {
-                            newPR = new SOCPossibleShip(player, edge, isCoastal, neededRoads);
+                            newPR = new SOCPossibleShip(pl, edge, isCoastal, neededRoads);
                             // System.err.println
                             //     ("L1072: " + toString() + ": new PossibleShip(" + isCoastal + ") at 0x" + Integer.toHexString(edge));
                         }
@@ -1140,7 +1144,7 @@ public class SOCPlayerTracker
             //
             for (SOCPossibleRoad expandPR : roadsToExpand)
             {
-                expandRoadOrShip(expandPR, player, dummy, trackers, level - 1);
+                expandRoadOrShip(expandPR, pl, dummy, trackers, level - 1);
             }
         }
 
@@ -1495,7 +1499,8 @@ public class SOCPlayerTracker
         /**
          * add a new possible city
          */
-        possibleCities.put(settlementCoords, new SOCPossibleCity(player, settlement.getCoordinates()));
+        possibleCities.put
+            (settlementCoords, new SOCPossibleCity(player, settlement.getCoordinates(), brain.getEstimatorFactory()));
 
         /**
          * see if the new settlement was a possible settlement in
@@ -2412,7 +2417,7 @@ public class SOCPlayerTracker
 
     /**
      * Calculate the longest road ETA.
-     * Always 500 or more if {@link SOCGameOption#K_SC_0RVP} is set.
+     * Always 500 or more if {@link SOCGameOptionSet#K_SC_0RVP} is set.
      * Updates fields for {@link #getLongestRoadETA()} and {@link #getRoadsToGo()}.
      * @see #recalculateAllETAs()
      */
@@ -2423,7 +2428,7 @@ public class SOCPlayerTracker
         D.ebugPrintlnINFO("===  recalcLongestRoadETA for player " + playerNumber);
 
         final int roadETA;
-        SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
+        SOCBuildingSpeedEstimate bse = brain.getEstimator(player.getNumbers());
         roadETA = bse.calculateRollsFast(SOCGame.EMPTY_RESOURCES, SOCRoad.COST, 500, player.getPortFlags());
 
         roadsToGo = 500;
@@ -2441,7 +2446,7 @@ public class SOCPlayerTracker
             longestRoadETA = 0;
             roadsToGo = 0;
         }
-        else if (! game.isGameOptionSet(SOCGameOption.K_SC_0RVP))
+        else if (! game.isGameOptionSet(SOCGameOptionSet.K_SC_0RVP))
         {
             if (lrPlayer == null)
             {
@@ -2479,7 +2484,7 @@ public class SOCPlayerTracker
      * path in a graph of nodes and returns how many roads would
      * need to be built to take longest road.
      *<P>
-     * Do not call if {@link SOCGameOption#K_SC_0RVP} is set.
+     * Do not call if {@link SOCGameOptionSet#K_SC_0RVP} is set.
      *
      * @param startNode     the path endpoint, such as from
      *            {@link SOCPlayer#getLRPaths()}.(i){@link SOCLRPathData#getBeginning() .getBeginning()}
@@ -2543,7 +2548,7 @@ public class SOCPlayerTracker
             ///
             /// figure out how long it takes to buy this many knights
             ///
-            SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
+            SOCBuildingSpeedEstimate bse = brain.getEstimator(player.getNumbers());
             int[] ourBuildingSpeed = bse.getEstimatesFromNothingFast(player.getPortFlags());
             int cardETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CARD];
             largestArmyETA = (cardETA + 1) * knightsToBuy;
@@ -2790,18 +2795,18 @@ public class SOCPlayerTracker
             SOCBuildingSpeedEstimate[] tempSetBSE = new SOCBuildingSpeedEstimate[2];
             SOCBuildingSpeedEstimate[] tempCityBSE = new SOCBuildingSpeedEstimate[2];
 
-            tempCityBSE[0] = new SOCBuildingSpeedEstimate();
-            tempCityBSE[1] = new SOCBuildingSpeedEstimate();
+            tempCityBSE[0] = brain.getEstimator();
+            tempCityBSE[1] = brain.getEstimator();
 
-            tempSetBSE[0] = new SOCBuildingSpeedEstimate();
-            tempSetBSE[1] = new SOCBuildingSpeedEstimate();
+            tempSetBSE[0] = brain.getEstimator();
+            tempSetBSE[1] = brain.getEstimator();
 
             int[][] chosenSetBuildingSpeed = new int[2][SOCBuildingSpeedEstimate.MAXPLUSONE];
             int[][] chosenCityBuildingSpeed = new int[2][SOCBuildingSpeedEstimate.MAXPLUSONE];
 
-            SOCBuildingSpeedEstimate tempBSE = new SOCBuildingSpeedEstimate();
+            SOCBuildingSpeedEstimate tempBSE = brain.getEstimator();
 
-            SOCBuildingSpeedEstimate ourBSE = new SOCBuildingSpeedEstimate(player.getNumbers());
+            SOCBuildingSpeedEstimate ourBSE = brain.getEstimator(player.getNumbers());
             int[] ourBuildingSpeed = ourBSE.getEstimatesFromNothingFast(tempPortFlags);
             int cityETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CITY];
             int settlementETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.SETTLEMENT];
@@ -2823,6 +2828,7 @@ public class SOCPlayerTracker
             SOCPlayer lrPlayer = game.getPlayerWithLongestRoad();
 
             final SOCBoard board = game.getBoard();
+            final SOCBuildingSpeedEstimateFactory bsef = brain.getEstimatorFactory();
 
             if (D.ebugOn)
             {
@@ -3458,7 +3464,7 @@ public class SOCPlayerTracker
 
                         if (citySpotsLeft == 0)
                         {
-                            chosenCity[0] = new SOCPossibleCity(player, chosenSet[0].getCoordinates());
+                            chosenCity[0] = new SOCPossibleCity(player, chosenSet[0].getCoordinates(), bsef);
                         }
 
                         ///
@@ -3599,8 +3605,10 @@ public class SOCPlayerTracker
                         Integer chosenSet1Int = Integer.valueOf(chosenSet[1].getCoordinates());
                         posSetsCopy.remove(chosenSet0Int);
                         posSetsCopy.remove(chosenSet1Int);
-                        posCitiesCopy.put(chosenSet0Int, new SOCPossibleCity(player, chosenSet[0].getCoordinates()));
-                        posCitiesCopy.put(chosenSet1Int, new SOCPossibleCity(player, chosenSet[1].getCoordinates()));
+                        posCitiesCopy.put
+                            (chosenSet0Int, new SOCPossibleCity(player, chosenSet[0].getCoordinates(), bsef));
+                        posCitiesCopy.put
+                            (chosenSet1Int, new SOCPossibleCity(player, chosenSet[1].getCoordinates(), bsef));
 
                         //
                         // remove possible settlements that are conflicts
@@ -3664,7 +3672,8 @@ public class SOCPlayerTracker
 
                         if (chosenSet[0].getCoordinates() != chosenCity[0].getCoordinates())
                         {
-                            posCitiesCopy.put(chosenSet0Int, new SOCPossibleCity(player, chosenSet[0].getCoordinates()));
+                            posCitiesCopy.put
+                                (chosenSet0Int, new SOCPossibleCity(player, chosenSet[0].getCoordinates(), bsef));
                         }
 
                         posCitiesCopy.remove(Integer.valueOf(chosenCity[0].getCoordinates()));

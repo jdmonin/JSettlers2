@@ -28,6 +28,7 @@ import java.util.Timer;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.message.SOCGames;
 import soc.util.SOCFeatureSet;
 
@@ -104,7 +105,7 @@ public interface MainDisplay
      * If username is invalid or empty, or we aren't ready to connect in some other way,
      * let the user know what to change.
      * @return true if OK, false if blank or not ready
-     * @see #askStartGameWithOptions(String, boolean, Map, Map)
+     * @see #askStartGameWithOptions(String, boolean, SOCGameOptionSet, Map)
      */
     boolean readValidNicknameAndPassword();
 
@@ -122,7 +123,7 @@ public interface MainDisplay
 
     /**
      * Ask server to start a game with options.
-     * If it's practice, will call {@link SOCPlayerClient#startPracticeGame(String, Map, boolean)}.
+     * If it's practice, will call {@link SOCPlayerClient#startPracticeGame(String, SOCGameOptionSet, boolean)}.
      * Otherwise, ask tcp server, and also set {@code WAIT_CURSOR} and status line ("Talking to server...").
      *<P>
      * Assumes we're already connected to server, and that nickname, password, hostname are already validated.
@@ -135,7 +136,7 @@ public interface MainDisplay
      */
     void askStartGameWithOptions
         (final String gmName, final boolean forPracticeServer,
-         final Map<String, SOCGameOption> opts, final Map<String, Object> localPrefs);
+         final SOCGameOptionSet opts, final Map<String, Object> localPrefs);
 
     /**
      * Clear any visual indicators that we are waiting for the network or other action, like {@code WAIT_CURSOR}.

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCGameOptionInfo;
@@ -46,16 +47,16 @@ import soc.message.SOCNewGameWithOptions;
  *<OL>
  *<LI> First, this object is created; <tt>allOptionsReceived</tt> false,
  *     <tt>newGameWaitingForOpts</tt> false.
- *     <tt>optionSet</tt> is set at client from {@link SOCGameOption#getAllKnownOptions()}.
+ *     <tt>knownOpts</tt> is set at client from {@link SOCGameOptionSet#getAllKnownOptions()}.
  *<LI> At server connect, ask and receive info about options, if our version and the
  *     server's version differ.  Once this is done, <tt>allOptionsReceived</tt> == true.
- *     If server is older than 1.1.07, <tt>optionSet</tt> becomes null here
+ *     If server is older than 1.1.07, <tt>knownOpts</tt> becomes null here
  *     because older servers don't support game options.
  *<LI> When user wants to create a new game, <tt>askedDefaultsAlready</tt> is false;
  *     ask server for its defaults (current option values for any new game).
  *     Also set <tt>newGameWaitingForOpts</tt> = true.
  *<LI> Server will respond with its current option values.  This sets
- *     <tt>defaultsReceived</tt> and updates <tt>optionSet</tt>.
+ *     <tt>defaultsReceived</tt> and updates <tt>knownOpts</tt>.
  *     It's possible that the server's defaults contain option names that are
  *     unknown at our version.  If so, <tt>allOptionsReceived</tt> is cleared, and we ask the
  *     server about those specific options.
@@ -107,15 +108,29 @@ import soc.message.SOCNewGameWithOptions;
     public String    gameInfoWaitingForOpts = null;
 
     /**
-     * Options will be null if {@link SOCPlayerClient#sVersion}
+     * Known Options of the connected server; will be null if {@link SOCPlayerClient#sVersion}
      * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS} (1.1.07).
-     * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
+     * Otherwise, set from {@link SOCGameOptionSet#getAllKnownOptions()}
      * and update from server as needed.
+     *<P>
      * May contain {@link SOCGameOption#OTYPE_UNKNOWN} opts sent from server
-     * as part of gameopt info synchronization, although {@link NewGameOptionsFrame}
-     * may later remove such unknown options from this shared set.
+     * as part of gameopt info synchronization.
+     *<P>
+     * Before v2.4.10 this field was {@code optionSet}.
+     * @see #newGameOpts
      */
-    public Map<String,SOCGameOption> optionSet = null;
+    public SOCGameOptionSet knownOpts = null;
+
+    /**
+     * Deep copy of {@link #knownOpts} for {@link NewGameOptionsFrame}
+     * to remember game option values selected by user for the next new game.
+     * Null if {@code knownOpts} is null.
+     *<P>
+     * {@code NewGameOptionsFrame} may remove any {@link SOCGameOption#OTYPE_UNKNOWN} options
+     * from this set, but they will remain in {@code knownOpts}.
+     * @since 2.4.10
+     */
+    public SOCGameOptionSet newGameOpts = null;
 
     /** Have we asked the server for default values? */
     public boolean   askedDefaultsAlready = false;
@@ -157,12 +172,12 @@ import soc.message.SOCNewGameWithOptions;
     public HashSet<String> scenKeys;
 
     /**
-     * Create a new ServerGametypeInfo, with an {@link #optionSet} defaulting
-     * to our client version's {@link SOCGameOption#getAllKnownOptions()}.
+     * Create a new ServerGametypeInfo, with an {@link #knownOpts} defaulting
+     * to our client version's {@link SOCGameOptionSet#getAllKnownOptions()}.
      */
     public ServerGametypeInfo()
     {
-        optionSet = SOCGameOption.getAllKnownOptions();
+        knownOpts = SOCGameOptionSet.getAllKnownOptions();
         scenKeys = new HashSet<String>();
     }
 
@@ -173,7 +188,7 @@ import soc.message.SOCNewGameWithOptions;
      *<P>
      * Check the server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
      * (1.1.07). If the server is too old to understand options, right after calling this method
-     * you must set {@link #optionSet} = null.
+     * you must set {@link #knownOpts} = null.
      * @param askedDefaults Should we also set the askedDefaultsAlready flag? It not, leave it unchanged.
      */
     public void noMoreOptions(boolean askedDefaults)
@@ -189,13 +204,14 @@ import soc.message.SOCNewGameWithOptions;
 
     /**
      * Set of default options has been received from the server, examine them.
-     * Sets allOptionsReceived, defaultsReceived, optionSet.  If we already have non-null optionSet,
+     * Sets allOptionsReceived, defaultsReceived, knownOpts.  If we already have non-null knownOpts,
      * use servOpts to replace its {@link SOCGameOption} references instead of creating a new Map.
      *
      * @param servOpts The allowable {@link SOCGameOption}s received from the server.
      *                 Assumes has been parsed already against the locally known opts,
      *                 so any opts that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
      * @return null if all are known, or a list of key names for unknown options.
+     * @see #receiveInfo(SOCGameOptionInfo)
      */
     public List<String> receiveDefaults(final Map<String, SOCGameOption> servOpts)
     {
@@ -205,16 +221,15 @@ import soc.message.SOCNewGameWithOptions;
 
         HashSet<String> prevKnown = null;
 
-        if ((optionSet == null) || optionSet.isEmpty())
+        if ((knownOpts == null) || knownOpts.isEmpty())
         {
-            optionSet = servOpts;
+            knownOpts = new SOCGameOptionSet(servOpts);
         } else {
             prevKnown = new HashSet<>();
             for (String oKey : servOpts.keySet())
             {
                 SOCGameOption op = servOpts.get(oKey);
-                SOCGameOption oldCopy = optionSet.put(oKey, op);  // even OTYPE_UNKNOWN are added
-                if (oldCopy != null)
+                if (knownOpts.put(op) != null)  // always add, even if OTYPE_UNKNOWN
                     prevKnown.add(oKey);
             }
         }
@@ -228,7 +243,8 @@ import soc.message.SOCNewGameWithOptions;
 
     /**
      * After calling receiveDefaults, call this as each GAMEOPTIONGETINFO is received.
-     * May update allOptionsReceived.
+     * Calls {@link SOCGameOptionSet#addKnownOption(SOCGameOption)}.
+     * May update {@code allOptionsReceived} flag.
      * If client already had information about this game option, that old info is discarded
      * but any {@link SOCGameOption.ChangeListener} is copied to the message's new {@link SOCGameOption}.
      *
@@ -239,11 +255,10 @@ import soc.message.SOCNewGameWithOptions;
      */
     public boolean receiveInfo(SOCGameOptionInfo gi)
     {
-        String oKey = gi.getOptionNameKey();
-        SOCGameOption oinfo = gi.getOptionInfo();
-        SOCGameOption oldcopy = optionSet.get(oKey);
+        final SOCGameOption oinfo = gi.getOptionInfo();
+        final boolean isUnknown = (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN);
 
-        if ((oinfo.key.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
+        if ((oinfo.key.equals("-")) && isUnknown)
         {
             // end-of-list marker: no more options from server.
             // That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
@@ -254,15 +269,9 @@ import soc.message.SOCNewGameWithOptions;
         } else {
             // remove old, replace with new from server (if any)
 
-            if (oldcopy != null)
-            {
-                optionSet.remove(oKey);
-                final SOCGameOption.ChangeListener cl = oldcopy.getChangeListener();
-                if (cl != null)
-                    oinfo.addChangeListener(cl);
-            }
-            SOCGameOption.addKnownOption(oinfo);
-            optionSet.put(oKey, oinfo);  // even OTYPE_UNKNOWN are added
+            knownOpts.addKnownOption(oinfo);
+            if (isUnknown)
+                knownOpts.put(oinfo);  // since addKnownOption won't add an unknown
 
             return false;
         }

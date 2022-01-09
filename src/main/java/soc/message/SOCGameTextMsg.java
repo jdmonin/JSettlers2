@@ -86,9 +86,11 @@ public class SOCGameTextMsg extends SOCMessage
 
     /**
      * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}.
-     * Same separator as {@link SOCChannelTextMsg}.
+     * Same separator as in {@link SOCChannelTextMsg}.
+     *<P>
+     * Before v2.4.10 this field was named {@code sep2}.
      */
-    private static String sep2 = "" + (char) 0;
+    private static String sep2_alt = "" + (char) 0;
 
     /**
      * Name of game
@@ -161,13 +163,13 @@ public class SOCGameTextMsg extends SOCMessage
     }
 
     /**
-     * GAMETEXTMSG sep game sep2 nickname sep2 text
+     * GAMETEXTMSG sep game sep2_alt nickname sep2_alt text
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return GAMETEXTMSG + sep + game + sep2 + nickname + sep2 + text;
+        return GAMETEXTMSG + sep + game + sep2_alt + nickname + sep2_alt + text;
     }
 
     /**
@@ -182,7 +184,7 @@ public class SOCGameTextMsg extends SOCMessage
         String nn;
         String tm;
 
-        StringTokenizer st = new StringTokenizer(s, sep2);
+        StringTokenizer st = new StringTokenizer(s, sep2_alt);
 
         try
         {
@@ -200,7 +202,8 @@ public class SOCGameTextMsg extends SOCMessage
 
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a list formatted for {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * returning message parameters as a list formatted for {@link SOCMessage#parseMsgStr(String)}
+     * to pass to {@link #parseDataStr(String)}.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @see #stripAttribNamesToTextMsg(String, String)
@@ -213,7 +216,7 @@ public class SOCGameTextMsg extends SOCMessage
 
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a list formatted for {@link #parseMsgStr(String)}/{@link #parseDataStr(String)}.
+     * for {@link #stripAttribNames(String)}.
      * @param prefix  Expected prefix and first parameter name: {@code "game="}, {@code "channel="}, etc
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}.
      *     Example: {@code "SOCGameTextMsg:game=ga|nickname=Server|text=testp3 built a road."}
@@ -235,8 +238,8 @@ public class SOCGameTextMsg extends SOCMessage
 
         // This type uses special separators, to handle standard separator chars in the message itself
         return messageStrParams.substring(prefix.length(), pipeIdx)
-            + SOCGameTextMsg.sep2 + messageStrParams.substring(pipeIdx + 10, pipe2Idx)
-            + SOCGameTextMsg.sep2 + messageStrParams.substring(pipe2Idx + 6);
+            + sep2_alt + messageStrParams.substring(pipeIdx + 10, pipe2Idx)
+            + sep2_alt + messageStrParams.substring(pipe2Idx + 6);
     }
 
     /**

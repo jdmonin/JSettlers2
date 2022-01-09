@@ -32,16 +32,20 @@ import soc.util.DataUtils;
 /**
  * This message from client asks the server about a list of game options,
  * or is a general request about all changes to game options.
+ * Used during {@link SOCGameOption} synchronization when client wants localization
+ * or is a different version than the server.
  * The server will respond with {@link SOCGameOptionInfo GAMEOPTIONINFO} message(s),
  * one per option keyname listed in this message.
  *<P>
- * If the only 'option' keyname sent is '-', server will send info on all
+ * If the only "option" keyname sent is '-', server will send info on all
  * options which are new or changed since the client's version. (this usage
- * assumes client is older than server).
- *<P>
+ * assumes client is older than server.)
  * This is so clients can find out about options which were
  * introduced in versions newer than the client's version, but which
  * may be applicable to their version or all versions.
+ *<P>
+ * A client looking for all such changes but also info about specific options
+ * can send {@link #OPTKEY_GET_ANY_CHANGES} as part of its {@link #optionKeys} list.
  *<P>
  * In v2.0.00 and newer, clients can also request localized descriptions of all options
  * if available, by including {@link #OPTKEY_GET_I18N_DESCS} as the last option keyname
@@ -91,13 +95,31 @@ public class SOCGameOptionGetInfos extends SOCMessage
      * {@link soc.util.SOCStringManager#VERSION_FOR_I18N SOCStringManager.VERSION_FOR_I18N}.
      *
      * @see #hasTokenGetI18nDescs
+     * @see #OPTKEY_GET_ANY_CHANGES
      * @since 2.0.00
      */
     public static final String OPTKEY_GET_I18N_DESCS = "?I18N";
 
     /**
-     * List of game option keynames, or {@code null}.  Does not include
+     * Request token sent from client to a newer server to get info on any new or changed options
+     * when client also needs to ask status of some specific options.
+     *<P>
+     * v2.4.10 was the first version with that requirement,
+     * because that version adds {@link SOCGameOption#FLAG_3RD_PARTY}.
+     * Earlier client versions would ask older servers about specific options,
+     * or ask newer servers about any new/changed options in general,
+     * never needing both of those sets of info at once.
+     *
+     * @see #OPTKEY_GET_I18N_DESCS
+     * @since 2.4.10
+     */
+    public static final String OPTKEY_GET_ANY_CHANGES = "?CHANGES";
+
+    /**
+     * List of specific game option keynames to ask about, or {@code null}. Does not include
      * {@link #OPTKEY_GET_I18N_DESCS}, use {@link #hasTokenGetI18nDescs} instead.
+     * At sending client, does include {@link #OPTKEY_GET_ANY_CHANGES} if needed;
+     * receiving server uses {@link #hasTokenGetAnyChanges} instead.
      *<P>
      * If {@code null}, then "-" was sent unless {@link #hasOnlyTokenI18n}.
      *<P>
@@ -109,6 +131,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
      * True if client is also asking server for localized game option descriptions (v2.0.00 and
      * newer); will send {@link #OPTKEY_GET_I18N_DESCS} along with {@link #optionKeys}.
      * @see #hasOnlyTokenI18n
+     * @see #hasTokenGetAnyChanges
      * @since 2.0.00
      */
     public final boolean hasTokenGetI18nDescs;
@@ -123,18 +146,31 @@ public class SOCGameOptionGetInfos extends SOCMessage
     public final boolean hasOnlyTokenI18n;
 
     /**
-     * Create a GameOptionGetInfos Message.
+     * True if client sent {@link #OPTKEY_GET_ANY_CHANGES} as part of {@link #optionKeys}.
+     * During parsing at server, this flag was set and that token was removed from {@code optionKeys}.
+     *<P>
+     * Because it's seldom used, unlike {@link #hasTokenGetI18nDescs}, this flag isn't {@code final}
+     * or a constructor parameter.
+     *
+     * @since 2.4.10
+     */
+    public boolean hasTokenGetAnyChanges;
+
+    /**
+     * Create a GameOptionGetInfos Message, optionally with a list of game option keyname Strings to ask about.
      *
      * @param okeys  list of game option keynames (Strings), or {@code null} for "-".
      *   Do not include {@link #OPTKEY_GET_I18N_DESCS} in this list; set {@code withTokenI18nDescs} true instead.
+     *   Do include {@link #OPTKEY_GET_ANY_CHANGES} if needed.
      * @param withTokenI18nDescs  true if client is also asking server for localized game option
      *   descriptions (v2.0.00 and newer); will send {@link #OPTKEY_GET_I18N_DESCS} along with
      *   {@code okeys}. Before sending this token, check the server's version against
-     *   {@link soc.util.SOCStringManager#VERSION_FOR_I18N SOCStringManager.VERSION_FOR_I18N}.
+     *   {@link soc.util.SOCStringManager#VERSION_FOR_I18N}.
      * @param withOnlyTokenI18n  true if client is same version as server and asking only for
      *   localized game option descriptions; will send {@link #OPTKEY_GET_I18N_DESCS} but not "-".
      *   See {@code withTokenI18nDescs} for version requirements.
      * @throws IllegalArgumentException if {@code withOnlyTokenI18n}, but {@code okeys != null}
+     * @see #SOCGameOptionGetInfos(List, boolean)
      */
     public SOCGameOptionGetInfos
         (final List<String> okeys, final boolean withTokenI18nDescs, final boolean withOnlyTokenI18n)
@@ -144,9 +180,43 @@ public class SOCGameOptionGetInfos extends SOCMessage
             throw new IllegalArgumentException(okeys.toString());
 
         messageType = GAMEOPTIONGETINFOS;
+
         optionKeys = okeys;
         hasTokenGetI18nDescs = withTokenI18nDescs;
         hasOnlyTokenI18n = withOnlyTokenI18n;
+    }
+
+    /**
+     * Create a GameOptionGetInfos Message, optionally with a list of {@link SOCGameOption}s to ask about.
+     *<P>
+     * If client and server are same version, consider using the other constructor
+     * {@link #SOCGameOptionGetInfos(List, boolean, boolean)} because
+     * this one doesn't set the {@link #hasOnlyTokenI18n} flag.
+     *
+     * @param opts  list of game options, or {@code null} for "-". Will build message using these options' keynames.
+     *   Can include {@link #OPTKEY_GET_ANY_CHANGES} if needed.
+     * @param withTokenI18nDescs  true if client is also asking server for localized game option
+     *   descriptions (v2.0.00 and newer); will send {@link #OPTKEY_GET_I18N_DESCS} along with
+     *   {@code opts}' keynames. Before sending this token, check the server's version against
+     *   {@link soc.util.SOCStringManager#VERSION_FOR_I18N}.
+     * @since 2.4.10
+     */
+    public SOCGameOptionGetInfos
+        (final List<SOCGameOption> opts, final boolean withTokenI18nDescs)
+    {
+        messageType = GAMEOPTIONGETINFOS;
+
+        if (opts != null)
+        {
+            List<String> okeys = new ArrayList<>(opts.size());
+            for (SOCGameOption opt : opts)
+                okeys.add(opt.key);
+            optionKeys = okeys;
+        } else {
+            optionKeys = null;
+        }
+        hasTokenGetI18nDescs = withTokenI18nDescs;
+        hasOnlyTokenI18n = false;
     }
 
     /**
@@ -160,6 +230,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
     /**
      * @return True if client is also asking server for localized game option descriptions (v2.0.00 and
      *     newer); message includes {@link #OPTKEY_GET_I18N_DESCS} along with {@link #optionKeys}.
+     * @see #hasOnlyTokenI18n
      * @since 2.0.00
      */
     public boolean hasTokenGetI18nDescs()
@@ -175,62 +246,30 @@ public class SOCGameOptionGetInfos extends SOCMessage
     @Override
     public String toCmd()
     {
-        return toCmd(optionKeys, hasTokenGetI18nDescs, hasOnlyTokenI18n);
-    }
+        StringBuilder cmd = new StringBuilder();
+        cmd.append(GAMEOPTIONGETINFOS).append(sep);
 
-    /**
-     * GAMEOPTIONGETINFOS sep optionKeys
-     *
-     * @param opts  the list of option keynames, as a list of Strings or SOCGameOptions,
-     *            or null to use "-" as 'optionKeys'
-     * @param withTokenI18nDescs  true if client is also asking server for localized game option descriptions
-     *            (v2.0.00 and newer); will send {@link #OPTKEY_GET_I18N_DESCS} along with {@code opts}.
-     *            Before sending this token, check the server's version against
-     *            {@link soc.util.SOCStringManager#VERSION_FOR_I18N SOCStringManager.VERSION_FOR_I18N}.
-     * @param withOnlyTokenI18n  true if client is same version as server and asking only for
-     *            localized game option descriptions; will send {@link #OPTKEY_GET_I18N_DESCS} but not "-".
-     *            See {@code withTokenI18nDescs} for version requirements.
-     * @return  the command string
-     * @throws IllegalArgumentException if {@code withOnlyTokenI18n}, but {@code opts != null}
-     */
-    public static String toCmd
-        (final List<?> opts, final boolean withTokenI18nDescs, final boolean withOnlyTokenI18n)
-        throws IllegalArgumentException
-    {
-        if (withOnlyTokenI18n && (opts != null))
-            throw new IllegalArgumentException(opts.toString());
-
-        StringBuffer cmd = new StringBuffer(Integer.toString(GAMEOPTIONGETINFOS));
-        cmd.append(sep);
-
-        if ((opts == null) || opts.isEmpty())
+        if ((optionKeys == null) || optionKeys.isEmpty())
         {
-            if (! withOnlyTokenI18n)
+            if (! hasOnlyTokenI18n)
                 cmd.append("-");
         } else {
-            try
+            boolean hadAny = false;
+
+            for (final String key : optionKeys)
             {
-                boolean hadAny = false;
+                if (hadAny)
+                    cmd.append(sep2);
+                else
+                    hadAny = true;
 
-                for (final Object o : opts)
-                {
-                    if (hadAny)
-                        cmd.append(sep2);
-                    else
-                        hadAny = true;
-
-                    if (o instanceof SOCGameOption)
-                        cmd.append(((SOCGameOption) o).key);
-                    else
-                        cmd.append((String) o);
-                }
+                cmd.append(key);
             }
-            catch (Exception e) { }
         }
 
-        if (withTokenI18nDescs)
+        if (hasTokenGetI18nDescs)
         {
-            if (! withOnlyTokenI18n)
+            if (! hasOnlyTokenI18n)
                 cmd.append(sep2);
             cmd.append(OPTKEY_GET_I18N_DESCS);
         }
@@ -248,7 +287,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
     {
         List<String> okey = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
-        boolean hasDash = false, hasTokenI18n = false;
+        boolean hasDash = false, hasTokenI18n = false, hasTokenAllChanges = false;
 
         try
         {
@@ -256,15 +295,23 @@ public class SOCGameOptionGetInfos extends SOCMessage
             {
                 String ntok = st.nextToken();
 
-                if (ntok.equals(OPTKEY_GET_I18N_DESCS))
+                if (ntok.equals("-"))
+                {
+                    hasDash = true;
+                    continue;
+                }
+                else if (ntok.equals(OPTKEY_GET_I18N_DESCS))
                 {
                     hasTokenI18n = true;
                     continue;  // not an optkey, don't add it to list
                 }
+                else if (ntok.equals(OPTKEY_GET_ANY_CHANGES))
+                {
+                    hasTokenAllChanges = true;
+                    continue;
+                }
 
                 okey.add(ntok);
-                if (ntok.equals("-"))
-                    hasDash = true;  // should be sole element of list
             }
         }
         catch (Exception e)
@@ -274,18 +321,17 @@ public class SOCGameOptionGetInfos extends SOCMessage
             return null;
         }
 
-        if (hasDash)
-        {
-            if (okey.size() == 1)
-                okey = null;  // empty list for "-"
-            else
-                return null;  // parse error: more than "-" in list which contains "-"
-        } else {
-            if (okey.isEmpty())
-                okey = null;
-        }
+        if (okey.isEmpty())
+            okey = null;
+        if (hasDash && (okey != null))
+            return null;  // parse error: more than "-" in list which contains "-"
 
-        return new SOCGameOptionGetInfos(okey, hasTokenI18n, hasTokenI18n && (okey == null) && ! hasDash);
+        SOCGameOptionGetInfos ret = new SOCGameOptionGetInfos
+            (okey, hasTokenI18n, hasTokenI18n && (okey == null) && ! hasDash);
+        if (hasTokenAllChanges)
+            ret.hasTokenGetAnyChanges = true;
+
+        return ret;
     }
 
     /**
@@ -302,6 +348,8 @@ public class SOCGameOptionGetInfos extends SOCMessage
                 sb.append('-');
         } else {
             DataUtils.listIntoStringBuilder(optionKeys, sb);
+            if (hasTokenGetAnyChanges && ! optionKeys.contains(OPTKEY_GET_ANY_CHANGES))
+                sb.append(',').append(OPTKEY_GET_ANY_CHANGES);
         }
 
         if (hasTokenGetI18nDescs)

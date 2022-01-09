@@ -30,6 +30,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -80,8 +81,9 @@ import java.util.Map;
  * Some static methods here are used by {@link soc.client.SOCPlayerClient}
  * and {@link soc.robot.SOCRobotClient}, to prevent code duplication.
  *<P>
- * Since robot client and server are the same version, this client ignores game option sync
- * and scenario synchronization messages ({@link SOCGameOptionInfo}, {@link SOCScenarioInfo}).
+ * Since server and built-in robots are the same version, this client doesn't need
+ * game option sync messages ({@link SOCGameOptionInfo}) but handles them if sent.
+ * Ignores scenario synchronization messages ({@link SOCScenarioInfo}).
  * Being GUI-less, it ignores i18n localization messages ({@link SOCLocalizedStrings}).
  *<P>
  * Before v1.1.20, this class was in the {@code soc.client} package. In 1.1.20,
@@ -119,6 +121,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /** Default (4000) for {@link #PROP_JSETTLERS_PROTOBUF_PORT}. */
     public static final int PORT_DEFAULT_PROTOBUF = 4000;
 
+    /**
+     * For client/robot testing, string property {@code "jsettlers.debug.client.gameopt3p"}
+     * with name of a "third-party" Known Game Option to create; will have {@link SOCGameOption#FLAG_3RD_PARTY}.
+     * At server connect, will report having client feature {@code "com.example.js."} + optionName
+     * along with default features or {@link soc.client.SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}.
+     *
+     * @see soc.server.SOCServer#PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P
+     * @since 2.4.10
+     */
+    public static final String PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P = "jsettlers.debug.client.gameopt3p";
+
     protected static String STATSPREFEX = "  [";
     protected String doc;
     protected String lastMessage;
@@ -138,11 +151,43 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * Robot clients should set non-null {@link ServerConnectInfo#robotCookie} when constructing.
      *<P>
      * Versions before 2.2.00 instead had {@code host}, {@code port}, {@code strSocketName} fields.
+     *
+     * @see #allOptsReceived
      * @since 2.2.00
      */
     protected final ServerConnectInfo serverConnectInfo;
 
-    protected Socket s;
+    /**
+     * This client's set of Known Options.
+     * Initialized from {@link SOCGameOptionSet#getAllKnownOptions()}, updated by
+     * {@link SOCGameOptionInfo} messages.
+     * @see #allOptsReceived
+     * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
+     * @since 2.4.10
+     */
+    public SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
+
+    /**
+     * Since server and built-in robots are the same version,
+     * this client doesn't need {@link SOCGameOption} synchronization messages.
+     * Server still sends them in some conditions, such as when gameopts are limited by client features
+     * or when inactive opts have been activated.
+     *<P>
+     * By default assumes true, there's no pending info to receive, because is same version as server.
+     * If a gameopt sync message is sent, will set false until the "end of list" marker message is sent.
+     *
+     * @see #knownOpts
+     * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
+     * @since 2.4.10
+     */
+    protected boolean allOptsReceived = true;
+
+    /**
+     * Network socket. Initialized in subclasses.
+     * Before v2.4.10 this field was {@code s}.
+     */
+    protected Socket sock;
+
     protected DataInputStream in;
     protected DataOutputStream out;
 
@@ -263,7 +308,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
                     s = in.readUTF();
                 else
                     s = sLocal.readNext();
-                treat(SOCMessage.toMsg(s));
+
+                SOCMessage msg = SOCMessage.toMsg(s);
+                if (msg != null)
+                    treat(msg);
+                else if (debugTraffic)
+                    soc.debug.D.ebugERROR(nickname + ": Could not parse net message: " + s);
             }
         }
         catch (InterruptedIOException e)
@@ -799,6 +849,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * handle updated game option info from server
+             */
+            case SOCMessage.GAMEOPTIONINFO:
+                handleGAMEOPTIONINFO((SOCGameOptionInfo) mes);
+                break;
+
+            /**
              * generic "simple action" announcements from the server.
              * Added 2013-09-04 for v1.1.19.
              */
@@ -871,6 +928,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 handleSETSPECIALITEM(games, (SOCSetSpecialItem) mes);
                 break;
 
+            /**
+             * Report Robbery.
+             * Added 2020-09-15 for v2.4.10.
+             */
+            case SOCMessage.REPORTROBBERY:
+                handleREPORTROBBERY
+                    ((SOCReportRobbery) mes, games.get(((SOCReportRobbery) mes).getGame()));
+                break;
             }
         }
         catch (Exception e)
@@ -1055,20 +1120,20 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         gotPassword = true;
 
-        final Map<String, SOCGameOption> opts;
+        final SOCGameOptionSet opts;
         final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
         if ((bh != 0) || (bw != 0))
         {
             // Encode board size to pass through game constructor.
-            opts = new HashMap<String, SOCGameOption>();
-            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            opts = new SOCGameOptionSet();
+            SOCGameOption opt = knownOpts.getKnownOption("_BHW", true);
             opt.setIntValue((bh << 8) | bw);
-            opts.put("_BHW", opt);
+            opts.put(opt);
         } else {
             opts = null;
         }
 
-        final SOCGame ga = new SOCGame(mes.getGame(), opts);
+        final SOCGame ga = new SOCGame(mes.getGame(), opts, knownOpts);
         ga.isPractice = isPractice;
         ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
         games.put(mes.getGame(), ga);
@@ -2075,7 +2140,61 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes) {}
 
     /**
-     * handle the "make offer" message
+     * Handle the "report robbery" message.
+     * Updates game data by calling {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
+     * or {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
+     *<P>
+     * This method is public static for access by {@code SOCPlayerClient} and robot client classes.
+     *
+     * @param mes  the message
+     * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}; if {@code null}, message is ignored
+     * @since 2.4.10
+     */
+    public static void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    {
+        if (ga == null)
+            return;
+
+        final int perpPN = mes.perpPN, victimPN = mes.victimPN;
+        final SOCPlayer perp = (perpPN >= 0) ? ga.getPlayer(perpPN) : null,
+            victim = (victimPN >= 0) ? ga.getPlayer(victimPN) : null;
+
+        final PEType peType = mes.peType;
+        if (peType != null)
+        {
+            if (mes.isGainLose)
+            {
+                if (perp != null)
+                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.GAIN, peType, mes.amount, null);
+                if (victim != null)
+                    handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.LOSE, peType, mes.amount, null);
+            } else {
+                if (perp != null)
+                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.SET, peType, mes.amount, null);
+                if (victim != null)
+                    handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.SET, peType, mes.victimAmount, null);
+            }
+        } else {
+            final int resType = mes.resType;
+
+            if (mes.isGainLose)
+            {
+                if (perp != null)
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.GAIN, resType, mes.amount);
+                if (victim != null)
+                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.LOSE, resType, mes.amount);
+            } else {
+                if (perp != null)
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.SET, resType, mes.amount);
+                if (victim != null)
+                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.SET, resType, mes.victimAmount);
+            }
+        }
+    }
+
+    /**
+     * handle the "make offer" message.
+     * Ignore "not allowed" replies from server ({@link SOCTradeOffer#getFrom()} &lt; 0).
      * @param mes  the message
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
@@ -2085,7 +2204,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         SOCTradeOffer offer = mes.getOffer();
-        ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
+        int fromPN = offer.getFrom();
+        if (fromPN >= 0)
+            ga.getPlayer(fromPN).setCurrentOffer(offer);
     }
 
     /**
@@ -2199,6 +2320,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @return  True if this message is a "cannot play this type now" from server for our client player.
      * @since 2.0.00
      */
+    @SuppressWarnings("fallthrough")
     public static boolean handleINVENTORYITEMACTION(Hashtable<String, SOCGame> games, SOCInventoryItemAction mes)
     {
         SOCGame ga = games.get(mes.getGame());
@@ -2395,6 +2517,28 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * process the "game option info" message
+     * by calling {@link SOCGameOptionSet#addKnownOption(SOCGameOption)}.
+     * If all are now received, sets {@link #allOptsReceived} flag.
+     * @param optInfo Info message for this {@link SOCGameOption}
+     * @since 2.4.10
+     */
+    protected void handleGAMEOPTIONINFO(final SOCGameOptionInfo optInfo)
+    {
+        final SOCGameOption opt = optInfo.getOptionInfo();
+
+        if ((opt.key.equals("-")) && (opt.optType == SOCGameOption.OTYPE_UNKNOWN))
+        {
+            allOptsReceived = true;
+        } else {
+            if (allOptsReceived)
+                allOptsReceived = false;
+
+            knownOpts.addKnownOption(opt);
+        }
+    }
+
+    /**
      * Update any game data from "simple request" announcements from the server.
      * Currently ignores them except for:
      *<UL>
@@ -2425,6 +2569,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             case SOCSimpleRequest.TRADE_PORT_PLACE:
                 if (pn >= 0)  // if pn -1, request was rejected
                     ga.placePort(ga.getPlayer(pn), value1, value2);
+                break;
 
             // Known types with no game data update:
             // Catch these before default case, so 'unknown type' won't be printed
@@ -2577,13 +2722,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final int coord = mes.getParam2();
         final int pv = mes.getParam3();
 
-        if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
         {
             SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(coord);
             if (vi != null)
                 vi.setCloth(pv);
         }
-        else if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        else if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             SOCFortress fort = ga.getFortress(coord);
             if (fort != null)
@@ -2703,7 +2848,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         try
         {
-            s.close();
+            sock.close();
         }
         catch (Exception e)
         {
@@ -2864,14 +3009,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user leaves the given game
+     * user wants to leave a game.
      *
      * @param ga   the game
+     * @see #leaveGame(String)
      */
     public void leaveGame(SOCGame ga)
     {
-        games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(nickname, "-", ga.getName()));
+        leaveGame(ga.getName());
+    }
+
+    /**
+     * user wants to leave a game, which they may not have been able to fully join.
+     *
+     * @param gaName  the game name
+     * @see #leaveGame(SOCGame)
+     * @since 2.4.10
+     */
+    public void leaveGame(final String gaName)
+    {
+        games.remove(gaName);
+        put(new SOCLeaveGame(nickname, "-", gaName).toCmd());
     }
 
     /**

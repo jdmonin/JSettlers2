@@ -36,6 +36,11 @@ import java.util.StringTokenizer;
  * From client: A request to make or update a trade offer to 1 or more other players. <BR>
  * From server: A validated offer announced to the game. Will be followed immediately by
  * a {@link SOCClearTradeMsg} to clear responses from any previous offer.
+ *<BR>
+ * Or, server is replying to client that this trade is disallowed: {@link #getOffer()}.{@code getFrom()}
+ * is {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}.
+ * Clients older than v2.4.10 don't recognize {@code PN_REPLY_CANNOT_MAKE_TRADE}, so server
+ * sends those clients a {@link SOCGameServerText} instead.
  *
  * @author Robert S. Thomas
  */
@@ -60,7 +65,8 @@ public class SOCMakeOffer extends SOCMessage
      * @param ga   the name of the game
      * @param of   the offer being made.
      *    From server, this offer's {@link SOCTradeOffer#getFrom()} is the player number
-     *    making the offer. From client, value of {@code of.getFrom()} is ignored at server.
+     *    making the offer, or {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}: See {@link #getOffer()}.
+     *    From client, value of {@code of.getFrom()} is ignored at server.
      */
     public SOCMakeOffer(String ga, SOCTradeOffer of)
     {
@@ -81,6 +87,8 @@ public class SOCMakeOffer extends SOCMessage
      * Get the offer being made.
      * From server, this offer's {@link SOCTradeOffer#getFrom()} is the player number
      * making the offer. From client, value of {@code getFrom()} is ignored at server.
+     * If server is replying to client that this trade is disallowed, {@code getFrom()}
+     * is {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}.
      * @return the offer being made
      */
     public SOCTradeOffer getOffer()
@@ -226,10 +234,9 @@ public class SOCMakeOffer extends SOCMessage
     // Special handling:
     // 1) There is a bizarre "offer=game=gameName" in the second position
     // 2) Give and get are specified as give=clay=x|ore=y...
-    //  When we strip attrip names, we get a meaningless second entry, which we can skip, and due to manner of parsing, clay is inserted before give and get sets.
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @since 2.4.10

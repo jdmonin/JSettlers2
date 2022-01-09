@@ -74,6 +74,7 @@ import javax.swing.text.Document;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
@@ -87,7 +88,7 @@ import soc.util.Version;
  * user preferences such as {@link SOCPlayerClient#PREF_SOUND_ON}
  * and per-game preferences such as {@link SOCPlayerInterface#PREF_SOUND_MUTE}.
  * When "Create" button is clicked, validates fields and calls
- * {@link MainDisplay#askStartGameWithOptions(String, boolean, Map, Map)}.
+ * {@link MainDisplay#askStartGameWithOptions(String, boolean, SOCGameOptionSet, Map)}.
  *<P>
  * Also used for showing a game's options (read-only) during game play.
  *<P>
@@ -106,7 +107,7 @@ import soc.util.Version;
  * This class also contains the "Scenario Info" popup window, called from
  * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
  * when first joining a game with a scenario:
- * See {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Window)}.
+ * See {@link #showScenarioInfoDialog(SOCScenario, SOCGameOptionSet, SOCGameOptionSet, int, MainDisplay, Window)}.
  *<P>
  * Although this class was changed in v2.0 from a Frame to a JDialog, it's still named
  * "NewGameOptionsFrame": Many commit messages and local vars refer to "NGOF".
@@ -177,16 +178,28 @@ import soc.util.Version;
      */
     private final boolean alwaysSetSBL;
 
-    /** Contains this game's {@link SOCGameOption}s, or null if none.
-     *  Unknowns (OTYPE_UNKNOWN) are removed in initInterface_options.
+    /**
+     * Contains this game's {@link SOCGameOption}s, or null if none.
+     * Unknowns (OTYPE_UNKNOWN) and inactives (SGO.FLAG_INACTIVE_HIDDEN) are removed in
+     * {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints) initInterface_Options(..)}.
      *<P>
      * The opts' values are updated from UI components when the user hits the Create Game button,
      * and sent to the server to create the game.  If there are {@link SOCGameOption.ChangeListener}s,
      * they are updated as soon as the user changes them in the components, then re-updated when
      * Create is hit.
+     *
      * @see #readOptsValuesFromControls(boolean)
+     * @see #knownOpts
      */
-    private Map<String, SOCGameOption> opts;
+    private final SOCGameOptionSet opts;
+
+    /**
+     * This game's server's Known Options, from {@link ServerGametypeInfo#knownOpts}.
+     * When NGOF is being shown to create the first new game / practice game, {@code knownOpts}
+     * is copied to {@link ServerGametypeInfo#newGameOpts} to be {@link #opts} here.
+     * @since 2.4.10
+     */
+    private final SOCGameOptionSet knownOpts;
 
     /** Key = Swing control; value = {@link SOCGameOption} within {@link #opts}. Empty if opts is null.  */
     private Map<Component, SOCGameOption> controlsOpts;
@@ -259,7 +272,7 @@ import soc.util.Version;
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
      *<P>
      * See also convenience method
-     * {@link #createAndShow(SOCPlayerInterface, MainDisplay, String, Map, int, boolean, boolean)}.
+     * {@link #createAndShow(SOCPlayerInterface, MainDisplay, String, SOCGameOptionSet, int, boolean, boolean)}.
      *
      * @param pi  Interface of existing game, or {@code null} for a new game.
      *     Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
@@ -269,7 +282,7 @@ import soc.util.Version;
      *                 to use {@link SOCPlayerClient#DEFAULT_PRACTICE_GAMENAME}.
      * @param opts     Set of {@link SOCGameOption}s; its values will be changed when "New Game" button
      *                 is pressed, so the next OptionsFrame will default to the values the user has chosen.
-     *                 To preserve them, call {@link SOCGameOption#cloneOptions(Map)} beforehand.
+     *                 To preserve them, copy the set beforehand.
      *                 Null if server doesn't support game options.
      *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
      *                 If not <tt>readOnly</tt>, each option's {@link SOCGameOption#userChanged userChanged}
@@ -278,10 +291,13 @@ import soc.util.Version;
      *      from {@link SOCPlayerClient#sVersion}. Ignored if {@code forPractice} or {@code readOnly}.
      * @param forPractice For making a new game: Will the game be on local practice server, vs remote tcp server?
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
+     * @throws IllegalArgumentException if a non-null {@code opts} is the client's knownOpts
+     *     from {@link ServerGametypeInfo#knownOpts}, which should be copied before use for a new game's options
      */
     public NewGameOptionsFrame
         (final SOCPlayerInterface pi, final MainDisplay md, String gaName,
-         Map<String, SOCGameOption> opts, final int serverVersion, boolean forPractice, boolean readOnly)
+         final SOCGameOptionSet opts, final int serverVersion, final boolean forPractice, final boolean readOnly)
+        throws IllegalArgumentException
     {
         super( pi, readOnly
                 ? (strings.get("game.options.title", gaName))
@@ -296,11 +312,14 @@ import soc.util.Version;
         SOCPlayerClient cli = md.getClient();
         forNewGame = (gaName == null);
         this.opts = opts;
+        knownOpts = ((forPractice) ? cli.practiceServGameOpts : cli.tcpServGameOpts).knownOpts;
         localPrefs = new HashMap<String, Object>();
         this.forPractice = forPractice;
         this.readOnly = readOnly;
         alwaysSetSBL = forNewGame && (! (forPractice || readOnly))
             && (serverVersion < SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC);
+        if ((opts != null) && (opts == knownOpts))
+            throw new IllegalArgumentException("opts == knownOpts");
 
         controlsOpts = new HashMap<Component, SOCGameOption>();
         if (! readOnly)
@@ -346,16 +365,19 @@ import soc.util.Version;
     /**
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
-     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, MainDisplay, String, Map, boolean, boolean) constructor}
+     * See {@link #NewGameOptionsFrame(SOCPlayerInterface, MainDisplay, String, SOCGameOptionSet, int, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
      * @param pi  Interface of existing game, or {@code null} for a new game; see constructor
      * @param gaName  Name of existing game, or {@code null} to show options for a new game;
      *     see constructor for details
      * @return the new frame
+     * @throws IllegalArgumentException if a non-null {@code opts} is the client's knownOpts
+     *     from {@link ServerGametypeInfo#knownOpts}, which should be copied before use for a new game's options
      */
     public static NewGameOptionsFrame createAndShow
         (SOCPlayerInterface pi, MainDisplay md, String gaName,
-         Map<String, SOCGameOption> opts, final int serverVersion, boolean forPractice, boolean readOnly)
+         SOCGameOptionSet opts, final int serverVersion, boolean forPractice, boolean readOnly)
+        throws IllegalArgumentException
     {
         final NewGameOptionsFrame ngof =
             new NewGameOptionsFrame(pi, md, gaName, opts, serverVersion, forPractice, readOnly);
@@ -510,8 +532,11 @@ import soc.util.Version;
 
     /**
      * Interface setup: {@link SOCGameOption}s, user's client preferences, per-game local preferences.
-     * One row per option; groups 3-letter options under their matching 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
+     * One row per option; 3-letter options are grouped under their matching 2-letter ones,
+     * longer options whose keys have a {@code '_'} under the option (if any) whose key
+     * is the prefix before {@code '_'}. Non-grouped options are sorted by case-insensitive description
+     * by calling {@link SOCGameOption#compareTo(Object)}.
      *<P>
      * When showing options to create a new game, option keys starting with '_' are hidden.
      * This prevents unwanted changes to those options, which are set at the server during game creation.
@@ -551,7 +576,7 @@ import soc.util.Version;
         }
         else if (! readOnly)
         {
-            for (SOCGameOption opt : opts.values())
+            for (SOCGameOption opt : opts)
             {
                 opt.userChanged = false;  // clear flag from any previously shown NGOF
 
@@ -569,13 +594,24 @@ import soc.util.Version;
         // under another option (based on key length and common prefix)
         // instead of aligned to the start of a line.
         HashMap<String,String> sameGroupOpts = new HashMap<>();  // key=in-same-group opt, value=opt which heads that group
-        for (final SOCGameOption opt : opts.values())
+        for (final SOCGameOption opt : opts)
         {
             final String okey = opt.key;
-            if ((okey.length() <= 2) || (opt.optType == SOCGameOption.OTYPE_UNKNOWN))
+            final int kL = okey.length();
+            if ((kL <= 2) || (opt.optType == SOCGameOption.OTYPE_UNKNOWN)
+                || opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
                 continue;
 
-            final String kf2 = okey.substring(0, 2);
+            final String kf2;
+            if (kL == 3)
+            {
+                kf2 = okey.substring(0, 2);
+            } else {
+                int i = okey.indexOf('_');
+                if (i < 1)
+                    continue;
+                kf2 = okey.substring(0, i);
+            }
             SOCGameOption op2 = opts.get(kf2);
             if ((op2 != null) && (op2.optType != SOCGameOption.OTYPE_UNKNOWN))
                 sameGroupOpts.put(okey, kf2);
@@ -601,11 +637,18 @@ import soc.util.Version;
                 continue;  // <-- Removed, Go to next entry --
             }
 
+            if (op.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+            {
+                if (! readOnly)
+                    opts.remove(op.key);  // don't send inactive options when requesting new game from client
+                continue;  // <-- Don't show inactive options --
+            }
+
             if (op.hasFlag(SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
             {
                 if (! readOnly)
                     opts.remove(op.key);  // ignore internal-property options when requesting new game from client
-                continue;  // <-- Don't show internal-property options
+                continue;  // <-- Don't show internal-property options --
             }
 
             if (op.key.charAt(0) == '_')
@@ -1532,7 +1575,7 @@ import soc.util.Version;
     /**
      * The "Scenario Info" button was clicked.
      * Reads the current scenario, if any, from {@link #scenDropdown}.
-     * Calls {@link #showScenarioInfoDialog(SOCScenario, Map, int, MainDisplay, Window)}.
+     * Calls {@link #showScenarioInfoDialog(SOCScenario, SOCGameOptionSet, SOCGameOptionSet, int, MainDisplay, Window)}.
      * @since 2.0.00
      */
     private void clickScenarioInfo()
@@ -1560,13 +1603,13 @@ import soc.util.Version;
         }
         if (forNewGame && (! vpKnown) && scen.scOpts.contains("VP="))
         {
-            final Map<String, SOCGameOption> scenOpts = SOCGameOption.parseOptionsToMap(scen.scOpts);
+            final Map<String, SOCGameOption> scenOpts = SOCGameOption.parseOptionsToMap(scen.scOpts, knownOpts);
             final SOCGameOption scOptVP = (scenOpts != null) ? scenOpts.get("VP") : null;
             if (scOptVP != null)
                 vpWinner = scOptVP.getIntValue();
         }
 
-        showScenarioInfoDialog(scen, null, vpWinner, mainDisplay, this);
+        showScenarioInfoDialog(scen, null, knownOpts, vpWinner, mainDisplay, this);
     }
 
     /**
@@ -1943,7 +1986,7 @@ import soc.util.Version;
      * <LI>
      * Update game option {@code "SC"} and the {@link #scenInfo} button when a scenario is picked
      * from {@link #scenDropdown}. Other scenario-related updates are handled by this method calling
-     * {@link SOCGameOption.ChangeListener#valueChanged(SOCGameOption, Object, Object, Map)}.
+     * {@link SOCGameOption.ChangeListener#valueChanged(SOCGameOption, Object, Object, SOCGameOptionSet, SOCGameOptionSet)}.
      *</UL>
      * @param e itemevent from a JComboBox or JCheckbox in {@link #controlsOpts}
      */
@@ -2067,7 +2110,7 @@ import soc.util.Version;
 
         try
         {
-            cl.valueChanged(opt, oldValue, newValue, opts);
+            cl.valueChanged(opt, oldValue, newValue, opts, knownOpts);
         } catch (Throwable thr) {
             System.err.println("-- Error caught in ChangeListener: " + thr.toString() + " --");
             thr.printStackTrace();
@@ -2220,13 +2263,14 @@ import soc.util.Version;
      * Show a popup window with this game's scenario's description, special rules, and number of victory points to win.
      * Calls {@link EventQueue#invokeLater(Runnable)}.
      * @param ga  Game to display scenario info for; if game option {@code "SC"} missing or blank, does nothing.
+     * @param knownOpts  Server's Known Options, from {@link ServerGametypeInfo#knownOpts}
      * @param md    Player client's main display, for {@link NotifyDialog} call
      * @param parent  Current game's player interface, or another Frame or Dialog for our parent window,
      *                or null to look for {@code cli}'s Frame/Dialog as parent
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final SOCGame ga, final MainDisplay md, final Window parent)
+        (final SOCGame ga, final SOCGameOptionSet knownOpts, final MainDisplay md, final Window parent)
     {
         final String scKey = ga.getGameOptionStringValue("SC");
         if (scKey == null)
@@ -2236,7 +2280,7 @@ import soc.util.Version;
         if (sc == null)
             return;
 
-        showScenarioInfoDialog(sc, ga.getGameOptions(), ga.vp_winner, md, parent);
+        showScenarioInfoDialog(sc, ga.getGameOptions(), knownOpts, ga.vp_winner, md, parent);
     }
 
     /**
@@ -2244,6 +2288,7 @@ import soc.util.Version;
      * Calls {@link EventQueue#invokeLater(Runnable)}.
      * @param sc  A {@link SOCScenario}, or {@code null} to do nothing
      * @param gameOpts  All game options if current game, or null to extract from {@code sc}'s {@link SOCScenario#scOpts}
+     * @param knownOpts Server's Known Options, from {@link ServerGametypeInfo#knownOpts}
      * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
      * @param md     Player client's main display, required for {@link AskDialog} constructor
      * @param parent  Current game's player interface, or another Frame or Dialog for our parent window,
@@ -2251,7 +2296,7 @@ import soc.util.Version;
      * @since 2.0.00
      */
     public static void showScenarioInfoDialog
-        (final SOCScenario sc, Map<String, SOCGameOption> gameOpts, final int vpWinner,
+        (final SOCScenario sc, SOCGameOptionSet gameOpts, SOCGameOptionSet knownOpts, final int vpWinner,
          final MainDisplay md, final Window parent)
     {
         if (sc == null)
@@ -2280,11 +2325,11 @@ import soc.util.Version;
         //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
 
         if ((gameOpts == null) && (sc.scOpts != null))
-            gameOpts = SOCGameOption.parseOptionsToMap(sc.scOpts);
+            gameOpts = SOCGameOption.parseOptionsToSet(sc.scOpts, knownOpts);
 
         if (gameOpts != null)
         {
-            for (SOCGameOption sgo : gameOpts.values())
+            for (SOCGameOption sgo : gameOpts)
             {
                 if (sgo.key.equals(scenOptName))
                     continue;  // scenario's dedicated game option; we already showed its name from scDesc

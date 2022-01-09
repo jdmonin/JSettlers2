@@ -80,14 +80,14 @@ public class GameLoaderJSON
      *     will be renamed to avoid problems during random bot assignment while joining the game.
      * @return  loaded game model
      * @throws NoSuchElementException if file's model schema version is newer than the
-     *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#checkCanLoad()}
+     *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)}
      *     for details
      * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
      *     is newer than the server's {@link soc.util.Version#versionNumber()};
-     *     see {@link SavedGameModel#checkCanLoad()} for details
+     *     see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)} for details
      * @throws SavedGameModel.UnsupportedSGMOperationException if loaded game model has an option or feature
-     *     not yet supported by {@link SavedGameModel#createLoadedGame(SOCServer)}; see {@link SavedGameModel#checkCanLoad()}
-     *     for details
+     *     not yet supported by {@link SavedGameModel#createLoadedGame(SOCServer)};
+     *     see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)} for details
      * @throws StringIndexOutOfBoundsException  if a {@link JsonSyntaxException} occurs while loading, this wraps it
      *     so the caller doesn't need to know GSON-specific exception types
      * @throws IOException  if a problem occurs while loading, including a {@link JsonIOException}

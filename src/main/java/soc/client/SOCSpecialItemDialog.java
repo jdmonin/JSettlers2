@@ -20,7 +20,7 @@
 package soc.client;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;  // for javadocs only
@@ -83,7 +83,7 @@ import javax.swing.border.EmptyBorder;
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
-     * Special items' {@code typeKey}, such as {@link SOCGameOption#K_SC_WOND _SC_WOND}.
+     * Special items' {@code typeKey}, such as {@link SOCGameOptionSet#K_SC_WOND _SC_WOND}.
      * See {@link #SOCSpecialItemDialog(SOCPlayerInterface, String) constructor} javadoc.
      */
     private final String typeKey;
@@ -115,7 +115,7 @@ import javax.swing.border.EmptyBorder;
      * After creation, call {@code pack()} and {@link #setVisible(boolean) setVisible(true)} to show the modal dialog;
      * this dialog's code will request any action chosen by the player.
      *<P>
-     * Currently {@link SOCGameOption#K_SC_WOND _SC_WOND} is the only known {@code typeKey}.
+     * Currently {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} is the only known {@code typeKey}.
      *
      * @param pi  PlayerInterface that owns this dialog
      * @param typeKey  Special item type key; for details see the {@link SOCSpecialItem} class javadoc
@@ -133,7 +133,7 @@ import javax.swing.border.EmptyBorder;
                 // "dialog.specitem._SC_WOND.title" -> "Wonders"
         } catch(MissingResourceException e) {}
 
-        if (! SOCGameOption.K_SC_WOND.equals(typeKey))
+        if (! SOCGameOptionSet.K_SC_WOND.equals(typeKey))
             throw new IllegalArgumentException(typeKey);
 
         this.pi = pi;
@@ -212,7 +212,7 @@ import javax.swing.border.EmptyBorder;
         buttons = new JButton[numWonders];
 
         final boolean playerOwnsWonder =
-            (cliPlayer != null) && (cliPlayer.getSpecialItem(SOCGameOption.K_SC_WOND, 0) != null);
+            (cliPlayer != null) && (cliPlayer.getSpecialItem(SOCGameOptionSet.K_SC_WOND, 0) != null);
         boolean hasStartingCostShip = false;  // true only if player has available ship && ! playerOwnsWonder
         try
         {
@@ -567,7 +567,6 @@ import javax.swing.border.EmptyBorder;
                 // may allow other actions besides PICK, or actions
                 // during other players' turns.
 
-                final SOCGame ga = pi.getGame();
                 final GameMessageSender messageSender = pi.getClient().getGameMessageSender();
                 boolean askedSBP = false;
                 if (! pi.clientIsCurrentPlayer())

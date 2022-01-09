@@ -29,8 +29,11 @@ import soc.util.SOCStringManager;
  * @since 2.0.00
  */
 public class SOCDevCard
-    extends SOCInventoryItem implements SOCDevCardConstants  // SOCInventoryItem implies Cloneable
+    extends SOCInventoryItem implements SOCDevCardConstants  // SOCInventoryItem implies Cloneable, Serializable
 {
+    /** Latest structural change: v2.0.00 */
+    private static final long serialVersionUID = 2000L;
+
     /**
      * the set of resources a player needs to buy a development card.
      *<P>
@@ -90,7 +93,7 @@ public class SOCDevCard
      * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
-     *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
+     *              For example, {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
      * @return  The card name key for {@code ctype} and {@code withArticle};
      *     unknown ctypes return "spec.dcards.unknown" / "spec.dcards.aunknown".
@@ -103,7 +106,8 @@ public class SOCDevCard
 
         final String ctname;
 
-        if ((devCardType == SOCDevCardConstants.KNIGHT) && (game != null) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if ((devCardType == SOCDevCardConstants.KNIGHT) && (game != null)
+            && game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             return (withArticle) ? "spec.dcards.aknightsoldier.warship" : "spec.dcards.knightsoldier.warship";
         }
@@ -128,7 +132,7 @@ public class SOCDevCard
      * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *               or {@link SOCDevCardConstants#ROADS}
      * @param game  Game data, or {@code null}; some game options might change a card name.
-     *              For example, {@link SOCGameOption#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
+     *              For example, {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} renames "Knight" to "Warship".
      * @param withArticle  If true, format is: "a Market (+1VP)"; if false, is "Market (1VP)"
      * @param strings  StringManager to get i18n localized text
      * @return  The localized card name, formatted per {@code ctype} and {@code withArticle};

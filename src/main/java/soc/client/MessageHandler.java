@@ -26,7 +26,6 @@ package soc.client;
 import java.awt.EventQueue;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +38,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -62,10 +62,12 @@ import soc.util.Version;
 
 /**
  * Nested class for processing incoming messages (treating).
- * {@link #handle(SOCMessage, boolean)} dispatches messages to their
+ * {@link ClientNetwork}'s reader thread calls
+ * {@link #handle(SOCMessage, boolean)} to dispatch messages to their
  * handler methods (such as {@link #handleBANKTRADE(SOCBankTrade)}).
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
+ *
  * @author paulbilnoski
  * @since 2.0.00
  */
@@ -698,6 +700,15 @@ import soc.util.Version;
                 handleSCENARIOINFO((SOCScenarioInfo) mes, isPractice);
                 break;
 
+            /**
+             * Report Robbery.
+             * Added 2020-09-15 for v2.4.10.
+             */
+            case SOCMessage.REPORTROBBERY:
+                handleREPORTROBBERY
+                    ((SOCReportRobbery) mes, client.games.get(((SOCReportRobbery) mes).getGame()));
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Throwable th)
@@ -738,43 +749,67 @@ import soc.util.Version;
 
         // If we ever require a minimum server version, would check that here.
 
-        // Pre-1.1.06 versions would reply here with our client version.
-        // That's been sent to server already in connect() in 1.1.06 and later.
-
         // Check known game options vs server's version. (added in 1.1.07)
         // Server's responses will add, remove or change our "known options".
         // In v2.0.00 and later, also checks for game option localized descriptions.
+        // In v2.4.10 and later, also checks for 3rd-party game opts.
+
         final int cliVersion = Version.versionNumber();
         final boolean sameVersion = (client.sVersion == cliVersion);
         final boolean withTokenI18n =
             (client.cliLocale != null) && (isPractice || (client.sVersion >= SOCStringManager.VERSION_FOR_I18N))
             && ! ("en".equals(client.cliLocale.getLanguage()) && "US".equals(client.cliLocale.getCountry()));
+        SOCGameOptionSet opts3p =
+            ((client.sVersion >= cliVersion) && ! isPractice)
+            ? client.tcpServGameOpts.knownOpts.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0)
+            : null;   // sVersion < cliVersion, so SOCGameOptionSet.optionsNewerThanVersion will find any 3rd-party opts
 
         if ( ((! isPractice) && (client.sVersion > cliVersion))
-             || (withTokenI18n && (isPractice || sameVersion)) )
+             || ((isPractice || sameVersion) && (withTokenI18n || (opts3p != null))) )
         {
             // Newer server: Ask it to list any options we don't know about yet.
             // Same version: Ask for all localized option descs if available.
+            // Also ask about any 3rd-party options known at client.
+
+            final SOCGameOptionGetInfos ogiMsg;
+            if (opts3p != null)
+            {
+                ArrayList<String> olist = new ArrayList<>(opts3p.keySet());
+                if (! sameVersion)
+                    olist.add(SOCGameOptionGetInfos.OPTKEY_GET_ANY_CHANGES);
+                ogiMsg = new SOCGameOptionGetInfos(olist, withTokenI18n, false);
+                    // sends opts and maybe "?I18N"
+            } else {
+                ogiMsg = new SOCGameOptionGetInfos(null, withTokenI18n, withTokenI18n && sameVersion);
+                    // sends "-" and/or "?I18N"
+            }
+
             if (! isPractice)
                 client.getMainDisplay().optionsRequested();
-            gms.put(SOCGameOptionGetInfos.toCmd(null, withTokenI18n, withTokenI18n && sameVersion), isPractice);
-            // sends "-" and/or "?I18N"
+            gms.put(ogiMsg.toCmd(), isPractice);
         }
         else if ((client.sVersion < cliVersion) && ! isPractice)
         {
             if (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
             {
-                // Older server: Look for options created or changed since server's version.
+                // Older server: Look for options created or changed since server's version
+                // (and any 3rd-party options).
                 // Ask it what it knows about them.
+
+                SOCGameOptionSet knownOpts = client.tcpServGameOpts.knownOpts;
+                if (knownOpts == null)
+                {
+                    knownOpts = SOCGameOptionSet.getAllKnownOptions();
+                    client.tcpServGameOpts.knownOpts = knownOpts;
+                }
+
                 List<SOCGameOption> tooNewOpts =
-                    SOCGameOption.optionsNewerThanVersion(client.sVersion, false, false, null);
-                if ((tooNewOpts != null) && (client.sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES)
-                    && ! isPractice)
+                    knownOpts.optionsNewerThanVersion(client.sVersion, false, false);
+
+                if ((tooNewOpts != null) && (client.sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
                 {
                     // Server is older than 2.0.00; we can't send it any long option names.
-                    // Remove them from our set of options for games at this server.
-                    if (client.tcpServGameOpts.optionSet == null)
-                        client.tcpServGameOpts.optionSet = SOCGameOption.getAllKnownOptions();
+                    // Remove them from our set of options usable for games on that server.
 
                     Iterator<SOCGameOption> opi = tooNewOpts.iterator();
                     while (opi.hasNext())
@@ -783,7 +818,7 @@ import soc.util.Version;
                         //TODO i18n how to?
                         if ((op.key.length() > 3) || op.key.contains("_"))
                         {
-                            client.tcpServGameOpts.optionSet.remove(op.key);
+                            knownOpts.remove(op.key);
                             opi.remove();
                         }
                     }
@@ -793,33 +828,30 @@ import soc.util.Version;
 
                 if (tooNewOpts != null)
                 {
-                    if (! isPractice)
-                        client.getMainDisplay().optionsRequested();
-                    gms.put(SOCGameOptionGetInfos.toCmd(tooNewOpts, withTokenI18n, false), isPractice);
+                    client.getMainDisplay().optionsRequested();
+                    gms.put(new SOCGameOptionGetInfos(tooNewOpts, withTokenI18n).toCmd(), isPractice);
                 }
-                else if (withTokenI18n && ! isPractice)
+                else if (withTokenI18n)
                 {
                     // server is older than client but understands i18n: request gameopt localized strings
 
-                    gms.put(SOCGameOptionGetInfos.toCmd(null, true, false), false);  // sends opt list "-,?I18N"
+                    gms.put(new SOCGameOptionGetInfos(null, true, false).toCmd(), false);  // sends opt list "-,?I18N"
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
                 // because that's our version (it runs from our own JAR file).
 
-                if (! isPractice)
-                {
-                    client.tcpServGameOpts.noMoreOptions(true);
-                    client.tcpServGameOpts.optionSet = null;
-                }
+                client.tcpServGameOpts.noMoreOptions(true);
+                client.tcpServGameOpts.knownOpts = null;
             }
         } else {
-            // client.sVersion == cliVersion, so we have same code as server for scenarios and getAllKnownOptions.
+            // client.sVersion == cliVersion, so we have same info/code as server for getAllKnownOptions, scenarios, etc
+            // and found nothing else to ask about (i18n, 3rd-party gameopts).
 
-            // For practice games, optionSet may already be initialized, so check vs null.
+            // For practice games, knownOpts may already be initialized, so check vs null.
             ServerGametypeInfo opts = (isPractice ? client.practiceServGameOpts : client.tcpServGameOpts);
-            if (opts.optionSet == null)
-                opts.optionSet = SOCGameOption.getAllKnownOptions();
+            if (opts.knownOpts == null)
+                opts.knownOpts = SOCGameOptionSet.getAllKnownOptions();
             opts.noMoreOptions(isPractice);  // defaults not known unless it's practice
 
             if (! (withTokenI18n || isPractice))
@@ -919,8 +951,8 @@ import soc.util.Version;
                     optNames.add(st.nextToken());
 
                 StringBuffer opts = new StringBuffer();
-                final Map<String, SOCGameOption> knowns =
-                    (isPractice) ? client.practiceServGameOpts.optionSet : client.tcpServGameOpts.optionSet;
+                final SOCGameOptionSet knowns =
+                    (isPractice) ? client.practiceServGameOpts.knownOpts : client.tcpServGameOpts.knownOpts;
                 for (String oname : optNames)
                 {
                     opts.append('\n');
@@ -1116,7 +1148,7 @@ import soc.util.Version;
         if (! isPractice)  // practiceServer's gameoption data is set up in handleVERSION
         {
             if (client.serverGames == null)
-                client.serverGames = new SOCGameList();
+                client.serverGames = new SOCGameList(client.tcpServGameOpts.knownOpts);
             client.serverGames.addGames(gameNames, Version.versionNumber());
 
             // No more game-option info will be received,
@@ -1152,13 +1184,15 @@ import soc.util.Version;
     {
         client.gotPassword = true;
 
+        final SOCGameOptionSet knownOpts =
+            ((isPractice) ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts;
         final String gaName = mes.getGame();
-        Map<String, SOCGameOption> gameOpts;
+        SOCGameOptionSet gameOpts;
         if (isPractice)
         {
             gameOpts = client.getNet().practiceServer.getGameOptions(gaName);
             if (gameOpts != null)
-                gameOpts = new HashMap<String,SOCGameOption>(gameOpts);  // changes here shouldn't change practiceServ's copy
+                gameOpts = new SOCGameOptionSet(gameOpts, false); // so _BHW change here won't change practiceServ's copy
         } else {
             if (client.serverGames != null)
                 gameOpts = client.serverGames.parseGameOptions(gaName);
@@ -1171,16 +1205,16 @@ import soc.util.Version;
         {
             // Encode board size to pass through game constructor.
             // gameOpts won't be null, because bh, bw are from SOCBoardLarge which requires a gameopt to use.
-            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+            SOCGameOption opt = knownOpts.getKnownOption("_BHW", true);
             if (opt == null)
                 throw new IllegalStateException("Internal error: Game opt _BHW not known");
             opt.setIntValue((bh << 8) | bw);
             if (gameOpts == null)
-                gameOpts = new HashMap<String,SOCGameOption>();  // unlikely: no-opts board has 0 height,width in message
-            gameOpts.put("_BHW", opt);
+                gameOpts = new SOCGameOptionSet();  // unlikely: no-opts board has 0 height,width in message
+            gameOpts.put(opt);
         }
 
-        SOCGame ga = new SOCGame(gaName, gameOpts);
+        SOCGame ga = new SOCGame(gaName, gameOpts, knownOpts);
         if (ga != null)
         {
             ga.isPractice = isPractice;
@@ -2053,6 +2087,22 @@ import soc.util.Version;
     }
 
     /**
+     * Handle the "report robbery" message.
+     * @param mes  the message
+     * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}
+     * @since 2.4.10
+     */
+    protected void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    {
+        SOCDisplaylessPlayerClient.handleREPORTROBBERY(mes, ga);
+
+        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        if (pcl != null)
+            pcl.reportRobbery
+                (mes.perpPN, mes.victimPN, mes.resType, mes.peType, mes.isGainLose, mes.amount, mes.victimAmount);
+    }
+
+    /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
      * @param mes  the message
      * @since 2.0.00
@@ -2067,7 +2117,11 @@ import soc.util.Version;
         if (pcl == null)
             return;
 
-        pcl.playerBankTrade(ga.getPlayer(mes.getPlayerNumber()), mes.getGiveSet(), mes.getGetSet());
+        final int pn = mes.getPlayerNumber();
+        if (pn >= 0)
+            pcl.playerBankTrade(ga.getPlayer(pn), mes.getGiveSet(), mes.getGetSet());
+        else
+            pcl.playerTradeDisallowed(-1, (pn == SOCBankTrade.PN_REPLY_NOT_YOUR_TURN));
     }
 
     /**
@@ -2082,11 +2136,18 @@ import soc.util.Version;
             return;
 
         SOCTradeOffer offer = mes.getOffer();
-        SOCPlayer from = ga.getPlayer(offer.getFrom());
-        from.setCurrentOffer(offer);
+        final int fromPN = offer.getFrom();
+        SOCPlayer from;
+        if (fromPN >= 0)
+        {
+            from = ga.getPlayer(fromPN);
+            from.setCurrentOffer(offer);
+        } else {
+            from = null;
+        }
 
         PlayerClientListener pcl = client.getClientListener(gaName);
-        pcl.requestedTrade(from);
+        pcl.requestedTrade(from, fromPN);
     }
 
     /**
@@ -2142,8 +2203,11 @@ import soc.util.Version;
         if (pcl == null)
             return;
 
-        pcl.playerTradeAccepted
-            (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()));
+        final int offeringPN = mes.getOfferingNumber(), acceptingPN = mes.getAcceptingNumber();
+        if (acceptingPN >= 0)
+            pcl.playerTradeAccepted(ga.getPlayer(offeringPN), ga.getPlayer(acceptingPN));
+        else
+            pcl.playerTradeDisallowed(offeringPN, false);
     }
 
     /**
@@ -2207,6 +2271,8 @@ import soc.util.Version;
 
     /**
      * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
+     * In case this is part of a list of cards, does not call
+     * {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}: Caller must do so afterwards.
      */
     private void handleDEVCARDACTION
         (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
@@ -2431,18 +2497,18 @@ import soc.util.Version;
      */
     private void handleGAMEOPTIONGETDEFAULTS(SOCGameOptionGetDefaults mes, final boolean isPractice)
     {
-        ServerGametypeInfo opts;
+        ServerGametypeInfo servOpts;
         if (isPractice)
-            opts = client.practiceServGameOpts;
+            servOpts = client.practiceServGameOpts;
         else
-            opts = client.tcpServGameOpts;
+            servOpts = client.tcpServGameOpts;
 
         final List<String> unknowns;
-        synchronized(opts)
+        synchronized(servOpts)
         {
             // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
-            unknowns = opts.receiveDefaults
-                (SOCGameOption.parseOptionsToMap((mes.getOpts())));
+            unknowns = servOpts.receiveDefaults
+                (SOCGameOption.parseOptionsToMap(mes.getOpts(), servOpts.knownOpts));
         }
 
         if (unknowns != null)
@@ -2450,10 +2516,10 @@ import soc.util.Version;
             if (! isPractice)
                 client.getMainDisplay().optionsRequested();
 
-            gms.put(SOCGameOptionGetInfos.toCmd(unknowns, client.wantsI18nStrings(isPractice), false), isPractice);
+            gms.put(new SOCGameOptionGetInfos(unknowns, client.wantsI18nStrings(isPractice), false).toCmd(), isPractice);
         } else {
-            opts.newGameWaitingForOpts = false;
-            client.getMainDisplay().optionsReceived(opts, isPractice);
+            servOpts.newGameWaitingForOpts = false;
+            client.getMainDisplay().optionsReceived(servOpts, isPractice);
         }
     }
 
@@ -2487,7 +2553,7 @@ import soc.util.Version;
             hasAllNow = opts.receiveInfo(mes);
         }
 
-        boolean isDash = mes.getOptionNameKey().equals("-");  // I18N: do not localize "-" keyname
+        boolean isDash = mes.getOptionNameKey().equals("-");  // I18N OK: do not localize "-" or any other keyname
         client.getMainDisplay().optionsReceived(opts, isPractice, isDash, hasAllNow);
     }
 
@@ -2524,7 +2590,8 @@ import soc.util.Version;
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
         // This is recognized and removed in mes.getGameList.
 
-        final SOCGameList msgGames = mes.getGameList();
+        final SOCGameList msgGames = mes.getGameList
+            ((isPractice ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts);
         if (msgGames == null)
             return;
 
@@ -2567,6 +2634,8 @@ import soc.util.Version;
      */
     private void handleLOCALIZEDSTRINGS(final SOCLocalizedStrings mes, final boolean isPractice)
     {
+        final SOCGameOptionSet knownOpts =
+            ((isPractice) ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts;
         final List<String> strs = mes.getParams();
         final String type = strs.get(0);
 
@@ -2575,7 +2644,7 @@ import soc.util.Version;
             final int L = strs.size();
             for (int i = 1; i < L; i += 2)
             {
-                SOCGameOption opt = SOCGameOption.getOption(strs.get(i), false);
+                SOCGameOption opt = knownOpts.getKnownOption(strs.get(i), false);
                 if (opt != null)
                 {
                     final String desc = strs.get(i + 1);
@@ -2694,6 +2763,7 @@ import soc.util.Version;
      * Handle "simple action" announcements from the server.
      * @since 1.1.19
      */
+    @SuppressWarnings("fallthrough")
     private final void handleSIMPLEACTION(final SOCSimpleAction mes)
     {
         final String gaName = mes.getGame();
@@ -2844,7 +2914,7 @@ import soc.util.Version;
         final int pv = mes.getParam3();
         SOCPlayingPiece updatePiece = null;  // if not null, call pcl.pieceValueUpdated
 
-        if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
         {
             SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(coord);
             if (vi != null)
@@ -2853,7 +2923,7 @@ import soc.util.Version;
                 updatePiece = vi;
             }
         }
-        else if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        else if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             SOCFortress fort = ga.getFortress(coord);
             if (fort != null)

@@ -22,6 +22,7 @@ package soc.server.database;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.server.SOCServer;  // solely for javadocs, ROBOT_PARAMS_*, and getSettingsFormatted callback
 import soc.util.IntPair;
@@ -117,6 +118,10 @@ import java.util.concurrent.Executors;
  * SQL commands. To account for this when a longer transaction is needed, and abstract it a bit,
  * call methods {@link #enterTransactionMode()} and {@link #exitTransactionMode(boolean)} around your
  * transaction's SQL commands. See those methods' javadocs for details.
+ *
+ *<H3>Class history:</H3>
+ * Before v2.4.10, {@code SOCDBHelper} methods were static. That version changed to non-static
+ * so any third-party developers could extend or change DB functionality.
  *
  * @author Robert S. Thomas
  */
@@ -434,7 +439,7 @@ public class SOCDBHelper
      * @see #driverclass
      * @since 1.2.00
      */
-    private static char dbType;
+    private char dbType;
 
     /**
      * The db driver used, or null if none.
@@ -444,7 +449,7 @@ public class SOCDBHelper
      * @see #dbType
      * @since 1.1.14
      */
-    private static String driverclass = null;
+    private String driverclass = null;
 
     /**
      * The db driver instance, if we dynamically loaded its JAR.
@@ -457,7 +462,7 @@ public class SOCDBHelper
      * Used in {@link #connect(String, String, String)}.
      * @since 1.1.15
      */
-    private static Driver driverinstance = null;
+    private Driver driverinstance = null;
 
     /**
      * db connection, or <tt>null</tt> if never initialized or if cleaned up for shutdown.
@@ -466,7 +471,7 @@ public class SOCDBHelper
      * from {@link #initialize(String, String, Properties)}.
      * Cleared in {@link #cleanup(boolean) cleanup(true)}.
      */
-    private static Connection connection = null;
+    private Connection connection = null;
 
     /**
      * Retain the URL (default, or passed via props to {@link #initialize(String, String, Properties)}).
@@ -475,21 +480,22 @@ public class SOCDBHelper
      * If {@link #driverinstance} != null, go through it to connect to dbURL.
      * @since 1.1.09
      */
-    private static String dbURL = null;
+    private String dbURL = null;
 
     /**
      * This flag indicates that the connection should be valid, yet the last
      * operation failed. Methods will attempt to reconnect prior to their
      * operation if this is set.
      */
-    private static boolean errorCondition = false;
+    private boolean errorCondition = false;
 
     /**
      * True if we successfully completed {@link #initialize(String, String, Properties)}
      * without throwing an exception.
      * Set false in {@link #cleanup(boolean)}.
+     * @see #isInitialized()
      */
-    private static boolean initialized = false;
+    private boolean initialized = false;
 
     /**
      * The detected schema version of the currently connected database.
@@ -498,7 +504,7 @@ public class SOCDBHelper
      * @see #schemaUpgBGTasks_fromVersion
      * @since 1.2.00
      */
-    private static int schemaVersion;
+    private int schemaVersion;
 
     /**
      * Work Factor for encrypting user passwords with {@link #PW_SCHEME_BCRYPT}.
@@ -509,7 +515,7 @@ public class SOCDBHelper
      * {@link #SETTING_BCRYPT_WORK__FACTOR}, in {@link #initialize(String, String, Properties)}.
      * @since 1.2.00
      */
-    private static int bcryptWorkFactor = BCRYPT_DEFAULT_WORK_FACTOR;
+    private int bcryptWorkFactor = BCRYPT_DEFAULT_WORK_FACTOR;
 
     /**
      * If not 0, the version from which a recent schema upgrade must perform background tasks to complete
@@ -523,7 +529,7 @@ public class SOCDBHelper
      * @see #schemaVersion
      * @since 1.2.00
      */
-    private static volatile int schemaUpgBGTasks_fromVersion;
+    private volatile int schemaUpgBGTasks_fromVersion;
 
     /**
      * Schema upgrade background tasks thread, if any; see {@link #doesSchemaUpgradeNeedBGTasks()} for details.
@@ -533,7 +539,7 @@ public class SOCDBHelper
      * @see #schemaUpgBGTasks_fromVersion
      * @since 1.2.00
      */
-    private static volatile UpgradeBGTasksThread schemaUpgBGTasksThread;
+    private volatile UpgradeBGTasksThread schemaUpgBGTasksThread;
 
     /**
      * Thread executor to queue and call {@link BCrypt} without tying up the main thread
@@ -547,13 +553,13 @@ public class SOCDBHelper
      * Cached DB connection username, used when reconnecting on error.
      * Before v1.2.00 this field was {@code userName}.
      */
-    private static String dbcUserName;
+    private String dbcUserName;
 
     /**
      * Cached DB connection password, used when reconnecting on error.
      * Before v1.2.00 this field was {@code password}.
      */
-    private static String dbcPassword;
+    private String dbcPassword;
 
     /**
      * Properties containing {@link #PROP_JSETTLERS_DB_DRIVER}, {@link #PROP_JSETTLERS_DB_URL},
@@ -561,7 +567,7 @@ public class SOCDBHelper
      * or {@code null}.
      * @since 1.2.00
      */
-    private static Properties props;
+    private Properties props;
 
     /**
      * {@link #createAccountCommand} for schema older than {@link #SCHEMA_VERSION_1200}.
@@ -690,46 +696,46 @@ public class SOCDBHelper
         "UPDATE users SET games_lost = 1 + coalesce(games_lost, 0) WHERE nickname = ?;";
 
     /** Create a new account in {@code users}: {@link #CREATE_ACCOUNT_COMMAND_2000} */
-    private static PreparedStatement createAccountCommand = null;
+    private PreparedStatement createAccountCommand = null;
 
-    private static PreparedStatement recordLoginCommand = null;
+    private PreparedStatement recordLoginCommand = null;
 
     /** Query whether a user nickname exists in {@code users}: {@link #USER_EXISTS_QUERY_1200} */
-    private static PreparedStatement userExistsQuery = null;
+    private PreparedStatement userExistsQuery = null;
 
     /**
      * If statement not {@code null}, add 1 to user's {@code games_won}: {@link #USER_INCREMENT_WON_COMMAND}.
      * Is {@code null} if schema &lt; {@link #SCHEMA_VERSION_2000}.
      * @see #userIncrLostCommand
      */
-    private static PreparedStatement userIncrWonCommand = null;
+    private PreparedStatement userIncrWonCommand = null;
 
     /**
      * If statement not {@code null}, add 1 to user's {@code games_lost}: {@link #USER_INCREMENT_LOST_COMMAND}.
      * Is {@code null} if schema &lt; {@link #SCHEMA_VERSION_2000}.
      * @see #userIncrWonCommand
      */
-    private static PreparedStatement userIncrLostCommand = null;
+    private PreparedStatement userIncrLostCommand = null;
 
     /** Query for a user's password and original-cased nickname in {@code users}: {@link #USER_PASSWORD_QUERY_1200} */
-    private static PreparedStatement userPasswordQuery = null;
+    private PreparedStatement userPasswordQuery = null;
 
-    private static PreparedStatement hostQuery = null;
-    private static PreparedStatement lastloginUpdate = null;
+    private PreparedStatement hostQuery = null;
+    private PreparedStatement lastloginUpdate = null;
 
     /**
      * User password update in {@code users}: {@link #PASSWORD_UPDATE_COMMAND_1200}.
      * Before v1.2.00 this field was {@code passwordUpdate}.
      * @since 1.1.20
      */
-    private static PreparedStatement passwordUpdateCommand = null;
+    private PreparedStatement passwordUpdateCommand = null;
 
     /**
      * Completed-game info insert into {@code games2} or old-schema {@code games}: {@link #SAVE_GAME_COMMAND_2000}
      * or {@link #SAVE_GAME_COMMAND_1200}.
      * @see #saveGamePlayerCommand
      */
-    private static PreparedStatement saveGameCommand = null;
+    private PreparedStatement saveGameCommand = null;
 
     /**
      * Completed-game per-player info insert into {@code games2_players}: {@link #SAVE_GAME_PLAYER_COMMAND}.
@@ -737,17 +743,17 @@ public class SOCDBHelper
      * @see #saveGameCommand
      * @since 2.0.00
      */
-    private static PreparedStatement saveGamePlayerCommand = null;
+    private PreparedStatement saveGamePlayerCommand = null;
 
     /** Query all robot parameters for a bot name; {@link #ROBOT_PARAMS_QUERY}.
      *  Used in {@link #retrieveRobotParams(String)}.
      */
-    private static PreparedStatement robotParamsQuery = null;
+    private PreparedStatement robotParamsQuery = null;
 
     /** Query how many users, if any, exist in the {@code users} table: {@link #USER_COUNT_QUERY}.
      *  @since 1.1.19
      */
-    private static PreparedStatement userCountQuery = null;
+    private PreparedStatement userCountQuery = null;
 
     /****************************************
      * Connect and initialize, related methods and getters
@@ -769,7 +775,7 @@ public class SOCDBHelper
      *
      * @param user  the user name for accessing the database, or {@code null} to not attempt connection
      * @param pswd  the password for the user, or ""
-     * @param props  null, or properties containing {@link #PROP_JSETTLERS_DB_DRIVER},
+     * @param dbProps  null, or properties containing {@link #PROP_JSETTLERS_DB_DRIVER},
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
      *       Ignores {@link #PROP_JSETTLERS_DB_USER} and {@link #PROP_JSETTLERS_DB_PASS} if present,
      *       uses the {@code user} and {@code pswd} parameters instead.
@@ -798,7 +804,7 @@ public class SOCDBHelper
      * @throws IOException  if <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP} but
      *         the SQL file wasn't found, or if any other IO error occurs reading the script
      */
-    public static void initialize(final String user, final String pswd, Properties props)
+    public void initialize(final String user, final String pswd, Properties dbProps)
         throws IllegalArgumentException, DBSettingMismatchException, SQLException, IOException
     {
         initialized = false;
@@ -809,15 +815,15 @@ public class SOCDBHelper
         driverclass = "com.mysql.jdbc.Driver";
         dbType = DBTYPE_MYSQL;
         dbURL = "jdbc:mysql://localhost/socdata";
-        SOCDBHelper.props = props;
+        props = dbProps;
 
         if (user == null)
             return;
 
-        if (props != null)
+        if (dbProps != null)
         {
-            String prop_dbURL = props.getProperty(PROP_JSETTLERS_DB_URL);
-            String prop_driverclass = props.getProperty(PROP_JSETTLERS_DB_DRIVER);
+            String prop_dbURL = dbProps.getProperty(PROP_JSETTLERS_DB_URL);
+            String prop_driverclass = dbProps.getProperty(PROP_JSETTLERS_DB_DRIVER);
 
             if (prop_dbURL != null)
             {
@@ -889,7 +895,7 @@ public class SOCDBHelper
                 }
             }
 
-            String prop_bcryptWF = props.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
+            String prop_bcryptWF = dbProps.getProperty(PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR);
             if (prop_bcryptWF != null)
             {
                 String errMsg = null;
@@ -911,7 +917,7 @@ public class SOCDBHelper
                          + PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR + ")");
             }
 
-            String pval = props.getProperty(PROP_JSETTLERS_DB_SETTINGS);
+            String pval = dbProps.getProperty(PROP_JSETTLERS_DB_SETTINGS);
             if ((pval != null) && ! pval.equals("write"))
                 throw new IllegalArgumentException
                     ("DB: Utility property " + PROP_JSETTLERS_DB_SETTINGS + "'s value must be \"write\"");
@@ -974,7 +980,7 @@ public class SOCDBHelper
             // Load the JDBC driver
             try
             {
-                String prop_jarname = (props != null) ? props.getProperty(PROP_JSETTLERS_DB_JAR) : null;
+                String prop_jarname = (dbProps != null) ? dbProps.getProperty(PROP_JSETTLERS_DB_JAR) : null;
                 if ((prop_jarname != null) && (prop_jarname.length() == 0))
                     prop_jarname = null;
 
@@ -1009,7 +1015,7 @@ public class SOCDBHelper
             }
 
             // Do we have a setup script to run?
-            String prop_dbSetupScript = (props != null) ? props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP) : null;
+            String prop_dbSetupScript = (dbProps != null) ? dbProps.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP) : null;
             if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
                 prop_dbSetupScript = null;
 
@@ -1054,7 +1060,7 @@ public class SOCDBHelper
      * @return  True if database available
      * @since 1.1.14
      */
-    public static boolean isInitialized()
+    public boolean isInitialized()
     {
         return initialized && (connection != null);
     }
@@ -1067,7 +1073,7 @@ public class SOCDBHelper
      * @see #isSchemaLatestVersion()
      * @see #isPasswordLengthOK(String)
      */
-    public static int getSchemaVersion()
+    public int getSchemaVersion()
     {
         return schemaVersion;
     }
@@ -1082,7 +1088,7 @@ public class SOCDBHelper
      * @see #doesSchemaUpgradeNeedBGTasks()
      * @since 1.2.00
      */
-    public static boolean isSchemaLatestVersion()
+    public boolean isSchemaLatestVersion()
         throws IllegalStateException
     {
         if (! isInitialized())
@@ -1108,7 +1114,7 @@ public class SOCDBHelper
      * @see #isSchemaLatestVersion()
      * @since 1.2.00
      */
-    public static boolean doesSchemaUpgradeNeedBGTasks()
+    public boolean doesSchemaUpgradeNeedBGTasks()
         throws IllegalStateException
     {
         if (! isInitialized())
@@ -1125,7 +1131,7 @@ public class SOCDBHelper
      * @see #doesSchemaUpgradeNeedBGTasks()
      * @since 1.2.00
      */
-    public static boolean startSchemaUpgradeBGTasks()
+    public boolean startSchemaUpgradeBGTasks()
     {
         if (! isInitialized())
             return false;
@@ -1150,8 +1156,9 @@ public class SOCDBHelper
      * {@link #connection}, opens a new one, and re-initializes the prepared statements.
      *
      * @return true if the connection is established, false if DB connection was never initialized
+     * @see #isInitialized()
      */
-    private static boolean checkConnection() throws SQLException
+    private boolean checkConnection() throws SQLException
     {
         if (connection != null)
         {
@@ -1185,16 +1192,16 @@ public class SOCDBHelper
      * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs reading the script
      * @return  true on success; will never return false, instead will throw a sqlexception
      */
-    private static boolean connect(final String user, final String pswd, final String setupScriptPath)
+    private boolean connect(final String user, final String pswd, final String setupScriptPath)
         throws SQLException, IllegalStateException, IOException
     {
         if (driverinstance == null) {
             connection = DriverManager.getConnection(dbURL, user, pswd);
         } else {
-            Properties props = new Properties();
-            props.put("user", user);
-            props.put("password", pswd);
-            connection = driverinstance.connect(dbURL, props);
+            Properties dbProps = new Properties();
+            dbProps.put("user", user);
+            dbProps.put("password", pswd);
+            connection = driverinstance.connect(dbURL, dbProps);
         }
 
         errorCondition = false;
@@ -1217,7 +1224,7 @@ public class SOCDBHelper
      *     or DB upgrade was started but is incomplete ({@code db_version.ddl_done} field is null)
      * @since 1.2.00
      */
-    private static void detectSchemaVersion()
+    private void detectSchemaVersion()
         throws SQLException, IllegalStateException
     {
         schemaVersion = -1;
@@ -1290,7 +1297,7 @@ public class SOCDBHelper
      * @throws SQLException if any unexpected problem occurs during {@link Connection#prepareStatement(String)} calls
      * @since 1.2.00
      */
-    private static void prepareStatements()
+    private void prepareStatements()
         throws SQLFeatureNotSupportedException, SQLException
     {
         createAccountCommand = connection.prepareStatement
@@ -1328,7 +1335,7 @@ public class SOCDBHelper
     }
 
     /**
-     * Check the {@code settings} table for optional db-related properties and their static fields:
+     * Check the {@code settings} table for optional db-related properties and their fields:
      *<UL>
      * <LI> Set {@link #bcryptWorkFactor} from {@code settings}({@link #SETTING_BCRYPT_WORK__FACTOR})
      *      unless {@link #props} contains {@link #PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR}.
@@ -1352,7 +1359,7 @@ public class SOCDBHelper
      * @see #getSettingsFormatted(SOCServer)
      * @since 1.2.00
      */
-    public static final void checkSettings(boolean checkAll, final boolean writeIfNeeded)
+    public final void checkSettings(boolean checkAll, final boolean writeIfNeeded)
         throws SQLException, DBSettingMismatchException
     {
         final boolean withWrite =
@@ -1467,7 +1474,7 @@ public class SOCDBHelper
      * @since 1.2.00
      * @see #authenticateUserPassword(String, String, AuthPasswordRunnable)
      */
-    public static String getUser(String userName)
+    public String getUser(String userName)
         throws IllegalArgumentException, SQLException
     {
         if (userName == null)
@@ -1525,7 +1532,7 @@ public class SOCDBHelper
      * @see #getUser(String)
      * @since 1.2.00
      */
-    public static String authenticateUserPassword
+    public String authenticateUserPassword
         (final String sUserName, String sPassword, final AuthPasswordRunnable authCallback)
         throws SQLException
     {
@@ -1610,9 +1617,9 @@ public class SOCDBHelper
                                     {
                                         try
                                         {
-                                            boolean ok = BCrypt.checkpw(sPass, dbPass);
+                                            boolean pwOK = BCrypt.checkpw(sPass, dbPass);
                                                 // may throw IllegalArgumentException
-                                            authCallback.authResult((ok) ? dbUser: null, true);  // <--- Callback ---
+                                            authCallback.authResult((pwOK) ? dbUser: null, true);  // <--- Callback ---
                                         } catch (RuntimeException e) {}
                                     }
                                 });
@@ -1647,7 +1654,7 @@ public class SOCDBHelper
      * @throws SQLException DOCUMENT ME!
      * @see #getUser(String)
      */
-    public static String getUserFromHost(String host) throws SQLException
+    public String getUserFromHost(String host) throws SQLException
     {
         String nickname = null;
 
@@ -1702,7 +1709,7 @@ public class SOCDBHelper
      * @throws IllegalArgumentException  If password is null or too short or too long
      * @throws SQLException if any unexpected database problem occurs
      */
-    public static boolean createAccount
+    public boolean createAccount
         (String userName, String host, String password, String email, long time)
         throws IllegalArgumentException, SQLException
     {
@@ -1771,7 +1778,7 @@ public class SOCDBHelper
      *
      * @throws SQLException if any unexpected database problem
      */
-    public static boolean recordLogin(String userName, String host, long time) throws SQLException
+    public boolean recordLogin(String userName, String host, long time) throws SQLException
     {
         if (checkConnection())
         {
@@ -1809,7 +1816,7 @@ public class SOCDBHelper
      *
      * @throws SQLException if any unexpected database problem
      */
-    public static boolean updateLastlogin(String userName, long time) throws SQLException
+    public boolean updateLastlogin(String userName, long time) throws SQLException
     {
         if (checkConnection())
         {
@@ -1850,7 +1857,7 @@ public class SOCDBHelper
      * @see #authenticateUserPassword(String, String, AuthPasswordRunnable)
      * @since 1.1.20
      */
-    public static boolean updateUserPassword(String userName, final String newPassword)
+    public boolean updateUserPassword(String userName, final String newPassword)
         throws IllegalArgumentException, SQLException
     {
         if (userName == null)
@@ -1907,7 +1914,7 @@ public class SOCDBHelper
      *     ({@link #PW_MAX_LEN_SCHEME_BCRYPT} or {@link #PW_MAX_LEN_SCHEME_NONE})
      * @since 1.2.00
      */
-    public static final int getMaxPasswordLength()
+    public final int getMaxPasswordLength()
     {
         return (schemaVersion >= SCHEMA_VERSION_1200)
             ? PW_MAX_LEN_SCHEME_BCRYPT
@@ -1923,7 +1930,7 @@ public class SOCDBHelper
      * @see #getMaxPasswordLength()
      * @since 1.2.00
      */
-    public static final boolean isPasswordLengthOK(final String password)
+    public final boolean isPasswordLengthOK(final String password)
     {
         if (password == null)
             return false;
@@ -1965,7 +1972,7 @@ public class SOCDBHelper
      * @throws IllegalArgumentException if {@link SOCGame#getPlayerWithWin() ga.getPlayerWithWin()} is null
      * @throws SQLException if an error occurs
      */
-    public static boolean saveGameScores
+    public boolean saveGameScores
         (final SOCGame ga, final int gameLengthSeconds, final boolean winLossOnly)
         throws IllegalArgumentException, SQLException
     {
@@ -2006,8 +2013,10 @@ public class SOCDBHelper
 
                 final String gaName = ga.getName();
                 final long startTimeMillis = ga.getStartTime().getTime();
-                final Map<String, SOCGameOption> opts = ga.getGameOptions();
-                final String optsStr = (opts == null) ? null : SOCGameOption.packOptionsToString(opts, false, true);
+                final SOCGameOptionSet opts = ga.getGameOptions();
+                final String optsStr = (opts == null)
+                    ? null
+                    : SOCGameOption.packOptionsToString(opts.getAll(), false, true);
 
                 if (schemaVersion >= SCHEMA_VERSION_2000)
                 {
@@ -2305,7 +2314,7 @@ public class SOCDBHelper
      * @return null if robotName not in database, or if db is empty and robotparams table doesn't exist
      * @throws SQLException if unexpected problem retrieving the params
      */
-    public static final SOCRobotParameters retrieveRobotParams(final String robotName)
+    public final SOCRobotParameters retrieveRobotParams(final String robotName)
         throws SQLException
     {
         SOCRobotParameters robotParams = null;
@@ -2355,7 +2364,7 @@ public class SOCDBHelper
      * @throws SQLException if unexpected problem counting the users
      * @since 1.1.19
      */
-    public static int countUsers()
+    public int countUsers()
         throws SQLException
     {
         if (! checkConnection())
@@ -2398,7 +2407,7 @@ public class SOCDBHelper
      * @see #checkSettings(boolean, boolean)
      * @since 1.2.00
      */
-    public static List<String> getSettingsFormatted(final SOCServer srv)
+    public List<String> getSettingsFormatted(final SOCServer srv)
     {
         if (! isInitialized())
             throw new IllegalStateException();
@@ -2469,7 +2478,7 @@ public class SOCDBHelper
      *     to all the non-lowercased names which all map to that lowercased name
      * @since 1.2.00
      */
-    public static Map<String,List<String>> queryUsersDuplicateLCase(final Set<String> out_allNames)
+    public Map<String,List<String>> queryUsersDuplicateLCase(final Set<String> out_allNames)
         throws IllegalStateException, SQLException
     {
         try
@@ -2538,7 +2547,7 @@ public class SOCDBHelper
      *     or -1 if all tested WFs were too slow, or -2 if all WFs were too fast
      * @since 1.2.00
      */
-    public static int testBCryptSpeed()
+    public int testBCryptSpeed()
     {
         System.err.println
             ((((props != null) && props.containsKey(PROP_JSETTLERS_DB_UPGRADE__SCHEMA)) ? "" : "* Utility Mode: ")
@@ -2606,7 +2615,7 @@ public class SOCDBHelper
      *     or -1 if all WFs were too slow, or -2 if all WFs were too fast
      * @since 1.2.00
      */
-    private static int testBCryptSpeed_range(float[][] wfSpeedsRef, int wfFrom, int wfTo)
+    private int testBCryptSpeed_range(float[][] wfSpeedsRef, int wfFrom, int wfTo)
     {
         if (wfFrom > BCrypt.GENSALT_MAX_LOG2_ROUNDS)
             wfFrom = BCrypt.GENSALT_MAX_LOG2_ROUNDS;
@@ -2697,7 +2706,7 @@ public class SOCDBHelper
      * @throws SQLException if any unexpected database problem
      * @since 1.2.00
      */
-    public static ResultSet selectWithLimit(final String selectStmt, final int limit)
+    public ResultSet selectWithLimit(final String selectStmt, final int limit)
         throws SQLException
     {
         StringBuilder sql = new StringBuilder(selectStmt);
@@ -2745,7 +2754,7 @@ public class SOCDBHelper
      * @throws SQLException if any unexpected database problem
      * @since 2.0.00
      */
-    private static int insertGames2Row
+    private int insertGames2Row
         (final String gaName, final String winnerName, final long startTimeMillis, final int gameLengthSeconds,
          final String optsStr, final String scen)
         throws IllegalStateException, UnsupportedOperationException, SQLException
@@ -2800,7 +2809,7 @@ public class SOCDBHelper
      * @see #doesTableColumnExist(String, String)
      * @since 1.2.00
      */
-    public static boolean doesTableExist(final String tabname)
+    public boolean doesTableExist(final String tabname)
         throws IllegalStateException
     {
         try
@@ -2857,7 +2866,7 @@ public class SOCDBHelper
      * @see #doesTableExist(String)
      * @since 1.1.14
      */
-    public static boolean doesTableColumnExist
+    public boolean doesTableColumnExist
         (final String tabname, final String colname)
         throws IllegalStateException
     {
@@ -2946,7 +2955,7 @@ public class SOCDBHelper
      * @throws SQLException  if an unexpected DB error occurs or the connection is closed
      * @since 2.0.00
      */
-    private static boolean enterTransactionMode()
+    private boolean enterTransactionMode()
         throws SQLException
     {
         // Note: if this method's code changes, also update testDBHelper() to match.
@@ -2979,7 +2988,7 @@ public class SOCDBHelper
      *     {@link Connection#setAutoCommit(boolean)} was called
      * @since 2.0.00
      */
-    private static void exitTransactionMode(final boolean wasConnAutocommit)
+    private void exitTransactionMode(final boolean wasConnAutocommit)
         throws SQLException
     {
         // Note: if this method's code changes, also update testDBHelper() to match.
@@ -3003,7 +3012,7 @@ public class SOCDBHelper
      * @throws SQLException if any unexpected database problem
      * @since 1.1.15
      */
-    private static void runSetupScript(final String setupScriptPath)
+    private void runSetupScript(final String setupScriptPath)
         throws FileNotFoundException, IOException, SQLException
     {
         if (! checkConnection())
@@ -3109,7 +3118,7 @@ public class SOCDBHelper
      * @see {@link #isSchemaLatestVersion()}
      * @since 1.2.00
      */
-    public static void upgradeSchema(final Set<String> userAdmins)
+    public void upgradeSchema(final Set<String> userAdmins)
         throws IllegalStateException, SQLException, MissingResourceException
     {
         if (isSchemaLatestVersion())  // throws IllegalStateException if ! isInitialized()
@@ -3557,7 +3566,7 @@ public class SOCDBHelper
      * @throws SQLException if an error occurred and {@code throwExcepIfError} is true
      * @since 2.0.00
      */
-    private static void upgradeSchema_setDBVersionTable
+    private void upgradeSchema_setDBVersionTable
         (final boolean throwExcepIfError, final int fromVers, final int successfulToVers, final boolean hasBGTasks)
         throws SQLException
     {
@@ -3606,54 +3615,58 @@ public class SOCDBHelper
 
     /**
      * Close out and shut down the database connection.
+     * Any {@link SQLException}s while doing so are caught here.
      * @param isForShutdown  If true, set <tt>connection = null</tt>
      *          so we won't try to reconnect later.
      */
-    public static void cleanup(final boolean isForShutdown) throws SQLException
+    public void cleanup(final boolean isForShutdown)
     {
-        if (checkConnection())
+        try
         {
-            try
-            {
-                createAccountCommand.close();
-                userPasswordQuery.close();
-                hostQuery.close();
-                lastloginUpdate.close();
-                saveGameCommand.close();
-                if (saveGamePlayerCommand != null)
-                    saveGamePlayerCommand.close();
-                robotParamsQuery.close();
-                userCountQuery.close();
-                userExistsQuery.close();
-                if (userIncrWonCommand != null)
-                    userIncrWonCommand.close();
-                if (userIncrLostCommand != null)
-                    userIncrLostCommand.close();
-            }
-            catch (Throwable thr)
-            {
-                ; /* ignore failures in query closes */
-            }
+            if (! checkConnection())
+                return;
+        }
+        catch (SQLException e) {}
 
-            if (isForShutdown && (schemaUpgBGTasksThread != null) && schemaUpgBGTasksThread.isAlive())
-                schemaUpgBGTasksThread.doShutdown = true;
+        try
+        {
+            createAccountCommand.close();
+            userPasswordQuery.close();
+            hostQuery.close();
+            lastloginUpdate.close();
+            saveGameCommand.close();
+            if (saveGamePlayerCommand != null)
+                saveGamePlayerCommand.close();
+            robotParamsQuery.close();
+            userCountQuery.close();
+            userExistsQuery.close();
+            if (userIncrWonCommand != null)
+                userIncrWonCommand.close();
+            if (userIncrLostCommand != null)
+                userIncrLostCommand.close();
+        }
+        catch (Throwable thr)
+        {
+            ; /* ignore failures in query closes */
+        }
 
-            initialized = false;
-            try
-            {
-                connection.close();
-                if (isForShutdown)
-                    connection = null;
-            }
-            catch (SQLException sqlE)
-            {
-                errorCondition = true;
-                if (isForShutdown)
-                    connection = null;
+        if (isForShutdown && (schemaUpgBGTasksThread != null) && schemaUpgBGTasksThread.isAlive())
+            schemaUpgBGTasksThread.doShutdown = true;
 
-                sqlE.printStackTrace();
-                throw sqlE;
-            }
+        initialized = false;
+        try
+        {
+            connection.close();
+            if (isForShutdown)
+                connection = null;
+        }
+        catch (SQLException sqlE)
+        {
+            errorCondition = true;
+            if (isForShutdown)
+                connection = null;
+
+            sqlE.printStackTrace();
         }
     }
 
@@ -3674,7 +3687,7 @@ public class SOCDBHelper
      * @return true if any of these {@code users} were found in the database and encoded, false if none found
      * @throws SQLException  if any unexpected database problem
      */
-    private static boolean upgradeSchema_1200_encodeUserPasswords
+    private boolean upgradeSchema_1200_encodeUserPasswords
         (final Set<String> users, SecureRandom sr,
          final String beginText, final String warnEmptyText, final String doneText)
         throws SQLException
@@ -3765,7 +3778,7 @@ public class SOCDBHelper
      * @throws SQLException  if any unexpected database problem querying current user or table owner
      * @since 1.2.00
      */
-    private static String upg_postgres_checkIsTableOwner()
+    private String upg_postgres_checkIsTableOwner()
         throws SQLException
     {
         String curr = null, owner = null, error = null;
@@ -3817,7 +3830,7 @@ public class SOCDBHelper
      *     or unexpected problem with executeQuery
      * @since 2.0.00
      */
-    private static String dbtypePostgresGetSerialSequence
+    private String dbtypePostgresGetSerialSequence
         (final String tabName, final String fieldName)
         throws IllegalStateException, SQLException
     {
@@ -3847,7 +3860,7 @@ public class SOCDBHelper
      * @throws IllegalStateException if {@link #dbType} is {@link #DBTYPE_SQLITE}, which cannot drop columns
      * @since 1.2.00
      */
-    private static boolean runDDL_dropCols(final String tabName, final String[] colNames)
+    private boolean runDDL_dropCols(final String tabName, final String[] colNames)
         throws IllegalStateException
     {
         if (dbType == DBTYPE_SQLITE)
@@ -3901,7 +3914,7 @@ public class SOCDBHelper
      * @return True if command succeeded, false if an Exception was thrown
      * @since 1.2.00
      */
-    private static boolean runDDL_rollback(final String sql)
+    private boolean runDDL_rollback(final String sql)
     {
         try {
             runDDL(sql);
@@ -3921,7 +3934,7 @@ public class SOCDBHelper
      * @since 1.2.00
      * @see #runDDL_rollback(String)
      */
-    private static void runDDL(final String sql)
+    private void runDDL(final String sql)
         throws IllegalStateException, SQLException
     {
         try
@@ -3952,7 +3965,7 @@ public class SOCDBHelper
      * @see #updateSetting(String, int, boolean)
      * @since 1.2.00
      */
-    private static int getIntSetting(final String settingKey, final int defaultVal)
+    private int getIntSetting(final String settingKey, final int defaultVal)
         throws SQLException
     {
         int v = defaultVal;
@@ -3978,7 +3991,7 @@ public class SOCDBHelper
      * @see #checkSettings(boolean, boolean)
      * @since 1.2.00
      */
-    private static void updateSetting(final String settingKey, final int val, final boolean isAdd)
+    private void updateSetting(final String settingKey, final int val, final boolean isAdd)
         throws SQLException
     {
         PreparedStatement ps = connection.prepareStatement
@@ -4057,11 +4070,11 @@ public class SOCDBHelper
      * @throws IllegalStateException if not connected; see {@link #doesTableExist(String)} javadoc
      * @since 2.0.00
      */
-    private static boolean testOne_doesTableExist
+    private boolean testOne_doesTableExist
         (final String tabname, final boolean wantSuccess, final boolean isRequired)
         throws IllegalStateException
     {
-        final boolean exists = SOCDBHelper.doesTableExist(tabname),
+        final boolean exists = doesTableExist(tabname),
             pass = (exists == wantSuccess);
         System.err.println
             ( ((pass) ? "test ok" : ((isRequired) ? "test FAIL" : "test failed but optional: ok"))
@@ -4080,11 +4093,11 @@ public class SOCDBHelper
      * @throws IllegalStateException if not connected; see {@link #doesTableColumnExist(String, String)} javadoc
      * @since 2.0.00
      */
-    private static boolean testOne_doesTableColumnExist
+    private boolean testOne_doesTableColumnExist
         (final String tabname, final String colname, final boolean wantSuccess, final boolean isRequired)
         throws IllegalStateException
     {
-        final boolean exists = SOCDBHelper.doesTableColumnExist(tabname, colname),
+        final boolean exists = doesTableColumnExist(tabname, colname),
             pass = (exists == wantSuccess);
         System.err.println
             ( ((pass) ? "test ok" : ((isRequired) ? "test FAIL" : "test failed but optional: ok"))
@@ -4107,7 +4120,7 @@ public class SOCDBHelper
      * @return true if succeeded (or if schema < {@link #SCHEMA_VERSION_2000})
      * @since 2.0.00
      */
-    private static boolean testOne_insertGameRow(final boolean prepareWithArrayParam, final boolean isRequired)
+    private boolean testOne_insertGameRow(final boolean prepareWithArrayParam, final boolean isRequired)
     {
         final String testDesc = "testOne_insertGameRow(" + prepareWithArrayParam + ')',
                      testFailed = (isRequired) ? "test FAIL" : "test failed but optional: ok";
@@ -4211,7 +4224,7 @@ public class SOCDBHelper
      * @param sql  SQL to run
      * @since 2.0.00
      */
-    private static void testDBHelper_runDDL(final String desc, final String sql)
+    private void testDBHelper_runDDL(final String desc, final String sql)
         throws IllegalStateException, SQLException
     {
         System.err.println("For testing: " + desc);
@@ -4239,7 +4252,7 @@ public class SOCDBHelper
      * @throws SQLException  if connection fails or any required tests failed
      * @since 2.0.00
      */
-    public static final void testDBHelper()
+    public final void testDBHelper()
         throws IllegalStateException, SQLException
     {
         if (! initialized)
@@ -4635,7 +4648,7 @@ public class SOCDBHelper
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 1.2.00
      */
-    private static class UpgradeBGTasksThread extends Thread
+    private class UpgradeBGTasksThread extends Thread
     {
         /** Flag to shut down the thread if set true */
         public volatile boolean doShutdown = false;

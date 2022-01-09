@@ -125,4 +125,17 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      */
     public int getMinimumVersion() { return 2000; }
 
+    /**
+     * Build a human-readable form of the message, with this class's field names
+     * instead of generic names from {@link SOCMessageTemplate3i}.
+     * @return a human readable form of the message
+     * @since 2.4.10
+     */
+    @Override
+    public String toString()
+    {
+        return "SOCRemovePiece:game=" + game
+            + "|pn=" + p1 + "|pieceType=" + p2 + "|coord=" + p3;
+    }
+
 }

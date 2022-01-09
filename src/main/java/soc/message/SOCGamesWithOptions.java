@@ -27,6 +27,7 @@ import java.util.List;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.proto.Message;
+import soc.game.SOCGameOptionSet;
 import soc.util.SOCGameList;
 
 /**
@@ -73,8 +74,10 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             Object ob = ga.get(i);
             if (ob instanceof SOCGame)
             {
+                SOCGameOptionSet opts = ((SOCGame) ob).getGameOptions();
                 pa.add(((SOCGame) ob).getName());
-                pa.add(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false, false, cliVers));
+                pa.add(SOCGameOption.packOptionsToString
+                    ((opts != null) ? opts.getAll() : null, false, false, cliVers));
             } else {
                 pa.add((String) ob);  // ob is most likely a String already
                 pa.add("-");
@@ -86,7 +89,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * Constructor for client to parse server's list of games.
      * This collects the paired games and options into a string list,
      * but doesn't parse the game option strings into {@link soc.game.SOCGameOption}
-     * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String)} for that.
+     * objects; call {@link soc.game.SOCGameOption#parseOptionsToMap(String, soc.game.SOCGameOptionSet)} for that.
      *<P>
      * The server instead calls {@link #SOCGamesWithOptions(List, int)}.
      *
@@ -107,13 +110,17 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * Game names may be marked with the prefix {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE};
      * this will be removed from their names before adding to the returned game list.
      * To see if a game cannot be joined, call {@link SOCGameList#isUnjoinableGame(String)}.
+     *<P>
+     * The returned list has null {@code knownOpts}, so don't call {@link SOCGameList#parseGameOptions(String)}
+     * on its members.
      *
+     * @param knownOpts  Known Options to use when constructing the returned list
      * @return list of games contained in this message, or an empty SOCGameList
      * @see SOCGameList#parseGameOptions(String)
      */
-    public SOCGameList getGameList()
+    public SOCGameList getGameList(final SOCGameOptionSet knownOpts)
     {
-        SOCGameList gamelist = new SOCGameList();
+        SOCGameList gamelist = new SOCGameList(knownOpts);
 
         final int L = pa.size();
         for (int ii = 0; ii < L; )

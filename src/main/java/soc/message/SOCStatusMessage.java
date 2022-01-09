@@ -567,6 +567,7 @@ public class SOCStatusMessage extends SOCMessage
      * @see #statusValidAtVersion(int, int)
      * @since 2.0.00
      */
+    @SuppressWarnings("fallthrough")
     public static int statusFallbackForVersion(int sv, int cliVersion)
     {
         if (! statusValidAtVersion(sv, cliVersion))
@@ -640,6 +641,7 @@ public class SOCStatusMessage extends SOCMessage
             }
             s = s.substring(i + 1);
         }
+
         return new SOCStatusMessage(sv, s);
     }
 
@@ -652,17 +654,16 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
+     * Get a delimited human-readable form of this message, starting with optional {@code sv=} if not 0.
+     *<P>
+     * Before v2.4.10, fields were comma-separated; that version changed to use standard {@code '|'} separator.
      * @return a human readable form of the message
      */
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCStatusMessage:");
+        StringBuilder sb = new StringBuilder("SOCStatusMessage:");
         if (svalue > 0)
-        {
-            sb.append("sv=");
-            sb.append(svalue);
-            sb.append(sep2);
-        }
+            sb.append("sv=").append(svalue).append(sep_char);
         sb.append("status=");
         sb.append(status);
         return sb.toString();

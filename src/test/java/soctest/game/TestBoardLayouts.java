@@ -38,7 +38,7 @@ import static org.junit.Assert.*;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayerEvent;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;  // for javadoc
@@ -119,7 +119,7 @@ public class TestBoardLayouts
     {
         allScens = SOCScenario.getAllKnownScenarios();
         sgh = new SOCGameHandler(null);
-        gl = new SOCGameListAtServer(new Random());
+        gl = new SOCGameListAtServer(new Random(), SOCGameOptionSet.getAllKnownOptions());
     }
 
     /**
@@ -421,8 +421,8 @@ public class TestBoardLayouts
      * Tests each one for {@link #roundCount} rounds, with and without game option {@code "BC=t3"},
      * by calling {@link #testSingleLayout(SOCScenario, int)}.
      * If {@link #roundCount} &gt; 1, does multiple rounds of all that.
-     * @see SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)
-     * @see SOCBoardAtServer#makeNewBoard(Map)
+     * @see SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, soc.server.GameHandler)
+     * @see SOCBoardAtServer#makeNewBoard(SOCGameOptionSet)
      */
     @Test(timeout=30000)
     public void testLayouts()
@@ -485,14 +485,14 @@ public class TestBoardLayouts
 
     /** Callback for {@link SOCBoardAtServer.NewBoardProgressListener} during {@link #testLayouts()} */
     public void hexesProgress
-        (final SOCBoardAtServer board, final Map<String, SOCGameOption> opts, final int step, final int[] landPath)
+        (final SOCBoardAtServer board, final SOCGameOptionSet opts, final int step, final int[] landPath)
     {
         checkLandHexNumbers(board, step, landPath);
     }
 
     /** Callback for {@link SOCBoardAtServer.NewBoardProgressListener} during {@link #testLayouts()} */
     public void boardProgress
-        (final SOCBoardAtServer board, final Map<String, SOCGameOption> opts, final int step)
+        (final SOCBoardAtServer board, final SOCGameOptionSet opts, final int step)
     {
         checkLandHexNumbers(board, step, null);
     }

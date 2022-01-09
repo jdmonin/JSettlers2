@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.proto.Message;
 
 /**
@@ -76,9 +77,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      */
     public SOCNewGameWithOptions(final SOCGame ga, final int cliVers)
     {
-        this(ga.getName(),
-            SOCGameOption.packOptionsToString(ga.getGameOptions(), false, false, cliVers),
-            ga.getClientVersionMinRequired());
+        this(ga.getName(), ga.getGameOptions(), ga.getClientVersionMinRequired(), cliVers);
     }
 
     /**
@@ -116,9 +115,10 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @since 2.0.00
      */
     public SOCNewGameWithOptions
-        (final String ga, final Map<String, SOCGameOption> opts, final int minVers, final int cliVers)
+        (final String ga, final SOCGameOptionSet opts, final int minVers, final int cliVers)
     {
-        this(ga, SOCGameOption.packOptionsToString(opts, false, false, cliVers), minVers);
+        this(ga, SOCGameOption.packOptionsToString
+                ((opts != null) ? opts.getAll() : null, false, false, cliVers), minVers);
     }
 
     /**

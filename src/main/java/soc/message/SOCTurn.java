@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,9 +44,9 @@ import soc.proto.Message;
  * state transitions, the client's SOCGame had enough info to advance the gamestate and player
  * number.)
  *<P>
- * The server won't send a TURN message to human players after the final road or ship is placed
+ * Before v2.0.00 the server didn't send a TURN message to human players after the final road or ship is placed
  * at the end of initial placement and start of regular gameplay, only a {@link SOCGameState}
- * message (state START2 -> ROLL_OR_CARD).
+ * message (state START2 -> PLAY/ROLL_OR_CARD).
  *
  * @author Robert S. Thomas
  * @see SOCSetTurn

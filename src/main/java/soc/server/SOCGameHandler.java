@@ -84,6 +84,7 @@ import soc.message.SOCPlayerElements;
 import soc.message.SOCPlayerStats;
 import soc.message.SOCPotentialSettlements;
 import soc.message.SOCPutPiece;
+import soc.message.SOCReportRobbery;
 import soc.message.SOCResetBoardReject;
 import soc.message.SOCRevealFogHex;
 import soc.message.SOCRollDice;
@@ -445,7 +446,7 @@ public class SOCGameHandler extends GameHandler
      *
      *<H5>Currently recognized commands, per scenario:</H5>
      *<UL>
-     *  <LI> <B>{@link SOCGameOption#K_SC_FTRI SC_FTRI}:</B>
+     *  <LI> <B>{@link SOCGameOptionSet#K_SC_FTRI SC_FTRI}:</B>
      *    <UL>
      *      <LI> giveport #typenum #placeflag player
      *    </UL>
@@ -472,7 +473,7 @@ public class SOCGameHandler extends GameHandler
             srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "This game has no scenario");
             return;
         }
-        if (! ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        if (! ga.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "This scenario has no debug commands");
             return;
@@ -591,6 +592,27 @@ public class SOCGameHandler extends GameHandler
             SOCScenario sc = SOCScenario.getScenario(scKey);
             int scVers = (sc != null) ? sc.minVersion : Integer.MAX_VALUE;
             fs.add(SOCFeatureSet.CLIENT_SCENARIO_VERSION, scVers);
+        }
+
+        final SOCGameOptionSet opts = ga.getGameOptions();
+        if (opts != null)
+        {
+            for (final SOCGameOption opt : opts)
+            {
+                String feat = opt.getClientFeature();
+                if ((feat == null) || ! opt.hasValue())
+                    continue;
+
+                if (fs != null)
+                {
+                    if (fs.isActive(feat))
+                        continue;
+                } else {
+                    fs = new SOCFeatureSet((String) null);
+                }
+
+                fs.add(feat);
+            }
         }
 
         if (fs != null)
@@ -795,14 +817,19 @@ public class SOCGameHandler extends GameHandler
                     reportRsrcGainLoss(gaName, resGainLoss, false, false, cpn, -1, null);
                 }
             } else {
-                Connection c = srv.getConnection(plName);
-                if ((c != null) && c.isConnected())
-                    reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, c);
                 int totalRes = resGainLoss.getTotal();
-                srv.messageToGameExcept
-                    (gaName, c, cpn, new SOCPlayerElement
-                        (gaName, cpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, totalRes, true),
-                     true);
+                if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
+                {
+                    reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, null);
+                } else {
+                    Connection c = srv.getConnection(plName);
+                    if ((c != null) && c.isConnected())
+                        reportRsrcGainLoss(gaName, resGainLoss, true, true, cpn, -1, c);
+                    srv.messageToGameExcept
+                        (gaName, c, cpn, new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, totalRes, true),
+                         true);
+                }
                 srv.messageToGameKeyed
                     (ga, true, true, "action.discarded", plName, totalRes);  //  "{0} discarded {1} resources."
             }
@@ -848,7 +875,7 @@ public class SOCGameHandler extends GameHandler
                 // If it's private and doesn't need a special message, set handled = true and let it announce as unknown
                 boolean handled = false;
 
-                if (ga.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+                if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
                 {
                     // endFromGameState is PLACING_INV_ITEM.
                     // "Gift port" item details are public, send return message to whole game:
@@ -872,9 +899,16 @@ public class SOCGameHandler extends GameHandler
             {
                 if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                 {
+                    final boolean isObservableVP =
+                        (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO)
+                         || ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO));
+                        // note: minVersion for these gameopts is VERSION_FOR_RENUMBERED_TYPES
+
                     srv.messageToGameExcept
                         (gaName, c, cpn, new SOCDevCardAction
-                            (gaName, cpn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.UNKNOWN), true);
+                            (gaName, cpn, SOCDevCardAction.ADD_OLD,
+                             (isObservableVP) ? itemCard.itype : SOCDevCardConstants.UNKNOWN),
+                         true);
                 } else {
                     srv.messageToGameForVersionsExcept
                         (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
@@ -939,7 +973,7 @@ public class SOCGameHandler extends GameHandler
      * Does not add the client to the game's or server's list of players,
      * that should be done before calling this method.
      *<P>
-     * Assumes {@link SOCServer#connectToGame(Connection, String, Map, SOCGame)} was already called.
+     * Assumes {@link SOCServer#connectToGame(Connection, String, SOCGameOptionSet, SOCGame)} was already called.
      *<P>
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * The game's first message<B>*</B> sent to the connecting client is JOINGAMEAUTH, unless isReset.
@@ -968,7 +1002,7 @@ public class SOCGameHandler extends GameHandler
      *          is defunct/frozen because of a network problem. Also true when a human player joins a
      *          game being reloaded and has the same nickname as a player there.
      *          If {@code isRejoinOrLoadgame}, sends {@code c} their hand's private info for game in progress.
-     * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, Map)
+     * @see SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)
      * @since 1.1.00
      */
     @SuppressWarnings("unchecked")  // for new ArrayList<SOCSpecialItem>[]
@@ -982,6 +1016,7 @@ public class SOCGameHandler extends GameHandler
         boolean hasRobot = false;  // If game's already started, true if any bot is seated (can be taken over)
         final String gameName = gameData.getName(), cliName = c.getData();
         final int gameState = gameData.getGameState(), cliVers = c.getVersion();
+        final boolean isFullyObservable = gameData.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO);
 
         if (! isReset)
         {
@@ -1107,7 +1142,7 @@ public class SOCGameHandler extends GameHandler
          */
         if (gameState < SOCGame.START1A)
         {
-            if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+            if (gameData.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
                 // Board's general supply of cloth:
                 srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                     new SOCPlayerElement
@@ -1361,7 +1396,7 @@ public class SOCGameHandler extends GameHandler
              */
             final int[] counts = new int[(gameData.hasSeaBoard) ? 7 : 6];
             counts[0] = pl.getLastSettlementCoord();
-            counts[1] = pl.getResources().getTotal();  // will send with SOCPlayerElement.UNKNOWN
+            counts[1] = (isFullyObservable) ? 0 : pl.getResources().getTotal();  // for SOCPlayerElement.UNKNOWN_RESOURCE
             counts[2] = pl.getNumKnights();
             counts[3] = pl.getNumPieces(SOCPlayingPiece.ROAD);
             counts[4] = pl.getNumPieces(SOCPlayingPiece.SETTLEMENT);
@@ -1375,6 +1410,11 @@ public class SOCGameHandler extends GameHandler
                         (gameName, i, SOCPlayerElement.SET,
                          (gameData.hasSeaBoard) ? ELEM_JOINGAME_WITH_PIECETYPES_SEA : ELEM_JOINGAME_WITH_PIECETYPES_CLASSIC,
                          counts));
+                if (isFullyObservable)
+                    srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+                        new SOCPlayerElements
+                            (gameName, i, SOCPlayerElement.SET, ELEM_RESOURCES,
+                             pl.getResources().getAmounts(false)));
             } else {
                 srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                     new SOCLastSettlement(gameName, i, counts[0]));
@@ -1392,16 +1432,27 @@ public class SOCGameHandler extends GameHandler
 
             if (! isTakingOverThisSeat)
             {
-                final int numDevCards = pl.getInventory().getTotal();
-                final int unknownType =
-                    (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
-                    ? SOCDevCardConstants.UNKNOWN
-                    : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-                final SOCMessage cardUnknownMsg =
-                    new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
-                for (int j = 0; j < numDevCards; j++)
-                    srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
-                        cardUnknownMsg);
+                // send cards as unknown unless game is Observable
+
+                final boolean cliVersionRecent = (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES);
+                if (! (cliVersionRecent &&
+                       (isFullyObservable || gameData.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO))))
+                {
+                    final int numDevCards = pl.getInventory().getTotal();
+                    final int unknownType = (cliVersionRecent)
+                        ? SOCDevCardConstants.UNKNOWN
+                        : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
+                    final SOCMessage cardUnknownMsg =
+                        new SOCDevCardAction(gameName, i, SOCDevCardAction.ADD_OLD, unknownType);
+                    for (int j = 0; j < numDevCards; j++)
+                        srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER, cardUnknownMsg);
+                } else {
+                    // Observable: Send same way we'd send to a player client sitting down here. Can skip back-compat
+                    // itemtype check because Observable gameopts' minVersion is same as cliVersionRecent
+
+                    for (SOCMessage msg : sitDown_gatherInventoryContents(gameName, pl, cliVers))
+                        srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER, msg);
+                }
             }
 
             if (gameSITypes != null)
@@ -1496,7 +1547,7 @@ public class SOCGameHandler extends GameHandler
          */
         if (gameState >= SOCGame.START1A)
         {
-            if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+            if (gameData.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
                 srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                     new SOCPlayerElement
                         (gameName, -1, SOCPlayerElement.SET,
@@ -1801,6 +1852,7 @@ public class SOCGameHandler extends GameHandler
     {
         final String gaName = ga.getName();
         final SOCPlayer pl = ga.getPlayer(pn);
+        final int cliVers = c.getVersion();
 
         /**
          * send all the private information
@@ -1808,7 +1860,7 @@ public class SOCGameHandler extends GameHandler
         SOCResourceSet resources = pl.getResources();
         // CLAY, ORE, SHEEP, WHEAT, WOOD, UNKNOWN
         final int[] counts = resources.getAmounts(true);
-        if (c.getVersion() >= SOCPlayerElements.MIN_VERSION)
+        if (cliVers >= SOCPlayerElements.MIN_VERSION)
         {
             srv.messageToPlayer(c, gaName, pn, new SOCPlayerElements
                 (gaName, pn, SOCPlayerElement.SET, ELEM_RESOURCES_WITH_UNKNOWN, counts));
@@ -1822,74 +1874,61 @@ public class SOCGameHandler extends GameHandler
                     (gaName, pn, SOCPlayerElement.SET, ELEM_RESOURCES_WITH_UNKNOWN, counts));
         }
 
-        SOCInventory cardsInv = pl.getInventory();
-
-        final boolean cliVersionRecent = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES);
+        final boolean cliVersionRecent = (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES),
+            cliVersionClearsInventory = (cliVers >= SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY),
+            hasObservableInventory = cliVersionRecent
+                && (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO) || ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO));
 
         /**
          * remove the unknown cards, if client's too old for receiving SITDOWN to imply doing so;
          * skip if isRejoinOrLoadgame, unknowns weren't sent for that player during joinGame
          */
-        if ((! isRejoinOrLoadgame) && (c.getVersion() < SOCDevCardAction.VERSION_FOR_SITDOWN_CLEARS_INVENTORY))
+        if (! (isRejoinOrLoadgame || cliVersionClearsInventory || hasObservableInventory))
         {
             SOCDevCardAction cardUnknown = new SOCDevCardAction
                 (gaName, pn, SOCDevCardAction.PLAY,
                  (cliVersionRecent) ? SOCDevCardConstants.UNKNOWN : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
 
-            final int nCards = cardsInv.getTotal();
+            final int nCards = pl.getInventory().getTotal();
             for (int i = nCards; i > 0; --i)
                 srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, cardUnknown);
 
             if (srv.recordGameEventsIsActive())
             {
                 if (cardUnknown.getCardType() != SOCDevCardConstants.UNKNOWN)
+                    // msg was to client v1.x: unmap type from UNKNOWN_FOR_VERS_1_X
                     cardUnknown = new SOCDevCardAction
                         (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN);
+
                 for (int i = nCards; i > 0; --i)
                     srv.recordGameEventTo(gaName, pn, cardUnknown);
             }
         }
 
         /**
-         * send all new dev cards first, then all playable, then all kept (VP cards)
+         * send inventory contents: all new dev cards first, then all playable, then all kept (VP cards)
          */
-        for (int dcState = SOCInventory.NEW; dcState <= SOCInventory.KEPT; ++dcState)
-        {
-            final int dcAge = (dcState == SOCInventory.NEW) ? SOCInventory.NEW : SOCInventory.OLD;
-            final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADD_NEW : SOCDevCardAction.ADD_OLD;
-
-            for (final SOCInventoryItem iitem : cardsInv.getByState(dcState))
+        if (! (hasObservableInventory && ! cliVersionClearsInventory))
+            for (SOCMessage msg : sitDown_gatherInventoryContents(gaName, pl, cliVers))
             {
-                final SOCMessage addMsg;
-                if (iitem instanceof SOCDevCard)
-                {
-                    final int dcType = iitem.itype;
-                    if (cliVersionRecent || (dcType != SOCDevCardConstants.KNIGHT))
-                        addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
-                    else
-                        addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
-                } else {
-                    // SC_FTRI "gift port" to be placed later
-                    // or another general inventory item
-                    addMsg = new SOCInventoryItemAction
-                        (gaName, pn,
-                         (iitem.isPlayable() ? SOCInventoryItemAction.ADD_PLAYABLE : SOCInventoryItemAction.ADD_OTHER),
-                         iitem.itype, iitem.isKept(), iitem.isVPItem(), iitem.canCancelPlay);
-                }
+                srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, msg);
 
-                srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, addMsg);
                 if (srv.recordGameEventsIsActive())
                 {
-                    if ((! (iitem instanceof SOCDevCard))
-                        || cliVersionRecent || (iitem.itype != SOCDevCardConstants.KNIGHT))
-                        srv.recordGameEventTo(gaName, pn, addMsg);
-                    else
+                    if (cliVersionRecent
+                        || ! ((msg instanceof SOCDevCardAction)
+                              && (((SOCDevCardAction) msg).getCardType() == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)))
+                    {
+                        srv.recordGameEventTo(gaName, pn, msg);
+                    } else {
+                        // for event record, undo v1.x cardtype conversion
                         srv.recordGameEventTo
-                            (gaName, pn, new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT));
+                            (gaName, pn,
+                             new SOCDevCardAction
+                                 (gaName, pn, ((SOCDevCardAction) msg).getAction(), SOCDevCardConstants.KNIGHT));
+                    }
                 }
-
-            }  // for (item)
-        }  // for (dcState)
+            }
 
         /**
          * send game state info such as requests for discards
@@ -1912,6 +1951,65 @@ public class SOCGameHandler extends GameHandler
          * send what face this player is using
          */
         srv.messageToGame(gaName, true, new SOCChangeFace(gaName, pn, pl.getFaceId()));
+    }
+
+    /**
+     * Creates the Add messages to send contents of one player's private {@link SOCInventory} of
+     * dev cards and occasional special items to a client.
+     * Gathers all new dev cards first, then all playable, then all kept (VP cards).
+     *
+     * @param gaName  Game name to use in messages created here
+     * @param pl  Player data
+     * @param cliVers  Client version, from {@link Connection#getVersion()}.
+     *     If v1.x, will translate card type {@link SOCDevCardConstants#KNIGHT}
+     *     to {@link SOCDevCardConstants#KNIGHT_FOR_VERS_1_X}.
+     * @return  List of {@link SOCDevCardAction} messages for {@link SOCDevCard}s, and/or {@link SOCInventoryItemAction}
+     *     messages for other items, in this player's inventory.
+     *     Each message's action will be {@link SOCDevCardAction#ADD_NEW} or {@link SOCDevCardAction#ADD_OLD}
+     *     depending on its item's age.
+     *     List is empty, not null, if player's inventory is empty.
+     * @since 2.4.10
+     */
+    private List<SOCMessage> sitDown_gatherInventoryContents
+        (final String gaName, final SOCPlayer pl, final int cliVers)
+    {
+        final SOCInventory cardsInv = pl.getInventory();
+        final int pn = pl.getPlayerNumber();
+        final boolean cliVersionRecent = (cliVers >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES);
+
+        final List<SOCMessage> ret = new ArrayList<>();
+
+        for (int dcState = SOCInventory.NEW; dcState <= SOCInventory.KEPT; ++dcState)
+        {
+            final int dcAge = (dcState == SOCInventory.NEW) ? SOCInventory.NEW : SOCInventory.OLD;
+            final int addCmd = (dcAge == SOCInventory.NEW) ? SOCDevCardAction.ADD_NEW : SOCDevCardAction.ADD_OLD;
+
+            for (final SOCInventoryItem iitem : cardsInv.getByState(dcState))
+            {
+                final SOCMessage addMsg;
+
+                if (iitem instanceof SOCDevCard)
+                {
+                    final int dcType = iitem.itype;
+                    addMsg = new SOCDevCardAction
+                        (gaName, pn, addCmd,
+                         (cliVersionRecent || (dcType != SOCDevCardConstants.KNIGHT))
+                             ? dcType
+                             : SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
+                } else {
+                    // SC_FTRI "gift port" to be placed later
+                    // or another general inventory item
+                    addMsg = new SOCInventoryItemAction
+                        (gaName, pn,
+                         (iitem.isPlayable() ? SOCInventoryItemAction.ADD_PLAYABLE : SOCInventoryItemAction.ADD_OTHER),
+                         iitem.itype, iitem.isKept(), iitem.isVPItem(), iitem.canCancelPlay);
+                }
+
+                ret.add(addMsg);
+            }
+        }
+
+        return ret;
     }
 
     // javadoc inherited from GameHandler. Return true if game is empty and should be ended.
@@ -2344,7 +2442,7 @@ public class SOCGameHandler extends GameHandler
             srv.messageToGameKeyed(ga, true, true, "prompt.turn.to.build.stlmt",  player.getName());
                 // "It's Joe's turn to build a settlement."
             if ((gaState >= SOCGame.START2A)
-                && ga.isGameOptionSet(SOCGameOption.K_SC_3IP))
+                && ga.isGameOptionSet(SOCGameOptionSet.K_SC_3IP))
             {
                 // reminder to player before their 2nd, 3rd settlements
                 Connection con = srv.getConnection(player.getName());
@@ -2428,7 +2526,7 @@ public class SOCGameHandler extends GameHandler
             Connection con = srv.getConnection(ga.getPlayer(cpn).getName());
             if (con != null)
             {
-                final boolean canChooseNone = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                final boolean canChooseNone = ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
                 boolean[] choices = new boolean[ga.maxPlayers];
                 for (SOCPlayer pl : ga.getPossibleVictims())
                     choices[pl.getPlayerNumber()] = true;
@@ -2515,7 +2613,7 @@ public class SOCGameHandler extends GameHandler
          * winning an SC_PIRI fleet battle, not from a gold hex
          */
         final int ignoreAmountFromPirateFleet;
-        if ((roll != null) && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI) && (roll.sc_piri_fleetAttackRsrcs != null))
+        if ((roll != null) && ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI) && (roll.sc_piri_fleetAttackRsrcs != null))
             ignoreAmountFromPirateFleet = roll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL);
         else
             ignoreAmountFromPirateFleet = 0;
@@ -2642,57 +2740,62 @@ public class SOCGameHandler extends GameHandler
 
         ///
         /// send a message saying what VP cards each player has;
+        /// skip if game is Observable, its clients already have that info and shouldn't get it twice.
         /// before v2.0.00 this was sent as text messages after GameStats, not data messages before it
         ///
-        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        if (! (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO) || ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO)))
         {
-            final SOCPlayer pl = ga.getPlayer(pn);
-
-            if (hasOnlyBotPlayers && ! (ga.isSeatVacant(pn) || pl.isRobot()))
-                hasOnlyBotPlayers = false;
-
-            final List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
-            if (vpCards.isEmpty())
-                continue;
-
-            if ((ga.clientVersionHighest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) || (joiningConn != null))
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
             {
-                List<Integer> vpCardsITypes = new ArrayList<Integer>();
-                for (SOCInventoryItem i : vpCards)
-                    vpCardsITypes.add(Integer.valueOf(i.itype));
-                final SOCDevCardAction dcaMsg = new SOCDevCardAction(gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes);
+                final SOCPlayer pl = ga.getPlayer(pn);
 
-                if (joiningConn != null)
+                if (hasOnlyBotPlayers && ! (ga.isSeatVacant(pn) || pl.isRobot()))
+                    hasOnlyBotPlayers = false;
+
+                final List<SOCInventoryItem> vpCards = pl.getInventory().getByState(SOCInventory.KEPT);
+                if (vpCards.isEmpty())
+                    continue;
+
+                if ((ga.clientVersionHighest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) || (joiningConn != null))
                 {
-                    if (joiningConn.getVersion() >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
-                        srv.messageToPlayer(joiningConn, gname, SOCServer.PN_OBSERVER, dcaMsg);
-                    // else:
-                    //    Server v1.x never sent these to a client joining a game after it ends;
-                    //    don't send them to a 1.x client
-                } else if (ga.clientVersionLowest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) {
-                    // clients are all 2.0 or newer
-                    srv.messageToGame(gname, true, dcaMsg);
+                    List<Integer> vpCardsITypes = new ArrayList<Integer>();
+                    for (SOCInventoryItem i : vpCards)
+                        vpCardsITypes.add(Integer.valueOf(i.itype));
+                    final SOCDevCardAction dcaMsg = new SOCDevCardAction
+                        (gname, pn, SOCDevCardAction.ADD_OLD, vpCardsITypes);
+
+                    if (joiningConn != null)
+                    {
+                        if (joiningConn.getVersion() >= SOCDevCardAction.VERSION_FOR_MULTIPLE)
+                            srv.messageToPlayer(joiningConn, gname, SOCServer.PN_OBSERVER, dcaMsg);
+                        // else:
+                        //    Server v1.x never sent these to a client joining a game after it ends;
+                        //    don't send them to a 1.x client
+                    } else if (ga.clientVersionLowest >= SOCDevCardAction.VERSION_FOR_MULTIPLE) {
+                        // clients are all 2.0 or newer
+                        srv.messageToGame(gname, true, dcaMsg);
+                    } else {
+                        // mixed versions:
+                        // v2.0.00 and newer clients will announce this with localized text;
+                        // older clients need it sent from the server.
+                        final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                            (ga, "{0} has {1,dcards}.", pl.getName(), vpCards);
+                                // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
+                                // I18N OK: Pre-2.0.00 clients always use english
+                        srv.messageToGameForVersions(ga, 0, SOCDevCardAction.VERSION_FOR_MULTIPLE - 1,
+                            new SOCGameTextMsg(gname, SOCServer.SERVERNAME, txt), true);
+                        srv.messageToGameForVersions(ga, SOCDevCardAction.VERSION_FOR_MULTIPLE, Integer.MAX_VALUE,
+                            dcaMsg, true);
+                        srv.recordGameEvent(gname, dcaMsg);
+                    }
                 } else {
-                    // mixed versions:
-                    // v2.0.00 and newer clients will announce this with localized text;
-                    // older clients need it sent from the server.
-                    final String txt = SOCStringManager.getFallbackServerManagerForClient().formatSpecial
-                        (ga, "{0} has {1,dcards}.", pl.getName(), vpCards);
-                            // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
-                            // I18N OK: Pre-2.0.00 clients always use english
-                    srv.messageToGameForVersions(ga, 0, SOCDevCardAction.VERSION_FOR_MULTIPLE - 1,
-                        new SOCGameTextMsg(gname, SOCServer.SERVERNAME, txt), true);
-                    srv.messageToGameForVersions(ga, SOCDevCardAction.VERSION_FOR_MULTIPLE, Integer.MAX_VALUE,
-                        dcaMsg, true);
-                    srv.recordGameEvent(gname, dcaMsg);
+                    // clients are all v1.x, and there's no joiningConn
+                    srv.messageToGame
+                        (gname, true, SOCStringManager.getFallbackServerManagerForClient().formatSpecial
+                            (ga, "{0} has {1,dcards}.", pl.getName(), vpCards));
+                                // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
+                                // I18N OK: Pre-2.0.00 clients always use english
                 }
-            } else {
-                // clients are all v1.x, and there's no joiningConn
-                srv.messageToGame
-                    (gname, true, SOCStringManager.getFallbackServerManagerForClient().formatSpecial
-                        (ga, "{0} has {1,dcards}.", pl.getName(), vpCards));
-                            // "Joe has a Gov.House (+1VP) and a Market (+1VP)"
-                            // I18N OK: Pre-2.0.00 clients always use english
             }
         }
 
@@ -2800,13 +2903,14 @@ public class SOCGameHandler extends GameHandler
     /**
      * The current player is stealing from another player.
      * Send messages saying what was stolen.
+     * Use {@link SOCReportRobbery} if clients are compatible.
      *
      * @param ga  the game
      * @param pe  the perpetrator
      * @param vi  the victim
      * @param rsrc  type of resource stolen, as in {@link Data.ResourceType#SHEEP},
      *          or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth
-     *          (scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}).
+     *          (scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}).
      */
     void reportRobbery(SOCGame ga, SOCPlayer pe, SOCPlayer vi, final int rsrc)
     {
@@ -2825,16 +2929,74 @@ public class SOCGameHandler extends GameHandler
             // Client's game will recalculate players' VP based on
             // the cloth counts, so we don't need to also send VP.
 
-            srv.messageToGame(gaName, true,
-                new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET,
-                    PEType.SCENARIO_CLOTH_COUNT, vi.getCloth(), true));
-            srv.messageToGame(gaName, true,
-                new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET,
-                    PEType.SCENARIO_CLOTH_COUNT, pe.getCloth()));
-            srv.messageToGameKeyed
-                (ga, true, true, "robber.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
+            final int peAmt = pe.getCloth(), viAmt = vi.getCloth();
+            final SOCReportRobbery rrMsg = new SOCReportRobbery
+                (gaName, pePN, viPN, PEType.SCENARIO_CLOTH_COUNT, false, peAmt, viAmt);
+
+            if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+            {
+                srv.messageToGame(gaName, true, rrMsg);
+            } else {
+                srv.recordGameEvent(gaName, rrMsg);
+
+                srv.messageToGameForVersions
+                    (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, rrMsg, true);
+
+                srv.messageToGameForVersions
+                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1,
+                     new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, viAmt, true),
+                     true);
+                srv.messageToGameForVersions
+                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1,
+                     new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, peAmt),
+                     true);
+                srv.messageToGameForVersionsKeyed
+                    (ga, 0, SOCReportRobbery.MIN_VERSION - 1, true, false,
+                     "robber.common.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
+            }
 
             return;  // <--- early return: cloth is announced to entire game ---
+        }
+
+        final boolean isFullyObservable = ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO);
+
+        final SOCReportRobbery gainLoseRsrc = new SOCReportRobbery(gaName, pePN, viPN, rsrc, true, 1, 0),
+            gainLoseUnknown = (isFullyObservable)
+                ? null
+                : new SOCReportRobbery(gaName, pePN, viPN, SOCResourceConstants.UNKNOWN, true, 1, 0);
+
+        Connection peCon = srv.getConnection(peName);
+        Connection viCon = srv.getConnection(viName);
+        int[] notToPNs = {pePN, viPN};
+        List<Connection> sendNotTo = new ArrayList<Connection>(2);
+        sendNotTo.add(peCon);
+        sendNotTo.add(viCon);
+
+        if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+        {
+            if (isFullyObservable)
+            {
+                srv.messageToGame(gaName, true, gainLoseRsrc);
+            } else {
+                srv.messageToPlayer(peCon, gaName, pePN, gainLoseRsrc);
+                srv.messageToPlayer(viCon, gaName, viPN, gainLoseRsrc);
+                srv.messageToGameExcept(gaName, sendNotTo, notToPNs, gainLoseUnknown, true);
+            }
+
+            return;  // <--- early return: no further messages needed here ---
+        }
+
+        /**
+         * send appropriate messages to current/older client versions
+         */
+
+        if (isFullyObservable)
+        {
+            srv.recordGameEvent(gaName, gainLoseRsrc);
+        } else {
+            srv.recordGameEventTo(gaName, pePN, gainLoseRsrc);
+            srv.recordGameEventTo(gaName, viPN, gainLoseRsrc);
+            srv.recordGameEventNotTo(gaName, notToPNs, gainLoseUnknown);
         }
 
         SOCPlayerElement gainRsrc = null;
@@ -2848,35 +3010,55 @@ public class SOCGameHandler extends GameHandler
 
         /**
          * send the game data messages
+         * and the text messages if needed.
+         * these texts are also printed in SOCPlayerInterface.reportRobbery in recent clients;
+         * if you change the logic or text, make sure it's updated in both places
          */
-        Connection peCon = srv.getConnection(peName);
-        Connection viCon = srv.getConnection(viName);
-        srv.messageToPlayer(peCon, gaName, pePN, gainRsrc);
-        srv.messageToPlayer(peCon, gaName, pePN, loseRsrc);
-        srv.messageToPlayer(viCon, gaName, viPN, gainRsrc);
-        srv.messageToPlayer(viCon, gaName, viPN, loseRsrc);
-        // Don't send generic message to pe or vi
-        int[] notToPNs = {pePN, viPN};
-        List<Connection> sendNotTo = new ArrayList<Connection>(2);
-        sendNotTo.add(peCon);
-        sendNotTo.add(viCon);
-        gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN_RESOURCE, 1);
-        loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, 1);
-        srv.messageToGameExcept(gaName, sendNotTo, notToPNs, gainUnknown, true);
-        srv.messageToGameExcept(gaName, sendNotTo, notToPNs, loseUnknown, true);
 
-        /**
-         * send the text messages:
-         * "You stole a sheep from viName."  [In v1.x.xx, "stole a sheep resource"]
-         * "peName stole a sheep from you."
-         * "peName stole a resource from viName."
-         */
-        srv.messageToPlayerKeyedSpecial
-            (peCon, ga, pePN, "robber.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
-        srv.messageToPlayerKeyedSpecial
-            (viCon, ga, viPN, "robber.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
-        srv.messageToGameKeyedSpecialExcept
-            (ga, notToPNs, true, sendNotTo, "robber.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+        if (isFullyObservable)
+        {
+            srv.messageToGameForVersions(ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, gainLoseRsrc, true);
+            srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, gainRsrc, true);
+            srv.messageToGameForVersions(ga, -1, SOCReportRobbery.MIN_VERSION - 1, loseRsrc, true);
+        } else {
+            if (peCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+            {
+                srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, gainRsrc);
+                srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, loseRsrc);
+                srv.messageToPlayerKeyedSpecial
+                    (peCon, ga, SOCServer.PN_NON_EVENT,
+                     "robber.common.you.stole.resource.from", -1, rsrc, viName);  // "You stole {0,rsrcs} from {2}."
+            } else {
+                srv.messageToPlayer(peCon, null, SOCServer.PN_NON_EVENT, gainLoseRsrc);
+            }
+
+            if (viCon.getVersion() < SOCReportRobbery.MIN_VERSION)
+            {
+                srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, gainRsrc);
+                srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, loseRsrc);
+                srv.messageToPlayerKeyedSpecial
+                    (viCon, ga, SOCServer.PN_NON_EVENT,
+                     "robber.common.stole.resource.from.you", peName, -1, rsrc);  // "{0} stole {1,rsrcs} from you."
+            } else {
+                srv.messageToPlayer(viCon, null, SOCServer.PN_NON_EVENT, gainLoseRsrc);
+            }
+
+            // generic message to all except pe or vi
+
+            srv.messageToGameForVersionsExcept
+                (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, sendNotTo, gainLoseUnknown, true);
+
+            gainUnknown = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, PEType.UNKNOWN_RESOURCE, 1);
+            loseUnknown = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, 1);
+            srv.messageToGameForVersionsExcept
+                (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, gainUnknown, true);
+            srv.messageToGameForVersionsExcept
+                (ga, 0, SOCReportRobbery.MIN_VERSION - 1, sendNotTo, loseUnknown, true);
+        }
+
+        srv.messageToGameForVersionsKeyedExcept
+            (ga, 0, SOCReportRobbery.MIN_VERSION - 1, true, sendNotTo,
+             true, "robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
     }
 
     /**
@@ -3055,6 +3237,9 @@ public class SOCGameHandler extends GameHandler
      * Used to report the resources gained from a roll, discard, or discovery (year-of-plenty) pick.
      * Also used to report the "give" or "get" half of a resource trade.
      *<P>
+     * Messages sent by this method are always treated as "events":
+     * Indirectly calls {@link SOCServer#recordGameEvent(String, SOCMessage)} or similar methods.
+     *<P>
      * Takes and releases the gameList monitor for this game.
      *
      * @param gaName  Game name
@@ -3123,7 +3308,11 @@ public class SOCGameHandler extends GameHandler
      * Report to game members what a player picked from the gold hex.
      * Sends {@link SOCPlayerElement} for resources and to reset the
      * {@link PEType#NUM_PICK_GOLD_HEX_RESOURCES} counter.
-     * Sends text "playername has picked ___ from the gold hex.".
+     * Also sends text "playername has picked ___ from the gold hex.".
+     *<P>
+     * Messages sent by this method are always treated as "events":
+     * Indirectly calls {@link SOCServer#recordGameEvent(String, SOCMessage)} or similar methods.
+     *
      * @param ga      Game with gaining player
      * @param player  Player gaining
      * @param pn      <tt>player</tt>{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()}
@@ -3314,6 +3503,8 @@ public class SOCGameHandler extends GameHandler
                     for (int j = 0; j < counts.length; ++j)
                         srv.messageToGameWithMon(gaName, true, new SOCPlayerElement
                             (gaName, i, SOCPlayerElement.SET, ELEM_PIECETYPES_SEA[j], counts[j]));
+                            // counts[] likely lines up with ELEM_PIECETYPES_CLASSIC, ignoring _SEA's extra element,
+                            // but use _SEA here just in case
 
                 if (ga.clientVersionLowest < SOCPlayerElement.VERSION_FOR_CARD_ELEMENTS)
                     srv.messageToGameWithMon(gaName, true, new SOCSetPlayedDevCard(gaName, i, false));
@@ -4028,13 +4219,18 @@ public class SOCGameHandler extends GameHandler
         final int totalRes = rset.getTotal();
         if (isDiscard)
         {
-            if ((c != null) && c.isConnected())
-                reportRsrcGainLoss(gaName, rset, true, true, pn, -1, c);
+            if (cg.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
+            {
+                reportRsrcGainLoss(gaName, rset, true, true, pn, -1, null);
+            } else {
+                if ((c != null) && c.isConnected())
+                    reportRsrcGainLoss(gaName, rset, true, true, pn, -1, c);
 
-            srv.messageToGameExcept
-                (gaName, c, pn, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, totalRes, true),
-                 true);
+                srv.messageToGameExcept
+                    (gaName, c, pn, new SOCPlayerElement
+                        (gaName, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, totalRes, true),
+                     true);
+            }
             srv.messageToGameKeyed(cg, true, true, "action.discarded", plName, totalRes);  // "{0} discarded {1} resources."
 
             System.err.println("Forced discard: " + totalRes + " from " + plName + " in game " + gaName);
@@ -4212,11 +4408,16 @@ public class SOCGameHandler extends GameHandler
                 Connection c = srv.getConnection(plName);
                 ga.pendingMessagesOut.add(new UnlocalizedString
                     ("action.built.sc_ftri.dev", plName));  // "{0} gets a Development Card as a gift from the Forgotten Tribe."
+                final int ctype = edge_cardType.getB();
+                final boolean isObservableVP =
+                    ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO) || ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO);
                 srv.messageToPlayer
-                    (c, gaName, pn, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, edge_cardType.getB()));
+                    (c, gaName, pn, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, ctype));
                 srv.messageToGameExcept
                     (gaName, c, pn,
-                     new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                     new SOCDevCardAction
+                         (gaName, pn, SOCDevCardAction.DRAW, (isObservableVP) ? ctype : SOCDevCardConstants.UNKNOWN),
+                     true);
                 srv.messageToGame(gaName, true, new SOCSimpleAction
                     (gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge_cardType.getA(), 0));
             }

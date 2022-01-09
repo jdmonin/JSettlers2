@@ -73,6 +73,7 @@ import javax.swing.text.JTextComponent;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCAuthRequest;
@@ -1495,7 +1496,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             // This game is either from the tcp server, or practice server,
             // both servers' games are in the same GUI list.
 
-            Map<String,SOCGameOption> opts = null;
+            SOCGameOptionSet opts = null;
 
             if ((net.practiceServer != null) && (net.practiceServer.getGame(gm) != null))
             {
@@ -1830,7 +1831,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     // "Create Game" in the NewGameOptionsFrame, causing the new
                     // game to be requested from askStartGameWithOptions.
                     fullSetIsKnown = true;
-                    opts.optionSet = SOCServer.localizeKnownOptions(client.cliLocale, true);
+                    opts.knownOpts = SOCServer.localizeKnownOptions(client.cliLocale, true);
                 }
 
                 if (! opts.allScenStringsReceived)
@@ -1847,7 +1848,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 {
                     // Server doesn't support them.  Don't ask it.
                     fullSetIsKnown = true;
-                    opts.optionSet = null;
+                    opts.knownOpts = null;
                 }
             }
 
@@ -1889,8 +1890,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         if (optsAllKnown && knowDefaults)
         {
             // All done, present the options window frame
+            if ((opts.newGameOpts == null) && (opts.knownOpts != null))
+                opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (null, this, null, opts.optionSet, client.sVersion, forPracticeServer, false);
+                (null, this, null, opts.newGameOpts, client.sVersion, forPracticeServer, false);
+
             return;  // <--- Early return: Show options to user ----
         }
 
@@ -1971,7 +1975,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      */
     public void askStartGameWithOptions
         (final String gmName, final boolean forPracticeServer,
-         final Map<String, SOCGameOption> opts, final Map<String, Object> localPrefs)
+         final SOCGameOptionSet opts, final Map<String, Object> localPrefs)
     {
         client.putGameReqLocalPrefs(gmName, localPrefs);
 
@@ -1983,7 +1987,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             String askMsg =
                 (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                 ? SOCNewGameWithOptionsRequest.toCmd
-                    (client.nickname, pw, SOCMessage.EMPTYSTR, gmName, opts)
+                    (client.nickname, pw, SOCMessage.EMPTYSTR, gmName, opts.getAll())
                 : SOCJoinGame.toCmd
                     (client.nickname, pw, SOCMessage.EMPTYSTR, gmName);
             net.putNet(askMsg);
@@ -2241,9 +2245,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         fr.deleteMember(nickname);
     }
 
-    public void channelMemberList(String channel, Collection<String> members)
+    public void channelMemberList(String channelName, Collection<String> members)
     {
-        ChannelFrame fr = channels.get(channel);
+        ChannelFrame fr = channels.get(channelName);
 
         for (String member : members)
             fr.addMember(member);
@@ -2459,8 +2463,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     public void optionsReceived(ServerGametypeInfo opts, boolean isPractice)
     {
         gameOptionsCancelTimeoutTask();
+
+        if ((opts.newGameOpts == null) && (opts.knownOpts != null))
+            opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
         newGameOptsFrame = NewGameOptionsFrame.createAndShow
-            (null, SwingMainDisplay.this, (String) null, opts.optionSet, client.sVersion, isPractice, false);
+            (null, SwingMainDisplay.this, (String) null, opts.newGameOpts, client.sVersion, isPractice, false);
     }
 
     public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
@@ -2484,7 +2491,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 {
                     opts.gameInfoWaitingForOpts = null;
                 }
-                final Map<String,SOCGameOption> gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
+                final SOCGameOptionSet gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
                 if (! isPractice)
                     client.checkGameoptsForUnknownScenario(gameOpts);
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
@@ -2496,9 +2503,11 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 synchronized(opts)
                 {
                     opts.newGameWaitingForOpts = false;
+                    if ((opts.newGameOpts == null) && (opts.knownOpts != null))
+                        opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
                 }
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (null, SwingMainDisplay.this, (String) null, opts.optionSet, client.sVersion, isPractice, false);
+                    (null, SwingMainDisplay.this, (String) null, opts.newGameOpts, client.sVersion, isPractice, false);
             }
         }
     }
@@ -2509,7 +2518,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         if (addToSrvList)
         {
             if (client.serverGames == null)
-                client.serverGames = new SOCGameList();
+                client.serverGames = new SOCGameList(client.tcpServGameOpts.knownOpts);
             client.serverGames.addGame(gameName, gameOptsStr, cannotJoin);
         }
 

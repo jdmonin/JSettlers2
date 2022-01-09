@@ -27,6 +27,7 @@ import soc.proto.Message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;    // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants; // for javadocs only
@@ -59,6 +60,15 @@ import soc.game.SOCResourceConstants; // for javadocs only
  *<P>
  * To use less overhead to send multiple similar element changes, use {@link SOCPlayerElements} instead;
  * doing so requires client version 2.0.00 or newer.
+ *<P>
+ * For some game events/actions, for efficiency and to help bots understand the event
+ * (since they aren't sent {@link SOCGameServerText}s),
+ * newer client versions are sent a more specific message instead of
+ * several {@code SOCPlayerElement} and {@link SOCGameServerText}s:
+ *<UL>
+ * <LI> {@link SOCDiceResultResources}: v2.0.00 and newer
+ * <LI> {@link SOCReportRobbery}: v2.4.10 and newer
+ *</UL>
  *
  * @author Robert S Thomas
  * @see SOCGameElements
@@ -111,12 +121,19 @@ public class SOCPlayerElement extends SOCMessage
 
         /**
          * Amount of resources of unknown type; sent in messages about opponents' resources.
+         * Also sent as player's total resource count when client joins a game.
+         *<P>
          * For some loops which send resource types + unknown, this constant's {@link #getValue()} is 6
          * (5 known resource types + 1), same numeric value as {@link SOCResourceConstants#UNKNOWN}.
+         *<P>
+         * Before sending this from server, check if game option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO} is set:
+         * May want to send as known resource type instead.
          *<P>
          * Not to be confused with {@link #UNKNOWN_TYPE}.
          *<P>
          * Before v2.3.00 this was named {@code UNKNOWN}.
+         *
+         * @see PEType#RESOURCE_COUNT
          */
         UNKNOWN_RESOURCE(6),
 
@@ -169,6 +186,8 @@ public class SOCPlayerElement extends SOCMessage
          *<P>
          * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
          * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         *
+         * @see PEType#UNKNOWN_RESOURCE
          * @since 2.0.00
          */
         RESOURCE_COUNT(17),
@@ -774,7 +793,7 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * Undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCScenario;   // for javadocs only
 import soc.game.SOCVersionedItem;
 
@@ -37,6 +38,8 @@ import soc.game.SOCVersionedItem;
  * This message is for clients to find out about options which were
  * introduced in versions newer than the client's version, but which
  * may be applicable to their version or all versions.
+ * Client should have a {@link SOCGameOptionSet} to hold its "Known Options",
+ * initialized from {@link SOCGameOptionSet#getAllKnownOptions()} and updated by this message.
  *<P>
  * If the server doesn't know this option, the returned option type is
  * {@link SOCGameOption#OTYPE_UNKNOWN}.
@@ -153,63 +156,66 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
             throw new IllegalArgumentException("pal.size");
 
         parseData_FindEmptyStrs(pal);  // EMPTYSTR -> ""
-        final String[] pa = pal.toArray(new String[L]);
+        final String[] params = pal.toArray(new String[L]);
 
         // OTYPE_*
-        int otyp = Integer.parseInt(pa[1]);
+        int otyp = Integer.parseInt(params[1]);
         if ((otyp < SOCGameOption.OTYPE_MIN) || (otyp > SOCGameOption.OTYPE_MAX))
             otyp = SOCGameOption.OTYPE_UNKNOWN;
 
-        final int oversmin = Integer.parseInt(pa[2]);
-        final int oversmod = Integer.parseInt(pa[3]);
-        final boolean bval_def = (pa[4].equals("t"));
-        final int ival_def = Integer.parseInt(pa[5]);
-        final int ival_min = Integer.parseInt(pa[6]);
-        final int ival_max = Integer.parseInt(pa[7]);
-        final boolean bval_cur = (pa[8].equals("t"));
+        final int oversmin = Integer.parseInt(params[2]);
+        final int oversmod = Integer.parseInt(params[3]);
+        final boolean bval_def = (params[4].equals("t"));
+        final int ival_def = Integer.parseInt(params[5]);
+        final int ival_min = Integer.parseInt(params[6]);
+        final int ival_max = Integer.parseInt(params[7]);
+        final boolean bval_cur = (params[8].equals("t"));
         final int ival_cur;
         String sval_cur;
         if ((otyp == SOCGameOption.OTYPE_STR) || (otyp == SOCGameOption.OTYPE_STRHIDE))
         {
             ival_cur = 0;
-            sval_cur = pa[9];
+            sval_cur = params[9];
             if (sval_cur.length() == 0)
                 sval_cur = null;
         } else {
-            ival_cur = Integer.parseInt(pa[9]);
+            ival_cur = Integer.parseInt(params[9]);
             sval_cur = null;
         }
         final int opt_flags;
-        if (pa[10].equals("t"))
+        if (params[10].equals("t"))
             opt_flags = SOCGameOption.FLAG_DROP_IF_UNUSED;
-        else if (pa[10].equals("f") || (pa[10].length() == 0))
+        else if (params[10].equals("f") || (params[10].length() == 0))
             opt_flags = 0;
         else
-            opt_flags = Integer.parseInt(pa[10]);
+            opt_flags = Integer.parseInt(params[10]);
 
-        if ((pa.length != 11) && (pa.length != 12)
+        if ((params.length != 11) && (params.length != 12)
               && (otyp != SOCGameOption.OTYPE_ENUM)
               && (otyp != SOCGameOption.OTYPE_ENUMBOOL))
-            throw new IllegalArgumentException("pa.length");
+            throw new IllegalArgumentException("params.length");
 
         switch (otyp)  // OTYPE_*
         {
         case SOCGameOption.OTYPE_UNKNOWN:
-            opt = new SOCGameOption(pa[0]);
+            opt = new SOCGameOption(params[0]);
             break;
 
         case SOCGameOption.OTYPE_BOOL:
-            opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, opt_flags, pa[11]);
+            opt = new SOCGameOption
+                (params[0], oversmin, oversmod, bval_def, opt_flags, params[11]);
             opt.setBoolValue(bval_cur);
             break;
 
         case SOCGameOption.OTYPE_INT:
-            opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, opt_flags, pa[11]);
+            opt = new SOCGameOption
+                (params[0], oversmin, oversmod, ival_def, ival_min, ival_max, opt_flags, params[11]);
             opt.setIntValue(ival_cur);
             break;
 
         case SOCGameOption.OTYPE_INTBOOL:
-            opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, ival_min, ival_max, opt_flags, pa[11]);
+            opt = new SOCGameOption
+                (params[0], oversmin, oversmod, bval_def, ival_def, ival_min, ival_max, opt_flags, params[11]);
             opt.setBoolValue(bval_cur);
             opt.setIntValue(ival_cur);
             break;
@@ -217,8 +223,9 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         case SOCGameOption.OTYPE_ENUM:
             {
                 String[] choices = new String[ival_max];
-                System.arraycopy(pa, 12, choices, 0, ival_max);
-                opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, opt_flags, pa[11]);
+                System.arraycopy(params, 12, choices, 0, ival_max);
+                opt = new SOCGameOption
+                    (params[0], oversmin, oversmod, ival_def, choices, opt_flags, params[11]);
                 opt.setIntValue(ival_cur);
             }
             break;
@@ -226,8 +233,9 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         case SOCGameOption.OTYPE_ENUMBOOL:
             {
                 String[] choices = new String[ival_max];
-                System.arraycopy(pa, 12, choices, 0, ival_max);
-                opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, choices, opt_flags, pa[11]);
+                System.arraycopy(params, 12, choices, 0, ival_max);
+                opt = new SOCGameOption
+                    (params[0], oversmin, oversmod, bval_def, ival_def, choices, opt_flags, params[11]);
                 opt.setBoolValue(bval_cur);
                 opt.setIntValue(ival_cur);
             }
@@ -236,7 +244,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         case SOCGameOption.OTYPE_STR:
         case SOCGameOption.OTYPE_STRHIDE:
             opt = new SOCGameOption
-                (pa[0], oversmin, oversmod, ival_max, (otyp == SOCGameOption.OTYPE_STRHIDE), opt_flags, pa[11]);
+                (params[0], oversmin, oversmod, ival_max, (otyp == SOCGameOption.OTYPE_STRHIDE), opt_flags, params[11]);
             opt.setStringValue(sval_cur);
             break;
 

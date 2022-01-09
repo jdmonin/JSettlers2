@@ -96,6 +96,8 @@ import java.util.Vector;
  * To listen for these, call {@link #setGameEventListener(SOCGameEventListener)}.
  * If the game has a scenario, its {@link SOCGameOption}s will include {@code "SC"}, possibly along with
  * other options whose key names start with {@code "_SC_"}.
+ *<P>
+ * To persist a game's contents or save/load, use {@link soc.server.savegame.SavedGameModel}.
  *
  * @author Robert S. Thomas
  */
@@ -103,9 +105,9 @@ public class SOCGame implements Serializable, Cloneable
 {
     /**
      * The main game class has a serialVersionUID; pieces and players don't.
-     * Currently we don't expect to persist a game between versions.
+     * To persist a game between versions, use {@link soc.server.savegame.SavedGameModel}.
      */
-    private static final long serialVersionUID = 2000L;  // Last structural change in v2.0.00
+    private static final long serialVersionUID = 2410L;  // Last structural change in v2.4.10
 
     /**
      * Game states.  {@link #NEW} is a brand-new game, not yet ready to start playing.
@@ -201,7 +203,7 @@ public class SOCGame implements Serializable, Cloneable
      * If the settlement is placed on a Gold Hex, the next state
      * is {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      *<P>
-     * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set, then instead of
+     * If game scenario option {@link SOCGameOptionSet#K_SC_3IP _SC_3IP} is set, then instead of
      * this second settlement giving resources, a third round of placement will do that;
      * next game state after START2A remains {@link #START2B}.
      */
@@ -211,14 +213,14 @@ public class SOCGame implements Serializable, Cloneable
      * Just placed an initial piece, waiting for current
      * player to choose which Gold Hex resources to receive.
      * This can happen after the second or third initial settlement,
-     * or (with the fog scenario {@link SOCGameOption#K_SC_FOG _SC_FOG})
+     * or (with the fog scenario {@link SOCGameOptionSet#K_SC_FOG _SC_FOG})
      * when any initial road, settlement, or ship reveals a gold hex.
      *<P>
      * The next game state will be based on <tt>oldGameState</tt>,
      * which is the state whose placement led to {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      * For settlements not revealed from fog:
      * Next game state is {@link #START2B} to place 2nd road.
-     * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set,
+     * If game scenario option {@link SOCGameOptionSet#K_SC_3IP _SC_3IP} is set,
      * next game state can be {@link #START3B}.
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX},
@@ -237,7 +239,7 @@ public class SOCGame implements Serializable, Cloneable
      * player's 2nd settlement (player changes in reverse order), or if all have placed
      * settlements, {@link #ROLL_OR_CARD} to begin first player's turn.
      *<P>
-     * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set, then instead of
+     * If game scenario option {@link SOCGameOptionSet#K_SC_3IP _SC_3IP} is set, then instead of
      * starting normal play, a third settlement and road are placed by each player,
      * with game state {@link #START3A}.
      */
@@ -249,7 +251,7 @@ public class SOCGame implements Serializable, Cloneable
      * If the settlement is placed on a Gold Hex, the next state
      * is {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      *<P>
-     * Valid only when game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set.
+     * Valid only when game scenario option {@link SOCGameOptionSet#K_SC_3IP _SC_3IP} is set.
      */
     public static final int START3A = 12;  // Players place 3rd settlement
 
@@ -258,7 +260,7 @@ public class SOCGame implements Serializable, Cloneable
      * player's 3rd settlement (player changes in normal order), or if all have placed
      * settlements, {@link #ROLL_OR_CARD} to begin first player's turn.
      *<P>
-     * Valid only when game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set.
+     * Valid only when game scenario option {@link SOCGameOptionSet#K_SC_3IP _SC_3IP} is set.
      */
     public static final int START3B = 13;
 
@@ -308,7 +310,7 @@ public class SOCGame implements Serializable, Cloneable
      *<UL>
      * <LI> {@link #PLAY1}, after robbing no one or the single possible victim; from {@code oldGameState}
      * <LI> {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} if multiple possible victims
-     * <LI> In scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
+     * <LI> In scenario {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
      *   if the victim has cloth and has resources
      * <LI> {@link #OVER}, if current player just won by gaining Largest Army
      *   (when there aren't multiple possible victims or another robber-related choice to make)
@@ -355,7 +357,7 @@ public class SOCGame implements Serializable, Cloneable
      * of item, placement can sometimes be canceled by calling {@link #cancelPlaceInventoryItem(boolean)}.
      *<P>
      * The placement method depends on the scenario and item type; for example,
-     * {@link SOCGameOption#K_SC_FTRI _SC_FTRI} has trading port items and would
+     * {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI} has trading port items and would
      * call {@link #placePort(int)}.
      *<P>
      * Placement requires its own game state (not {@code PLAY1}) because sometimes
@@ -447,7 +449,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Next game state is {@link #PLAY1}, or {@link #OVER} if player just won by gaining Largest Army.
      *<P>
-     * Used with scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     * Used with scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}.
      *
      * @see #movePirate(int, int)
      * @see #canChooseRobClothOrResource(int)
@@ -468,7 +470,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCPlayer#getNeedToPickGoldHexResources()} or prompt the user to pick resources; those
      * players' clients will be sent a {@link soc.message.SOCSimpleRequest#PROMPT_PICK_RESOURCES} message shortly.
      *<P>
-     * If scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} is active,
+     * If scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} is active,
      * this state is also used when a 7 is rolled and the player has won against a
      * pirate fleet attack.  They must choose a free resource.  {@link #oldGameState} is {@link #ROLL_OR_CARD}.
      * Then, the 7 is resolved as normal.  See {@link #ROLL_OR_CARD} javadoc for details.
@@ -600,7 +602,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Number of development cards (5) which are Victory Point cards.
-     * Not used in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Not used in scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      * (If 4 or more players in that scenario, they become {@link SOCDevCardConstants#KNIGHT KNIGHT} cards.)
      * @see #NUM_DEVCARDS_STANDARD
      * @since 2.0.00
@@ -786,7 +788,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Does this game's scenario have a special win condition besides {@link #vp_winner}?
-     * For example, scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI} will end the game if
+     * For example, scenario {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} will end the game if
      * less than half the {@link SOCVillage}s have cloth remaining.  See {@link #checkForWinner()}
      * for a full list and more details.
      *<P>
@@ -945,9 +947,17 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the game options ({@link SOCGameOption}), or null
+     * @see #knownOpts
      * @since 1.1.07
      */
-    private Map<String, SOCGameOption> opts;
+    private final SOCGameOptionSet opts;
+
+    /**
+     * All Known Options, for {@link #opts} validation and adding options from scenario if present.
+     * Not null unless {@link #opts} is null.
+     * @since 2.4.10
+     */
+    private final SOCGameOptionSet knownOpts;
 
     /**
      * the players; never contains a null element during play, use {@link #isSeatVacant(int)}
@@ -1086,7 +1096,7 @@ public class SOCGame implements Serializable, Cloneable
      *        oldGameState holds the <B>next</B> state to go to when all players are done picking resources.
      *        After picking gold from a dice roll, this will usually be {@link #PLAY1}.
      *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
-     *        Can be {@link #ROLL_OR_CARD} in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI}:
+     *        Can be {@link #ROLL_OR_CARD} in scenario {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI}:
      *        See {@link #pickGoldHexResources(int, SOCResourceSet)} and {@link #rollDice_update7gameState()}.
      *<LI> {@link #LOADING}, {@link #LOADING_RESUMING}:
      *        Holds the actual game state, to be resumed once optional constraints are met and all bots have joined.
@@ -1321,10 +1331,11 @@ public class SOCGame implements Serializable, Cloneable
      * @param gameName  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @see #SOCGame(String, SOCGameOptionSet, SOCGameOptionSet)
      */
     public SOCGame(final String gameName)
     {
-        this(gameName, true, null);
+        this(gameName, true, null, null);
     }
 
     /**
@@ -1333,25 +1344,27 @@ public class SOCGame implements Serializable, Cloneable
      * @param gameName  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param op if game has options, map of {@link SOCGameOption}; otherwise null.
+     * @param op game's {@link SOCGameOption}s if any; otherwise null.
      *           Will validate options and include optional scenario's {@link SOCScenario#scOpts} by calling
-     *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
+     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
      *           {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      *           <P>
      *           When creating a game at the server, {@code op} must already be validated by calling
-     *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
+     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *           with <tt>doServerPreadjust</tt> true.
      *           That call is also needed to add any game options from scenario ({@code "SC"}) if present.
-     * @throws IllegalArgumentException if op contains unknown options, or any
-     *             object class besides {@link SOCGameOption}
+     * @param knownOpts  All Known Options, for {@code op} validation and adding options from scenario if present;
+     *           not null unless {@code op} is null
+     * @throws IllegalArgumentException if op contains unknown options,
+     *           or {@code knownOpts} is null but {@code op} is non-null
      * @since 1.1.07
      */
-    public SOCGame(final String gameName, Map<String, SOCGameOption> op)
+    public SOCGame(final String gameName, final SOCGameOptionSet op, final SOCGameOptionSet knownOpts)
         throws IllegalArgumentException
     {
-        this(gameName, true, op);
+        this(gameName, true, op, knownOpts);
     }
 
     /**
@@ -1367,7 +1380,7 @@ public class SOCGame implements Serializable, Cloneable
     public SOCGame(final String gameName, final boolean isActive)
         throws IllegalArgumentException
     {
-        this(gameName, isActive, null);
+        this(gameName, isActive, null, null);
     }
 
     /**
@@ -1378,23 +1391,28 @@ public class SOCGame implements Serializable, Cloneable
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param isActive  true if this is an active game, false for inactive
-     * @param op if game has options, map of {@link SOCGameOption}; otherwise null.
+     * @param op if game has options, its set of {@link SOCGameOption}s; otherwise null.
      *           Will validate options and include optional scenario's {@link SOCScenario#scOpts} by calling
-     *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
+     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
      *           {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      *           <P>
+     *           New game will use {@code op}, not make a copy of {@code op}.
+     *           <P>
      *           When creating a game at the server, {@code op} must already be validated by calling
-     *           {@link SOCGameOption#adjustOptionsToKnown(Map, Map, boolean)}
+     *           {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      *           with <tt>doServerPreadjust</tt> true.
      *           That call is also needed to add any game options from scenario ({@code "SC"}) if present.
-     * @throws IllegalArgumentException if op contains unknown options, or any
-     *             object class besides {@link SOCGameOption}, or if game name
-     *             fails {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param knownOpts  All Known Options, for {@code op} validation and adding options from scenario if present;
+     *           not null unless {@code op} is null
+     * @throws IllegalArgumentException if op contains unknown options, or if game name
+     *             fails {@link SOCMessage#isSingleLineAndSafe(String)},
+     *             or {@code knownOpts} is null but {@code op} is non-null
      * @since 1.1.07
      */
-    public SOCGame(final String gameName, final boolean isActive, Map<String, SOCGameOption> op)
+    public SOCGame
+        (final String gameName, final boolean isActive, final SOCGameOptionSet op, final SOCGameOptionSet knownOpts)
         throws IllegalArgumentException
     {
         // For places to initialize fields, see also resetAsCopy().
@@ -1407,23 +1425,34 @@ public class SOCGame implements Serializable, Cloneable
         name = gameName;
         if (op != null)
         {
-            hasSeaBoard = isGameOptionSet(op, "SBL");
-            final boolean wants6board = isGameOptionSet(op, "PLB");
-            final int maxpl = getGameOptionIntValue(op, "PL", 4, false);
+            if (knownOpts == null)
+                throw new IllegalArgumentException("knownOpts");
+
+            // apply options from scenario, if any:
+            final StringBuilder optProblems = op.adjustOptionsToKnown(knownOpts, false, null);
+            if (optProblems != null)
+                throw new IllegalArgumentException("op: unknown option(s): " + optProblems);
+
+            hasSeaBoard = op.isOptionSet("SBL");
+            final boolean wants6board = op.isOptionSet("PLB");
+            final int maxpl = op.getOptionIntValue("PL", 4, false);
             if (wants6board || (maxpl > 4))
                 maxPlayers = MAXPLAYERS;  // == 6
             else
                 maxPlayers = 4;
-            vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
-            hasScenarioWinCondition = isGameOptionSet(op, SOCGameOption.K_SC_CLVI)
-                || isGameOptionSet(op, SOCGameOption.K_SC_PIRI)
-                || isGameOptionSet(op, SOCGameOption.K_SC_WOND);
+            vp_winner = op.getOptionIntValue("VP", VP_WINNER_STANDARD, true);
+            hasScenarioWinCondition = op.isOptionSet(SOCGameOptionSet.K_SC_CLVI)
+                || op.isOptionSet(SOCGameOptionSet.K_SC_PIRI)
+                || op.isOptionSet(SOCGameOptionSet.K_SC_WOND);
+            clientVersionMinRequired = SOCVersionedItem.itemsMinimumVersion(op.getAll());
         } else {
             maxPlayers = 4;
             hasSeaBoard = false;
             vp_winner = VP_WINNER_STANDARD;
             hasScenarioWinCondition = false;
+            clientVersionMinRequired = -1;
         }
+        this.knownOpts = knownOpts;
 
         if (boardFactory == null)
             boardFactory = new SOCBoard.DefaultBoardFactory();
@@ -1462,20 +1491,6 @@ public class SOCGame implements Serializable, Cloneable
         movedShipThisTurn = false;
         if (hasSeaBoard)
             shipsPlacedThisTurn = new Vector<Integer>();
-
-        if (op == null)
-        {
-            clientVersionMinRequired = -1;
-        } else {
-            final StringBuilder optProblems = SOCGameOption.adjustOptionsToKnown(op, null, false);
-            if (optProblems != null)
-                throw new IllegalArgumentException("op: unknown option(s): " + optProblems);
-
-            // the adjust method will also throw IllegalArg if a non-SOCGameOption
-            // object is found within opts.
-
-            clientVersionMinRequired = SOCVersionedItem.itemsMinimumVersion(op);
-        }
 
         if (maxPlayers > 4)
             numDevCards = NUM_DEVCARDS_6PLAYER;
@@ -1630,7 +1645,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get the time at which this game was created.
      * Used only at server.
-     *P>
+     *<P>
      * To overwrite this time, call {@link #setTimeSinceCreated(int)}.
      *
      * @return the start time for this game, or null if not active when created
@@ -1819,7 +1834,7 @@ public class SOCGame implements Serializable, Cloneable
      * enforced earlier, when the player requests sitting down at a vacant seat or at
      * a robot's position.
      *
-     * @param name  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param plName  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param pn    the player's requested player number; the seat number at which they would sit
      * @throws IllegalStateException if player is already sitting in
      *              another seat in this game, or if there are no open seats
@@ -1830,11 +1845,11 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isSeatVacant(int)
      * @see #removePlayer(String, boolean)
      */
-    public void addPlayer(final String name, final int pn)
+    public void addPlayer(final String plName, final int pn)
         throws IllegalStateException, IllegalArgumentException
     {
-        if (! SOCMessage.isSingleLineAndSafe(name))
-            throw new IllegalArgumentException("name");
+        if (! SOCMessage.isSingleLineAndSafe(plName))
+            throw new IllegalArgumentException("plName");
 
         final boolean wasVacant = (seats[pn] == VACANT);
             // but not VACANT_PENDING_REPLACE, so firstPlayer/lastPlayer won't be recalc'd while temporarily vacant
@@ -1843,13 +1858,13 @@ public class SOCGame implements Serializable, Cloneable
             if (0 == getAvailableSeatCount())
                 throw new IllegalStateException("Game is full");
         }
-        SOCPlayer already = getPlayer(name);
+        SOCPlayer already = getPlayer(plName);
         if ((already != null) && (pn != already.getPlayerNumber()))
         {
             throw new IllegalStateException("Already sitting in this game");
         }
 
-        players[pn].setName(name);
+        players[pn].setName(plName);
         seats[pn] = OCCUPIED;
 
         if ((gameState > NEW) && (gameState < OVER))
@@ -1875,7 +1890,7 @@ public class SOCGame implements Serializable, Cloneable
      * call this and then call {@link #canEndTurn(int)}.
      * You'll need to then call {@link #endTurn()} or {@link #forceEndTurn()}.
      *
-     * @param name  the player's name
+     * @param plName  the player's name
      * @param hasReplacement  if true (server only), the leaving connection is a bot, and there's a
      *     waiting client who will be told to sit down in this bot's seat, so that isn't really becoming vacant.
      *     To prevent a race condition where a different client could take this seat as bot leaves,
@@ -1885,12 +1900,12 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isSeatVacant(int)
      * @see #addPlayer(String, int)
      */
-    public void removePlayer(final String name, final boolean hasReplacement)
+    public void removePlayer(final String plName, final boolean hasReplacement)
         throws IllegalArgumentException
     {
-        SOCPlayer pl = getPlayer(name);
+        SOCPlayer pl = getPlayer(plName);
         if (pl == null)
-            throw new IllegalArgumentException("name");
+            throw new IllegalArgumentException("plName");
         pl.setName(null);
         seats[pl.getPlayerNumber()] = (hasReplacement) ? VACANT_PENDING_REPLACE : VACANT;
 
@@ -2122,14 +2137,18 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return this game's options ({@link SOCGameOption}), or null
+     * Get this game's {@link SOCGameOption}s, if any.
+     *<P>
+     * Before v2.4.10 this method returned a <tt>Map&lt;String, SOCGameOption&gt;</tt>.
+     *
+     * @return this game's options, or null
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(String)
      * @see SOCGameOption#packOptionsToString(Map, boolean, boolean)
      */
-    public Map<String, SOCGameOption> getGameOptions()
+    public SOCGameOptionSet getGameOptions()
     {
         return opts;
     }
@@ -2144,10 +2163,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean isGameOptionDefined(final String optKey)
     {
-        if (opts == null)
-            return false;
-        else
-            return opts.containsKey(optKey);
+        return (opts != null) ? opts.containsKey(optKey) : false;
     }
 
     /**
@@ -2163,34 +2179,9 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean isGameOptionSet(final String optKey)
     {
-        // OTYPE_* - if a new type is added, update this method's javadoc.
+        // OTYPE_* - if a new type is added and it uses a boolean field, update this method's javadoc.
 
-        return isGameOptionSet(opts, optKey);
-    }
-
-    /**
-     * Is this boolean-valued game option currently set to true?
-     * @param opts A map of {@link SOCGameOption}, or null
-     * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
-     *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
-     *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
-     * @return True if option's boolean value is set, false if not set or not defined in this set of options
-     * @since 1.1.07
-     * @see #isGameOptionDefined(String)
-     * @see #isGameOptionSet(String)
-     * @see #getGameOptionIntValue(Map, String)
-     * @see #getGameOptionStringValue(Map, String)
-     */
-    public static boolean isGameOptionSet(Map<String, SOCGameOption> opts, final String optKey)
-    {
-        // OTYPE_* - if a new type is added, update this method's javadoc.
-
-        if (opts == null)
-            return false;
-        SOCGameOption op = opts.get(optKey);
-        if (op == null)
-            return false;
-        return op.getBoolValue();
+        return (opts != null) ? opts.isOptionSet(optKey) : false;
     }
 
     /**
@@ -2206,6 +2197,7 @@ public class SOCGame implements Serializable, Cloneable
      *         or 0 if not defined in this game's options;
      *         OTYPE_ENUM's choices give an intVal in range 1 to n.
      * @since 1.1.07
+     * @see #getGameOptionIntValue(String, int, boolean)
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      * @see #getGameOptionStringValue(String)
@@ -2214,40 +2206,13 @@ public class SOCGame implements Serializable, Cloneable
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
-        return getGameOptionIntValue(opts, optKey);
-    }
-
-    /**
-     * What is this integer game option's current value?
-     *<P>
-     * Does not reference {@link SOCGameOption#getBoolValue()}, only the int value,
-     * so this will return a value even if the bool value is false.
-     * @param opts A map of {@link SOCGameOption}, or null
-     * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
-     *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
-     *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
-     *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
-     * @return Option's current {@link SOCGameOption#getIntValue() intValue},
-     *         or 0 if not defined in the set of options;
-     *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
-     * @since 1.1.07
-     * @see #isGameOptionDefined(String)
-     * @see #isGameOptionSet(String)
-     * @see #getGameOptionIntValue(Map, String, int, boolean)
-     * @see #getGameOptionStringValue(Map, String)
-     */
-    public static int getGameOptionIntValue(final Map<String, SOCGameOption> opts, final String optKey)
-    {
-        // OTYPE_* - if a new type is added, update this method's javadoc.
-
-        return getGameOptionIntValue(opts, optKey, 0, false);
+        return (opts != null) ? opts.getOptionIntValue(optKey) : 0;
     }
 
     /**
      * What is this integer game option's current value?
      *<P>
      * Can optionally reference {@link SOCGameOption#getBoolValue()}, not only the int value.
-     * @param opts A map of {@link SOCGameOption}, or null
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
      *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
@@ -2259,25 +2224,17 @@ public class SOCGame implements Serializable, Cloneable
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
      *         or <tt>defValue</tt> if not defined in the set of options;
      *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
-     * @since 1.1.14
-     * @see #isGameOptionDefined(String)
-     * @see #isGameOptionSet(String)
-     * @see #getGameOptionIntValue(Map, String)
-     * @see #getGameOptionStringValue(Map, String)
+     * @since 2.4.10
+     * @see #isOptionSet(String)
+     * @see #getOptionIntValue(String)
+     * @see #getOptionStringValue(String)
      */
-    public static int getGameOptionIntValue
-        (final Map<String, SOCGameOption> opts, final String optKey, final int defValue, final boolean onlyIfBoolSet)
+    public int getGameOptionIntValue
+        (final String optKey, final int defValue, final boolean onlyIfBoolSet)
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
-        if (opts == null)
-            return defValue;
-        SOCGameOption op = opts.get(optKey);
-        if (op == null)
-            return defValue;
-        if (onlyIfBoolSet && ! op.getBoolValue())
-            return defValue;
-        return op.getIntValue();
+        return (opts != null) ? opts.getOptionIntValue(optKey, defValue, onlyIfBoolSet) : defValue;
     }
 
     /**
@@ -2296,32 +2253,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
-        return getGameOptionStringValue(opts, optKey);
-    }
-
-    /**
-     * What is this string game option's current value?
-     * @param opts A map of {@link SOCGameOption}, or null
-     * @param optKey A {@link SOCGameOption} of type
-     *               {@link SOCGameOption#OTYPE_STR OTYPE_STR}
-     *               or {@link SOCGameOption#OTYPE_STRHIDE OTYPE_STRHIDE}
-     * @return Option's current {@link SOCGameOption#getStringValue() getStringValue}
-     *         or null if not defined in this set of options
-     * @since 1.1.07
-     * @see #isGameOptionDefined(String)
-     * @see #isGameOptionSet(String)
-     * @see #getGameOptionIntValue(Map, String)
-     */
-    public static String getGameOptionStringValue(final Map<String, SOCGameOption> opts, final String optKey)
-    {
-        // OTYPE_* - if a new type is added, update this method's javadoc.
-
-        if (opts == null)
-            return null;
-        SOCGameOption op = opts.get(optKey);
-        if (op == null)
-            return null;
-        return op.getStringValue();
+        return (opts != null) ? opts.getOptionStringValue(optKey) : null;
     }
 
     /**
@@ -2766,7 +2698,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, if true and
+     * For scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}, if true and
      * {@link #canPickGoldHexResources(int, ResourceSet)} in state {@link #WAITING_FOR_PICK_GOLD_RESOURCE},
      * this player's "gold hex" free resources include victory over a pirate fleet attack at a dice roll.
      * @param pn  Player number
@@ -3353,7 +3285,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
      * can a "gift" port be removed from this edge? <BR>
      * All these conditions must be met:
      *<UL>
@@ -3363,7 +3295,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> {@code edge} has a port
      * <LI> Port must be in no land area (LA == 0), or in {@link SOCBoardLarge#getPlayerExcludedLandAreas()}
      *</UL>
-     * Does not check whether {@link SOCGameOption#K_SC_FTRI} is set.
+     * Does not check whether {@link SOCGameOptionSet#K_SC_FTRI} is set.
      *
      * @param pl  Player who would remove the port
      * @param edge  Port's edge coordinate
@@ -3388,7 +3320,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, remove a "gift" port
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}, remove a "gift" port
      * at this edge to be placed elsewhere. Assumes {@link #canRemovePort(SOCPlayer, int)} has already
      * been called to validate player, edge, and game state.
      *<P>
@@ -3462,7 +3394,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI},
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
      * can a "gift" port be placed at this edge? <BR>
      * All these conditions must be met:
      *<UL>
@@ -3472,7 +3404,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> Player must have a settlement or city at one node (one end) of the edge
      * <LI> Player is current player
      *</UL>
-     * Does not check whether {@link SOCGameOption#K_SC_FTRI} is set.  Does not check {@link #getGameState()}.
+     * Does not check whether {@link SOCGameOptionSet#K_SC_FTRI} is set.  Does not check {@link #getGameState()}.
      *
      * @param pl  Player who would place
      * @param edge  Edge where a port is wanted; coordinate not checked for validity.
@@ -3510,7 +3442,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} in game state {@link #PLACING_INV_ITEM}, place
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI} in game state {@link #PLACING_INV_ITEM}, place
      * the "gift" port at this edge.  The port in {@link #getPlacingItem()} will be placed.  State becomes previous state
      * ({@link #PLAY1} or {@link #SPECIAL_BUILDING}).  Calls {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
      *<P>
@@ -3542,7 +3474,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}, place a "gift" port at this edge.
      * Assumes {@link #canPlacePort(SOCPlayer, int)} has already been called to validate.
      * Through that validation, assumes {@code edge} is a coastal edge and {@code pl} has
      * an adjacent settlement or city.
@@ -3647,7 +3579,7 @@ public class SOCGame implements Serializable, Cloneable
      * some scenarios), this is their final initial settlement, so it gives the player
      * some resources.
      *<P>
-     * If {@link #hasSeaBoard} and {@link SOCGameOption#K_SC_FOG _SC_FOG},
+     * If {@link #hasSeaBoard} and {@link SOCGameOptionSet#K_SC_FOG _SC_FOG},
      * you should check for gamestate {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
      * after calling, to see if they placed next to a gold hex revealed from fog
      * (see paragraph below).
@@ -3662,7 +3594,7 @@ public class SOCGame implements Serializable, Cloneable
      * If the piece is a city, putPiece removes the settlement there.
      *<P>
      * If the piece is a settlement, and its owning player has their {@link SOCFortress} there
-     * (scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}), putPiece removes the defeated fortress.
+     * (scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}), putPiece removes the defeated fortress.
      *<P>
      * If placing this piece reveals any {@link SOCBoardLarge#FOG_HEX fog hex}, that happens first of all.
      * Hex is revealed (at server only) via {@link #putPieceCommon_checkFogHexes(int[], boolean)}.
@@ -3814,7 +3746,7 @@ public class SOCGame implements Serializable, Cloneable
             && (pieceType == SOCPlayingPiece.SETTLEMENT)
             && ((gameState == START2A) || (gameState == START3A)))
         {
-            final boolean init3 = isGameOptionDefined(SOCGameOption.K_SC_3IP);
+            final boolean init3 = isGameOptionDefined(SOCGameOptionSet.K_SC_3IP);
             final int lastInitSettle = init3 ? START3A : START2A;
             if ( (gameState == lastInitSettle)
                  || (debugFreePlacementStartPlaced
@@ -4024,7 +3956,7 @@ public class SOCGame implements Serializable, Cloneable
      * If the current player number changes here, {@link #isForcingEndTurn()} is cleared.
      *<P>
      * This method is not called after placing a {@link SOCInventoryItem} on the board, which
-     * happens only with some scenario options such as {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * happens only with some scenario options such as {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      *
      * @return true if game is still active, false if all players have left and
      *          the gamestate has been changed here to {@link #OVER}.
@@ -4137,7 +4069,7 @@ public class SOCGame implements Serializable, Cloneable
                 if (tmpCPN == lastPlayerNumber)
                 {
                     // All have placed their second settlement/road.
-                    if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
+                    if (! isGameOptionSet(SOCGameOptionSet.K_SC_3IP))
                     {
                         // Begin play.
                         // Player number is unchanged; "virtual" endTurn here.
@@ -4381,7 +4313,7 @@ public class SOCGame implements Serializable, Cloneable
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
      *<P>
-     * <B>Scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}:</B><br>
+     * <B>Scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}:</B><br>
      * Ship movement options are limited, because the route can't branch
      * and only a few sea edges are legal for placement.
      *
@@ -4434,7 +4366,7 @@ public class SOCGame implements Serializable, Cloneable
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
      *<P>
-     * <B>Scenario option {@link SOCGameOption#K_SC_FOG _SC_FOG}:</B><br>
+     * <B>Scenario option {@link SOCGameOptionSet#K_SC_FOG _SC_FOG}:</B><br>
      * moveShip's caller should check {@link SOCPlayer#getNeedToPickGoldHexResources()} != 0.
      * Revealing a gold hex from fog will set that player field and also
      * sets gamestate to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
@@ -4453,7 +4385,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Remove this ship from the board and update all related game state.
-     * Used in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}
+     * Used in scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}
      * by {@link #attackPirateFortress(SOCShip)} and at the client.
      *<P>
      * Calls {@link #undoPutPieceCommon(SOCPlayingPiece, boolean, boolean) undoPutPieceCommon(sh, false, false)}.
@@ -4647,12 +4579,12 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * set up devCardDeck.  numDevCards is already set in constructor based on maxPlayers.
          */
-        final boolean sc_piri_devcards = isGameOptionSet(SOCGameOption.K_SC_PIRI);
+        final boolean sc_piri_devcards = isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
         if (maxPlayers > 4)
         {
             // 6-player set
             devCardDeck = new int[NUM_DEVCARDS_6PLAYER];
-        } else if (sc_piri_devcards && (getGameOptionIntValue(opts, "PL", 4, false) < 4)) {
+        } else if (sc_piri_devcards && (getGameOptionIntValue("PL", 4, false) < 4)) {
             // _SC_PIRI with 2 or 3 players omits Victory Point cards
             devCardDeck = new int[NUM_DEVCARDS_STANDARD - NUM_DEVCARDS_VP];
             numDevCards = devCardDeck.length;
@@ -4880,7 +4812,7 @@ public class SOCGame implements Serializable, Cloneable
      * potential settlements have been sent from the server yet.  Even if the client joined after game start,
      * this method will still be called at that client.
      *<P>
-     * Currently used only for Special Item placement by the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario,
+     * Currently used only for Special Item placement by the {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario,
      * where (1 + {@link #maxPlayers}) wonders are available for the players to choose from, held in game
      * Special Item indexes 1 - n.  Because of this limited and non-dynamic use, it's easier to set them up in code
      * here than to create, send, and parse messages with all details of the game's Special Items.  This method
@@ -4892,12 +4824,12 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void updateAtBoardLayout()
     {
-        if (! isGameOptionSet(SOCGameOption.K_SC_WOND))
+        if (! isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
             return;
 
         final int numWonders = 1 + maxPlayers;
         for (int i = 1; i <= numWonders; ++i)
-            setSpecialItem(SOCGameOption.K_SC_WOND, i, SOCSpecialItem.makeKnownItem(SOCGameOption.K_SC_WOND, i));
+            setSpecialItem(SOCGameOptionSet.K_SC_WOND, i, SOCSpecialItem.makeKnownItem(SOCGameOptionSet.K_SC_WOND, i));
     }
 
     /**
@@ -5375,7 +5307,7 @@ public class SOCGame implements Serializable, Cloneable
                     }
                 } else {
                     // Was second placement; begin normal gameplay?
-                    if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
+                    if (! isGameOptionSet(SOCGameOptionSet.K_SC_3IP))
                     {
                         // Set resType to tell caller to call endTurn().
                         gameState = PLAY1;
@@ -5481,7 +5413,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         // resources, to be shuffled and chosen from;
         // discards from fromHand, or possible new picks.
-        Vector<Integer> tempHand = new Vector<Integer>(16);
+        ArrayList<Integer> tempHand = new ArrayList<>();
 
         if (isDiscard)
         {
@@ -5498,7 +5430,7 @@ public class SOCGame implements Serializable, Cloneable
                 for (int i = fromHand.getAmount(rsrcType);
                         i != 0; i--)
                 {
-                    tempHand.addElement(Integer.valueOf(rsrcType));
+                    tempHand.add(Integer.valueOf(rsrcType));
                     // System.err.println("rsrcType="+rsrcType);
                 }
             }
@@ -5517,7 +5449,7 @@ public class SOCGame implements Serializable, Cloneable
             // Next, add resources with that amount, and then increase
             // lowestNum until we've found at least numToPick resources.
             int toAdd = numToPick;
-            Vector<Integer> alreadyPicked = new Vector<Integer>();
+            ArrayList<Integer> alreadyPicked = new ArrayList<>();
             do
             {
                 for (int rsrcType = Data.ResourceType.CLAY_VALUE;
@@ -5526,20 +5458,21 @@ public class SOCGame implements Serializable, Cloneable
                     final int num = fromHand.getAmount(rsrcType);
                     if (num == lowestNum)
                     {
-                        tempHand.addElement(Integer.valueOf(rsrcType));
+                        tempHand.add(Integer.valueOf(rsrcType));
                         --toAdd;  // might go below 0, that's okay: we'll shuffle.
                     }
                     else if (num < lowestNum)
                     {
                         // Already added in previous iterations.
                         // Add more of this type only if we need more.
-                        alreadyPicked.addElement(Integer.valueOf(rsrcType));
+                        alreadyPicked.add(Integer.valueOf(rsrcType));
                     }
                 }
 
                 if (toAdd > 0)
                 {
                     ++lowestNum;
+
                     if (! alreadyPicked.isEmpty())
                     {
                         toAdd -= alreadyPicked.size();
@@ -5561,8 +5494,8 @@ public class SOCGame implements Serializable, Cloneable
             int idx = Math.abs(rand.nextInt() % tempHand.size());
 
             // System.err.println("idx="+idx);
-            picks.add(1, tempHand.elementAt(idx).intValue());
-            tempHand.removeElementAt(idx);
+            picks.add(1, tempHand.get(idx).intValue());
+            tempHand.remove(idx);
         }
     }
 
@@ -5646,11 +5579,11 @@ public class SOCGame implements Serializable, Cloneable
      * Checks game option N7: Roll no 7s during first # rounds
      * and N7C: Roll no 7s until a city is built.
      *<P>
-     * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
+     * For scenario option {@link SOCGameOptionSet#K_SC_CLVI}, calls
      * {@link SOCBoardAtServer#distributeClothFromRoll(SOCGame, RollResult, int)}.
      * Cloth are worth VP, so check for game state {@link #OVER} if results include {@link RollResult#cloth}.
      *<P>
-     * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls {@link SOCBoardLarge#movePirateHexAlongPath(int)}
+     * For scenario option {@link SOCGameOptionSet#K_SC_PIRI}, calls {@link SOCBoardLarge#movePirateHexAlongPath(int)}
      * and then {@link #movePirate(int, int, int)}:
      * Check {@link RollResult#sc_piri_fleetAttackVictim} and {@link RollResult#sc_piri_fleetAttackRsrcs}.
      * Note that if player's warships are stronger than the pirate fleet, {@link SOCMoveRobberResult#sc_piri_loot}
@@ -5692,7 +5625,7 @@ public class SOCGame implements Serializable, Cloneable
         currentRoll.update(die1, die2);  // also clears currentRoll.cloth (SC_CLVI)
 
         boolean sc_piri_plGainsGold = false;  // Has a player won against pirate fleet attack? (SC_PIRI)
-        if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             /**
              * Move the pirate fleet along their path.
@@ -5773,7 +5706,7 @@ public class SOCGame implements Serializable, Cloneable
             /**
              * distribute cloth from villages
              */
-            if (hasSeaBoard && isGameOptionSet(SOCGameOption.K_SC_CLVI))
+            if (hasSeaBoard && isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
             {
                 // distribute will usually return false; most rolls don't hit dice#s which distribute cloth
                 if (((SOCBoardAtServer) board).distributeClothFromRoll(this, currentRoll, currentDice))
@@ -5802,7 +5735,7 @@ public class SOCGame implements Serializable, Cloneable
      * When a 7 is rolled, update the {@link #gameState}:
      * Always {@link #WAITING_FOR_DISCARDS} if any {@link SOCPlayer#getResources()} total &gt; 7.
      * Otherwise {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or (for
-     * scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI})
+     * scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI})
      * {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} or {@link #PLAY1}.
      *<P>
      * For state {@link #WAITING_FOR_DISCARDS}, also sets {@link SOCPlayer#setNeedToDiscard(boolean)}.
@@ -5841,7 +5774,7 @@ public class SOCGame implements Serializable, Cloneable
 
             placingRobberForKnightCard = false;
             oldGameState = PLAY1;
-            if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             {
                 robberyWithPirateNotRobber = false;
                 currentRoll.sc_robPossibleVictims = getPossibleVictims();
@@ -6042,7 +5975,7 @@ public class SOCGame implements Serializable, Cloneable
                 // next-state logic is similar to playKnight and rollDice_update7gameState;
                 // if you update this method, check those ones
 
-                if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
                 {
                     robberyWithPirateNotRobber = false;
                     currentRoll.sc_robPossibleVictims = getPossibleVictims();
@@ -6107,7 +6040,7 @@ public class SOCGame implements Serializable, Cloneable
      * If the gold pick was for placing a road or ship that revealed a gold hex from {@link SOCBoardLarge#FOG_HEX fog},
      * the player will probably change here, since the player changes after most inital roads or ships.
      *<P>
-     * Also used in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI} after winning a pirate fleet battle at dice roll.
+     * Also used in scenario {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI} after winning a pirate fleet battle at dice roll.
      *<P>
      * Called at server only; clients will instead get <tt>SOCPlayerElement</tt> messages
      * for the resources picked and the "need to pick" flag, and will call
@@ -6174,12 +6107,12 @@ public class SOCGame implements Serializable, Cloneable
      * Based on game options, can the pirate ship be moved instead of the robber?
      * True only if {@link #hasSeaBoard}.
      *<UL>
-     *<LI> For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
+     *<LI> For scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}, the player
      * must have {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
-     *<LI> Scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} has a pirate fleet
+     *<LI> Scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} has a pirate fleet
      * and no robber; this scenario is checked in {@link #rollDice()} and does not call
      * {@code canChooseMovePirate()}.
-     *<LI> Scenario option {@link SOCGameOption#K_SC_WOND _SC_WOND} does not use the pirate ship.
+     *<LI> Scenario option {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} does not use the pirate ship.
      *</UL>
      * @return  true if the pirate ship can be moved
      * @see #WAITING_FOR_ROBBER_OR_PIRATE
@@ -6191,10 +6124,10 @@ public class SOCGame implements Serializable, Cloneable
         if (! hasSeaBoard)
             return false;
 
-        if (isGameOptionSet(SOCGameOption.K_SC_WOND))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
             return false;
 
-        if (isGameOptionSet(SOCGameOption.K_SC_CLVI)
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_CLVI)
             && ! players[currentPlayerNumber].hasPlayerEvent
                  (SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
             return false;
@@ -6361,7 +6294,7 @@ public class SOCGame implements Serializable, Cloneable
      * Must be different from current pirate coordinates.
      * Game must have {@link #hasSeaBoard}.
      * Must be current player.  Game state must be {@link #PLACING_PIRATE}.
-     * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
+     * For scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}, the player
      * must have {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *
      * @return true if this player can move the pirate ship to this hex coordinate
@@ -6382,7 +6315,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         if (((SOCBoardLarge) board).getPirateHex() == hco)
             return false;
-        if (isGameOptionSet(SOCGameOption.K_SC_CLVI)
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_CLVI)
             && ! players[pn].hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
             return false;
 
@@ -6413,7 +6346,7 @@ public class SOCGame implements Serializable, Cloneable
      * Assumes gameState {@link #PLACING_PIRATE}.
      * Also updates {@link #getRobberyResult()}.
      *<P>
-     * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
+     * In <b>game scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
      * but by the game at every dice roll.  See {@link #movePirate(int, int, int)} instead of this method.
      *
      * @param pn  the number of the player that is moving the pirate ship
@@ -6437,11 +6370,11 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Move the pirate, optionally with a pirate fleet strength, and do a robbery/fleet battle if needed.
-     * Called only at server, by {@link #rollDice()} in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Called only at server, by {@link #rollDice()} in scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      *<P>
      * See {@link #movePirate(int, int)} for method javadocs in "normal" operation (not {@code _SC_PIRI}).
      *<P>
-     * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
+     * In <b>game scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
      * but by the game at every dice roll.  See {@link SOCBoardLarge#movePirateHexAlongPath(int)},
      * {@link #getPossibleVictims()}, and {@link #stealFromPlayerPirateFleet(int, int)} for details.
      *
@@ -6498,7 +6431,7 @@ public class SOCGame implements Serializable, Cloneable
             final SOCPlayer victim = victims.get(0);
             final int vpn = victim.getPlayerNumber();
 
-            if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             {
                 // Call is from rollDice():
                 // If player has warships, might tie or be stronger, otherwise steal multiple items
@@ -6518,7 +6451,7 @@ public class SOCGame implements Serializable, Cloneable
                 gameState = WAITING_FOR_ROB_CLOTH_OR_RESOURCE;
             }
         }
-        else if (! isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        else if (! isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             /**
              * the current player needs to make a choice
@@ -6560,7 +6493,7 @@ public class SOCGame implements Serializable, Cloneable
             if (gameState != WAITING_FOR_ROB_CHOOSE_PLAYER)
                 return false;
 
-            return isGameOptionSet(SOCGameOption.K_SC_PIRI);
+            return isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
         }
 
         for (SOCPlayer pl : getPossibleVictims())
@@ -6623,7 +6556,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Assumes {@link #canChoosePlayer(int)} has been called already.
      *<P>
-     * Used with scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     * Used with scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}.
      *
      * @param pn  Player number to check
      * @return true  only if current player can choose to rob either cloth or resources from <tt>pn</tt>.
@@ -6645,7 +6578,7 @@ public class SOCGame implements Serializable, Cloneable
      * The current player must have a {@link SOCPlayer#getFortress()} != {@code null},
      * and a ship on an edge adjacent to that {@link SOCFortress}'s node.
      *<P>
-     * Used with scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Used with scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      *
      * @return Current player's ship adjacent to their {@link SOCFortress}, or {@code null} if they can't attack
      * @see #canAttackPirateFortress(SOCPlayer, boolean)
@@ -6716,7 +6649,7 @@ public class SOCGame implements Serializable, Cloneable
      * the fortress is recaptured, becoming a {@link SOCSettlement} for the player.  This method will fire a
      * {@link SOCPlayerEvent#PIRI_FORTRESS_RECAPTURED} to announce this to any listener.
      *<P>
-     * Used with scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Used with scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      *
      * @param adjacent  The current player's ship adjacent to their {@link SOCFortress},
      *     from {@link #canAttackPirateFortress()}; unless player wins, this ship will be lost to the pirates.
@@ -6841,6 +6774,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param hex  the coordinates of the hex; not checked for validity
      * @param collectAdjacentPieces  optional set to use to return all players' settlements and cities
      *     adjacent to {@code hex}, or {@code null}
+     * @see #getPlayersShipsOnHex(int)
      */
     public List<SOCPlayer> getPlayersOnHex(final int hex, final Set<SOCPlayingPiece> collectAdjacentPieces)
     {
@@ -6902,15 +6836,17 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @param hex  the coordinates of the hex
-     * @return a list of {@link SOCPlayer players} touching a hex
-     *   with ships, or an empty Vector if none
+     * Get the list of players who have ships on the edges of this hex.
      *
+     * @param hex  the coordinates of the hex; not checked for validity
+     * @return a list of {@link SOCPlayer}s touching a hex
+     *   with ships, or an empty list if none
+     * @see #getPlayersOnHex(int, Set)
      * @since 2.0.00
      */
-    public Vector<SOCPlayer> getPlayersShipsOnHex(final int hex)
+    public List<SOCPlayer> getPlayersShipsOnHex(final int hex)
     {
-        Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
+        ArrayList<SOCPlayer> playerList = new ArrayList<>(3);
 
         final int[] edges = ((SOCBoardLarge) board).getAdjacentEdgesToHex_arr(hex);
 
@@ -6938,14 +6874,14 @@ public class SOCGame implements Serializable, Cloneable
             }
 
             if (touching)
-                playerList.addElement(players[i]);
+                playerList.add(players[i]);
         }
 
         return playerList;
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, get the Pirate Fortress
+     * For scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}, get the Pirate Fortress
      * at this node location, if any.  A player must defeat 'their' fortress to win.
      * @param  node  Coordinate to check for fortress
      * @return  Fortress at that location, or null if none or if <tt>_SC_PIRI</tt> not active.
@@ -6956,7 +6892,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public SOCFortress getFortress(final int node)
     {
-        if (! isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if (! isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             return null;
 
         for (int i = 0; i < maxPlayers; ++i)
@@ -6998,12 +6934,12 @@ public class SOCGame implements Serializable, Cloneable
      * and {@link #getRobberyPirateFlag()},
      * the list of victims with adjacent settlements/cities or ships (if any).
      * Victims are players with resources; for scenario option
-     * {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, also players with cloth
+     * {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}, also players with cloth
      * when robbing with the pirate.
      *<P>
      * Calls {@link #getPlayersOnHex(int, Set)} or {@link #getPlayersShipsOnHex(int)}.
      *
-     *<H3>For scenario option {@link SOCGameOption#K_SC_PIRI}:</H3>
+     *<H3>For scenario option {@link SOCGameOptionSet#K_SC_PIRI}:</H3>
      * This is called after a 7 is rolled, or after the game moves the pirate ship (fleet).
      * When a 7 is rolled, the current player may rob from any player with resources.
      * When the pirate ship is moved (at every dice roll), the player with a
@@ -7034,7 +6970,7 @@ public class SOCGame implements Serializable, Cloneable
 
         List<SOCPlayer> candidates;
 
-        if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             if (robberyWithPirateNotRobber)
             {
@@ -7208,7 +7144,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, after the pirate fleet is moved,
+     * In game scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}, after the pirate fleet is moved,
      * have the pirate fleet attack the victim player with an adjacent settlement or city.
      * If pirate fleet is stronger than player's fleet ({@link SOCPlayer#getNumWarships()}),
      * performs the robbery.  Number of resources stolen are 1 + victim's number of cities.
@@ -7932,7 +7868,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, is this ship upgraded to a warship?
+     * For scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}, is this ship upgraded to a warship?
      * Counts down {@code sh}'s player's {@link SOCPlayer#getNumWarships()}
      * while it looks for {@code sh} among the ships from {@link SOCPlayer#getRoadsAndShips()},
      * which is in the same chronological order as warship conversions.
@@ -7991,6 +7927,10 @@ public class SOCGame implements Serializable, Cloneable
      * removes and returns a dev card from the deck without giving it to any player.
      *
      * @return the card that was drawn; a dev card type from {@link SOCDevCardConstants}.
+     * @see #playDiscovery()
+     * @see #playKnight()
+     * @see #playMonopoly()
+     * @see #playRoadBuilding()
      */
     public int buyDevCard()
     {
@@ -8019,7 +7959,7 @@ public class SOCGame implements Serializable, Cloneable
      * Must have a {@link SOCDevCardConstants#KNIGHT} and must
      * not have already played a dev card this turn.
      *<P>
-     * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}</b>,
+     * In <b>game scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}</b>,
      * can this player currently play a Warship (Knight) card to
      * convert one of their ships into a warship?
      * Conditions in first paragraph must be true, and player's
@@ -8047,7 +7987,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        if (! isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if (! isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             return true;
 
         // Check if the player has any ship to convert to a warship
@@ -8162,7 +8102,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * <H5>Recognized scenario game options with special items:</H5>
      *<UL>
-     * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts.
+     * <LI> {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts.
      *   Playable in state {@link #PLAY1} or {@link #SPECIAL_BUILDING} and only when player has a
      *   coastal settlement/city with no adjacent existing port.  Returns 4 if
      *   {@link SOCPlayer#getPortMovePotentialLocations(boolean)} == {@code null}.
@@ -8190,7 +8130,7 @@ public class SOCGame implements Serializable, Cloneable
         if (! players[pn].getInventory().hasPlayable(itype))
             return 1;
 
-        if (isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             if ((pn != currentPlayerNumber) || ((gameState != PLAY1) && (gameState != SPECIAL_BUILDING)))
                 return 3;
@@ -8212,7 +8152,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * <H5>Recognized scenario game options with special items:</H5>
      *<UL>
-     * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts.
+     * <LI> {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts.
      *   Game state becomes {@link #PLACING_INV_ITEM}.  Player must now choose and validate a location
      *   and then call {@link #placePort(int)}.
      *</UL>
@@ -8228,7 +8168,7 @@ public class SOCGame implements Serializable, Cloneable
         if (item == null)
             return null;
 
-        if (isGameOptionSet(SOCGameOption.K_SC_FTRI))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             // Player can place a trade port somewhere on the board
             placingItem = item;
@@ -8247,21 +8187,24 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes either {@link #PLACING_ROBBER}
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
      *<P>
-     * <b>In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> instead the player
+     * <b>In scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> instead the player
      * converts a normal ship to a warship.  There is no robber piece in this scenario.
      * Call {@link SOCPlayer#getNumWarships()} afterwards to get the current player's new count.
      * Ships are converted in the chronological order they're placed, out to sea from the
      * player's coastal settlement; see {@link #isShipWarship(SOCShip)}.
+     *
+     * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playKnight()
     {
-        final boolean isWarshipConvert = isGameOptionSet(SOCGameOption.K_SC_PIRI);
-        SOCPlayer pl = players[currentPlayerNumber];
+        final boolean isWarshipConvert = isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
+        final SOCPlayer pl = players[currentPlayerNumber];
 
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
+        pl.setPlayedDevCard(true);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.KNIGHT);
+        pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
 
         if (! isWarshipConvert)
         {
@@ -8300,6 +8243,8 @@ public class SOCGame implements Serializable, Cloneable
      * Doesn't set <tt>oldGameState</tt>, because after placing the road, we might need that field.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
+     *
+     * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playRoadBuilding()
     {
@@ -8308,7 +8253,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer player = players[currentPlayerNumber];
         player.setPlayedDevCard(true);
         player.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.ROADS);
-        player.numRBCards++;
+        player.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
 
         final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
             + player.getNumPieces(SOCPlayingPiece.SHIP);
@@ -8322,32 +8267,40 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the current player plays a Discovery card.
+     * Assumes {@link #canPlayDiscovery(int)} has already been called, and move is valid.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
+     *
+     * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playDiscovery()
     {
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.DISC);
-        players[currentPlayerNumber].numDISCCards++;
+        final SOCPlayer pl = players[currentPlayerNumber];
+        pl.setPlayedDevCard(true);
+        pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.DISC);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
         oldGameState = gameState;
         gameState = WAITING_FOR_DISCOVERY;
     }
 
     /**
      * the current player plays a Monopoly card.
+     * Assumes {@link #canPlayMonopoly(int)} has already been called, and move is valid.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
+     *
+     * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playMonopoly()
     {
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.MONO);
-        players[currentPlayerNumber].numMONOCards++;
+        final SOCPlayer pl = players[currentPlayerNumber];
+        pl.setPlayedDevCard(true);
+        pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.MONO);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
         oldGameState = gameState;
         gameState = WAITING_FOR_MONOPOLY;
     }
@@ -8498,13 +8451,13 @@ public class SOCGame implements Serializable, Cloneable
      * if two or more players are tied for LR and none of them
      * used to have LR, then no one has LR.
      *<P>
-     * If {@link SOCGameOption#K_SC_0RVP} is set, does nothing.
+     * If {@link SOCGameOptionSet#K_SC_0RVP} is set, does nothing.
      *
      * @param pn  the number of the player who is affected
      */
     public void updateLongestRoad(final int pn)
     {
-        if (isGameOptionSet(SOCGameOption.K_SC_0RVP))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_0RVP))
             return;  // <--- No longest road ---
 
         //D.ebugPrintln("## updateLongestRoad("+pn+")");
@@ -8582,19 +8535,19 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Some game scenarios have other special win conditions ({@link #hasScenarioWinCondition}):
      *<UL>
-     *<LI> Scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI} will end the game if
+     *<LI> Scenario {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} will end the game if
      *     fewer than 4 of the {@link SOCVillage}s have cloth remaining.  The player
      *     with the most VP wins; if tied, the tied player with the most cloth wins.
      *     Winner is not necessarily the current player.
      *     <BR>
      *     See {@link SOCGameEvent#SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY}.
-     *<LI> Scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI} requires the player to
+     *<LI> Scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} requires the player to
      *     defeat and recapture 'their' pirate fortress to win.
      *     To win, they also must earn {@link SOCGame#vp_winner}.
      *     <BR>
      *     See {@link SOCPlayerEvent#PIRI_FORTRESS_RECAPTURED} and
      *     {@link SOCGameEvent#SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED}.
-     *<LI> Scenario {@link SOCGameOption#K_SC_WOND _SC_WOND} requires the player to
+     *<LI> Scenario {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} requires the player to
      *     build a Wonder to a higher level than any other player's Wonder; the player
      *     can win even without reaching {@link #vp_winner} VP.
      *     <BR>
@@ -8617,13 +8570,13 @@ public class SOCGame implements Serializable, Cloneable
         {
             if (hasScenarioWinCondition)
             {
-                if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
                     if (null != players[pn].getFortress())
                         return;  // <--- can't win without defeating pirate fortress ---
 
-                if (isGameOptionSet(SOCGameOption.K_SC_WOND))
+                if (isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
                 {
-                    final SOCSpecialItem plWond = players[pn].getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+                    final SOCSpecialItem plWond = players[pn].getSpecialItem(SOCGameOptionSet.K_SC_WOND, 0);
                     if (plWond == null)
                         return;  // <--- can't win without starting to build a Wonder ---
 
@@ -8633,7 +8586,7 @@ public class SOCGame implements Serializable, Cloneable
                         if (p == pn)
                             continue;
 
-                        final SOCSpecialItem pWond = players[p].getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+                        final SOCSpecialItem pWond = players[p].getSpecialItem(SOCGameOptionSet.K_SC_WOND, 0);
                         if ((pWond != null) && (pWond.getLevel() >= plWond.getLevel()))
                         {
                             return;  // <--- another player has same or higher Wonder level ---
@@ -8652,7 +8605,7 @@ public class SOCGame implements Serializable, Cloneable
             return;
 
         // _SC_CLVI: Check if less than half the villages have cloth remaining
-        if (isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
         {
             if (checkForWinner_SC_CLVI())
             {
@@ -8665,9 +8618,9 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         // _SC_WOND: Check if the current player's built all 4 levels of their Wonder
-        if (isGameOptionSet(SOCGameOption.K_SC_WOND))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_WOND))
         {
-            final SOCSpecialItem plWond = players[pn].getSpecialItem(SOCGameOption.K_SC_WOND, 0);
+            final SOCSpecialItem plWond = players[pn].getSpecialItem(SOCGameOptionSet.K_SC_WOND, 0);
             if ((plWond != null) && (plWond.getLevel() >= SOCSpecialItem.SC_WOND_WIN_LEVEL))
             {
                 setGameStateOVER();
@@ -8817,7 +8770,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     public SOCGame resetAsCopy()
     {
-        SOCGame cp = new SOCGame(name, active, SOCGameOption.cloneOptions(opts));
+        SOCGame cp = new SOCGame
+            (name, active, (opts != null) ? new SOCGameOptionSet(opts, true) : null, knownOpts);
             // the constructor will set most fields, based on game options
 
         cp.isFromBoardReset = true;
@@ -9266,7 +9220,7 @@ public class SOCGame implements Serializable, Cloneable
             // Special handling: When exiting this mode during
             // initial placement, all players must have the same
             // number of settlements and roads.
-            final boolean has3rdInitPlace = isGameOptionSet(SOCGameOption.K_SC_3IP);
+            final boolean has3rdInitPlace = isGameOptionSet(SOCGameOptionSet.K_SC_3IP);
             final int npieceMax = has3rdInitPlace ? 6 : 4;
             int npiece = -1;
             boolean ok = true;

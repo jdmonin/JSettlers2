@@ -77,7 +77,7 @@ When preparing to release a new version, testing should include:
       - Join one as observer; pause should be shorter than normal games
       - View Game Info of each; should be a mix of 4- and 6-player, classic and sea board
 - New features in previous 2 versions from [Versions.md](Versions.md)
-- Each available game option
+- Each available Game Option
     - For house rule game opt "6-player board: Can Special Build only if 5 or 6 players in game",  
       also test latest server version against client v2.2.00 or older:
         - Client can create a game with this option, 4 players, on 6-player board
@@ -354,9 +354,8 @@ When preparing to release a new version, testing should include:
 - Version compatibility testing
     - Server and client versions to test v3 against: **2.0.00** (oldest client that can connect to v3 server);
       latest **2.x.xx** (v2.x doesn't use SOCBoardLarge for classic boards)
-    - More server versions to test v3 client against: **1.1.06** (before Game Options);
-      **1.1.11** (has 6-player option and client bugfixes); latest **1.x.xx** (before Scenarios/sea boards);
-      **2.0.00** (many message format changes, i18n)
+    - More server versions to test v3 client against: **1.1.06** (before Game Options); **1.1.11** (has client bugfixes, 6-player board);
+      **1.2.01** (newest 1.x, before Scenarios/sea boards); **2.0.00** (many message format changes, i18n)
     - New client, old server
         - If server is >= 1.1.09 but older than 1.1.19, add property at end of command line: `-Djsettlers.startrobots=5`
         - If server >= 1.1.14, also add at end of command line: `-Djsettlers.allow.debug=Y`
@@ -401,6 +400,12 @@ When preparing to release a new version, testing should include:
         - When testing a 3.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
+        - When testing new server with client 2.4.10 or newer, and older client:
+            - Give Soldier dev cards to client players:  
+              `dev: 9 #2` etc
+            - Test robbery, with each client as victim, robber, observer
+            - All clients in game should see expected results in player hand panels and game text area
+            - Clients v2.4.10 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
 - Server robustness: Bot disconnect/reconnect during game start
     - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
     - Connect and start a 6-player game
@@ -416,11 +421,12 @@ When preparing to release a new version, testing should include:
       `-Djsettlers.debug.traffic=Y -Djsettlers.locale=en_US`  
       Message traffic will be shown in the terminal/client output.
     - Test client newer than server:
-        - Build server JAR as usual, make temp copy of it, and start the temp copy (has the actual current version number)
+        - Build server JAR as usual, make temp copy of it, and start the temp copy (which has the actual current version number)
         - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v+1 back-compat" and `SC_TSTNO` "New: v+1 only"  
           Update their version parameters to current versionnum and current + 1. Example:  
-          `("SC_TSTNC", 3000, 3001, ...)`
-        - In `SOCGameOption.initAllOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
+          `("SC_TSTNC", 3000, 3001, ...)`  
+          `("SC_TSTNO", 3001, 3001, ...)`
+        - In `SOCGameOptionSet.getAllKnownOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
           Update its version parameters to current versionnum and current + 1. Example:  
           `("DEBUGBOOL", 3000, 3001, false, ...)`
         - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 3000 -> 3001, 3.0.00 -> 3.0.01
@@ -432,7 +438,7 @@ When preparing to release a new version, testing should include:
           - Client's `SOCGameOptionGetInfos` for DEBUGBOOL
           - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
         - Click "New Game"
-        - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
+        - In message traffic, should see a `SOCScenarioInfo` with `lastModVers=MARKER_KEY_UNKNOWN` for each of the 2 new scenarios, + 1 more to end the list of Infos
         - The "new" items are unknown at server: New Game dialog shouldn't have DEBUGBOOL,
           its Scenario dropdown shouldn't have the 2 test scenarios
         - Quit client and server
@@ -443,10 +449,10 @@ When preparing to release a new version, testing should include:
           `gamescen.SC_TSTNC.n = test-localizedname-es`  
         - Build server JAR and start a server from it (has the "new" version number);  
           use `gradle assemble` here to skip the usual unit tests
-        - Reset `version.info`, `toClient_es.properties`, `SOCGameOption.initAllOptions()`,
+        - Reset `version.info`, `toClient_es.properties`, `SOCGameOptionSet.getAllKnownOptions()`,
           and `SOCScenario.initAllScenarios()` to their actual versions (3001 -> 3000, re-comment, etc)
         - Build and launch client (at actual version)
-        - Connect to server
+        - Connect to "newer" server
         - Message traffic should include:
           - Client's generic `SOCGameOptionGetInfos` asking if any changes
           - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
@@ -461,7 +467,7 @@ When preparing to release a new version, testing should include:
         - Quit & re-launch 2nd client, connect to server
         - Join that game
         - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's scenario
-        - Within game, second client's "Game Info" dialog should show scenario info
+        - Within game, second client's "Options" dialog should show scenario info
         - Quit 2nd client. Keep server and 1st client running
     - Test i18n (server still newer than client):
         - Launch another client, with a locale: `-Djsettlers.debug.traffic=Y -Djsettlers.locale=es`
@@ -478,6 +484,34 @@ When preparing to release a new version, testing should include:
         - Dialog should show "localized" DEBUGBOOL game option. Scenario dropdown should show all scenarios with localized text
         - Cancel out of New Game dialog
         - Quit clients and server
+- Third-party Game Option negotiation
+    - Test when only client knows a 3P game opt:
+        - Start a client with JVM parameter `-Djsettlers.debug.client.gameopt3p=xyz`
+        - Click Practice button; in Practice Game dialog, should see and set checkbox for game option "Client test 3p option XYZ"
+        - Start the practice game
+        - In game window, click "Options" button; game opt XYZ should be set
+        - Start a server without that `gameopt3p` param
+        - Connect from that client
+        - Click New Game button; New Game dialog shouldn't have game opt "Client test 3p option XYZ"
+        - Quit that client and server
+    - Test when client and server both know it:
+        - Start a server with JVM param `-Djsettlers.debug.server.gameopt3p=xyz`
+        - Start a client with JVM param `-Djsettlers.debug.client.gameopt3p=xyz`
+        - Connect from that client
+        - Click New Game; in dialog, should see and set checkbox for "Server test 3p option XYZ"
+        - Start game
+        - In game window, click "Options" button; game opt XYZ should be set
+        - Start another client with same JVM param `-Djsettlers.debug.client.gameopt3p=xyz`
+        - Connect
+        - Double-click and join game, take over for a robot
+        - In game window, click "Options" button; game opt XYZ should be set
+    - Test when only server knows it:
+        - Start another client without that `gameopt3p` param
+        - Connect
+        - In list of games, the game with option XYZ should show "(cannot join)"
+        - Double-click game, popup should show message "Cannot join"
+        - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.XYZ"
+    - Quit all clients and server
 - i18n/Localization
     - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `src/main/resources/resources/strings/server/toClient_es.properties`:  
 
@@ -591,7 +625,7 @@ When preparing to release a new version, testing should include:
         - Start that game (with the two human players)
         - After initial placement, have one player leave
         - Server should tell game it can't find a robot
-    - SOCGameOption negotiation when connecting client has limited features:
+    - Game Option negotiation when connecting client has limited features:
         - Start a standard server using its jar (not the IDE)
         - Start a client, limited by using vm property `-Djsettlers.debug.client.features=;6pl;` and connect
 	  - Click New Game; dialog shouldn't show scenarios or sea board game options,
@@ -607,8 +641,29 @@ When preparing to release a new version, testing should include:
           - During initial placement, exit the client
         - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2400 -> 2401, 2.4.00 -> 2.4.01
         - Repeat those 2 client tests with client at that "new" version; should behave the same as above
-        - Repeat those 2 client tests with previous release's client jar; should behave the same as above
-        - Exit server and reset `version.info` to the actual versions (2401 -> 2400, etc)
+        - Reset `version.info` to the actual versions (2401 -> 2400, etc)
+        - Repeat those 2 client tests with previous release's client jar (2.3.00); should behave the same as above
+        - Exit server
+    - Game Option negotiation when server is limiting game types:
+        - Test once with each combination of the 2 server properties:
+            - `-Djsettlers.game.disallow.6player=Y`
+            - `-Djsettlers.game.disallow.sea_board=Y`
+            - `-Djsettlers.game.disallow.6player=Y -Djsettlers.game.disallow.sea_board=Y`
+        - Start server with property being tested
+        - Connect a client (any version)
+        - Client's console (traffic debug trace) should show GameOptionInfo messages for game options related to the disallowed game type
+        - In New Game dialog, shouldn't see game options related to the disallowed game type
+            - `6player`: Use 6-player Board; Max Players 5 or 6
+            - `sea_board`: Use sea Board; Scenario
+        - Create and start playing a game, past initial placement
+        - Connect another client (any version)
+        - Game info for the game in progress should show correct options
+        - Should be able to join and take over for a bot
+        - Play at least 1 full turn
+        - Optional: Connect with a client which has limited features
+            - Start and connect with a client using a vm property value like `-Djsettlers.debug.client.features=;6pl;` (6-player but not sea board) or `=;sb;` (sea board but not 6-player)
+            - In New Game dialog, shouldn't see game options related to the disallowed game type or missing client feature(s)
+        - Exit clients and server
 - Saving and loading games at server
     - Basics
         - Start server with debug user enabled, but not savegame feature: command-line arg `-Djsettlers.allow.debug=Y`
@@ -679,7 +734,7 @@ When preparing to release a new version, testing should include:
     - Server and client: `-h` / `--help` / `-?`, `--version`
     - Server: Unknown args `-x -z` should print both, then not continue startup
     - Start client w/ no args, start client with host & port on command line
-    - Game option defaults
+    - Game option default values
         - On command line: `-oVP=t11 -oN7=t5 -oRD=y`
         - In `jsserver.properties`:
 
@@ -941,7 +996,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Board layout generator stability:
     - See `TestBoardLayoutsRounds` in "extraTest" section
 - Build contents and built artifacts:
-    - `gradle dist` runs without errors, under gradle 5.6 and also gradle 6.4
+    - `gradle dist` runs without errors or unusual warnings, under gradle 5.6 and also gradle 6.4
     - Full jar and server jar manifests should include correct JSettlers version and git commit id:
         - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
         - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`

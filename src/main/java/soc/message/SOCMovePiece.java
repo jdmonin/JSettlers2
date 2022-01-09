@@ -187,4 +187,18 @@ public class SOCMovePiece extends SOCMessageTemplate4i
      */
     public int getMinimumVersion() { return 2000; }
 
+    /**
+     * Build a human-readable form of the message, with this class's field names
+     * instead of generic names from {@link SOCMessageTemplate4i}.
+     * @return a human readable form of the message
+     * @since 2.4.10
+     */
+    @Override
+    public String toString()
+    {
+        return "SOCMovePiece:game=" + game
+            + "|pn=" + p1 + "|pieceType=" + p2
+            + "|fromCoord=" + p3 + "|toCoord=" + p4;
+    }
+
 }

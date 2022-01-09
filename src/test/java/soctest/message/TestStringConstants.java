@@ -22,6 +22,7 @@ package soctest.message;
 
 import soc.message.SOCDevCardAction;
 import soc.message.SOCPlayerElement;
+import soc.message.SOCSetSpecialItem;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -32,7 +33,7 @@ import static org.junit.Assert.*;
  */
 public class TestStringConstants
 {
-    /** Test {@link SOCDevCardAction#ACTION_STRINGS} against corresponding int constants. */
+    /** Test {@link SOCDevCardAction#ACTION_STRINGS} and corresponding int constants. */
     @Test
     public void testDevCardAction()
     {
@@ -45,7 +46,7 @@ public class TestStringConstants
         assertEquals("CANNOT_PLAY", ACTION_STRINGS[SOCDevCardAction.CANNOT_PLAY]);
     }
 
-    /** Test {@link SOCPlayerElement#ACTION_STRINGS} against corresponding int constants. */
+    /** Test {@link SOCPlayerElement#ACTION_STRINGS} and corresponding int constants. */
     @Test
     public void testPlayerElement()
     {
@@ -54,6 +55,22 @@ public class TestStringConstants
         assertEquals("SET", ACTION_STRINGS[SOCPlayerElement.SET - 100]);
         assertEquals("GAIN", ACTION_STRINGS[SOCPlayerElement.GAIN - 100]);
         assertEquals("LOSE", ACTION_STRINGS[SOCPlayerElement.LOSE - 100]);
+    }
+
+    /** Test {@link SOCSetSpecialItem#OPS_STRS} and corresponding int constants. */
+    @Test
+    public void testSetSpecialItem()
+    {
+        final String[] OPS_STRS = SOCSetSpecialItem.OPS_STRS;
+
+        assertEquals(1 + SOCSetSpecialItem.OP_CLEAR_PICK, OPS_STRS.length);
+        assertNull(OPS_STRS[0]);
+        assertEquals("SET", OPS_STRS[SOCSetSpecialItem.OP_SET]);
+        assertEquals("CLEAR", OPS_STRS[SOCSetSpecialItem.OP_CLEAR]);
+        assertEquals("PICK", OPS_STRS[SOCSetSpecialItem.OP_PICK]);
+        assertEquals("DECLINE", OPS_STRS[SOCSetSpecialItem.OP_DECLINE]);
+        assertEquals("SET_PICK", OPS_STRS[SOCSetSpecialItem.OP_SET_PICK]);
+        assertEquals("CLEAR_PICK", OPS_STRS[SOCSetSpecialItem.OP_CLEAR_PICK]);
     }
 
 }

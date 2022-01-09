@@ -22,8 +22,7 @@ package soctest.server.savegame;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -37,6 +36,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGame.SeatLockState;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
@@ -78,7 +78,7 @@ public class TestSavegame
     public void testSaveInitialPlacement()
         throws IOException
     {
-        final SOCGame ga = new SOCGame("basic", null);
+        final SOCGame ga = new SOCGame("basic", null, null);
         ga.addPlayer("p0", 0);
         ga.addPlayer("third", 3);
 
@@ -92,12 +92,13 @@ public class TestSavegame
     public void testSaveUnsupportedScenario()
         throws IOException
     {
-        final Map<String, SOCGameOption> opts = new HashMap<>();
-        SOCGameOption opt = SOCGameOption.getOption("SC", true);
+        final SOCGameOptionSet opts = new SOCGameOptionSet();
+        SOCGameOption opt = srv.knownOpts.getKnownOption("SC", true);
         opt.setStringValue(SOCScenario.K_SC_PIRI);
-        opts.put("SC", opt);
-        SOCGameOption.adjustOptionsToKnown(opts, null, true);  // add SC's scenario game opts
-        final SOCGame ga = new SOCGame("scen", opts);
+        opts.put(opt);
+        opts.adjustOptionsToKnown(srv.knownOpts, true, null);  // apply SC's scenario game opts
+        assertTrue(opts.containsKey(SOCGameOptionSet.K_SC_PIRI));
+        final SOCGame ga = new SOCGame("scen", opts, srv.knownOpts);
 
         UnsupportedSGMOperationException checkResult = null;
         try
@@ -118,7 +119,7 @@ public class TestSavegame
     public void testBasicSaveLoad()
         throws IOException
     {
-        final SOCGame gaSave = new SOCGame("basic", null);
+        final SOCGame gaSave = new SOCGame("basic", null, null);
         gaSave.addPlayer("p0", 0);
         gaSave.addPlayer("third", 3);
         assertFalse(gaSave.isSeatVacant(0));
@@ -167,7 +168,7 @@ public class TestSavegame
         throws IOException
     {
         final String GAME_NAME = "trades";
-        final SOCGame gaSave = new SOCGame(GAME_NAME, null);
+        final SOCGame gaSave = new SOCGame(GAME_NAME, null, null);
         gaSave.addPlayer("p0", 0);
         gaSave.addPlayer("third", 3);
 
@@ -246,6 +247,7 @@ public class TestSavegame
         assertEquals(2, pl.numRBCards);
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
+        assertEquals(Arrays.asList(SOCDevCardConstants.ROADS, SOCDevCardConstants.ROADS), pl.getDevCardsPlayed());
 
         pl = ga.getPlayer(3);
         pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
@@ -253,6 +255,7 @@ public class TestSavegame
         assertEquals(0, pl.numRBCards);
         assertEquals(1, pl.numDISCCards);
         assertEquals(1, pl.numMONOCards);
+        assertEquals(Arrays.asList(SOCDevCardConstants.DISC, SOCDevCardConstants.MONO), pl.getDevCardsPlayed());
 
         SavedGameModel sgm = new SavedGameModel(ga, srv);
         assertNotNull(sgm);
@@ -261,11 +264,13 @@ public class TestSavegame
         assertEquals(Integer.valueOf(2), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_ROADS));
         assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_DISC));
         assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_MONO));
+        assertEquals(Arrays.asList(SOCDevCardConstants.ROADS, SOCDevCardConstants.ROADS), pi.playedDevCards);
 
         pi = sgm.playerSeats[3];
         assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_ROADS));
         assertEquals(Integer.valueOf(1), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_DISC));
         assertEquals(Integer.valueOf(1), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_MONO));
+        assertEquals(Arrays.asList(SOCDevCardConstants.DISC, SOCDevCardConstants.MONO), pi.playedDevCards);
     }
 
     /**

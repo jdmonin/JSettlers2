@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2016-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventoryItem;     // for javadoc's use
 import soc.proto.GameMessage;
 import soc.proto.GameMessage.InventoryItemAction;
@@ -63,7 +63,7 @@ import soc.proto.Message;
  *
  * <H5>Usage for specific scenarios' special items:</H5>
  *<UL>
- * <LI> {@link SOCGameOption#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts. <BR>
+ * <LI> {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}: Trade ports received as gifts. <BR>
  *   In state {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}, current player sends this when they
  *   have a port in their inventory.  {@code itemType} is the negative of the port type to play.
  *  <P>

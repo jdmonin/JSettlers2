@@ -31,12 +31,13 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.Collection;
-import java.util.Map;
+import java.util.Locale;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.baseclient.ServerConnectInfo;
 import soc.disableDebug.D;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.message.SOCChannels;
 import soc.message.SOCGames;
 import soc.message.SOCJoinGame;
@@ -55,7 +56,7 @@ import soc.util.Version;
 /**
  * Helper object to encapsulate and deal with {@link SOCPlayerClient}'s network connectivity.
  *<P>
- * Local practice server (if any) is started in {@link #startPracticeGame(String, Map)}.
+ * Local practice server (if any) is started in {@link #startPracticeGame(String, SOCGameOptionSet)}.
  * Local tcp server (if any) is started in {@link #initLocalServer(int)}.
  *<br>
  * Messages from server to client are received in either {@link NetReadTask} or {@link LocalStringReaderTask},
@@ -120,7 +121,11 @@ import soc.util.Version;
      */
     SOCServer localTCPServer = null;
 
-    Socket s;
+    /**
+     * Network socket.
+     * Before v2.4.10 this field was {@code s}.
+     */
+    Socket sock;
     DataInputStream in;
     DataOutputStream out;
     Thread reader = null;
@@ -247,7 +252,7 @@ import soc.util.Version;
      *         starting the practice server or client
      * @since 1.1.00
      */
-    public boolean startPracticeGame(final String practiceGameName, final Map<String, SOCGameOption> gameOpts)
+    public boolean startPracticeGame(final String practiceGameName, final SOCGameOptionSet gameOpts)
     {
         if (practiceServer == null)
         {
@@ -298,7 +303,7 @@ import soc.util.Version;
             putPractice(SOCJoinGame.toCmd(client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName));
         else
             putPractice(SOCNewGameWithOptionsRequest.toCmd
-                (client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts));
+                (client.practiceNickname, "", SOCMessage.EMPTYSTR, practiceGameName, gameOpts.getAll()));
 
         return true;
     }
@@ -431,10 +436,10 @@ import soc.util.Version;
             final SocketAddress srvAddr = (host != null)
                 ? new InetSocketAddress(host, port)
                 : new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
-            s = new Socket();
-            s.connect(srvAddr, CONNECT_TIMEOUT_MS);
-            in = new DataInputStream(s.getInputStream());
-            out = new DataOutputStream(s.getOutputStream());
+            sock = new Socket();
+            sock.connect(srvAddr, CONNECT_TIMEOUT_MS);
+            in = new DataInputStream(sock.getInputStream());
+            out = new DataOutputStream(sock.getOutputStream());
             connected = true;
 
             (reader = new Thread(new NetReadTask(client, this))).start();
@@ -447,12 +452,14 @@ import soc.util.Version;
             String msg = client.strings.get("pcli.error.couldnotconnect", ex);  // "Could not connect to the server: " + ex
             System.err.println(msg);
             mainDisplay.showErrorPanel(msg, (ex_P == null));
+
             if (connected)
             {
                 disconnect();
                 connected = false;
             }
             serverConnectInfo = null;
+
             if (in != null)
             {
                 try { in.close(); } catch (Throwable th) {}
@@ -463,7 +470,8 @@ import soc.util.Version;
                 try { out.close(); } catch (Throwable th) {}
                 out = null;
             }
-            s = null;
+
+            sock = null;
         }
     }
 
@@ -480,7 +488,7 @@ import soc.util.Version;
 
         try
         {
-            s.close();
+            sock.close();
         }
         catch (Exception e)
         {
@@ -494,6 +502,9 @@ import soc.util.Version;
      *<P>
      * If debug property {@link SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}
      * is set, its value is sent instead of {@link #cliFeats}.{@link SOCFeatureSet#getEncodedList() getEncodedList()}.
+     * Then if debug property
+     * {@link SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P}
+     * is set, its value is appended to client features as {@code "com.example.js."} + gameopt3p.
      *
      * @param isPractice  True if sending to client's practice server with {@link #putPractice(String)},
      *     false if to a TCP server with {@link #putNet(String)}.
@@ -506,6 +517,16 @@ import soc.util.Version;
             feats = cliFeats.getEncodedList();
         else if (feats.length() == 0)
             feats = null;
+
+        String gameopt3p = System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P);
+        if (gameopt3p != null)
+        {
+            gameopt3p = "com.example.js." + gameopt3p.toUpperCase(Locale.US) + ';';
+            if (feats != null)
+                feats = feats + gameopt3p;
+            else
+                feats = ';' + gameopt3p;
+        }
 
         final String msg = SOCVersion.toCmd
             (Version.versionNumber(), Version.version(), Version.buildnum(),
@@ -714,7 +735,12 @@ import soc.util.Version;
                 while (net.isConnected())
                 {
                     String s = net.in.readUTF();
-                    handler.handle(SOCMessage.toMsg(s), false);
+                    SOCMessage msg = SOCMessage.toMsg(s);
+
+                    if (msg != null)
+                        handler.handle(msg, false);
+                    else if (client.debugTraffic)
+                        soc.debug.D.ebugERROR("Could not parse net message: " + s);
                 }
             }
             catch (IOException e)
@@ -777,7 +803,10 @@ import soc.util.Version;
                     String s = locl.readNext();
                     SOCMessage msg = SOCMessage.toMsg(s);
 
-                    handler.handle(msg, true);
+                    if (msg != null)
+                        handler.handle(msg, true);
+                    else if (client.debugTraffic)
+                        soc.debug.D.ebugERROR("Could not parse practice server message: " + s);
                 }
             }
             catch (IOException e)

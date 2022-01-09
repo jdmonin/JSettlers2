@@ -34,8 +34,8 @@ import soc.proto.Data;
  * Warning: Many pieces of code depend on these values and their count.
  *          Clay is first (1), Wood is last (5), Unknown is after wood.
  *          Those are the 5 resource types (count==5 or ==6 (unknown) is also assumed).
- *          Adding a new resource type would require changes in many places.
- *          SOCRobotBrain.estimateResourceRarity is one of many examples.
+ *          Adding a new resource type would require changes in many places,
+ *          like robot's {@code OpeningBuildStrategy.estimateResourceRarity}.
  * Constants in other places (like {@link soc.message.SOCPlayerElement.PEType#CLAY})
  * have the same hardcoded values.
  *<P>
@@ -74,7 +74,10 @@ public class SOCResourceConstants
      * Unknown resource type (6).  Occurs after {@link #WOOD} (5).
      * Sometimes also used as a "MAX+1" for array sizing
      * for per-resource-type arrays that contain {@link #CLAY} through {@link #WOOD}
-     * but don't contain <tt>UNKNOWN</tt>.
+     * but don't contain {@code UNKNOWN}.
+     *<P>
+     * Before sending this from server, check if game option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO} is set:
+     * May want to send as known resource type instead.
      *<P>
      * Same numeric value as {@link #GOLD_LOCAL}.
      * @see #MAXPLUSONE
@@ -95,7 +98,7 @@ public class SOCResourceConstants
     /**
      * Some code, internal to the <tt>soc.game</tt> or <tt>soc.server</tt> packages,
      * uses this value (7) to represent stolen cloth ({@link SOCPlayer#getCloth()})
-     * for scenario game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     * for scenario game option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}.
      *<P>
      * Cloth is not a resource, and <tt>CLOTH_STOLEN_LOCAL</tt> should not be sent
      * over the network or used for anything except internally reporting stolen cloth.

@@ -40,6 +40,12 @@ import soc.proto.Message;
  *<P>
  * Before v2.0.00 the server announced the {@code SOCClearOffer}s before {@code SOCAcceptOffer}. The old
  * non-robot clients ignored that {@code SOCAcceptOffer}, so changing the order has no effect on them.
+ *<P>
+ * The server disallows any unacceptable trade by sending the client a
+ * {@code SOCAcceptOffer} with reason code {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}
+ * in the {@link #getAcceptingNumber()} field.
+ * Servers before v2.4.10 ({@link SOCBankTrade#VERSION_FOR_REPLY_REASONS}) disallowed by
+ * sending an explanatory {@link SOCGameServerText}.
  *
  * @author Robert S. Thomas
  * @see SOCRejectOffer
@@ -55,7 +61,8 @@ public class SOCAcceptOffer extends SOCMessage
     private String game;
 
     /**
-     * The accepting player number from server; see {@link #getAcceptingNumber()}.
+     * The accepting player number from server, or indication that the trade could not occur:
+     * see {@link #getAcceptingNumber()}.
      */
     private int accepting;
 
@@ -68,8 +75,10 @@ public class SOCAcceptOffer extends SOCMessage
      * Create an AcceptOffer message.
      *
      * @param ga  the name of the game
-     * @param ac  the player number of the accepting player
-     *     when sent from server; always ignored if sent from client
+     * @param ac  the player number of the accepting player,
+     *     or indication the trade could not occur,
+     *     when sent from server; always ignored if sent from client.
+     *     See {@link #getAcceptingNumber()}.
      * @param of  the player number of the offering player
      */
     public SOCAcceptOffer(String ga, int ac, int of)
@@ -90,9 +99,11 @@ public class SOCAcceptOffer extends SOCMessage
 
     /**
      * When sent from server, get the player number accepting the trade offered by
-     * {@link #getOfferingNumber()}.
+     * {@link #getOfferingNumber()}, or a value &lt; 0 indicating that the trade could not occur:
+     * {@link SOCBankTrade#PN_REPLY_CANNOT_MAKE_TRADE}.
      * From client, server has always ignored this field; could be any value.
      * @return the number of the accepting player from server,
+     *     or a disallowing reply reason &lt; 0,
      *     or any value sent from client (server has always ignored this field)
      */
     public int getAcceptingNumber()

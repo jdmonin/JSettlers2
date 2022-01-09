@@ -168,15 +168,15 @@ import java.awt.TextArea;
      * Count the lines in a string of text.
      * Before v1.1.06 this method was {@code countLines}.
      */
-    protected  int countNewLines(String s)
+    protected static int countNewLines(String s)
     {
-        int lines = 0;
+        int nLines = 0;
         int last = -1;
 
         while ( (last = s.indexOf('\n', last+1)) > -1)
-            lines++;
+            nLines++;
 
-        return lines;
+        return nLines;
     }
 
     /**

@@ -20,7 +20,7 @@
 package soc.robot.sample3p;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCMessage;
@@ -61,7 +61,7 @@ public class Sample3PBrain extends SOCRobotBrain
      * sends a "hello" chat message as a sample action using {@link SOCRobotClient#sendText(SOCGame, String)}.
      * This bot also overrides {@link #setStrategyFields()}.
      *<P>
-     * If the for-bots extra game option {@link SOCGameOption#K__EXT_BOT} was set at the server command line,
+     * If the for-bots extra game option {@link SOCGameOptionSet#K__EXT_BOT} was set at the server command line,
      * prints its value to {@link System#err}. A third-party bot might want to use that option's value
      * to configure its behavior or debug settings.
      *<P>
@@ -77,7 +77,7 @@ public class Sample3PBrain extends SOCRobotBrain
         final String botName = client.getNickname();
         client.sendText(game, "Hello from sample bot " + botName + "!");
 
-        final String optExtBot = game.getGameOptionStringValue(SOCGameOption.K__EXT_BOT);
+        final String optExtBot = game.getGameOptionStringValue(SOCGameOptionSet.K__EXT_BOT);
         if (optExtBot != null)
             System.err.println("Bot " + botName + ": __EXT_BOT is: " + optExtBot);
     }

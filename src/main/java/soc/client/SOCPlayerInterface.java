@@ -31,7 +31,7 @@ import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameEvent;
 import soc.game.SOCGameEventListener;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -45,6 +45,8 @@ import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
+import soc.message.SOCPlayerElement.PEType;
+import soc.message.SOCBankTrade;     // for reply code constant
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
 import soc.proto.Data;
@@ -241,7 +243,22 @@ public class SOCPlayerInterface extends Frame
      * Checks {@link SOCGame#maxPlayers}.
      * @since 1.1.08
      */
-    private boolean is6player;
+    private final boolean is6player;
+
+    /**
+     * Is this game using developer Game Option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO}?
+     * If so, all {@link SOCHandPanel}s will show dev cards/inventory details
+     * ({@link #isGameObservableVP}) and each resource type amount (brick, ore, ...).
+     * @since 2.4.10
+     */
+    protected final boolean isGameFullyObservable;
+
+    /**
+     * Is this game using developer Game Option {@link SOCGameOptionSet#K_PLAY_VPO PLAY_VPO}
+     * or {@link #isGameFullyObservable}? If so, all {@link SOCHandPanel}s will show dev cards/inventory details.
+     * @since 2.4.10
+     */
+    protected final boolean isGameObservableVP;
 
     /**
      * For perf/display-bugs during component layout (OSX firefox),
@@ -816,6 +833,10 @@ public class SOCPlayerInterface extends Frame
         client = md.getClient();
         game = ga;
         game.setGameEventListener(this);
+        is6player = (game.maxPlayers > 4);
+        isGameFullyObservable = game.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO);
+        isGameObservableVP = isGameFullyObservable || game.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO);
+
         knowsGameState = (game.getGameState() != 0);
         this.layoutVS = layoutVS;
         clientListener = new ClientBridge(this);
@@ -823,7 +844,6 @@ public class SOCPlayerInterface extends Frame
         gameIsStarting = false;
         clientHand = null;
         clientHandPlayerNum = -1;
-        is6player = (game.maxPlayers > 4);
 
         if (localPrefs != null)
         {
@@ -3012,7 +3032,84 @@ public class SOCPlayerInterface extends Frame
      */
     public void showScenarioInfoDialog()
     {
-        NewGameOptionsFrame.showScenarioInfoDialog(game, getMainDisplay(), this);
+        NewGameOptionsFrame.showScenarioInfoDialog
+            (game, ((game.isPractice) ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts,
+             getMainDisplay(), this);
+    }
+
+    /**
+     * A robbery has just occurred; show details.
+     * Is called after game data has been updated.
+     *
+     * @param perpPN  Perpetrator's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param victimPN  Victim's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param resType  Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
+     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code peType != null}.
+     * @param peType  PlayerElement type such as {@link PEType#SCENARIO_CLOTH_COUNT},
+     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} instead).
+     * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
+     * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
+     * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
+     * @since 2.4.10
+     */
+    public void reportRobbery
+        (final int perpPN, final int victimPN, final int resType, final PEType peType,
+         final boolean isGainLose, final int amount, final int victimAmount)
+    {
+        // These texts are also sent from SOCGameHandler.reportRobbery to older clients;
+        // if you change the logic or text, make sure it's updated in both places
+
+        final String peName = (perpPN >= 0) ? game.getPlayer(perpPN).getName() : null,
+            viName = (victimPN >= 0) ? game.getPlayer(victimPN).getName() : null;
+
+        if (peType == null)
+        {
+            if ((resType == Data.ResourceType.UNKNOWN_VALUE) || (clientHandPlayerNum < 0)
+                || ((clientHandPlayerNum != perpPN) && (clientHandPlayerNum != victimPN)))
+            {
+                printKeyed("robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+            } else {
+                if (perpPN == clientHandPlayerNum)
+                    printKeyedSpecial
+                        ("robber.common.you.stole.resource.from", -1, resType, viName);  // "You stole {0,rsrcs} from {2}."
+                else
+                    printKeyedSpecial
+                        ("robber.common.stole.resource.from.you", peName, -1, resType);  // "{0} stole {1,rsrcs} from you."
+            }
+
+            if (perpPN >= 0)
+                hands[perpPN].updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+            if (victimPN >= 0)
+            {
+                hands[victimPN].updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
+                if (victimPN == clientHandPlayerNum)
+                    playSound(SOUND_RSRC_LOST);
+            }
+        } else {
+            PlayerClientListener.UpdateType utype = null;
+
+            switch (peType)
+            {
+            case SCENARIO_CLOTH_COUNT:
+                printKeyed("robber.common.stole.cloth.from", peName, viName);  // "{0} stole a cloth from {1}."
+                utype = PlayerClientListener.UpdateType.Cloth;
+                break;
+
+            default:
+                // Nothing else recognized yet
+                // Other PETypes may be used in future scenarios/expansions
+            }
+
+            if (utype != null)
+            {
+                if (perpPN >= 0)
+                    clientListener.playerElementUpdated
+                        (game.getPlayer(perpPN), utype, false, false);
+                if (victimPN >= 0)
+                    clientListener.playerElementUpdated
+                        (game.getPlayer(victimPN), utype, false, (victimPN == clientHandPlayerNum));
+            }
+        }
     }
 
     /**
@@ -3026,7 +3123,7 @@ public class SOCPlayerInterface extends Frame
     public void updateAtNewBoard()
     {
         boardPanel.flushBoardLayoutAndRepaint();
-        if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        if (game.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
             buildingPanel.updateClothCount();
     }
 
@@ -3083,7 +3180,7 @@ public class SOCPlayerInterface extends Frame
         }
 
         if ((gs == SOCGame.PLACING_INV_ITEM) && clientIsCurrentPlayer()
-            && game.isGameOptionSet(SOCGameOption.K_SC_FTRI))
+            && game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
         {
             printKeyed("game.invitem.sc_ftri.prompt");
                 // "You have received this trade port as a gift."
@@ -3149,7 +3246,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Handle updates after pieces have changed on the board.
-     * For example, when scenario {@link SOCGameOption#K_SC_PIRI}
+     * For example, when scenario {@link SOCGameOptionSet#K_SC_PIRI}
      * converts players' ships to warships, changes the strength
      * of a pirate fortress, etc.
      *<P>
@@ -4308,15 +4405,18 @@ public class SOCPlayerInterface extends Frame
             if (hpan == null)
                 return;  // <--- early return: not a per-player element ---
 
+            final boolean isClientPlayer = hpan.isClientPlayer();
+
             if (hpanUpdateRsrcType != 0)
             {
-                if (hpan.isClientPlayer())
+                if (isClientPlayer || pi.isGameFullyObservable)
                 {
                     hpan.updateValue(utype);
 
                     // Because client player's available resources have changed,
                     // update any trade offers currently showing (show or hide Accept button)
-                    pi.updateAtClientPlayerResources();
+                    if (isClientPlayer)
+                        pi.updateAtClientPlayerResources();
 
                     // If good or bad news from unexpectedly gained or lost
                     // resources or pieces, let the player know
@@ -4324,14 +4424,12 @@ public class SOCPlayerInterface extends Frame
                         pi.playSound(SOUND_RSRC_GAINED_FREE);
                     else if (isBadNews)
                         pi.playSound(SOUND_RSRC_LOST);
-                }
-                else
-                {
+                } else {
                     hpan.updateValue(PlayerClientListener.UpdateType.Resources);
                 }
             }
 
-            if (hpan.isClientPlayer() && (pi.getGame().getGameState() != SOCGame.NEW))
+            if (isClientPlayer && (pi.getGame().getGameState() != SOCGame.NEW))
                 pi.buildingPanel.updateButtonStatus();
         }
 
@@ -4351,15 +4449,15 @@ public class SOCPlayerInterface extends Frame
 
         public void playerDevCardsUpdated(SOCPlayer player, final boolean addedPlayable)
         {
-            if (pi.isClientPlayer(player))
+            final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
+            if (pi.isGameObservableVP || pi.isClientPlayer(player))
             {
-                SOCHandPanel hp = pi.getClientHand();
-                hp.updateDevCards(addedPlayable);
-                hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
+                hpan.updateDevCards(addedPlayable);
+                hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
             }
             else if (player != null)
             {
-                pi.getPlayerHandPanel(player.getPlayerNumber()).updateDevCards(addedPlayable);
+                hpan.updateDevCards(addedPlayable);
             }
         }
 
@@ -4633,26 +4731,26 @@ public class SOCPlayerInterface extends Frame
 
         public void invItemPlayRejected(final int type, final int reasonCode)
         {
-            if ((reasonCode == 4) && pi.getGame().isGameOptionSet(SOCGameOption.K_SC_FTRI))
+            if ((reasonCode == 4) && pi.getGame().isGameOptionSet(SOCGameOptionSet.K_SC_FTRI))
                 pi.printKeyed("game.invitem.sc_ftri.need.coastal");  // * "Requires a coastal settlement not adjacent to an existing port."
             else
                 pi.printKeyed("hpan.item.play.cannot");  // * "Cannot play this item right now."
         }
 
         public void playerPickSpecialItem
-            (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi,
+            (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gidx, final int pidx,
              final boolean isPick, final int coord, final int level, final String sv)
         {
             if ((pl == null) && isPick)
                 return;  // <--- Early return: So far, every pick implemented is player-specific ---
 
-            if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+            if (! typeKey.equals(SOCGameOptionSet.K_SC_WOND))
                 return;  // <--- Early return: So far, the only known typeKey is _SC_WOND ---
 
             if (isPick)
             {
                 String iname = null;
-                final SOCSpecialItem itm = ga.getSpecialItem(typeKey, gi);
+                final SOCSpecialItem itm = ga.getSpecialItem(typeKey, gidx);
 
                 if (itm != null)
                     iname = itm.getStringValue();
@@ -4660,31 +4758,32 @@ public class SOCPlayerInterface extends Frame
                 if (iname != null)
                     iname = strings.get("game.specitem.sc_wond." + iname); // "w3" -> "Monument", etc
                 else
-                    iname = "# " + gi;
+                    iname = "# " + gidx;
 
                 if (level == 1)
-                    this.pi.printKeyed("game.specitem.sc_wond.started", pl.getName(), iname);
+                    pi.printKeyed("game.specitem.sc_wond.started", pl.getName(), iname);
                         // "{0} started building a Wonder! ({1})"
                 else
-                    this.pi.printKeyed("game.specitem.sc_wond.built", pl.getName(), level, iname);
+                    pi.printKeyed("game.specitem.sc_wond.built", pl.getName(), level, iname);
                         // "{0} has built level # of their Wonder ({2})."
 
                 // TODO any visual effect?
             } else {
-                this.pi.printKeyed("game.specitem.sc_wond.decl");  // "You cannot build that Wonder right now."
+                pi.printKeyed("game.specitem.sc_wond.decl");  // "You cannot build that Wonder right now."
             }
         }
 
         public void playerSetSpecialItem
-            (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isSet)
+            (final String typeKey, final SOCGame ga, final SOCPlayer pl,
+             final int gidx, final int pidx, final boolean isSet)
         {
             if (pl == null)
                 return;  // <--- Early return: So far, everything implemented is player-specific ---
 
-            if (! typeKey.equals(SOCGameOption.K_SC_WOND))
+            if (! typeKey.equals(SOCGameOptionSet.K_SC_WOND))
                 return;  // <--- Early return: So far, the only known typeKey is _SC_WOND ---
 
-            final SOCHandPanel hp = this.pi.getPlayerHandPanel(pl.getPlayerNumber());
+            final SOCHandPanel hp = pi.getPlayerHandPanel(pl.getPlayerNumber());
             if (hp != null)
                 hp.updateValue(PlayerClientListener.UpdateType.WonderLevel);
         }
@@ -4795,18 +4894,30 @@ public class SOCPlayerInterface extends Frame
             pi.showChooseRobClothOrResourceDialog(player.getPlayerNumber());
         }
 
+        public void reportRobbery
+            (final int perpPN, final int victimPN, final int resType, final PEType peType,
+             final boolean isGainLose, final int amount, final int victimAmount)
+        {
+            pi.reportRobbery(perpPN, victimPN, resType, peType, isGainLose, amount, victimAmount);
+        }
+
         public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)
         {
             requestedTradeClear(player, true);
             pi.printTradeResources(player, give, get, false, null);
         }
 
-        public void requestedTrade(SOCPlayer offerer)
+        public void requestedTrade(final SOCPlayer offerer, final int fromPN)
         {
-            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
-            final SOCTradeOffer offer = offerer.getCurrentOffer();
-            if (offer != null)
-                pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
+            if (offerer != null)
+            {
+                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer(true, false);
+                final SOCTradeOffer offer = offerer.getCurrentOffer();
+                if (offer != null)
+                    pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), true, null);
+            } else if (fromPN <= SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE) {
+                pi.printKeyed("trade.msg.cant.make.offer");  // "You can't make that offer."
+            }
         }
 
         public void requestedTradeClear(final SOCPlayer offerer, final boolean isBankTrade)
@@ -4831,6 +4942,14 @@ public class SOCPlayerInterface extends Frame
             final SOCTradeOffer offer = offerer.getCurrentOffer();
             if (offer != null)
                 pi.printTradeResources(offerer, offer.getGiveSet(), offer.getGetSet(), false, acceptor);
+        }
+
+        public void playerTradeDisallowed(final int offeringPN, final boolean isNotTurn)
+        {
+            pi.printKeyed
+                ((isNotTurn)
+                 ? "base.reply.not.your.turn"  // "It's not your turn."
+                 : "reply.common.trade.cannot_make");  // "You can't make that trade."
         }
 
         public void requestedTradeReset(SOCPlayer playerToReset)

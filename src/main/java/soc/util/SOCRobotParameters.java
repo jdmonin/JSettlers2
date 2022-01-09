@@ -22,10 +22,9 @@
 package soc.util;
 
 import java.io.Serializable;
-import java.util.Map;
 
-import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 
 
 /**
@@ -108,7 +107,7 @@ public class SOCRobotParameters implements Serializable
      * @param gameOpts The game's {@link SOCGameOption}s, or null
      * @return This object, or a copy with updated parameters.
      */
-    public SOCRobotParameters copyIfOptionChanged(Map<String, SOCGameOption> gameOpts)
+    public SOCRobotParameters copyIfOptionChanged(SOCGameOptionSet gameOpts)
     {
         if (gameOpts == null)
             return this;
@@ -116,7 +115,7 @@ public class SOCRobotParameters implements Serializable
         boolean copied = false;
         SOCRobotParameters params = this;
 
-        if (SOCGame.isGameOptionSet(gameOpts, "NT")
+        if ((gameOpts != null) && gameOpts.isOptionSet("NT")
             && (1 == params.tradeFlag))
         {
             if (! copied)
@@ -207,6 +206,31 @@ public class SOCRobotParameters implements Serializable
     }
 
     /**
+     * Check for equality to another {@link SOCRobotParameters} or other object.
+     *
+     * @return true if {@code other} is a {@link SOCRobotParameters} having the same values
+     *     for all fields listed in constructor
+     * @see Object#equals(Object)
+     * @since 2.4.10
+     */
+    public boolean equals(Object o)
+    {
+        if (! (o instanceof SOCRobotParameters))
+            return false;
+
+        final SOCRobotParameters params = (SOCRobotParameters) o;
+        return (maxGameLength == params.maxGameLength)
+            && (maxETA == params.maxETA)
+            && (etaBonusFactor == params.etaBonusFactor)
+            && (adversarialFactor == params.adversarialFactor)
+            && (leaderAdversarialFactor == params.leaderAdversarialFactor)
+            && (devCardMultiplier == params.devCardMultiplier)
+            && (threatMultiplier == params.threatMultiplier)
+            && (strategyType == params.strategyType)
+            && (tradeFlag == params.tradeFlag);
+    }
+
+    /**
      * @return a human readable form of the data
      */
     @Override
@@ -220,4 +244,5 @@ public class SOCRobotParameters implements Serializable
 
         return s;
     }
+
 }

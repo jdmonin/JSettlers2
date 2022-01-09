@@ -38,8 +38,8 @@ import soc.game.SOCGame;  // for javadocs only
  * or {@link SOCGame#PLACING_PIRATE PLACING_PIRATE}).
  *<P>
  * When sent from server, this message will be followed by other messages
- * about gaining/losing resources.  So for this message, the client
- * should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
+ * about gaining/losing resources: {@link SOCReportRobbery} or {@link SOCPlayerElement}.
+ * So for this message, the client should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
  * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
  *<P>
  * Once the robber is placed on the board, it cannot be taken off the board.
@@ -190,7 +190,7 @@ public class SOCMoveRobber extends SOCMessage
 
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * Converts robber hex coordinate to decimal from hexadecimal format.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed

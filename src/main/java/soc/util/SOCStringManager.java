@@ -127,7 +127,7 @@ public class SOCStringManager extends StringManager
      * Resource type-and-count text keys for {@link #getSpecial(SOCGame, String, Object...)}.
      * Each subarray's indexes are the same values as {@link Data.ResourceType#CLAY_VALUE}
      * to {@link Data.ResourceType#WOOD_VALUE}. The string key at index 0 is used for
-     * resources out of range (unknown types).
+     * resources out of range (unknown types, not {@link Data.ResourceType#UNKNOWN_VALUE}).
      * @see #getSOCResourceCount(int, Integer)
      */
     private static final String[][] GETSPECIAL_RSRC_KEYS =

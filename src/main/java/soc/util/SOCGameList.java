@@ -24,6 +24,7 @@ package soc.util;
 import soc.disableDebug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.message.SOCGames;
 
 import java.util.Hashtable;
@@ -60,7 +61,7 @@ public class SOCGameList
      * Before v1.1.13, the default maximum was 20 characters.<BR>
      * From v1.1.07 through 1.2.00, this field was {@code SOCServer.GAME_NAME_MAX_LENGTH}.
      *
-     * @see soc.server.SOCServer#createOrJoinGameIfUserOK(soc.server.genericServer.Connection, String, String, String, Map)
+     * @see soc.server.SOCServer#createOrJoinGameIfUserOK(soc.server.genericServer.Connection, String, String, String, SOCGameOptionSet)
      * @since 1.2.01
      */
     public static final int GAME_NAME_MAX_LENGTH = 30;
@@ -89,15 +90,24 @@ public class SOCGameList
      */
     protected Hashtable<String, GameInfo> gameInfo;
 
+    /**
+     * All Known Options for the server hosting these games.
+     * @since 2.4.10
+     */
+    protected final SOCGameOptionSet knownOpts;
+
     /** used with gamelist's monitor */
     protected boolean inUse;
 
     /**
      * constructor
+     * @param knownOpts All Known Options at server hosting the games in this list,
+     *     if might be needed for {@link #parseGameOptions(String)}, or {@code null} if not needed
      */
-    public SOCGameList()
+    public SOCGameList(final SOCGameOptionSet knownOpts)
     {
         gameInfo = new Hashtable<String, GameInfo>();
+        this.knownOpts = knownOpts;
         inUse = false;
     }
 
@@ -258,7 +268,7 @@ public class SOCGameList
      * @see #parseGameOptions(String)
      * @since 1.1.07
      */
-    public Map<String,SOCGameOption> getGameOptions(String gaName)
+    public SOCGameOptionSet getGameOptions(String gaName)
     {
         GameInfo info = gameInfo.get(gaName);
         if (info == null)
@@ -284,7 +294,7 @@ public class SOCGameList
     }
 
     /**
-     * Parse these game options from string to map.
+     * Parse this game's options from string to {@link SOCGameOption}s.
      * Should not be called at client before any updates to "known options" are received from server.
      * Calls {@link GameInfo#parseOptsStr()}.
      * @param   gaName  game name
@@ -292,7 +302,7 @@ public class SOCGameList
      * @see #getGameOptionsString(String)
      * @since 1.1.07
      */
-    public Map<String,SOCGameOption> parseGameOptions(String gaName)
+    public SOCGameOptionSet parseGameOptions(String gaName)
     {
         GameInfo info = gameInfo.get(gaName);
         if (info == null)
@@ -338,7 +348,7 @@ public class SOCGameList
      * If a game already exists (per {@link #isGame(String)}), at most clear its canJoin flag.
      *<P>
      * Server should instead call
-     * {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)}
+     * {@link soc.server.SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, soc.server.GameHandler)}
      * or {@link soc.server.SOCGameListAtServer#addGame(SOCGame, soc.server.GameHandler, String, String)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
@@ -366,12 +376,12 @@ public class SOCGameList
      * Client should instead call {@link #addGame(String, String, boolean)} because game options should
      * remain unparsed as late as possible.
      * Server should instead call
-     * {@link soc.server.SOCGameListAtServer#createGame(String, String, String, Map, soc.server.GameHandler)}.
+     * {@link soc.server.SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, soc.server.GameHandler)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      *         Not validated here for length or naming rules.
-     * @param gaOpts Map of {@link SOCGameOption game options} of added game, or null
+     * @param gaOpts {@link SOCGameOption}s of added game, or null
      * @param gaOptsStr set of {@link SOCGameOption}s as packed by
      *         {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}, or null.
      *         Game options should remain unparsed as late as possible.
@@ -383,7 +393,7 @@ public class SOCGameList
      * @since 1.1.07
      */
     protected synchronized void addGame
-        (String gaName, Map<String, SOCGameOption> gaOpts, String gaOptsStr, boolean cannotJoin)
+        (String gaName, SOCGameOptionSet gaOpts, String gaOptsStr, boolean cannotJoin)
     {
         if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
         {
@@ -448,7 +458,7 @@ public class SOCGameList
 
     /**
      * Add several games to this GameList.
-     * Calls {@link #addGame(String, Map, String, boolean)} for each one.
+     * Calls {@link #addGame(String, SOCGameOptionSet, String, boolean)} for each one.
      *<P>
      * For use at client.
      *
@@ -472,9 +482,10 @@ public class SOCGameList
         for (Object ob : gameList)
         {
             String gaName;
-            Map<String, SOCGameOption> gaOpts;
+            SOCGameOptionSet gaOpts;
             boolean cannotJoin;
-            if (ob instanceof SOCGame)
+            final boolean isGameObj = (ob instanceof SOCGame);
+            if (isGameObj)
             {
                 gaName = ((SOCGame) ob).getName();
                 gaOpts = ((SOCGame) ob).getGameOptions();
@@ -521,12 +532,13 @@ public class SOCGameList
      * @author Jeremy D Monin <jeremy@nand.net>
      * @since 1.1.07
      */
-    protected static class GameInfo
+    protected class GameInfo
     {
         public MutexFlag mutex;
-        public Map<String,SOCGameOption> opts;  // or null
+        public SOCGameOptionSet opts;  // or null
         public String optsStr;  // or null
         public boolean canJoin;
+
         /** Flag for when game has been destroyed, in case anything's waiting on its mutex. @since 1.1.15 */
         public boolean gameDestroyed;
 
@@ -535,7 +547,7 @@ public class SOCGameList
          * @param canJoinGame can we join this game?
          * @param gameOpts The game's {@link SOCGameOption}s, or null
          */
-        public GameInfo(boolean canJoinGame, Map<String,SOCGameOption> gameOpts)
+        public GameInfo(boolean canJoinGame, SOCGameOptionSet gameOpts)
         {
             mutex = new MutexFlag();
             opts = gameOpts;
@@ -559,15 +571,15 @@ public class SOCGameList
          * Parse optsStr to opts, unless it's already been parsed.
          * @return opts, after parsing if necessary, or null if opts==null and optsStr==null.
          */
-        public Map<String,SOCGameOption> parseOptsStr()
+        public SOCGameOptionSet parseOptsStr()
         {
             if (opts != null)  // already parsed
                 return opts;
-            else if (optsStr == null)  // none to parse
+            else if ((optsStr == null) || (knownOpts == null))  // none to parse
                 return null;
             else
             {
-                opts = SOCGameOption.parseOptionsToMap(optsStr);
+                opts = SOCGameOption.parseOptionsToSet(optsStr, knownOpts);
                 return opts;
             }
         }
@@ -580,5 +592,7 @@ public class SOCGameList
                 opts = null;
             }
         }
+
     }
+
 }

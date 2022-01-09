@@ -182,7 +182,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
              }
            }
            D.ebugPrintlnINFO();
-           SOCBuildingSpeedEstimate bse1 = new SOCBuildingSpeedEstimate(player.getNumbers());
+           SOCBuildingSpeedEstimate bse1 = bseFactory.getEstimator(player.getNumbers());
            int ourBuildingSpeed[] = bse1.getEstimatesFromNothingFast(player.getPortFlags());
            //
            //  get new numbers
@@ -205,7 +205,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
              D.ebugPrintINFO(portFlags[port]+",");
            }
            D.ebugPrintlnINFO();
-           SOCBuildingSpeedEstimate bse2 = new SOCBuildingSpeedEstimate(newNumbers);
+           SOCBuildingSpeedEstimate bse2 = bseFactory.getEstimator(newNumbers);
            int speed[] = bse2.getEstimatesFromNothingFast(newPortFlags);
            for (int buildingType = SOCBuildingSpeedEstimate.MIN;
                 buildingType < SOCBuildingSpeedEstimate.MAXPLUSONE;

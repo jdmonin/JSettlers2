@@ -24,8 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
@@ -34,6 +34,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGame.SeatLockState;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
@@ -310,7 +311,7 @@ public class TestLoadgame
         assertEquals("gamestate", SOCGame.LOADING, ga.getGameState());
         assertEquals("BC=t4,N7=t7,PL=4,RD=f", sgm.gameOptions);
         {
-            final Map<String, SOCGameOption> opts = ga.getGameOptions();
+            final SOCGameOptionSet opts = ga.getGameOptions();
             assertEquals(4, opts.size());
 
             SOCGameOption opt = opts.get("BC");
@@ -632,6 +633,9 @@ public class TestLoadgame
         checkPlayerData(sgm, NAMES, null, TOTAL_VP, null, null, null);
 
         final int[][] PLAYER_DEVCARD_STATS = {{0, 0, 0}, {0, 0, 2}, {0, 0, 0}, {1, 1, 0}};
+        final int[][] PLAYER_CARDS_PLAYED_LISTS =
+            {null, {SOCDevCardConstants.ROADS, SOCDevCardConstants.ROADS},
+             null, {SOCDevCardConstants.MONO, SOCDevCardConstants.DISC}};
         for (int pn = 0; pn < 4; ++pn)
         {
             final SOCPlayer pl = ga.getPlayer(pn);
@@ -657,6 +661,18 @@ public class TestLoadgame
                 assertEquals(Integer.valueOf(amount), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_ROADS));
             else
                 assertFalse(pi.elements.containsKey(PEType.NUM_PLAYED_DEV_CARD_ROADS));
+
+            final int[] expected = PLAYER_CARDS_PLAYED_LISTS[pn];
+            final List<Integer> played = pl.getDevCardsPlayed();
+            if (expected == null)
+            {
+                assertNull("pn " + pn + ": no devcards played", played);
+            } else {
+                List<Integer> expectedList = new ArrayList<>();
+                for (int ctype : expected)
+                    expectedList.add(ctype);
+                assertEquals("pn " + pn + " devcards played", expectedList, played);
+            }
         }
     }
 

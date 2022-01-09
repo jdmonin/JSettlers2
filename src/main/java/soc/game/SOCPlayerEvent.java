@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013,2015-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,11 +25,11 @@ package soc.game;
  * Each event also has a {@link SOCGameOption} to indicate its scenario rules are active; see enum value javadocs.
  *<P>
  * Not all scenario-related rules changes have or need an event. For example, in
- * {@link SOCGameOption#K_SC_PIRI _SC_PIRI} the Knight/Soldier card is used only to
+ * {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} the Knight/Soldier card is used only to
  * convert ships to warships.  This happens every time the card is played, so there's
  * no event for it.  The game/server logic for playing dev cards checks for {@code _SC_PIRI}
  * right there, instead of code elsewhere in an event listener.  However, in
- * {@link SOCGameOption#K_SC_SANY _SC_SANY} the player will <em>sometimes</em> get an
+ * {@link SOCGameOptionSet#K_SC_SANY _SC_SANY} the player will <em>sometimes</em> get an
  * SVP for settling a new island; it doesn't happen each time the player builds a settlement.
  * So, a scenario event communicates the new SVP there.
  *
@@ -46,7 +46,7 @@ public enum SOCPlayerEvent
     /**
      * Special victory point awarded for first settlement in any land area past the starting land area.
      * Once per player per game (not once per player in each other land area).
-     * Game option {@link SOCGameOption#K_SC_SANY _SC_SANY}.
+     * Game option {@link SOCGameOptionSet#K_SC_SANY _SC_SANY}.
      *<P>
      * The new {@link SOCSettlement} will be passed as {@code obj} to
      * {@link SOCGameEventListener#playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)}.
@@ -56,7 +56,7 @@ public enum SOCPlayerEvent
     /**
      * 2 SVP awarded each time player settles in another new land area past the starting land area.
      * Once per area per player per game.
-     * Game option {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
+     * Game option {@link SOCGameOptionSet#K_SC_SEAC _SC_SEAC}.
      *<P>
      * The new {@link SOCSettlement} will be passed as {@code obj} to
      * {@link SOCGameEventListener#playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)}.
@@ -74,13 +74,13 @@ public enum SOCPlayerEvent
      * This event flag doesn't immediately give the player an SVP;
      * players gain VP by having pairs of cloth.
      *<P>
-     * Villages are in a game only if scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI} is set.
+     * Villages are in a game only if scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} is set.
      */
     CLOTH_TRADE_ESTABLISHED_VILLAGE(0x04),
 
     /**
      * Player's corresponding pirate fortress ({@link SOCFortress}) has been recaptured.
-     * Scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      *<P>
      * The fortress has now been recaptured as a settlement owned by the player.
      * The new {@link SOCSettlement} will be passed as {@code obj} to
@@ -97,7 +97,7 @@ public enum SOCPlayerEvent
      * Dev Card awarded for reaching a Special Edge that gives that reward
      * (Special Edge type {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD}).
      * Once the edge is claimed, no other player can be rewarded at that edge, but there are others on the board.
-     * Game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * Game option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      *<P>
      * The edge coordinate and dev card type will be passed in an {@link soc.util.IntPair IntPair} as {@code obj} to
      * {@link SOCGameEventListener#playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)}.
@@ -115,7 +115,7 @@ public enum SOCPlayerEvent
      * Special victory point awarded for reaching a Special Edge that gives that reward
      * (Special Edge type {@link SOCBoardLarge#SPECIAL_EDGE_SVP}).
      * Once the edge is claimed, no other player can be rewarded at that edge, but there are others on the board.
-     * Game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * Game option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      *<P>
      * The edge coordinate will be passed as {@code obj} to
      * {@link SOCGameEventListener#playerEvent(SOCGame, SOCPlayer, SOCPlayerEvent, boolean, Object)}.
@@ -127,7 +127,7 @@ public enum SOCPlayerEvent
 
     /**
      * Player's ships have reached a "gift" port, and removed that trade port from the board.  It must be
-     * placed elsewhere now or later. Occurs only in scenario game option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * placed elsewhere now or later. Occurs only in scenario game option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      *<P>
      * An {@link soc.util.IntPair IntPair} with the port's edge coordinate and type (in range
      * {@link SOCBoard#MISC_PORT MISC_PORT} to {@link SOCBoard#WOOD_PORT WOOD_PORT}) will be passed as {@code obj} to

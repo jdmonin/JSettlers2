@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@ package soctest.server;
 
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCScenario;
 import soc.server.SOCGameHandler;
 import soc.util.SOCFeatureSet;
@@ -42,6 +43,8 @@ public class TestSOCGameHandler
     @Test
     public void testCalcGameClientFeaturesRequired()
     {
+        final SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
+
         /**
          * Game opts and expected resulting client features.
          * When one client feature is expected, will test with String.equals.
@@ -57,7 +60,15 @@ public class TestSOCGameHandler
                 { "SC=" + SOCScenario.K_SC_4ISL, ';' + SOCFeatureSet.CLIENT_SCENARIO_VERSION + "=2000;" },
                 { "SC=_NONEXISTENT_", ';' + SOCFeatureSet.CLIENT_SCENARIO_VERSION + "=" + Integer.MAX_VALUE + ";" },
                 { "SBL=t,PL=5", ';' + SOCFeatureSet.CLIENT_SEA_BOARD + ';' + SOCFeatureSet.CLIENT_6_PLAYERS + ';' },
+                { "_3P=7", ";com.example.js.t3p;" },
             };
+
+        // test FLAG_3RD_PARTY and its feature
+        SOCGameOption opt3PKnown = new SOCGameOption
+            ("_3P", 2000, 2410, 0, 0, 0xFFFF, SOCGameOption.FLAG_3RD_PARTY, "For unit test");
+        opt3PKnown.setClientFeature("com.example.js.t3p");
+        assertTrue(opt3PKnown.hasFlag(SOCGameOption.FLAG_3RD_PARTY));
+        knownOpts.addKnownOption(opt3PKnown);
 
         final SOCGameHandler sgh = new SOCGameHandler(null);  // null SOCServer is OK for this test, not in general
 
@@ -65,7 +76,8 @@ public class TestSOCGameHandler
         {
             final String gameopts = pair[0], featsStr = pair[1];
 
-            final SOCGame ga = new SOCGame("testname", SOCGameOption.parseOptionsToMap(gameopts));
+            final SOCGame ga = new SOCGame
+                ("testname", SOCGameOption.parseOptionsToSet(gameopts, knownOpts), knownOpts);
             sgh.calcGameClientFeaturesRequired(ga);
             final SOCFeatureSet cliFeats = ga.getClientFeaturesRequired();
             if (featsStr == null)

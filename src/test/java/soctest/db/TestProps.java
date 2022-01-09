@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,6 +35,8 @@ import soc.server.database.SOCDBHelper;
  */
 public class TestProps
 {
+    private static SOCDBHelper db = new SOCDBHelper();
+
     /** Missing driver should throw SQLException, not ClassNotFoundException */
     @Test(expected=SQLException.class)
     public final void testMissingDriverClass()
@@ -43,7 +45,7 @@ public class TestProps
         Properties props = new Properties();
         props.put(SOCDBHelper.PROP_JSETTLERS_DB_URL, "jdbc:othertype:...");
         props.put(SOCDBHelper.PROP_JSETTLERS_DB_DRIVER, "com.example.notexist");
-        SOCDBHelper.initialize("u", "p", props);
+        db.initialize("u", "p", props);
     }
 
     /** Test for inconsistency: unknown URL/schema without driver */
@@ -53,7 +55,7 @@ public class TestProps
     {
         Properties props = new Properties();
         props.put(SOCDBHelper.PROP_JSETTLERS_DB_URL, "jdbc:othertype:...");
-        SOCDBHelper.initialize("u", "p", props);  // should throw IllegalArgumentException
+        db.initialize("u", "p", props);  // should throw IllegalArgumentException
     }
 
     /** Test for inconsistency: unknown driver without URL */
@@ -63,7 +65,7 @@ public class TestProps
     {
         Properties props = new Properties();
         props.put(SOCDBHelper.PROP_JSETTLERS_DB_DRIVER, "com.example.othertype");
-        SOCDBHelper.initialize("u", "p", props);  // should throw IllegalArgumentException
+        db.initialize("u", "p", props);  // should throw IllegalArgumentException
     }
 
     /** Test {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} not an integer */
@@ -73,7 +75,7 @@ public class TestProps
     {
         Properties props = new Properties();
         props.put(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR, "12.5");
-        SOCDBHelper.initialize("u", "p", props);
+        db.initialize("u", "p", props);
     }
 
     /** Test {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} below range */
@@ -83,7 +85,7 @@ public class TestProps
     {
         Properties props = new Properties();
         props.put(SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR, "8");  // from BCRYPT_MIN_WORK_FACTOR
-        SOCDBHelper.initialize("u", "p", props);
+        db.initialize("u", "p", props);
     }
 
     /** Test {@link SOCDBHelper#PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR} above range */
@@ -94,7 +96,7 @@ public class TestProps
         Properties props = new Properties();
         props.put
             (SOCDBHelper.PROP_JSETTLERS_DB_BCRYPT_WORK__FACTOR, Integer.toString(1 + BCrypt.GENSALT_MAX_LOG2_ROUNDS));
-        SOCDBHelper.initialize("u", "p", props);
+        db.initialize("u", "p", props);
     }
 
     /** Test {@link SOCDBHelper#PROP_JSETTLERS_DB_SETTINGS} != "write" */
@@ -105,7 +107,7 @@ public class TestProps
         Properties props = new Properties();
         props.put
             (SOCDBHelper.PROP_JSETTLERS_DB_SETTINGS, "xyz");
-        SOCDBHelper.initialize("u", "p", props);
+        db.initialize("u", "p", props);
     }
 
     public static void main(String[] args)

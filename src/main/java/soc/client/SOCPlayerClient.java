@@ -43,6 +43,7 @@ import net.nand.util.i18n.mgr.StringManager;
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 
@@ -109,6 +110,8 @@ public class SOCPlayerClient
      *<P>
      * Format: Empty for none, or string of semicolon-surrounded client features: <tt>";6pl;sb;"</tt><BR>
      * Same format as {@link SOCFeatureSet#getEncodedList()}.
+     *
+     * @see SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P
      * @since 2.0.00
      */
     public static final String PROP_JSETTLERS_DEBUG_CLIENT_FEATURES = "jsettlers.debug.client.features";
@@ -395,6 +398,7 @@ public class SOCPlayerClient
     /**
      * All the games we're currently playing. Includes networked or hosted games and those on practice server.
      * Accessed from GUI thread and network {@link MessageHandler} thread.
+     * @see #serverGames
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
@@ -410,6 +414,8 @@ public class SOCPlayerClient
      *   {@link MessageHandler#handleNEWGAME(SOCNewGame, boolean) handleNEWGAME}
      *   or {@link MessageHandler#handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions, boolean) handleNEWGAMEWITHOPTIONS}
      *   is called.
+     * @see #games
+     * @see #gamesUnjoinableOverride
      * @since 1.1.07
      */
     protected SOCGameList serverGames = null;
@@ -496,6 +502,20 @@ public class SOCPlayerClient
         String debug_clearPrefs = System.getProperty(PROP_JSETTLERS_DEBUG_CLEAR__PREFS);
         if (debug_clearPrefs != null)
             UserPreferences.clear(debug_clearPrefs);
+
+        String gameopt3pName = System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P);
+        if (gameopt3pName != null)
+        {
+            gameopt3pName = gameopt3pName.toUpperCase(Locale.US);
+            SOCGameOption gameopt3p = new SOCGameOption
+                (gameopt3pName, 2000, Version.versionNumber(), false,
+                 SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED,
+                 "Client test 3p option " + gameopt3pName);
+            tcpServGameOpts.knownOpts.put(gameopt3p);
+            practiceServGameOpts.knownOpts.put(gameopt3p);
+            soc.server.SOCServer.startupKnownOpts.put(gameopt3p);
+            // similar code is in SOCRobotClient.buildClientFeats()
+        }
 
         net = new ClientNetwork(this);
         gameMessageSender = new GameMessageSender(this, clientListeners);
@@ -670,7 +690,7 @@ public class SOCPlayerClient
      * @param opts  Game options to check for {@code "SC"}, or {@code null}
      * @since 2.0.00
      */
-    protected void checkGameoptsForUnknownScenario(final Map<String,SOCGameOption> opts)
+    protected void checkGameoptsForUnknownScenario(final SOCGameOptionSet opts)
     {
         if ((opts == null) || tcpServGameOpts.allScenInfoReceived || ! opts.containsKey("SC"))
             return;
@@ -873,7 +893,7 @@ public class SOCPlayerClient
     /**
      * Create a game name, and start a practice game.
      * Assumes {@link SwingMainDisplay#MAIN_PANEL} is initialized.
-     * See {@link #startPracticeGame(String, Map, boolean)} for details.
+     * See {@link #startPracticeGame(String, SOCGameOptionSet, boolean)} for details.
      * @return True if the practice game request was sent, false if there was a problem
      *         starting the practice server or client
      * @since 1.1.00
@@ -898,7 +918,7 @@ public class SOCPlayerClient
      * @since 1.1.00
      */
     public boolean startPracticeGame
-        (String practiceGameName, final Map<String, SOCGameOption> gameOpts, final boolean mainPanelIsActive)
+        (String practiceGameName, final SOCGameOptionSet gameOpts, final boolean mainPanelIsActive)
     {
         ++numPracticeGames;
 

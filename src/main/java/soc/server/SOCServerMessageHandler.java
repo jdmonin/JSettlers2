@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCGameOptionVersionException;
 import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
@@ -56,6 +57,7 @@ import soc.server.genericServer.Connection;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.*;
 import soc.util.I18n;
+import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
@@ -393,9 +395,9 @@ public class SOCServerMessageHandler
                 (c, mesUser, mes.password, cliVersion, isPlayerRole, false,
                  new SOCServer.AuthSuccessRunnable()
                  {
-                    public void success(final Connection c, final int authResult)
+                    public void success(final Connection conn, final int authResult)
                     {
-                        handleAUTHREQUEST_postAuth(c, mesUser, mesRole, isPlayerRole, cliVersion, authResult);
+                        handleAUTHREQUEST_postAuth(conn, mesUser, mesRole, isPlayerRole, cliVersion, authResult);
                     }
                  });
         }
@@ -435,7 +437,7 @@ public class SOCServerMessageHandler
                 // no role-specific problems: complete the authentication
                 try
                 {
-                    c.setData(SOCDBHelper.getUser(mesUser));  // case-insensitive db search on mesUser
+                    c.setData(srv.db.getUser(mesUser));  // case-insensitive db search on mesUser
                     srv.nameConnection(c, false);
                 } catch (SQLException e) {
                     // unlikely, we've just queried db in authOrRejectClientUser
@@ -593,7 +595,7 @@ public class SOCServerMessageHandler
      * process the "game option get defaults" message.
      * User has clicked the "New Game" button for the first time, client needs {@link SOCGameOption} values.
      * Responds to client by sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
-     * All of server's known options are sent, except empty string-valued options.
+     * All of server's Known Options are sent, except empty string-valued options.
      * Depending on client version, server's response may include option names that
      * the client is too old to use; the client is able to ignore them.
      * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
@@ -614,7 +616,7 @@ public class SOCServerMessageHandler
 
         final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
         c.put(new SOCGameOptionGetDefaults
-              (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
+              (SOCGameOption.packKnownOptionsToString(srv.knownOpts, true, hideLongNameOpts)));
     }
 
     /**
@@ -635,6 +637,9 @@ public class SOCServerMessageHandler
      * If {@link SOCClientData#hasLimitedFeats c.hasLimitedFeats} and any known options require client features
      * not supported by client {@code c}, they'll be sent to the client as {@link SOCGameOption#OTYPE_UNKNOWN}
      * even if not asked for. Also sends info for any game options whose value range is limited by client features.
+     *<P>
+     * If any third-party options are active ({@link SOCGameOption#FLAG_3RD_PARTY}), always checks client features
+     * for compatibility with those 3P options.
      *
      * @param c  the connection
      * @param mes  the message
@@ -650,8 +655,7 @@ public class SOCServerMessageHandler
         final boolean hasLimitedFeats = scd.hasLimitedFeats;
 
         boolean alreadyTrimmedEnums = false;
-        List<String> okeys = mes.optionKeys;
-        List<SOCGameOption> opts = null;  // opts to send as SOCGameOptionInfo
+        Map<String, SOCGameOption> opts = new HashMap<>();  // opts to send as SOCGameOptionInfo
         final Map<String, SOCGameOption> optsToLocal;  // opts to send in a SOCLocalizedStrings instead
 
         // check for request for i18n localized descriptions (client v2.0.00 or newer);
@@ -667,152 +671,146 @@ public class SOCServerMessageHandler
             // Gather all game opts we have that we could possibly localize;
             // this list will be narrowed down soon
             optsToLocal = new HashMap<>();
-            for (final SOCGameOption opt : SOCGameOption.optionsForVersion(cliVers, null))
+            for (final SOCGameOption opt : srv.knownOpts.optionsForVersion(cliVers))
                 optsToLocal.put(opt.key, opt);
         } else {
             optsToLocal = null;
         }
 
         // Gather requested game option info:
-        if ((okeys == null) && ! mes.hasOnlyTokenI18n)
-        {
-            // received "-", look for newer options (cli is older than us).
-            // opts will be null if there are no newer ones.
-            opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
-            alreadyTrimmedEnums = true;
 
-            if ((opts != null) && (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
+        if (mes.optionKeys != null)
+        {
+            for (String okey : mes.optionKeys)
+            {
+                SOCGameOption opt = srv.knownOpts.getKnownOption(okey, false);
+
+                if ((opt == null) || (opt.minVersion > cliVers))  // don't use dynamic opt.getMinVersion(Map) here
+                    opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+
+                opts.put(okey, opt);
+            }
+        }
+
+        if (mes.hasTokenGetAnyChanges
+            || ((mes.optionKeys == null) && ! mes.hasOnlyTokenI18n))
+        {
+            // received "-" or "?CHANGES", so look for newer options (cli is older than us).
+
+            List<SOCGameOption> newerOpts = srv.knownOpts.optionsNewerThanVersion(cliVers, false, true);
+            if (newerOpts != null)
+                for (SOCGameOption opt : newerOpts)
+                    opts.put(opt.key, opt);
+
+            if (mes.optionKeys == null)
+                alreadyTrimmedEnums = true;
+
+            if (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES)
             {
                 // Client is older than 2.0.00; we can't send it any long option names.
-                Iterator<SOCGameOption> opi = opts.iterator();
+                Iterator<String> opi = opts.keySet().iterator();
                 while (opi.hasNext())
                 {
-                    final SOCGameOption op = opi.next();
-                    if ((op.key.length() > 3) || op.key.contains("_"))
+                    final String okey = opi.next();
+                    if ((okey.length() > 3) || okey.contains("_"))
                         opi.remove();
                 }
-
-                if (opts.isEmpty())
-                    opts = null;
             }
         }
 
         // If any known opts which require client features limited/not supported by this client,
-        // add them to opts or okeys so unknowns will be sent as OTYPE_UNKNOWN
+        // add them to opts so unknowns will be sent as OTYPE_UNKNOWN.
+        // Overwrites any which happened to already be in opts (unknown or otherwise).
+        // See also SOCGameOptionSet.adjustOptionsToKnown which has very similar code for limited client feats.
+
+        // Unsupported 3rd-party opts aren't sent unless client asked about them by key.
+
+        SOCFeatureSet limitedCliFeats = srv.checkLimitClientFeaturesForServerDisallows(scd.feats);
+        if ((limitedCliFeats == null) && hasLimitedFeats)
+            limitedCliFeats = scd.feats;
 
         final Map<String, SOCGameOption> unsupportedOpts =
-            (hasLimitedFeats) ? SOCGameOption.optionsNotSupported(scd.feats) : null;
+            (limitedCliFeats != null) ? srv.knownOpts.optionsNotSupported(limitedCliFeats) : null;
         if (unsupportedOpts != null)
-        {
-            if (opts != null)
-                opts.addAll(unsupportedOpts.values());
-            else if (okeys != null)
-                okeys.addAll(unsupportedOpts.keySet());
-            else
-                okeys = new ArrayList<>(unsupportedOpts.keySet());
-        }
+            for (SOCGameOption opt : unsupportedOpts.values())
+                opts.put(opt.key, new SOCGameOption(opt.key));  // OTYPE_UNKNOWN
 
         final Map<String, SOCGameOption> trimmedOpts =
-            (hasLimitedFeats) ? SOCGameOption.optionsTrimmedForSupport(scd.feats) : null;
+            (limitedCliFeats != null) ? srv.knownOpts.optionsTrimmedForSupport(limitedCliFeats) : null;
         if (trimmedOpts != null)
+            opts.putAll(trimmedOpts);
+
+        final SOCGameOptionSet opts3p = srv.knownOpts.optionsWithFlag(SOCGameOption.FLAG_3RD_PARTY, 0);
+        if (opts3p != null)
         {
-            if (opts != null)
+            final SOCFeatureSet cliFeats = scd.feats;
+            final List<String> requestedKeys = mes.optionKeys;
+
+            for (SOCGameOption opt : opts3p)
             {
-                for (SOCGameOption tr : trimmedOpts.values())
+                final String ofeat = opt.getClientFeature();
+                if (ofeat == null)
+                    continue;
+
+                if ((cliFeats == null) || ! cliFeats.isActive(ofeat))
                 {
-                    // replace if key already in opts, otherwise add
-                    final String okey = tr.key;
-                    boolean match = false;
-                    for (int i = 0; i < opts.size(); ++i)
+                    final String okey = opt.key;
+
+                    if ((requestedKeys != null) && requestedKeys.contains(okey))
                     {
-                        if (opts.get(i).key.equals(okey))
-                        {
-                            opts.set(i, tr);
-                            match = true;
-                            break;
-                        }
+                        opts.put(okey, new SOCGameOption(okey));  // OTYPE_UNKNOWN
+                    } else {
+                        opts.remove(okey);
+                        if (wantsLocalDescs)
+                            optsToLocal.remove(okey);
                     }
-                    if (! match)
-                        opts.add(tr);
                 }
-            } else if (okeys != null) {
-                for (String okey : trimmedOpts.keySet())
-                    if (! okeys.contains(okey))
-                        okeys.add(okey);
-            } else {
-                okeys = new ArrayList<>(trimmedOpts.keySet());
             }
         }
 
-        // Iterate through requested okeys or calculated opts list.
+        // Iterate through requested or calculated opts list.
         // Send requested options' info, and remove them from optsToLocal to
         // avoid sending separate message with those opts' localization info:
 
-        if ((opts != null) || (okeys != null))
+        for (SOCGameOption opt : opts.values())
         {
-            final int L = (opts != null) ? opts.size() : okeys.size();
-            for (int i = 0; i < L; ++i)
+            // this iteration's opt reference may be changed in loop body to customize gameopt info
+            // sent to client; same key, but might change optType or other fields
+
+            final String okey = opt.key;
+            String localDesc = null;  // i18n-localized opt.desc, if wantsLocalDescs
+
+            if (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
             {
-                SOCGameOption opt;
-                String localDesc = null;  // i18n-localized opt.desc, if wantsLocalDescs
-
-                if (opts != null)
-                {
-                    opt = opts.get(i);
-                    final String okey = opt.key;
-                    if ((opt.minVersion > cliVers)
-                        || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
-                    {
-                        opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
-                    }
-                    else if (wantsLocalDescs)
-                    {
-                        try {
-                            localDesc = c.getLocalized("gameopt." + okey);
-                        } catch (MissingResourceException e) {}
-                    }
-                } else {
-                    final String okey = okeys.get(i);
-                    opt = SOCGameOption.getOption(okey, false);
-
-                    if ((opt == null) || (opt.minVersion > cliVers)  // Don't use dynamic opt.getMinVersion(Map) here
-                        || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
-                    {
-                        opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
-                    }
-                    else 
-                    {
-                        if ((trimmedOpts != null) && trimmedOpts.containsKey(okey))
-                            opt = trimmedOpts.get(okey);
-
-                        if (wantsLocalDescs)
-                            try {
-                                localDesc = c.getLocalized("gameopt." + okey);
-                            } catch (MissingResourceException e) {}
-                    }
-                }
-
-                if (wantsLocalDescs)
-                {
-                    // don't send opt's localization info again after GAMEOPTIONINFOs
-                    optsToLocal.remove(opt.key);
-
-                    if (opt.getDesc().equals(localDesc))
-                        // don't send desc if not localized, client already has unlocalized desc string
-                        localDesc = null;
-                }
-
-                // Enum-type options may have their values restricted by version.
-                if ( (! alreadyTrimmedEnums)
-                    && (opt.enumVals != null)
-                    && (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
-                    && (opt.lastModVersion > cliVers))
-                {
-                    opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
-                }
-
-                c.put(new SOCGameOptionInfo(opt, cliVers, localDesc));
+                if ((opt.minVersion > cliVers)
+                    || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
+                    opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                else if (wantsLocalDescs)
+                    try {
+                        localDesc = c.getLocalized("gameopt." + okey);
+                    } catch (MissingResourceException e) {}
             }
+
+            if (wantsLocalDescs)
+            {
+                // don't send opt's localization info again after GAMEOPTIONINFOs
+                optsToLocal.remove(okey);
+
+                if (opt.getDesc().equals(localDesc))
+                    // don't send desc if not localized, client already has unlocalized desc string
+                    localDesc = null;
+            }
+
+            // Enum-type options may have their values restricted by version.
+            if ( (! alreadyTrimmedEnums)
+                && (opt.enumVals != null)
+                && (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
+                && (opt.lastModVersion > cliVers))
+            {
+                opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
+            }
+
+            c.put(new SOCGameOptionInfo(opt, cliVers, localDesc));
         }
 
         // send any opts which are localized but otherwise unchanged between server's/client's version
@@ -821,6 +819,9 @@ public class SOCServerMessageHandler
             List<String> strs = new ArrayList<>(2 * optsToLocal.size());
             for (final SOCGameOption opt : optsToLocal.values())
             {
+                if (opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
+                    continue;  // already sent localized during SOCServer.setClientVersSendGamesOrReject
+
                 try {
                     String localDesc = c.getLocalized("gameopt." + opt.key);
                     if (! opt.getDesc().equals(localDesc))
@@ -1400,14 +1401,14 @@ public class SOCServerMessageHandler
     {
         final String gaName = ga.getName();
 
-        if (! SOCDBHelper.isInitialized())
+        if (! srv.db.isInitialized())
         {
             srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "Not using a database.");
             return;
         }
 
         srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "Database settings:");
-        Iterator<String> it = SOCDBHelper.getSettingsFormatted(srv).iterator();
+        Iterator<String> it = srv.db.getSettingsFormatted(srv).iterator();
         while (it.hasNext())
             srv.messageToPlayer(c, gaName, SOCServer.PN_NON_EVENT, "> " + it.next() + ": " + it.next());
     }
@@ -2102,9 +2103,9 @@ public class SOCServerMessageHandler
                 (c, msgUser, msgPass, cliVers, true, false,
                  new SOCServer.AuthSuccessRunnable()
                  {
-                    public void success(final Connection c, final int authResult)
+                    public void success(final Connection conn, final int authResult)
                     {
-                        handleJOINCHANNEL_postAuth(c, chName, cv, authResult);
+                        handleJOINCHANNEL_postAuth(conn, chName, cv, authResult);
                     }
                  });
         }
@@ -2303,7 +2304,7 @@ public class SOCServerMessageHandler
     /**
      * process the "new game with options request" message.
      * For messages sent, and other details,
-     * see {@link #createOrJoinGameIfUserOK(Connection, String, String, String, Map)}.
+     * see {@link SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)}.
      * <P>
      * Because this message is sent only by clients newer than 1.1.06, we definitely know that
      * the client has already sent its version information.
@@ -2317,8 +2318,10 @@ public class SOCServerMessageHandler
         if (c == null)
             return;
 
+        final Map<String, SOCGameOption> optsMap = mes.getOptions(srv.knownOpts);
         srv.createOrJoinGameIfUserOK
-            (c, mes.getNickname(), mes.getPassword(), mes.getGame(), mes.getOptions());
+            (c, mes.getNickname(), mes.getPassword(), mes.getGame(),
+             (optsMap != null) ? new SOCGameOptionSet(optsMap) : null);
     }
 
     /**
@@ -2381,8 +2384,10 @@ public class SOCServerMessageHandler
         {
             D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (isMember)");
         }
-
-        gameList.releaseMonitorForGame(gaName);
+        finally
+        {
+            gameList.releaseMonitorForGame(gaName);
+        }
 
         if (isMember)
         {
@@ -2489,11 +2494,14 @@ public class SOCServerMessageHandler
          * If a human leaves after game is started, seat will appear vacant when the
          * requested bot sits to replace them, so let the bot sit at that vacant seat.
          *
-         * Special case: While loading or resuming a savegame, server can ask bots to join
-         * and sit at places which (in the savegame data) have seated players already,
-         * which may be marked as human or possibly as a bot with same name as
-         * the random joining bot by coincidence. Since server asked those bots to join,
-         * don't restrict the joining bot client at this point.
+         * While loading or resuming a savegame:
+         * - Human players can sit at any position (human or bot)
+         *   unless there's already a game member with that position's player name
+         * - Server can ask bots to join and sit at places which
+         *   (in the savegame data) have seated players already,
+         *   which may be marked as human or possibly as a bot with same name as
+         *   the random joining bot by coincidence. Since server asked those bots to join,
+         *   don't restrict the joining bot client at this point.
          */
         final int pn = mes.getPlayerNumber();
         final int gameState = ga.getGameState();
@@ -2524,7 +2532,8 @@ public class SOCServerMessageHandler
                 boolean isloadingBot =
                     isLoadingState && ((SOCClientData) c.getAppData()).isRobot;
                 final boolean canTakeOverPlayer =
-                    seatedPlayer.isRobot() || isloadingBot;
+                    seatedPlayer.isRobot()
+                    || (isLoadingState && (isloadingBot || ! gameList.isMember(seatedName, gaName)));
 
                 if (isloadingBot && c.getData().equals(seatedName))
                 {
@@ -2630,6 +2639,11 @@ public class SOCServerMessageHandler
             } else if (gameIsFull) {
                 srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_OBSERVER, "member.sit.game.full");
                     // "This game is full; you cannot sit down."
+            } else {
+                srv.messageToPlayer
+                    (c, null, SOCServer.PN_NON_EVENT,
+                     "This seat is claimed by another game member, choose another.");
+                         // I18N OK: client shouldn't ask to take that seat
             }
         }
     }

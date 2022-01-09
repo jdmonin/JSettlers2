@@ -4,6 +4,7 @@
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2009,2011,2012,2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -75,16 +76,91 @@ public class RobberStrategy
    /**
     * Determine the best hex to move the robber, based on
     * board and current opponent info in {@link SOCPlayerTracker}s.
+    * Calls {@link #selectPlayerToThwart(int)}, {@link #selectRobberHex(int, int)}.
+    *<P>
+    * Currently the robot always chooses to move the robber, never the pirate,
+    * so this method calculates for the robber only.
+    *
     * @return Hex coordinate to move robber to. Should be a member of {@link SOCBoard#getLandHexCoords()}.
     */
    public int getBestRobberHex()
    {
        log.debug("%%% MOVEROBBER");
 
-       final int[] hexes = game.getBoard().getLandHexCoords();
-
        final int prevRobberHex = game.getBoard().getRobberHex();
+       int victimNum = selectPlayerToThwart(prevRobberHex);
+       return selectRobberHex(prevRobberHex, victimNum);
+   }
 
+   /**
+    * Choose a robbery victim, from players with pieces adjacent to the robber (or pirate).
+    *
+    * @param isVictim  Boolean array indicating which players are possible victims;
+    *     1 element per player number (0 to {@code game.maxPlayers} - 1).
+    * @param canChooseNone   In some game scenarios (such as <tt>SC_PIRI</tt>),
+    *     the robot may have the option to choose to not rob anyone. This strategy
+    *     ignores that and always chooses a victim to rob.
+    * @return  Player number to rob, or -1 if none could be decided
+    * @see #selectPlayerToThwart(int)
+    */
+   public int chooseRobberVictim
+       (final boolean[] isVictim, final boolean canChooseNone)
+   {
+       final SOCPlayerTracker[] playerTrackers = brain.playerTrackers;
+
+       int choice = -1;
+
+       /**
+        * choose the player with the smallest WGETA
+        */
+       for (int i = 0; i < game.maxPlayers; i++)
+       {
+           if (game.isSeatVacant(i) || ! isVictim[i])
+               continue;
+
+           if (choice == -1)
+           {
+               choice = i;
+           }
+           else
+           {
+               SOCPlayerTracker tracker1 = playerTrackers[i];
+               SOCPlayerTracker tracker2 = playerTrackers[choice];
+
+               if ((tracker1 != null) && (tracker2 != null) && (tracker1.getWinGameETA() < tracker2.getWinGameETA()))
+               {
+                   //log.debug("Picking a robber victim: pnum="+i+" VP="+game.getPlayer(i).getPublicVP());
+                   choice = i;
+               }
+           }
+       }
+
+       /**
+        * choose victim at random
+        *
+          do {
+          choice = Math.abs(rand.nextInt() % SOCGame.MAXPLAYERS);
+          } while (!choices[choice]);
+        */
+
+       return choice;
+   }
+
+   /**
+    * Select the player to target with the robber given the current hex the robber is on.
+    * Unlike {@link #chooseRobberVictim(boolean[], boolean)}, the robber may be moved
+    * because caller might call {@link #selectRobberHex(int, int)} with the result from
+    * {@code selectPlayerToThwart}.
+    *<P>
+    * Default implementation targets the player closest to winning.  This may be overridden, for
+    * example, to target the player with the resources we want most.
+    *
+    * @param robberHex the current location of the robber
+    * @return a valid player number
+    * @since 2.4.10
+    */
+   public int selectPlayerToThwart(int robberHex)
+   {
        /**
         * decide which player we want to thwart
         */
@@ -136,11 +212,28 @@ public class RobberStrategy
        }
        // Postcondition: victimNum != -1 due to "First pick" in loop.
 
+       return victimNum;
+   }
+
+   /**
+    * Select the hex to rob, based on the fact we are targeting the specified player,
+    * and the robber is currently on the specified hex.
+    * Used by {@link #getBestRobberHex()}.
+    * @param prevRobberHex  the robber's current location
+    * @param victimNum the targeted player
+    * @return a valid hex coordinate
+    * @see #selectPlayerToThwart(int)
+    * @since 2.4.10
+    */
+   public int selectRobberHex(int prevRobberHex, int victimNum)
+   {
+       final int[] hexes = game.getBoard().getLandHexCoords();
+
        /**
         * figure out the best way to thwart that player
         */
        SOCPlayer victim = game.getPlayer(victimNum);
-       SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
+       SOCBuildingSpeedEstimate estimate = brain.getEstimator();
        int bestHex = prevRobberHex;
        int worstSpeed = 0;
        final boolean skipDeserts = game.isGameOptionSet("RD");  // can't move robber to desert
@@ -209,59 +302,6 @@ public class RobberStrategy
         }
 
        return bestHex;
-   }
-
-   /**
-    * Choose a robbery victim, from players with pieces adjacent to the robber (or pirate).
-    *
-    * @param isVictim  Boolean array indicating which players are possible victims;
-    *     1 element per player number (0 to {@code game.maxPlayers} - 1).
-    * @param canChooseNone   In some game scenarios (such as <tt>SC_PIRI</tt>),
-    *     the robot may have the option to choose to not rob anyone. This strategy
-    *     ignores that and always chooses a victim to rob.
-    * @return  Player number to rob, or -1 if none could be decided
-    */
-   public int chooseRobberVictim
-       (final boolean[] isVictim, final boolean canChooseNone)
-   {
-       final SOCPlayerTracker[] playerTrackers = brain.playerTrackers;
-
-       int choice = -1;
-
-       /**
-        * choose the player with the smallest WGETA
-        */
-       for (int i = 0; i < game.maxPlayers; i++)
-       {
-           if (game.isSeatVacant(i) || ! isVictim[i])
-               continue;
-
-           if (choice == -1)
-           {
-               choice = i;
-           }
-           else
-           {
-               SOCPlayerTracker tracker1 = playerTrackers[i];
-               SOCPlayerTracker tracker2 = playerTrackers[choice];
-
-               if ((tracker1 != null) && (tracker2 != null) && (tracker1.getWinGameETA() < tracker2.getWinGameETA()))
-               {
-                   //log.debug("Picking a robber victim: pnum="+i+" VP="+game.getPlayer(i).getPublicVP());
-                   choice = i;
-               }
-           }
-       }
-
-       /**
-        * choose victim at random
-        *
-          do {
-          choice = Math.abs(rand.nextInt() % SOCGame.MAXPLAYERS);
-          } while (!choices[choice]);
-        */
-
-       return choice;
    }
 
 }

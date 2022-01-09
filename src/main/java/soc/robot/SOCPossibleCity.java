@@ -34,8 +34,8 @@ import soc.game.SOCPlayerNumbers;
  */
 public class SOCPossibleCity extends SOCPossiblePiece
 {
-    /** Last structural change v2.0.00 (2000) */
-    private static final long serialVersionUID = 2000L;
+    /** Last structural change v2.4.10 (2410) */
+    private static final long serialVersionUID = 2410L;
 
     /**
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
@@ -44,18 +44,26 @@ public class SOCPossibleCity extends SOCPossiblePiece
     protected int[] speedup = { 0, 0, 0, 0, 0 };
 
     /**
+     * Our {@link SOCBuildingSpeedEstimate} factory.
+     * @since 2.4.10
+     */
+    protected SOCBuildingSpeedEstimateFactory bseFactory;
+
+    /**
      * constructor
      *
-     * @param pl  the owner
+     * @param pl  the owner; not null
      * @param co  coordinates; not validated
+     * @param bseFactory  factory to use for {@link SOCBuildingSpeedEstimate} calls; not null
      */
-    public SOCPossibleCity(SOCPlayer pl, int co)
+    public SOCPossibleCity(SOCPlayer pl, int co, SOCBuildingSpeedEstimateFactory bseFactory)
     {
         super(SOCPossiblePiece.CITY, pl, co);
 
         eta = 0;
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
+        this.bseFactory = bseFactory;
 
         updateSpeedup();
     }
@@ -75,6 +83,7 @@ public class SOCPossibleCity extends SOCPossiblePiece
         eta = pc.getETA();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
+        bseFactory = pc.bseFactory;
 
         int[] pcSpeedup = pc.getSpeedup();
         for (int buildingType = SOCBuildingSpeedEstimate.MIN;
@@ -93,12 +102,12 @@ public class SOCPossibleCity extends SOCPossiblePiece
     public void updateSpeedup()
     {
         //D.ebugPrintln("****************************** (CITY) updateSpeedup at "+Integer.toHexString(coord));
-        SOCBuildingSpeedEstimate bse1 = new SOCBuildingSpeedEstimate(player.getNumbers());
+        SOCBuildingSpeedEstimate bse1 = bseFactory.getEstimator(player.getNumbers());
         int[] ourBuildingSpeed = bse1.getEstimatesFromNothingFast(player.getPortFlags());
         SOCPlayerNumbers newNumbers = new SOCPlayerNumbers(player.getNumbers());
         newNumbers.updateNumbers(new SOCCity(player, coord, null), player.getGame().getBoard());
 
-        SOCBuildingSpeedEstimate bse2 = new SOCBuildingSpeedEstimate(newNumbers);
+        SOCBuildingSpeedEstimate bse2 = bseFactory.getEstimator(newNumbers);
         int[] speed = bse2.getEstimatesFromNothingFast(player.getPortFlags());
 
         for (int buildingType = SOCBuildingSpeedEstimate.MIN;

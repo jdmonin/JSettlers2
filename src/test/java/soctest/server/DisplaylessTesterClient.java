@@ -23,13 +23,12 @@ package soctest.server;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.baseclient.ServerConnectInfo;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.message.*;
 import soc.server.genericServer.StringServerSocket;
 import soc.util.SOCFeatureSet;
@@ -42,11 +41,18 @@ import soc.util.Version;
  * Debug Traffic flag is set, which makes unit test logs larger but is helpful when troubleshooting.
  * Unlike parent class, this client connects and authenticates as a "human" player, not a bot,
  * to see same messages a human would be shown.
+ * To help set a known test environment, always uses locale {@code "en_US"} unless constructor says otherwise.
+ *
  * @since 2.4.10
  */
 public class DisplaylessTesterClient
     extends SOCDisplaylessPlayerClient
 {
+
+    /**
+     * Locale sent in {@link #init()}, or {@code null} for {@code "en_US"}
+     */
+    protected String localeStr;
 
     /**
      * Track server's games and options like SOCPlayerClient does,
@@ -58,7 +64,7 @@ public class DisplaylessTesterClient
      *   or {@link MessageHandler#handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions, boolean) handleNEWGAMEWITHOPTIONS}
      *   is called.
      */
-    protected SOCGameList serverGames = new SOCGameList();
+    protected SOCGameList serverGames = new SOCGameList(knownOpts);
 
     /** Treat inbound messages through this client's {@link SOCDisplaylessPlayerClient#run()} method. */
     protected Thread treaterThread;
@@ -66,12 +72,20 @@ public class DisplaylessTesterClient
     /**
      * Constructor for a displayless client which will connect to a local server.
      * Does not actually connect here: Call {@link #init()} when ready.
+     *
+     * @param localeStr  Locale to test with, or {@code null} to use {@code "en_US"}
+     * @param knownOpts  Known Options, or {@code null} to use defaults from {@link SOCDisplaylessPlayerClient}
      */
-    public DisplaylessTesterClient(final String stringport, final String nickname)
+    public DisplaylessTesterClient
+        (final String stringport, final String nickname, final String localeStr, final SOCGameOptionSet knownOpts)
     {
         super(new ServerConnectInfo(stringport, null), false);
 
         this.nickname = nickname;
+        this.localeStr = localeStr;
+        if (knownOpts != null)
+            this.knownOpts = knownOpts;
+
         debugTraffic = true;
     }
 
@@ -89,10 +103,10 @@ public class DisplaylessTesterClient
         {
             if (serverConnectInfo.stringSocketName == null)
             {
-                s = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
-                s.setSoTimeout(300000);
-                in = new DataInputStream(s.getInputStream());
-                out = new DataOutputStream(s.getOutputStream());
+                sock = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
+                sock.setSoTimeout(300000);
+                in = new DataInputStream(sock.getInputStream());
+                out = new DataOutputStream(sock.getOutputStream());
             }
             else
             {
@@ -105,7 +119,8 @@ public class DisplaylessTesterClient
 
             put(new SOCVersion
                 (Version.versionNumber(), Version.version(), Version.buildnum(),
-                 buildClientFeats().getEncodedList(), "en_US").toCmd());
+                 buildClientFeats().getEncodedList(),
+                 (localeStr != null) ? localeStr : "en_US").toCmd());
             put(new SOCAuthRequest
                 (SOCAuthRequest.ROLE_GAME_PLAYER, nickname, "",
                  SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, "-").toCmd());
@@ -169,7 +184,7 @@ public class DisplaylessTesterClient
     @Override
     protected void handleGAMESWITHOPTIONS(final SOCGamesWithOptions mes)
     {
-        serverGames.addGames(mes.getGameList(), Version.versionNumber());
+        serverGames.addGames(mes.getGameList(knownOpts), Version.versionNumber());
     }
 
     @Override
@@ -205,21 +220,20 @@ public class DisplaylessTesterClient
         gotPassword = true;
 
         String gameName = mes.getGame();
-
-        Map<String, SOCGameOption> opts = serverGames.parseGameOptions(gameName);
+        SOCGameOptionSet opts = serverGames.parseGameOptions(gameName);
 
         final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
         if ((bh != 0) || (bw != 0))
         {
             // Encode board size to pass through game constructor
             if (opts == null)
-                opts = new HashMap<String,SOCGameOption>();
-            SOCGameOption opt = SOCGameOption.getOption("_BHW", true);
+                opts = new SOCGameOptionSet();
+            SOCGameOption opt = knownOpts.getKnownOption("_BHW", true);
             opt.setIntValue((bh << 8) | bw);
-            opts.put("_BHW", opt);
+            opts.put(opt);
         }
 
-        final SOCGame ga = new SOCGame(gameName, opts);
+        final SOCGame ga = new SOCGame(gameName, opts, knownOpts);
         ga.isPractice = isPractice;
         ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
         games.put(gameName, ga);

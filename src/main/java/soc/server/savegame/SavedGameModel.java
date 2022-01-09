@@ -133,7 +133,8 @@ public class SavedGameModel
      *      Can still read them as ints if needed. Pieces also omit writing specialVP field unless != 0,
      *      {@link SOCShip} omits isClosed field unless true.
      * <LI> Simple scenario support: Can save and load scenarios which have only a board layout and
-     *      optionally game option {@link SOCGameOption#K_SC_SANY _SC_SANY} or {@link SOCGameOption#K_SC_SEAC _SC_SEAC},
+     *      optionally game option {@link SOCGameOptionSet#K_SC_SANY _SC_SANY}
+     *      or {@link SOCGameOptionSet#K_SC_SEAC _SC_SEAC},
      *      no other scenario game opts (option names starting with "_SC_").
      *      Sets PlayerElements {@link PEType#SCENARIO_SVP SCENARIO_SVP},
      *      {@link PEType#SCENARIO_SVP_LANDAREAS_BITMASK SCENARIO_SVP_LANDAREAS_BITMASK}.
@@ -152,8 +153,10 @@ public class SavedGameModel
      * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
      *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_DISC NUM_PLAYED_DEV_CARD_DISC},
      *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
-     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}.
-     *      Earlier server versions will ignore them while loading a savegame.
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}
+     * <LI> Adds per-player list of dev cards played: {@link PlayerInfo#playedDevCards}
+     * <LI> Adds {@link TradeOffer#offeredAtDurationMillis}
+     * <LI> Earlier server versions will ignore these added fields while loading a savegame
      *</UL>
      */
     public static final int MODEL_VERSION = 2400;
@@ -272,6 +275,8 @@ public class SavedGameModel
      * {@code "UNIV"}, etc) from {@link SOCDevCard#getCardTypeName(int)}. For compatibility, unknown types
      * are written as integer strings ({@code "42"}), and the adapter can read both integers and strings.
      * See {@link DevCardEnumListAdapter} code for details.
+     *
+     * @see PlayerInfo#playedDevCards
      */
     @JsonAdapter(DevCardEnumListAdapter.class)
     public ArrayList<Integer> devCardDeck;
@@ -330,7 +335,7 @@ public class SavedGameModel
      *     ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text
      *     like "a unique resource type": Put a try-catch around your attempt to localize that key.
      *     Optional localization params are {@link UnsupportedSGMOperationException#param1} and {@code param2}.
-     * @see #checkCanLoad()
+     * @see #checkCanLoad(SOCGameOptionSet)
      */
     public static void checkCanSave(final SOCGame ga)
         throws UnsupportedSGMOperationException
@@ -357,14 +362,14 @@ public class SavedGameModel
      * @return {@code null} if no problems, or the name of the first-seen unsupported option
      * @since 2.4.00
      */
-    private static String checkUnsupportedScenOpts(final Map<String, SOCGameOption> opts)
+    private static String checkUnsupportedScenOpts(final SOCGameOptionSet opts)
     {
         if (opts == null)
             return null;
 
         for (final String okey : opts.keySet())
             if (okey.startsWith("_SC_")
-                && ! (okey.equals(SOCGameOption.K_SC_SEAC) || okey.equals(SOCGameOption.K_SC_SANY)))
+                && ! (okey.equals(SOCGameOptionSet.K_SC_SEAC) || okey.equals(SOCGameOptionSet.K_SC_SANY)))
                 return okey;
 
         return null;
@@ -424,9 +429,9 @@ public class SavedGameModel
 
         // save data fields:
         gameName = ga.getName();
-        final Map<String, SOCGameOption> opts = ga.getGameOptions();
+        final SOCGameOptionSet opts = ga.getGameOptions();
         if (opts != null)
-            gameOptions = SOCGameOption.packOptionsToString(opts, false, true);
+            gameOptions = SOCGameOption.packOptionsToString(opts.getAll(), false, true);
         gameDurationSeconds = ga.getDurationSeconds();
         gameState = ga.getGameState();
         oldGameState = ga.getOldGameState();
@@ -551,6 +556,7 @@ public class SavedGameModel
      * add fields or logic to support saving/loading more features; for example, certain scenarios but not all.
      * The older version isn't able to load that saved game.
      *
+     * @param knownOpts All Known Options, to parse game's {@link SOCGameOptionSet}; not null
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
      *     is newer than the current {@link SavedGameModel#MODEL_VERSION}
      *     and important fields might not be in our version of the model.
@@ -562,12 +568,12 @@ public class SavedGameModel
      *     but its {@link SOCGameOptionVersionException#gameOptsVersion} will be {@code gameMinVersion}
      * @throws UnsupportedSGMOperationException if game has an option or feature not yet supported
      *     by {@link #createLoadedGame(SOCServer)}. {@link Throwable#getMessage()} will name the unsupported option/feature
-     *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String)}.
+     *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String, SOCGameOptionSet)}.
      *     In that case, {@link Throwable#getMessage()} will contain that method's IllegalArgumentException message
      *     and {@link Throwable#getCause()} will not be null.
      *     Optional localization params are {@link UnsupportedSGMOperationException#param1} and {@code param2}.
      */
-    public void checkCanLoad()
+    public void checkCanLoad(final SOCGameOptionSet knownOpts)
         throws NoSuchElementException, SOCGameOptionVersionException, UnsupportedSGMOperationException
     {
         if (modelVersion > MODEL_VERSION)
@@ -580,10 +586,10 @@ public class SavedGameModel
         if ((gameOptions == null) || gameOptions.isEmpty())
             return;
 
-        Map<String, SOCGameOption> opts;
+        SOCGameOptionSet opts;
         try
         {
-            opts = SOCGameOption.parseOptionsToMap(gameOptions);
+            opts = SOCGameOption.parseOptionsToSet(gameOptions, knownOpts);
         } catch (IllegalArgumentException e) {
             throw new UnsupportedSGMOperationException
                 ("Problem opt in gameOptions: " + e.getMessage(), e);
@@ -611,9 +617,11 @@ public class SavedGameModel
 
     /**
      * Try to create the {@link SOCGame} and its objects based on data loaded into this SGM.
-     * Calls {@link #checkCanLoad()}. If successful (no exception thrown), game state will be {@link SOCGame#LOADING}.
+     * Calls {@link #checkCanLoad(SOCGameOptionSet)}.
+     * If successful (no exception thrown), game state will be {@link SOCGame#LOADING}.
+     *<P>
      * Doesn't add to game list {@link #glas} or check whether game name is already taken, because
-     * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, Map, SOCGame, int)}
+     * {@link soc.server.SOCServer#createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)}
      * is better able to do so and can rename the loaded game if needed to avoid name collisions.
      *<P>
      * Examines game and player data. Might set {@link #warnHasHumanPlayerWithBotName},
@@ -626,12 +634,12 @@ public class SavedGameModel
      * @throws IllegalStateException if this method's already been called
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
      *     is newer than the current {@link SavedGameModel#MODEL_VERSION};
-     *     see {@link #checkCanLoad()} for details
+     *     see {@link #checkCanLoad(SOCGameOptionSet)} for details
      * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
      *     is newer than the server's {@link Version#versionNumber()};
-     *     see {@link #checkCanLoad()} for details
+     *     see {@link #checkCanLoad(SOCGameOptionSet)} for details
      * @throws UnsupportedSGMOperationException if loaded game model has an option or feature not yet supported
-     *     by {@code createLoadedGame()}; see {@link #checkCanLoad()} for details
+     *     by {@code createLoadedGame()}; see {@link #checkCanLoad(SOCGameOptionSet)} for details
      * @throws IllegalArgumentException if there's a problem while creating the loaded game.
      *     {@link Throwable#getCause()} will have the exception thrown by the SOCGame/SOCPlayer method responsible.
      *     Catch subclass {@code SOCGameOptionVersionException} before this one.
@@ -646,11 +654,12 @@ public class SavedGameModel
 
         glas = srv.getGameList();
 
-        checkCanLoad();
+        checkCanLoad(srv.knownOpts);
 
         try
         {
-            final SOCGame ga = new SOCGame(gameName, SOCGameOption.parseOptionsToMap(gameOptions));
+            final SOCGame ga = new SOCGame
+                (gameName, SOCGameOption.parseOptionsToSet(gameOptions, srv.knownOpts), srv.knownOpts);
             ga.initAtServer();
             ga.setGameState(SOCGame.LOADING);
             if (ga.maxPlayers != playerSeats.length)
@@ -844,7 +853,7 @@ public class SavedGameModel
 
         /**
          * Current trade offer from this player to others, or {@code null} if none.
-         * @see SOCPlayer#getCurrentOffer()
+         * From {@link SOCPlayer#getCurrentOffer()}.
          * @since 2.4.00
          */
         public TradeOffer currentTradeOffer;
@@ -876,11 +885,24 @@ public class SavedGameModel
          * {@code "UNIV"}, etc) from {@link SOCDevCard#getCardTypeName(int)}. For compatibility, unknown types
          * are written as integer strings ({@code "42"}), and the adapter can read both integers and strings.
          * See {@link SavedGameModel.DevCardEnumListAdapter} code for details.
+         *
+         * @see #playedDevCards
          */
         @JsonAdapter(DevCardEnumListAdapter.class)
         public ArrayList<Integer> oldDevCards = new ArrayList<>(),
                            newDevCards = new ArrayList<>();
         // TODO: future: support general SOCInventoryItems/SOCSpecialItems for scenarios
+
+        /**
+         * List of dev cards played, or null if none, from {@link SOCPlayer#getDevCardsPlayed()}
+         *
+         * @see #oldDevCards
+         * @see #newDevCards
+         * @see SavedGameModel#devCardDeck
+         * @since 2.4.10
+         */
+        @JsonAdapter(DevCardEnumListAdapter.class)
+        public ArrayList<Integer> playedDevCards;
 
         /**
          * Player's pieces in chronological order, from {@link SOCPlayer#getPieces()}.
@@ -967,7 +989,8 @@ public class SavedGameModel
 
                 SOCTradeOffer curr = pl.getCurrentOffer();
                 if (curr != null)
-                    currentTradeOffer = new TradeOffer(curr);
+                    currentTradeOffer = new TradeOffer
+                        (curr, pl.getCurrentOfferTime() - ga.getStartTime().getTime());
             }
 
             int n;
@@ -1018,6 +1041,9 @@ public class SavedGameModel
                     if (item instanceof SOCDevCard)
                         oldDevCards.add(item.itype);
             // TODO: future: for scenarios, other inventory item types: see SGH.sitDown_sendPrivateInfo
+            List<Integer> cards = pl.getDevCardsPlayed();
+            if (cards != null)
+                playedDevCards = new ArrayList<>(cards);
 
             pieces.addAll(pl.getPieces());
             // fortressPiece = pl.getFortress();
@@ -1053,6 +1079,10 @@ public class SavedGameModel
                 for (final int ctype : newDevCards)
                     inv.addDevCard(1, SOCInventory.NEW, ctype);
             }
+
+            if (playedDevCards != null)
+                for (final int ctype : playedDevCards)
+                    pl.updateDevCardsPlayed(ctype);
 
             // Set some elements for scenario info before any putpiece,
             // so they know their starting land areas and scenario events
@@ -1304,7 +1334,8 @@ public class SavedGameModel
     }
 
     /**
-     * A player's current trade offer info, from relevant fields of {@link SOCTradeOffer}.
+     * A player's current trade offer info, from relevant fields of {@link SOCTradeOffer}
+     * and player's {@link SOCPlayer#getCurrentOfferTime()}.
      * @since 2.4.00
      */
     static class TradeOffer
@@ -1318,12 +1349,21 @@ public class SavedGameModel
          */
         public boolean[] offeredTo;
 
-        public TradeOffer(final SOCTradeOffer offer)
+        /**
+         * Time at which this offer was made, as number of milliseconds from start of game,
+         * based on {@link SOCPlayer#getCurrentOfferTime()}.
+         * This field is currently saved but not loaded.
+         * @since 2.4.10
+         */
+        public long offeredAtDurationMillis;
+
+        public TradeOffer(final SOCTradeOffer offer, final long offeredAtDurationMillis)
             throws NullPointerException
         {
             give = new KnownResourceSet(offer.getGiveSet());
             receive = new KnownResourceSet(offer.getGetSet());
             offeredTo = offer.getTo();
+            this.offeredAtDurationMillis = offeredAtDurationMillis;
         }
 
         /**
@@ -1493,7 +1533,8 @@ public class SavedGameModel
     }
 
     /**
-     * Details of why {@link SavedGameModel#checkCanSave(SOCGame)} or {@link SavedGameModel#checkCanLoad()}
+     * Details of why {@link SavedGameModel#checkCanSave(SOCGame)}
+     * or {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)}
      * or constructor can't save a game or load a model.
      * {@link Throwable#getMessage()} will name the unsupported option/feature,
      * ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text

@@ -25,14 +25,14 @@ import java.util.StringTokenizer;
 
 import soc.proto.GameMessage;
 import soc.proto.Message;
-import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 
 
 /**
  * This message from server to a client prompts that player to choose another
  * player to steal from.  The client responds with {@link SOCChoosePlayer}.
  *<P>
- * In some game scenarios like {@link SOCGameOption#K_SC_PIRI SC_PIRI},
+ * In some game scenarios like {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI},
  * the player might have the option to not steal from anyone: Message will
  * have its {@link #canChooseNone()} flag set.
  * If the player makes that choice, their response to server is {@link SOCChoosePlayer}
@@ -219,7 +219,7 @@ public class SOCChoosePlayerRequest extends SOCMessage
 
     /**
      * Parse the parameters/attributes from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
      * @since 2.4.10

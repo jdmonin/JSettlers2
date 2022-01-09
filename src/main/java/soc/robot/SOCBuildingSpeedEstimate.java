@@ -4,6 +4,7 @@
  * Portions of this file copyright (C) 2012-2013,2015-2018,2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,6 +40,10 @@ import java.util.Vector;
  * Uses {@link SOCPlayerNumbers} to get resources of currently reached hexes.
  * The {@code getEstimates...} methods use {@link SOCPlayer#getPortFlags()}.
  * Used by {@link SOCRobotDM#planStuff(int)} and other tactical planning methods.
+ *<P>
+ * Robot typically uses factory methods like {@link SOCRobotBrain#getEstimator(SOCPlayerNumbers)}
+ * and {@link SOCBuildingSpeedEstimateFactory#getEstimator(SOCPlayerNumbers)}
+ * instead of directly instantiating this class.
  */
 public class SOCBuildingSpeedEstimate
 {
@@ -117,7 +122,7 @@ public class SOCBuildingSpeedEstimate
      *        a 5-element array containing
      *        {@link Data.ResourceType#CLAY_VALUE},
      *        {@link Data.ResourceType#WHEAT_VALUE}, etc,
-     *        where the resource in [0] has the highest rolls per resource.
+     *        where the resource type constant in [0] has the highest rolls per resource.
      * @since 2.0.00
      */
     public static final int[] getRollsForResourcesSorted(final SOCPlayer pl)
@@ -163,15 +168,18 @@ public class SOCBuildingSpeedEstimate
             estimatesFromNothing[CARD] = DEFAULT_ROLL_LIMIT;
             estimatesFromNothing[SHIP] = DEFAULT_ROLL_LIMIT;
 
-            SOCResourceSet emptySet = new SOCResourceSet();
-
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAccurate(emptySet, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAccurate(emptySet, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAccurate(emptySet, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CARD] = calculateRollsAccurate(emptySet, SOCDevCard.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAccurate(emptySet, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CARD] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCDevCard.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAccurate
+                    (SOCResourceSet.EMPTY_SET, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -197,15 +205,18 @@ public class SOCBuildingSpeedEstimate
             estimatesFromNothing[CARD] = DEFAULT_ROLL_LIMIT;
             estimatesFromNothing[SHIP] = DEFAULT_ROLL_LIMIT;
 
-            SOCResourceSet emptySet = new SOCResourceSet();
-
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCDevCard.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCRoad.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCSettlement.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCCity.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCDevCard.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCShip.COST, DEFAULT_ROLL_LIMIT, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -231,15 +242,18 @@ public class SOCBuildingSpeedEstimate
             estimatesFromNothing[CARD] = limit;
             estimatesFromNothing[SHIP] = limit;
 
-            SOCResourceSet emptySet = new SOCResourceSet();
-
             try
             {
-                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast(emptySet, SOCRoad.COST, limit, ports).getRolls();
-                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast(emptySet, SOCSettlement.COST, limit, ports).getRolls();
-                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast(emptySet, SOCCity.COST, limit, ports).getRolls();
-                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast(emptySet, SOCDevCard.COST, limit, ports).getRolls();
-                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast(emptySet, SOCShip.COST, limit, ports).getRolls();
+                estimatesFromNothing[ROAD] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCRoad.COST, limit, ports).getRolls();
+                estimatesFromNothing[SETTLEMENT] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCSettlement.COST, limit, ports).getRolls();
+                estimatesFromNothing[CITY] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCCity.COST, limit, ports).getRolls();
+                estimatesFromNothing[CARD] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCDevCard.COST, limit, ports).getRolls();
+                estimatesFromNothing[SHIP] = calculateRollsAndRsrcFast
+                    (SOCResourceSet.EMPTY_SET, SOCShip.COST, limit, ports).getRolls();
             }
             catch (CutoffExceededException e)
             {
@@ -460,8 +474,8 @@ public class SOCBuildingSpeedEstimate
      * {@link #calculateRollsAndRsrcFast(ResourceSet, SOCResourceSet, int, boolean[])}
      * with a simpler return type and no thrown exception.
      *
-     * @param startingResources   the starting resources
-     * @param targetResources     the target resources
+     * @param startingResources   the starting resources; is treated as read-only
+     * @param targetResources     the target resources; is treated as read-only
      * @param cutoff              maximum number of rolls
      * @param ports               a list of port flags
      *
@@ -491,8 +505,8 @@ public class SOCBuildingSpeedEstimate
      *<P>
      * Before v2.0.00, this was {@code calculateRollsFast}.
      *
-     * @param startingResources   the starting resources
-     * @param targetResources     the target resources
+     * @param startingResources   the starting resources; is treated as read-only
+     * @param targetResources     the target resources; is treated as read-only
      * @param cutoff              throw an exception if the total speed is greater than this
      * @param ports               a list of port flags
      *
@@ -754,8 +768,8 @@ public class SOCBuildingSpeedEstimate
      * player to get the target set of resources given
      * a starting set
      *
-     * @param startingResources   the starting resources
-     * @param targetResources     the target resources
+     * @param startingResources   the starting resources; is treated as read-only
+     * @param targetResources     the target resources; is treated as read-only
      * @param cutoff              throw an exception if the total speed is greater than this
      * @param ports               a list of port flags
      *

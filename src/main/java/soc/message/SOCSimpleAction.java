@@ -22,7 +22,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoardLarge;  // solely for javadocs
-import soc.game.SOCGameOption;  // solely for javadocs
+import soc.game.SOCGameOptionSet;  // solely for javadocs
 import soc.game.SOCResourceConstants;  // solely for javadocs
 import soc.util.SOCStringManager;  // solely for javadocs
 
@@ -117,7 +117,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * This message from server announces the results of the current player's pirate fortress attack attempt:
      * Pirates' random defense strength, number of player's ships lost (win/tie/loss).
      * Sent in response to client's {@link SOCSimpleRequest#SC_PIRI_FORT_ATTACK}
-     * in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * in scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}.
      *<P>
      * This message is sent out <B>after</B> related messages with game data (see below), so that those
      * can be shown visually before any popup announcing the result.
@@ -155,7 +155,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * with their chosen location.  If the placement is allowed, the server will broadcast a similar
      * {@link SOCSimpleRequest#TRADE_PORT_PLACE} to the game; see that javadoc for details.
      *<P>
-     * Used with scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI}.
+     * Used with scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      * @since 2.0.00
      */
     public static final int TRADE_PORT_REMOVED = 1002;
@@ -283,7 +283,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
 
     /**
      * Build a human-readable form of the message, with this class's field names
-     * instead of generic SOCMessageTemplate4i names.
+     * instead of generic names from {@link SOCMessageTemplate4i}.
      * @return a human readable form of the message
      * @since 2.0.00
      */

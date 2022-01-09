@@ -21,6 +21,7 @@
  **/
 package soc.game;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.List;
  * of player's inventory items.
  *<P>
  * Players can have 0, 1, or more of any card type or item type.
- * Each item's current state can be New to be played soon; Playable; or Kept in hand
+ * Each item's current state can be: New to be playable soon; Playable; or Kept in hand
  * until the end of the game (Victory Point cards, which are never New).
  *<P>
  * For use in loops, age constants and inventory-item state constant ranges are each contiguous:<BR>
@@ -42,24 +43,35 @@ import java.util.List;
  *<P>
  * Before v2.0.00, this class was named {@code SOCDevCardSet}.
  */
-public class SOCInventory
+public class SOCInventory implements Cloneable, Serializable
 {
+    /** Latest structural change: v2.0.00 */
+    private static final long serialVersionUID = 2000L;
+
     /**
      * Age constant: An old item can either be played this turn (state {@link #PLAYABLE})
      * or is kept in hand until the end of the game (state {@link #KEPT}) such as a Victory Point card.<BR>
      * Other possible age is {@link #NEW}.
+     *<P>
+     * For use in loops, age constants {@code OLD}, {@code NEW} have adjacent values: 0, 1.
      */
     public static final int OLD = 0;
 
     /**
      * Age constant and item state constant: Recently bought card, playable next turn.<BR>
      * Other possible age is {@link #OLD}.<BR>
-     * Other possible states are {@link #PLAYABLE} and {@link #KEPT}.
+     * Other possible item states are {@link #PLAYABLE} and {@link #KEPT}.
+     *<P>
+     * For use in loops, age constants {@code OLD}, {@code NEW} have adjacent values: 0, 1.
+     * Item state constants {@code NEW}, {@code PLAYABLE}, {@code KEPT} are contiguous: 1, 2, 3.
      */
     public static final int NEW = 1;
 
     /**
      * Item state constant: Playable this turn (not {@link #NEW} or {@link #KEPT}).
+     *<P>
+     * For use in loops, state constants {@code NEW}, {@code PLAYABLE}, {@code KEPT} have contiguous values: 1, 2, 3.
+     *
      * @since 2.0.00
      */
     public static final int PLAYABLE = 2;
@@ -67,6 +79,9 @@ public class SOCInventory
     /**
      * Item state constant: Kept in hand until end of game (not {@link #PLAYABLE}, was never {@link #NEW}).
      * Victory Point development cards have this state.
+     *<P>
+     * For use in loops, state constants {@code NEW}, {@code PLAYABLE}, {@code KEPT} have contiguous values: 1, 2, 3.
+     *
      * @since 2.0.00
      */
     public static final int KEPT = 3;

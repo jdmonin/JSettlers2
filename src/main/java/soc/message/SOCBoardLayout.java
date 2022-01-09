@@ -317,7 +317,7 @@ public class SOCBoardLayout extends SOCMessage
 
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}.
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
      * Converts robber hex coordinate to decimal from hexadecimal format.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed

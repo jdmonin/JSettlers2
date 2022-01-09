@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * A village playing piece, used on the large sea board ({@link SOCBoardLarge}) with some scenarios.
- * Villages are in a game only if scenario option {@link SOCGameOption#K_SC_CLVI} is set.
+ * Villages are in a game only if scenario option {@link SOCGameOptionSet#K_SC_CLVI} is set.
  *<P>
  * Villages belong to the game board, not to any player, and new villages cannot be built after the game starts.
  * Trying to call {@link SOCPlayingPiece#getPlayer() village.getPlayer()} will throw an exception.

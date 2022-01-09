@@ -51,13 +51,16 @@ public class MonopolyStrategy
      * Create a MonopolyStrategy for a {@link SOCRobotBrain}'s player.
      * @param ga  Our game
      * @param pl  Our player data in {@code ga}
+     * @param br  Robot brain for {@code pl}
      */
-    public MonopolyStrategy(SOCGame ga, SOCPlayer pl)
+    public MonopolyStrategy(SOCGame ga, SOCPlayer pl, SOCRobotBrain br)
     {
         if (pl == null)
             throw new IllegalArgumentException();
         game = ga;
         ourPlayerData = pl;
+        // br is unused here, but a third-party bot's strategy may need it
+
         monopolyChoice = Data.ResourceType.SHEEP_VALUE;
     }
 

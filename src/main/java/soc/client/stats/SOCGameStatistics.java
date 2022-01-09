@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -62,10 +62,10 @@ public class SOCGameStatistics
         /** Player who rolled this result */
         public final SOCPlayer player;
 
-        public DiceRollEvent(int roll, SOCPlayer p)
+        public DiceRollEvent(int rolledNumber, SOCPlayer rollingPlayer)
         {
-            this.roll = roll;
-            player = p;
+            roll = rolledNumber;
+            player = rollingPlayer;
         }
 
         /** Includes class name, dice number, player, player number: {@code "DiceRollEvent[7 Robot 2:0]"} */
@@ -85,14 +85,14 @@ public class SOCGameStatistics
 
     public void dispose()
     {
-        Listener old = this.listener.get();
+        Listener old = listener.get();
         if (old != null)
             old.statsDisposing();
     }
 
-    public ListenerRegistration addListener(Listener listener)
+    public ListenerRegistration addListener(Listener statsListener)
     {
-        Listener old = this.listener.getAndSet(listener);
+        Listener old = listener.getAndSet(statsListener);
         if (old != null)
             old.statsDisposing();
 

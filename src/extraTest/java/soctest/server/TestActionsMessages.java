@@ -21,6 +21,7 @@ package soctest.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -141,7 +142,7 @@ public class TestActionsMessages
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT_NAME, null, 0, null, true, clientAsRobot, othersAsRobot);
+                (srv, CLIENT_NAME, null, 0, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -287,7 +288,7 @@ public class TestActionsMessages
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCMovePiece:", "|param1=3|param2=3|param3=3078|param4=3846"}
+                {"all:SOCMovePiece:", "|pn=3|pieceType=3|fromCoord=3078|toCoord=3846"}
             });
 
         /* build settlement (on small island) */
@@ -316,6 +317,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -369,8 +371,82 @@ public class TestActionsMessages
     }
 
     /**
+     * Tests buying a dev card.
+     * Expands on quick test done in {@link TestRecorder#testLoadAndBasicSequences()}.
+     * @see #testPlayDevCards()
+     */
+    @Test
+    public void testBuyDevCard()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        for (int observabilityMode = 0; observabilityMode <= 2; ++observabilityMode)
+        {
+            testOne_BuyDevCard(observabilityMode, false, false);
+            testOne_BuyDevCard(observabilityMode, false, true);
+            testOne_BuyDevCard(observabilityMode, true, false);
+            testOne_BuyDevCard(observabilityMode, true, true);
+        }
+    }
+
+    private void testOne_BuyDevCard
+        (final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
+        throws IOException
+    {
+        final String CLIENT_NAME
+            = "testBuyDevCard_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
+
+        final StartedTestGameObjects objs =
+            TestRecorder.connectLoadJoinResumeGame
+                (srv, CLIENT_NAME, null, 0, null, true, observabilityMode, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli = objs.tcli;
+        final SOCGame ga = objs.gameAtServer;
+        final SOCPlayer cliPl = objs.clientPlayer;
+        final Vector<QueueEntry> records = objs.records;
+
+        records.clear();
+        assertEquals(23, ga.getNumDevCards());
+        assertEquals(5, cliPl.getInventory().getTotal());
+        tcli.buyDevCard(ga);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        assertEquals(22, ga.getNumDevCards());
+        assertEquals(6, cliPl.getInventory().getTotal());
+
+        StringBuilder comparesBuyCard = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1"},
+                {"all:SOCGameElements:", "|e2=22"},
+                {"p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
+                {
+                    "!p3:SOCDevCardAction:",
+                    (observabilityMode == 0)
+                        ? "|playerNum=3|actionType=DRAW|cardType=0"
+                        : "|playerNum=3|actionType=DRAW|cardType=5"
+                },
+                {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},
+                {"all:SOCGameState:", "|state=20"}
+            });
+
+        /* leave game, check results */
+
+        srv.destroyGameAndBroadcast(ga.getName(), null);
+        tcli.destroy();
+
+        if (comparesBuyCard != null)
+        {
+            comparesBuyCard.insert(0, "For test " + CLIENT_NAME + ": Message mismatch: ");
+            System.err.println(comparesBuyCard);
+            fail(comparesBuyCard.toString());
+        }
+    }
+
+    /**
      * Tests playing dev cards.
-     * Buying dev cards is covered by {@link TestRecorder#testLoadAndBasicSequences()}.
+     * @see #testBuyDevCard()
      */
     @Test
     public void testPlayDevCards()
@@ -378,27 +454,39 @@ public class TestActionsMessages
     {
         assertNotNull(srv);
 
-        testOne_PlayDevCards(false, false);
-        testOne_PlayDevCards(false, true);
-        testOne_PlayDevCards(true, false);
-        testOne_PlayDevCards(true, true);
+        for (int observabilityMode = 0; observabilityMode <= 2; ++observabilityMode)
+        {
+            testOne_PlayDevCards(observabilityMode, false, false);
+            testOne_PlayDevCards(observabilityMode, false, true);
+            testOne_PlayDevCards(observabilityMode, true, false);
+            testOne_PlayDevCards(observabilityMode, true, true);
+        }
     }
 
-    private void testOne_PlayDevCards(final boolean clientAsRobot, final boolean othersAsRobot)
+    private void testOne_PlayDevCards
+        (final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IOException
     {
         // unique client nickname, in case tests run in parallel
-        final String CLIENT_NAME = "testPlayDevCards_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT_NAME
+            = "testPlayDevCrd_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT_NAME, null, 0, null, true, clientAsRobot, othersAsRobot);
+                (srv, CLIENT_NAME, null, 0, null, true, observabilityMode, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<QueueEntry> records = objs.records;
+
+        List<Integer> expectedCardsPlayed = new ArrayList<>(Arrays.asList(SOCDevCardConstants.KNIGHT));
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
+        assertEquals(1, cliPl.getNumKnights());
+        assertEquals(0, cliPl.numDISCCards);
+        assertEquals(0, cliPl.numMONOCards);
+        assertEquals(0, cliPl.numRBCards);
 
         /* monopoly: Sheep (victims pn=1 and pn=2 both have some sheep) */
 
@@ -409,6 +497,9 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(SOCGame.WAITING_FOR_MONOPOLY, ga.getGameState());
+        assertEquals(1, cliPl.numMONOCards);
+        expectedCardsPlayed.add(SOCDevCardConstants.MONO);
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         tcli.pickResourceType(ga, SOCResourceConstants.SHEEP);
 
         try { Thread.sleep(60); }
@@ -426,7 +517,7 @@ public class TestActionsMessages
                 {"all:SOCSimpleAction:", "|pn=3|actType=3|v1=3|v2=3"},
                 {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y"},
                 {"all:SOCPlayerElement:", "|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=3|amount=6"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=3"},
                 (othersAsRobot ? null : new String[]{"p1:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 1 sheep."}),
                 (othersAsRobot ? null : new String[]{"p2:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 2 sheep."}),
                 {"all:SOCGameState:", "|state=20"}
@@ -434,35 +525,43 @@ public class TestActionsMessages
 
         /* discovery/year of plenty */
 
-        records.clear();
-        cliPl.setPlayedDevCard(false);  // bend rules to skip waiting for our next turn
-        tcli.playDevCard(ga, SOCDevCardConstants.DISC);
+        StringBuilder comparesDisc = null;
+        if (observabilityMode == 0)
+        {
+            records.clear();
+            cliPl.setPlayedDevCard(false);  // bend rules to skip waiting for our next turn
+            tcli.playDevCard(ga, SOCDevCardConstants.DISC);
 
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertEquals(SOCGame.WAITING_FOR_DISCOVERY, ga.getGameState());
-        tcli.pickResources(ga, new SOCResourceSet(0, 1, 0, 1, 0, 0));
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(SOCGame.WAITING_FOR_DISCOVERY, ga.getGameState());
+            assertEquals(1, cliPl.numDISCCards);
+            expectedCardsPlayed.add(SOCDevCardConstants.DISC);
+            assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
+            tcli.pickResources(ga, new SOCResourceSet(0, 1, 0, 1, 0, 0));
 
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertEquals(SOCGame.PLAY1, ga.getGameState());
-        assertArrayEquals(new int[]{3, 4, 6, 5, 4}, cliPl.getResources().getAmounts(false));
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(SOCGame.PLAY1, ga.getGameState());
+            assertArrayEquals(new int[]{3, 4, 6, 5, 4}, cliPl.getResources().getAmounts(false));
 
-        StringBuilder comparesDisc = TestRecorder.compareRecordsToExpected
-            (records, new String[][]
-            {
-                {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=2"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
-                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Year of Plenty card."},
-                {"all:SOCGameState:", "|state=52"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=2|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=1"},
-                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " received 1 ore and 1 wheat from the bank."},
-                {"all:SOCGameState:", "|state=20"}
-            });
+            comparesDisc = TestRecorder.compareRecordsToExpected
+                (records, new String[][]
+                {
+                    {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=2"},
+                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                    {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Year of Plenty card."},
+                    {"all:SOCGameState:", "|state=52"},
+                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=2|amount=1"},
+                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=1"},
+                    {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " received 1 ore and 1 wheat from the bank."},
+                    {"all:SOCGameState:", "|state=20"}
+                });
+        }
 
         /* road building, gain longest road */
 
+        // because this increases VP, is tested in every observabilityMode even though it's public
         records.clear();
         assertEquals(null, ga.getPlayerWithLongestRoad());
         assertEquals(2, cliPl.getPublicVP());
@@ -476,6 +575,9 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(SOCGame.PLACING_FREE_ROAD1, ga.getGameState());
+        assertEquals(1, cliPl.numRBCards);
+        expectedCardsPlayed.add(SOCDevCardConstants.ROADS);
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_EDGE_1, board));
 
         try { Thread.sleep(60); }
@@ -538,6 +640,8 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertEquals(2, cliPl.getNumKnights());
+        expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
         tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
 
@@ -566,15 +670,16 @@ public class TestActionsMessages
                 {"all:SOCGameState:", "|state=34"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the pirate ship."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=-d0a"},
-                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"p3:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"p1:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"p1:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"!p[3, 1]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
-                {"!p[3, 1]:SOCPlayerElement:", "|playerNum=1|actionType=LOSE|elementType=6|amount=1"},
-                {"p3:SOCGameServerText:", "|text=You stole a", " from "},  // "a wheat", "an ore"
-                {"p1:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a", " from you."},
-                {"!p[3, 1]:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a resource from "},
+                {
+                    (observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:",
+                    "|perp=3|victim=1|resType=" + resType + "|isGainLose=true|amount=1"
+                },
+                (observabilityMode != 2)
+                    ? new String[]{"p1:SOCReportRobbery:", "|perp=3|victim=1|resType=" + resType + "|isGainLose=true|amount=1"}
+                    : null,
+                (observabilityMode != 2)
+                    ? new String[]{"!p[3, 1]:SOCReportRobbery:", "|perp=3|victim=1|resType=6|isGainLose=true|amount=1"}
+                    : null,
                 {"all:SOCGameState:", "|state=20"},
             });
 
@@ -585,6 +690,7 @@ public class TestActionsMessages
         assertEquals(null, ga.getPlayerWithLargestArmy());
         assertEquals(4, cliPl.getPublicVP());
         assertEquals(2, cliPl.getNumKnights());
+
         final int ROBBER_HEX = 0x703;
         assertNotEquals("robber not moved there yet", ROBBER_HEX, board.getRobberHex());
         // victim's settlement should be sole adjacent piece
@@ -618,6 +724,8 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertEquals(3, cliPl.getNumKnights());
+        expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
+        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         assertEquals(6, cliPl.getPublicVP());
         assertEquals(cliPl, ga.getPlayerWithLargestArmy());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
@@ -649,20 +757,22 @@ public class TestActionsMessages
                 {"all:SOCGameState:", "|state=33"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the robber."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=703"},
-                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"p3:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"p2:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=" + resType + "|amount=1"},
-                {"p2:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=" + resType + "|amount=1|news=Y"},
-                {"!p[3, 2]:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=6|amount=1"},
-                {"!p[3, 2]:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=6|amount=1"},
-                {"p3:SOCGameServerText:", "|text=You stole a", " from "},
-                {"p2:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a", " from you."},
-                {"!p[3, 2]:SOCGameServerText:", "|text=" + CLIENT_NAME + " stole a resource from"},
+                {
+                    (observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:",
+                    "|perp=3|victim=2|resType=" + resType + "|isGainLose=true|amount=1"
+                },
+                (observabilityMode != 2)
+                    ? new String[]{"p2:SOCReportRobbery:", "|perp=3|victim=2|resType=" + resType + "|isGainLose=true|amount=1"}
+                    : null,
+                (observabilityMode != 2)
+                    ? new String[]{"!p[3, 2]:SOCReportRobbery:", "|perp=3|victim=2|resType=6|isGainLose=true|amount=1"}
+                    : null,
                 {"all:SOCGameState:", "|state=20"}
             });
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -724,24 +834,28 @@ public class TestActionsMessages
     {
         assertNotNull(srv);
 
-        // These messages should have no differences between human and robot clients.
-        // We'll test all 4 combinations just in case.
-        testOne_RollDiceRsrcsOrMoveRobber(false, false);
-        testOne_RollDiceRsrcsOrMoveRobber(false, true);
-        testOne_RollDiceRsrcsOrMoveRobber(true, false);
-        testOne_RollDiceRsrcsOrMoveRobber(true, true);
+        for (int observabilityMode = 0; observabilityMode <= 2; ++observabilityMode)
+        {
+            // These messages should have no differences between human and robot clients.
+            // We'll test all 4 combinations just in case.
+            testOne_RollDiceRsrcsOrMoveRobber(observabilityMode, false, false);
+            testOne_RollDiceRsrcsOrMoveRobber(observabilityMode, false, true);
+            testOne_RollDiceRsrcsOrMoveRobber(observabilityMode, true, false);
+            testOne_RollDiceRsrcsOrMoveRobber(observabilityMode, true, true);
+        }
     }
 
     private void testOne_RollDiceRsrcsOrMoveRobber
-        (final boolean clientAsRobot, final boolean othersAsRobot)
+        (final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IOException
     {
-        final String CLIENT_NAME = "testRollDice_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT_NAME
+            = "testRollDice_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
         final int CLIENT_PN = 3;
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT_NAME, null, 0, null, false, clientAsRobot, othersAsRobot);
+                (srv, CLIENT_NAME, null, 0, null, false, observabilityMode, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -929,7 +1043,7 @@ public class TestActionsMessages
                     try { Thread.sleep(60); }
                     catch(InterruptedException e) {}
                     compares7MoveRobber = TestRecorder.moveRobberStealSequence
-                        (tcli, ga, cliPl, records,
+                        (tcli, ga, cliPl, observabilityMode, records,
                          new String[][]
                             {
                                 {"all:SOCDiceResult:", "|param=7"},
@@ -953,16 +1067,24 @@ public class TestActionsMessages
                     catch(InterruptedException e) {}
                     assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
                     compares7DiscardMove = TestRecorder.moveRobberStealSequence
-                        (tcli, ga, cliPl, records,
+                        (tcli, ga, cliPl, observabilityMode, records,
                          new String[][]
                             {
                                 {"all:SOCDiceResult:", "|param=7"},
                                 {"all:SOCGameState:", "|state=50"},
                                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
                                 {"p3:SOCDiscardRequest:", "|numDiscards=8"},
-                                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=4"},
-                                {"p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=5|amount=4"},
-                                {"!p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=6|amount=8|news=Y"},
+                                {
+                                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
+                                    "|playerNum=3|actionType=LOSE|elementType=4|amount=4"
+                                },
+                                {
+                                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
+                                    "|playerNum=3|actionType=LOSE|elementType=5|amount=4"
+                                },
+                                ((observabilityMode != 2)
+                                    ? new String[]{"!p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=6|amount=8|news=Y"}
+                                    : null),
                                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " discarded 8 resources."}
                             });
 
@@ -976,6 +1098,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -1044,7 +1167,7 @@ public class TestActionsMessages
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT_NAME, CLIENT2_NAME, CLIENT2_PN, null, false, clientAsRobot, othersAsRobot);
+                (srv, CLIENT_NAME, CLIENT2_NAME, CLIENT2_PN, null, false, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
         final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
@@ -1066,7 +1189,7 @@ public class TestActionsMessages
         cliPl.getResources().setAmounts(RS_KNOWN);
         cli2Pl.getResources().setAmounts(CLI2_RS_KNOWN);
 
-        // change board at server to build some pieces, so client and client2 players gain on 8 (GOLD_DICE_NUM):
+        // change board at server to build some pieces, so client and client2 players will gain on 8 (GOLD_DICE_NUM):
 
         final int SHIP_EDGE = 0xe04, ISLAND_SETTLE_NODE = 0xe04;
         assertNull(board.roadOrShipAtEdge(SHIP_EDGE));
@@ -1169,6 +1292,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
         tcli2.destroy();
 
@@ -1205,7 +1329,7 @@ public class TestActionsMessages
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT_NAME, null, 0, null, true, clientAsRobot, othersAsRobot);
+                (srv, CLIENT_NAME, null, 0, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
@@ -1310,6 +1434,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();
@@ -1378,7 +1503,7 @@ public class TestActionsMessages
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, clientAsRobot, othersAsRobot);
+                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
         final SOCGame ga = objs.gameAtServer;
         final String gaName = ga.getName();
@@ -1467,6 +1592,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli1.destroy();
         tcli2.destroy();
 
@@ -1508,7 +1634,7 @@ public class TestActionsMessages
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, clientAsRobot, othersAsRobot);
+                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
         final SOCGame ga = objs.gameAtServer;
         final Vector<QueueEntry> records = objs.records;
@@ -1542,6 +1668,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli1.destroy();
         tcli2.destroy();
 
@@ -1590,7 +1717,7 @@ public class TestActionsMessages
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, sgm, false, clientAsRobot, othersAsRobot);
+                (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, sgm, false, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
         final SOCGame ga = objs.gameAtServer;
         final SOCPlayer clientPlayer = objs.clientPlayer;
@@ -1675,6 +1802,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli1.destroy();
         tcli2.destroy();
 
@@ -1721,7 +1849,7 @@ public class TestActionsMessages
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
                 (srv, CLIENT_NAME, OTHER_WIN_CLIENT_NAME, (clientWin) ? 0 : PN_WIN,
-                 null, false, clientAsRobot, othersAsRobot);
+                 null, false, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
         if (! clientWin)
         {
@@ -1795,6 +1923,7 @@ public class TestActionsMessages
 
         /* leave game, check results */
 
+        srv.destroyGameAndBroadcast(ga.getName(), null);
         tcli.destroy();
         if (tcli2 != null)
             tcli2.destroy();

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,10 +19,11 @@
  **/
 package soc.message;
 
+import java.util.List;
 import java.util.StringTokenizer;
 
 import soc.game.SOCGame;  // for javadocs only
-import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCSpecialItem;  // for javadocs only
 
@@ -32,7 +33,7 @@ import soc.game.SOCSpecialItem;  // for javadocs only
  * per-player Special Item lists. The same Special Item object instance may be in both lists.
  * Special Items' status and details are currently "public" and known to all players, not hidden like VP dev cards.
  *<P>
- * Is sent for the Wonders chosen by players in the {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario.
+ * Is sent for the Wonders chosen by players in the {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario.
  *<P>
  * This message conveys which object is affected ({@link #typeKey}, {@link #gameItemIndex}, {@link #playerItemIndex})
  * and the object data fields ({@link #playerNumber}, {@link #coord}, {@link #level}, {@link #sv}).
@@ -70,7 +71,7 @@ public class SOCSetSpecialItem extends SOCMessage
 {
     private static final long serialVersionUID = 2000L;
 
-    // If you add an OP_ constant, also update OPS_STRS[].
+    // If you add an OP_ constant, also update OPS_STRS[] and the unit test mentioned there.
 
     /**
      * If sent from client to server, a request to set an item in the game and/or owning player's Special Item list.
@@ -362,8 +363,55 @@ public class SOCSetSpecialItem extends SOCMessage
             + sep2 + playerNumber + sep2 + coord + sep2 + level + sep2 + svStr;
     }
 
-    /** OP_* constant strings for {@link #toString()} */
-    private final static String[] OPS_STRS = { null, "SET", "CLEAR", "PICK", "DECLINE", "SET_PICK", "CLEAR_PICK" };
+    /** OP_* constant strings for {@link #toString()} and {@link #stripAttribNames(String)}. */
+    public final static String[] OPS_STRS = { null, "SET", "CLEAR", "PICK", "DECLINE", "SET_PICK", "CLEAR_PICK" };
+        // if you update these: Watch for backwards compatibility,
+        // also update unit test TestStringConstants.testSetSpecialItem()
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters delimited for {@link SOCMessage#parseMsgStr(String)}
+     * to pass to {@link #parseDataStr(String)}.
+     * Converts to {@link #op} int from {@link #OPS_STRS}[], handles null {@link #sv}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.4.10
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        boolean svIsNull = false;
+        if (messageStrParams.endsWith("|sv null"))
+            svIsNull = true;
+        else if (-1 == messageStrParams.indexOf("|sv="))
+            return null;
+
+        List<String> pieces = SOCMessage.stripAttribsToList(messageStrParams);
+        if ((pieces == null) || (pieces.size() != 9))
+            return null;
+
+        int op;
+        final String opStr = pieces.get(1);
+        for (op = 1; op < OPS_STRS.length; ++op)
+        {
+            if (OPS_STRS[op].equals(opStr))
+            {
+                pieces.set(1, Integer.toString(op));
+                break;
+            }
+        }
+        if (op >= OPS_STRS.length)
+            return null;
+
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0; i < 8; i++)
+            ret.append(pieces.get(i)).append(sep2_char);
+        if (svIsNull)
+            ret.append(EMPTYSTR);
+        else
+            ret.append(pieces.get(8));
+
+        return ret.toString();
+    }
 
     /**
      * @return a human readable form of the message
@@ -379,7 +427,7 @@ public class SOCSetSpecialItem extends SOCMessage
         return "SOCSetSpecialItem:game=" + game + "|op=" + opStr + "|typeKey=" + typeKey
                 + "|gi=" + gameItemIndex + "|pi=" + playerItemIndex + "|pn=" + playerNumber
                 + "|co=" + ((coord >= 0) ? Integer.toHexString(coord) : Integer.toString(coord))
-                + "|lv=" + level + "|sv=" + sv;
+                + "|lv=" + level + ((sv != null) ? "|sv=" + sv : "|sv null");
     }
 
 }

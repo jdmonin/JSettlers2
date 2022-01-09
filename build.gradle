@@ -61,6 +61,8 @@ configurations {
 }
 
 tasks.withType(JavaCompile) {
+    options.warnings = true  // don't hide xlint warnings
+    options.compilerArgs += '-Xlint:classfile,empty,fallthrough,finally,options,processing,unchecked,varargs'
     options.encoding = 'UTF-8'  // override the system's default encoding
         // To test that this has an effect, use 'Cp1252' instead here and expect "unmappable character" errors in StringUtil.java
 }

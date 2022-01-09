@@ -28,13 +28,15 @@ import java.util.List;
 import java.util.Map;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;  // for javadocs only
+import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCInventory;   // for javadocs only
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;  // for javadocs only
 import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
+import soc.message.SOCPlayerElement.PEType;
 
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
@@ -244,6 +246,24 @@ public interface PlayerClientListener
     void requestedChooseRobResourceType(SOCPlayer player);
 
     /**
+     * A robbery has just occurred; show details. Is called after game data has been updated.
+     *
+     * @param perpPN  Perpetrator's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param victimPN  Victim's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param resType  Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
+     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code peType != null}.
+     * @param peType  PlayerElement type such as {@link PEType#SCENARIO_CLOTH_COUNT},
+     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} instead).
+     * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
+     * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
+     * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
+     * @since 2.4.10
+     */
+    void reportRobbery
+        (final int perpPN, final int victimPN, final int resType, final PEType peType,
+         final boolean isGainLose, final int amount, final int victimAmount);
+
+    /**
      * This player has just made a successful trade with the bank or a port.
      * @param player  Player making the bank/port trade
      * @param give  Resources given by player in trade
@@ -257,9 +277,14 @@ public interface PlayerClientListener
      * or updated the resources of their already-displayed offer.
      * Show its details in their part of the game interface.
      * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
-     * @param offerer  Player with a new trade offer
+     *<P>
+     * Also called when server says our requested trade offer wasn't allowed:
+     * {@code offerer} will be {@code null}, {@code fromPN} will be &lt; 0.
+     *
+     * @param offerer  Player with a new trade offer, or {@code null} if {@code fromPN} &lt; 0
+     * @param fromPN  {@code offerer}'s player number, or "not allowed" code value &lt; 0 from network message
      */
-    void requestedTrade(SOCPlayer offerer);
+    void requestedTrade(SOCPlayer offerer, int fromPN);
 
     /**
      * Clear any trade offer to other players, and reset all trade resource square values to 0.
@@ -289,9 +314,19 @@ public interface PlayerClientListener
     void playerTradeAccepted(SOCPlayer offerer, SOCPlayer acceptor);
 
     /**
+     * Server has rejected client player's attempt to trade with the bank or accept a player's offer.
+     * @param offeringPN  Player number offering the disallowed trade, or -1 if bank trade
+     * @param isNotTurn  True if was disallowed because this trade can be done only during client player's turn
+     * @since 2.4.10
+     */
+    void playerTradeDisallowed(int offeringPN, boolean isNotTurn);
+
+    /**
+     * Clear any visible trade messages/responses.
      * @param playerToReset May be {@code null} to clear all seats
      */
     void requestedTradeReset(SOCPlayer playerToReset);
+
     void requestedSpecialBuild(SOCPlayer player);
 
     /**
@@ -493,8 +528,8 @@ public interface PlayerClientListener
      * @param ga  Game containing {@code pl} and special items
      * @param pl  Player who picked: Never {@code null} when {@code isPick},
      *                is {@code null} if server declined our player's request
-     * @param gi  Picked this index within game's Special Item list, or -1
-     * @param pi  Picked this index within {@code pl}'s Special Item list, or -1
+     * @param gidx  Picked this index within game's Special Item list, or -1
+     * @param pidx  Picked this index within {@code pl}'s Special Item list, or -1
      * @param isPick  True if calling for {@code PICK}, false if server has {@code DECLINE}d the client player's request
      * @param coord  Optional coordinates on the board for this item, or -1. An edge or a node, depending on item type
      * @param level  Optional level of construction or strength, or 0
@@ -503,8 +538,8 @@ public interface PlayerClientListener
      * @see SOCSpecialItem#playerPickItem(String, SOCGame, SOCPlayer, int, int)
      */
     void playerPickSpecialItem
-        (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isPick,
-         final int coord, final int level, final String sv);
+        (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gidx, final int pidx,
+         final boolean isPick, final int coord, final int level, final String sv);
 
     /**
      * Show the results of a player's {@code SET} or {@code CLEAR} of a known {@link SOCSpecialItem Special Item}.
@@ -515,14 +550,15 @@ public interface PlayerClientListener
      * @param typeKey  Item's {@code typeKey}, as described in the {@link SOCSpecialItem} class javadoc
      * @param ga  Game containing {@code pl} and special items
      * @param pl  Requesting player; never {@code null}
-     * @param gi  Set or clear this index within game's Special Item list, or -1
-     * @param pi  Set or clear this index within {@code pl}'s Special Item list, or -1
+     * @param gidx  Set or clear this index within game's Special Item list, or -1
+     * @param pidx  Set or clear this index within {@code pl}'s Special Item list, or -1
      * @param isSet  True if player has set, false if player has cleared, this item index
      * @see #playerPickSpecialItem(String, SOCGame, SOCPlayer, int, int, boolean, int, int, String)
      * @see SOCSpecialItem#playerSetItem(String, SOCGame, SOCPlayer, int, int, boolean)
      */
     void playerSetSpecialItem
-        (final String typeKey, final SOCGame ga, final SOCPlayer pl, final int gi, final int pi, final boolean isSet);
+        (final String typeKey, final SOCGame ga, final SOCPlayer pl,
+         final int gidx, final int pidx, final boolean isSet);
 
     /**
      * In scenario _SC_PIRI, present the server's response to a Pirate Fortress Attack request from the
@@ -549,11 +585,20 @@ public interface PlayerClientListener
         Sheep,
         Wheat,
         Wood,
+
         /** amount of resources of unknown type (not same as total resource count) */
         Unknown,
-        /** Update Total Resource count only. */
+
+        /**
+         * Update Total Resource count only.
+         * @see #ResourceTotalAndDetails
+         */
         Resources,
-        /** Update Total Resource count, and also each box (Clay,Ore,Sheep,Wheat,Wood) if shown. */
+
+        /**
+         * Update Total Resource count, and also each box (Clay,Ore,Sheep,Wheat,Wood) if shown.
+         * @see #Resources
+         */
         ResourceTotalAndDetails,
 
         Road,
@@ -569,13 +614,13 @@ public interface PlayerClientListener
          */
         GoldGains,
 
-        /** Number of Warships built, in {@link SOCGameOption#K_SC_PIRI _SC_PIRI} scenario */
+        /** Number of Warships built, in {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} scenario */
         Warship,
 
-        /** Cloth Count update, in {@link SOCGameOption#K_SC_CLVI _SC_CLVI} scenario */
+        /** Cloth Count update, in {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} scenario */
         Cloth,
 
-        /** Wonder build level, in {@link SOCGameOption#K_SC_WOND _SC_WOND} scenario */
+        /** Wonder build level, in {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario */
         WonderLevel,
 
         VictoryPoints,

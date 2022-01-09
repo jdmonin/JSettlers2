@@ -5,6 +5,7 @@
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,7 +36,7 @@ import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
-import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
@@ -421,7 +422,7 @@ public class SOCGameMessageHandler
                 /** if true but noPlayersGained, will change announcement wording from "No player gets anything". */
                 boolean someoneWonFreeRsrc = false;
 
-                if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
                 {
                     // pirate moves on every roll
                     srv.messageToGame(gn, true, new SOCMoveRobber
@@ -433,8 +434,6 @@ public class SOCGameMessageHandler
                         final int lootTotal = (loot != null) ? loot.getTotal() : 0;
                         if (lootTotal != 0)
                         {
-                            // use same resource-loss messages sent in handleDISCARD
-
                             final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
                             SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
                             final String vicName = vic.getName();
@@ -449,20 +448,27 @@ public class SOCGameMessageHandler
                                     (ga, true, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
                                     // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
                             } else {
-                                /**
-                                 * tell the victim client that the player lost the resources
-                                 */
-                                handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, vCon);
+                                // use same resource-loss messages sent in handleDISCARD
+
+                                if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
+                                {
+                                    // fully observable: announce to everyone
+                                    handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, null);
+                                } else {
+                                    // tell the victim client that the player lost the resources
+                                    handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, vCon);
+
+                                    // tell everyone else that the player lost unknown resources
+                                    srv.messageToGameExcept(gn, vCon, vpn, new SOCPlayerElement
+                                        (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal), true);
+                                }
+
                                 srv.messageToPlayerKeyedSpecial
                                     (vCon, ga, vpn, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
                                     // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
 
-                                /**
-                                 * tell everyone else that the player lost unknown resources
-                                 */
-                                srv.messageToGameExcept(gn, vCon, vpn, new SOCPlayerElement
-                                    (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal), true);
-                                srv.messageToGameKeyedSpecialExcept(ga, vpn, true, vCon,
+                                srv.messageToGameKeyedSpecialExcept
+                                    (ga, vpn, true, vCon,
                                     "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
                                     // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
                                     // "Joe lost 3 resources to pirate fleet attack (strength 3)."
@@ -759,19 +765,21 @@ public class SOCGameMessageHandler
 
                 // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
 
-                /**
-                 * tell the player client that the player discarded the resources
-                 */
-                handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, c);
-
-                /**
-                 * tell everyone else that the player discarded unknown resources
-                 */
                 final int numRes = res.getTotal();
-                srv.messageToGameExcept
-                    (gn, c, pn, new SOCPlayerElement
-                        (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
-                     true);
+                if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
+                {
+                    // fully observable: announce to everyone
+                    handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, null);
+                } else {
+                    // tell the player client that the player discarded the resources
+                    handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, c);
+
+                    // tell everyone else that the player discarded unknown resources
+                    srv.messageToGameExcept
+                        (gn, c, pn, new SOCPlayerElement
+                            (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
+                         true);
+                }
                 srv.messageToGameKeyed(ga, true, true, "action.discarded", player.getName(), numRes);
                     // "{0} discarded {1} resources."
 
@@ -929,6 +937,7 @@ public class SOCGameMessageHandler
      * @param mes  the message
      * @since 1.0.0
      */
+    @SuppressWarnings("fallthrough")
     private void handleCHOOSEPLAYER(SOCGame ga, Connection c, final SOCChoosePlayer mes)
     {
         ga.takeMonitor();
@@ -1010,7 +1019,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Throwable e)
@@ -1080,9 +1089,9 @@ public class SOCGameMessageHandler
                     handler.endGameTurn(ga, pl, true);
                 }
                 else
-                    srv.messageToPlayer(c, gname, pl.getPlayerNumber(), "You can't end your turn yet.");
+                    srv.messageToPlayer(c, gname, pl.getPlayerNumber(), /*I*/"You can't end your turn yet."/*18N*/ );
             } else {
-                srv.messageToPlayer(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, "It's not your turn.");
+                srv.messageToPlayerKeyed(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -1188,7 +1197,7 @@ public class SOCGameMessageHandler
                         replyDecline = true;  // client will print a text message, no need to send one
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");
+                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");
                     replyDecline = true;
                 }
             }
@@ -1211,6 +1220,7 @@ public class SOCGameMessageHandler
 
     /**
      * handle "make offer" message.
+     * Calls {@link SOCGameHandler#sendTradeOffer(SOCPlayer, Connection)}.
      *
      * @param c  the connection that sent the message
      * @param mes  the message
@@ -1229,14 +1239,41 @@ public class SOCGameMessageHandler
             return;  // <---- Early return: No Trading ----
         }
 
-        ga.takeMonitor();
+        final SOCTradeOffer offer = mes.getOffer();
+        final SOCPlayer player = ga.getPlayer(c.getData());
+        if (player == null)
+            return;
 
         try
         {
-            SOCTradeOffer offer = mes.getOffer();
-            SOCPlayer player = ga.getPlayer(c.getData());
-            if (player == null)
-                return;
+            ga.takeMonitor();
+
+            // Check offer contents as a fallback to client checks:
+            SOCResourceSet giveSet = offer.getGiveSet();
+            boolean canOffer = player.getResources().contains(giveSet);
+            final int cpn = ga.getCurrentPlayerNumber();
+            if (canOffer && (cpn != player.getPlayerNumber()))
+            {
+                boolean[] to = offer.getTo();
+                for (int pn = 0; pn < to.length; ++pn)
+                    if (to[pn] && (pn != cpn))
+                    {
+                        canOffer = false;
+                        break;
+                    }
+            }
+
+            if (! canOffer)
+            {
+                SOCMessage msg = (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                    ? new SOCMakeOffer(gaName, new SOCTradeOffer
+                        (gaName, SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE,
+                         new boolean[ga.maxPlayers], SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET))
+                    : new SOCGameServerText(gaName, "You can't make that offer.");  // i18n OK: is fallback only
+                srv.messageToPlayer(c, gaName, player.getPlayerNumber(), msg);
+
+                return;  // <---- Early return: Can't offer that ----
+            }
 
             /**
              * remake the offer with data that we know is accurate,
@@ -1244,7 +1281,7 @@ public class SOCGameMessageHandler
              * set and announce the offer, including text message similar to bank/port trade.
              */
             final SOCTradeOffer remadeOffer = new SOCTradeOffer
-                (gaName, player.getPlayerNumber(), offer.getTo(), offer.getGiveSet(), offer.getGetSet());
+                (gaName, player.getPlayerNumber(), offer.getTo(), giveSet, offer.getGetSet());
             player.setCurrentOffer(remadeOffer);
 
             handler.sendTradeOffer(player, null);
@@ -1348,12 +1385,30 @@ public class SOCGameMessageHandler
         if (player == null)
             return;
 
+        executeTrade(ga, mes.getOfferingNumber(), player.getPlayerNumber(), c);
+    }
+
+    /**
+     * Check and complete a player trade accepted by both sides, and announce it with messages to the game.
+     * Calls {@link SOCGame#canMakeTrade(int, int)}, {@link SOCGame#makeTrade(int, int)},
+     * {@link SOCGameHandler#reportTrade(SOCGame, int, int)}.
+     *<P>
+     * <B>Note:</B> Calling this method assumes the players have either accepted and/or made a counter-offer,
+     * and that the offer-initiating player's {@link SOCPlayer#getCurrentOffer()} is set to the trade to be executed.
+     *
+     * @param ga the game object to execute the trade in
+     * @param offeringNumber  Player number offering the trade
+     * @param acceptingNumber  Player number accepting the trade
+     * @param c  accepting player client's connection, if need to reply that trade is not possible
+     * @since 2.4.10
+     */
+    private void executeTrade
+        (final SOCGame ga, final int offeringNumber, final int acceptingNumber, final Connection c)
+    {
         ga.takeMonitor();
 
         try
         {
-            final int acceptingNumber = player.getPlayerNumber();
-            final int offeringNumber = mes.getOfferingNumber();
             final String gaName = ga.getName();
 
             if (ga.canMakeTrade(offeringNumber, acceptingNumber))
@@ -1390,7 +1445,13 @@ public class SOCGameMessageHandler
                     srv.gameList.releaseMonitorForGame(gaName);
                 }
             } else {
-                srv.messageToPlayer(c, gaName, acceptingNumber, /*I*/"You can't make that trade."/*18N*/ );
+                if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                    srv.messageToPlayer
+                        (c, gaName, acceptingNumber, new SOCAcceptOffer
+                            (gaName, SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE, offeringNumber));
+                else
+                    srv.messageToPlayerKeyed
+                        (c, gaName, acceptingNumber, "reply.common.trade.cannot_make");  // "You can't make that trade."
             }
         }
         catch (Exception e)
@@ -1427,14 +1488,30 @@ public class SOCGameMessageHandler
                     ga.makeBankTrade(give, get);
                     handler.reportBankTrade(ga, give, get);
                 } else {
-                    srv.messageToPlayer(c, gaName, ga.getCurrentPlayerNumber(), "You can't make that trade.");
+                    final int pn = ga.getCurrentPlayerNumber();
+                    if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                        srv.messageToPlayer(c, gaName, pn,
+                            new SOCBankTrade
+                                (gaName, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET,
+                                 SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE));
+                    else
+                        srv.messageToPlayerKeyed
+                            (c, gaName, pn, "reply.common.trade.cannot_make");  // "You can't make that trade."
+
                     SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
                         D.ebugPrintlnINFO("ILLEGAL BANK TRADE: " + c.getData()
                           + ": give " + give + ", get " + get);
                 }
             } else {
-                srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "It's not your turn.");
+                if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                    srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                        new SOCBankTrade
+                            (gaName, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET,
+                             SOCBankTrade.PN_REPLY_NOT_YOUR_TURN));
+                else
+                    srv.messageToPlayerKeyed
+                        (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -1505,7 +1582,7 @@ public class SOCGameMessageHandler
             } else {
                 if (ga.maxPlayers <= 4)
                 {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");  // "It's not your turn."
+                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
                     sendDenyReply = true;
                 } else {
                     // 6-player board: Special Building Phase
@@ -1909,7 +1986,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -2252,7 +2329,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)
@@ -2531,10 +2608,18 @@ public class SOCGameMessageHandler
                         }
                     }
 
+                    // send as Unknown to other members of game, unless game/cards are Observable:
+
                     if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)
                     {
+                        final int ctypeToOthers =
+                            (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO)
+                             || ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO))
+                            ? card
+                            : SOCDevCardConstants.UNKNOWN;
+
                         srv.messageToGameExcept(gaName, c, pn, new SOCDevCardAction
-                            (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                            (gaName, pn, SOCDevCardAction.DRAW, ctypeToOthers), true);
                     } else {
                         srv.messageToGameForVersionsExcept
                             (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
@@ -2612,8 +2697,7 @@ public class SOCGameMessageHandler
 
                 if (ga.maxPlayers <= 4)
                 {
-                    final String denyText = /*I*/"It's not your turn."/*18N*/ ;
-                    srv.messageToPlayer(c, gaName, pn, denyText);
+                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
                 } else {
                     // 6-player board: Special Building Phase
                     try
@@ -2675,7 +2759,7 @@ public class SOCGameMessageHandler
                 {
                 case SOCDevCardConstants.KNIGHT:
                     {
-                    final boolean isWarshipConvert = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+                    final boolean isWarshipConvert = ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI);
 
                     if (ga.canPlayKnight(pn))
                     {
@@ -2692,6 +2776,7 @@ public class SOCGameMessageHandler
                         final String cardplayed = (isWarshipConvert)
                             ? "action.card.soldier.warship"  // "converted a ship to a warship."
                             : "action.card.soldier";         // "played a Soldier card."
+
                         srv.gameList.takeMonitorForGame(gaName);
 
                         srv.messageToGameKeyed(ga, true, false, cardplayed, player.getName());
@@ -2847,7 +2932,7 @@ public class SOCGameMessageHandler
 
                 }
             } else {
-                denyTextKey = "reply.not.your.turn";  // "It's not your turn."
+                denyTextKey = "base.reply.not.your.turn";  // "It's not your turn."
             }
 
             if (denyPlayCardNow || (denyTextKey != null))
@@ -2928,7 +3013,7 @@ public class SOCGameMessageHandler
                             // "That is not a legal Year of Plenty pick."
                     }
                 } else {
-                    srv.messageToPlayerKeyed(c, gaName, pn, "reply.not.your.turn");  // "It's not your turn."
+                    srv.messageToPlayerKeyed(c, gaName, pn, "base.reply.not.your.turn");  // "It's not your turn."
                 }
             } else {
                 // Message is Gold Hex picks
@@ -3050,7 +3135,9 @@ public class SOCGameMessageHandler
                 if (ga.canDoMonopolyAction())
                 {
                     final int rsrc = mes.getResourceType();
+
                     final int[] monoPicks = ga.doMonopolyAction(rsrc);
+
                     final boolean[] isVictim = new boolean[ga.maxPlayers];
                     final int cpn = ga.getCurrentPlayerNumber();
                     final String monoPlayerName = c.getData();
@@ -3099,12 +3186,16 @@ public class SOCGameMessageHandler
                      * set isNews flag for each victim player's count
                      */
                     for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        if ((pn == cpn) || isVictim[pn])
+                        if (isVictim[pn])
                             // sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
                             srv.messageToGameWithMon
                                 (gaName, true, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.SET,
-                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), (pn != cpn)));
+                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), true));
+                    srv.messageToGameWithMon
+                        (gaName, true, new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.GAIN,
+                             rsrc, monoTotal, false));
 
                     srv.gameList.releaseMonitorForGame(gaName);
 
@@ -3138,7 +3229,7 @@ public class SOCGameMessageHandler
                 }
             } else {
                 srv.messageToPlayerKeyed
-                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "reply.not.your.turn");  // "It's not your turn."
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
         }
         catch (Exception e)

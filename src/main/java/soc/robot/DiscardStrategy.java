@@ -24,7 +24,6 @@
 package soc.robot;
 
 import java.util.Random;
-import java.util.Stack;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -33,7 +32,7 @@ import soc.proto.Data;
 
 /**
  * Discard strategy for a {@link SOCRobotBrain} in a game.
- * For details see {@link #discard(int, Stack)}.
+ * For details see {@link #discard(int, SOCBuildPlanStack)}.
  *<P>
  * Before version 2.2.00 that method was static and could not easily be extended.
  */
@@ -79,12 +78,12 @@ public class DiscardStrategy
      * in case we'll need to trade for its lost resources.
      *
      * @param numDiscards  Required number of discards
-     * @param buildingPlan  Brain's current building plan
+     * @param buildingPlan  Brain's current building plan; may be empty
      * @return  Resources to discard, which should be a subset of
      *     {@code ourPlayerData}.{@link SOCPlayer#getResources() getResources()}
      */
     public SOCResourceSet discard
-        (final int numDiscards, Stack<SOCPossiblePiece> buildingPlan)
+        (final int numDiscards, SOCBuildPlanStack buildingPlan)
     {
         //log.debug("DISCARDING...");
 
@@ -96,6 +95,7 @@ public class DiscardStrategy
         if (buildingPlan.empty())
         {
             brain.decisionMaker.planStuff(brain.getRobotParameters().getStrategyType());
+            buildingPlan = brain.getBuildingPlan();
         }
 
         /**
@@ -135,7 +135,7 @@ public class DiscardStrategy
 
             //log.debug("our numbers="+ourPlayerData.getNumbers());
             final int[] resourceOrder
-                = SOCBuildingSpeedEstimate.getRollsForResourcesSorted(ourPlayerData);
+                = brain.getEstimatorFactory().getRollsForResourcesSorted(ourPlayerData);
 
             /**
              * pick the discards

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014,2019-2020 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,7 +54,7 @@ public enum SOCGameEvent
 
     /**
      * A hex hidden by fog has been revealed by road or ship placement.
-     * Game option {@link SOCGameOption#K_SC_FOG _SC_FOG}.
+     * Game option {@link SOCGameOptionSet#K_SC_FOG _SC_FOG}.
      * Revealing a normal land hex (clay, ore, sheep, wheat, wood)
      * gives the player 1 of that resource immediately.
      *<P>

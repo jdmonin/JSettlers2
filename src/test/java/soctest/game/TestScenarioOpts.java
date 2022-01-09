@@ -19,13 +19,13 @@
  **/
 package soctest.game;
 
-import java.util.Map;
 import java.util.TreeSet;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCScenario;
 import soc.message.SOCMessage;
 
@@ -102,6 +102,7 @@ public class TestScenarioOpts
     @Test
     public void testAllScenarios()
     {
+        final SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
         final TreeSet<String> badScens = new TreeSet<>(); // use TreeSet for sorted results
 
         for (final SOCScenario sc : SOCScenario.getAllKnownScenarios().values())
@@ -111,7 +112,7 @@ public class TestScenarioOpts
 
             try
             {
-                final Map<String, SOCGameOption> parsedOpts = SOCGameOption.parseOptionsToMap(sc.scOpts);
+                final SOCGameOptionSet parsedOpts = SOCGameOption.parseOptionsToSet(sc.scOpts, knownOpts);
                     // will be null if any opts failed parsing
 
                 StringBuilder sb = null;
@@ -119,10 +120,10 @@ public class TestScenarioOpts
                 // This same pre-check is done by TestBoardLayouts.testSingleLayout(..)
                 if (parsedOpts != null)
                 {
-                    sb = SOCGameOption.adjustOptionsToKnown(parsedOpts, null, true);
+                    sb = parsedOpts.adjustOptionsToKnown(knownOpts, true, null);
                     if (null != sb)
                     {
-                        badScens.add(sc.key + ": Bad game options found by SGO.adjustOptionsToKnown: " + sb);
+                        badScens.add(sc.key + ": Bad game options found by SGOSet.adjustOptionsToKnown: " + sb);
                         continue;
                     }
                 }
@@ -152,7 +153,7 @@ public class TestScenarioOpts
 
                     if (parsedOpts == null)
                     {
-                        if (null == SOCGameOption.parseOptionNameValue(nvpair, false))
+                        if (null == SOCGameOption.parseOptionNameValue(nvpair, false, knownOpts))
                         {
                             if (sb.length() > 0)
                                 sb.append(", ");
@@ -173,7 +174,7 @@ public class TestScenarioOpts
                         {
                             if (sb.length() > 0)
                                 sb.append(", ");
-                            sb.append("sc.scOpts value changed by SGO.adjustOptionsToKnown: \""
+                            sb.append("sc.scOpts value changed by SGOSet.adjustOptionsToKnown: \""
                                 + nvpair + "\" -> \"" + repacked + '"');
                         }
                     }
@@ -189,7 +190,7 @@ public class TestScenarioOpts
                 if (parsedOpts != null)
                 {
                     int optsVers = -1;
-                    for (SOCGameOption opt : parsedOpts.values())
+                    for (SOCGameOption opt : parsedOpts)
                     {
                         final int vers = opt.minVersion;
                         if (vers > optsVers)

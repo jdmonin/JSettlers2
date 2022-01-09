@@ -36,7 +36,7 @@ import soc.proto.Message;
  * <LI> Param 2: Revealed hex type, same value as {@link SOCBoard#getHexTypeFromCoord(int)} <br>
  * <LI> Param 3: Revealed hex dice number, same value as {@link SOCBoard#getNumberOnHexFromCoord(int)}, or 0
  *</UL>
- * Used with game option/scenario {@link soc.game.SOCGameOption#K_SC_FOG SOCGameOption.K_SC_FOG}.
+ * Used with game option/scenario {@link soc.game.SOCGameOptionSet#K_SC_FOG SOCGameOptionSet.K_SC_FOG}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -107,6 +107,19 @@ public class SOCRevealFogHex extends SOCMessageTemplate3i
             = GameMessage.GameMessageFromServer.newBuilder()
                 .setGameName(game).setRevealFogHex(b);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
+    }
+
+    /**
+     * Build a human-readable form of the message, with this class's field names
+     * instead of generic names from {@link SOCMessageTemplate3i}.
+     * @return a human readable form of the message
+     * @since 2.4.10
+     */
+    @Override
+    public String toString()
+    {
+        return "SOCRevealFogHex:game=" + game
+            + "|hexCoord=" + p1 + "|hexType=" + p2 + "|diceNum=" + p3;
     }
 
 }
