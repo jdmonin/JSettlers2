@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1114,31 +1114,6 @@ public class SOCGameOption
         }
 
         return Integer.MAX_VALUE;
-    }
-
-    /**
-     * Gameopt-specific version of {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean)},
-     * in case any special logic is needed. See that method for javadocs.
-     *<P>
-     * When {@code calcMinVersionForUnchanged}, checks opt {@code "SBL"} for v2 clients:
-     * See {@link SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC}.
-     *
-     * @since 3.0.00
-     */
-    public static int optionsMinimumVersion
-        (final Map<?, SOCGameOption> items, final boolean calcMinVersionForUnchanged)
-         throws NullPointerException
-    {
-        int minVers = SOCVersionedItem.itemsMinimumVersion(items, calcMinVersionForUnchanged);
-
-        if (calcMinVersionForUnchanged && (minVers < SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC))
-        {
-            // force SBL true for clients < 3.0
-            if ((items == null) || ! (items.containsKey("SBL") && items.get("SBL").boolValue))
-                minVers = SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC;
-        }
-
-        return minVers;
     }
 
     /**

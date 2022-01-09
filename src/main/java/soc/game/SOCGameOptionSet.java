@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1271,6 +1271,32 @@ public class SOCGameOptionSet
     }
 
     /**
+     * Gameopt-specific version of {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean)};
+     * see that method for javadocs.
+     *<P>
+     * When {@code calcMinVersionForUnchanged}, checks opt {@code "SBL"} for v2 clients:
+     * See {@link SOCBoardLarge#VERSION_FOR_ALSO_CLASSIC}.
+     *
+     * @since 3.0.00
+     */
+    public static int optionsMinimumVersion
+        (final SOCGameOptionSet opts, final boolean calcMinVersionForUnchanged)
+         throws NullPointerException
+    {
+        final Map<String, SOCGameOption> items = (opts != null) ? opts.getAll() : null;
+        int minVers = SOCVersionedItem.itemsMinimumVersion(items, calcMinVersionForUnchanged);
+
+        if (calcMinVersionForUnchanged && (minVers < SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC))
+        {
+            // force SBL true for clients < 3.0
+            if ((items == null) || ! (items.containsKey("SBL") && items.get("SBL").getBoolValue()))
+                minVers = SOCBoardLarge.VERSION_FOR_ALSO_CLASSIC;
+        }
+
+        return minVers;
+    }
+
+    /**
      * Compare a set of options against the specified version.
      * Make a list of all which are new or changed since that version.
      *<P>
@@ -1326,6 +1352,7 @@ public class SOCGameOptionSet
      *     <B>Note:</B> May include options with {@link SOCGameOption#minVersion} &gt; {@code vers}
      *     if client has asked about them by name.
      * @see #optionsForVersion(int)
+     * @see #optionsMinimumVersion(SOCGameOptionSet, boolean)
      * @see #optionsTrimmedForSupport(SOCFeatureSet)
      * @since 1.1.07
      */
