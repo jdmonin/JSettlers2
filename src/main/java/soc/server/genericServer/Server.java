@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018,2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -712,7 +712,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     {
                         error = e;
                         if (isUp())
-                            D.ebugPrintln("Exception " + e + " during protobuf accept");
+                            D.ebugERROR("Exception " + e + " during protobuf accept");
                     }
 
                     try

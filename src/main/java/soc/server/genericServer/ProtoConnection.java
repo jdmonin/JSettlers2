@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2019,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -93,7 +93,7 @@ public final class ProtoConnection
     {
         if (getData() != null)
         {
-            D.ebugPrintln("conn.connect() requires null getData()");
+            D.ebugERROR("conn.connect() requires null getData()");
             return false;
         }
 
@@ -113,7 +113,7 @@ public final class ProtoConnection
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in ProtoConnection.connect (" + hst + ") - " + e);
+            D.ebugERROR("Exception in ProtoConnection.connect (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -193,7 +193,7 @@ public final class ProtoConnection
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception in ProtoConnection.run (" + hst + ") - " + e);
+            D.ebugERROR("Exception in ProtoConnection.run (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -227,12 +227,12 @@ public final class ProtoConnection
         if (pmsg == null)
         {
             if (D.ebugIsEnabled())
-                D.ebugPrintln("proto: " + data + ": null proto for put(" + msg.getClass().getSimpleName() + ")");
+                D.ebugWARNING("proto: " + data + ": null proto for put(" + msg.getClass().getSimpleName() + ")");
             return;
         }
 
         if (D.ebugIsEnabled())
-            D.ebugPrintln("proto: " + data + ": put(" + msg.getClass().getSimpleName() + ")");
+            D.ebugPrintlnINFO("proto: " + data + ": put(" + msg.getClass().getSimpleName() + ")");
         synchronized (outQueue)
         {
             outQueue.addElement(pmsg);
@@ -287,13 +287,13 @@ public final class ProtoConnection
         try
         {
             if (D.ebugIsEnabled())
-                D.ebugPrintln("proto: " + data + " sending out: typ = " + pmsg.getMsgCase().getNumber());
+                D.ebugPrintlnINFO("proto: " + data + " sending out: typ = " + pmsg.getMsgCase().getNumber());
             pmsg.writeDelimitedTo(out);
             out.flush();
         }
         catch (IOException e)
         {
-            D.ebugPrintln("IOException in ProtoConnection.putAux (" + hst + ") - " + e);
+            D.ebugERROR("IOException in ProtoConnection.putAux (" + hst + ") - " + e);
 
             if (D.ebugOn)
             {
@@ -306,7 +306,7 @@ public final class ProtoConnection
         }
         catch (Exception ex)
         {
-            D.ebugPrintln("generic exception in ProtoConnection.putAux");
+            D.ebugERROR("generic exception in ProtoConnection.putAux");
 
             if (D.ebugOn)
             {
@@ -354,7 +354,7 @@ public final class ProtoConnection
         //public boolean putting = true;
         public Putter()
         {
-            D.ebugPrintln("NEW PUTTER CREATED FOR " + data);
+            D.ebugPrintlnINFO("NEW PUTTER CREATED FOR " + data);
 
             /* thread name for debug */
             String cn = host();
@@ -369,9 +369,6 @@ public final class ProtoConnection
             while (connected)
             {
                 Message.FromServer pmsg = null;
-
-                if (D.ebugIsEnabled())
-                    D.ebugPrintln("** " + data + " is at the top of the putter loop");
 
                 synchronized (outQueue)
                 {
@@ -397,13 +394,13 @@ public final class ProtoConnection
                         }
                         catch (Exception ex)
                         {
-                            D.ebugPrintln("Exception while waiting for outQueue in " + data + ". - " + ex);
+                            D.ebugERROR("Exception while waiting for outQueue in " + data + ". - " + ex);
                         }
                     }
                 }
             }
 
-            D.ebugPrintln("putter not putting; connected==false : " + data);
+            D.ebugPrintlnINFO("putter not putting; connected==false : " + data);
         }
     }
 }
