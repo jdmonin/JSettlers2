@@ -13,6 +13,8 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: SOCBoard types combined, removing 'classic' v1.x.xx coordinate system:
   Connecting clients or servers must now be v2.0.00 or higher.
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
+- Network/Message traffic:
+	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown
 
 
 ## `2.4.10` (build JM20200xxx)
