@@ -794,7 +794,7 @@ enum _PlayerElementType {
  *
  *<H3>Message Sequence:</H3>
  *<UL>
- * <LI> For a bank trade (server response to player's {@link BankTrade}),
+ * <LI> For a bank trade (server response to player's {@link TradeWithBank}),
  *   all the {@code LOSE} messages come before the {@code GAIN}s.
  * <LI> For trade between players ({@link AcceptOffer}), the {@code LOSE}s and {@code GAIN}s
  *   are interspersed to simplify server code.
@@ -902,6 +902,14 @@ message StartGame {
  * New player's client should check the state field to inform that player's options and actions.
  *<P>
  * Applies to entire game: player_number is the new current player's seat number.
+ *<P>
+ * Is also sent to robot players during initial placement when a round ends
+ * and the direction of play changes, and bot has just placed a road or ship and should now place
+ * the next settlement or roll the dice as first player.
+ *<BR>
+ * Currently, server won't send a TURN message to human players after the final road or ship is placed
+ * at the end of initial placement and start of regular gameplay, only a {@link State}
+ * message (START2 -> ROLL_OR_CARD).
  *<P>
  * Also sent at game state {@link Data.GameState#OVER} to confirm the winning player,
  * who will already be the current player.
@@ -1027,7 +1035,8 @@ message TradeMakeOffer {
 }
 
 /* A the player is retracting an offer.
- * Or, server wants any trade messages/responses cleared in the client UI (usually at end of turn).
+ * Or, server wants any trade messages/responses cleared in the client UI
+ * at end of turn or after {@link TradeAcceptOffer}.
  *<P>
  * player_number can be -1 to clear all offers by all players.
  * @see TradeMakeOffer
