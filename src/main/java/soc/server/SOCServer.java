@@ -7762,15 +7762,20 @@ public class SOCServer extends Server
             if (optProblems != null)
             {
                 final String txt;
+                final boolean hadUnknowns;
                 final String scProblem = optProblems.get("SC");
                 if ((optProblems.size() == 1) && (scProblem != null) && scProblem.startsWith("unknown scenario"))
                 {
                     txt = "Unknown scenario " + scProblem.substring(16).trim() + " requested, cannot create this game.";
+                    hadUnknowns = false;
                 } else {
-                    StringBuilder sb = new StringBuilder
-                        ("Unknown game option(s) were requested, cannot create this game. ");
+                    StringBuilder sb = new StringBuilder();
+                    if (! scd.sentUnknownGameoptsInfo)
+                        sb.append("Please try again. ");
+                    sb.append("Unknown game option(s) were requested, cannot create this game. ");
                     DataUtils.mapIntoStringBuilder(optProblems, sb, null, "; ");
                     txt = sb.toString();
+                    hadUnknowns = true;
                 }
 
                 if (sendErrorViaStatus)
@@ -7778,6 +7783,19 @@ public class SOCServer extends Server
                            (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers, txt));
                 else
                     messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
+
+                if (hadUnknowns && ! scd.sentUnknownGameoptsInfo)
+                {
+                    // Let client know those are unknown;
+                    // see sentUnknownGameoptsInfo javadoc for details
+
+                    scd.sentUnknownGameoptsInfo = true;
+
+                    // simplified from SGMH.handleGAMEOPTIONGETINFOS
+                    for (final String optKey : optProblems.keySet())
+                        c.put(new SOCGameOptionInfo(new SOCGameOption(optKey), cliVers, null));  // OTYPE_UNKNOWN
+                    c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS);  // GAMEOPTIONINFO("-")
+                }
 
                 return false;  // <---- Early return ----
             }
