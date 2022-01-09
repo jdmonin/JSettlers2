@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -46,13 +46,13 @@ import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
 import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
+import soc.proto.Data;
 import soc.util.CutoffExceededException;
 import soc.util.NodeLenVis;
 import soc.util.Pair;
@@ -220,7 +220,7 @@ public class SOCRobotDM
     game = brain.getGame();
 
     resourceChoices = new SOCResourceSet();
-    resourceChoices.add(2, SOCResourceConstants.CLAY);
+    resourceChoices.add(2, Data.ResourceType.CLAY_VALUE);
     threatenedRoads = new ArrayList<SOCPossibleRoad>();
     goodRoads = new ArrayList<SOCPossibleRoad>();
     threatenedSettlements = new ArrayList<SOCPossibleSettlement>();
@@ -274,7 +274,7 @@ public class SOCRobotDM
     threatMultiplier = params.getThreatMultiplier();
 
     resourceChoices = new SOCResourceSet();
-    resourceChoices.add(2, SOCResourceConstants.CLAY);
+    resourceChoices.add(2, Data.ResourceType.CLAY_VALUE);
     threatenedRoads = new ArrayList<SOCPossibleRoad>();
     goodRoads = new ArrayList<SOCPossibleRoad>();
     threatenedSettlements = new ArrayList<SOCPossibleSettlement>();
@@ -3203,8 +3203,8 @@ public class SOCRobotDM
       {
           int mostNeededResource = -1;
 
-          for (int resource = SOCResourceConstants.CLAY;
-                  resource <= SOCResourceConstants.WOOD; resource++)
+          for (int resource = Data.ResourceType.CLAY_VALUE;
+                  resource <= Data.ResourceType.WOOD_VALUE; resource++)
           {
               if (rsCopy.getAmount(resource) < targetResources.getAmount(resource))
               {
@@ -3277,8 +3277,8 @@ public class SOCRobotDM
           if (targetResources == null)  // can be null from SOCPossiblePickSpecialItem.cost
               break;
 
-          for (int resource = SOCResourceConstants.CLAY;
-                  resource <= SOCResourceConstants.WOOD;
+          for (int resource = Data.ResourceType.CLAY_VALUE;
+                  resource <= Data.ResourceType.WOOD_VALUE;
                   resource++)
           {
               final int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);

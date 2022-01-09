@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -323,7 +323,7 @@ public class SOCRobotNegotiator
             return offer;
         }
 
-        if (ourResources.contains(SOCResourceConstants.UNKNOWN))
+        if (ourResources.contains(Data.ResourceType.UNKNOWN_VALUE))
         {
             D.ebugPrintlnINFO("AGG WE HAVE UNKNOWN RESOURCES !!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
@@ -987,7 +987,7 @@ public class SOCRobotNegotiator
         //
         // if the receiver doesn't have what's asked for, they'll reject
         //
-        if (! (receiverResources.contains(SOCResourceConstants.UNKNOWN) || receiverResources.contains(rsrcsOut)) )
+        if (! (receiverResources.contains(Data.ResourceType.UNKNOWN_VALUE) || receiverResources.contains(rsrcsOut)) )
         {
             return response;
         }
@@ -1605,7 +1605,7 @@ public class SOCRobotNegotiator
             return counterOffer;
         }
 
-        if (ourResources.contains(SOCResourceConstants.UNKNOWN))
+        if (ourResources.contains(Data.ResourceType.UNKNOWN_VALUE))
         {
             D.ebugPrintlnINFO("AGG WE HAVE UNKNOWN RESOURCES !!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
@@ -2550,8 +2550,8 @@ public class SOCRobotNegotiator
         ///
         SOCResourceSet giveSet = offer.getGiveSet();
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD;
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE;
                 rsrcType++)
         {
             if (giveSet.contains(rsrcType))
@@ -2567,8 +2567,8 @@ public class SOCRobotNegotiator
         ///
         SOCResourceSet getSet = offer.getGetSet();
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD;
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE;
                 rsrcType++)
         {
             if (getSet.contains(rsrcType))
@@ -2598,8 +2598,8 @@ public class SOCRobotNegotiator
         ///
         SOCResourceSet getSet = ourPlayerData.getCurrentOffer().getGetSet();
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD;
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE;
                 rsrcType++)
         {
             if (getSet.contains(rsrcType) && ! wantsAnotherOffer(rejector, rsrcType))
@@ -2635,8 +2635,8 @@ public class SOCRobotNegotiator
                     //
                     SOCResourceSet getSet = offer.getGetSet();
 
-                    for (int rsrcType = SOCResourceConstants.CLAY;
-                            rsrcType <= SOCResourceConstants.WOOD;
+                    for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                            rsrcType <= Data.ResourceType.WOOD_VALUE;
                             rsrcType++)
                     {
                         if (getSet.contains(rsrcType) && ! wantsAnotherOffer(rejector, rsrcType))
@@ -2660,8 +2660,8 @@ public class SOCRobotNegotiator
         boolean[] offeredTo = ourCurrentOffer.getTo();
         SOCResourceSet getSet = ourCurrentOffer.getGetSet();
 
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD;
+        for (int rsrcType = Data.ResourceType.CLAY_VALUE;
+                rsrcType <= Data.ResourceType.WOOD_VALUE;
                 rsrcType++)
         {
             if (getSet.contains(rsrcType))
