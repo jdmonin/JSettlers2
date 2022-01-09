@@ -15,8 +15,9 @@ JARs for recent JSettlers versions can be downloaded from
 
 ## `2.6.00` (build JM2022xxxx)
 - Currently being developed
-- Network/Message traffic:
-	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown
+- Game options:
+	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown.
+	  Client will now use that info to update options used in New Game dialog.
 - For developers:
 	- SOCForceEndTurnThread: Name thread to identify in server thread dumps
 
