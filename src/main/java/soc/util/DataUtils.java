@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019,2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019,2021-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,10 @@ package soc.util;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Common helper functions for data and conversions.
@@ -96,6 +100,51 @@ public abstract class DataUtils
                 any = true;
 
             sb.append(s);
+        }
+    }
+
+    /**
+     * Append map's contents to a StringBuilder, formatted by default as {@code "K1: V1; K2: v2"}.
+     * Will be sorted here by key unless {@code map} is already a {@link TreeMap}.
+     * Separators can be changed. Appends null as {@code "(null)"}, empty map as {@code "(empty)"}.
+     *
+     * @param map  Map to append.  Can be empty or {@code null}.
+     * @param sb  StringBuilder to which {@code map} will be appended; not {@code null}
+     * @param kvSeparator Separator to use between each key and its value, or {@code null} to use default {@code ": "}
+     * @param entrySeparator Separator to use between items, or {@code null} to use default {@code ", "}
+     * @throws NullPointerException if {@code sb} is null
+     * @since 2.6.00
+     */
+    public static final void mapIntoStringBuilder
+        (final Map<?, ?> map, final StringBuilder sb, String kvSeparator, String entrySeparator)
+        throws NullPointerException
+    {
+        if (map == null)
+        {
+            sb.append("(null)");
+            return;
+        }
+        else if (map.isEmpty())
+        {
+            sb.append("(empty)");
+            return;
+        }
+
+        if (kvSeparator == null)
+            kvSeparator = ": ";
+        if (entrySeparator == null)
+            entrySeparator = ", ";
+
+        final Set<?> sortedKeys = (map instanceof TreeMap) ? map.keySet() : new TreeSet<>(map.keySet());
+        boolean any = false;
+        for (Object k : sortedKeys)
+        {
+            if (any)
+                sb.append(entrySeparator);
+            else
+                any = true;
+
+            sb.append(k).append(kvSeparator).append(map.get(k));
         }
     }
 

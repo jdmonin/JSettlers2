@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -264,7 +264,7 @@ public class TestGameOptions
         if (cliOptSC != null)
             cliNewGameOpts.add(cliOptSC);
 
-        StringBuilder sb;
+        Map<String, String> optProblems;
 
         // 3 x 3 test matrix: VP [missing, false, true] for "client" opt, for "server" known opt.
         // 2 x 3 unless testFewKnownOpts: Otherwise, don't test VP unknown at server.
@@ -286,8 +286,8 @@ public class TestGameOptions
             srvVP.setBoolValue(false);
 
             cliNewGameOpts.put(cliOptVP);
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
-            assertNull(testDesc, sb);
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            assertNull(testDesc, optProblems);
             SOCGameOption opt = cliNewGameOpts.get("VP");
             assertNotNull(testDesc, opt);
             assertTrue(testDesc, opt == cliOptVP);
@@ -310,8 +310,8 @@ public class TestGameOptions
             assertEquals(srvDefaultVP, srvVP.getIntValue());
 
             assertTrue(cliNewGameOpts.get("VP") == cliOptVP);
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
-            assertNull(testDesc, sb);
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            assertNull(testDesc, optProblems);
             SOCGameOption opt = cliNewGameOpts.get("VP");
             assertNotNull(testDesc, opt);
             assertTrue(testDesc, opt == cliOptVP);
@@ -332,9 +332,11 @@ public class TestGameOptions
             srvKnownOpts.remove("VP");
             assertTrue(cliNewGameOpts.get("VP") == cliOptVP);
 
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
-            assertNotNull(testDesc, sb);
-            assertEquals(testDesc, "VP: unknown. ", sb.toString());
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            assertNotNull(testDesc, optProblems);
+            assertEquals(testDesc, 1, optProblems.size());
+            assertTrue(testDesc, optProblems.containsKey("VP"));
+            assertTrue(testDesc, optProblems.get("VP").equals("unknown"));
         }
 
         // - VP=f12 from "client":
@@ -358,8 +360,8 @@ public class TestGameOptions
             srvVP.setBoolValue(true);
 
             cliNewGameOpts.put(cliOptVP);
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
-            assertNull(testDesc, sb);
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            assertNull(testDesc, optProblems);
             SOCGameOption opt = cliNewGameOpts.get("VP");
             assertNotNull(testDesc, opt);
             assertTrue(testDesc, opt.getBoolValue());
@@ -387,8 +389,8 @@ public class TestGameOptions
             cliOptVP.setBoolValue(false);
             cliOptVP.setIntValue(clientVP);
             srvKnownOpts.get("VP").setBoolValue(false);
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
-            assertNull(testDesc, sb);
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            assertNull(testDesc, optProblems);
             if (clientScenVP == 0)
             {
                 assertFalse(testDesc + ": cli opts shouldn't have VP", cliNewGameOpts.containsKey("VP"));
@@ -409,9 +411,11 @@ public class TestGameOptions
         {
             cliNewGameOpts.put(cliOptVP);
             srvKnownOpts.remove("VP");
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
-            assertNotNull(testDesc, sb);
-            assertEquals(testDesc, "VP: unknown. ", sb.toString());
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            assertNotNull(testDesc, optProblems);
+            assertEquals(testDesc, 1, optProblems.size());
+            assertTrue(testDesc, optProblems.containsKey("VP"));
+            assertTrue(testDesc, optProblems.get("VP").equals("unknown"));
         }
 
         // - VP not sent from "client":
@@ -432,8 +436,8 @@ public class TestGameOptions
             srvVP.setBoolValue(true);
 
             cliNewGameOpts.remove("VP");
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
-            assertNull(testDesc, sb);
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            assertNull(testDesc, optProblems);
             SOCGameOption opt = cliNewGameOpts.get("VP");
             assertNotNull(testDesc, opt);
             assertTrue(testDesc, opt.getBoolValue());
@@ -458,10 +462,10 @@ public class TestGameOptions
             assertEquals(srvDefaultVP, srvVP.getIntValue());
 
             cliNewGameOpts.remove("VP");
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             if (clientScenVP == 0)
             {
-                assertNull(testDesc, sb);
+                assertNull(testDesc, optProblems);
                 assertFalse(testDesc, cliNewGameOpts.containsKey("VP"));
             } else {
                 SOCGameOption opt = cliNewGameOpts.get("VP");
@@ -480,10 +484,10 @@ public class TestGameOptions
         {
             srvKnownOpts.remove("VP");
             cliNewGameOpts.remove("VP");
-            sb = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
+            optProblems = cliNewGameOpts.adjustOptionsToKnown(srvKnownOpts, true, null);
             if (clientScenVP == 0)
             {
-                assertNull(testDesc, sb);
+                assertNull(testDesc, optProblems);
                 assertFalse(testDesc, cliNewGameOpts.containsKey("VP"));
             } else {
                 SOCGameOption opt = cliNewGameOpts.get("VP");
@@ -674,9 +678,10 @@ public class TestGameOptions
 
         SOCGameOptionSet newGameReqOpts = new SOCGameOptionSet();
         newGameReqOpts.put(optPlayVPO);
-        StringBuilder optProblems = newGameReqOpts.adjustOptionsToKnown(knowns, true, null);
+        Map<String, String> optProblems = newGameReqOpts.adjustOptionsToKnown(knowns, true, null);
         assertNotNull(optProblems);
-        assertTrue(optProblems.toString().contains("PLAY_VPO: inactive"));
+        assertTrue(optProblems.containsKey("PLAY_VPO"));
+        assertTrue(optProblems.get("PLAY_VPO").contains("inactive"));
 
         knowns.activate("PLAY_VPO");
         knowns.activate("_TESTACT");
@@ -1151,14 +1156,16 @@ public class TestGameOptions
         opts.add(optPL);
 
         // client has no features
-        StringBuilder optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(""));
+        Map<String, String> optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(""));
         assertNotNull(optProblems);
-        assertTrue(optProblems.toString().contains("PLB: requires missing feature"));
+        assertTrue(optProblems.containsKey("PLB"));
+        assertTrue(optProblems.get("PLB").contains("requires missing feature"));
 
         // client has some features, but not 6-player
         optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";sb;sc=2500;"));
         assertNotNull(optProblems);
-        assertTrue(optProblems.toString().contains("PLB: requires missing feature"));
+        assertTrue(optProblems.containsKey("PLB"));
+        assertTrue(optProblems.get("PLB").contains("requires missing feature"));
 
         // client has that feature
         optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";6pl;"));

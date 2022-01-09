@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,9 +21,14 @@
 package soctest.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.LinkedList;
+import java.util.TreeMap;
 
+import soc.game.SOCResourceSet;
 import soc.util.DataUtils;
+
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -34,6 +39,98 @@ import static org.junit.Assert.*;
 public class TestDataUtils
 {
     // TODO tests for arrayIntoStringBuf, listIntoStringBuilder
+
+    /**
+     * Test {@link DataUtils#mapIntoStringBuilder(Map, StringBuilder, String, String)}.
+     * @since 2.6.00
+     */
+    @Test
+    public void testMapIntoStringBuilder()
+    {
+        Map<String, String> strMap = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+
+        try
+        {
+            DataUtils.mapIntoStringBuilder(strMap, null, ": ", "; ");
+            fail("null sb should throw NullPointerException");
+        } catch (NullPointerException e) {}
+
+        DataUtils.mapIntoStringBuilder(null, sb, null, null);
+        assertEquals("(null)", sb.toString());
+        sb.delete(0, sb.length());
+
+        DataUtils.mapIntoStringBuilder(strMap, sb, null, null);
+        assertEquals("(empty)", sb.toString());
+        sb.delete(0, sb.length());
+
+        strMap.put("K1", "v1");
+
+        DataUtils.mapIntoStringBuilder(strMap, sb, null, null);
+        assertEquals("K1: v1", sb.toString());
+        sb.delete(0, sb.length());
+
+        strMap.put("K1", "v1");
+        DataUtils.mapIntoStringBuilder(strMap, sb, " = ", null);
+        assertEquals("K1 = v1", sb.toString());
+        sb.delete(0, sb.length());
+
+        strMap.put("K2", "v2");
+        strMap.put("3K", "3v");
+
+        DataUtils.mapIntoStringBuilder(strMap, sb, null, null);
+        assertEquals("3K: 3v, K1: v1, K2: v2", sb.toString());
+        sb.delete(0, sb.length());
+
+        DataUtils.mapIntoStringBuilder(strMap, sb, ":", null);
+        assertEquals("3K:3v, K1:v1, K2:v2", sb.toString());
+        sb.delete(0, sb.length());
+
+        DataUtils.mapIntoStringBuilder(strMap, sb, null, "; ");
+        assertEquals("3K: 3v; K1: v1; K2: v2", sb.toString());
+        sb.delete(0, sb.length());
+
+        DataUtils.mapIntoStringBuilder(strMap, sb, ":", "; ");
+        assertEquals("3K:3v; K1:v1; K2:v2", sb.toString());
+        sb.delete(0, sb.length());
+
+        // pre-sorted TreeMap:
+
+        final TreeMap<String, String> tMap = new TreeMap<>();
+
+        DataUtils.mapIntoStringBuilder(tMap, sb, null, null);
+        assertEquals("(empty)", sb.toString());
+        sb.delete(0, sb.length());
+
+        tMap.put("k1", "v1");
+        tMap.put("k0", "V0");
+        tMap.put("k22", "v22");
+        tMap.put("kThree", "V3");
+
+        DataUtils.mapIntoStringBuilder(tMap, sb, null, null);
+        assertEquals("k0: V0, k1: v1, k22: v22, kThree: V3", sb.toString());
+        sb.delete(0, sb.length());
+
+        DataUtils.mapIntoStringBuilder(tMap, sb, "=", "; ");
+        assertEquals("k0=V0; k1=v1; k22=v22; kThree=V3", sb.toString());
+        sb.delete(0, sb.length());
+
+        // other keys/values types:
+
+        final Map<Integer, SOCResourceSet> resMap = new HashMap<>();
+        resMap.put(Integer.valueOf(3), new SOCResourceSet(0, 3, 0, 2, 0, 0));
+        resMap.put(Integer.valueOf(-1), new SOCResourceSet(4, 0, 0, 0, 0, 0));
+
+        DataUtils.mapIntoStringBuilder(resMap, sb, null, null);
+        assertEquals
+            ("-1: clay=4|ore=0|sheep=0|wheat=0|wood=0|unknown=0, 3: clay=0|ore=3|sheep=0|wheat=2|wood=0|unknown=0", sb.toString());
+        sb.delete(0, sb.length());
+
+        DataUtils.mapIntoStringBuilder(resMap, sb, " == ", "; ");
+        assertEquals
+            ("-1 == clay=4|ore=0|sheep=0|wheat=0|wood=0|unknown=0; 3 == clay=0|ore=3|sheep=0|wheat=2|wood=0|unknown=0", sb.toString());
+        // sb.delete(0, sb.length());
+    }
 
     @Test
     public void testintListToPrimitiveArray()

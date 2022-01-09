@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -28,6 +28,7 @@ import soc.disableDebug.D;
 
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
 import soc.server.SOCBoardAtServer;  // For calling server-only methods like distributeClothFromRoll
+import soc.util.DataUtils;
 import soc.util.IntPair;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
@@ -1458,9 +1459,15 @@ public class SOCGame implements Serializable, Cloneable
                 throw new IllegalArgumentException("knownOpts");
 
             // apply options from scenario, if any:
-            final StringBuilder optProblems = op.adjustOptionsToKnown(knownOpts, false, null);
-            if (optProblems != null)
-                throw new IllegalArgumentException("op: unknown option(s): " + optProblems);
+            {
+                final Map<String, String> optProblems = op.adjustOptionsToKnown(knownOpts, false, null);
+                if (optProblems != null)
+                {
+                    StringBuilder sb = new StringBuilder("op: unknown option(s): ");
+                    DataUtils.mapIntoStringBuilder(optProblems, sb, null, "; ");
+                    throw new IllegalArgumentException(sb.toString());
+                }
+            }
 
             hasSeaBoard = op.isOptionSet("SBL");
             final boolean wants6board = op.isOptionSet("PLB");

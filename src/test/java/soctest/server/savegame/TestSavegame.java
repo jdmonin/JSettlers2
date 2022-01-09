@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -95,7 +95,7 @@ public class TestSavegame
         SOCGameOption opt = srv.knownOpts.getKnownOption("SC", true);
         opt.setStringValue(SOCScenario.K_SC_PIRI);
         opts.put(opt);
-        opts.adjustOptionsToKnown(srv.knownOpts, true, null);  // apply SC's scenario game opts
+        assertNull(opts.adjustOptionsToKnown(srv.knownOpts, true, null));  // apply SC's scenario game opts
         assertTrue(opts.containsKey(SOCGameOptionSet.K_SC_PIRI));
         final SOCGame ga = new SOCGame("scen", opts, srv.knownOpts);
 

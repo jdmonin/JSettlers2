@@ -27,10 +27,12 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import soc.game.SOCGameOption;
 import soc.server.SOCServer;  // for javadocs only
 import soc.server.savegame.SavedGameModel;  // for javadocs only
+import soc.util.DataUtils;
 import soc.util.SOCFeatureSet;
 import soc.util.Version;
 import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in getAllKnownOptions()
@@ -1570,7 +1572,7 @@ public class SOCGameOptionSet
      * @param limitedCliFeats For {@link doServerPreadjust}, client's set of features if limited compared to
      *     the standard client; null if client doesn't have limited feats.
      *     See {@link soc.server.SOCClientData#hasLimitedFeats} for details.
-     * @return <tt>null</tt> if all are known; or, a human-readable problem description if:
+     * @return <tt>null</tt> if all are known; or, a map of game options to human-readable problem descriptions if:
      *     <UL>
      *       <LI> any option in this set not a Known Option
      *            or is inactive (has {@link SOCGameOption#FLAG_INACTIVE_HIDDEN})
@@ -1579,12 +1581,16 @@ public class SOCGameOptionSet
      *       <LI> or an opt requires a {@link SOCGameOption#getClientFeature()} which the client doesn't have
      *            (checked only if {@code limitedCliFeats} != null and {@code doServerPreadjust})
      *       <LI> set has option {@code "SC"} but its scenario keyname isn't known
-     *            by {@link SOCScenario#getScenario(String)}
+     *            by {@link SOCScenario#getScenario(String)}:
+     *            {@code "SC"}'s text value will be "unknown scenario " + the scenario keyname.
      *     </UL>
+     *     <P>
+     *      If you need to flatten the returned Map to something stringlike, call
+     *      {@link DataUtils#mapIntoStringBuilder(Map, StringBuilder, String, String)}.
      * @throws IllegalArgumentException if {@code knownOpts} is null
      * @since 1.1.07
      */
-    public StringBuilder adjustOptionsToKnown
+    public Map<String, String> adjustOptionsToKnown
         (final SOCGameOptionSet knownOpts, final boolean doServerPreadjust, final SOCFeatureSet limitedCliFeats)
         throws IllegalArgumentException
     {
@@ -1716,16 +1722,14 @@ public class SOCGameOptionSet
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
 
-        StringBuilder optProblems = new StringBuilder();
+        Map<String, String> optProblems = new TreeMap<>();
 
         boolean allKnown;
 
         if (unknownScenario != null)
         {
             allKnown = false;
-            optProblems.append("SC: unknown scenario ");
-            optProblems.append(unknownScenario);
-            optProblems.append(". ");
+            optProblems.put("SC", "unknown scenario " + unknownScenario);
         } else {
             allKnown = true;  // might be set false in loop below
         }
@@ -1749,36 +1753,25 @@ public class SOCGameOptionSet
             if (knownOp == null)
             {
                 allKnown = false;
-                optProblems.append(op.key);
-                optProblems.append(": unknown. ");
+                optProblems.put(op.key, "unknown");
             }
             else if (knownOp.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
             {
                 allKnown = false;
-                optProblems.append(op.key);
-                optProblems.append(": inactive. ");
+                optProblems.put(op.key, "inactive");
             }
             else if (knownOp.optType != op.optType)
             {
                 allKnown = false;
-                optProblems.append(op.key);
-                optProblems.append(": optType mismatch (");
-                optProblems.append(knownOp.optType);
-                optProblems.append(" != ");
-                optProblems.append(op.optType);
-                optProblems.append("). ");
+                optProblems.put(op.key, "optType mismatch (" + knownOp.optType + " != " + op.optType + ")");
             } else {
                 // Clip int values, check default values, check dropIfUnused
 
                 if (knownOp.lastModVersion != op.lastModVersion)
                 {
                     allKnown = false;
-                    optProblems.append(op.key);
-                    optProblems.append(": lastModVersion mismatch (");
-                    optProblems.append(knownOp.lastModVersion);
-                    optProblems.append(" != ");
-                    optProblems.append(op.lastModVersion);
-                    optProblems.append("). ");
+                    optProblems.put
+                        (op.key, "lastModVersion mismatch (" + knownOp.lastModVersion + " != " + op.lastModVersion + ")");
                 }
 
                 switch (op.optType)  // OTYPE_*
@@ -1843,12 +1836,7 @@ public class SOCGameOptionSet
             {
                 allKnown = false;
                 for (String okey : unsupportedOpts.keySet())
-                {
-                    if (optProblems.length() > 0)
-                        optProblems.append(", ");
-                    optProblems.append(okey);
-                }
-                optProblems.append(": requires missing feature(s). ");
+                    optProblems.put(okey, "requires missing feature(s)");
             } else {
                 final Map<String, SOCGameOption> trimmedOpts = optionsTrimmedForSupport(limitedCliFeats);
 
