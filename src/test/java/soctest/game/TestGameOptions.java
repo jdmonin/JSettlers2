@@ -178,7 +178,7 @@ public class TestGameOptions
 
         // should remove VP when false and not present at "server" with a default
         newOpts.put(optVP);
-        StringBuilder sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
+        Map<String, String> sb = newOpts.adjustOptionsToKnown(testFewKnownOpts, true, null);
         assertNull(sb);
         assertFalse(newOpts.containsKey("VP"));
 
@@ -357,9 +357,11 @@ public class TestGameOptions
 
         SOCGameOptionSet newGameReqOpts = new SOCGameOptionSet();
         newGameReqOpts.put(optPlayVPO);
-        StringBuilder optProblems = newGameReqOpts.adjustOptionsToKnown(knowns, true, null);
+        Map<String, String> optProblems = newGameReqOpts.adjustOptionsToKnown(knowns, true, null);
         assertNotNull(optProblems);
-        assertTrue(optProblems.toString().contains("PLAY_VPO: inactive"));
+        assertTrue(optProblems.containsKey("PLAY_VPO"));
+        assertTrue(optProblems.get("PLAY_VPO").contains("inactive"));
+        optProblems.clear();
 
         knowns.activate("PLAY_VPO");
         knowns.activate("_TESTACT");
@@ -827,14 +829,18 @@ public class TestGameOptions
         opts.add(optPL);
 
         // client has no features
-        StringBuilder optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(""));
+        Map<String, String> optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(""));
         assertNotNull(optProblems);
-        assertTrue(optProblems.toString().contains("PLB: requires missing feature"));
+        assertTrue(optProblems.containsKey("PLB"));
+        assertTrue(optProblems.get("PLB").contains("requires missing feature"));
+        optProblems.clear();
 
         // client has some features, but not 6-player
         optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";sb;sc=2410;"));
         assertNotNull(optProblems);
-        assertTrue(optProblems.toString().contains("PLB: requires missing feature"));
+        assertTrue(optProblems.containsKey("PLB"));
+        assertTrue(optProblems.get("PLB").contains("requires missing feature"));
+        optProblems.clear();
 
         // client has that feature
         optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";6pl;"));

@@ -41,7 +41,7 @@ import soc.server.genericServer.InboundMessageQueue;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 import soc.server.savegame.SavedGameModel;
-
+import soc.util.DataUtils;
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
@@ -7589,10 +7589,20 @@ public class SOCServer extends Server
             if ((limitedCliFeats == null) && scd.hasLimitedFeats)
                 limitedCliFeats = scd.feats;
 
-            final StringBuilder optProblems = gameOpts.adjustOptionsToKnown(knownOpts, true, limitedCliFeats);
+            final Map<String, String> optProblems = gameOpts.adjustOptionsToKnown(knownOpts, true, limitedCliFeats);
             if (optProblems != null)
             {
-                final String txt = "Unknown game option(s) were requested, cannot create this game. " + optProblems;
+                final String txt;
+                final String scProblem = optProblems.get("SC");
+                if ((optProblems.size() == 1) && (scProblem != null) && scProblem.startsWith("unknown scenario"))
+                {
+                    txt = "Unknown scenario " + scProblem.substring(16).trim() + " requested, cannot create this game.";
+                } else {
+                    StringBuilder sb = new StringBuilder
+                        ("Unknown game option(s) were requested, cannot create this game. ");
+                    DataUtils.mapIntoStringBuilder(optProblems, sb, null, "; ");
+                    txt = sb.toString();
+                }
 
                 if (sendErrorViaStatus)
                     c.put(SOCStatusMessage.buildForVersion
