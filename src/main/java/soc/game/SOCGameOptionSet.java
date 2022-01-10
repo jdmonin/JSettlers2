@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,6 +51,8 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  *
  *<H3>Known Options</H3>
  *
+ * For the list of all known options, see {@link #getAllKnownOptions()}.
+ *<P>
  * Methods to work with a set of Known Options:
  *
  *<H4>Synchronizing options between server/client versions</H4>
@@ -296,6 +298,8 @@ public class SOCGameOptionSet
      *  * Grouping: PLB, PLP are 3 characters, not 2, and the first 2 characters match an
      *    existing option. So in NewGameOptionsFrame, they appear on the lines following
      *    the PL option in client version 1.1.13 and above.
+     *<P>
+     * The original set of options (v1.1.07) was {@code PL, RD, N7, BC, NT}. All others were added in newer versions.
      *
      * <h3>Current Game Scenario options:</h3>
      *<UL>
