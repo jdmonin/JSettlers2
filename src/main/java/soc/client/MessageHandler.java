@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2019 Colin Werner
  * Extracted in 2019 from SOCPlayerClient.java, so:
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -1913,7 +1913,7 @@ public class MessageHandler
         {
             switch (etype)
             {
-            // SOCGameElements.ROUND_COUNT:
+            // SOCGameElements.GEType.ROUND_COUNT:
             // Doesn't need a case here because it's sent only during joingame;
             // SOCBoardPanel will check ga.getRoundCount() as part of joingame
 

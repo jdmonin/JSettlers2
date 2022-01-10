@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -168,6 +168,10 @@ public class SOCPlayerElement extends SOCMessage
 
         /**
          * Number of knights in player's army; sent after a Soldier card is played.
+         *<P>
+         * If playing a {@code KNIGHT} card leads to Largest Army, server announces with
+         * {@link SOCGameElements}({@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER LARGEST_ARMY_PLAYER})
+         * after {@code SOCPlayerElement}({@link #PLAYED_DEV_CARD_FLAG}) before {@code SOCGameState}.
          *<P>
          * If server is older than v2.4.00 ({@link SOCGame#VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}):
          * During normal gameplay, "largest army" indicator at client is updated

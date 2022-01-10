@@ -4852,9 +4852,9 @@ public class SOCServer extends Server
                         if (msgKey != null)
                             try
                             {
-                                localText = SOCStringManager.getFallbackServerManagerForClient().get(msgKey);
+                                localText = SOCStringManager.getFallbackServerManagerForClient().get(msgKey);  // == en_US
                             } catch (MissingResourceException e) {
-                                localText = msgKey;  // fallback so data fields will still be sent
+                                localText = msgKey;  // fallback so data fields will still be recorded
                             }
 
                         msgForRecord = msg.localize(localText);

@@ -1524,7 +1524,7 @@ public class SOCGameHandler extends GameHandler
             } else {
                 srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                     new SOCLastSettlement(gameName, i, counts[0]));
-                    // client too old for SOCPlayerElement.LAST_SETTLEMENT_NODE
+                    // client too old for SOCPlayerElement.PEType.LAST_SETTLEMENT_NODE
                 for (int j = 1; j < counts.length; ++j)
                     srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                         new SOCPlayerElement
