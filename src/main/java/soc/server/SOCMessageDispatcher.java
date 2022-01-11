@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@ package soc.server;
 
 import soc.debug.D;
 import soc.game.SOCGame;
+import soc.game.SOCPlayer;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCMessageFromUnauthClient;
@@ -130,7 +131,9 @@ import soc.server.genericServer.Server;
         {
             // D.ebugPrintln(c.getData()+" - "+mes);
 
-            if (! ((mes instanceof SOCMessageFromUnauthClient) || (con.getData() != null)))
+            final String cliName = con.getData();
+
+            if (! ((mes instanceof SOCMessageFromUnauthClient) || (cliName != null)))
             {
                 con.put(new SOCStatusMessage
                     (SOCStatusMessage.statusFallbackForVersion
@@ -162,6 +165,14 @@ import soc.server.genericServer.Server;
                         final GameMessageHandler hand = gameList.getGameTypeMessageHandler(gaName);
                         if (hand != null)  // all consistent games will have a handler
                         {
+                            if (srv.isRecordGameEventsFromClientsActive())
+                            {
+                                final SOCPlayer pl = ga.getPlayer(cliName);
+                                srv.recordClientMessage
+                                    (gaName, ((pl != null) ? pl.getPlayerNumber() : SOCServer.PN_OBSERVER),
+                                     (SOCMessageForGame) mes);
+                            }
+
                             if (hand.dispatch(ga, (SOCMessageForGame) mes, con))
                                 return;  // <--- Was handled by GameMessageHandler ---
 

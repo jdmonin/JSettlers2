@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009,2012,2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012,2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,7 +50,7 @@ public class MonopolyStrategy
     /**
      * Create a MonopolyStrategy for a {@link SOCRobotBrain}'s player.
      * @param ga  Our game
-     * @param pl  Our player data in {@code ga}
+     * @param pl  Our player data in {@code ga}; not null
      * @param br  Robot brain for {@code pl}
      */
     public MonopolyStrategy(SOCGame ga, SOCPlayer pl, SOCRobotBrain br)
@@ -65,8 +65,9 @@ public class MonopolyStrategy
     }
 
     /**
-     * Get our monopoly choice; valid only after
-     * {@link #decidePlayMonopoly()} returns true.
+     * Get our monopoly choice. Valid only after
+     * {@link #decidePlayMonopoly()} returns true,
+     * unless the bot's architecture calls {@link #setMonopolyChoice(int)} directly instead.
      * @return  Resource type to monopolize,
      *    such as {@link Data.ResourceType#CLAY_VALUE}
      *    or {@link Data.ResourceType#SHEEP_VALUE}
@@ -77,12 +78,33 @@ public class MonopolyStrategy
     }
 
     /**
+     * Directly set our monopoly choice.
+     * For example, a third-party bot's architecture might have code which determines
+     * the best action is monopoly and the resource type to monopolize,
+     * instead of using {@link #decidePlayMonopoly()}.
+     *
+     * @param rtype  Resource type to monopolize,
+     *    such as {@link SOCResourceConstants#CLAY}
+     *    or {@link SOCResourceConstants#SHEEP}.
+     *    Not checked for validity.
+     * @since 2.5.00
+     */
+    public void setMonopolyChoice(final int rtype)
+    {
+        monopolyChoice = rtype;
+    }
+
+    /**
      * Decide whether we should play a monopoly card,
      * and set {@link #getMonopolyChoice()} if so.
      *<P>
      * Decision and chosen resource type are based on which type our player
      * could trade for the most resources (given our player's ports),
      * not on the resources needed for we currently want to build.
+     *<P>
+     * See {@link #setMonopolyChoice(int)} for another possible approach
+     * third-party bots may use.
+     *
      * @return True if we should play the card
      */
     public boolean decidePlayMonopoly()

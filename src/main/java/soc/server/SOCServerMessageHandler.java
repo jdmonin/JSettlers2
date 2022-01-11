@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2021 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -86,20 +86,20 @@ public class SOCServerMessageHandler
      * along with dashes (-) and underscores (_).
      * @since 2.3.00
      */
-    private static final Pattern DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX
+    protected static final Pattern DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX
         = Pattern.compile("^[\\p{IsLetter}\\p{IsDigit}_-]+$");
 
-    private final SOCServer srv;
+    protected final SOCServer srv;
 
     /**
      * List of {@link #srv}'s games.
      */
-    private final SOCGameListAtServer gameList;
+    protected final SOCGameListAtServer gameList;
 
     /**
      * List of {@link #srv}'s chat channels.
      */
-    private final SOCChannelList channelList;
+    protected final SOCChannelList channelList;
 
     public SOCServerMessageHandler
         (SOCServer srv, final SOCGameListAtServer gameList, final SOCChannelList channelList)
@@ -294,7 +294,7 @@ public class SOCServerMessageHandler
 
         /**
          * Game option messages. For the best writeup of these messages' interaction with
-         * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
+         * the client, see {@link soc.client.ServerGametypeInfo}'s javadoc.
          * Added 2009-06-01 for v1.1.07.
          */
 
@@ -1033,7 +1033,7 @@ public class SOCServerMessageHandler
      */
     void handleCHANNELTEXTMSG(final Connection c, final SOCChannelTextMsg mes)
     {
-        final String chName = mes.getChannel(), mName = c.getData(), txt = mes.getText();
+        final String chName = mes.getChannel(), mName = c.getData(), txt = mes.getText().trim();
 
         if (srv.isDebugUserEnabled() && mName.equals("debug"))
         {
@@ -1133,7 +1133,7 @@ public class SOCServerMessageHandler
 
         //currentGameEventRecord.setSnapshot(ga);
 
-        final String cmdText = gameTextMsgMes.getText();
+        final String cmdText = gameTextMsgMes.getText().trim();
         String cmdTxtUC = null;
 
         if (canChat && (cmdText.charAt(0) == '*'))
@@ -1306,7 +1306,7 @@ public class SOCServerMessageHandler
      * @return true if {@code cmdText} is an admin command and has been handled here, false otherwise
      * @since 2.3.00
      */
-    boolean processAdminCommand
+    public boolean processAdminCommand
         (final Connection c, final SOCGame ga, final String cmdText, final String cmdTextUC)
     {
         final String gaName = ga.getName();
@@ -1851,7 +1851,7 @@ public class SOCServerMessageHandler
 
         try
         {
-            GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);
+            GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);  // <--- The actual save game method ---
 
             srv.messageToPlayerKeyed
                 (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
@@ -1963,11 +1963,11 @@ public class SOCServerMessageHandler
             {
                 // Check if using user admins; if not, if using debug user
 
-                final String uname = c.getData();
+                final String cliUsername = c.getData();
                 final boolean isAdmin =
                     (c instanceof StringConnection)  // practice game
-                    || srv.isUserDBUserAdmin(uname)
-                    || (srv.isDebugUserEnabled() && uname.equals("debug"));
+                    || srv.isUserDBUserAdmin(cliUsername)
+                    || (srv.isDebugUserEnabled() && cliUsername.equals("debug"));
                 if (! isAdmin)
                 {
                     srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_NON_EVENT, "reply.must_be_admin.view");
@@ -2121,7 +2121,7 @@ public class SOCServerMessageHandler
     {
         final SOCClientData scd = (SOCClientData) c.getAppData();
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
-        final String msgUser = c.getData();
+        final String msgUsername = c.getData();
             // if mustSetUsername, will tell client to set nickname to original case from db case-insensitive search
 
         /**
@@ -2173,9 +2173,9 @@ public class SOCServerMessageHandler
             }
         } else {
             c.put(new SOCStatusMessage
-                (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUser + SOCMessage.sep2_char + txt));
+                (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUsername + SOCMessage.sep2_char + txt));
         }
-        c.put(new SOCJoinChannelAuth(msgUser, ch));
+        c.put(new SOCJoinChannelAuth(msgUsername, ch));
 
         /**
          * Add the Connection to the channel
@@ -2203,7 +2203,7 @@ public class SOCServerMessageHandler
 
             try
             {
-                channelList.createChannel(ch, msgUser);
+                channelList.createChannel(ch, msgUsername);
                 scd.createdChannel();
             }
             catch (Exception e)
@@ -2215,7 +2215,7 @@ public class SOCServerMessageHandler
             srv.broadcast(new SOCNewChannel(ch));
             c.put(new SOCChannelMembers(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
-                D.ebugPrintlnINFO("*** " + msgUser + " joined new channel " + ch + " at "
+                D.ebugPrintlnINFO("*** " + msgUsername + " joined new channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             channelList.takeMonitorForChannel(ch);
 
@@ -2234,7 +2234,7 @@ public class SOCServerMessageHandler
         /**
          * let everyone know about the change
          */
-        srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", SOCMessage.EMPTYSTR, ch));
+        srv.messageToChannel(ch, new SOCJoinChannel(msgUsername, "", SOCMessage.EMPTYSTR, ch));
 
         /**
          * Send recap; same sequence is in SOCGameHandler.joinGame with different message type
@@ -2463,7 +2463,7 @@ public class SOCServerMessageHandler
          * make sure this player isn't already sitting
          */
         boolean canSit = true;
-        boolean gameIsFull = false, gameAlreadyStarted = false;
+        boolean gameIsFull = false, gameAlreadyStarted = false, sentBotDismiss = false;
 
         /*
            for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
@@ -2558,9 +2558,6 @@ public class SOCServerMessageHandler
 
                     if ((robotCon != null) && gameList.isMember(robotCon, gaName))
                     {
-                        srv.messageToPlayer(robotCon, gaName, pn,
-                            new SOCRobotDismiss(gaName));
-
                         /**
                          * this connection has to wait for the robot to leave,
                          * will then be told they've sat down
@@ -2570,12 +2567,13 @@ public class SOCServerMessageHandler
 
                         if (disRequests == null)
                         {
-                            disRequests = new Vector<SOCReplaceRequest>();
-                            disRequests.addElement(req);
+                            disRequests = new Vector<>();
                             srv.robotDismissRequests.put(gaName, disRequests);
-                        } else {
-                            disRequests.addElement(req);
                         }
+                        disRequests.addElement(req);
+
+                        sentBotDismiss = true;
+                        srv.messageToPlayer(robotCon, gaName, pn, new SOCRobotDismiss(gaName));
                     } else {
                         /**
                          * robotCon wasn't in the game.
@@ -2639,9 +2637,9 @@ public class SOCServerMessageHandler
             } else if (gameIsFull) {
                 srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_OBSERVER, "member.sit.game.full");
                     // "This game is full; you cannot sit down."
-            } else {
+            } else if (! sentBotDismiss) {
                 srv.messageToPlayer
-                    (c, null, SOCServer.PN_NON_EVENT,
+                    (c, gaName, SOCServer.PN_NON_EVENT,
                      "This seat is claimed by another game member, choose another.");
                          // I18N OK: client shouldn't ask to take that seat
             }

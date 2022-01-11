@@ -29,7 +29,7 @@ of this Readme.
 
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at https://github.com/jdmonin/JSettlers2/ and
-at http://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
+https://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
 and pull requests can be posted at the github page. The HTML5 web app's
 code is licensed under AGPL 3.0.
 
@@ -78,7 +78,7 @@ write documentation please contact the development team from our github page.
 
 If you downloaded a JSettlers JAR file without attached documentation,
 the official location of this Readme and the docs is online at
-https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
+https://github.com/jdmonin/JSettlers2/blob/main/Readme.md .
 
 
 ## Requirements
@@ -90,15 +90,18 @@ Currently you must build `socweb.war` and `socserver.war` from source,
 because no versions of it have yet been released:
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
-To play JSettlers with the traditional Java client, you will need either the
-Java Development Kit (JDK) version 8 or higher, or version 8 of the smaller
-Java Runtime (JRE). Then download JSettlers-full.jar from either
-https://github.com/jdmonin/JSettlers2/releases or http://nand.net/jsettlers/
+To play JSettlers with the traditional Java client,
+you will need either Java Runtime (JRE) version 8
+from https://java.com/download/ , or the Java Development Kit (JDK)
+version 8 or higher from https://jdk.java.net/ .
+
+Then download JSettlers-full.jar from either
+https://github.com/jdmonin/JSettlers2/releases or https://nand.net/jsettlers/
 and run it.
 
 To host a non-HTML5 traditional JSettlers server, use any server OS and
 hosting provider you like. To also provide a download for the full Jar,
-you will need any http server such as Apache's httpd (available from http://httpd.apache.org).
+you will need any http server such as Apache's httpd (available from https://httpd.apache.org).
 
 The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
@@ -220,6 +223,13 @@ numeric value. To change the default winning victory points to 12 for example:
 
     -o VP=t12
 
+
+### Savegame optional feature:
+
+The server can save/load most games to files kept on the server, using admin commands.
+For details see [doc/Readme.developer.md](doc/Readme.developer.md): Search for "Saving and loading games"
+
+
 ### jsserver.properties:
 
 Instead of a long command line, any option can be added to `jsserver.properties`
@@ -227,7 +237,7 @@ which is read at startup if it exists in the current directory.  Any option
 given on the command line overrides the same option in the properties file.
 Comment lines start with # .  See `src/main/bin/jsserver.properties.sample` for full
 descriptions of all available properties. (Also available online at
-https://raw.githubusercontent.com/jdmonin/JSettlers2/master/src/main/bin/jsserver.properties.sample).
+https://raw.githubusercontent.com/jdmonin/JSettlers2/main/src/main/bin/jsserver.properties.sample).
 
 
 This example command line
@@ -367,11 +377,11 @@ for the new HTML5 client. For the servlet-based web app server, see above sectio
 #### Details:
 
 If you want to maintain user accounts or save scores of all completed games,
-you will need to set up a MariaDB, MySQL, SQLite, or PostgreSQL database. This database
-is optional. If you will use a non-SQLite database, be sure to start
+all of which is optional, you will need to set up a MariaDB, MySQL, PostgreSQL,
+or SQLite database. If you will be using a non-SQLite database, be sure to start
 the database server software before installing JSettlers. For DB setup details
 see the "Database Setup" section of [doc/Database.md](doc/Database.md)
-(available online at https://github.com/jdmonin/JSettlers2/blob/master/doc/Database.md).
+(available online at https://github.com/jdmonin/JSettlers2/blob/main/doc/Database.md).
 
 To install a JSettlers server, start the server as described in "Server Setup
 and Testing". Remember that you can set server parameters and game option
@@ -449,7 +459,7 @@ It's a simple process to upgrade to the latest version of JSettlers:
 The server has commands anyone can run by typing into a game's chat window, like `*STATS*` or `*WHO*`.
 It also has privileged commands that can be run only by named Admin Users or the `debug` user, like `*GC*` or `*SAVEGAME*`.
 
-The debug user shouldn't be enabled except on a developer's own computer, because of its unfair in-game powers.
+The debug user shouldn't be enabled except on a developer's own computer, because of its in-game abilities.
 Admin Users let you manage your server without the debug user. They authenticate with passwords
 stored in a SQLite file or a database system. To set up Admin Users, see
 section "Security, Admin Users, Admin Commands" of [doc/Database.md](doc/Database.md).
@@ -459,7 +469,7 @@ section "Security, Admin Users, Admin Commands" of [doc/Database.md](doc/Databas
 
 JSettlers is an open-source project licensed under the GPL. The project
 source code is hosted at https://github.com/jdmonin/JSettlers2/ and
-the project website is http://nand.net/jsettlers/devel/ .  Questions,
+the project website is https://nand.net/jsettlers/devel/ .  Questions,
 bugs, patches, and pull requests can be posted at the github page.
 
 For more information on building or developing JSettlers, see
@@ -477,9 +487,13 @@ Affero General Public License, Version 3.0 (AGPL v3).
 For the full Affero General Public License 3.0 text, see the included
 doc/COPYING-AGPLv3 file or https://www.gnu.org/licenses/agpl-3.0.html .
 
+The localization into French was contributed in 2020 by Lee Passey using
+the [CC0](https://creativecommons.org/publicdomain/zero/1.0/) license,
+and further developed by Jeremy Monin under CC0.
+
 BCrypt.java is licensed under the "new BSD" license, and is copyright
 (C) 2006 Damien Miller; see BCrypt.java for details.  jBCrypt-0.4.tar.gz
-retrieved 2017-05-27 from http://www.mindrot.org/projects/jBCrypt/
+retrieved 2017-05-27 from https://www.mindrot.org/projects/jBCrypt/
 and some constants, javadocs, throws declarations added by Jeremy D Monin.
 
 org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
@@ -492,8 +506,8 @@ retrieved 2020-01-11 from https://unpkg.com/konva@4.0.0/konva.js, konva.min.js
 
 Miscellaneous code is attributed to the Strategic Conversation (STAC) Project -
 https://www.irit.fr/STAC/ - from their fork published at https://github.com/sorinMD/StacSettlers
-and reintegrated into JSettlers by Jeremy D Monin for v2.4.10.
-[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/master/README.md)
+and reintegrated into JSettlers by Jeremy D Monin for v2.5.00.
+[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/main/README.md)
 says "Copyright (C) 2017  STAC" and that repo's most recent substantial change was in 2018.
 In the JSettlers repository, commits from that code use "STAC Project" as the author.
 
@@ -501,7 +515,7 @@ The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
 classic/goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che,
-available at http://www.flickr.com/photos/rosemania/5431942688/ , of
+available at https://www.flickr.com/photos/rosemania/5431942688/ , of
 ancient Greek coins.
 
 The pastel hex images were created and contributed by qubodup, (C) 2019,

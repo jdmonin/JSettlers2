@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2018,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import soc.game.ResourceSet;
 import soc.game.SOCBoard;  // for javadocs
 import soc.game.SOCBoardLarge;  // for javadocs
 import soc.game.SOCDevCardConstants;
@@ -400,14 +401,15 @@ public abstract class ProtoMessageBuildHelper
     //
 
     /**
-     * Build a protobuf {@code Data.ResourceSet.Builder} from this {@link SOCResourceSet}'s known resources.
+     * Build a protobuf {@code Data.ResourceSet.Builder} from this
+     * {@link SOCResourceSet} or {@link ResourceSet}'s known resources.
      * Unknown resources are ignored.
      * @param rs  Resource set to build from; not {@code null}
      * @return  A {@code Data.ResourceSet.Builder} from {@code rs}
      * @throws NullPointerException if {@code rs == null}
      * @see #fromResourceSet(soc.proto.Data.ResourceSet)
      */
-    public static final Data.ResourceSet.Builder toResourceSet(final SOCResourceSet rs)
+    public static final Data.ResourceSet.Builder toResourceSet(final ResourceSet rs)
         throws NullPointerException
     {
         Data.ResourceSet.Builder rsb = Data.ResourceSet.newBuilder();
@@ -478,7 +480,7 @@ public abstract class ProtoMessageBuildHelper
             dcv = Data.DevCardValue.VP_MARKET;  break;
         case SOCDevCardConstants.UNIV:
             dcv = Data.DevCardValue.VP_UNIVERSITY;  break;
-        case SOCDevCardConstants.TEMP:
+        case SOCDevCardConstants.TEMPLE:
             dcv = Data.DevCardValue.VP_LIBRARY;  break;
         case SOCDevCardConstants.CHAPEL:
             dcv = Data.DevCardValue.VP_CHAPEL;  break;
@@ -521,7 +523,7 @@ public abstract class ProtoMessageBuildHelper
         case VP_UNIVERSITY:
             ctype = SOCDevCardConstants.UNIV;  break;
         case VP_LIBRARY:
-            ctype = SOCDevCardConstants.TEMP;  break;
+            ctype = SOCDevCardConstants.TEMPLE;  break;
         case VP_CHAPEL:
             ctype = SOCDevCardConstants.CHAPEL;  break;
         case KNIGHT:

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,7 +33,7 @@ import soc.game.SOCResourceConstants;
  * This basic factory always constructs a basic {@link SOCBuildingSpeedEstimate}.
  * Third-party bots can override as needed, along with {@link SOCRobotBrain#createEstimatorFactory()}.
  *
- * @since 2.4.10
+ * @since 2.5.00
  */
 public class SOCBuildingSpeedEstimateFactory
 {
@@ -71,9 +71,9 @@ public class SOCBuildingSpeedEstimateFactory
     }
 
     /**
-     * Estimate the rolls for this player to obtain each resource.
-     * Default implementation calls {@link SOCBuildingSpeedEstimate#getRollsForResourcesSorted(SOCPlayer)}
-     * which will construct and use a {@link SOCBuildingSpeedEstimate}
+     * Estimate the rolls for this player to obtain each resource. Default implementation calls
+     * {@link SOCBuildingSpeedEstimate#getRollsForResourcesSorted(SOCPlayer, SOCBuildingSpeedEstimateFactory)}
+     * which uses this factory to construct and use a {@link SOCBuildingSpeedEstimate}
      * from {@link SOCPlayer#getNumbers() pl.getNumbers()}.
      * @param pl  Player to check numbers
      * @return  Resource order, sorted by rolls per resource descending;
@@ -82,9 +82,9 @@ public class SOCBuildingSpeedEstimateFactory
      *        {@link SOCResourceConstants#WHEAT}, etc,
      *        where the resource type constant in [0] has the highest rolls per resource.
      */
-    public final int[] getRollsForResourcesSorted(final SOCPlayer pl)
+    public int[] getRollsForResourcesSorted(final SOCPlayer pl)
     {
-        return SOCBuildingSpeedEstimate.getRollsForResourcesSorted(pl);
+        return SOCBuildingSpeedEstimate.getRollsForResourcesSorted(pl, this);
     }
 
 }

@@ -33,7 +33,9 @@ When preparing to release a new version, testing should include:
     - Have new client join and replace bot; verify all of player info is sent
     - On own turn, leave again, bot takes over
     - Lock 1 bot seat and reset game: that seat should remain empty, no bot
+    - Server shouldn't recap the reset game's chat to current players (they already have that chat text in their windows)
     - Have a client rejoin and take over for a bot
+    - Joining client should see chat recap
     - Lock the only remaining bot seat (use lock button's "Marked" state, or "Locked" if client is v1.x)
       and reset game: no bots in new game, it begins immediately
 - Game play: (as debug user or in practice game)
@@ -104,7 +106,30 @@ When preparing to release a new version, testing should include:
           - Move pirate to a hex with 2 players' ships, choose 1 who has only resources not cloth;
             shouldn't be asked whether to steal cloth or resources
         - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
+    - Road Building dev card
+        - In a 2-player game, give debug player 4 Road Building cards and a Year of Plenty card:  
+          `dev: 1 debug` (4 times)  
+          `dev: 2 debug`
+        - Test these situations, 1 per turn:
+        - Build 2 free roads
+        - Build 1 free road, right-click board, choose Cancel, continue to end of turn; should see "skipped placing the second road" in game text area
+        - Build 1 free road, end turn; should see "skipped placing the second road" again
+        - Play card but instead of placing a free road, in Build panel click Cancel
+            - Should see "cancelled the Road Building card" in game text area, dev card returned to player's inventory in hand panel
+            - Should be able to play Year of Plenty card on same turn
+        - Play card, end turn; should see "cancelled the Road Building card" and card returned to inventory
+        - In a new 2-player game on 6-player board, give debug player 2 Road Building cards:  
+          `dev: 1 debug` (2 times)
+        - Join again as other player
+        - Other player: Request Special Build
+        - Debug player: Play card, build 1 free road, end turn; other player's Special Build should start as usual
+        - Other player: Request Special Build
+        - Debug player: Play card, end turn instead of building; card should be returned to debug's inventory, other player's Special Build should start as usual
     - Gain Longest Road/Route
+        - To save time with these tests, run the test server with Savegame feature enabled:
+          - Pick any directory/folder where you want your server to look for savegames
+          - Launch server with property `-Djsettlers.savegame.dir=` set to that directory
+          - Copy src/test/resources/resources/savegame/reletest-longest-3p.game.json and reletest-longest-3p-sea.game.json into that savegame directory
         - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
           to quickly build players' pieces and VP totals, then `rsrcs: 3 0 3 1 3 debug` to give
           resources to build the last few connecting roads/ships/last settlement the usual way
@@ -113,15 +138,19 @@ When preparing to release a new version, testing should include:
           - Build roads/ships to take Longest Route from another player
           - Build settlement to split another player's Longest Route, giving a 3rd player the new Longest Route.
             (Skip this situation if testing for "move a ship".)
-            If this ends the game, 3rd player should win only when their turn begins.  
-            To save time, you can test with server Savegame feature enabled:  
-            Copy src/test/resources/resources/savegame/reletest-longest-3p.game.json and reletest-longest-3p-sea.game.json
-            to your server's configured savegame directory, then run `*LOADGAME* reletest-longest-3p`
-            or `*LOADGAME* reletest-longest-3p-sea`
+            If this ends the game, 3rd player should win only when their turn begins.
+              - To set up the board, run `*LOADGAME* reletest-longest-3p` or `*LOADGAME* reletest-longest-3p-sea` debug command in any other game window
         - Piece types to test each situation with:
           - Build roads only
           - Build a route that has roads and ships (through a coastal settlement)
           - Move a ship to gain Longest Route
+    - Take Longest Route by building a coastal settlement to connect roads to ships
+        - Copy src/test/resources/resources/savegame/reletest-longest-joinships.game.json to your server's configured savegame directory
+        - Run `*LOADGAME* reletest-longest-joinships` debug command in any other game window
+        - Optional: Use client 2.4.00 or older as players or observers
+            - Those versions don't recalculate longest route in this situation, but server 2.5.00 and newer should tell them it's changed
+        - Build a coastal settlement
+        - Should take Longest Route from other player
     - Can win by gaining Longest Road/Route
         - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces until you have 8 VP;
           be careful to not gain longest route before the test begins
@@ -355,7 +384,8 @@ When preparing to release a new version, testing should include:
     - Server and client versions to test v3 against: **2.0.00** (oldest client that can connect to v3 server);
       latest **2.x.xx** (v2.x doesn't use SOCBoardLarge for classic boards)
     - More server versions to test v3 client against: **1.1.06** (before Game Options); **1.1.11** (has client bugfixes, 6-player board);
-      **1.2.01** (newest 1.x, before Scenarios/sea boards); **2.0.00** (many message format changes, i18n)
+      **1.2.01** (newest 1.x, before Scenarios/sea boards); **2.0.00** (many message format changes, i18n);
+      **2.5.00** (many message sequence changes)
     - New client, old server
         - If server is >= 1.1.09 but older than 1.1.19, add property at end of command line: `-Djsettlers.startrobots=5`
         - If server >= 1.1.14, also add at end of command line: `-Djsettlers.allow.debug=Y`
@@ -363,8 +393,8 @@ When preparing to release a new version, testing should include:
     - New server, old client
     - Test these specific things for each version:
         - Server config:
-            - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`;  
-              all client versions should see that custom text when they connect
+            - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`  
+              All client versions should see that custom text when they connect
         - With an older client connected to a newer server, available new-game options
           should adapt to the older client version.  
           With a newer client connected to an older server, available new-game options
@@ -385,6 +415,7 @@ When preparing to release a new version, testing should include:
             - Join 1st game, take over for a robot
             - Should see all info for the player (resources, cards, etc)
             - Play at least 2 rounds; trade, build something, buy and use a soldier card
+                - Development Card count should update in Build Panel when buying a card
             - When server >= 2.4:
                 - Have an observing client join game right after a player offers a trade; should see current trade offer
                 - A few turns later, have an observing client join game; shouldn't see trade offer from a previous turn
@@ -400,12 +431,44 @@ When preparing to release a new version, testing should include:
         - When testing a 3.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
-        - When testing new server with client 2.4.10 or newer, and older client:
-            - Give Soldier dev cards to client players:  
-              `dev: 9 #2` etc
-            - Test robbery, with each client as victim, robber, observer
-            - All clients in game should see expected results in player hand panels and game text area
-            - Clients v2.4.10 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+        - When testing new server with client 2.5.00 or newer, and older client in same game:
+            - All clients in game (players and observers) should see expected results in player hand panels and game text area for:
+                - Bank trade and Undo trade
+                    - Total resource counts should be accurate before and after
+                    - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCBankTrade` message
+                - Trade between players
+                    - Do a trade where a player gives 1, receives 2; total resource counts should be accurate before and after
+                    - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCAcceptOffer` message
+                - Soldier dev card
+                    - Give Soldier cards to client players:  
+                      `dev: 9 #2` etc
+                    - Test robbery, with each client as victim, robber, observer
+                    - Clients v2.5.00 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+                - Discovery/Year of Plenty dev card
+                    - Give Discovery cards to client players:  
+                      `dev: 2 #2` etc
+                    - Play Discovery, with each client as player, observer
+                    - Clients v2.5.00 or newer are sent `SOCPickResources` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+                - Gold Hex resource pick
+                    - Make a new game with New Shores scenario
+                    - Reset the board until island's gold hex dice number is reasonably frequent
+                    - During initial placement, put two players near gold hex
+                    - For two players, build ships and a settlement on that gold hex by using debug command `*FREEPLACE* 1`
+                    - When gold hex dice number is rolled, pick free resources
+                    - Test once: Have observers (client 2.0.00 and current) join while waiting for the pick;
+                      should see "Picking Resources" text in player's hand panel
+                    - Clients are sent same message sequence as for Discovery/Year of Plenty detailed above
+            - Optionally: Test as observer, as current player/affected player, as uninvolved player:
+                - Classic board: (client 1.1.18 and 2.0.00)
+                    - Roll 7, no discards, prompt move robber
+                    - Roll 7, prompt for discards
+                    - Not 7, gain resources
+                - Sea game scenarios: (client 2.0.00)
+                    - Roll 7, no discards, ask move robber or pirate
+                    - New Shores: Roll, gain from gold hex (for self, for others)
+                    - Cloth Trade: Roll, distribute cloth; game ends at roll because distributed/depleted half of villages' cloth
+                    - Pirate Islands: Roll, fleet battle lost (discard), won (pick free resource);
+                      if 7, battle results should be shown at client by the time they're asked to discard or choose a player to rob
 - Server robustness: Bot disconnect/reconnect during game start
     - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
     - Connect and start a 6-player game
@@ -415,50 +478,55 @@ When preparing to release a new version, testing should include:
       `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)`  
       If not, start another game and try again
 - StatusMessage "status value" fallback at older versions
-    - Skip for now: Currently no status values are unknown to v2.0.00, the oldest client that connects to v3.x servers
+    - Skip for now: Currently no in-game status values are unknown to v2.0.00, the oldest client that connects to v3.x servers
 - Game Option and Scenario info sync/negotiation when server and client are different versions/locales
     - For these tests, use these JVM parameters when launching clients:  
       `-Djsettlers.debug.traffic=Y -Djsettlers.locale=en_US`  
       Message traffic will be shown in the terminal/client output.
     - Test client newer than server:
         - Build server JAR as usual, make temp copy of it, and start the temp copy (which has the actual current version number)
-        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v+1 back-compat" and `SC_TSTNO` "New: v+1 only"  
+        - In `SOCScenario.initAllScenarios()`, uncomment `SC_TSTNC` "New: v+1 back-compat", `SC_TSTNA` "New: v+1 another back-compat", and `SC_TSTNO` "New: v+1 only"  
           Update their version parameters to current versionnum and current + 1. Example:  
           `("SC_TSTNC", 3000, 3001, ...)`  
+          `("SC_TSTNA", 3000, 3001, ...)`  
           `("SC_TSTNO", 3001, 3001, ...)`
         - In `SOCGameOptionSet.getAllKnownOptions()`, scroll to the end and uncomment `DEBUGBOOL` "Test option bool".
-          Update its version parameters to current versionnum and current + 1. Example:  
-          `("DEBUGBOOL", 3000, 3001, false, ...)`
+          Update its min-version parameter to current versionnum. Example:  
+          `("DEBUGBOOL", 3000, Version.versionNumber(), false, ...)`
         - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 3000 -> 3001, 3.0.00 -> 3.0.01
-        - Build and launch client (at that "new" version), don't connect to server
+        - Build client (at that "new" version) using `gradle assemble` to skip the usual unit tests.
+          The built jars' filenames might include current version number; that's not an issue.
+        - Launch that client (prints the "new" version number at startup), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
-          Scenario dropdown should include those 2 "new" scenarios
+          Scenario dropdown should include those 3 "new" scenarios
         - Quit and re-launch client, connect to server
         - Message traffic should include:
           - Client's `SOCGameOptionGetInfos` for DEBUGBOOL
           - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
         - Click "New Game"
-        - In message traffic, should see a `SOCScenarioInfo` with `lastModVers=MARKER_KEY_UNKNOWN` for each of the 2 new scenarios, + 1 more to end the list of Infos
+        - In message traffic, should see a `SOCScenarioInfo` with `lastModVers=MARKER_KEY_UNKNOWN` for each of the 3 new scenarios, + 1 more to end the list of Infos
         - The "new" items are unknown at server: New Game dialog shouldn't have DEBUGBOOL,
-          its Scenario dropdown shouldn't have the 2 test scenarios
+          its Scenario dropdown shouldn't have the 3 test scenarios
         - Quit client and server
     - Then, test server newer than client:
         - Temporarily "localize" the test option and scenarios by adding to
           `src/main/resources/resources/strings/server/toClient_es.properties`:  
           `gameopt.DEBUGBOOL = test debugbool localized-es`  
           `gamescen.SC_TSTNC.n = test-localizedname-es`  
-        - Build server JAR and start a server from it (has the "new" version number);  
-          use `gradle assemble` here to skip the usual unit tests
+        - Build server jar, using `gradle assemble` to skip the usual unit tests
+        - Start a server from that jar (prints the "new" version number at startup)
         - Reset `version.info`, `toClient_es.properties`, `SOCGameOptionSet.getAllKnownOptions()`,
-          and `SOCScenario.initAllScenarios()` to their actual versions (3001 -> 3000, re-comment, etc)
+          and `SOCScenario.initAllScenarios()` to their actual versions
+          (3001 -> 3000, re-comment options/scenarios, etc).
+          Afterwards, `git status` shouldn't list those files as modified.
         - Build and launch client (at actual version)
         - Connect to "newer" server
         - Message traffic should include:
           - Client's generic `SOCGameOptionGetInfos` asking if any changes
           - Server response: `SOCGameOptionInfo` for DEBUGBOOL, + 1 more Option Info to end that short list
         - Click "New Game"
-        - In message traffic, should see a `SOCScenarioInfo` for each of the 2 new scenarios, + 1 more to end the list of Infos
-        - Dialog should show DEBUGBOOL option. Should see `SC_TSTNC` but not `SC_TSTNO` in Scenario dropdown
+        - In message traffic, should see a `SOCScenarioInfo` for each of the 3 new scenarios, + 1 more to end the list of Infos
+        - Dialog should show DEBUGBOOL option. Should see `SC_TSTNC` and `SC_TSTNA` but not `SC_TSTNO` in Scenario dropdown
         - Start a game using `SC_TSTNC` scenario, begin game play
         - Launch a 2nd client, connect to server
         - Click "Game Info"
@@ -471,15 +539,15 @@ When preparing to release a new version, testing should include:
         - Quit 2nd client. Keep server and 1st client running
     - Test i18n (server still newer than client):
         - Launch another client, with a locale: `-Djsettlers.debug.traffic=Y -Djsettlers.locale=es`
-        - In message traffic, should see a `SOCGameOptionInfo` for DEBUGBOOL with "localized" name
+        - Connect to server; in message traffic, should see a `SOCGameOptionInfo` for DEBUGBOOL with "localized" name
         - In that client, click "Game Info"
         - In message traffic, should see only 1 `SOCScenarioInfo`, with that game's SC_TSTNC scenario
         - Game Info dialog should show scenario's info and "localized" name
         - Quit and re-launch that client
         - Connect to server, click "New Game"
         - In message traffic, should see:
-          - a `SOCScenarioInfo` for each of the 2 new scenarios (SC_TSTNC, SC_TSTNO); SC_TSTNC name should be the localized one
-          - `SOCLocalizedStrings:type=S` with all scenario texts except SC_TSTNC, SC_TSTNO
+          - a `SOCScenarioInfo` for each of the 3 new scenarios (SC_TSTNC, SC_TSTNA, SC_TSTNO); SC_TSTNC name should be the localized one
+          - `SOCLocalizedStrings:type=S` with all scenario texts except SC_TSTNC, SC_TSTNA, SC_TSTNO
           - 1 more `SOCScenarioInfo` to end the list of Infos
         - Dialog should show "localized" DEBUGBOOL game option. Scenario dropdown should show all scenarios with localized text
         - Cancel out of New Game dialog
@@ -501,17 +569,26 @@ When preparing to release a new version, testing should include:
         - Click New Game; in dialog, should see and set checkbox for "Server test 3p option XYZ"
         - Start game
         - In game window, click "Options" button; game opt XYZ should be set
-        - Start another client with same JVM param `-Djsettlers.debug.client.gameopt3p=xyz`
+        - Under your IDE's debugger, start another client with same JVM param `-Djsettlers.debug.client.gameopt3p=xyz`
         - Connect
         - Double-click and join game, take over for a robot
         - In game window, click "Options" button; game opt XYZ should be set
+        - In your IDE, pause the debugged client to simulate network connection loss
+        - Start a new client using same JVM param as paused one, and connect as that same username
+        - Double-click game name: Should allow rejoin after appropriate number of seconds
+        - To clean up, terminate the paused debugged client
     - Test when only server knows it:
         - Start another client without that `gameopt3p` param
         - Connect
         - In list of games, the game with option XYZ should show "(cannot join)"
+        - Click "Game Info"; popup should show "This game does not use options"
         - Double-click game, popup should show message "Cannot join"
         - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.XYZ"
     - Quit all clients and server
+    - Unit tests handle third-party options if added in a fork
+        - In soc.game.SOCGameOptionSet.getAllKnownOptions, temporarily uncomment game opts `"_3P"` and `"_3P2"`
+        - Run unit tests or `gradle build`
+        - All unit tests should still pass (TestGameOptions.testOptionsNewerThanVersion looks for "known" 3rd-party gameopts)
 - i18n/Localization
     - For these tests, temporarily "un-localize" SC_FOG scenario, SC_TTD description by commenting out 3 lines in `src/main/resources/resources/strings/server/toClient_es.properties`:  
 
@@ -590,7 +667,7 @@ When preparing to release a new version, testing should include:
         - Second pair of limited clients' game list should show that game as "(cannot join)"
         - In one of the second pair, double-click that game in game list; should show a popup "Client is incompatible with features of this game".  
           Double-click game again; should try to join, then show a popup with server's reply naming the missing required feature: `6pl`
-    - For reconnecting disconnected clients:
+    - When reconnecting disconnected clients:
         - Start a server without any options
         - Start a standard client under your IDE's debugger, connect to server
         - Create & start 3 games (against bots):
@@ -666,6 +743,8 @@ When preparing to release a new version, testing should include:
         - Exit clients and server
 - Saving and loading games at server
     - Basics
+        - Setup: Needs `gson.jar` in same directory as server jar
+          - For details, search [Readme.developer.md](Readme.developer.md) for `gson.jar`
         - Start server with debug user enabled, but not savegame feature: command-line arg `-Djsettlers.allow.debug=Y`
           - Log in as debug user, start a game
           - Try command `*SAVEGAME* tmp`
@@ -755,6 +834,8 @@ When preparing to release a new version, testing should include:
 
 ## Database setup and Account Admins list
 
+### Tests with no DB
+
 - SOCAccountClient with a server not using a DB:
     - To launch SOCAccountClient, use: `java -cp JSettlers.jar soc.client.SOCAccountClient yourserver.example.com 8880`
     - At connect, should see a message like "This server does not use accounts"
@@ -779,7 +860,7 @@ See [Database.md](Database.md) for versions to test ("JSettlers is tested with..
 - Server prop to require accounts (`jsettlers.accounts.required=Y`):  
   Should not allow login as nonexistent user with no password
 - Server prop for games saved in DB (`jsettlers.db.save.games=Y`):  
-  Play a complete game, check for results there: `select * from games;`
+  Play a complete game, check for results there: `select * from games2;`
 - Test creating as old schema (before v2.0.00 or 1.2.00) and upgrading
     - Get the old schema SQL files you'll need from the git repo by using an earlier release tag
       - Files to test upgrade from schema v1.2.00:
@@ -971,9 +1052,32 @@ Start with a recently-created database with latest schema/setup scripts.
     - Start a new client and connect as that same username
       - Should allow connect after appropriate number of seconds
       - Player's private info should be correct
-- Leave a practice game idle for hours, then finish it; bots should not time out or leave game
-- Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
-  should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+- Idle games, timeout behaviors:
+    - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
+    - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
+      should let you add time in 30-minute intervals up to original limit + 30 minutes remaining
+    - Client: Click "Start a Server" button, leave it idle for at least 2 hours;
+      should stay up and available, shouldn't time out or give a network error
+    - If connection to server is lost or times out, Connect or Practice panel should give you all options
+        - In src/main/java/soc/server/genericServer/NetConnection.java temporarily change `TIMEOUT_VALUE` to `10 * 1000`
+        - Test: Start a Server
+            - Launch client and click "Start a Server", then "Start"
+            - Should start up and connect to that server as usual
+            - Wait 10 seconds
+        - Client should return to its Connect or Practice panel
+            - Should show the 3 buttons for Connect to a Server, Practice, Start a Server
+            - Network trouble message should be shown above the buttons
+            - No input textfields should be visible
+            - Click "Connect to Server"; all buttons should be enabled
+            - Click "Start a Server"; all buttons should be enabled
+        - Start up a server on default port
+        - Test: Connect to a Server
+            - In client, click "Connect to a Server", then "Connect"
+            - Should connect to that server as usual
+            - Wait 10 seconds
+        - Client should return to its Connect or Practice panel
+            - Should be same as for "Test: Start a Server": see that for details
+        - Exit client, stop server; revert NetConnection.java temporary change
 - Practice Games vs Server connection:
     - Launch the player client and start a practice game (past end of initial placement)
     - Connect to a server, change client's nickname from "Player", start or join a game there
@@ -986,7 +1090,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  
-      `java -jar JSettlersServer-3.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=20 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.gametypes=3 -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+      `java -jar JSettlersServer-3.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=10 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.gametypes=3 -Djsettlers.debug.bots.datacheck.rsrc=Y -Djsettlers.allow.debug=Y -Djsettlers.bots.botgames.shutdown=Y 8118 15`
     - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
     - These games should complete in under 10 minutes
     - Once the games complete, that server will exit

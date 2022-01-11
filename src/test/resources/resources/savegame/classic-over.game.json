@@ -4,6 +4,7 @@
   "gameMinVersion": -1,
   "gameName": "classic",
   "comments": "At end of typical 3-player Classic game; bot won",
+  "author": "Jeremy D Monin  2020",
   "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df",
   "gameDurationSeconds": 471,
   "gameState": 1000,

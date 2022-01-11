@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -211,7 +211,7 @@ public class SOCRobotParameters implements Serializable
      * @return true if {@code other} is a {@link SOCRobotParameters} having the same values
      *     for all fields listed in constructor
      * @see Object#equals(Object)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public boolean equals(Object o)
     {

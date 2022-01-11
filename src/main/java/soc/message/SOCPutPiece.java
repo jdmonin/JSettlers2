@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -45,8 +45,8 @@ import soc.proto.Message;
  * {@link SOCGameServerText} and, if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link SOCGameState} and then a {@link SOCCancelBuildRequest}.
  *<BR>
- * If PutPiece leads to Longest Route player changing, server sends that
- * after {@code SOCPlayerElement}s before {@code SOCGameState}:
+ * If PutPiece leads to the Longest Route player changing, server v2.4.00 and newer announces that
+ * between the {@code SOCPlayerElement}s and {@code SOCGameState}:
  * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER}).
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
@@ -240,7 +240,7 @@ public class SOCPutPiece extends SOCMessage
      * Converts piece coordinate to decimal from hexadecimal format.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

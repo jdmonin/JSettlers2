@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,9 +33,14 @@ import soc.game.SOCResourceConstants;  // for javadocs only
  * Sent as a request from current player's client, in response to server's
  * {@link SOCGameState}({@link SOCGame#WAITING_FOR_MONOPOLY WAITING_FOR_MONOPOLY}).
  *<P>
- * For a Monopoly card, the server responds by announcing {@link SOCSimpleAction}
- * ({@link SOCSimpleAction#RSRC_TYPE_MONOPOLIZED RSRC_TYPE_MONOPOLIZED}).
- *<P>
+ * For a Monopoly card, the server responds by announcing:
+ *<UL>
+ * <LI> For each victim player, {@link SOCPlayerElement} for their zeroed resource type
+ * <LI> and {@link SOCResourceCount} with that victim's new resource total (server v2.5.00 and newer),
+ *      for clients which may have tracked some of the victims' lost resource as {@link SOCResourceConstants#UNKNOWN}.
+ * <LI> Finally, {@link SOCSimpleAction}({@link SOCSimpleAction#RSRC_TYPE_MONOPOLIZED RSRC_TYPE_MONOPOLIZED}).
+ *</UL>
+ *
  * Before v2.0.00 this class was {@code SOCMonopolyPick}.
  *
  * @see SOCPickResources

@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -26,10 +26,12 @@ package soc.server;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import soc.debug.D;
+import soc.game.ResourceSet;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCard;
@@ -414,64 +416,135 @@ public class SOCGameMessageHandler
                     srv.messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
                         new SOCGameTextMsg
                             (gn, SOCGameTextMsg.SERVERNAME,
-                             plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
+                             plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N OK: v1.x always english
                         true);
                 }
-                handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
 
                 /** if true but noPlayersGained, will change announcement wording from "No player gets anything". */
                 boolean someoneWonFreeRsrc = false;
 
                 if (ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
                 {
-                    // pirate moves on every roll
+                    // pirate moves on every roll,
+                    // attacks when 1 player's settlement/city is adjacent
                     srv.messageToGame(gn, true, new SOCMoveRobber
                         (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
 
                     if (roll.sc_piri_fleetAttackVictim != null)
                     {
+                        final SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
+                        final int vpn = vic.getPlayerNumber();
+                        final String vicName = vic.getName();
+                        final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
                         final SOCResourceSet loot = roll.sc_piri_fleetAttackRsrcs;
                         final int lootTotal = (loot != null) ? loot.getTotal() : 0;
-                        if (lootTotal != 0)
+
+                        if (lootTotal == 0)
                         {
+                            // Special form of SOCReportRobbery to notify newer clients of tie
+                            SOCReportRobbery wonMsg = new SOCReportRobbery
+                                (gn, -1, vpn, 0, true, 0, 0, strength);
+                            if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+                            {
+                                srv.messageToGame(gn, true, wonMsg);
+                            } else {
+                                srv.messageToGameForVersions
+                                    (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, wonMsg, true);
+                                srv.messageToGameForVersionsKeyed
+                                    (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
+                                     false, "action.rolled.sc_piri.player.tied", vicName, strength);
+                                    // "{0} tied against the pirate fleet (strength {1})."
+                                srv.recordGameEvent(gn, wonMsg);
+                            }
+                        } else {
                             final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
-                            SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
-                            final String vicName = vic.getName();
-                            final Connection vCon = srv.getConnection(vicName);
-                            final int vpn = vic.getPlayerNumber();
-                            final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
 
                             if (won)
                             {
                                 someoneWonFreeRsrc = true;
-                                srv.messageToGameKeyed
-                                    (ga, true, true, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
-                                    // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
-                            } else {
-                                // use same resource-loss messages sent in handleDISCARD
 
-                                if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
+                                // Special form of SOCReportRobbery to notify newer clients of win
+                                SOCReportRobbery wonMsg = new SOCReportRobbery
+                                    (gn, -1, vpn, SOCResourceConstants.UNKNOWN, true, 0, 0, strength);
+                                if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
                                 {
-                                    // fully observable: announce to everyone
-                                    handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, null);
+                                    srv.messageToGame(gn, true, wonMsg);
                                 } else {
-                                    // tell the victim client that the player lost the resources
-                                    handler.reportRsrcGainLoss(gn, loot, true, true, vpn, -1, vCon);
-
-                                    // tell everyone else that the player lost unknown resources
-                                    srv.messageToGameExcept(gn, vCon, vpn, new SOCPlayerElement
-                                        (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal), true);
+                                    srv.messageToGameForVersions
+                                        (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, wonMsg, true);
+                                    srv.messageToGameForVersionsKeyed
+                                        (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
+                                         false, "action.rolled.sc_piri.player.won.pick.free", vicName, strength);
+                                        // "{0} won against the pirate fleet (strength {1}) and will pick a free resource."
+                                    srv.recordGameEvent(gn, wonMsg);
                                 }
+                            } else {
+                                // Use SOCReportRobbery if clients new enough, otherwise
+                                // use text and same resource-loss messages sent in handleDISCARD.
+                                // If fully observable (game opt PLAY_FO), announce details to everyone.
 
-                                srv.messageToPlayerKeyedSpecial
-                                    (vCon, ga, vpn, "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
-                                    // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
+                                final SOCReportRobbery reportDetails = new SOCReportRobbery
+                                        (gn, -1, vpn, loot, strength),
+                                    reportUnknown = new SOCReportRobbery
+                                        (gn, -1, vpn, SOCResourceConstants.UNKNOWN, true, lootTotal, 0, strength);
+                                final Connection vCon = srv.getConnection(vicName);
+                                final int vVersion = (vCon != null) ? vCon.getVersion() : 0;
 
-                                srv.messageToGameKeyedSpecialExcept
-                                    (ga, vpn, true, vCon,
-                                    "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
-                                    // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
-                                    // "Joe lost 3 resources to pirate fleet attack (strength 3)."
+                                if (ga.clientVersionLowest >= SOCReportRobbery.MIN_VERSION)
+                                {
+                                    if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
+                                    {
+                                        srv.messageToGame(gn, true, reportDetails);
+                                    } else {
+                                        srv.messageToPlayer(vCon, gn, vpn, reportDetails);
+                                        srv.messageToGameExcept(gn, vCon, vpn, reportUnknown, true);
+                                    }
+                                } else {
+                                    if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
+                                    {
+                                        srv.recordGameEvent(gn, reportDetails);
+                                        srv.messageToGameForVersions
+                                            (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, reportDetails, true);
+                                        handler.reportRsrcGainLossForVersions
+                                            (ga, loot, true, true, vpn, -1, null, SOCReportRobbery.MIN_VERSION - 1);
+                                        if (vVersion < SOCReportRobbery.MIN_VERSION)
+                                            srv.messageToPlayerKeyedSpecial
+                                                (vCon, ga, SOCServer.PN_NON_EVENT,
+                                                 "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
+                                                // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
+                                    } else {
+                                        // tell the victim which resources they lost
+                                        if (vVersion >= SOCReportRobbery.MIN_VERSION)
+                                        {
+                                            srv.messageToPlayer(vCon, gn, vpn, reportDetails);
+                                        } else {
+                                            srv.recordGameEventTo(gn, vpn, reportDetails);
+                                            handler.reportRsrcGainLossForVersions
+                                                (ga, loot, true, true, vpn, -1, vCon, SOCReportRobbery.MIN_VERSION - 1);
+                                            srv.messageToPlayerKeyedSpecial
+                                                (vCon, ga, SOCServer.PN_NON_EVENT,
+                                                 "action.rolled.sc_piri.you.lost.rsrcs.to.fleet", loot, strength);
+                                                // "You lost {0,rsrcs} to the pirate fleet (strength {1,number})."
+                                        }
+
+                                        // tell everyone else they lost unknown resources
+                                        srv.recordGameEventNotTo(gn, vpn, reportUnknown);
+                                        srv.messageToGameForVersionsExcept
+                                            (ga, SOCReportRobbery.MIN_VERSION, Integer.MAX_VALUE, vCon, reportUnknown, true);
+                                        srv.messageToGameForVersionsExcept
+                                            (ga, -1, SOCReportRobbery.MIN_VERSION - 1, vCon,
+                                             new SOCPlayerElement
+                                                 (gn, vpn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, lootTotal),
+                                             true);
+                                    }
+
+                                    srv.messageToGameForVersionsKeyedExcept
+                                        (ga, -1, SOCReportRobbery.MIN_VERSION - 1, true,
+                                         Arrays.asList(new Connection[]{vCon}), false,
+                                         "action.rolled.sc_piri.player.lost.rsrcs.to.fleet", vicName, lootTotal, strength);
+                                         // "Joe lost 1 resource to pirate fleet attack (strength 3)." or
+                                         // "Joe lost 3 resources to pirate fleet attack (strength 3)."
+                                }
                             }
                         }
                     }
@@ -488,14 +561,17 @@ public class SOCGameMessageHandler
                     /**
                      * Clients v2.0.00 and newer get an i18n-neutral SOCDiceResultResources message.
                      * Older clients get a string such as "Joe gets 3 sheep. Mike gets 1 clay."
+                     * rollRsrcMsg is generated if srv.isRecordGameEventsActive() even if there aren't
+                     * new-enough clients, because recording uses current-version message sequences.
                      */
-                    String rollRsrcTxtOldCli = null;
-                    SOCDiceResultResources rollRsrcMsgNewCli = null;
+                    String rollRsrcTxtToV1 = null;
+                    SOCDiceResultResources rollRsrcMsg = null;
 
-                    if (ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                    if ((ga.clientVersionHighest >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                        || srv.isRecordGameEventsActive())
                     {
-                        rollRsrcMsgNewCli = SOCDiceResultResources.buildForGame(ga);
-                        noPlayersGained = (rollRsrcMsgNewCli == null);
+                        rollRsrcMsg = SOCDiceResultResources.buildForGame(ga);
+                        noPlayersGained = (rollRsrcMsg == null);
                     }
 
                     if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
@@ -523,14 +599,16 @@ public class SOCGameMessageHandler
                                     // "{0} gets {1,rsrcs}."
                                     // get it from any connection's StringManager, because that string is never localized
 
-                                // Announce SOCPlayerElement.GAIN messages
-                                handler.reportRsrcGainLoss(gn, rsrcs, false, false, pn, -1, null);
+                                // Announce SOCPlayerElement.GAIN messages to v1.x
+                                handler.reportRsrcGainLossForVersions
+                                    (ga, rsrcs, false, true, pn, -1, null,
+                                     SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1);
                             }
                         }
                     }
 
                     if (! noPlayersGained)
-                        rollRsrcTxtOldCli = gainsText.toString();
+                        rollRsrcTxtToV1 = gainsText.toString();
 
                     }
 
@@ -548,21 +626,21 @@ public class SOCGameMessageHandler
                         // debug_printPieceDiceNumbers(ga, message);
                         srv.messageToGameKeyed(ga, true, true, key);
                     } else {
-                        if (rollRsrcTxtOldCli == null)
-                            srv.messageToGame(gn, true, rollRsrcMsgNewCli);
-                        else if (rollRsrcMsgNewCli == null)
-                            srv.messageToGame(gn, true, rollRsrcTxtOldCli);
+                        if (rollRsrcTxtToV1 == null)
+                            srv.messageToGame(gn, true, rollRsrcMsg);
+                        else if (rollRsrcMsg == null)
+                            srv.messageToGame(gn, true, rollRsrcTxtToV1);
                         else
                         {
                             // neither is null: we have old and new clients
                             srv.messageToGameForVersions
                                 (ga, 0, (SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1),
-                                 new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcTxtOldCli), true);
+                                 new SOCGameTextMsg(gn, SOCGameTextMsg.SERVERNAME, rollRsrcTxtToV1), true);
                             srv.messageToGameForVersions
                                 (ga, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES, Integer.MAX_VALUE,
-                                 rollRsrcMsgNewCli, true);
+                                 rollRsrcMsg, true);
 
-                            srv.recordGameEvent(gn, rollRsrcMsgNewCli);
+                            srv.recordGameEvent(gn, rollRsrcMsg);
                         }
 
                         //
@@ -592,17 +670,16 @@ public class SOCGameMessageHandler
                                          new SOCPlayerElement
                                              (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES[i], counts[i]));
 
-                                if (srv.recordGameEventsIsActive())
-                                    srv.recordGameEvent(gn, new SOCPlayerElements
+                                if (srv.isRecordGameEventsActive())
+                                    srv.recordGameEventTo(gn, pn, new SOCPlayerElements
                                         (gn, pn, SOCPlayerElement.SET, SOCGameHandler.ELEM_RESOURCES, counts));
                             }
 
                             if (ga.clientVersionLowest < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
-                                srv.messageToGame(gn, false, new SOCResourceCount(gn, pn, resources.getTotal()));
+                                srv.messageToGameForVersions
+                                    (ga, -1, SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES - 1,
+                                     new SOCResourceCount(gn, pn, resources.getTotal()), true);
                             // else, already-sent SOCDiceResultResources included players' new resource totals
-
-                            if ((rollRsrcMsgNewCli == null) && srv.recordGameEventsIsActive())
-                                srv.recordGameEvent(gn, new SOCResourceCount(gn, pn, resources.getTotal()));
 
                             // we'll send gold picks text, PLAYERELEMENT, and SIMPLEREQUEST(PROMPT_PICK_RESOURCES)
                             // after the per-player loop
@@ -682,44 +759,72 @@ public class SOCGameMessageHandler
                        }
                        }
                      */
+
+                    handler.sendGameState(ga);  // Send game state last
                 }
                 else
                 {
                     /**
                      * player rolled 7
-                     * If anyone needs to discard, prompt them.
+                     * Send new game state, then if anyone needs to
+                     * discard or gain gold, prompt them.
                      */
-                    if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-                    {
-                        handler.sendGameState_sendDiscardRequests(ga, gn);
-                    }
-                    else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+
+                    final int newGameState = ga.getGameState();
+                    int[] goldPicks = null;
+                    Connection[] goldPickPlayerClis = null;
+
+                    if (newGameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
                     {
                         // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
+                        // Send number of picks as part of roll result sequence before game state.
+                        // Resolving the 7 as usual (discards, robbing) will happen after the pick.
+
+                        goldPicks = new int[ga.maxPlayers];
+                        goldPickPlayerClis = new Connection[ga.maxPlayers];
+
                         for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         {
                             final SOCPlayer pp = ga.getPlayer(pn);
                             final int numPick = pp.getNeedToPickGoldHexResources();
+
                             if (( ! ga.isSeatVacant(pn)) && (numPick > 0))
                             {
-                                Connection con = srv.getConnection(pp.getName());
-                                if (con != null)
-                                {
-                                    srv.messageToGame(gn, true, new SOCPlayerElement
+                                srv.messageToGame(gn, true, new SOCPlayerElement
                                         (gn, pn, SOCPlayerElement.SET,
                                          PEType.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
-                                    srv.messageToPlayer
-                                        (con, gn, pn, new SOCSimpleRequest
-                                            (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, numPick, 0));
-                                }
+
+                                goldPicks[pn] = numPick;
+                                goldPickPlayerClis[pn] = srv.getConnection(pp.getName());  // null unlikely but possible
                             }
+                        }
+                    }
+
+                    handler.sendGameState(ga);  // For 7, give visual feedback before sending discard request
+
+                    if (newGameState == SOCGame.WAITING_FOR_DISCARDS)
+                    {
+                        handler.sendGameState_sendDiscardRequests(ga, gn);
+                    }
+                    else if (goldPickPlayerClis != null)
+                    {
+                        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        {
+                            Connection con = goldPickPlayerClis[pn];
+                            if (con != null)
+                                srv.messageToPlayer
+                                    (con, gn, pn, new SOCSimpleRequest
+                                        (gn, pn, SOCSimpleRequest.PROMPT_PICK_RESOURCES, goldPicks[pn], 0));
                         }
                     }
                 }
             }
             else
             {
-                srv.messageToPlayer(c, gn, pl.getPlayerNumber(), "You can't roll right now.");
+                srv.messageToPlayerKeyed
+                    (c, gn,
+                     (pl != null) ? pl.getPlayerNumber() : SOCServer.PN_OBSERVER,
+                     "reply.rolldice.cannot.now");  // "You can't roll right now."
             }
         }
         catch (Exception e)
@@ -758,10 +863,17 @@ public class SOCGameMessageHandler
                 throw new IllegalArgumentException("player not found in game");
             }
 
-            final SOCResourceSet res = mes.getResources();
+            final ResourceSet res = mes.getResources();
             if (ga.canDiscard(pn, res))
             {
                 ga.discard(pn, res);  // discard, maybe change gameState
+
+                final boolean cliVersionsSendDiscard =
+                    (ga.clientVersionHighest >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE);
+                final SOCDiscard disMsg =
+                    (cliVersionsSendDiscard || srv.isRecordGameEventsActive())
+                    ? new SOCDiscard(gn, pn, res)
+                    : null;
 
                 // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
 
@@ -769,19 +881,56 @@ public class SOCGameMessageHandler
                 if (ga.isGameOptionSet(SOCGameOptionSet.K_PLAY_FO))
                 {
                     // fully observable: announce to everyone
-                    handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, null);
+
+                    if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE)
+                    {
+                        srv.messageToGame(gn, true, disMsg);
+                    } else {
+                        srv.recordGameEvent(gn, disMsg);
+                        srv.messageToGameForVersions
+                            (ga, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE,
+                             disMsg, true);
+                        handler.reportRsrcGainLossForVersions
+                            (ga, res, true, false, pn, -1, null,
+                             SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1);
+                    }
                 } else {
                     // tell the player client that the player discarded the resources
-                    handler.reportRsrcGainLoss(gn, res, true, false, pn, -1, c);
-
                     // tell everyone else that the player discarded unknown resources
-                    srv.messageToGameExcept
-                        (gn, c, pn, new SOCPlayerElement
-                            (gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
-                         true);
+
+                    final SOCDiscard disUnknownMsg =
+                        (cliVersionsSendDiscard || srv.isRecordGameEventsActive())
+                        ? new SOCDiscard(gn, pn, 0, 0, 0, 0, 0, numRes)
+                        : null;
+
+                    if (c.getVersion() >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE)
+                    {
+                        srv.messageToPlayer(c, gn, pn, disMsg);
+                    } else {
+                        srv.recordGameEventTo(gn, pn, disMsg);
+                        handler.reportRsrcGainLossForVersions
+                            (ga, res, true, false, pn, -1, c,
+                             SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1);
+                    }
+
+                    if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE)
+                    {
+                        srv.messageToGameExcept(gn, c, pn, disUnknownMsg, true);
+                    } else {
+                        srv.recordGameEventNotTo(gn, pn, disUnknownMsg);
+                        srv.messageToGameForVersionsExcept
+                            (ga, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE, c,
+                             disUnknownMsg, true);
+                        srv.messageToGameForVersionsExcept
+                            (ga, -1, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1, c,
+                             new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, PEType.UNKNOWN_RESOURCE, numRes, true),
+                             true);
+                    }
                 }
-                srv.messageToGameKeyed(ga, true, true, "action.discarded", player.getName(), numRes);
-                    // "{0} discarded {1} resources."
+                srv.messageToGameForVersionsKeyed
+                    (ga, -1, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE - 1, true, false,
+                     "action.discarded.total.common", player.getName(), numRes);
+                        // "{0} discarded {1} resources."
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
@@ -790,10 +939,25 @@ public class SOCGameMessageHandler
                 if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
                     if (gstate == SOCGame.WAITING_FOR_DISCARDS)
-                        handler.sendGameState(ga, true, false);  // send only text prompt, not redundant GAMESTATE
-                    else
+                    {
+                        // send redundant GAMESTATE to v2.5+ for clarity,
+                        // send text prompt to all versions
+
+                        final SOCGameState gstateMsg = new SOCGameState(gn, gstate);
+                        if (ga.clientVersionLowest >= SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE)
+                        {
+                            srv.messageToGame(gn, true, gstateMsg);
+                        } else {
+                            srv.recordGameEvent(gn, gstateMsg);
+                            srv.messageToGameForVersions
+                                (ga, SOCDiscard.VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE, Integer.MAX_VALUE,
+                                 gstateMsg, true);
+                        }
+                        handler.sendGameState(ga, true, false, false);
+                    } else {
                         handler.sendGameState(ga);
                             // if state is WAITING_FOR_ROB_CHOOSE_PLAYER (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
+                    }
                 } else {
                     handler.endGameTurn(ga, player, true);  // already did ga.takeMonitor()
                 }
@@ -802,8 +966,16 @@ public class SOCGameMessageHandler
 
                 srv.messageToPlayer(c, gn, pn, "You can't discard that many cards.");  // I18N OK: not part of normal message flow
                 final int n = player.getCountToDiscard();
-                if (n > 0)
+                if ((n > 0) && ! player.hasAskedDiscardTwiceThisTurn())
+                {
+                    player.setAskedDiscardTwiceThisTurn();
                     srv.messageToPlayer(c, gn, pn, new SOCDiscardRequest(gn, n));
+                }
+
+                // If hasAskedDiscardTwiceThisTurn: Won't ask again, to avoid loop of request + discard messages
+                // if a bot is buggy. Since the server doesn't request yet again, and state is WAITING_FOR_DISCARDS,
+                // bot will likely do nothing and the time-based SOCServer.checkForExpiredTurns will choose random
+                // resources, force the bot to discard them.
             }
         }
         catch (Throwable e)
@@ -1076,20 +1248,16 @@ public class SOCGameMessageHandler
                     srv.messageToPlayer(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, msg);
                 }
             } else if (handler.checkTurn(c, ga)) {
-                SOCPlayer pl = ga.getPlayer(plName);
-                if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
-                {
-                    if (gaState == SOCGame.PLACING_FREE_ROAD1)
-                        srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", pl.getName());
-                            // "{0} cancelled the Road Building card."
-                    else if (gaState == SOCGame.PLACING_FREE_ROAD2)
-                        srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.r", pl.getName());
-                            // "{0} skipped placing the second road."
+                final SOCPlayer pl = ga.getPlayer(plName);  // shouldn't be null, because checkTurn true
+                final int pn = (pl != null) ? pl.getPlayerNumber() : -1;
 
+                if (ga.canEndTurn(pn))
+                {
                     handler.endGameTurn(ga, pl, true);
+                } else {
+                    srv.messageToPlayerKeyed(c, gname, pn, "reply.endturn.cannot");  // "You can't end your turn yet."
+                    srv.messageToPlayer(c, gname, pn, new SOCGameState(gname, gaState));  // to help prompt action
                 }
-                else
-                    srv.messageToPlayer(c, gname, pl.getPlayerNumber(), /*I*/"You can't end your turn yet."/*18N*/ );
             } else {
                 srv.messageToPlayerKeyed(c, gname, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
             }
@@ -1265,12 +1433,11 @@ public class SOCGameMessageHandler
 
             if (! canOffer)
             {
-                SOCMessage msg = (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
-                    ? new SOCMakeOffer(gaName, new SOCTradeOffer
-                        (gaName, SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE,
-                         new boolean[ga.maxPlayers], SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET))
+                final int cliPN = player.getPlayerNumber();
+                SOCMessage msg = (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
+                    ? new SOCRejectOffer(gaName, cliPN, SOCRejectOffer.REASON_CANNOT_MAKE_OFFER)
                     : new SOCGameServerText(gaName, "You can't make that offer.");  // i18n OK: is fallback only
-                srv.messageToPlayer(c, gaName, player.getPlayerNumber(), msg);
+                srv.messageToPlayer(c, gaName, cliPN, msg);
 
                 return;  // <---- Early return: Can't offer that ----
             }
@@ -1328,7 +1495,7 @@ public class SOCGameMessageHandler
                     for (int i = 0; i < ga.maxPlayers; i++)
                         srv.messageToGameWithMon(gaName, false, new SOCClearTradeMsg(gaName, i));
 
-                    if (srv.recordGameEventsIsActive())
+                    if (srv.isRecordGameEventsActive())
                         srv.recordGameEvent(gaName, new SOCClearTradeMsg(gaName, -1));
                 }
             } finally {
@@ -1391,7 +1558,10 @@ public class SOCGameMessageHandler
     /**
      * Check and complete a player trade accepted by both sides, and announce it with messages to the game.
      * Calls {@link SOCGame#canMakeTrade(int, int)}, {@link SOCGame#makeTrade(int, int)},
-     * {@link SOCGameHandler#reportTrade(SOCGame, int, int)}.
+     * {@link SOCGameHandler#reportTrade(SOCGame, int, int)}, then clears all trade offers
+     * by announcing {@link SOCClearOffer}.
+     *<P>
+     * If trade cannot be made, will reply to {@code acceptingNumber}'s client with a message explaining that.
      *<P>
      * <B>Note:</B> Calling this method assumes the players have either accepted and/or made a counter-offer,
      * and that the offer-initiating player's {@link SOCPlayer#getCurrentOffer()} is set to the trade to be executed.
@@ -1399,8 +1569,8 @@ public class SOCGameMessageHandler
      * @param ga the game object to execute the trade in
      * @param offeringNumber  Player number offering the trade
      * @param acceptingNumber  Player number accepting the trade
-     * @param c  accepting player client's connection, if need to reply that trade is not possible
-     * @since 2.4.10
+     * @param c  accepting player client's connection, for server's reply if trade is not possible
+     * @since 2.5.00
      */
     private void executeTrade
         (final SOCGame ga, final int offeringNumber, final int acceptingNumber, final Connection c)
@@ -1415,12 +1585,6 @@ public class SOCGameMessageHandler
             {
                 ga.makeTrade(offeringNumber, acceptingNumber);
                 handler.reportTrade(ga, offeringNumber, acceptingNumber);
-
-                /**
-                 * announce the accepted offer to game; won't re-send mes from client
-                 * because its acceptingNumber isn't required or sanitized
-                 */
-                srv.messageToGame(gaName, true, new SOCAcceptOffer(gaName, acceptingNumber, offeringNumber));
 
                 /**
                  * clear all offers
@@ -1438,17 +1602,17 @@ public class SOCGameMessageHandler
                         for (int i = 0; i < ga.maxPlayers; i++)
                             srv.messageToGameWithMon(gaName, false, new SOCClearOffer(gaName, i));
 
-                        if (srv.recordGameEventsIsActive())
+                        if (srv.isRecordGameEventsActive())
                             srv.recordGameEvent(gaName, new SOCClearOffer(gaName, -1));
                     }
                 } finally {
                     srv.gameList.releaseMonitorForGame(gaName);
                 }
             } else {
-                if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                if (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
                     srv.messageToPlayer
-                        (c, gaName, acceptingNumber, new SOCAcceptOffer
-                            (gaName, SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE, offeringNumber));
+                        (c, gaName, acceptingNumber, new SOCRejectOffer
+                            (gaName, acceptingNumber, SOCRejectOffer.REASON_CANNOT_MAKE_TRADE));
                 else
                     srv.messageToPlayerKeyed
                         (c, gaName, acceptingNumber, "reply.common.trade.cannot_make");  // "You can't make that trade."
@@ -1489,26 +1653,30 @@ public class SOCGameMessageHandler
                     handler.reportBankTrade(ga, give, get);
                 } else {
                     final int pn = ga.getCurrentPlayerNumber();
-                    if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                    if (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
                         srv.messageToPlayer(c, gaName, pn,
-                            new SOCBankTrade
-                                (gaName, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET,
-                                 SOCBankTrade.PN_REPLY_CANNOT_MAKE_TRADE));
+                            new SOCRejectOffer
+                                (gaName, -1, SOCRejectOffer.REASON_CANNOT_MAKE_TRADE));
                     else
                         srv.messageToPlayerKeyed
                             (c, gaName, pn, "reply.common.trade.cannot_make");  // "You can't make that trade."
 
                     SOCClientData scd = (SOCClientData) c.getAppData();
                     if ((scd != null) && scd.isRobot)
+                    {
+                        final SOCPlayer pl = ga.getPlayer(ga.getCurrentPlayerNumber());
                         D.ebugPrintlnINFO("ILLEGAL BANK TRADE: " + c.getData()
-                          + ": give " + give + ", get " + get);
+                          + ": " + gaName + " gs=" + ga.getGameState()
+                          + ": give " + give + ", get " + get
+                          + ", has " + pl.getResources()
+                          + ", ports " + Arrays.toString(pl.getPortFlags()));
+                    }
                 }
             } else {
-                if (c.getVersion() >= SOCBankTrade.VERSION_FOR_REPLY_REASONS)
+                if (c.getVersion() >= SOCRejectOffer.VERSION_FOR_REPLY_REASONS)
                     srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
-                        new SOCBankTrade
-                            (gaName, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET,
-                             SOCBankTrade.PN_REPLY_NOT_YOUR_TURN));
+                        new SOCRejectOffer
+                            (gaName, -1, SOCRejectOffer.REASON_NOT_YOUR_TURN));
                 else
                     srv.messageToPlayerKeyed
                         (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED, "base.reply.not.your.turn");  // "It's not your turn."
@@ -1654,7 +1822,6 @@ public class SOCGameMessageHandler
         final String gaName = ga.getName();
         final int pn = player.getPlayerNumber();
 
-        final boolean usePlayerElements = (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION);
         boolean sendDenyReply = false;
 
         switch (pieceType)
@@ -1664,20 +1831,7 @@ public class SOCGameMessageHandler
             if (ga.couldBuildRoad(pn))
             {
                 ga.buyRoad(pn);
-                if (usePlayerElements)
-                {
-                    srv.messageToGame(gaName, true, new SOCPlayerElements
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCRoad.COST));
-                } else {
-                    srv.messageToGame(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.CLAY, 1));
-                    srv.messageToGame(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
-
-                    if (srv.recordGameEventsIsActive())
-                        srv.recordGameEvent(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCRoad.COST));
-                }
+                handler.reportRsrcGainLoss(ga, SOCRoad.COST, true, false, pn, -1, null);
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
@@ -1693,26 +1847,7 @@ public class SOCGameMessageHandler
             if (ga.couldBuildSettlement(pn))
             {
                 ga.buySettlement(pn);
-                if (usePlayerElements)
-                {
-                    srv.messageToGame(gaName, true, new SOCPlayerElements
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCSettlement.COST));
-                } else {
-                    srv.gameList.takeMonitorForGame(gaName);
-                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.CLAY, 1));
-                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
-                    srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
-                    srv.gameList.releaseMonitorForGame(gaName);
-
-                    if (srv.recordGameEventsIsActive())
-                        srv.recordGameEvent(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCSettlement.COST));
-                }
+                handler.reportRsrcGainLoss(ga, SOCSettlement.COST, true, false, pn, -1, null);
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
@@ -1728,20 +1863,7 @@ public class SOCGameMessageHandler
             if (ga.couldBuildCity(pn))
             {
                 ga.buyCity(pn);
-                if (usePlayerElements)
-                {
-                    srv.messageToGame(gaName, true, new SOCPlayerElements
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCCity.COST));
-                } else {
-                    srv.messageToGame(ga.getName(), false, new SOCPlayerElement
-                        (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.ORE, 3));
-                    srv.messageToGame(ga.getName(), false, new SOCPlayerElement
-                        (ga.getName(), pn, SOCPlayerElement.LOSE, PEType.WHEAT, 2));
-
-                    if (srv.recordGameEventsIsActive())
-                        srv.recordGameEvent(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCCity.COST));
-                }
+                handler.reportRsrcGainLoss(ga, SOCCity.COST, true, false, pn, -1, null);
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
@@ -1757,20 +1879,7 @@ public class SOCGameMessageHandler
             if (ga.couldBuildShip(pn))
             {
                 ga.buyShip(pn);
-                if (usePlayerElements)
-                {
-                    srv.messageToGame(gaName, true, new SOCPlayerElements
-                        (gaName, pn, SOCPlayerElement.LOSE, SOCShip.COST));
-                } else {
-                    srv.messageToGame(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                    srv.messageToGame(gaName, false, new SOCPlayerElement
-                        (gaName, pn, SOCPlayerElement.LOSE, PEType.WOOD, 1));
-
-                    if (srv.recordGameEventsIsActive())
-                        srv.recordGameEvent(gaName, new SOCPlayerElements
-                            (gaName, pn, SOCPlayerElement.LOSE, SOCShip.COST));
-                }
+                handler.reportRsrcGainLoss(ga, SOCShip.COST, true, false, pn, -1, null);
                 if (sendGameState)
                     handler.sendGameState(ga);
             } else {
@@ -1792,7 +1901,12 @@ public class SOCGameMessageHandler
 
     /**
      * handle "cancel build request" message.
-     * Cancel placement and send new game state, if cancel is allowed.
+     * Cancels placement and sends new game state, if cancel is allowed.
+     *<P>
+     * If canceling Road Building before the first free road/ship is placed,
+     * announces return of dev card to player's hand and clears their
+     * {@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}:
+     * See {@link SOCCancelBuildRequest} javadoc.
      *
      * @param c  the connection that sent the message
      * @param mes  the message
@@ -1810,7 +1924,6 @@ public class SOCGameMessageHandler
                 final SOCPlayer player = ga.getPlayer(c.getData());
                 final int pn = player.getPlayerNumber();
                 final int gstate = ga.getGameState();
-                final boolean usePlayerElements = (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION);
 
                 boolean noAction = false;  // If true, there was nothing cancelable: Don't call handler.sendGameState
 
@@ -1818,26 +1931,29 @@ public class SOCGameMessageHandler
                 {
                 case SOCPlayingPiece.ROAD:
 
-                    if ((gstate == SOCGame.PLACING_ROAD) || (gstate == SOCGame.PLACING_FREE_ROAD2))
+                    if ((gstate == SOCGame.PLACING_ROAD)
+                        || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                     {
+                        final boolean wasDevCardRet = ga.doesCancelRoadBuildingReturnCard();
                         ga.cancelBuildRoad(pn);
+
                         if (gstate == SOCGame.PLACING_ROAD)
                         {
-                            if (usePlayerElements)
-                            {
-                                srv.messageToGame(gaName, true, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
-                            } else {
-                                srv.messageToGame(gaName, false, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.CLAY, 1));
-                                srv.messageToGame(gaName, false, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
-
-                                if (srv.recordGameEventsIsActive())
-                                    srv.recordGameEvent(gaName, new SOCPlayerElements
-                                        (gaName, pn, SOCPlayerElement.GAIN, SOCRoad.COST));
-                            }
-                        } else {
+                            handler.reportRsrcGainLoss(ga, SOCRoad.COST, false, false, pn, -1, null);
+                        }
+                        else if (wasDevCardRet)
+                        {
+                            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", player.getName());
+                                // "{0} cancelled the Road Building card."
+                            srv.messageToGame
+                                (gaName, true, new SOCDevCardAction
+                                    (gaName, pn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
+                            srv.messageToGame
+                                (gaName, true, new SOCPlayerElement
+                                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
+                        }
+                        else
+                        {
                             srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.r", player.getName());
                                 // "{0} skipped placing the second road."
                         }
@@ -1853,27 +1969,7 @@ public class SOCGameMessageHandler
                     if (gstate == SOCGame.PLACING_SETTLEMENT)
                     {
                         ga.cancelBuildSettlement(pn);
-                        if (usePlayerElements)
-                        {
-                            srv.messageToGame(gaName, true, new SOCPlayerElements
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCSettlement.COST));
-                        } else {
-                            srv.gameList.takeMonitorForGame(gaName);
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.CLAY, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.SHEEP, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
-                            srv.gameList.releaseMonitorForGame(gaName);
-
-                            if (srv.recordGameEventsIsActive())
-                                srv.recordGameEvent(gaName, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCSettlement.COST));
-
-                        }
+                        handler.reportRsrcGainLoss(ga, SOCSettlement.COST, false, false, pn, -1, null);
                     }
                     else if ((gstate == SOCGame.START1B) || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B))
                     {
@@ -1896,21 +1992,7 @@ public class SOCGameMessageHandler
                     if (gstate == SOCGame.PLACING_CITY)
                     {
                         ga.cancelBuildCity(pn);
-                        if (usePlayerElements)
-                        {
-                            srv.messageToGame(gaName, true, new SOCPlayerElements
-                                (gaName, pn, SOCPlayerElement.GAIN, SOCCity.COST));
-                        } else {
-                            srv.messageToGame(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.ORE, 3));
-                            srv.messageToGame(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.GAIN, PEType.WHEAT, 2));
-
-
-                            if (srv.recordGameEventsIsActive())
-                                srv.recordGameEvent(gaName, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCCity.COST));
-                        }
+                        handler.reportRsrcGainLoss(ga, SOCCity.COST, false, false, pn, -1, null);
                     } else {
                         srv.messageToPlayer(c, gaName, pn, /*I*/"You didn't buy a city."/*18N*/ );
                         noAction = true;
@@ -1920,26 +2002,26 @@ public class SOCGameMessageHandler
 
                 case SOCPlayingPiece.SHIP:
 
-                    if ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2))
+                    if ((gstate == SOCGame.PLACING_SHIP)
+                        || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                     {
+                        final boolean wasDevCardRet = ga.doesCancelRoadBuildingReturnCard();
                         ga.cancelBuildShip(pn);
+
                         if (gstate == SOCGame.PLACING_SHIP)
                         {
-                            if (usePlayerElements)
-                            {
-                                srv.messageToGame(gaName, true, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
-                            } else {
-                                srv.messageToGame(gaName, false, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.SHEEP, 1));
-                                srv.messageToGame(gaName, false, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.GAIN, PEType.WOOD, 1));
-
-                                if (srv.recordGameEventsIsActive())
-                                    srv.recordGameEvent(gaName, new SOCPlayerElements
-                                        (gaName, pn, SOCPlayerElement.GAIN, SOCShip.COST));
-                            }
-                        } else {
+                            handler.reportRsrcGainLoss(ga, SOCShip.COST, false, false, pn, -1, null);
+                        }
+                        else if (wasDevCardRet)
+                        {
+                            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", player.getName());
+                                // "{0} cancelled the Road Building card."
+                            srv.messageToGame
+                                (gaName, true, new SOCDevCardAction
+                                    (gaName, pn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
+                        }
+                        else
+                        {
                             srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.skip.s", player.getName());
                                 // "{0} skipped placing the second ship."
                         }
@@ -2381,14 +2463,14 @@ public class SOCGameMessageHandler
                 {
                     // If ship placement reveals a gold hex in _SC_FOG,
                     // the player gets to pick a free resource.
-                    handler.sendGameState(ga, false, false);
+                    handler.sendGameState(ga, false, true, false);
                     handler.sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                 }
                 else if (gstate != ga.getGameState())
                 {
                     // announce new state (such as PLACING_INV_ITEM in _SC_FTRI),
                     // or if state is now SOCGame.OVER, announce end of game
-                    handler.sendGameState(ga, false, false);
+                    handler.sendGameState(ga, false, true, false);
                 }
             }
         }
@@ -2501,9 +2583,9 @@ public class SOCGameMessageHandler
             {
                 // exit debug mode, announce end of game
                 handler.processDebugCommand_freePlace(c, ga, "0");
-                handler.sendGameState(ga, false, false);
+                handler.sendGameState(ga, false, true, false);
             } else if (newState != gstate) {
-                handler.sendGameState(ga, false, false);
+                handler.sendGameState(ga, false, true, false);
             }
         } else {
             if (initialDeny)
@@ -2558,36 +2640,14 @@ public class SOCGameMessageHandler
 
                     // Note: If this message sequence changes, update SOCBuyDevCardRequest javadoc
 
-                    srv.gameList.takeMonitorForGame(gaName);
-                    try
-                    {
-                        if (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
-                        {
-                            srv.messageToGameWithMon(gaName, true, new SOCPlayerElements
-                                (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
-                            srv.messageToGameWithMon
-                                (gaName, true, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
-                        } else {
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.LOSE, PEType.ORE, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.LOSE, PEType.SHEEP, 1));
-                            srv.messageToGameWithMon(gaName, false, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.LOSE, PEType.WHEAT, 1));
-                            srv.messageToGameWithMon
-                                (gaName, false, new SOCDevCardCount(gaName, devCount));
+                    handler.reportRsrcGainLoss(ga, SOCDevCard.COST, true, false, pn, -1, null);
 
-                            if (srv.recordGameEventsIsActive())
-                            {
-                                srv.recordGameEvent(gaName, new SOCPlayerElements
-                                    (gaName, pn, SOCPlayerElement.LOSE, SOCDevCard.COST));
-                                srv.recordGameEvent
-                                    (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount));
-                            }
-                        }
-                    } finally {
-                        srv.gameList.releaseMonitorForGame(gaName);
-                    }
+                    srv.messageToGameForVersions
+                        (ga, -1, SOCDevCardAction.VERSION_FOR_BUY_OMITS_GE_DEV_CARD_COUNT - 1,
+                         (ga.clientVersionLowest >= SOCPlayerElements.MIN_VERSION)
+                             ? new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, devCount)
+                             : new SOCDevCardCount(gaName, devCount),
+                         true);
 
                     // Let the player know, and record that event
                     {
@@ -2599,7 +2659,7 @@ public class SOCGameMessageHandler
                             (gaName, pn, SOCDevCardAction.DRAW, card);
                         srv.messageToPlayer(c, null, SOCServer.PN_NON_EVENT, drawMsg);
 
-                        if (srv.recordGameEventsIsActive())
+                        if (srv.isRecordGameEventsActive())
                         {
                             if (card == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
                                 drawMsg = new SOCDevCardAction
@@ -2630,7 +2690,7 @@ public class SOCGameMessageHandler
                              c, new SOCDevCardAction
                                  (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
 
-                        if (srv.recordGameEventsIsActive())
+                        if (srv.isRecordGameEventsActive())
                             srv.recordGameEventNotTo(gaName, pn, new SOCDevCardAction
                                 (gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN));
                     }
@@ -2794,7 +2854,7 @@ public class SOCGameMessageHandler
                                  new SOCDevCardAction
                                      (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
 
-                            if (srv.recordGameEventsIsActive())
+                            if (srv.isRecordGameEventsActive())
                                 srv.recordGameEvent(gaName, new SOCDevCardAction
                                 (gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
                         }
@@ -3003,10 +3063,24 @@ public class SOCGameMessageHandler
                     {
                         ga.doDiscoveryAction(rsrcs);
 
-                        handler.reportRsrcGainLoss(gaName, rsrcs, false, false, pn, -1, null);
-                        srv.messageToGameKeyedSpecial
-                            (ga, true, true, "action.card.discov.received", player.getName(), rsrcs);
-                            // "{0} received {1,rsrcs} from the bank."
+                        final SOCPickResources picked = new SOCPickResources
+                            (gaName, rsrcs, pn, SOCPickResources.REASON_DISCOVERY);
+                        if (ga.clientVersionLowest >= SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE)
+                        {
+                            srv.messageToGame(gaName, true, picked);
+                        } else {
+                            srv.recordGameEvent(gaName, picked);
+
+                            srv.messageToGameForVersions
+                                (ga, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE, Integer.MAX_VALUE, picked, true);
+
+                            handler.reportRsrcGainLossForVersions
+                                (ga, rsrcs, false, true, pn, -1, null, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE - 1);
+                            srv.messageToGameForVersionsKeyed
+                                (ga, 0, SOCPickResources.VERSION_FOR_SERVER_ANNOUNCE - 1, true, true,
+                                 "action.card.discov.received", player.getName(), rsrcs);
+                                     // "{0} received {1,rsrcs} from the bank."
+                        }
                         handler.sendGameState(ga);
                     } else {
                         srv.messageToPlayerKeyed(c, gaName, pn, "action.card.discov.notlegal");
@@ -3154,6 +3228,30 @@ public class SOCGameMessageHandler
 
                     srv.gameList.takeMonitorForGame(gaName);
 
+                    /**
+                     * Send each affected player's resource counts for the monopolized resource;
+                     * set isNews flag for each victim player's count.
+                     * Sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY.
+                     * Also sends their new total, for clients which may have tracked some of the victims'
+                     * lost resource as UNKNOWN.
+                     */
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        if (isVictim[pn])
+                        {
+                            final SOCResourceSet plRes = ga.getPlayer(pn).getResources();
+                            srv.messageToGameWithMon
+                                (gaName, true, new SOCPlayerElement
+                                    (gaName, pn, SOCPlayerElement.SET,
+                                     rsrc, plRes.getAmount(rsrc), true));
+                            srv.messageToGameWithMon
+                                (gaName, true, new SOCResourceCount
+                                    (gaName, pn, plRes.getTotal()));
+                        }
+                    srv.messageToGameWithMon
+                        (gaName, true, new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.GAIN,
+                             rsrc, monoTotal, false));
+
                     final SOCSimpleAction actMsg = new SOCSimpleAction
                         (gaName, cpn,
                          SOCSimpleAction.RSRC_TYPE_MONOPOLIZED, monoTotal, rsrc);
@@ -3180,22 +3278,6 @@ public class SOCGameMessageHandler
                         srv.messageToGameForVersions(ga, -1, SOCStringManager.VERSION_FOR_I18N - 1,
                             new SOCGameTextMsg(gaName, SOCGameTextMsg.SERVERNAME, monoTxt), false);
                     }
-
-                    /**
-                     * send each affected player's resource counts for the monopolized resource;
-                     * set isNews flag for each victim player's count
-                     */
-                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        if (isVictim[pn])
-                            // sending rsrc number works because SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
-                            srv.messageToGameWithMon
-                                (gaName, true, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.SET,
-                                     rsrc, ga.getPlayer(pn).getResources().getAmount(rsrc), true));
-                    srv.messageToGameWithMon
-                        (gaName, true, new SOCPlayerElement
-                            (gaName, cpn, SOCPlayerElement.GAIN,
-                             rsrc, monoTotal, false));
 
                     srv.gameList.releaseMonitorForGame(gaName);
 
@@ -3372,7 +3454,7 @@ public class SOCGameMessageHandler
 
                     // if cost paid, send resource-loss first
                     if (paidCost && (itm != null))
-                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null);
+                        handler.reportRsrcGainLoss(ga, itm.getCost(), true, false, pn, -1, null);
 
                     // Next, send SET/CLEAR before sending PICK announcement
 
@@ -3482,7 +3564,7 @@ public class SOCGameMessageHandler
 
                     // if cost paid, send resource-loss first
                     if (paidCost && (itm != null))
-                        handler.reportRsrcGainLoss(gaName, itm.getCost(), true, false, pn, -1, null);
+                        handler.reportRsrcGainLoss(ga, itm.getCost(), true, false, pn, -1, null);
 
                     // get item after SET, in case it's changed
                     if (op != SOCSetSpecialItem.OP_CLEAR)

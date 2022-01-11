@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -63,7 +63,7 @@ public class SOCChannelMembers extends SOCMessage
      * @param ch  the new channel name
      * @param ml  the list of members (String or {@link Connection})
      * @return    the command string
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCChannelMembers(String ch, List<?> ml)
     {
@@ -190,7 +190,7 @@ public class SOCChannelMembers extends SOCMessage
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Member list for {@link #parseDataStr(String)}, or {@code null} if params are malformed
      * @see #stripAttribNamesToMemberList(String, String)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018,2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -602,9 +602,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Run method for Server:
-     * Start a single "treater" thread for processing inbound messages,
-     * call the {@link #serverUp()} callback, then loop to wait for new connections
-     * and set them up in their own threads. If the optional Protobuf port is bound,
+     * First, calls the {@link #serverUp()} callback.
+     * Then starts a single "treater" thread for processing inbound messages,
+     * then loops to wait for new connections and sets up each one in its own thread.
+     * If the optional Protobuf port is bound,
      * also start its loop's thread to wait for and set up new connections.
      */
     @Override
@@ -619,9 +620,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         // Set "up" _before_ starting treater (avoid race condition)
         up = true;
 
-        inQueue.startMessageProcessing();
-
         serverUp();  // Any processing for child class to do after serversocket is bound, before the main loop begins
+
+        inQueue.startMessageProcessing();
 
         if (protoSS != null)
             startProtoAcceptThread();

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019-2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -49,7 +49,7 @@ public class TestResourceSet
 
     /**
      * Tests for {@link SOCResourceSet#isEmpty()}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void isEmpty()
@@ -108,6 +108,88 @@ public class TestResourceSet
         SOCResourceSet rs2 = onePerType();
         rs1.subtract(rs2);
         assertEquals(0, rs1.getTotal());
+    }
+
+    /**
+     * Test that {@link SOCResourceSet#subtract(int, int, boolean)} converts the entire set to unknown
+     * when unknown resources are removed.
+     * @see #removeTooMany_ConvertToUnknown()
+     * @since 2.5.00
+     */
+    @Test
+    public void removeUnknown_ConvertToUnknown()
+    {
+        SOCResourceSet rs = new SOCResourceSet(2, 2, 2, 2, 2, 2);
+
+        rs.subtract(1, SOCResourceConstants.CLAY);  // not unknown: behave normally
+        assertEquals(11, rs.getTotal());
+        assertArrayEquals(new int[]{1, 2, 2, 2, 2, 2}, rs.getAmounts(true));
+
+        rs.subtract(1, SOCResourceConstants.UNKNOWN);  // unknown but param is false: normal
+        assertEquals(10, rs.getTotal());
+        assertArrayEquals(new int[]{1, 2, 2, 2, 2, 1}, rs.getAmounts(true));
+
+        rs.subtract(1, SOCResourceConstants.UNKNOWN, true);  // unknown and param is true: convert
+        assertEquals(9, rs.getTotal());
+        assertArrayEquals(new int[]{0, 0, 0, 0, 0, 9}, rs.getAmounts(true));
+    }
+
+    /**
+     * Test that {@link SOCResourceSet#subtract(int, int)} removes from unknown
+     * when too many of a resource type is removed.
+     * @see #removeUnknown_ConvertToUnknown()
+     * @since 2.5.00
+     */
+    @Test
+    public void removeTooMany_ConvertToUnknown()
+    {
+        SOCResourceSet rs = onePerType();
+
+        rs.subtract(1, SOCResourceConstants.CLAY);  // not too many
+        assertEquals(4, rs.getTotal());
+        assertArrayEquals(new int[]{0, 1, 1, 1, 1, 0}, rs.getAmounts(true));
+
+        rs.subtract(1, SOCResourceConstants.CLAY);  // now is too many
+        assertEquals(3, rs.getTotal());
+        assertArrayEquals(new int[]{0, 1, 1, 1, 1, -1}, rs.getAmounts(true));
+    }
+
+    /**
+     * Test that {@link SOCResourceSet#subtract(soc.game.ResourceSet)} clips to 0
+     * when too many of a resource type are removed, instead of having negative amounts.
+     * @see #removeSet_ConvertToUnknown()
+     * @since 2.5.00
+     */
+    @Test
+    public void removeSet_ClipTo0()
+    {
+        SOCResourceSet rs = onePerType();
+
+        rs.subtract(new SOCResourceSet(0, 2, 1, 0, 3, 0));
+        assertEquals(2, rs.getTotal());
+        assertArrayEquals(new int[]   {1, 0, 0, 1, 0, 0}, rs.getAmounts(true));
+    }
+
+    /**
+     * Test that {@link SOCResourceSet#subtract(soc.game.ResourceSet, boolean)}
+     * removes from unknown when too many of a resource type are removed, but not if
+     * the player has at least that many.
+     * @see #removeSet_ClipTo0()
+     * @since 2.5.00
+     */
+    @Test
+    public void removeSet_ConvertToUnknown()
+    {
+        SOCResourceSet rs = new SOCResourceSet(3, 3, 3, 0, 0, 4);
+
+        // if not too many removed, no conversion
+        rs.subtract(new SOCResourceSet(0, 3, 0, 0, 0, 0), true);
+        assertEquals(10, rs.getTotal());
+        assertArrayEquals(new int[]   {3, 0, 3, 0, 0, 4}, rs.getAmounts(true));
+
+        rs.subtract(new SOCResourceSet(0, 0, 5, 0, 0, 0), true);
+        assertEquals(5, rs.getTotal());
+        assertArrayEquals(new int[]   {3, 0, 0, 0, 0, 2}, rs.getAmounts(true));
     }
 
     @Test
@@ -245,7 +327,7 @@ public class TestResourceSet
 
     /**
      * Test {@link SOCResourceSet#getAmounts(boolean)}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testGetAmounts()
@@ -277,7 +359,7 @@ public class TestResourceSet
 
     /**
      * Test {@link SOCResourceSet#hashCode()}
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testHashCode()

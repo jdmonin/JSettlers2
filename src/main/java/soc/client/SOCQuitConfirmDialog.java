@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007,2008,2010,2013-2014,2016,2018-2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007,2008,2010,2013-2014,2016,2018-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +23,10 @@ import soc.game.SOCGame;
 
 
 /**
- * This is the modal dialog to confirm when someone clicks the Quit Game button
+ * Modal dialog to confirm when someone clicks the Quit Game button
  * or the game window's close button.
+ * Also gives a "reset board" option unless there's been a server error
+ * or game was already deleted at server.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00

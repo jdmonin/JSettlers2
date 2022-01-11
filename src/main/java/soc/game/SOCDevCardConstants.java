@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012-2013,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012-2013,2016-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -115,8 +115,13 @@ public interface SOCDevCardConstants
     /** university VP card */
     public static final int UNIV = 6;
 
-    /** temple, library VP card */
-    public static final int TEMP = 7;
+    /**
+     * Temple, library VP card.
+     *<P>
+     * Before v2.5.00 this constant was {@code TEMP},
+     * which could be misinterpreted as "temporary".
+     */
+    public static final int TEMPLE = 7;
 
     /** tower, chapel VP card.
      *<P>

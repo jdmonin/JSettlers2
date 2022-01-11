@@ -44,8 +44,11 @@ public class SOCMoveRobberResult
     /**
      * When the pirate fleet moves in game scenario {@link SOCScenario#K_SC_PIRI SC_PIRI},
      * the resources stolen from victim; may be empty. Otherwise null and ignored.
+     *<P>
      * When {@link #sc_piri_loot} is set, the other {@link #loot} field is -1.
      * When {@link #victims} is empty, ignore this field.
+     *
+     * @see SOCGame#rollDice()
      * @see SOCGame#stealFromPlayerPirateFleet(int, int)
      * @see SOCGame.RollResult#sc_piri_fleetAttackRsrcs
      * @since 2.0.00

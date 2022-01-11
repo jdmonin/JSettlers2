@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 package soctest.game;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -77,9 +78,11 @@ public class TestGameOptions
     }
 
     /**
-     * Test that contents of {@link SOCGameOptionSet#getAllKnownOptions()} are consistent internally.
+     * Test that contents of {@link SOCGameOptionSet#getAllKnownOptions()} are consistent internally
+     * and follow naming conventions.
      *<UL>
-     * <LI> Key must not have {@code '3'} as second character unless option has {@link SOCGameOption#FLAG_3RD_PARTY}
+     * <LI> Key must not have {@code '3'} as second character unless option has {@link SOCGameOption#FLAG_3RD_PARTY};
+     *      if option has that flag, it has {@code '3'} there.
      *</UL>
      */
     @Test
@@ -203,7 +206,8 @@ public class TestGameOptions
     }
 
     /**
-     * Test adding a new known option and removing it.
+     * Test adding a new known option, updating it, removing it:
+     * {@link SOCGameOptionSet#addKnownOption(SOCGameOption)}.
      */
     @Test
     public void testAddKnownOption()
@@ -229,6 +233,26 @@ public class TestGameOptions
         assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
         assertEquals(2000, opt.minVersion);
         assertEquals(2000, opt.lastModVersion);
+
+        // any ChangeListener ref should be copied by addKnownOption
+        final SOCGameOption.ChangeListener cl = new SOCGameOption.ChangeListener()
+        {
+            public void valueChanged
+                (SOCGameOption op, Object oldValue, Object newValue,
+                 SOCGameOptionSet curr, SOCGameOptionSet known)
+            {}
+        };
+        newKnown.addChangeListener(cl);
+        assertTrue(newKnown.getChangeListener() == cl);
+
+        final SOCGameOption newKnown2 = new SOCGameOption
+            ("_TESTF", 2000, 2000, false, 0, "Changed for unit test");
+        hadNoOld = knowns.addKnownOption(newKnown2);
+        assertFalse(hadNoOld);
+
+        opt = knowns.getKnownOption("_TESTF", false);
+        assertTrue(newKnown2 == opt);
+        assertTrue("SGOSet.addKnownOption should copy ChangeListener ref", newKnown2.getChangeListener() == cl);
 
         // cleanup/remove known opt, by adding unknown opt
         hadNoOld = knowns.addKnownOption(new SOCGameOption("_TESTF"));
@@ -273,7 +297,7 @@ public class TestGameOptions
      * {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) gameOpts.adjustOptionsToKnown(knownOpts, doServerPreadjust=true, limitedCliFeats)}
      * checks for {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}. Uses game options
      * {@link SOCGameOptionSet#K_PLAY_FO "PLAY_FO"}, {@link SOCGameOptionSet#K_PLAY_VPO "PLAY_VPO"}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testFlagInactiveActivate()
@@ -316,7 +340,7 @@ public class TestGameOptions
             assertTrue("inactive gameopts should include PLAY_FO", inacts.containsKey("PLAY_FO"));
         }
 
-        SOCGameOptionSet activatedOpts = knowns.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2410);
+        SOCGameOptionSet activatedOpts = knowns.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2500);
         assertNull("not activated yet", activatedOpts);
 
         // testing the actual activation feature:
@@ -378,7 +402,7 @@ public class TestGameOptions
         assertFalse(activated2.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
         assertTrue(activated2.hasFlag(SOCGameOption.FLAG_ACTIVATED));
 
-        activatedOpts = knowns.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2410);
+        activatedOpts = knowns.optionsWithFlag(SOCGameOption.FLAG_ACTIVATED, 2500);
         assertNotNull(activatedOpts);
         assertEquals(2, activatedOpts.size());
         assertEquals(activated, activatedOpts.get("PLAY_VPO"));
@@ -448,7 +472,7 @@ public class TestGameOptions
 
     /**
      * Test {@link SOCGameOptionSet#activate(String)} when known option not found.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test(expected=IllegalArgumentException.class)
     public void testFlagInactiveActivate_notFound()
@@ -459,7 +483,7 @@ public class TestGameOptions
 
     /**
      * Test {@link SOCGameOptionSet#activate(String)} when known option not inactive.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test(expected=IllegalArgumentException.class)
     public void testFlagInactiveActivate_notInactive()
@@ -470,13 +494,13 @@ public class TestGameOptions
     /**
      * Test that gameopt constructors can't be called with both
      * {@link SOCGameOption#FLAG_ACTIVATED} and {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} set at same time.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test(expected=IllegalArgumentException.class)
     public void testFlagInactiveActivate_constructor()
     {
         final SOCGameOption opt = new SOCGameOption
-            ("_TESTIAF", 2000, 2410, false, SOCGameOption.FLAG_ACTIVATED | SOCGameOption.FLAG_INACTIVE_HIDDEN,
+            ("_TESTIAF", 2000, 2500, false, SOCGameOption.FLAG_ACTIVATED | SOCGameOption.FLAG_INACTIVE_HIDDEN,
              "test active and inactive at same time");
         // should throw IllegalArgumentException; next statement is there only to avoid compiler warnings
         assertNotNull(opt);
@@ -501,7 +525,7 @@ public class TestGameOptions
      * Currently client-side functions only: checkValues=false, trimEnums=false.
      * Also tests {@link SOCGameOption#FLAG_3RD_PARTY} and its interaction at client
      * with {@code optionsNewerThanVersion(..)}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testOptionsNewerThanVersion()
@@ -517,14 +541,14 @@ public class TestGameOptions
             List<SOCGameOption> opts = knowns.optionsNewerThanVersion(currVers, false, false);
             if (opts != null)
             {
-                // filter out any activated options (like PLAY_VPO from other unit test)
+                // filter out any activated options (FLAG_3RD_PARTY if present, PLAY_VPO from other unit test)
                 // which are added regardless of version
 
                 ListIterator<SOCGameOption> iter = opts.listIterator();
                 while (iter.hasNext())
                 {
                     SOCGameOption opt = iter.next();
-                    if (opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
+                    if (opt.hasFlag(SOCGameOption.FLAG_ACTIVATED) || opt.hasFlag(SOCGameOption.FLAG_3RD_PARTY))
                         iter.remove();
                 }
                 if (opts.isEmpty())
@@ -546,6 +570,13 @@ public class TestGameOptions
         assertNull(knowns.getKnownOption("T3P", false));
         knowns.addKnownOption(opt3PKnown);
         assertNotNull(knowns.getKnownOption("T3P", false));
+
+        // for purposes of this test, if this copy of JSettlers has been modified to add 3rd-party gameopts,
+        // remove those gameopts
+        Iterator<SOCGameOption> opti = knowns.iterator();
+        while (opti.hasNext())
+            if (opti.next().hasFlag(SOCGameOption.FLAG_3RD_PARTY))
+                opti.remove();
 
         // also add a 3P Known Option that's inactive, so it should be ignored client-side and server-side
         SOCGameOption new3PInact = new SOCGameOption
@@ -571,7 +602,7 @@ public class TestGameOptions
         for (SOCGameOption opt : SOCGameOptionSet.getAllKnownOptions())
         {
             if (((opt.lastModVersion > OLDER_VERSION) || opt.hasFlag(SOCGameOption.FLAG_ACTIVATED))
-                && ! opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+                && ! (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN) || opt.hasFlag(SOCGameOption.FLAG_3RD_PARTY)))
                 builtMap.put(opt.key, opt);
         }
         assertTrue("contains SC", builtMap.containsKey("SC"));    // added at v2000
@@ -625,7 +656,7 @@ public class TestGameOptions
     /**
      * Test {@link SOCGameOptionSet#optionsNotSupported(soc.util.SOCFeatureSet)}.
      * @see #testOptionsTrimmedForSupport()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testOptionsNotSupported()
@@ -736,7 +767,7 @@ public class TestGameOptions
     /**
      * Test {@link SOCGameOptionSet#optionsTrimmedForSupport(soc.util.SOCFeatureSet)}.
      * @see #testOptionsNotSupported()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testOptionsTrimmedForSupport()
@@ -810,7 +841,7 @@ public class TestGameOptions
      * Relies on related tests covered in {@link #testOptionsNotSupported()} and
      * {@link #testOptionsTrimmedForSupport()}, since
      * {@code SOCGameOptionSet.adjustOptionsToKnown(..)} calls the methods tested there.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testAdjustOptionsToKnown_doServerPreadjust_limitedCliFeats()
@@ -836,7 +867,7 @@ public class TestGameOptions
         optProblems.clear();
 
         // client has some features, but not 6-player
-        optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";sb;sc=2410;"));
+        optProblems = opts.adjustOptionsToKnown(knownOpts, true, new SOCFeatureSet(";sb;sc=2500;"));
         assertNotNull(optProblems);
         assertTrue(optProblems.containsKey("PLB"));
         assertTrue(optProblems.get("PLB").contains("requires missing feature"));
@@ -849,7 +880,7 @@ public class TestGameOptions
 
     /**
      * Test {@link SOCGameOption#equals(Object)}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testEquals()

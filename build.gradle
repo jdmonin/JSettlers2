@@ -10,7 +10,6 @@ apply plugin: 'idea'
 buildscript {
     repositories {
         mavenCentral()
-        maven { url "http://google-diff-match-patch.googlecode.com/svn/trunk/maven" }
     }
     dependencies {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.18'
@@ -27,6 +26,8 @@ compileJava {
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 }
+
+ext.python_command = 'python'  // expected to be in PATH; could change to python3 if needed
 
 repositories {
     mavenCentral()
@@ -71,7 +72,7 @@ tasks.withType(JavaCompile) {
 
 // run all python unit tests, using PyUnit (unittest module); returns 0 if no failures
 task testPython(type: Exec) {
-    executable 'python'  // expected to be in PATH
+    executable python_command
     workingDir 'src/test/python'
     args '-m', 'unittest', 'discover'  // discover requires python 2.7 or higher
     environment CLASSPATH: tasks.test.classpath.asPath
@@ -80,7 +81,7 @@ task testPython(type: Exec) {
 // Make sure sql scripts template token data is self-consistent:
 // If test_token_consistency.py finds problems, it will print a detail message.
 task testSrcDBTemplateTokens(type: Exec) {
-    executable 'python'  // expected to be in PATH
+    executable python_command
     workingDir 'src/main/bin/sql/template'
     args 'test_token_consistency.py', new File(sourceSets.main.java.srcDirs[0], '/soc/server/database/SOCDBHelper.java').absolutePath
     outputs.upToDateWhen { false }  // never skip this test
@@ -89,7 +90,7 @@ task testSrcDBTemplateTokens(type: Exec) {
 // Make sure sql scripts are consistent with their template:
 // If render.py finds problems, it will print a message showing which script(s) must be regenerated.
 task testSrcDBTemplates(type: Exec) {
-    executable 'python'  // expected to be in PATH
+    executable python_command
     workingDir 'src/main/bin/sql/template'
     args 'render.py', '-i', 'jsettlers-tables-tmpl.sql', '-d', 'mysql,sqlite,postgres', '-c', '../jsettlers-tables-%s.sql'
     outputs.upToDateWhen { false }  // never skip this test
@@ -178,7 +179,16 @@ task fullJar(type: Jar) {
     }
     from(sourceSets.main.output) {
         include "net/nand/util/i18n/mgr/**"
-        include "soc/**"
+        include "soc/baseclient/**"
+        include "soc/client/**"
+        include "soc/debug/**"
+        include "soc/disableDebug/**"
+        include "soc/game/**"
+        include "soc/message/**"
+        include "soc/proto/**"
+        include "soc/robot/**"
+        include "soc/server/**"
+        include "soc/util/**"
     }
     from(sourceSets.main.resources) {
         include "resources/**"

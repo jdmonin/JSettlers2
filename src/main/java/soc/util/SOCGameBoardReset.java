@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2010,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2010,2016-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -190,9 +190,10 @@ public class SOCGameBoardReset
         Enumeration<Connection> playersEnum = memberConns.elements();
         while (playersEnum.hasMoreElements())
         {
-            Connection pCon = playersEnum.nextElement();
-            String pname = pCon.getData();
-            SOCPlayer p = newGame.getPlayer(pname);
+            final Connection pCon = playersEnum.nextElement();
+            final String plName = pCon.getData();
+            SOCPlayer p = newGame.getPlayer(plName);
+
             if (p != null)
             {
                 int pn = p.getPlayerNumber();
@@ -208,7 +209,7 @@ public class SOCGameBoardReset
             {
                 // No such player in new game.
                 // Assume is robot player in old game.
-                p = oldGame.getPlayer(pname);
+                p = oldGame.getPlayer(plName);
                 if (p != null)
                 {
                     int pn = p.getPlayerNumber();

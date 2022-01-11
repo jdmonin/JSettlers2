@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
     final SOCResourceSet get;
 
     /**
-     * Player number making this offer, or a value &lt; 0 See {@link #getFrom()}.
+     * Player number making this offer; see {@link #getFrom()}.
      */
     final int from;
 
@@ -132,8 +132,6 @@ public class SOCTradeOffer implements Serializable, Cloneable
 
     /**
      * Player number making this offer.
-     * In v2.4.10 and higher, can be &lt; 0 to convey situations/conditions if sent as part of a network message,
-     * such as a server's reply to client that their trade offer is not allowed.
      * @return the number of the player that made the offer
      */
     public int getFrom()
@@ -226,12 +224,29 @@ public class SOCTradeOffer implements Serializable, Cloneable
      * omits {@link #getWaitingReply()} for brevity.
      * @return a human readable string of data, of the form:
      *     <tt>game=gname|from=pn|to=true,false,true,false|give={SOCResourceSet.toString}|get={SOCResourceSet.toString}</tt>
+     * @see #toString(boolean)
      */
     @Override
     public String toString()
     {
-        StringBuilder str = new StringBuilder
-            ("game=" + game + "|from=" + from + "|to=" + to[0]);
+        return toString(false);
+    }
+
+    /**
+     * Get a readable representation of this data for debugging, optionally without game field;
+     * omits {@link #getWaitingReply()} for brevity.
+     * @param omitGame  If true, omit <tt>"game="</tt> field
+     * @return a human readable string of data, of the form:
+     *     [<tt>game=gname|</tt>]<tt>from=pn|to=true,false,true,false|give={SOCResourceSet.toString}|get={SOCResourceSet.toString}</tt>
+     * @see #toString()
+     * @since 2.5.00
+     */
+    public String toString(final boolean omitGame)
+    {
+        StringBuilder str = new StringBuilder();
+        if (! omitGame)
+            str.append("game=" + game + '|');
+        str.append("from=" + from + "|to=" + to[0]);
         for (int pn = 1; pn < to.length; ++pn)
         {
             str.append(',');
@@ -247,7 +262,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
      * @return true if {@code o} is a {@link SOCTradeOffer}
      *     with the same To, From, Give and Get field contents.
      *     Ignores {@link #getGame()} field.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Override
     public boolean equals(Object o)
@@ -270,7 +285,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
     /**
      * @return a hashCode for this trade offer based on field contents,
      *     ignoring {@link #getGame()} because {@link #equals(Object)} does
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Override
     public int hashCode()

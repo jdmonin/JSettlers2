@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2019-2021 Jeremy D Monin <jeremy@nand.net>
  * This class was created in 2010 within SOCServer; reading SOCServer.java's
  * commit history led to this notice when the class was split out in 2013 to its own file:
  * Portions of this file Copyright (C) 2010-2013 Jeremy D Monin.
@@ -29,8 +29,8 @@ import soc.robot.SOCRobotClient;
 import soc.server.genericServer.Connection;
 
 /**
- * Force this robot's turn to end, by calling
- * {@link SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, Connection, boolean)}.
+ * Force this robot's turn to end, or force a resource pick, by calling
+ * {@link GameHandler#endGameTurnOrForce(SOCGame, int, String, Connection, boolean)}.
  * Done in a separate thread in case of deadlocks; see {@link #run()} for more details.
  * Created from {@link SOCGameHandler#endTurnIfInactive(SOCGame, long)}
  * when that's called from {@link SOCGameTimeoutChecker#run()}.
@@ -46,11 +46,21 @@ import soc.server.genericServer.Connection;
 /*package*/ class SOCForceEndTurnThread extends Thread
 {
     private final SOCServer srv;
-    private final SOCGameHandler hand;
+    private final GameHandler hand;
     private final SOCGame ga;
     private final SOCPlayer pl;
 
-    public SOCForceEndTurnThread(final SOCServer srv, final SOCGameHandler hand, final SOCGame g, final SOCPlayer p)
+    /**
+     * Create a new {@link SOCForceEndTurnThread}; caller must start it.
+     *
+     * @param srv  Our server
+     * @param hand  Our game handler
+     * @param g  {@code p}'s game
+     * @param p  Robot player in {@code g} to force: If current player, force-end their turn.
+     *     If not current player but game is waiting for them to discard or pick free resources,
+     *     choose randomly so the game can continue.
+     */
+    public SOCForceEndTurnThread(final SOCServer srv, final GameHandler hand, final SOCGame g, final SOCPlayer p)
     {
         setDaemon(true);
         this.srv = srv;
@@ -63,7 +73,7 @@ import soc.server.genericServer.Connection;
      * If our targeted robot player is still the current player, force-end their turn.
      * If not current player but game is waiting for them to discard or pick free resources,
      * choose randomly so the game can continue.
-     * Calls {@link SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, Connection, boolean)}.
+     * Calls {@link GameHandler#endGameTurnOrForce(SOCGame, int, String, Connection, boolean)}.
      */
     @Override
     public void run()
@@ -84,11 +94,12 @@ import soc.server.genericServer.Connection;
         }
 
         Connection rconn = srv.getConnection(rname);
+        final boolean isStubborn = pl.isStubbornRobot();
         System.err.println
             ("For robot " + rname
              + ((notCurrentPlayer) ? ": force discard/pick" : ": force end turn")
              + " in game " + ga.getName() + " pn=" + plNum + " state " + gs
-             + (pl.isStubbornRobot() ? " (stubborn)" : ""));
+             + (isStubborn ? " (stubborn)" : ""));
         if (gs == SOCGame.WAITING_FOR_DISCARDS)
             System.err.println("  srv resource count = " + pl.getResources().getTotal());
         else if (gs == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
@@ -108,7 +119,7 @@ import soc.server.genericServer.Connection;
         {
             SOCRobotClient rcli = SOCLocalRobotClient.robotClients.get(rname);
             if (rcli != null)
-                rcli.debugPrintBrainStatus(ga.getName(), false);
+                rcli.debugPrintBrainStatus(ga.getName(), ! isStubborn, false);
             else
                 System.err.println("L9397: internal error: can't find robotClient for " + rname);
         } else {

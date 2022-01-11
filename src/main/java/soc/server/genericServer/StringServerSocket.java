@@ -1,6 +1,6 @@
 /**
  * Local ({@link StringConnection}) network message system.
- * This file Copyright (C) 2007-2009,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2009,2016-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ import java.util.Vector;
 /**
  *
  * Clients who want to connect, call connectTo and are queued. (Thread.wait is used internally)
- * Server-side calls accept to retrieve them.
+ * Server-side calls {@link #accept()} to retrieve them.
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
@@ -45,6 +45,8 @@ import java.util.Vector;
  *  2.3.0 - 2020-04-27 - no change in this file
  *</PRE>
  *
+ * @see NetServerSocket
+ * @see StringConnection
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
  */

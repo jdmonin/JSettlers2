@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -82,7 +82,7 @@ public class SOCRobotNegotiator
     /**
      * {@link #ourPlayerData}'s building plan.
      *<P>
-     * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+     * Before v2.5.00 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
      */
     protected SOCBuildPlanStack buildingPlan;
 
@@ -174,7 +174,7 @@ public class SOCRobotNegotiator
     /**
      * add an offer to the offers made list
      *
-     * @param offer  the offer
+     * @param offer  the offer, or null. Null won't be added to list.
      */
     public void addToOffersMade(SOCTradeOffer offer)
     {
@@ -285,13 +285,13 @@ public class SOCRobotNegotiator
     /***
      * Make an trade offer to another player, or decide to make no offer,
      * based on what we want to build and our player's current {@link SOCPlayer#getResources()}.
+     * Checks {@link SOCBuildPlan#getFirstPieceResources()}.
      *<P>
-     * Before v2.4.10 this method took a {@link SOCPossiblePiece} instead of a {@link SOCBuildPlan}.
+     * Before v2.5.00 this method took a {@link SOCPossiblePiece} instead of a {@link SOCBuildPlan}.
      *
-     * @param targetPiece  the piece that we want to build, or {@code null}
+     * @param buildPlan  our build plan, or {@code null} or empty
      * @return the offer we want to make, or {@code null} for no offer
-     * @see #getOfferToBank(SOCResourceSet)
-     * @see #makeOffer(SOCBuildPlan)
+     * @see #getOfferToBank(SOCBuildPlan, SOCResourceSet)
      */
     public SOCTradeOffer makeOffer(SOCBuildPlan buildPlan)
     {
@@ -301,16 +301,11 @@ public class SOCRobotNegotiator
         {
             return null;
         }
-        SOCPossiblePiece targetPiece = buildPlan.getPlannedPiece(0);
-        if (targetPiece == null)
-        {
-            return null;
-        }
 
         SOCTradeOffer offer = null;
 
-        SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
-        if (targetResources == null)
+        SOCResourceSet targetResources = buildPlan.getFirstPieceResources();
+        if (targetResources.isEmpty())
             return null;
 
         SOCResourceSet ourResources = ourPlayerData.getResources();
@@ -1023,7 +1018,7 @@ public class SOCRobotNegotiator
         {
             SOCBuildPlanStack receiverBuildingPlan = new SOCBuildPlanStack();
             simulator = new SOCRobotDM
-                (brain.getRobotParameters(), brain.openingBuildStrategy,
+                (brain.getRobotParameters(), brain.openingBuildStrategy, brain.getEstimatorFactory(),
                  playerTrackers, receiverPlayerTracker, receiverPlayerData, receiverBuildingPlan);
 
             if (receiverNum == ourPlayerNumber)
@@ -1040,7 +1035,7 @@ public class SOCRobotNegotiator
                 return response;
             }
 
-            receiverTargetPiece = receiverBuildingPlan.peek();
+            receiverTargetPiece = receiverBuildingPlan.getPlannedPiece(0);
             targetPieces[receiverNum] = receiverTargetPiece;
         }
 
@@ -1056,7 +1051,7 @@ public class SOCRobotNegotiator
         {
             SOCBuildPlanStack senderBuildingPlan = new SOCBuildPlanStack();
             simulator = new SOCRobotDM
-                (brain.getRobotParameters(), brain.openingBuildStrategy,
+                (brain.getRobotParameters(), brain.openingBuildStrategy, brain.getEstimatorFactory(),
                  playerTrackers, senderPlayerTracker, senderPlayerData, senderBuildingPlan);
 
             if (senderNum == ourPlayerNumber)
@@ -1073,7 +1068,7 @@ public class SOCRobotNegotiator
                 return response;
             }
 
-            senderTargetPiece = senderBuildingPlan.peek();
+            senderTargetPiece = senderBuildingPlan.getPlannedPiece(0);
             targetPieces[senderNum] = senderTargetPiece;
         }
 
@@ -1135,8 +1130,11 @@ public class SOCRobotNegotiator
 
                 SOCBuildingSpeedEstimate estimate = brain.getEstimator(receiverPlayerData.getNumbers());
 
-                SOCTradeOffer receiverBatna = getOfferToBank(targetResources);
-                D.ebugPrintlnINFO("*** receiverBatna = " + receiverBatna);
+                if (D.ebugIsEnabled())
+                {
+                    SOCTradeOffer receiverBatna = getOfferToBank(targetResources);
+                    D.ebugPrintlnINFO("*** receiverBatna = " + receiverBatna);
+                }
 
                 int batnaBuildingTime = getETAToTargetResources(receiverPlayerData, targetResources, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET, estimate);
 
@@ -1577,7 +1575,7 @@ public class SOCRobotNegotiator
                 SOCRobotDM simulator;
                 D.ebugPrintlnINFO("**** our building plan is empty ****");
                 simulator = new SOCRobotDM
-                    (brain.getRobotParameters(), brain.openingBuildStrategy,
+                    (brain.getRobotParameters(), brain.openingBuildStrategy, brain.getEstimatorFactory(),
                      playerTrackers, ourPlayerTracker, ourPlayerData, ourBuildingPlan);
                 simulator.planStuff(strategyType);
             }
@@ -1587,7 +1585,7 @@ public class SOCRobotNegotiator
                 return counterOffer;
             }
 
-            targetPiece = ourBuildingPlan.peek();
+            targetPiece = ourBuildingPlan.getPlannedPiece(0);
             targetPieces[ourPlayerNumber] = targetPiece;
         }
 
@@ -2243,10 +2241,15 @@ public class SOCRobotNegotiator
     /**
      * Decide what bank/port trade to request, if any,
      * based on which resources we want and {@code ourResources}.
+     *<P>
+     * Other forms of {@code getOfferToBank(..)} call this one;
+     * this is the one to override if a third-party bot wants to
+     * customize {@code getOfferToBank} behavior.
      *
      * @return the offer that we'll make to the bank/ports,
      *     or {@code null} if {@code ourResources} already contains all needed {@code targetResources}
-     * @param targetResources  what resources we want; not null
+     *     or {@code targetResources} is null or empty
+     * @param targetResources  what resources we want; can be null or empty
      * @param ourResources     the resources we have; not null
      * @see #getOfferToBank(SOCBuildPlan, SOCResourceSet)
      */
@@ -2506,18 +2509,19 @@ public class SOCRobotNegotiator
      *<P>
      * Calls {@link #getOfferToBank(SOCResourceSet, SOCResourceSet)}.
      *
-     * @param buildPlan  what we want to build; may be {@code null} or empty
+     * @param buildPlan  what we want to build; may be {@code null} or empty.
+     *     Will call {@link SOCBuildPlan#getFirstPieceResources()}
+     *     unless a third-party bot overrides this method.
      * @param ourResources   the resources we have, from {@link SOCPlayer#getResources()}; not {@code null}
      * @return the offer that we'll make to the bank/ports, or {@code null} if none needed or {@code buildPlan} is empty
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCTradeOffer getOfferToBank(SOCBuildPlan buildPlan, SOCResourceSet ourResources)
     {
         if ((buildPlan == null) || buildPlan.isEmpty())
             return null;
 
-        SOCPossiblePiece targetPiece = buildPlan.getPlannedPiece(0);
-        return getOfferToBank(targetPiece.getResourcesToBuild(), ourResources);
+        return getOfferToBank(buildPlan.getFirstPieceResources(), ourResources);
     }
 
     /**
@@ -2526,7 +2530,7 @@ public class SOCRobotNegotiator
      *<P>
      * Calls {@link #getOfferToBank(SOCResourceSet, SOCResourceSet)}.
      *
-     * @param targetResources  what resources we want; not {@code null}
+     * @param targetResources  what resources we want; can be {@code null} or empty
      * @return the offer that we'll make to the bank/ports based on the resources we have,
      *     or {@code null} if {@code ourPlayerData.getResources()} already contains all needed {@code targetResources}
      * @see #makeOffer(SOCBuildPlan)
@@ -2541,7 +2545,7 @@ public class SOCRobotNegotiator
     /**
      * Marks what a player wants or is not selling based on the received offer.
      * @param offer the offer we have received
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected void recordResourcesFromOffer(SOCTradeOffer offer)
     {
@@ -2582,21 +2586,26 @@ public class SOCRobotNegotiator
     }
 
     /**
-     * Marks what resources a player is not selling based on a reject to our offer
+     * Marks what resources another player is not selling, based on their reject to our offer.
+     * Does nothing if our {@link SOCPlayer#getCurrentOffer()} is null.
      *<P>
      * To do so for another player's offer, use {@link #recordResourcesFromRejectAlt(int)}.
      *
-     * @param rejector the player number corresponding to the player who has rejected an offer
-     * @since 2.4.10
+     * @param rejector the player number corresponding to the player who has rejected our offer
+     * @since 2.5.00
      */
     protected void recordResourcesFromReject(int rejector)
     {
         D.ebugPrintlnINFO("%%%%%%%%% REJECT OFFER %%%%%%%%%%%%%");
 
+        final SOCTradeOffer ourOffer = ourPlayerData.getCurrentOffer();
+        if (ourOffer == null)
+            return;
+
         ///
         /// record which player said no
         ///
-        SOCResourceSet getSet = ourPlayerData.getCurrentOffer().getGetSet();
+        final SOCResourceSet getSet = ourOffer.getGetSet();
 
         for (int rsrcType = Data.ResourceType.CLAY_VALUE;
                 rsrcType <= Data.ResourceType.WOOD_VALUE;
@@ -2613,7 +2622,7 @@ public class SOCRobotNegotiator
      * To do so for our player's offer, use {@link #recordResourcesFromReject(int)}.
      *
      * @param rejector the player number corresponding to the player who has rejected an offer
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected void recordResourcesFromRejectAlt(int rejector)
     {
@@ -2652,8 +2661,8 @@ public class SOCRobotNegotiator
      * This is called when players haven't responded to our offer,
      * so we assume they are not selling and don't want anything else.
      * Marks the resources we offered as not selling and marks that the player doesn't want a different offer for that resource
-     * @param ourCurrentOffer the offer we made and not received an answer to
-     * @since 2.4.10
+     * @param ourCurrentOffer the offer we made and not received an answer to; not null
+     * @since 2.5.00
      */
     protected void recordResourcesFromNoResponse(SOCTradeOffer ourCurrentOffer)
     {

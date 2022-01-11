@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -131,9 +131,9 @@ public class TestPlayer
     }
 
     /**
-     * Test {@link SOCPlayer#updateDevCardsPlayed(int)}, {@link SOCPlayer#getDevCardsPlayed()},
+     * Test {@link SOCPlayer#updateDevCardsPlayed(int, boolean)}, {@link SOCPlayer#getDevCardsPlayed()},
      * and related stats fields ({@link SOCPlayer#numDISCCards} etc).
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testDevCardStats()
@@ -144,10 +144,10 @@ public class TestPlayer
         assertEquals(0, pl.numRBCards);
         assertNull(pl.getDevCardsPlayed());
 
-        pl.updateDevCardsPlayed(SOCDevCardConstants.UNKNOWN);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.UNIV);
-        pl.updateDevCardsPlayed(-42);  // out of range but should ignore it, not throw any exception
-        pl.updateDevCardsPlayed(42);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.UNKNOWN, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.UNIV, false);
+        pl.updateDevCardsPlayed(-42, false);  // out of range but should ignore it, not throw any exception
+        pl.updateDevCardsPlayed(42, false);
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
         assertEquals(0, pl.numRBCards);
@@ -155,21 +155,48 @@ public class TestPlayer
             (Arrays.asList(SOCDevCardConstants.UNKNOWN, SOCDevCardConstants.UNIV, -42, 42));
         assertEquals(expectedCards, pl.getDevCardsPlayed());
 
-        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
         assertEquals(2, pl.numDISCCards);
-        assertEquals(1, pl.numMONOCards);
+        assertEquals(2, pl.numMONOCards);
         assertEquals(1, pl.numRBCards);
         expectedCards.addAll(Arrays.asList
-            (SOCDevCardConstants.DISC, SOCDevCardConstants.MONO, SOCDevCardConstants.ROADS, SOCDevCardConstants.DISC));
+            (SOCDevCardConstants.DISC, SOCDevCardConstants.MONO, SOCDevCardConstants.MONO,
+             SOCDevCardConstants.DISC, SOCDevCardConstants.ROADS));
         assertEquals(expectedCards, pl.getDevCardsPlayed());
+
+        // test updateDevCardsPlayed with isCancel, including removal from list:
+
+        // - end of list
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS, true);
+        assertEquals(0, pl.numRBCards);
+        int ilast = expectedCards.size() - 1;
+        assertEquals(SOCDevCardConstants.ROADS, expectedCards.get(ilast).intValue());
+        expectedCards.remove(ilast);
+        assertEquals(expectedCards, pl.getDevCardsPlayed());
+        assertEquals(ilast, pl.getDevCardsPlayed().size());
+
+        // - type not in list; shouldn't throw exception when looking to remove from list
+        pl.updateDevCardsPlayed(47, true);
+        assertEquals(ilast, pl.getDevCardsPlayed().size());  // unchanged
+
+        // - just before end of list
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, true);
+        assertEquals(1, pl.numMONOCards);
+        assertEquals(SOCDevCardConstants.DISC, expectedCards.get(ilast - 1).intValue());
+        assertEquals(SOCDevCardConstants.MONO, expectedCards.get(ilast - 2).intValue());
+        expectedCards.remove(ilast - 2);
+        assertEquals(SOCDevCardConstants.DISC, expectedCards.get(ilast - 2).intValue());
+        assertEquals(expectedCards, pl.getDevCardsPlayed());
+        assertEquals(ilast - 1, pl.getDevCardsPlayed().size());
 
         SOCPlayer pclone = new SOCPlayer(pl, null);
         assertEquals(2, pclone.numDISCCards);
         assertEquals(1, pclone.numMONOCards);
-        assertEquals(1, pclone.numRBCards);
+        assertEquals(0, pclone.numRBCards);
         assertEquals(expectedCards, pclone.getDevCardsPlayed());
     }
 

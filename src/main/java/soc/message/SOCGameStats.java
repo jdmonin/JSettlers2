@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,10 +22,15 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCGame;  // for javadocs only
+import soc.game.SOCPlayer;  // javadocs only
+
 
 /**
  * This message contains the scores for the people at a game.
- * Used at end of game to display true scores (totals including points from VP cards).
+ * Used at end of game to update game data and display true scores (totals including points from VP cards).
+ * Client should call each player's {@link SOCPlayer#forceFinalVP(int)},
+ * then if {@link SOCGame#getPlayerWithWin()} == null, call {@link SOCGame#checkForWinner()}.
  *<P>
  * Any game-information messages which reveal hidden state are sent
  * before, not after, this message. When client receives this
@@ -34,10 +39,23 @@ import java.util.StringTokenizer;
  *
  *<H3>Message sequence:</H3>
  *<UL>
- *<LI> {@link SOCGameState}({@link soc.game.SOCGame#OVER OVER})
- *<LI> Any other messages revealing hidden information about game's details
+ *<LI> Preceded by:
+ *     <UL>
+ *     <LI> {@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER}=winningPlayerNumber)
+ *     <LI> {@link SOCGameState}({@link soc.game.SOCGame#OVER OVER})
+ *     </UL>
+ *     Or if another player's turn just ended, and client newer than v1.x:
+ *     <UL>
+ *     <LI> {@link SOCTurn}(winningPlayerNumber, gameState={@code OVER})
+ *     </UL>
+ *<LI> Any other messages revealing hidden information about game's details,
+ *     such as {@link SOCDevCardAction}({@link SOCDevCardAction#ADD_OLD ADD_OLD}, VPCardType,...)
  *<LI> This message
+ *<LI> Each still-connected player client is sent their {@link SOCPlayerStats}
  *</UL>
+ *<P>
+ * Server v1.x didn't send any data messages which reveal hidden VP cards,
+ * so in some games this message was necessary to reveal players' final VP totals.
  *
  * @author Robert S. Thomas
  */
@@ -52,8 +70,7 @@ public class SOCGameStats extends SOCMessage
     private String game;
 
     /**
-     * The scores; always indexed 0 to {@link soc.game.SOCGame#maxPlayers} - 1,
-     *   regardless of number of players in the game.
+     * Player scores; see {@link #getScores()}.
      */
     private int[] scores;
 
@@ -88,7 +105,9 @@ public class SOCGameStats extends SOCMessage
     }
 
     /**
-     * @return the scores
+     * @return the player scores; always indexed 0 to {@link soc.game.SOCGame#maxPlayers} - 1,
+     *   regardless of number of players seated in the game.
+     *   Vacant seats have a score of 0.
      */
     public int[] getScores()
     {

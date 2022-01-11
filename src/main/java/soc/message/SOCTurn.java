@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,13 +22,34 @@ package soc.message;
 
 import java.util.StringTokenizer;
 import soc.game.SOCGame;  // for javadocs only
+import soc.game.SOCPlayer;  // for javadocs only
 import soc.proto.GameMessage;
 import soc.proto.Message;
 
 
 /**
- * This message from server to client signals end of the current player's turn.
- * Client should end current turn, clear dice, set current player number, reset votes, etc.
+ * This message from server to client signals start of a new player's turn.
+ * Client should end current turn, set current player number and game state,
+ * then clear dice, reset votes, etc by calling {@link SOCGame#updateAtTurn()}.
+ *<P>
+ * In v2.5.00 and newer ({@link #VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT}), when client receives this message
+ * {@link SOCGame#updateAtTurn()} will clear the new player's {@link SOCPlayer#hasPlayedDevCard()} flag.
+ * (Previous server versions sent {@link SOCSetPlayedDevCard} or
+ * {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG})
+ * before {@code SOCTurn}. Server v2.5.00 and newer still send that playerelement message
+ * to clients older than 2.5.00.)
+ *<P>
+ * Also in v2.5.00 and newer, during Special Building (SBP) server doesn't follow this message
+ * with {@link SOCGameServerText}("Special building phase: Lily's turn to place"); client should print
+ * a prompt like that when it receives {@code SOCTurn}({@link SOCGame#SPECIAL_BUILDING}).
+ *<P>
+ * Also in v2.5.00 and newer ({@link #VERSION_FOR_SEND_BEGIN_FIRST_TURN}),
+ * is also sent to game during initial placement when a round ends,
+ * since the direction of play changes, and player has just placed a road or ship and should now place
+ * the next settlement or roll the dice to start the game's first turn of regular play.
+ * (In v2.0.00 - 2.4.00, that SOCTurn was sent only when a robot was current player.
+ * v1.x versions didn't send this message during init placement; there were fewer possible state transitions,
+ * and the client's SOCGame had enough info to advance the gamestate and player number.)
  *<P>
  * In v2.0.00 and newer, this message optionally includes a {@link #getGameState()} field instead of
  * a separate {@link SOCGameState} message, since the state and turn are part of the same transition.
@@ -38,15 +59,11 @@ import soc.proto.Message;
  * set current game state based on that GAMESTATE message.  Then, when this TURN message changed the
  * player number, the game would have a known state to inform the new player's options and actions.
  *<P>
- * In v2.0.00 and newer, is also sent to robot players during initial placement when a round ends
- * and the direction of play changes, and bot has just placed a road or ship and should now place
- * the next settlement or roll the dice as first player. (In earlier versions with fewer possible
- * state transitions, the client's SOCGame had enough info to advance the gamestate and player
- * number.)
- *<P>
  * Before v2.0.00 the server didn't send a TURN message to human players after the final road or ship is placed
  * at the end of initial placement and start of regular gameplay, only a {@link SOCGameState}
  * message (state START2 -> PLAY/ROLL_OR_CARD).
+ *<P>
+ * In v1.1.20 and 1.2.00 only, at start of game this {@code SOCTurn} was followed by a {@link SOCGameState}.
  *
  * @author Robert S. Thomas
  * @see SOCSetTurn
@@ -54,6 +71,24 @@ import soc.proto.Message;
 public class SOCTurn extends SOCMessage
     implements SOCMessageForGame
 {
+    /**
+     * First version (2.5.00) where {@code SOCTurn} from server
+     * also tells the client to clear the new player's "dev card played" flag
+     * as if <tt>{@link SOCSetPlayedDevCard}(pn, false)</tt> was sent,
+     * and where during Special Building Phase (SBP) server doesn't follow
+     * this message with {@link SOCGameServerText}("Lily's turn to place").
+     * @since 2.5.00
+     */
+    public static final int VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT = 2500;
+
+    /**
+     * First version (2.5.00) where {@code SOCTurn} from server
+     * is always sent at the end of initial placement / start of the first normal turn.
+     * See {@link SOCTurn} class javadoc for message sequence in earlier 1.x and 2.x versions.
+     * @since 2.5.00
+     */
+    public static final int VERSION_FOR_SEND_BEGIN_FIRST_TURN = 2500;
+
     private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
 
     /**
@@ -80,6 +115,7 @@ public class SOCTurn extends SOCMessage
      * @param pn  the seat number
      * @param gs  the new turn's optional Game State such as {@link SOCGame#ROLL_OR_CARD}, or 0.
      *     Values &lt; 0 are out of range and ignored (treated as 0).
+     *     This field is ignored by clients older than v2.0.00 ({@link SOCGameState#VERSION_FOR_GAME_STATE_AS_FIELD}).
      */
     public SOCTurn(final String ga, final int pn, final int gs)
     {
@@ -123,20 +159,7 @@ public class SOCTurn extends SOCMessage
      */
     public String toCmd()
     {
-        return toCmd(game, playerNumber, gameState);
-    }
-
-    /**
-     * TURN sep game sep2 playerNumber [sep2 gameState]
-     *
-     * @param ga  the name of the game
-     * @param pn  the seat number
-     * @param gs  the new turn's optional Game State such as {@link SOCGame#ROLL_OR_CARD}, or 0 to omit that field
-     * @return the command string
-     */
-    public static String toCmd(final String ga, final int pn, final int gs)
-    {
-        return TURN + sep + ga + sep2 + pn + ((gs > 0) ? sep2 + gs : "");
+        return TURN + sep + game + sep2 + playerNumber + ((gameState > 0) ? sep2 + gameState : "");
     }
 
     /**
@@ -151,7 +174,7 @@ public class SOCTurn extends SOCMessage
         {
             String ga;   // the game name
             int pn;  // the seat number
-            int gs = 0;  // the game state
+            int gs = 0;  // the game state; not sent from v1.x servers
 
             StringTokenizer st = new StringTokenizer(s, sep2);
 

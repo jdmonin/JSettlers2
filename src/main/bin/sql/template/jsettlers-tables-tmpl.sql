@@ -1,5 +1,6 @@
 -- DB tables/indexes create script for jsettlers.
--- Run jsettlers-create-mysql.sql or jsettlers-create-postgres.sql before this script.
+-- Run jsettlers-create-mysql.sql or jsettlers-create-postgres.sql before this script
+-- (nothing needed for sqlite).
 -- Make sure socdata is the database you are connected to when running this script:
 --      MySQL:    $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables-mysql.sql"
 --      Postgres: $ psql -d socdata --file jsettlers-tables-postgres.sql
@@ -130,7 +131,7 @@ INSERT INTO db_version(from_vers, to_vers, ddl_done, bg_tasks_done)
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2012,2014-2017,2019 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2012,2014-2017,2019-2020 Jeremy D Monin (jeremy@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 --
 --  This program is free software: you can redistribute it and/or modify

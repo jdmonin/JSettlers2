@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -352,7 +352,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             if (serverConnectInfo.stringSocketName == null)
             {
                 sock = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
-                sock.setSoTimeout(300000);
+                sock.setSoTimeout(300000);  // should be a few minutes longer than SOCServerRobotPinger.sleepTime
                 in = new DataInputStream(sock.getInputStream());
                 out = new DataOutputStream(sock.getOutputStream());
             }
@@ -678,13 +678,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * a player built something
-             */
-            case SOCMessage.PUTPIECE:
-                handlePUTPIECE((SOCPutPiece) mes);
-                break;
-
-            /**
              * the server is requesting that we join a game
              */
             case SOCMessage.BOTJOINGAMEREQUEST:
@@ -703,26 +696,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
-                break;
-
-            /**
-             * generic "simple request" responses or announcements from the server.
-             * Message type added 2013-02-17 for v1.1.18,
-             * bot ignored these until 2015-10-10 for v2.0.00 SC_PIRI
-             * and for PROMPT_PICK_RESOURCES from gold hex.
-             */
-            case SOCMessage.SIMPLEREQUEST:
-                super.handleSIMPLEREQUEST(games, (SOCSimpleRequest) mes);
-                handlePutBrainQ((SOCSimpleRequest) mes);
-                break;
-
-            /**
-             * generic "simple action" announcements from the server.
-             * Added 2013-09-04 for v1.1.19.
-             */
-            case SOCMessage.SIMPLEACTION:
-                super.handleSIMPLEACTION(games, (SOCSimpleAction) mes);
-                handlePutBrainQ((SOCSimpleAction) mes);
                 break;
 
             /**
@@ -748,24 +721,33 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 handlePutBrainQ((SOCSetSpecialItem) mes);
                 break;
 
-            // These message types are handled entirely by SOCRobotBrain:
+            // These message types are handled entirely by SOCRobotBrain,
+            // which will update game data and do any bot-specific tracking or actions needed:
 
             case SOCMessage.ACCEPTOFFER:
+            case SOCMessage.BANKTRADE:     // added 2021-01-20 for v2.5.00
+            case SOCMessage.BOTGAMEDATACHECK:    // added 2021-09-30 for v2.5.00
             case SOCMessage.CANCELBUILDREQUEST:  // current player has cancelled an initial settlement
             case SOCMessage.CHOOSEPLAYER:  // server wants our player to choose to rob cloth or rob resources from victim
             case SOCMessage.CHOOSEPLAYERREQUEST:
             case SOCMessage.CLEAROFFER:
             case SOCMessage.DEVCARDACTION:  // either draw, play, or add to hand, or cannot play our requested dev card
             case SOCMessage.DICERESULT:
+            case SOCMessage.DICERESULTRESOURCES:
+            case SOCMessage.DISCARD:        // added 2021-11-26 for v2.5.00
             case SOCMessage.DISCARDREQUEST:
-            case SOCMessage.BANKTRADE:
+            case SOCMessage.GAMESTATS:
             case SOCMessage.MAKEOFFER:
             case SOCMessage.MOVEPIECE:   // move a previously placed ship; will update game data and player trackers
             case SOCMessage.MOVEROBBER:
             case SOCMessage.PLAYERELEMENT:
             case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
+            case SOCMessage.PUTPIECE:
             case SOCMessage.REJECTOFFER:
+            case SOCMessage.REPORTROBBERY:  // added 2021-01-05 for v2.5.00
             case SOCMessage.RESOURCECOUNT:
+            case SOCMessage.SIMPLEACTION:   // added 2013-09-04 for v1.1.19
+            case SOCMessage.SIMPLEREQUEST:  // bot ignored these until 2015-10-10 for v2.0.00
             case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message
             case SOCMessage.TIMINGPING:  // server's 1x/second timing ping
             case SOCMessage.TURN:
@@ -784,7 +766,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.GAMES:
             case SOCMessage.GAMESERVERTEXT:  // SOCGameServerText contents are ignored by bots
                                              // (but not SOCGameTextMsg, which is used solely for debug commands)
-            case SOCMessage.GAMESTATS:
             case SOCMessage.JOINCHANNEL:
             case SOCMessage.JOINCHANNELAUTH:
             case SOCMessage.LEAVECHANNEL:
@@ -882,6 +863,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Server will reply with {@link SOCJoinGameAuth JOINGAMEAUTH}.
      *<P>
      * Board resets are handled similarly.
+     *<P>
+     * In v1.x this method was {@code handleJOINGAMEREQUEST}.
+     *
      * @param mes  the message
      *
      * @see #handleRESETBOARDAUTH(SOCResetBoardAuth)
@@ -1267,7 +1251,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         else if (dcmd.startsWith(":print-vars") || dcmd.startsWith(":pv"))
         {
             // "prints" the results as series of SOCGameTextMsg to game
-            debugPrintBrainStatus(gaName, true);
+            debugPrintBrainStatus(gaName, true, true);
         }
 
         else if (dcmd.startsWith(":stats"))
@@ -1415,35 +1399,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * handle the "put piece" message
-     * @param mes  the message
-     */
-    protected void handlePUTPIECE(SOCPutPiece mes)
-    {
-        CappedQueue<SOCMessage> brainQ = brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintlnINFO("CutoffExceededException" + exc);
-            }
-
-            SOCGame ga = games.get(mes.getGame());
-
-            if (ga != null)
-            {
-                // SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
-                // JDM TODO - Was this in stock client?
-            }
-        }
-    }
-
-    /**
      * handle the "dismiss robot" message
      * @param mes  the message
      */
@@ -1548,25 +1503,31 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * Print brain variables and status for this game, to {@link System#err}
      * or as {@link SOCGameTextMsg} sent to the game's members,
-     * by calling {@link SOCRobotBrain#debugPrintBrainStatus()}.
+     * by calling {@link SOCRobotBrain#debugPrintBrainStatus(boolean)}.
      * @param gameName  Game name; if no brain for that game, do nothing.
+     * @param withMessages  If true, include messages received in previous and current turn
      * @param sendTextToGame  Send to game as {@link SOCGameTextMsg} if true,
      *     otherwise print to {@link System#err}.
      * @since 1.1.13
      */
-    public void debugPrintBrainStatus(String gameName, final boolean sendTextToGame)
+    public void debugPrintBrainStatus(String gameName, final boolean withMessages, final boolean sendTextToGame)
     {
         SOCRobotBrain brain = robotBrains.get(gameName);
         if (brain == null)
             return;
 
-        List<String> rbSta = brain.debugPrintBrainStatus();
+        List<String> rbSta = brain.debugPrintBrainStatus(withMessages);
         if (sendTextToGame)
+        {
             for (final String st : rbSta)
                 put(new SOCGameTextMsg(gameName, nickname, st).toCmd());
-        else
+        } else {
+            StringBuilder sb = new StringBuilder();
             for (final String st : rbSta)
-                System.err.println(st);
+                sb.append(st).append('\n');
+
+            System.err.print(sb);
+        }
     }
 
     /**

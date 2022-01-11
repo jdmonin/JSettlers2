@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017-2019 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,9 +30,10 @@ import soc.proto.Message;
 /**
  * From client, this message means that a player wants to start the game;
  * from server, it means that a game has just started, leaving state {@code NEW}.
- * The server sends the game's new {@link SOCGameState} before sending {@code SOCStartGame}.
+ * First player number will be announced soon with a {@link SOCTurn}.
  *<P>
- * In v2.0.00 and newer, from server this message optionally includes a {@link #getGameState()} field
+ * Server v1.x sends the game's new {@link SOCGameState} before sending {@code SOCStartGame}.
+ * In v2.0.00 and newer, this message optionally includes a {@link #getGameState()} field
  * instead of a separate {@link SOCGameState} message, since the state is part of the Start Game transition.
  *<P>
  * If a client joins a game in progress, it won't be sent a {@code SOCStartGame} message,

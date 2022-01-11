@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011,2013-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -67,13 +67,13 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * Create a SOCNewGameWithOptions message at server, to send to a specific client version.
      * Game otions and minimum required version will be extracted from {@code ga}.
      *<P>
-     * Before v2.4.10 this constructor was a static {@code toCmd(..)} method.
+     * Before v2.5.00 this constructor was a static {@code toCmd(..)} method.
      *
      * @param ga  the game; will call {@link SOCGame#getGameOptions()}
      * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      *            Use -2 if the client version doesn't matter.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCNewGameWithOptions(final SOCGame ga, final int cliVers)
     {
@@ -108,7 +108,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     * @param opts Requested game options, as a read-only map
+     * @param opts Requested game options as a read-only map, or {@code null} if none
      * @param minVers Minimum client version required for this game, or -1
      * @param cliVers  Client version, if any game's options need adjustment for an older client.
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
@@ -123,9 +123,14 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
 
     /**
      * Get the encoded game options, if any.
-     * @return the options for the new game, in the format returned by
+     * Can be parsed/decoded with {@link SOCGameOption#parseOptionsToMap(String, SOCGameOptionSet)}
+     * or {@link SOCGameOption#parseOptionsToSet(String, SOCGameOptionSet)}.
+     *
+     * @return the options for the new game, in the format returned at server by
      *     {@link soc.game.SOCGameOption#packOptionsToString(Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, false, false)},
-     *     or null if no options
+     *     or null if no options.
+     *     At receiving end, may start with {@code ','} because of how the message is parsed;
+     *     that leading comma is cosmetic only and doesn't impair parsing to Map or Set.
      */
     public String getOptionsString()
     {

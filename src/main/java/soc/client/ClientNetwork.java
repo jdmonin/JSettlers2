@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
@@ -45,6 +45,7 @@ import soc.message.SOCLeaveAll;
 import soc.message.SOCMessage;
 import soc.message.SOCNewGameWithOptionsRequest;
 import soc.message.SOCRejectConnection;
+import soc.message.SOCServerPing;
 import soc.message.SOCVersion;
 import soc.server.SOCServer;
 import soc.server.genericServer.Connection;
@@ -61,6 +62,7 @@ import soc.util.Version;
  *<br>
  * Messages from server to client are received in either {@link NetReadTask} or {@link LocalStringReaderTask},
  * which call the client's {@link MessageHandler#handle(SOCMessage, boolean)}.
+ * Those Task threads call {@link MessageHandler#init(SOCPlayerClient)} before starting their run loop.
  *<br>
  * Messages from client to server are formed in {@link GameMessageSender} or other classes,
  * which call back here to send to the server via {@link #putNet(String)} or {@link #putPractice(String)}.
@@ -88,6 +90,15 @@ import soc.util.Version;
      * Timeout for initial connection to server; default is 6000 milliseconds.
      */
     public static int CONNECT_TIMEOUT_MS = 6000;
+
+    /**
+     * When client is running a local server, interval for how often to send {@link SOCServerPing}
+     * keepalive messages: 45 minutes, in milliseconds. See {@link #connect(String, int)}.
+     *<P>
+     * Should be several minutes shorter than {@link soc.server.genericServer.NetConnection#TIMEOUT_VALUE}.
+     * @since 2.5.00
+     */
+    protected static final int PING_LOCAL_SERVER_INTERVAL_MS = 45 * 60 * 1000;
 
     /**
      * The client we're communicating for.
@@ -123,7 +134,7 @@ import soc.util.Version;
 
     /**
      * Network socket.
-     * Before v2.4.10 this field was {@code s}.
+     * Before v2.5.00 this field was {@code s}.
      */
     Socket sock;
     DataInputStream in;
@@ -394,6 +405,9 @@ import soc.util.Version;
      *<P>
      * Since user login and authentication don't occur until a game or channel join is requested,
      * no username or password is needed here.
+     *<P>
+     * If {@code host} is {@code null}, assumes client has started a local TCP server and is now connecting to it.
+     * Will start a thread here to periodically {@link SOCServerPing} that server to prevent timeouts when idle.
      *
      * @param host  Server host to connect to, or {@code null} for localhost
      * @param port  Server TCP port to connect to; the default server port is {@link ClientNetwork#SOC_PORT_DEFAULT}.
@@ -417,7 +431,7 @@ import soc.util.Version;
         }
 
         ex = null;
-        final String hostString = (host != null) ? host : "localhost";
+        final String hostString = (host != null) ? host : "localhost";  // I18N: no need to localize this hostname
         serverConnectInfo = new ServerConnectInfo(hostString, port, null);
 
         System.out.println(/*I*/"Connecting to " + hostString + ":" + port/*18N*/);  // I18N: Not localizing console output yet
@@ -438,6 +452,7 @@ import soc.util.Version;
                 : new InetSocketAddress(InetAddress.getByName(null), port);  // loopback
             sock = new Socket();
             sock.connect(srvAddr, CONNECT_TIMEOUT_MS);
+            sock.setSoTimeout(0);  // ensure no read timeouts; is probably already 0 from Socket defaults
             in = new DataInputStream(sock.getInputStream());
             out = new DataOutputStream(sock.getOutputStream());
             connected = true;
@@ -445,6 +460,31 @@ import soc.util.Version;
             (reader = new Thread(new NetReadTask(client, this))).start();
             // send VERSION right away (1.1.06 and later)
             sendVersion(false);
+
+            if (host == null)
+            {
+                final Thread pinger = new Thread("cli-ping-local-srv")
+                {
+                    public void run()
+                    {
+                        final String pingCmd = new SOCServerPing(0).toCmd();
+
+                        while(connected)
+                        {
+                            try
+                            {
+                                Thread.sleep(PING_LOCAL_SERVER_INTERVAL_MS);
+                            }
+                            catch (InterruptedException e) {}
+
+                            putNet(pingCmd);
+                        }
+                    }
+                };
+
+                pinger.setDaemon(true);
+                pinger.start();
+            }
         }
         catch (Exception e)
         {
@@ -731,6 +771,7 @@ import soc.util.Version;
             try
             {
                 final MessageHandler handler = client.getMessageHandler();
+                handler.init(client);
 
                 while (net.isConnected())
                 {
@@ -797,6 +838,7 @@ import soc.util.Version;
             try
             {
                 final MessageHandler handler = client.getMessageHandler();
+                handler.init(client);
 
                 while (locl.isConnected())
                 {

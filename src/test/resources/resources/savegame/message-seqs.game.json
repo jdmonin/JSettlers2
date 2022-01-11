@@ -1,6 +1,6 @@
 {
   "modelVersion": 2400,
-  "savedByVersion": 2410,
+  "savedByVersion": 2500,
   "gameMinVersion": 2000,
   "gameName": "message-seqs",
   "comments": "board set up for message sequence testing with TestRecorder, TestActionsMessages server unit tests. No player has a settlement on dice number 8, but there's an 8 gold hex they can build to.",

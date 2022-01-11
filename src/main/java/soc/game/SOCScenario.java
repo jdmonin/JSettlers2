@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -219,11 +219,11 @@ public class SOCScenario
              "Pirate Islands and Fortresses",
              "A pirate fleet patrols, attacking to steal resources from weak players with adjacent settlements/cities until "
              + "the player builds a strong fleet of Warships. Build ships directly to the "
-             + "Fortress of your color, which the pirates have captured from you. To win the game, you must reach the "
-             + "victory point goal and defeat the Fortress 3 times using warships. "
+             + "Fortress of your color, which the pirates have captured from you. "
              + "Ship routes can't branch out, only follow dotted lines to the Fortress. "
              + "Strengthen your fleet by playing Warship development cards to upgrade your ships. "
              + "When the pirate fleet attacks, you win if you have more Warships than the pirate fleet strength (randomly 1-6). "
+             + "To win the game, you must reach the victory point goal and defeat the Fortress 3 times using warships. "
              + "No robber or largest army. When 7 is rolled, any pirate fleet attack happens before the usual discards.",
              "_SC_PIRI=t,SBL=t,VP=t10,_SC_0RVP=t"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
@@ -248,16 +248,19 @@ public class SOCScenario
                 // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
 
         // Uncomment to test scenario sync/negotiation between server and client versions.
-        // Update the version numbers to current and current + 1.
+        // Update the "2000" and "2001" version numbers here to current and current + 1.
         // Assumptions for testing:
-        //   - Client and server are both current version (if current is v2.0.00, use 2000 here)
-        //   - For testing, client or server version has been temporarily set to current + 1 (2001)
+        //   - Client and server are both current version (example: if current is v2.4.00, use 2400 here)
+        //   - For testing, client or server version has been temporarily set to current + 1 (2401)
         // i18n/localization test reminder: resources/strings/server/toClient_*.properties:
         //   gamescen.SC_TSTNC.n = test-localizedname SC_TSTNC ...
         /*
         allSc.put("SC_TSTNC", new SOCScenario
             ("SC_TSTNC", 2000, 2001,
             "New: v+1 back-compat", null, "PLB=t,VP=t11,NT=y"));
+        allSc.put("SC_TSTNA", new SOCScenario
+            ("SC_TSTNA", 2000, 2001,
+            "New: v+1 another back-compat", null, "PLB=t,VP=t11,NT=y"));
         allSc.put("SC_TSTNO", new SOCScenario
             ("SC_TSTNO", 2001, 2001,
             "New: v+1 only", null, "PLB=t,VP=t15"));
@@ -307,6 +310,8 @@ public class SOCScenario
     /**
      * Scenario key {@code SC_TTD} for Through The Desert.
      * No main option or special rules, only a board layout and SVP.
+     * Awards 2 SVP for placing past the desert, but no SVP for placing at
+     * any node in the desert's interior (not adjacent to a non-desert Land Area).
      */
     public static final String K_SC_TTD = "SC_TTD";
 

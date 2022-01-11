@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -162,6 +162,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The version check timer is set in {@link SOCClientData#setVersionTimer(SOCServer, Connection)}.
  * Before 1.1.06 the server's currently active game and channel lists were sent beforehand,
  * and client version was then sent in reply to server's version.
+ *<P>
+ * This server can be extended. To customize its handlers, you can override factory methods
+ * {@link #buildGameHandler()} and {@link #buildServerMessageHandler(SOCGameListAtServer, SOCChannelList)}.
  */
 @SuppressWarnings("serial")
 public class SOCServer extends Server
@@ -234,7 +237,7 @@ public class SOCServer extends Server
      * Integer property <tt>jsettlers.bot.human.pause</tt> to pause a robot for the specified number of seconds
      * before considering a trade that's also offered to humans. Default is 8 seconds.
      * Sets {@link SOCRobotBrain#BOTS_PAUSE_FOR_HUMAN_TRADE}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
      public static final String PROP_JSETTLERS_BOTS_PAUSE_FOR_HUMAN_TRADE = "jsettlers.bot.human.pause";
 
@@ -493,6 +496,10 @@ public class SOCServer extends Server
     /**
      * Property <tt>jsettlers.allow.debug</tt> to permit debug commands over TCP.
      * (The default is N; to allow, set to Y)
+     *<P>
+     * For convenience when hosting a server at the client, server also checks
+     * Java system properties for this one in v2.5.00 and newer.
+     *
      * @since 1.1.14
      */
     public static final String PROP_JSETTLERS_ALLOW_DEBUG = "jsettlers.allow.debug";
@@ -520,6 +527,14 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_CLI_MAXCREATECHANNELS = "jsettlers.client.maxcreatechannels";
 
     /**
+     * For bot debugging and testing, boolean property {@code "jsettlers.debug.bots.datacheck.rsrc"}
+     * to check if all bots still have an accurate count of all players' resources at end of each turn.
+     * Sends {@link SOCBotGameDataCheck}({@link SOCBotGameDataCheck#TYPE_RESOURCE_AMOUNTS TYPE_RESOURCE_AMOUNTS}).
+     * @since 2.5.00
+     */
+    public static final String PROP_JSETTLERS_DEBUG_BOTS_DATACHECK_RSRC = "jsettlers.debug.bots.datacheck.rsrc";
+
+    /**
      * Property prefix {@code jsettlers.gameopt.} to specify game option defaults in a server properties file.
      * Option names are case-insensitive past this prefix. Syntax for default value is the same as on the
      * command line, for example:
@@ -532,9 +547,9 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_GAMEOPT_PREFIX = "jsettlers.gameopt.";
 
     /**
-     * Property {@code jsettlers.gameopts.activate} to activate and use inactive game options;
-     * see {@link SOCGameOptionSet#activate(String)}.
-     * @since 2.4.10
+     * Property {@code jsettlers.gameopts.activate}, a comma-separated list of inactive game options
+     * server will activate for use. See {@link SOCGameOptionSet#activate(String)}.
+     * @since 2.5.00
      */
     public static final String PROP_JSETTLERS_GAMEOPTS_ACTIVATE = "jsettlers.gameopts.activate";
 
@@ -543,7 +558,7 @@ public class SOCServer extends Server
      * Only 4 or fewer players allowed. Also disallows use of the 6-player board.
      * May be useful for third-party bot development.
      * @see #checkLimitClientFeaturesForServerDisallows(SOCFeatureSet)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static final String PROP_JSETTLERS_GAME_DISALLOW_6PLAYER = "jsettlers.game.disallow.6player";
 
@@ -551,7 +566,7 @@ public class SOCServer extends Server
      * Boolean property {@code jsettlers.game.disallow.sea_board} to disallow use of the sea board and scenarios.
      * May be useful for third-party bot development.
      * @see #checkLimitClientFeaturesForServerDisallows(SOCFeatureSet)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static final String PROP_JSETTLERS_GAME_DISALLOW_SEA__BOARD = "jsettlers.game.disallow.sea_board";
 
@@ -642,6 +657,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_BOTS_PERCENT3P,          "Percent of bots which should be third-party (0 to 100) if available",
         PROP_JSETTLERS_BOTS_START3P,            "Third-party bot client classes to start up with server",
         PROP_JSETTLERS_BOTS_TIMEOUT_TURN,       "Robot turn timeout (seconds) for third-party bots",
+        PROP_JSETTLERS_DEBUG_BOTS_DATACHECK_RSRC, "Debug flag to check bots' count of player resources",
         PROP_JSETTLERS_SAVEGAME_DIR,            "Dir in which to store savegame files",
         PROP_JSETTLERS_STATS_FILE_NAME,         "If set, filename to append daily *STATS* into",
         PROP_JSETTLERS_TEST_VALIDATE__CONFIG,   "Flag to validate server and DB config, then exit (same as -t command-line option)",
@@ -674,7 +690,7 @@ public class SOCServer extends Server
      * {@link soc.baseclient.SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P} isn't,
      * server will set that to the same value.
      *
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static final String PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P = "jsettlers.debug.server.gameopt3p";
 
@@ -835,7 +851,7 @@ public class SOCServer extends Server
      *
      * @see #PN_OBSERVER
      * @see #PN_REPLY_TO_UNDETERMINED
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static final int PN_NON_EVENT = -256;
 
@@ -848,19 +864,20 @@ public class SOCServer extends Server
      *
      * @see #PN_NON_EVENT
      * @see #PN_REPLY_TO_UNDETERMINED
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static final int PN_OBSERVER = -257;
 
     /**
      * For {@link #messageToPlayer(Connection, String, int, SOCMessage)} and similar methods,
      * "event playerNumber" parameter value to indicate this is the server's reply to a client player, and
-     * their player number is undetermined, possibly because current player's name isn't the client nickname
-     * so server knows client can't take an action right now.
+     * their player number is undetermined. Sometimes this happens when current player's name
+     * is different from the client nickname, so server knows client can't take an action right now
+     * and hasn't bothered searching that game for a player with client's nickname.
      *
      * @see #PN_NON_EVENT
      * @see #PN_OBSERVER
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static final int PN_REPLY_TO_UNDETERMINED = -258;
 
@@ -893,8 +910,8 @@ public class SOCServer extends Server
      * All the Known Game Options, from {@link SOCGameOptionSet#getAllKnownOptions()},
      * to be copied at server startup to {@link #knownOpts}.
      *<P>
-     * Before v2.4.10, {@link SOCGameOption} relied on an internal static map and this field wasn't needed.
-     * @since 2.4.10
+     * Before v2.5.00, {@link SOCGameOption} relied on an internal static map and this field wasn't needed.
+     * @since 2.5.00
      */
     public final static SOCGameOptionSet startupKnownOpts = SOCGameOptionSet.getAllKnownOptions();
 
@@ -950,19 +967,19 @@ public class SOCServer extends Server
      * Database helper; non-null after construction, which calls {@link #initSocServer(String, String)},
      * even if no DB is configured. Call {@link SOCDBHelper#isInitialized()} to see if actually connected.
      *<P>
-     * Before v2.4.10, {@link SOCDBHelper} methods were static and this field wasn't needed.
+     * Before v2.5.00, {@link SOCDBHelper} methods were static and this field wasn't needed.
      *
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected SOCDBHelper db;
 
     /**
      * All the Known Game Options at this server, copied early from {@link #startupKnownOpts} using field initializer.
      *<P>
-     * Before v2.4.10, {@link SOCGameOption} relied on an internal static map and this field wasn't needed.
+     * Before v2.5.00, {@link SOCGameOption} relied on an internal static map and this field wasn't needed.
      *
      * @see #activateKnownOption(String)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public final SOCGameOptionSet knownOpts = new SOCGameOptionSet(startupKnownOpts, true);
 
@@ -979,17 +996,18 @@ public class SOCServer extends Server
      * as if their {@link SOCClientData#hasLimitedFeats} flag is set.
      *
      * @see #PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P
-     * @since 2.4.10
+     * @since 2.5.00
      */
     private boolean has3rdPartyGameopts;
 
     /**
      * Game type handler, currently shared by all game instances.
      * Includes a {@link SOCGameMessageHandler}.
+     * Initialized by {@link #buildGameHandler()}.
      * @see #srvMsgHandler
      * @since 2.0.00
      */
-    private final SOCGameHandler handler = new SOCGameHandler(this);
+    private final SOCGameHandler handler = buildGameHandler();
 
     /**
      * Server internal flag to indicate that user accounts are active, and authentication
@@ -1113,7 +1131,7 @@ public class SOCServer extends Server
      * Set in {@link #parseCmdline_DashedArgs(String[])}.
      * @since 1.1.15
      */
-    private static boolean hasStartupPrintAndExit = false;
+    protected static boolean hasStartupPrintAndExit = false;
 
     /**
      * Did the properties or command line include --option / -o to set {@link SOCGameOption game option} values?
@@ -1221,10 +1239,11 @@ public class SOCServer extends Server
      * Server message handler to process inbound messages from clients.
      * Messages related to actions in specific games are instead processed
      * by {@link SOCGameMessageHandler}.
+     * Initialized by {@link #buildServerMessageHandler(SOCGameListAtServer, SOCChannelList)}.
      * @see #handler
      * @since 2.0.00
      */
-    private final SOCServerMessageHandler srvMsgHandler = new SOCServerMessageHandler(this, gameList, channelList);
+    private final SOCServerMessageHandler srvMsgHandler = buildServerMessageHandler(gameList, channelList);
 
     /**
      * Holds current requests for robots to join games:<BR>
@@ -1584,7 +1603,7 @@ public class SOCServer extends Server
      *       Property names are held in PROP_* and SOCDBHelper.PROP_* constants; see {@link #PROPS_LIST}.
      * @throws IllegalStateException  If {@link Version#versionNumber()} returns 0 (packaging error)
      * @see {@link #SOCServer(String, int, String, String)}
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCServer(String s, Properties props)
         throws IllegalStateException
@@ -1597,6 +1616,33 @@ public class SOCServer extends Server
         } catch (SocketException | SQLException | EOFException e) {
             throw new IllegalStateException("Internal error, not expected to encounter " + e.toString(), e);
         }
+    }
+
+    /**
+     * Factory method to build this server's {@link SOCGameHandler} (which includes its {@link SOCGameMessageHandler}).
+     * Returns {@code new SOCGameHandler(this)} unless overridden.
+     * @return a SOCGameHandler for this server
+     * @see #buildServerMessageHandler(SOCGameListAtServer, SOCChannelList)
+     * @since 2.5.00
+     */
+    protected SOCGameHandler buildGameHandler()
+    {
+        return new SOCGameHandler(this);
+    }
+
+    /**
+     * Factory method to build this server's {@link SOCServerMessageHandler}.
+     * Returns {@code new SOCServerMessageHandler(this, games, channels)} unless overridden.
+     * @param games  Server's game list
+     * @param channels  Server's channel list
+     * @return a SOCServerMessageHandler for this server
+     * @see #buildGameHandler()
+     * @since 2.5.00
+     */
+    protected SOCServerMessageHandler buildServerMessageHandler
+        (final SOCGameListAtServer games, final SOCChannelList channels)
+    {
+        return new SOCServerMessageHandler(this, games, channels);
     }
 
     /**
@@ -1663,11 +1709,26 @@ public class SOCServer extends Server
 
         if (maxConnections == 0)
             maxConnections = getConfigIntProperty(PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
-        allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
         CLIENT_MAX_CREATE_GAMES = getConfigIntProperty
             (PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
         CLIENT_MAX_CREATE_CHANNELS = getConfigIntProperty
             (PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
+
+        /**
+         * allowDebugUser: For convenience when hosting a server at the client,
+         * check in props and also Java system properties.
+         */
+        if (getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false))
+        {
+            allowDebugUser = true;
+        } else {
+            final String val = System.getProperty(PROP_JSETTLERS_ALLOW_DEBUG, "");
+            if (! val.isEmpty())
+            {
+                props.put(PROP_JSETTLERS_ALLOW_DEBUG, val);
+                allowDebugUser = getConfigBoolProperty(PROP_JSETTLERS_ALLOW_DEBUG, false);
+            }
+        }
 
         /**
          * If true, will connect to DB (like validate_config_mode does) but start no threads.
@@ -2467,6 +2528,9 @@ public class SOCServer extends Server
      *<P>
      * Once this method completes, server begins its main loop of listening for incoming
      * client connections, and starting a Thread for each one to handle that client's messages.
+     *<P>
+     * If overriding this callback, be sure to call {@code super.serverUp()} either before or after
+     * your own code, depending on when you want robots to be started.
      *
      * @throws IllegalStateException If server was constructed in Utility Mode and shouldn't continue
      *    normal startup; see {@link #hasUtilityModeProperty()} for details.
@@ -2566,8 +2630,10 @@ public class SOCServer extends Server
     public final int getRobotCount() { return robots.size(); }
 
     /**
-     * Get a connected robot client, from server's list of bots
+     * Get a connected robot client's connection, from server's list of bots
      * (clients which have auth'd using {@link SOCImARobot}).
+     * If bot was started by the server, you can get the actual client from {@link #getRobotClient(String)}.
+     *
      * @param botName Case-sensitive bot name key, from {@link Connection#getData()}; if null, returns null
      * @return That bot's connection, or {@code null} if not found
      * @see Server#getConnection(String)
@@ -2590,6 +2656,22 @@ public class SOCServer extends Server
         }
 
         return null;
+    }
+
+    /**
+     * Get client of a robot started by the server.
+     *
+     * @param botName Case-sensitive bot name key, from {@link Connection#getData()}; if null, returns null
+     * @return That local bot's client, or {@code null} if not found or not started by server
+     * @see #getRobotConnection(String)
+     * @since 2.5.00
+     */
+    public final SOCRobotClient getRobotClient(final String botName)
+    {
+        if (botName == null)
+            return null;
+
+        return SOCLocalRobotClient.robotClients.get(botName);
     }
 
     /**
@@ -2934,22 +3016,57 @@ public class SOCServer extends Server
     }
 
     /**
-     * Create a new game or connect to a reloaded one, and announce it with a broadcast.
-     * Called from {@link #connectToGame(Connection, String, SOCGameOptionSet, SOCGame)}.
-     *<P>
-     * Can also be used with a {@code loadedGame} being reloaded; will
-     * add it to game list and generally act as if a new game is being created.
+     * Create a new game and announce it with a broadcast.
      *<P>
      * The new game is created with
      * {@link SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, GameHandler)}
      * and will expire in {@link SOCGameListAtServer#GAME_TIME_EXPIRE_MINUTES} unless extended during play.
      *<P>
      * The broadcast will send {@link SOCNewGameWithOptions} if {@code gaOpts != null}, {@link SOCNewGame} otherwise.
-     * If some connected clients are older than {@code gVers}, the message sent to those older clients will
-     * let them know they can't connect to the new game.
+     * If some connected clients are older than the options' minimum version
+     * (from {@link SOCVersionedItem#itemsMinimumVersion(Map)})
+     * the message sent to those older clients will let them know they can't connect to the new game.
+     * The new-game message is also recorded as a game event.
      *<P>
      * <b>Locks:</b> Uses {@link SOCGameList#takeMonitor()} / {@link SOCGameList#releaseMonitor()};
      * see {@code hasGameListMonitor} parameter.
+     *
+     * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
+     *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
+     *             will be called.  Can be null, especially if {@code isBotsOnly}.
+     * @param gaName  requested name of the game; no game should be in game list yet with this name.
+     *             If another game with this name does exist, tries to rename {@code gaName}
+     *             (see {@link SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, GameHandler)}).
+     *             Not validated or trimmed, see
+     *             {@link SOCServer#createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)} for that.
+     * @param gaOpts  if creating a game with options, its {@link SOCGameOption}s; otherwise null.
+     *                Must already be validated, by calling
+     *                {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
+     *                with <tt>doServerPreadjust</tt> true.
+     * @param isBotsOnly  True if the game's only players are bots, no humans and no owner
+     * @return  Newly created game, or null if an unexpected error occurs during creation
+     * @see #destroyGameAndBroadcast(String, String)
+     * @since 2.5.00
+     */
+    public SOCGame createGameAndBroadcast
+        (final Connection c, String gaName, SOCGameOptionSet gaOpts, final boolean isBotsOnly)
+    {
+        return createGameAndBroadcast
+            (c, gaName, gaOpts, null,
+             ((gaOpts != null) ? SOCVersionedItem.itemsMinimumVersion(gaOpts.getAll()) : -1),
+             isBotsOnly, false);
+    }
+
+    /**
+     * Create a new game or connect to a reloaded one, and announce it with a broadcast.
+     * Called from {@link #connectToGame(Connection, String, SOCGameOptionSet, SOCGame)}
+     * and {@link #startRobotOnlyGames(boolean, boolean)}.
+     *<P>
+     * Can also be used with a {@code loadedGame} being reloaded; will
+     * add it to game list and generally act as if a new game is being created.
+     *<P>
+     * See public form {@link #createGameAndBroadcast(Connection, String, SOCGameOptionSet, boolean)}
+     * for more info.
      *
      * @param c    the Connection creating and owning this game; its name, version, and locale should already be set.
      *             This client connection will be added as a member of the game, and its {@link SOCClientData#createdGame()}
@@ -3015,6 +3132,8 @@ public class SOCServer extends Server
                 // Add this (creating) player to the game
                 gameList.addMember(c, gaName);
 
+            startLog(newGame, false);
+
             // should release monitor before we broadcast
             if (! hasGameListMonitor)
                 gameList.releaseMonitor();
@@ -3028,7 +3147,7 @@ public class SOCServer extends Server
         catch (Exception e)
         {
             if ((e instanceof NoSuchElementException) && (loadedGame != null))
-                throw e;
+                throw (NoSuchElementException) e;
             else
                 D.ebugPrintStackTrace(e, "Exception in createGameAndBroadcast");
         }
@@ -3050,7 +3169,7 @@ public class SOCServer extends Server
      * @param newGame  Newly created game
      * @param gaName  New game's name
      * @param gaOpts  New game's options if any, or null
-     * @param gVers   New game's minimum version
+     * @param gVers   New game's minimum version, or -1 if none
      * @since 2.0.00
      */
     private void broadcastNewGame
@@ -3181,7 +3300,7 @@ public class SOCServer extends Server
                         (newGame, gaOpts, gVers, gVersMinGameOptsNoChange,
                          unnamedConns, cliLimited, msgCacheForVersion, cannotJoinMsg);
                 }
-                if (recordGameEventsIsActive())
+                if (isRecordGameEventsActive())
                     recordGameEvent(gaName, new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2));
             }
         }
@@ -3557,7 +3676,6 @@ public class SOCServer extends Server
             ? new ServerConnectInfo(strSocketName, robotCookie)
             : new ServerConnectInfo("localhost", port, robotCookie);
 
-        String curr3pBotClass = null;  // for context when reporting third-party bot instantiation errors
         try
         {
             // Make some faster ones first.
@@ -3581,28 +3699,34 @@ public class SOCServer extends Server
             // Now, any third-party bots starting up with server.
             if (robots3pCliConstrucs != null)
             {
-                int i = 0;
-                for (final Constructor<? extends SOCRobotClient> con : robots3pCliConstrucs)
+                String curr3pBotClass = null;
+
+                try
                 {
-                    ++i;
-                    curr3pBotClass = con.getDeclaringClass().getName();
-                    SOCLocalRobotClient.createAndStartRobotClientThread("extrabot " + i, sci, knownOpts, con);
+                    int i = 0;
+                    for (final Constructor<? extends SOCRobotClient> con : robots3pCliConstrucs)
+                    {
+                        ++i;
+                        curr3pBotClass = con.getDeclaringClass().getName();
+                        SOCLocalRobotClient.createAndStartRobotClientThread("extrabot " + i, sci, knownOpts, con);
+                    }
+                } catch (Exception e) {
+                    System.err.println("*** Can't start third-party bot " + curr3pBotClass + ": " + e);
+                    if ((e instanceof ReflectiveOperationException) && (e.getCause() instanceof Exception))
+                    {
+                        e = (Exception) e.getCause();
+                        System.err.println("    caused by " + e);
+                    }
+                    e.printStackTrace();
+
+                    return false;
                 }
             }
         }
         catch (Exception e)
         {
-            if (curr3pBotClass != null)
-            {
-                System.err.println("*** Can't start third-party bot " + curr3pBotClass + ": " + e);
-                if ((e instanceof ReflectiveOperationException) && (e.getCause() instanceof Exception))
-                {
-                    e = (Exception) e.getCause();
-                    System.err.println("    caused by " + e);
-                }
-                e.printStackTrace();
-            }
-            //TODO: log
+            System.err.println("*** setupLocalRobots: Can't start bot: " + e);
+            //TODO: log?
             return false;
         }
         catch (LinkageError e)
@@ -3658,6 +3782,8 @@ public class SOCServer extends Server
         Vector<Connection> members = null;
         members = gameList.getMembers(gm);
 
+        endLog(cg);
+
         gameList.deleteGame(gm);  // also calls SOCGame.destroyGame
 
         if (members != null)
@@ -3707,7 +3833,7 @@ public class SOCServer extends Server
      * Calls {@link SOCGameList#takeMonitor()}, {@link #destroyGame(String)},
      * {@link SOCGameList#releaseMonitor()}, and {@link #broadcast(SOCMessage) broadcast}({@link SOCDeleteGame}).
      * Doesn't call {@link #recordGameEvent(String, SOCMessage)} for deletion broadcast:
-     * Any recording for the game was probably closed by destroyGame.
+     * Any recording for the game was probably closed by our call to destroyGame.
      *
      * @param gaName  Game name to destroy
      * @param descForStackTrace  Activity description in case of exception thrown from destroyGame;
@@ -3738,8 +3864,9 @@ public class SOCServer extends Server
 
     /**
      * This server's game list. Treat as read-only.
-     * Useful for membership checks like {@link SOCGameListAtServer#isMember(String, String)}.
-     * @since 2.4.10
+     * Useful for membership checks like {@link SOCGameListAtServer#isMember(String, String)}
+     * and operations like {@link SOCGameList#takeMonitorForGame(String)}.
+     * @since 2.5.00
      */
     public SOCGameListAtServer getGameList()
     {
@@ -3806,7 +3933,7 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException if Known Option {@code optKey}
      *     has neither {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} nor {@link SOCGameOption#FLAG_ACTIVATED}
      * @see #getGameOptions(String)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public boolean activateKnownOption(final String optKey)
         throws IllegalArgumentException
@@ -3891,6 +4018,23 @@ public class SOCServer extends Server
     public final String getUtilityModeMessage()
     {
          return utilityModeMessage;
+    }
+
+    /**
+     * Get this server's {@link SOCFeatureSet} as sent to connecting clients.
+     * @return List of features, from {@link SOCFeatureSet#getEncodedList()}
+     * @since 2.5.00
+     */
+    public String getFeaturesList()
+    {
+        SOCFeatureSet feats = features;
+        if (acctsNotOpenRegButNoUsers)
+        {
+            feats = new SOCFeatureSet(features);
+            feats.add(SOCFeatureSet.SERVER_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
+        }
+
+        return feats.getEncodedList();
     }
 
     /**
@@ -4146,7 +4290,7 @@ public class SOCServer extends Server
      * @param c   the player connection
      * @param mes the message to send
      * @see #messageToPlayer(Connection, String, int, SOCMessage)
-     * @deprecated Use {@link #messageToPlayer(Connection, String, int, SOCMessage)} instead, starting at v2.4.10
+     * @deprecated Use {@link #messageToPlayer(Connection, String, int, SOCMessage)} instead, starting at v2.5.00
      */
     public void messageToPlayer(Connection c, SOCMessage mes)
     {
@@ -4163,14 +4307,14 @@ public class SOCServer extends Server
      *     can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}.
      *     Otherwise {@link #PN_NON_EVENT}. Ignored if {@code eventGameName} is null.
      * @param mes the message to send; does nothing if {@code null}
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void messageToPlayer(Connection c, final String eventGameName, final int eventPN, SOCMessage mes)
     {
         if ((c == null) || (mes == null))
             return;
 
-        if (eventGameName != null)
+        if ((eventGameName != null) && (eventPN != PN_NON_EVENT))
             recordGameEventTo(eventGameName, eventPN, mes);
 
         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", c.getData()));
@@ -4190,7 +4334,7 @@ public class SOCServer extends Server
      * @since 1.1.08
      * @see #messageToPlayer(Connection, String, int, String)
      * @see #messageToPlayerKeyed(Connection, String, int, String)
-     * @deprecated Use {@link #messageToPlayer(Connection, String, int, String)} instead, starting at v2.4.10
+     * @deprecated Use {@link #messageToPlayer(Connection, String, int, String)} instead, starting at v2.5.00
      */
     public void messageToPlayer(Connection c, final String ga, final String txt)
     {
@@ -4210,7 +4354,7 @@ public class SOCServer extends Server
      *     can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}. Otherwise {@link #PN_NON_EVENT}.
      * @param txt the message text to send
      * @see #messageToPlayerKeyed(Connection, String, int, String)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void messageToPlayer(Connection c, final String gameName, final int eventPN, final String txt)
     {
@@ -4225,7 +4369,7 @@ public class SOCServer extends Server
                 recordGameEventTo(gameName, eventPN, msg);
         } else {
             c.put(new SOCGameTextMsg(gameName, SERVERNAME, txt));
-            if (eventPN != PN_NON_EVENT)
+            if ((eventPN != PN_NON_EVENT) && isRecordGameEventsActive())
                 recordGameEventTo(gameName, eventPN, new SOCGameServerText(gameName, txt));
         }
     }
@@ -4246,7 +4390,7 @@ public class SOCServer extends Server
      * @see #messageToPlayerKeyed(Connection, String, int, String)
      * @see #messageToPlayerKeyed(Connection, String, int, String, Object...)
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
-     * @deprecated Use {@link #messageToPlayerKeyed(Connection, String, int, String)} instead, starting at v2.4.10
+     * @deprecated Use {@link #messageToPlayerKeyed(Connection, String, int, String)} instead, starting at v2.5.00
      */
     public final void messageToPlayerKeyed(Connection c, final String gaName, final String key)
     {
@@ -4270,7 +4414,7 @@ public class SOCServer extends Server
      *     can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}. Otherwise {@link #PN_NON_EVENT}.
      * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public final void messageToPlayerKeyed(Connection c, final String gameName, final int eventPN, final String key)
     {
@@ -4298,7 +4442,7 @@ public class SOCServer extends Server
      * @see #messageToPlayerKeyedSpecial(Connection, SOCGame, int, String, Object...)
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
      * @deprecated Use {@link #messageToPlayerKeyed(Connection, String, int, String, Object...)} instead,
-     *     starting at v2.4.10
+     *     starting at v2.5.00
      */
     public final void messageToPlayerKeyed
         (Connection c, final String gaName, final String key, final Object ... args)
@@ -4328,7 +4472,7 @@ public class SOCServer extends Server
      * @param args  Any parameters within {@code txt}'s placeholders
      * @see #messageToPlayerKeyedSpecial(Connection, SOCGame, int, String, Object...)
      * @see #messageToPlayerPendingKeyed(SOCPlayer, String, String)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public final void messageToPlayerKeyed
         (Connection c, final String gaName, int eventPN, final String key, final Object ... args)
@@ -4336,7 +4480,7 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        if ((eventPN != PN_NON_EVENT) && recordGameEventsIsActive()
+        if ((eventPN != PN_NON_EVENT) && isRecordGameEventsActive()
             && ! "en_US".equals(c.getI18NLocale()))
         {
             // make sure event is recorded in en_US for consistency
@@ -4381,7 +4525,7 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        if ((eventPN != PN_NON_EVENT) && recordGameEventsIsActive()
+        if ((eventPN != PN_NON_EVENT) && isRecordGameEventsActive()
             && ! "en_US".equals(c.getI18NLocale()))
         {
             // make sure event is recorded in en_US for consistency
@@ -4443,7 +4587,7 @@ public class SOCServer extends Server
      * @see #messageToGame(String, boolean, String)
      * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
-     * @deprecated Use {@link #messageToGame(String, boolean, SOCMessage)} instead, starting at v2.4.10
+     * @deprecated Use {@link #messageToGame(String, boolean, SOCMessage)} instead, starting at v2.5.00
      */
     public void messageToGame(String gameName, SOCMessage mes)
     {
@@ -4466,7 +4610,7 @@ public class SOCServer extends Server
      * @see #messageToGame(String, boolean, String)
      * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void messageToGame(final String gameName, final boolean isEvent, final SOCMessage mes)
     {
@@ -4527,7 +4671,7 @@ public class SOCServer extends Server
      * @see #messageToGame(String, SOCMessage)
      * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameExcept(String, Connection, int, String, boolean)
-     * @deprecated Use {@link #messageToGame(String, boolean, String)} instead, starting at v2.4.10
+     * @deprecated Use {@link #messageToGame(String, boolean, String)} instead, starting at v2.5.00
      * @since 1.1.08
      */
     public void messageToGame(final String ga, final String txt)
@@ -4559,7 +4703,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameWithMon(String, boolean, SOCMessage)
      * @see #messageToGameExcept(String, Connection, int, String, boolean)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void messageToGame(final String ga, final boolean isEvent, final String txt)
     {
@@ -4632,7 +4776,7 @@ public class SOCServer extends Server
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
         boolean rsrcMissing = false;
-        SOCMessage msgForRecord = null;  // needed only if isEvent && recordGameEventsIsActive()
+        SOCMessage msgForRecord = null;  // needed only if isEvent && isRecordGameEventsActive()
 
         if (takeMon)
             gameList.takeMonitorForGame(gaName);
@@ -4676,7 +4820,7 @@ public class SOCServer extends Server
                         gameLocalMsg = msg.localize(localText);
                         gameTxtLocale = cliLocale;
 
-                        if (isEvent && (msgForRecord == null) && recordGameEventsIsActive()
+                        if (isEvent && (msgForRecord == null) && isRecordGameEventsActive()
                             && ("en_US".equals(cliLocale)))
                             msgForRecord = gameLocalMsg;
                     }
@@ -4688,7 +4832,7 @@ public class SOCServer extends Server
                 if (rsrcMissing)
                     D.ebugPrintlnINFO("Missing string key in messageToGameKeyedType: " + msgKey);
 
-                if (isEvent && recordGameEventsIsActive())
+                if (isEvent && isRecordGameEventsActive())
                 {
                     if (msgForRecord == null)
                     {
@@ -4744,7 +4888,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
-     * @deprecated Use {@link #messageToGameKeyed(SOCGame, boolean, boolean, String)} instead, starting at v2.4.10
+     * @deprecated Use {@link #messageToGameKeyed(SOCGame, boolean, boolean, String)} instead, starting at v2.5.00
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key)
@@ -4781,8 +4925,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
-     * @param isEvent
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean isEvent, final boolean takeMon, final String key)
         throws MissingResourceException
@@ -4819,7 +4962,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
      * @deprecated Use {@link #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)} instead,
-     *     starting at v2.4.10
+     *     starting at v2.5.00
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key, final Object ... params)
@@ -4860,7 +5003,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
      * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, String, Object...)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void messageToGameKeyed
         (SOCGame ga, final boolean isEvent, final boolean takeMon, final String key, final Object ... params)
@@ -4949,6 +5092,7 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int[], boolean, List, String, Object...)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameForVersionsKeyedExcept(SOCGame, int, int, boolean, List, boolean, String, Object...)
      * @since 2.0.00
      */
     public final void messageToGameKeyedSpecialExcept
@@ -5061,7 +5205,7 @@ public class SOCServer extends Server
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
-        SOCMessage msgForRecord = null;  // needed only if isEvent && recordGameEventsIsActive()
+        SOCMessage msgForRecord = null;  // needed only if isEvent && isRecordGameEventsActive()
 
         if (takeMon)
             gameList.takeMonitorForGame(gaName);
@@ -5093,7 +5237,7 @@ public class SOCServer extends Server
                         gameTextMsg = new SOCGameServerText(gaName, gameText);
                         gameTxtLocale = cliLocale;
 
-                        if (isEvent && (msgForRecord == null) && recordGameEventsIsActive()
+                        if (isEvent && (msgForRecord == null) && isRecordGameEventsActive()
                             && ("en_US".equals(cliLocale)))
                             msgForRecord = gameTextMsg;
                     }
@@ -5106,7 +5250,7 @@ public class SOCServer extends Server
                             (gaName, SERVERNAME, gameText));
                 }
 
-                if (isEvent && recordGameEventsIsActive())
+                if (isEvent && isRecordGameEventsActive())
                 {
                     if (msgForRecord == null)
                     {
@@ -5155,7 +5299,7 @@ public class SOCServer extends Server
      * @see #messageToGame(String, boolean, SOCMessage)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
-     * @deprecated Use {@link #messageToGameWithMon(String, boolean, SOCMessage)} instead, starting at v2.4.10
+     * @deprecated Use {@link #messageToGameWithMon(String, boolean, SOCMessage)} instead, starting at v2.5.00
      */
     public void messageToGameWithMon(final String gameName, final SOCMessage mes)
     {
@@ -5177,7 +5321,7 @@ public class SOCServer extends Server
      * @see #messageToGame(String, boolean, SOCMessage)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void messageToGameWithMon(final String gameName, final boolean isEvent, final SOCMessage mes)
     {
@@ -5351,7 +5495,7 @@ public class SOCServer extends Server
      * Used for backwards compatibility.
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *
      * @param ga  the game
@@ -5377,7 +5521,7 @@ public class SOCServer extends Server
      * Used for backwards compatibility.
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *
      * @param ga  the game
@@ -5416,7 +5560,7 @@ public class SOCServer extends Server
      * Used for backwards compatibility.
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *
      * @param ga  the game
@@ -5429,7 +5573,7 @@ public class SOCServer extends Server
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                If the game's clients are all older than <tt>vmin</tt> or
      *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
-     * @since 2.4.10
+     * @since 2.5.00
      * @see #messageToGameForVersionsExcept(SOCGame, int, int, Connection, SOCMessage, boolean)
      * @see #messageToGameExcept(String, List, int[], SOCMessage, boolean)
      * @see #messageToGameForVersionsKeyedExcept(SOCGame, int, int, boolean, List, boolean, String, Object...)
@@ -5492,7 +5636,7 @@ public class SOCServer extends Server
      * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
@@ -5522,7 +5666,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      * @see #messageToGameForVersionsKeyedExcept(SOCGame, int, int, boolean, List, boolean, String, Object...)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public final void messageToGameForVersionsKeyed
         (final SOCGame ga, final int vmin, final int vmax, final boolean takeMon,
@@ -5543,7 +5687,7 @@ public class SOCServer extends Server
      * Client versions older than v2.0.00 will be sent {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt).
      *<P>
      * If the message sent here should be recorded as a game event and
-     * {@link #recordGameEventsIsActive()}, caller should also call
+     * {@link #isRecordGameEventsActive()}, caller should also call
      * {@link #recordGameEvent(String, SOCMessage)} with a message appropriate for the current version.
      *<P>
      * <b>Locks:</b> If {@code takeMon} is true, takes and releases {@link SOCGameList#takeMonitorForGame(String)}.
@@ -5572,10 +5716,11 @@ public class SOCServer extends Server
      *            (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      * @see #messageToGameForVersionsExcept(SOCGame, int, int, Connection, SOCMessage, boolean)
      * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, boolean, String, Object...)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public final void messageToGameForVersionsKeyedExcept
         (final SOCGame ga, final int vmin, final int vmax, final boolean takeMon, final List<Connection> ex,
@@ -5865,14 +6010,8 @@ public class SOCServer extends Server
         c.setAppData(cdata);
 
         // VERSION of server
-        SOCFeatureSet feats = features;
-        if (acctsNotOpenRegButNoUsers)
-        {
-            feats = new SOCFeatureSet(features);
-            feats.add(SOCFeatureSet.SERVER_OPEN_REG);  // no accounts: don't require a password from SOCAccountClient
-        }
         c.put(new SOCVersion
-            (Version.versionNumber(), Version.version(), Version.buildnum(), feats.getEncodedList(), null));
+            (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
 
         // CHANNELS
         List<String> cl = new ArrayList<String>();
@@ -5941,10 +6080,10 @@ public class SOCServer extends Server
         Connection oldConn = null;
         if (isReplacing)
         {
-            String cKey = c.getData();
-            if (cKey == null)
+            final String cliName = c.getData();
+            if (cliName == null)
                 throw new IllegalArgumentException("null c.getData");
-            oldConn = conns.get(cKey);
+            oldConn = conns.get(cliName);
             if (oldConn == null)
                 isReplacing = false;  // shouldn't happen, but fail gracefully
         }
@@ -6002,10 +6141,10 @@ public class SOCServer extends Server
             Enumeration<Connection> ec = getConnections();  // the named ones
             while (ec.hasMoreElements())
             {
-                String cname = ec.nextElement().getData();
+                final String cliName = ec.nextElement().getData();
 
                 int L = sb.length();
-                if (L + cname.length() > 50)
+                if (L + cliName.length() > 50)
                 {
                     sb.append(',');  // TODO I18N list
                     sb = new StringBuilder("- ");
@@ -6015,7 +6154,7 @@ public class SOCServer extends Server
 
                 if (L > 2)
                     sb.append(", ");  // TODO I18N list with "line wrap"
-                sb.append(cname);
+                sb.append(cliName);
             }
         }
 
@@ -6755,6 +6894,7 @@ public class SOCServer extends Server
      * That method also ensures this method and {@code authCallback} run in the Treater thread; see
      * {@link Server#inQueue inQueue}.{@link InboundMessageQueue#isCurrentThreadTreater() isCurrentThreadTreater()}.
      *
+     * @param authUsername  User name as authenticated (or from user if has no DB/no auth), or null if auth failed
      * @param hadDelay  If true, this callback has been delayed by {@code BCrypt} calculations;
      *     otherwise it's an immediate callback (user not found, password didn't use BCrypt hashing)
      * @since 1.2.00
@@ -6856,7 +6996,7 @@ public class SOCServer extends Server
      * @return More-limited copy of client features if either board type is disallowed, {@code null} otherwise.
      *     If needs to copy {@code cliFeats} but it's null, will return a new empty feature set.
      * @see SOCClientData#hasLimitedFeats
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected SOCFeatureSet checkLimitClientFeaturesForServerDisallows(SOCFeatureSet cliFeats)
     {
@@ -7772,7 +7912,7 @@ public class SOCServer extends Server
      *<P>
      * Will ask bots to join and sit down for any players marked as robots in {@code sgm}.
      *<P>
-     * Before v2.4.10, this code was part of <tt>{@link SOCServerMessageHandler}.processDebugCommand_loadGame</tt>.
+     * Before v2.5.00, this code was part of <tt>{@link SOCServerMessageHandler}.processDebugCommand_loadGame</tt>.
      *
      * @param sgm  Loaded game data
      * @param c  Client to have join game, as observer or player depending on nickname; not null
@@ -7781,7 +7921,7 @@ public class SOCServer extends Server
      * @return Name of loaded game, which might have been renamed if conflicts with another game on the server,
      *     or {@code null} if game could not be created
      * @see #resumeReloadedGame()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public String createAndJoinReloadedGame
         (final SavedGameModel sgm, final Connection c, final String connGaName)
@@ -7894,7 +8034,7 @@ public class SOCServer extends Server
      * Return value from {@link #resumeReloadedGame(Connection, SOCGame)} when game
      * couldn't immediately be resumed, but robot players are available and have been invited
      * to cover the unclaimed human player seats.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static final String RESUME_RELOADED_FETCHING_ROBOTS = "member.bot.join.fetching";
 
@@ -7921,7 +8061,7 @@ public class SOCServer extends Server
      * @throws IllegalStateException if game state isn't {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING},
      *     or {@link SOCGame#savedGameModel} is null or not a {@link SavedGameModel}
      * @see #createAndJoinReloadedGame(SavedGameModel, Connection, String)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public String resumeReloadedGame(final Connection c, final SOCGame ga)
         throws IllegalStateException
@@ -9255,7 +9395,10 @@ public class SOCServer extends Server
      *   <P>
      *    <b>This ends this method.</b>  Step 3 and the rest are in
      *    {@link #resetBoardAndNotify_finish(SOCGameBoardReset, SOCGame)}.
-     * <LI value=3> Send messages as if each human player has clicked "join" (except JoinGameAuth)
+     * <LI value=3> Send messages as if each human player has clicked "join" (except JoinGameAuth).
+     *   <P>
+     *    If {@link #isRecordGameEventsActive()}, clears the game log first
+     *    by calling {@link #startLog(SOCGame, boolean) startLog(resetGame, true)}.
      * <LI value=4> Send as if each human player has clicked "sit here"
      * <LI value=5a> If no robots, send to game as if someone else has
      *              clicked "start game", and set up state to begin game play.
@@ -9348,6 +9491,9 @@ public class SOCServer extends Server
      * Complete steps 3 - n of the board-reset process
      * outlined in {@link #resetBoardAndNotify(String, int)},
      * after any robots have left the old game.
+     * If {@link #isRecordGameEventsActive()}, clears the game log first
+     * by calling {@link #startLog(SOCGame, boolean) startLog(reGame, true)}.
+     *
      * @param reBoard  Board reset data, from {@link SOCGameListAtServer#resetBoard(String)}
      *                   or {@link SOCGame#boardResetOngoingInfo reGame.boardResetOngoingInfo}
      * @param reGame   The new game created by the reset, with gamestate {@link SOCGame#NEW NEW}
@@ -9356,9 +9502,18 @@ public class SOCServer extends Server
      */
     void resetBoardAndNotify_finish(SOCGameBoardReset reBoard, SOCGame reGame)
     {
+        final String gaName = reGame.getName();
         final boolean resetWithShuffledBots =
             (reBoard.oldGameState < SOCGame.ROLL_OR_CARD) || (reBoard.oldGameState == SOCGame.OVER);
         Connection[] huConns = reBoard.humanConns;
+
+        if (isRecordGameEventsActive())
+            try
+            {
+                startLog(reGame, true);
+            } catch (IOException e) {
+                D.ebugPrintStackTrace(e, "IOException in resetBoardAndNotify_finish calling startLog");
+            }
 
         /**
          * 3. Send messages as if each human player has clicked "join" (except JoinGameAuth)
@@ -9385,7 +9540,7 @@ public class SOCServer extends Server
              *     clicked "start game", and set up state to begin game play.
              */
 
-            final GameHandler hand = gameList.getGameTypeHandler(reGame.getName());
+            final GameHandler hand = gameList.getGameTypeHandler(gaName);
             if (hand != null)
                 hand.startGame(reGame);
         } else {
@@ -9404,7 +9559,7 @@ public class SOCServer extends Server
                 // Unlikely, since we were just playing this game with bots
 
                 reGame.setGameState(SOCGame.OVER);
-                final GameHandler hand = gameList.getGameTypeHandler(reGame.getName());
+                final GameHandler hand = gameList.getGameTypeHandler(gaName);
                 if (hand != null)
                     hand.sendGameState(reGame);
                 messageToGameKeyed(reGame, true, true, "member.bot.join.cantfind");  // "*** Can't find a robot! ***"
@@ -9530,7 +9685,8 @@ public class SOCServer extends Server
     }
 
     // Game "event" recording:
-    // If this group of method stubs is changed, also update soctest.server.TestRecorder.
+    // If this group of method stubs is changed, also update soctest.server.TestRecorder
+    // and soc.extra.server.RecordingSOCServer.
 
     /**
      * Are game events being recorded by {@link #recordGameEvent(String, SOCMessage)} and similar methods?
@@ -9538,11 +9694,53 @@ public class SOCServer extends Server
      * like localizing text into {@link Locale#US}.
      * This stub returns false.
      * @return true if {@link #recordGameEvent(String, SOCMessage)} and similar methods aren't empty stubs
-     * @since 2.4.10
+     * @see #isRecordGameEventsFromClientsActive()
+     * @since 2.5.00
      */
-    public boolean recordGameEventsIsActive()
+    public boolean isRecordGameEventsActive()
     {
         return false;
+    }
+
+    /**
+     * Are game events also recording messages from game member clients?
+     * If so, server will call {@link #recordClientMessage(String, int, SOCMessageForGame)}
+     * for messages from players and game observers.
+     * @return true if recording from clients is active and {@link #isRecordGameEventsActive()}
+     * @since 2.5.00
+     */
+    public boolean isRecordGameEventsFromClientsActive()
+    {
+        return false;
+    }
+
+    /**
+     * If {@link #isRecordGameEventsActive()}, set up logging for the specified game
+     * or reset the log after a board reset.
+     * Should be called before {@link #recordGameEvent(String, SOCMessage)} or similar methods.
+     * Later at end of game, caller should call {@link #endLog(SOCGame)}.
+     *<P>
+     * May open files, set up queues, etc, depending on implementation. This stub does nothing.
+     * If overriding, should record a {@link SOCVersion} message as game's first log entry to help parsing later,
+     * including {@link #getFeaturesList()} field.
+     *<P>
+     * If a previous game with the same name had unsaved logs in memory,
+     * discard them before setting up the new game's logs.
+     *<P>
+     * If {@code isReset}, the reset game's log must still begin with {@link SOCVersion}
+     * and {@link SOCNewGame} or {@link SOCNewGameWithOptions}.
+     *
+     * @param game  Game to start logging for; not {@code null}
+     * @param isReset  True if instead of a new game, this is a board reset of an existing game
+     * @throws IllegalArgumentException if game {@code null}
+     * @throws IOException if the implementation must create a file or does other I/O, and a problem occurs
+     * @since 2.5.00
+     */
+    public void startLog(final SOCGame game, final boolean isReset)
+        throws IllegalArgumentException, IOException
+    {
+        if (game == null)
+            throw new IllegalArgumentException("game");
     }
 
     /**
@@ -9553,8 +9751,9 @@ public class SOCServer extends Server
      * {@link #messageToGame(String, boolean, SOCMessage)} with parameters to request recording.
      *<P>
      * This stub can be overridden.
-     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
-     * For a sample implementation, see unit test helper {@code soctest.server.RecordingTesterServer}.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
+     * For a sample implementation, see unit test helper {@link soc.extra.server.RecordingSOCServer}
+     * and its {@link soc.extra.server.GameEventLog} format.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
@@ -9562,9 +9761,10 @@ public class SOCServer extends Server
      * Before v2.0.00, {@link event} parameter was a String from {@link SOCMessage#toCmd()}.
      *
      * @param gameName   the game name
-     * @param event      the event data
+     * @param event      the event data, or {@code null}
      * @see #recordGameEventTo(String, int, SOCMessage)
      * @see #recordGameEventNotTo(String, int, SOCMessage)
+     * @see #recordClientMessage(String, int, SOCMessage)
      */
     public void recordGameEvent(final String gameName, SOCMessage event)
     {
@@ -9591,18 +9791,19 @@ public class SOCServer extends Server
      * {@link #messageToPlayer(Connection, String, int, SOCMessage)} with parameters to request recording.
      *<P>
      * This stub can be overridden.
-     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
      *
      * @param gameName   the game name
-     * @param event      the event data
+     * @param event      the event data, or {@code null}
      * @param pn Player number who is audience of this non-broadcast event; if &lt; 0, event is for all game members.
      *     Can be {@link #PN_REPLY_TO_UNDETERMINED} or {@link #PN_OBSERVER}.
      * @see #recordGameEvent(String, SOCMessage)
      * @see #recordGameEventNotTo(String, int, SOCMessage)
-     * @since 2.4.10
+     * @see #recordClientMessage(String, int, SOCMessage)
+     * @since 2.5.00
      */
     public void recordGameEventTo(final String gameName, final int pn, SOCMessage event)
     {
@@ -9611,18 +9812,18 @@ public class SOCServer extends Server
     /**
      * Record non-broadcast events that happen during the game and are sent to all but one player in that game.
      * This stub can be overridden.
-     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
      *
      * @param gameName   the game name
      * @param excludedPN Player number excluded from audience of this event; if &lt; 0, event is for all game members.
-     * @param event      the event data
+     * @param event      the event data, or {@code null}
      * @see #recordGameEventNotTo(String, int[], SOCMessage)
      * @see #recordGameEvent(String, SOCMessage)
      * @see #recordGameEventTo(String, int, SOCMessage)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void recordGameEventNotTo(final String gameName, final int excludedPN, SOCMessage event)
     {
@@ -9631,21 +9832,54 @@ public class SOCServer extends Server
     /**
      * Record non-broadcast events that happen during the game and are sent to most but not all players in that game.
      * This stub can be overridden.
-     * If {@link #recordGameEventsIsActive()} is false, you can assume this method is a stub.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
      *<P>
      * If {@code event}'s format or fields vary depending on client version, use the latest version here.
      * If they vary by locale, use fallback locale {@code "en_US"} for consistency.
      *
      * @param gameName   the game name
      * @param excludedPN Player numbers excluded from audience of this event; if {@code null} or empty, event is for all.
-     * @param event      the event data
+     * @param event      the event data, or {@code null}
      * @see #recordGameEventNotTo(String, int, SOCMessage)
      * @see #recordGameEvent(String, SOCMessage)
      * @see #recordGameEventTo(String, int, SOCMessage)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void recordGameEventNotTo(final String gameName, final int[] excludedPN, SOCMessage event)
     {
+    }
+
+    /**
+     * Record an event message from a game member client (player or observer).
+     * Does nothing unless {@link #isRecordGameEventsFromClientsActive()}.
+     *
+     * @param gameName  the game name
+     * @param fromPN Player number from a client player, or {@link #PN_OBSERVER} from an observer.
+     *     Can also be -1 for an observer's message; the recorded event will use {@link #PN_OBSERVER}.
+     * @param event  the message, or {@code null}
+     * @see #recordGameEventTo(String, int, SOCMessage)
+     * @since 2.5.00
+     */
+    public void recordClientMessage(final String gameName, final int fromPN, SOCMessageForGame event)
+    {
+    }
+
+    /**
+     * If {@link #isRecordGameEventsActive()}, finish and close out logging for the specified game.
+     *<P>
+     * May close files, remove queues, etc, depending on implementation. This stub does nothing.
+     * Any exception must be caught here; the caller doesn't need to deal with that detail of ending the game.
+     *
+     * @param game  Game to end logging for; not {@code null}
+     * @throws IllegalArgumentException if game {@code null}
+     * @see #startLog(SOCGame, boolean)
+     * @since 2.5.00
+     */
+    public void endLog(final SOCGame game)
+        throws IllegalArgumentException
+    {
+        if (game == null)
+            throw new IllegalArgumentException("game");
     }
 
     /**

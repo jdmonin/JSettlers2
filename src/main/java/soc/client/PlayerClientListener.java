@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import soc.game.ResourceSet;
 import soc.game.SOCGame;
 import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCInventory;   // for javadocs only
@@ -36,6 +37,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;  // for javadocs only
 import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
+import soc.message.SOCPickResources;  // for reason codes in javadocs
 import soc.message.SOCPlayerElement.PEType;
 
 /**
@@ -67,10 +69,26 @@ import soc.message.SOCPlayerElement.PEType;
 public interface PlayerClientListener
 {
     /**
-     * Get the client's player number if playing in a game.
+     * Get the game shown in this UI. This reference changes if board is reset.
+     * @return game; not null
+     * @since 2.5.00
+     * @see #getClientPlayerNumber()
+     */
+    SOCGame getGame();
+
+    /**
+     * Get the client's player number if client is a player in a game.
      * @return Client player's {@link SOCPlayer#getPlayerNumber()} if playing, or -1 if observing or not yet seated
+     * @see #isClientCurrentPlayer()
      */
     int getClientPlayerNumber();
+
+    /**
+     * Is the client player active in this game, and the current player?
+     * @see #getClientPlayerNumber()
+     * @since 2.5.00
+     */
+    boolean isClientCurrentPlayer();
 
     /**
      * Receive a notification that the current player has rolled the dice.
@@ -115,7 +133,9 @@ public interface PlayerClientListener
     void playerSitdown(int playerNumber, String nickname);
 
     /**
-     * Game's current player has changed. Update displays.
+     * Game's current player and state has changed. Update displays.
+     * (Caller has already called {@link SOCGame#setGameState(int)}, {@link SOCGame#setCurrentPlayerNumber(int)},
+     * {@link SOCGame#updateAtTurn()}.)
      * @param playerNumber  New current player number whose turn it is.
      */
     void playerTurnSet(int playerNumber);
@@ -165,6 +185,7 @@ public interface PlayerClientListener
      * @param player  The player
      * @param addedPlayable  True if the update added a dev card or item that's playable now
      *     ({@link SOCInventory#OLD}, not {@link SOCInventory#NEW NEW})
+     * @see UpdateType#DevCards
      */
     void playerDevCardsUpdated(SOCPlayer player, final boolean addedPlayable);
 
@@ -206,6 +227,19 @@ public interface PlayerClientListener
     void playerResourcesUpdated(SOCPlayer player);
 
     /**
+     * A player has chosen their two free Discovery/Year of Plenty resources,
+     * or free Gold Hex resources. Is called after client's game data has been updated.
+     * Should indicate that the trade has happened as if sent a {@code SOCGameServerText} about it,
+     * unless {@code reasonCode} is 0.
+     * @param player  The player; not null
+     * @param resSet  Resources chosen; not null
+     * @param reasonCode  Reason code from {@link SOCPickResources}, such as
+     *     {@link SOCPickResources#REASON_DISCOVERY} or {@link SOCPickResources#REASON_GOLD_HEX}, or 0
+     * @since 2.5.00
+     */
+    void playerPickedResources(SOCPlayer player, SOCResourceSet resSet, int reasonCode);
+
+    /**
      * A player's game stats, such as resource totals received from dice rolls, should be displayed.
      * Called at end of game, or when the player uses the *STATS* command.
      * @param stats  Player statistic details
@@ -236,6 +270,15 @@ public interface PlayerClientListener
     void requestedGoldResourceCountUpdated(SOCPlayer player, int countToPick);
 
     /**
+     * This player has just discarded some resources. Player data has been updated.
+     * Announce the discard and update displays.
+     * @param player  Player discarding resources; not {@code null}
+     * @param discards  The known or unknown resources discarded; not {@code null}
+     * @since 2.5.00
+     */
+    void playerDiscarded(SOCPlayer player, ResourceSet discards);
+
+    /**
      * This player must choose a player for robbery.
      * @param choices   The potential victim players to choose from
      * @param isNoneAllowed  If true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
@@ -248,27 +291,33 @@ public interface PlayerClientListener
     /**
      * A robbery has just occurred; show details. Is called after game data has been updated.
      *
-     * @param perpPN  Perpetrator's player number, or -1 if none (for future use by scenarios/expansions)
+     * @param perpPN  Perpetrator's player number, or -1 if none
+     *     (used by {@code SC_PIRI} scenario, future use by other scenarios/expansions)
      * @param victimPN  Victim's player number, or -1 if none (for future use by scenarios/expansions)
      * @param resType  Resource type being stolen, like {@link SOCResourceConstants#SHEEP}
-     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code peType != null}.
+     *     or {@link SOCResourceConstants#UNKNOWN}. Ignored if {@code resSet != null} or {@code peType != null}.
+     * @param resSet  Resource set being stolen, if not using {@code resType} or {@code peType}
      * @param peType  PlayerElement type such as {@link PEType#SCENARIO_CLOTH_COUNT},
-     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} instead).
+     *     or {@code null} if a resource like sheep is being stolen (use {@code resType} or {@code resSet} instead).
      * @param isGainLose  If true, the amount here is a delta Gained/Lost by players, not a total to Set
      * @param amount  Amount being stolen if {@code isGainLose}, otherwise {@code perpPN}'s new total amount
      * @param victimAmount  {@code victimPN}'s new total amount if not {@code isGainLose}, 0 otherwise
-     * @since 2.4.10
+     * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
+     * @since 2.5.00
      */
     void reportRobbery
-        (final int perpPN, final int victimPN, final int resType, final PEType peType,
-         final boolean isGainLose, final int amount, final int victimAmount);
+        (final int perpPN, final int victimPN, final int resType, final SOCResourceSet resSet, final PEType peType,
+         final boolean isGainLose, final int amount, final int victimAmount, final int extraValue);
 
     /**
-     * This player has just made a successful trade with the bank or a port.
+     * This player has just made a successful trade with the bank or a port. Implementation may call
+     * <tt>{@link #playerElementUpdated(SOCPlayer, UpdateType, boolean, boolean) playerElementUpdated}(player,
+     * {@link UpdateType#ResourceTotalAndDetails}, false, false)</tt>.
+     *
      * @param player  Player making the bank/port trade
      * @param give  Resources given by player in trade
      * @param get   Resources received by player in trade
-     * @see #playerTradeAccepted(SOCPlayer, SOCPlayer)
+     * @see #playerTradeAccepted(SOCPlayer, SOCPlayer, SOCResourceSet, SOCResourceSet)
      */
     void playerBankTrade(SOCPlayer player, SOCResourceSet give, SOCResourceSet get);
 
@@ -277,12 +326,9 @@ public interface PlayerClientListener
      * or updated the resources of their already-displayed offer.
      * Show its details in their part of the game interface.
      * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
-     *<P>
-     * Also called when server says our requested trade offer wasn't allowed:
-     * {@code offerer} will be {@code null}, {@code fromPN} will be &lt; 0.
      *
-     * @param offerer  Player with a new trade offer, or {@code null} if {@code fromPN} &lt; 0
-     * @param fromPN  {@code offerer}'s player number, or "not allowed" code value &lt; 0 from network message
+     * @param offerer  Player with a new trade offer
+     * @param fromPN  {@code offerer}'s player number
      */
     void requestedTrade(SOCPlayer offerer, int fromPN);
 
@@ -306,26 +352,54 @@ public interface PlayerClientListener
 
     /**
      * A player has accepted a trade offer from another player.
-     * For offer details call {@code offerer.}{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}.
+     * Call this after updating player resource data, but before
+     * calling <tt>offerer.{@link SOCPlayer#setCurrentOffer(soc.game.SOCTradeOffer) setCurrentOffer(null)}</tt>.
+     *<P>
+     * Newer servers' trade acceptance announcements include the offer details
+     * for {@code toOffering} and {@code toAccepting}; if null, implementer
+     * should call <tt>offerer.{@link SOCPlayer#getCurrentOffer() getCurrentOffer()}</tt> for those details.
+     * (Older servers instead announced with PlayerElement messages sent before the Accept.)
+     *
      * @param offerer  Player who made the trade offer
      * @param acceptor  Player who accepted the trade offer
+     * @param toOffering  Resources given to offering player in trade, or {@code null} if not announced by server
+     * @param toAccepting  Resources given to accepting player in trade, or {@code null} if not announced by server
      * @see #playerBankTrade(SOCPlayer, SOCResourceSet, SOCResourceSet)
      */
-    void playerTradeAccepted(SOCPlayer offerer, SOCPlayer acceptor);
+    void playerTradeAccepted
+        (SOCPlayer offerer, SOCPlayer acceptor, SOCResourceSet toOffering, SOCResourceSet toAccepting);
 
     /**
-     * Server has rejected client player's attempt to trade with the bank or accept a player's offer.
-     * @param offeringPN  Player number offering the disallowed trade, or -1 if bank trade
+     * Server has rejected client player's attempt to trade with the bank,
+     * make a trade offer, or accept another player's offer.
+     * @param offeringPN  Player number offering the disallowed trade,
+     *     or -1 if bank trade. Always -1 if {@code isNotTurn}.
+     * @param isOffer  True if this is about a proposed trade offer, not acceptance of an existing offer
      * @param isNotTurn  True if was disallowed because this trade can be done only during client player's turn
-     * @since 2.4.10
+     * @since 2.5.00
      */
-    void playerTradeDisallowed(int offeringPN, boolean isNotTurn);
+    void playerTradeDisallowed(int offeringPN, boolean isOffer, boolean isNotTurn);
 
     /**
      * Clear any visible trade messages/responses.
      * @param playerToReset May be {@code null} to clear all seats
      */
     void requestedTradeReset(SOCPlayer playerToReset);
+
+    /**
+     * Clear a player's current offer.
+     * If player is client, clear the numbers in the resource "offer" squares,
+     * and disable the "offer" and "clear" buttons (since no resources are selected).
+     * Otherwise just hide the last-displayed offer.
+     *
+     * @param player  Player to clear, or {@code null} for all players
+     * @param updateSendCheckboxes If true, and player is client, update the
+     *    selection checkboxes for which opponents are sent the offer.
+     *    If it's currently that client player's turn, check all boxes where the seat isn't empty.
+     *    Otherwise, check only the box for the opponent whose turn it is.
+     * @since 2.5.00
+     */
+    void clearTradeOffer(SOCPlayer player, boolean updateSendCheckboxes);
 
     void requestedSpecialBuild(SOCPlayer player);
 
@@ -426,6 +500,10 @@ public interface PlayerClientListener
      * Update interface after game state has changed.
      * Please call {@link SOCGame#setGameState(int)} first.
      *<P>
+     * Is also called as part of handling a TURN message from server, so don't immediately assume
+     * the current player can (for example) roll dice when called for {@link SOCGame#ROLL_OR_CARD}:
+     * That state may be intended for the next player. If so, {@link #playerTurnSet(int)} will be called very soon.
+     *<P>
      * If the game is now starting, please call in this order:
      *<code><pre>
      *   game.setGameState(newState);
@@ -437,7 +515,9 @@ public interface PlayerClientListener
     void gameStateChanged(int gameState);
 
     /**
-     * Update interface after game is over.
+     * Update game data and interface after game is over.
+     * Call each player's {@link SOCPlayer#forceFinalVP(int)},
+     * then if {@link SOCGame#getPlayerWithWin()} == null, call {@link SOCGame#checkForWinner()}.
      * Reveal actual total scores, list other players' VP cards, etc.
      * @param scores  Each player's actual total score, including hidden VP cards.
      *     Map contains each player object in the game, including empty seats,
@@ -461,6 +541,12 @@ public interface PlayerClientListener
     void messageBroadcast(String message);
 
     /**
+     * Print a line of text in the game text area, like {@link SOCPlayerInterface#print(String)}.
+     * @since 2.5.00
+     */
+    void printText(String txt);
+
+    /**
      * A game text message was received from server, or a chat message from another player.
      * @param nickname  Player's nickname, {@code null} for messages from the server itself,
      *     or {@code ":"} for server messages which should appear in the chat area (recap, etc).
@@ -479,7 +565,7 @@ public interface PlayerClientListener
      * If other game data messages are sent (resource gains/loss, etc), or other client code must update that data
      * based on info in the SOCSimpleRequest, this method will be called only after other game data is updated.
      * Some SimpleRequest {@code reqtype}s update the game data: Client must call
-     * {@link SOCDisplaylessPlayerClient#handleSIMPLEREQUEST(Map, soc.message.SOCSimpleRequest)}
+     * {@link SOCDisplaylessPlayerClient#handleSIMPLEREQUEST(soc.message.SOCSimpleRequest, SOCGame)}
      * to update game before calling this method.
      *
      * @param pn  The player number requesting or acting, or -1 if our own request was declined
@@ -597,6 +683,7 @@ public interface PlayerClientListener
 
         /**
          * Update Total Resource count, and also each box (Clay,Ore,Sheep,Wheat,Wood) if shown.
+         * May update other parts of the window beyond that player's hand: Enable/disable trade offer Accept buttons, etc.
          * @see #Resources
          */
         ResourceTotalAndDetails,
@@ -623,9 +710,18 @@ public interface PlayerClientListener
         /** Wonder build level, in {@link SOCGameOptionSet#K_SC_WOND _SC_WOND} scenario */
         WonderLevel,
 
+        /** Victory Points, from {@link SOCPlayer#getTotalVP()} **/
         VictoryPoints,
+
         SpecialVictoryPoints,
+
+        /**
+         * Total count of development cards/items, from player's {@link SOCInventory#getTotal()}.
+         * Doesn't update the inventory item list if that's shown:
+         * Call {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)} if needed.
+         */
         DevCards,
+
         LongestRoad,
         LargestArmy
     }

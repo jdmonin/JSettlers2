@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017,2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,14 @@ package soc.message;
 
 /**
  * This message means that a player wants to end the turn
+ *<P>
+ * If player does so while placing free roads/ships from the Road Building card,
+ * also cancels playing that card as if they sent {@link SOCCancelBuildRequest};
+ * see that message for details.
+ *<P>
+ * If player can't end their turn yet (based on gameState) because the game is waiting for them
+ * to make a choice or take action (move robber, choose a resource type, etc), server will respond with
+ * a reminder {@link SOCGameServerText} and the current {@link SOCGameState} to prompt them.
  *
  * @author Robert S. Thomas
  */

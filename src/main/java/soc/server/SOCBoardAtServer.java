@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -49,8 +49,9 @@ import soc.util.IntTriple;
 /**
  * A subclass of {@link SOCBoardLarge} for the server to hold server-only
  * per-game board state, isolate {@link #makeNewBoard(SOCGameOptionSet)}, and simplify
- * that parent class. See SOCBoardLarge for more details.
+ * that parent class. See {@code SOCBoardLarge} for more details.
  * For the board layout geometry, see that class javadoc's "Coordinate System" section.
+ * Non-sea "classic" boards use {@link SOCBoard4p} or {@link SOCBoard6p} at server and client.
  *<P>
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
@@ -64,7 +65,7 @@ import soc.util.IntTriple;
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
- * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
+ * In some scenarios, players must start in a certain land area: {@link #getStartingLandArea()} != 0 if so.
  * During board setup, {@link #makeNewBoard(SOCGameOptionSet)} calls
  * {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, boolean, int, SOCGameOption, String, SOCGameOptionSet)}
  * once for each land area.  In some game scenarios, players and the robber can be
@@ -176,6 +177,15 @@ public class SOCBoardAtServer extends SOCBoardLarge
     private static transient NewBoardProgressListener newBoardProgressListener;
 
     /**
+     * Land area number excluded from "build settlement outside of starting area" bonus scoring, or 0 if none;
+     * see {@link #getBonusExcludeLandArea()} for details.
+     * To enforce constraints, always use {@link #setBonusExcludeLandArea(int)} when setting this field.
+     *
+     * @since 2.5.00
+     */
+    private int bonusExcludeLandArea;
+
+    /**
      * For game scenarios such as {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
      * dev cards or other items waiting to be claimed by any player.
      * Otherwise null.
@@ -234,6 +244,51 @@ public class SOCBoardAtServer extends SOCBoardLarge
     public static final void setNewBoardProgressListener(final NewBoardProgressListener li)
     {
         newBoardProgressListener = li;
+    }
+
+    /**
+     * Land area number excluded from "build settlement outside of starting area" bonus scoring, or 0 if none:
+     * {@link SOCGameOptionSet#K_SC_SANY}, {@link SOCGameOptionSet#K_SC_SEAC}.
+     *<P>
+     * Used in {@link SOCScenario#K_SC_TTD SC_TTD Through the Desert} scenario
+     * for the strip of desert between starting area and northern coast.
+     *<P>
+     * For backwards compatibility, requires {@link SOCBoardLarge#getStartingLandArea()} &gt; 0
+     * so that {@code getBonusExcludeLandArea()}'s LA number can be sent to player clients
+     * as if it's their second "starting land area" to exclude it from those bonus awards.
+     * At server, those player LAs are updated by {@link SOCGame#updateAtGameFirstTurn()}
+     * calling each {@link SOCPlayer#setStartingLandAreasEncoded(int)}.
+     *
+     * @return Land Area number to exclude, or 0 if none
+     * @see #setBonusExcludeLandArea(int)
+     * @since 2.5.00
+     */
+    public int getBonusExcludeLandArea()
+    {
+        return bonusExcludeLandArea;
+    }
+
+    /**
+     * Set the Bonus Excluded Land Area,
+     * as part of making the board layout in {@link #makeNewBoard(SOCGameOptionSet)}.
+     * See {@link #getBonusExcludeLandArea()} for purpose.
+     *
+     * @param la  Land area number to exclude
+     * @throws IllegalArgumentException if {@code la} &lt;= 0
+     * @throws IllegalStateException if {@link #getBonusExcludeLandArea()} already set,
+     *     or if {@link SOCBoardLarge#getStartingLandArea()} == 0
+     * @since 2.5.00
+     */
+    protected void setBonusExcludeLandArea(final int la)
+    {
+        if (la <= 0)
+            throw new IllegalArgumentException("la must be > 0, is " + la);
+        if (bonusExcludeLandArea != 0)
+            throw new IllegalStateException("is already set");
+        if (startingLandArea == 0)
+            throw new IllegalStateException("startingLandArea 0");
+
+        bonusExcludeLandArea = la;
     }
 
     // javadoc inherited from SOCBoardLarge.
@@ -473,6 +528,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
                     (desertLandhexType, desertLandHexCoords, true, desertDiceNum,
                      false, false, 3, false, true, maxPl, null, scen, opts);
             }
+            setBonusExcludeLandArea(3);  // this desert itself doesn't give SVP (SC_SEAC), the coast past it does
 
             // - Small islands (LA 4 to n)
             makeNewBoard_placeHexes

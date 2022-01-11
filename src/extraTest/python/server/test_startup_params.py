@@ -5,7 +5,7 @@
 # See bottom of file for copyright and license information (GPLv3+).
 
 # File/directory assumptions at runtime (mostly tested in env_ok()):
-# - Python interpreter is python2, not python3  [env_ok() prints warning if 3]
+# - Python interpreter is python 2 or 3
 # - This script lives in extraTest/python/server/ and that's the current directory when ran
 # - Properties files can be created and deleted in test/tmp/  [tests dir existence only]
 # - Server JAR has been built already, as build/libs/JSettlersServer-?.?.??.jar
@@ -48,10 +48,6 @@ def env_ok():
     """Check environment. Return true if okay, false if problems."""
     global rel_path_js_server_jar
     all_ok = True
-
-    # python version
-    if sys.version_info[0] > 2:
-        print_err("Warning: python3 not supported; may give errors writing jsserver.properties (unicode vs string bytes)")
 
     # paths and files:
     cwd = os.getcwd()
@@ -512,7 +508,7 @@ if __name__ == '__main__':
 
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2017,2019 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2016-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,13 +35,18 @@ package soc.message;
  * with sleepTime -1, to let it know it's no longer connected.
  *<P>
  * The server sends bot clients {@code SOCServerPing} about once every 2 minutes,
- * and those clients also locally generate and send themselves
+ * and those bot clients also locally generate and send themselves
  * one {@link SOCTimingPing} per second in their active games.
+ *<P>
+ * When clients v2.5.00 and higher start a TCP server,
+ * they'll periodically send it {@code SOCServerPing}s
+ * to prevent server-side socket read timeouts when idle between games.
  *
  * @author Robert S Thomas
  * @see SOCAdminPing
  */
 public class SOCServerPing extends SOCMessage
+    implements SOCMessageFromUnauthClient
 {
     private static final long serialVersionUID = 100L;  // last structural change v1.0.0 or earlier
 
@@ -63,14 +68,16 @@ public class SOCServerPing extends SOCMessage
     }
 
     /**
-     * Get the sleep time sent from the server:
-     * For human clients, the value to send back to the server,
+     * When sent from server, the perceived sleep time of this client.
+     *<UL>
+     *<LI>  For human clients, this is the value (seconds) to send back to the server,
      * or -1 if server is telling a client it's being disconnected
-     * because a new client is replacing it, or for bots (informational)
-     * the amount of milliseconds server will sleep waiting to send the next ping.
-     *<P>
+     * because a new client is replacing it.
+     *<LI> For bots (informational), the amount of milliseconds server will sleep waiting to send the next ping.
      * The server's ping thread typically wakes and sends that next ping
      * about 60 seconds earlier than indicated by {@code getSleepTime()}.
+     *</UL>
+     *
      * @return the sleep time
      */
     public int getSleepTime()

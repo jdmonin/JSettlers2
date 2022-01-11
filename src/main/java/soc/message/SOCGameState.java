@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -73,8 +73,8 @@ import soc.proto.Message;
  * <LI>{@link SOCGame#PLACING_ROBBER PLACING_ROBBER}: Current player: Choose a new robber hex and send {@link SOCMoveRobber}
  * <LI>{@link SOCGame#PLACING_PIRATE PLACING_PIRATE}: Current player: Choose a new pirate hex and send {@link SOCMoveRobber}
  * <LI>{@link SOCGame#PLACING_SHIP PLACING_SHIP}: Current player: Place a ship
- * <LI>{@link SOCGame#PLACING_FREE_ROAD1 PLACING_FREE_ROAD1}: Current player: Place a road
- * <LI>{@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}: Current player: Place a road
+ * <LI>{@link SOCGame#PLACING_FREE_ROAD1 PLACING_FREE_ROAD1}: Current player: Place a road or ship
+ * <LI>{@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}: Current player: Place a road or ship
  * <LI>{@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}: Current player: Place the previously-designated
  *     {@link soc.game.SOCInventoryItem}. Their placement message to server depends on the scenario and item type,
  *     documented at {@link SOCInventoryItemAction}. For example, in scenario SC_FTRI the player sends a
@@ -87,7 +87,10 @@ import soc.proto.Message;
  * <LI>{@link SOCGame#WAITING_FOR_DISCARDS WAITING_FOR_DISCARDS}: Server sends game a "x, y, and z need to discard"
  *     prompt text. Players who must discard are sent {@link SOCDiscardRequest} and must
  *     respond with {@link SOCDiscard}. After each client response, if still waiting for other players to discard,
- *     server sends game another prompt text. Otherwise sends game its new {@link SOCGameState}
+ *     server sends game the same <tt>{@link SOCGameState}(WAITING_FOR_DISCARDS)</tt> and another prompt text.
+ *     Otherwise sends game its new {@code SOCGameState}.
+ *     <BR>
+ *     (Server v2.0 - 2.4 sent the prompt text, but not {@code SOCGameState}, if still waiting.)
  * <LI>{@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER WAITING_FOR_ROB_CHOOSE_PLAYER}:
  *     Server sends current player {@link SOCChoosePlayerRequest} listing possible victims.
  *     Current player: Choose a victim to rob, send {@link SOCChoosePlayer}
@@ -115,10 +118,12 @@ import soc.proto.Message;
  * <LI>{@link SOCGame#LOADING LOADING}: -
  * <LI>{@link SOCGame#LOADING_RESUMING LOADING_RESUMING}: -
  * <LI>{@link SOCGame#OVER OVER}: Server announces the winner with
- *     {@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages
- *     reporting winner's name, final score, each player's victory-point cards, game length, and a {@link SOCGameStats}.
- *     Each player is sent text with their resource roll totals. win-loss count for this session, and
- *     how long they've been connected.
+ *     {@link SOCGameElements}({@link SOCGameElements.GEType#CURRENT_PLAYER CURRENT_PLAYER})
+ *     (or {@link SOCTurn} instead of {@link SOCGameState}), reports winner's name, final score,
+ *     each player's victory-point cards, game length, and a {@link SOCGameStats}.
+ *     Each player is sent text with their resource roll totals, win-loss count for this session,
+ *     and how long they've been connected.
+ *     See {@link SOCGameStats} javadoc for sequence details.
  *</UL>
  * This list doesn't mention some informational/cosmetic text messages, such as the {@code START1A}
  * prompt "It's Joe's turn to build a settlement" or {@code PLACING_ROBBER}'s "Lily will move the robber".

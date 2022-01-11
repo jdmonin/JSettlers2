@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +19,8 @@
  **/
 
 package soctest.game;
+
+import java.util.ArrayList;
 
 import soc.game.SOCGame;
 
@@ -44,7 +46,7 @@ public class TestGame
 
     /**
      * Client-side tests for {@link SOCGame#hasRolledSeven()}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testRolled7_client()
@@ -60,6 +62,85 @@ public class TestGame
 
         ga.setCurrentDice(5);
         assertTrue(ga.hasRolledSeven());
+    }
+
+    /**
+     * Test {@link SOCGame#setNextDevCard(int)}, lightly test {@link SOCGame#buyDevCard()}.
+     * @since 2.5.00
+     */
+    @Test
+    public void testSetNextDevCard()
+    {
+        final int[] ORIG_CARDS = {5, 2, 2, 1};
+
+        SOCGame ga = new SOCGame("test");
+
+        // set up dev cards as if at server, but don't create a board that won't be used
+        ArrayList<Integer> cardList = new ArrayList<>();
+        for (int ctype : ORIG_CARDS)
+            cardList.add(ctype);
+        ga.initAtServer();
+        ga.setFieldsForLoad(cardList, SOCGame.ROLL_OR_CARD, null, false, false, false, false, false);
+
+        // verify cardList before any moves
+        assertArrayEquals(ORIG_CARDS, ga.getDevCardDeck());
+
+        // no change needed
+        ga.setNextDevCard(1);
+        assertArrayEquals(ORIG_CARDS, ga.getDevCardDeck());
+
+        // swap with first found
+        ga.setNextDevCard(2);
+        assertArrayEquals(new int[]{5, 2, 1, 2}, ga.getDevCardDeck());
+
+        int ctype = ga.buyDevCard();
+        assertEquals(2, ctype);
+        assertArrayEquals(new int[]{5, 2, 1}, ga.getDevCardDeck());
+
+        // swap finds at far end of array
+        ga.setNextDevCard(5);
+        assertArrayEquals(new int[]{1, 2, 5}, ga.getDevCardDeck());
+
+        // replaces if type not found
+        ga.setNextDevCard(4);
+        assertArrayEquals(new int[]{1, 2, 4}, ga.getDevCardDeck());
+
+        ctype = ga.buyDevCard();
+        assertEquals(4, ctype);
+        assertArrayEquals(new int[]{1, 2}, ga.getDevCardDeck());
+
+        // works at length 2
+        ga.setNextDevCard(2);
+        assertArrayEquals(new int[]{1, 2}, ga.getDevCardDeck());
+        ga.setNextDevCard(1);
+        assertArrayEquals(new int[]{2, 1}, ga.getDevCardDeck());
+        ga.setNextDevCard(5);
+        assertArrayEquals(new int[]{2, 5}, ga.getDevCardDeck());
+
+        ctype = ga.buyDevCard();
+        assertEquals(5, ctype);
+        assertArrayEquals(new int[]{2}, ga.getDevCardDeck());
+
+        // works at length 1
+        ga.setNextDevCard(2);
+        assertArrayEquals(new int[]{2}, ga.getDevCardDeck());
+        ga.setNextDevCard(4);
+        assertArrayEquals(new int[]{4}, ga.getDevCardDeck());
+
+        ctype = ga.buyDevCard();
+        assertEquals(4, ctype);
+        assertArrayEquals(new int[]{}, ga.getDevCardDeck());
+
+        // throws ISE at length 0
+        boolean threwISE = false;
+        try
+        {
+            ga.setNextDevCard(2);
+        } catch (IllegalStateException e) {
+            threwISE = true;
+        }
+        if (! threwISE)
+            fail("should have thrown IllegalStateException");
     }
 
 }

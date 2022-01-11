@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -719,7 +719,7 @@ import javax.swing.UIManager;
 
     /**
      * Cached result for {@link #doLayout()} for width of resource labels.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     private int doLayout_resourceLabelsWidth;
 
@@ -1457,6 +1457,7 @@ import javax.swing.UIManager;
         {
             clickPlayCardButton();
         }
+
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
@@ -1612,6 +1613,7 @@ import javax.swing.UIManager;
     /**
      * Handle a click on the "play card" button, or double-click
      * on an item in the inventory/list of cards held.
+     * Silently ignored if {@link SOCGame#isDebugFreePlacement()}.
      *<P>
      * Inventory items are almost always {@link SOCDevCard}s.
      * Some scenarios may place other items in the player's inventory,
@@ -1629,6 +1631,9 @@ import javax.swing.UIManager;
             messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
             return;
         }
+
+        if (game.isDebugFreePlacement())
+            return;
 
         String itemText;
         int itemNum;  // Which one to play from list?
@@ -2609,7 +2614,8 @@ import javax.swing.UIManager;
 
         inPlay = true;
 
-        validate();  // doLayout() will lay things out for our hand or other player's hand
+        invalidate();
+        doLayout();
         if (blankStandIn != null)
             blankStandIn.setVisible(false);
         setVisible(true);
@@ -2643,8 +2649,9 @@ import javax.swing.UIManager;
      * Handpanel interface updates at start of each turn (not just our turn).
      * Calls {@link #updateTakeOverButton()}, and checks if current player (for hilight).
      * Called from client when server sends {@link soc.message.SOCMessage#TURN}.
+     *<P>
      * Called also at start of game by {@link SOCPlayerInterface#updateAtGameState()},
-     * because the server sends no TURN between the last road (gamestate START2B)
+     * because servers older than v2.5.00 sometimes send no TURN between the last road (gamestate START2B)
      * and the first player's turn (state ROLL_OR_CARD).
      * @since 1.1.00
      */
@@ -2724,6 +2731,8 @@ import javax.swing.UIManager;
     /**
      * Client is current player; state changed.
      * Enable or disable the Roll, Done and Bank buttons.
+     * Also disables/enables Play Card and Inventory when entering/exiting
+     * Free Placement debug mode ({@link SOCGame#isDebugFreePlacement()}).
      *<P>
      * Should not be called except by client's playerinterface.
      * Call only when if player is client and is current player.
@@ -3005,6 +3014,7 @@ import javax.swing.UIManager;
     {
         if (game.getGameState() != SOCGame.NEW)
             return;  // TODO consider IllegalStateException
+
         final String buttonText, ttipText;
         if (game.getSeatLock(playerNumber) == SOCGame.SeatLockState.LOCKED)
         {
@@ -3021,7 +3031,8 @@ import javax.swing.UIManager;
         sitBut.setText(buttonText);
         sitBut.setToolTipText(ttipText);
         sitButIsLock = true;
-        validate();  // sitBut minimum width may change with text
+        invalidate();  // sitBut minimum width may change with text
+        doLayout();
         sitBut.repaint();
     }
 
@@ -3174,6 +3185,7 @@ import javax.swing.UIManager;
     public void rejectOfferAtClient()
     {
         messageSender.rejectOffer(game);
+
         messagePanel.setText(null);
         messagePanel.setVisible(false);
         offerPanel.setVisible(false);
@@ -3558,6 +3570,10 @@ import javax.swing.UIManager;
      * {@link #rollBut}, {@link #doneBut}, {@link #bankBut}.
      * Call only if {@link #playerIsCurrent} and {@link #playerIsClient}.
      *<P>
+     * Free Placement debug mode: Disables Play Card button and {@link #inventory}
+     * if {@link SOCGame#isDebugFreePlacement()}, re-enables it after exiting that mode
+     * unless {@link #inventoryItems} is empty.
+     *<P>
      * v2.0.00+: In game state {@link SOCGame#PLACING_INV_ITEM}, the Play Card button's label
      * becomes {@link #CANCEL}, and {@link #inventory} is disabled, while the player places
      * an item on the board.  They can hit Cancel to return the item to their inventory instead.
@@ -3571,31 +3587,40 @@ import javax.swing.UIManager;
     private void updateRollDoneBankButtons()
     {
         final int gs = game.getGameState();
+
         rollBut.setEnabled(gs == SOCGame.ROLL_OR_CARD);
         doneBut.setEnabled
             ((gs <= SOCGame.START3B) || doneButIsRestart || game.canEndTurn(playerNumber));
         bankBut.setEnabled(gs == SOCGame.PLAY1);
 
-        if (game.hasSeaBoard)
+        if (game.hasSeaBoard && (gs == SOCGame.PLACING_INV_ITEM))
         {
-            if (gs == SOCGame.PLACING_INV_ITEM)
-            {
-                // in this state only, "Play Card" becomes "Cancel"
-                SOCInventoryItem placing = game.getPlacingItem();
-                if (placing != null)
-                    canCancelInvItemPlay = placing.canCancelPlay;
-                inventory.setEnabled(false);
-                playCardBut.setText(CANCEL);
-                playCardBut.setEnabled(canCancelInvItemPlay);
-            } else {
-                if (! inventory.isEnabled())
-                    inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
+            // in this state only, "Play Card" becomes "Cancel"
+            SOCInventoryItem placing = game.getPlacingItem();
+            if (placing != null)
+                canCancelInvItemPlay = placing.canCancelPlay;
+            inventory.setEnabled(false);
+            playCardBut.setText(CANCEL);
+            playCardBut.setEnabled(canCancelInvItemPlay);
+        }
+        else if (game.isDebugFreePlacement() && inventory.isEnabled())
+        {
+            inventory.setEnabled(false);
+            playCardBut.setEnabled(false);
+        }
+        else
+        {
+            if (! inventory.isEnabled())
+                inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
 
-                if (playCardBut.getText().equals(CANCEL))
-                {
-                    playCardBut.setText(CARD);  // " Play Card "
-                    playCardBut.setEnabled(! inventoryItems.isEmpty());
-                }
+            if (playCardBut.getText().equals(CANCEL))
+            {
+                playCardBut.setText(CARD);  // " Play Card "
+                playCardBut.setEnabled(! inventoryItems.isEmpty());
+            }
+            else if (! (playCardBut.isEnabled() || inventoryItems.isEmpty() || player.hasPlayedDevCard()))
+            {
+                playCardBut.setEnabled(true);
             }
         }
     }
@@ -3738,15 +3763,15 @@ import javax.swing.UIManager;
     {
         boolean updateTotalResCount = false;
 
-        /**
-         * We say that we're getting the total vp, but
-         * for other players this will automatically get
-         * the public vp because we will assume their
-         * dev card vp total is zero.
-         */
         switch (utype)
         {
         case VictoryPoints:
+            /**
+             * We say that we're getting the total vp, but
+             * for other players this will automatically get
+             * the public vp because we will assume their
+             * dev card vp total is zero.
+             */
             {
                 int newVP = player.getTotalVP();
                 vpSq.setIntValue(newVP);
@@ -4037,7 +4062,7 @@ import javax.swing.UIManager;
      * this player can roll again, but they cannot.
      * To guard against this, use {@link #isClientAndCurrentlyCanRoll()} instead.
      *
-     * @see SOCPlayerInterface#clientIsCurrentPlayer()
+     * @see SOCPlayerInterface#isClientCurrentPlayer()
      * @since 1.1.00
      */
     public boolean isClientAndCurrentPlayer()
@@ -4464,6 +4489,9 @@ import javax.swing.UIManager;
                             (inset, py, offerW, ph);
                         counterOfferPanel.setBounds
                             (inset, py + ph + space, offerW, counterOfferHeight);
+
+                        if (resInventoryHeight > 0)
+                            resourceInventoryTop = topFaceAreaHeight + space;
                     }
 
                     if (miscInfoArea != null)
@@ -4948,7 +4976,7 @@ import javax.swing.UIManager;
             throws IllegalStateException
         {
             super(hp, strings.get("board.trade.trade.port"));  // "Trade Port"
-            if (! hp.getPlayerInterface().clientIsCurrentPlayer())
+            if (! hp.getPlayerInterface().isClientCurrentPlayer())
                 throw new IllegalStateException("Not current player");
             init(typeFrom, hp.game, null, hp.resourceTradeCost[typeFrom], forThree1);
         }

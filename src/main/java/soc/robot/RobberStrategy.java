@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009,2011,2012,2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2011,2012,2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -157,7 +157,7 @@ public class RobberStrategy
     *
     * @param robberHex the current location of the robber
     * @return a valid player number
-    * @since 2.4.10
+    * @since 2.5.00
     */
    public int selectPlayerToThwart(int robberHex)
    {
@@ -223,7 +223,7 @@ public class RobberStrategy
     * @param victimNum the targeted player
     * @return a valid hex coordinate
     * @see #selectPlayerToThwart(int)
-    * @since 2.4.10
+    * @since 2.5.00
     */
    public int selectRobberHex(int prevRobberHex, int victimNum)
    {

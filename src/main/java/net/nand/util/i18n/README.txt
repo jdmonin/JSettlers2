@@ -5,7 +5,7 @@ This internationalization editor is used by the JSettlers project, so its "home"
 	download:    http://nand.net/jsettlers/devel/i18n/PTE-1.1.0.jar
 	webpage:     http://nand.net/jsettlers/devel/i18n/
 	bug-tracker: https://github.com/jdmonin/JSettlers2/issues
-	source:      https://github.com/jdmonin/JSettlers2/tree/master/src/main/java/net/nand/util/i18n
+	source:      https://github.com/jdmonin/JSettlers2/tree/main/src/main/java/net/nand/util/i18n
 in the net.nand.util.i18n and net.nand.util.i18n.gui packages.
 
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -74,9 +74,13 @@ public class SOCGameElements extends SOCMessageTemplateMi
          * Number of development cards remaining in the deck to be bought,
          * from {@link SOCGame#getNumDevCards()}.
          *<P>
-         * Sent to clients during game join/start. When a dev card is bought,
-         * is sent to clients as part of game data before action announcement/display:
-         * See {@link SOCBuyDevCardRequest} javadoc.
+         * Sent to clients during game join/start.
+         *<P>
+         * When a dev card is bought, is sent to clients older than v2.5.00
+         * ({@link SOCDevCardAction#VERSION_FOR_BUY_OMITS_GE_DEV_CARD_COUNT})
+         * as part of game data before action announcement/display:
+         * See {@link SOCBuyDevCardRequest} javadoc. Clients v2.5 and newer
+         * use {@link SOCSimpleAction#DEVCARD_BOUGHT}'s remaining-card count field instead.
          *<P>
          * Versions before v2.0.00 sent {@link SOCDevCardCount} instead.
          */
@@ -341,7 +345,7 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * Handles elemNum=value pairs, undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static List<String> stripAttribsToList(String messageStrParams)
     {

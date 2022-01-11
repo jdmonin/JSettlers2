@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -48,12 +48,15 @@ import soc.game.SOCTradeOffer;
 
 import soc.message.SOCAcceptOffer;
 import soc.message.SOCBankTrade;
+import soc.message.SOCBotGameDataCheck;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDiceResult;
+import soc.message.SOCDiceResultResources;
+import soc.message.SOCDiscard;
 import soc.message.SOCDiscardRequest;
 import soc.message.SOCGameState;
 import soc.message.SOCGameStats;
@@ -67,6 +70,7 @@ import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPlayerElements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
+import soc.message.SOCReportRobbery;
 import soc.message.SOCResourceCount;
 import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSimpleAction;
@@ -80,17 +84,14 @@ import soc.proto.Data;
 
 import soc.util.CappedQueue;
 import soc.util.DebugRecorder;
-import soc.util.Queue;
 import soc.util.SOCRobotParameters;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.Stack;
 import java.util.Vector;
 
 
@@ -118,7 +119,7 @@ import java.util.Vector;
  * Current status and the next expected action are tracked by the "waitingFor" and "expect" flag fields.
  * If we've sent the server an action and we're waiting for the result, {@link #waitingForGameState} is true
  * along with one other "expect" flag, such as {@link #expectPLACING_ROBBER}.
- * All these fields can be output for inspection by calling {@link #debugPrintBrainStatus()}.
+ * All these fields can be output for inspection by calling {@link #debugPrintBrainStatus(boolean)}.
  *<P>
  * See {@link #run()} for more details of how the bot waits for and reacts to incoming messages.
  * Some reactions are chosen in methods like {@link #considerOffer(SOCTradeOffer)} called from {@code run()}.
@@ -187,11 +188,30 @@ public class SOCRobotBrain extends Thread
     public static int MAX_DENIED_BUILDING_PER_TURN = 3;
 
     /**
+     * If we made this many server-rejected bank and port trades, stop trying.
+     *
+     * @see #failedBankTrades
+     * @see #MAX_DENIED_PLAYER_TRADES_PER_TURN
+     * @since 2.5.00
+     */
+    public static int MAX_DENIED_BANK_TRADES_PER_TURN = 9;
+
+    /**
+     * If we made this many server-rejected trade offers to other players
+     * (including counter-offers), stop trying.
+     *
+     * @see #declinedOurPlayerTrades
+     * @see #MAX_DENIED_BANK_TRADES_PER_TURN
+     * @since 2.5.00
+     */
+    public static int MAX_DENIED_PLAYER_TRADES_PER_TURN = 9;
+
+    /**
      * When a trade has been offered to humans (and maybe also to bots), pause
      * for this many seconds before accepting an offer to give humans a chance
      * to compete against fast bot decisions.
      *
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static int BOTS_PAUSE_FOR_HUMAN_TRADE = 8;
 
@@ -301,6 +321,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * The game messages received this turn / previous turn, for debugging.
+     * Swapped/cleared when {@link SOCTurn} message received.
      * @since 1.1.13
      */
     protected Vector<SOCMessage> turnEventsCurrent, turnEventsPrev;
@@ -349,12 +370,12 @@ public class SOCRobotBrain extends Thread
      * Cleared at the start of each player's turn, and a few other places
      * if certain conditions arise, by calling {@link #resetBuildingPlan()}.
      * Set in {@link #planBuilding()}.
-     * When making a {@link #buildingPlan}, be sure to also set
+     * When adding to a {@link #buildingPlan}, be sure to also set
      * {@link #negotiator}'s target piece.
      *<P>
      * {@link SOCRobotDM#buildingPlan} is the same Stack.
      *<P>
-     * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+     * Before v2.5.00 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
      *
      * @see #whatWeWantToBuild
      */
@@ -384,6 +405,25 @@ public class SOCRobotBrain extends Thread
     protected int failedBuildingAttempts;
 
     /**
+     * Track how many of our bank trades were rejected by server this turn.
+     *
+     * @see #declinedOurPlayerTrades
+     * @see #MAX_DENIED_BANK_TRADES_PER_TURN
+     * @since 2.5.00
+     */
+    protected int failedBankTrades;
+
+    /**
+     * Track how many of our player trade offers or counter-offers were rejected by server this turn.
+     *
+     * @see #failedBankTrades
+     * @see #doneTrading
+     * @see #MAX_DENIED_PLAYER_TRADES_PER_TURN
+     * @since 2.5.00
+     */
+    protected int declinedOurPlayerTrades;
+
+    /**
      * Our player tracker within {@link #playerTrackers}.
      */
     protected SOCPlayerTracker ourPlayerTracker;
@@ -410,7 +450,7 @@ public class SOCRobotBrain extends Thread
      * The data and code that determines how we negotiate.
      * {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
      * is set when {@link #buildingPlan} is updated.
-     * @see #tradeToTarget2(SOCResourceSet)
+     * @see #tradeWithBank(SOCBuildPlan)
      * @see #makeOffer(SOCBuildPlan)
      * @see #considerOffer(SOCTradeOffer)
      * @see #tradeStopWaitingClearOffer()
@@ -420,7 +460,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Our {@link SOCBuildingSpeedEstimate} factory.
      * @see #getEstimatorFactory()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected SOCBuildingSpeedEstimateFactory bseFactory;
 
@@ -621,9 +661,9 @@ public class SOCRobotBrain extends Thread
      * not yet {@link SOCGame#PLAY1}. When this flag is true and state becomes {@code PLAY1},
      * brain will set it false and call {@link #startTurnMainActions()}.
      * @see #waitingForOurTurn
-     * @since 2.4.10
+     * @since 2.5.00
      */
-    private boolean waitingForTurnMain;
+    protected boolean waitingForTurnMain;
 
     /**
      * True when we're waiting for the results of our requested bank trade.
@@ -681,9 +721,14 @@ public class SOCRobotBrain extends Thread
     // please update debugPrintBrainStatus().
 
     /**
-     * true if we're done trading
+     * true if we're done trading with other players this turn.
+     * To encapsulate for benefit of third-party bots, most users should call {@link #setDoneTrading()}
+     * instead of directly changing this flag, unless they're also changing similar internal flags
+     * like {@link #waitingForTradeResponse}.
+     *
      * @see #makeOffer(SOCBuildPlan)
      * @see #waitingForTradeResponse
+     * @see #declinedOurPlayerTrades
      */
     protected boolean doneTrading;
 
@@ -725,14 +770,6 @@ public class SOCRobotBrain extends Thread
      * @since 1.1.09
      */
     protected int lastStartingPieceCoord;
-
-    /**
-     * During START1B and START2B states, coordinate of the potential settlement node
-     * towards which we're building, as calculated by {@link OpeningBuildStrategy#planInitRoad()}.
-     * Used to avoid repeats in {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}.
-     * @since 1.1.09
-     */
-    protected int lastStartingRoadTowardsNode;
 
     /**
      * Strategy to choose discards.
@@ -848,7 +885,7 @@ public class SOCRobotBrain extends Thread
         decidedIfSpecialBuild = false;
         moveRobberOnSeven = false;
         waitingForTradeResponse = false;
-        doneTrading = false;
+        setDoneTrading(false);
         offerRejections = new boolean[game.maxPlayers];
         for (int i = 0; i < game.maxPlayers; i++)
         {
@@ -962,7 +999,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Get the current building plan.
      *<P>
-     * Before v2.4.10 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+     * Before v2.5.00 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
      *
      * @return the building plan
      * @see #resetBuildingPlan()
@@ -976,7 +1013,7 @@ public class SOCRobotBrain extends Thread
      * clears the stack describing the current building plan.
      * @see #getBuildingPlan()
      * @see #resetFieldsAtEndTurn()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void resetBuildingPlan()
     {
@@ -989,6 +1026,15 @@ public class SOCRobotBrain extends Thread
     public SOCRobotDM getDecisionMaker()
     {
         return decisionMaker;
+    }
+
+    /**
+     * @return the OBS
+     * @since 2.5.00
+     */
+    public OpeningBuildStrategy getOpeningBuildStrategy()
+    {
+        return openingBuildStrategy;
     }
 
     /**
@@ -1060,6 +1106,9 @@ public class SOCRobotBrain extends Thread
      * Initializes our game and {@link #ourPlayerData}, {@link SOCPlayerTracker}s, etc.
      * Calls {@link #setStrategyFields()} to set {@link SOCRobotDM}, {@link SOCRobotNegotiator},
      * {@link RobberStrategy}, and other strategy fields,
+     *<P>
+     * If you override this method, either call {@code super.setOurPlayerData()}
+     * or be sure to set all those fields.
      */
     public void setOurPlayerData()
     {
@@ -1142,9 +1191,11 @@ public class SOCRobotBrain extends Thread
      * during the previous and current turns.
      *<P>
      * Before v1.1.20, this printed to {@link System#err} instead of returning the status as Strings.
+     *
+     * @param withMessages  If true, include messages received in previous and current turn
      * @since 1.1.13
      */
-    public List<String> debugPrintBrainStatus()
+    public List<String> debugPrintBrainStatus(final boolean withMessages)
     {
         ArrayList<String> rbSta = new ArrayList<String>();
 
@@ -1218,8 +1269,11 @@ public class SOCRobotBrain extends Thread
         if (slen > 0)
             rbSta.add(sb.toString());
 
-        debugPrintTurnMessages(turnEventsPrev, "previous", rbSta);
-        debugPrintTurnMessages(turnEventsCurrent, "current", rbSta);
+        if (withMessages)
+        {
+            debugPrintTurnMessages(turnEventsPrev, "previous", rbSta);
+            debugPrintTurnMessages(turnEventsCurrent, "current", rbSta);
+        }
 
         return rbSta;
     }
@@ -1375,17 +1429,11 @@ public class SOCRobotBrain extends Thread
                         //
                         // reset the selling flags and offers history
                         //
-                        if (robotParameters.getTradeFlag() == 1)
-                        {
-                            doneTrading = false;
-                        }
-                        else
-                        {
-                            doneTrading = true;
-                        }
+                        setDoneTrading(robotParameters.getTradeFlag() == 0);
 
                         waitingForTradeMsg = false;
                         waitingForTradeResponse = false;
+                        declinedOurPlayerTrades = 0;
                         negotiator.resetIsSelling();
                         negotiator.resetOffersMade();
 
@@ -1452,6 +1500,7 @@ public class SOCRobotBrain extends Thread
                         // For others, see above: if (mesType == SOCMessage.TURN)
                         whatWeFailedToBuild = null;
                         failedBuildingAttempts = 0;
+                        failedBankTrades = 0;
                         rejectedPlayDevCardType = -1;
                         rejectedPlayInvItem = null;
                     }
@@ -1491,6 +1540,11 @@ public class SOCRobotBrain extends Thread
                         handleDICERESULT((SOCDiceResult) mes);
                         break;
 
+                    case SOCMessage.DICERESULTRESOURCES:
+                        SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES
+                            ((SOCDiceResultResources) mes, game, ourPlayerName, false);
+                        break;
+
                     case SOCMessage.PUTPIECE:
                         handlePUTPIECE_updateGameData((SOCPutPiece) mes);
                         // For initial roads, also tracks their initial settlement in SOCPlayerTracker.
@@ -1507,6 +1561,10 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.CANCELBUILDREQUEST:
                         handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
+                        break;
+
+                    case SOCMessage.DISCARD:
+                        SOCDisplaylessPlayerClient.handleDISCARD((SOCDiscard) mes, game);
                         break;
 
                     case SOCMessage.MOVEROBBER:
@@ -1533,6 +1591,9 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.ACCEPTOFFER:
+                        SOCDisplaylessPlayerClient.handleACCEPTOFFER((SOCAcceptOffer) mes, game);
+                            // use our thread to update game data
+
                         if (waitingForTradeResponse && (robotParameters.getTradeFlag() == 1))
                         {
                             final int acceptingPN = ((SOCAcceptOffer) mes).getAcceptingNumber();
@@ -1542,11 +1603,6 @@ public class SOCRobotBrain extends Thread
                             {
                                 handleTradeResponse(acceptingPN, true);
                             }
-                            else if (acceptingPN < 0)
-                            {
-                                clearTradingFlags(false, false);
-                            }
-
                         }
                         break;
 
@@ -1574,6 +1630,9 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.SIMPLEREQUEST:
+                        // For any player's request, update game data in our thread
+                        SOCDisplaylessPlayerClient.handleSIMPLEREQUEST((SOCSimpleRequest) mes, game);
+
                         // These messages can almost always be ignored by bots,
                         // unless we've just sent a request to attack a pirate fortress.
                         // Some request types are handled at the bottom of the loop body;
@@ -1599,6 +1658,9 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.SIMPLEACTION:
+                        // For any player's action, update game data in our thread
+                        SOCDisplaylessPlayerClient.handleSIMPLEACTION((SOCSimpleAction) mes, game);
+
                         // Most action types are handled later in the loop body;
                         // search for SOCMessage.SIMPLEACTION
 
@@ -1634,6 +1696,15 @@ public class SOCRobotBrain extends Thread
                             waitingForGameState = false;
                             expectPLACING_INV_ITEM = false;  // in case was rejected placement (SC_FTRI gift port, etc)
                         }
+                        break;
+
+                    case SOCMessage.REPORTROBBERY:
+                        handleREPORTROBBERY((SOCReportRobbery) mes);
+                        break;
+
+                    case SOCMessage.BOTGAMEDATACHECK:
+                        handleBOTGAMEDATACHECK
+                            (((SOCBotGameDataCheck) mes).getDataType(), ((SOCBotGameDataCheck) mes).getValues());
                         break;
 
                     }  // switch(mesType)
@@ -1741,16 +1812,21 @@ public class SOCRobotBrain extends Thread
                         planAndPlaceInvItem();  // choose and send a placement location
                     }
 
-                    if (waitingForTradeMsg && (mesType == SOCMessage.BANKTRADE))
+                    if (mesType == SOCMessage.BANKTRADE)
                     {
-                        final int pn = ((SOCBankTrade) mes).getPlayerNumber();
-                        final boolean wasAllowed = (pn >= 0);
+                        SOCDisplaylessPlayerClient.handleBANKTRADE((SOCBankTrade) mes, game);
+                            // use our thread to update game data
 
-                        if ((pn == ourPlayerNumber) || ! wasAllowed)
-                            //
-                            // This is the bank/port trade confirmation announcement we've been waiting for
-                            //
-                            clearTradingFlags(true, wasAllowed);
+                        if (waitingForTradeMsg)
+                        {
+                            final int pn = ((SOCBankTrade) mes).getPlayerNumber();
+
+                            if (pn == ourPlayerNumber)
+                                //
+                                // This is the bank/port trade confirmation announcement we've been waiting for
+                                //
+                                clearTradingFlags(true, true, true);
+                        }
                     }
 
                     if (waitingForDevCard && (mesType == SOCMessage.SIMPLEACTION)
@@ -1815,7 +1891,7 @@ public class SOCRobotBrain extends Thread
                                 {
                                     // If we have the resources right now, ask to Special Build
 
-                                    final SOCPossiblePiece targetPiece = buildingPlan.peek();
+                                    final SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
                                     final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
                                         // may be null
 
@@ -1994,8 +2070,7 @@ public class SOCRobotBrain extends Thread
                         }
 
                         counter = 0;
-                        client.discard(game, discardStrategy.discard
-                            (((SOCDiscardRequest) mes).getNumberOfDiscards(), buildingPlan));
+                        discard(((SOCDiscardRequest) mes).getNumberOfDiscards());
 
                         break;
 
@@ -2143,30 +2218,112 @@ public class SOCRobotBrain extends Thread
      *<P>
      * When state moves from {@link SOCGame#ROLL_OR_CARD} to {@link SOCGame#PLAY1},
      * calls {@link #startTurnMainActions()}.
+     *<P>
+     * If overriding this method, please call {@code super.handleGAMESTATE(newState)}
+     * so game data is updated and {@code startTurnMainActions()} is called when it should be.
      *
-     * @param gs  New game state, like {@link SOCGame#ROLL_OR_CARD}; if 0, does nothing
+     * @param newState  New game state, like {@link SOCGame#ROLL_OR_CARD}; if 0, does nothing
      * @since 2.0.00
      */
-    protected void handleGAMESTATE(final int gs)
+    protected void handleGAMESTATE(final int newState)
     {
-        if (gs == 0)
+        if (newState == 0)
             return;
 
-        waitingForGameState = ((gs == SOCGame.LOADING) || (gs == SOCGame.LOADING_RESUMING));  // almost always false
+        waitingForGameState = ((newState == SOCGame.LOADING) || (newState == SOCGame.LOADING_RESUMING));  // almost always false
         int currGS = game.getGameState();
-        if (currGS != gs)
+        if (currGS != newState)
             oldGameState = currGS;  // if no actual change, don't overwrite previously known oldGameState
 
-        SOCDisplaylessPlayerClient.handleGAMESTATE(game, gs);
+        SOCDisplaylessPlayerClient.handleGAMESTATE(game, newState);
 
-        if (gs == SOCGame.ROLL_OR_CARD)
+        if (newState == SOCGame.ROLL_OR_CARD)
         {
             waitingForTurnMain = true;
         }
-        else if ((gs == SOCGame.PLAY1) && waitingForTurnMain)
+        else if ((newState == SOCGame.PLAY1) && waitingForTurnMain)
         {
             startTurnMainActions();
             waitingForTurnMain = false;
+        }
+    }
+
+    /**
+     * Compare "known" game data from server to what this brain thinks the data is.
+     * If any discrepancies are found, they're printed to {@link System#err} along with the message sequence for
+     * the previous and current turn. Brain corrects its data to the known values to continue the game or current test.
+     * @param dtype Data type to check. Currently recognizes only {@link SOCBotGameDataCheck#TYPE_RESOURCE_AMOUNTS},
+     *     ignores any other type.
+     * @param values Server's data values for each element. Format is specific to each {@code dtype}.
+     * @since 2.5.00
+     */
+    protected void handleBOTGAMEDATACHECK(final int dtype, final int[] values)
+    {
+        if (dtype != SOCBotGameDataCheck.TYPE_RESOURCE_AMOUNTS)
+            return;  // unrecognized
+
+        StringBuilder problems = null;
+        for (int i = 0; i < values.length; i += 6)
+        {
+            final int pn = values[i];
+            final SOCResourceSet plRes = game.getPlayer(pn).getResources();
+            final int[] expected = new int[]
+                {values[i + 1], values[i + 2], values[i + 3], values[i + 4], values[i + 5]};
+            int localUnknown = plRes.getAmount(SOCResourceConstants.UNKNOWN);
+
+            // compare; take any shortfalls from localUnknown
+            boolean playerOK = true;
+            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+            {
+                int missingAmt = expected[res - 1] - plRes.getAmount(res);
+                if (missingAmt < 0)
+                {
+                    playerOK = false;  // more than expected
+                    break;
+                } else if (missingAmt > 0) {
+                    if (missingAmt <= localUnknown)
+                    {
+                        localUnknown -= missingAmt;
+                    } else {
+                        playerOK = false;  // unknown doesn't have enough
+                        break;
+                    }
+                }
+            }
+            if (localUnknown != 0)
+                playerOK = false;  // leftovers
+
+            if (! playerOK)
+            {
+                if (problems == null)
+                    problems = new StringBuilder();
+                problems.append("pn=" + pn);
+                if (pn == ourPlayerNumber)
+                    problems.append(" self");
+                problems.append(": Expected ").append(Arrays.toString(expected))
+                    .append(", has [").append(plRes).append("]. ");
+
+                // correct bot's amounts to continue game
+                for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+                    plRes.setAmount(expected[res - 1], res);
+                plRes.setAmount(0, SOCResourceConstants.UNKNOWN);
+            }
+        }
+
+        if (problems != null)
+        {
+            ArrayList<String> rbSta = new ArrayList<String>();
+            debugPrintTurnMessages(turnEventsPrev, "previous", rbSta);
+            debugPrintTurnMessages(turnEventsCurrent, "current", rbSta);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append
+                ("\nBot " + client.getNickname() + " in " + game.getName() + ": Resource mismatch server/client: "
+                 + problems + "\n");
+            for (final String st : rbSta)
+                sb.append(st).append('\n');
+
+            System.err.println(sb);
         }
     }
 
@@ -2195,7 +2352,7 @@ public class SOCRobotBrain extends Thread
         expectROLL_OR_CARD = true;
         waitingForOurTurn = true;
 
-        doneTrading = (robotParameters.getTradeFlag() != 1);
+        setDoneTrading(robotParameters.getTradeFlag() == 0);
 
         //D.ebugPrintln("!!! ENDING TURN !!!");
         negotiator.resetIsSelling();
@@ -2276,12 +2433,16 @@ public class SOCRobotBrain extends Thread
      * <LI> {@link #planBuilding()}
      * <LI> {@link #buildOrGetResourceByTradeOrCard()}
      * <LI> {@link #considerScenarioTurnFinalActions()}
+     * <LI> {@link #endTurnActions()}
      *</UL>
      * If nothing to do, will call {@link #resetFieldsAtEndTurn()} and {@link SOCRobotClient#endTurn(SOCGame)}.
      *<P>
      * Third-party bots may instead choose to override this entire method.
+     * If doing so, remember to account for the strategy/decision methods listed above.
+     *<P>
+     * Before v2.5.00 this code was in the main {@code #run()} loop.
      *
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected void planAndDoActionForPLAY1()
     {
@@ -2307,7 +2468,7 @@ public class SOCRobotBrain extends Thread
          * and if we haven't given up building
          * attempts this turn.
          */
-        if ( (! expectPLACING_ROBBER) && buildingPlan.empty()
+        if ( (! expectPLACING_ROBBER) && buildingPlan.isEmpty()
              && (ourPlayerData.getResources().getTotal() > 1)
              && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
         {
@@ -2327,7 +2488,7 @@ public class SOCRobotBrain extends Thread
         }
 
         //D.ebugPrintln("DONE PLANNING");
-        if ( (! expectPLACING_ROBBER) && (! buildingPlan.empty()))
+        if ( (! expectPLACING_ROBBER) && (! buildingPlan.isEmpty()))
         {
             // Time to build something.
 
@@ -2394,7 +2555,7 @@ public class SOCRobotBrain extends Thread
      * Calls {@link SOCGame#setCurrentDice(int)}.
      * Third-party bots can override if needed; if so, be sure to call {@code super.handleDICERESULT(..)}.
      * @param mes  Dice result info message
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected void handleDICERESULT(SOCDiceResult mes)
     {
@@ -2412,7 +2573,7 @@ public class SOCRobotBrain extends Thread
      * to report the gain/loss of resources.
      *
      * @param newHex  New hex coordinate of robber if &gt; 0, pirate if &lt;= 0 (invert before using)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected void robberMoved(final int newHex)
     {
@@ -2425,12 +2586,28 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Update game data and any bot tracking when a player has been robbed.
+     * Calls {@link SOCDisplaylessPlayerClient#handleREPORTROBBERY(SOCReportRobbery, SOCGame)}.
+     * Third-party bots can override if needed; if so, be sure to call {@code super.handleREPORTROBBERY(..)}.
+     *
+     * @param mes  Robbery report message
+     * @since 2.5.00
+     */
+    protected void handleREPORTROBBERY(SOCReportRobbery mes)
+    {
+        SOCDisplaylessPlayerClient.handleREPORTROBBERY(mes, game);
+
+        // Basic robot brain doesn't do anything else with this message,
+        // but a third-party bot might want to.
+    }
+
+    /**
      * Stop waiting for responses to a trade offer, no one has accepted it.
      * Remember other players' responses or non-responses,
      * Call {@link SOCRobotClient#clearOffer(SOCGame) client.clearOffer},
      * clear {@link #waitingForTradeResponse} and {@link #counter}.
      * Call {@link SOCRobotNegotiator#recordResourcesFromNoResponse(SOCTradeOffer)}.
-     * @see #clearTradingFlags(boolean, boolean)
+     * @see #clearTradingFlags(boolean, boolean, boolean)
      * @see #handleTradeResponse(int, boolean)
      * @since 1.1.09
      */
@@ -2623,7 +2800,7 @@ public class SOCRobotBrain extends Thread
                 counter = 0;
                 expectPLAY1 = true;
 
-                SOCPossiblePiece posPiece = buildingPlan.pop();
+                SOCPossiblePiece posPiece = buildingPlan.advancePlan();
 
                 if (posPiece.getType() == SOCPossiblePiece.ROAD)
                     whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
@@ -2825,10 +3002,11 @@ public class SOCRobotBrain extends Thread
      * the {@link SOCDevCardConstants#ROADS Road Building} or
      * {@link SOCDevCardConstants#MONO Monopoly} or
      * {@link SOCDevCardConstants#DISC Discovery} development cards,
-     * then trades with the bank ({@link #tradeToTarget2(SOCResourceSet)})
+     * then trades with the bank ({@link #tradeWithBank(SOCBuildPlan)})
      * or with other players ({@link #makeOffer(SOCBuildPlan)}).
      *<P>
-     * Call when these conditions are all true:
+     * Is called by {@link #planAndDoActionForPLAY1()}.
+     * Call only if these conditions are all true:
      * <UL>
      *<LI> {@link #ourTurn}
      *<LI> {@link #planBuilding()} already called
@@ -2854,7 +3032,7 @@ public class SOCRobotBrain extends Thread
      * bot will build {@link #whatWeWantToBuild} by calling {@link #placeIfExpectPlacing()}.
      *
      * @since 1.1.08
-     * @throws IllegalStateException  if {@link #buildingPlan}{@link Stack#isEmpty() .isEmpty()}
+     * @throws IllegalStateException  if {@link #buildingPlan}{@link SOCBuildPlan#isEmpty() .isEmpty()}
      */
     protected void buildOrGetResourceByTradeOrCard()
         throws IllegalStateException
@@ -2881,12 +3059,12 @@ public class SOCRobotBrain extends Thread
             && (rejectedPlayDevCardType != SOCDevCardConstants.ROADS))
         {
             //D.ebugPrintln("** Checking for Road Building Plan **");
-            SOCPossiblePiece topPiece = buildingPlan.pop();
+            SOCPossiblePiece topPiece = buildingPlan.getPlannedPiece(0);
 
             //D.ebugPrintln("$ POPPED "+topPiece);
-            if ((topPiece != null) && (topPiece instanceof SOCPossibleRoad))
+            if ((topPiece != null) && (topPiece instanceof SOCPossibleRoad) && (buildingPlan.getPlanDepth() > 1))
             {
-                SOCPossiblePiece secondPiece = (buildingPlan.isEmpty()) ? null : buildingPlan.peek();
+                SOCPossiblePiece secondPiece = buildingPlan.getPlannedPiece(1);
 
                 //D.ebugPrintln("secondPiece="+secondPiece);
                 if ((secondPiece != null) && (secondPiece instanceof SOCPossibleRoad))
@@ -2908,6 +3086,7 @@ public class SOCRobotBrain extends Thread
                         waitingForGameState = true;
                         counter = 0;
                         expectPLACING_FREE_ROAD1 = true;
+                        buildingPlan.advancePlan();  // consume topPiece
 
                         //D.ebugPrintln("!! PLAYING ROAD BUILDING CARD");
                         client.playDevCard(game, SOCDevCardConstants.ROADS);
@@ -2918,16 +3097,6 @@ public class SOCRobotBrain extends Thread
                         // cancel sets whatWeWantToBuild = null;
                     }
                 }
-                else
-                {
-                    //D.ebugPrintln("$ PUSHING "+topPiece);
-                    buildingPlan.push(topPiece);
-                }
-            }
-            else
-            {
-                //D.ebugPrintln("$ PUSHING "+topPiece);
-                buildingPlan.push(topPiece);
             }
         }
 
@@ -2939,7 +3108,7 @@ public class SOCRobotBrain extends Thread
         ///
         /// figure out what resources we need
         ///
-        SOCPossiblePiece targetPiece = buildingPlan.peek();
+        SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
         SOCResourceSet targetResources = targetPiece.getResourcesToBuild();  // may be null
 
         //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
@@ -2999,21 +3168,24 @@ public class SOCRobotBrain extends Thread
 
                     if (robotParameters.getTradeFlag() == 1)
                     {
-                        makeOffer(buildingPlan);
-                        // makeOffer will set waitingForTradeResponse or doneTrading.
+                        if (declinedOurPlayerTrades < MAX_DENIED_PLAYER_TRADES_PER_TURN)
+                            makeOffer(buildingPlan);
+                                // will set waitingForTradeResponse or doneTrading
+                        else
+                            setDoneTrading(true);
                     }
                 }
 
-                if (gameStatePLAY1 && ! waitingForTradeResponse)
+                if (gameStatePLAY1 && (! waitingForTradeResponse)
+                    && (failedBankTrades < MAX_DENIED_BANK_TRADES_PER_TURN))
                 {
                     /**
                      * trade with the bank/ports
                      */
-                    if (tradeToTarget2(targetResources))
+                    if (tradeWithBank(buildingPlan))
                     {
                         counter = 0;
                         waitingForTradeMsg = true;
-                        pause(1500);
                     }
                 }
 
@@ -3283,48 +3455,59 @@ public class SOCRobotBrain extends Thread
      * Note that a player has replied to our offer, or we've accepted another player's offer.
      * Determine whether to keep waiting for responses, and update negotiator appropriately.
      * If {@code accepted}, also clears {@link #waitingForTradeResponse}
-     * by calling {@link #clearTradingFlags(boolean, boolean)}.
+     * by calling {@link #clearTradingFlags(boolean, boolean, boolean)}.
+     *<P>
+     * Also handles recovery if our offer was rejected, but our {@link SOCPlayer#getCurrentOffer()} is {@code null}.
      *
-     * @param playerNum  Player number: The other player accepting or rejecting our offer,
+     * @param toPlayerNum  Player number: The other player accepting or rejecting our offer,
      *     or {@link #ourPlayerNumber} if called for accepting another player's offer
      * @param accepted  True if offer was accepted, false if rejected
      * @see #tradeStopWaitingClearOffer()
-     * @since 2.4.10
+     * @since 2.5.00
      */
-    protected void handleTradeResponse(final int playerNum, final boolean accepted)
+    protected void handleTradeResponse(final int toPlayerNum, final boolean accepted)
     {
         if (accepted)
         {
-            clearTradingFlags(false, true);
+            clearTradingFlags(false, true, true);
 
             return;
         }
 
-        offerRejections[playerNum] = true;
+        offerRejections[toPlayerNum] = true;
 
+        final SOCTradeOffer ourOffer = ourPlayerData.getCurrentOffer();
         boolean everyoneRejected = true,
             allHumansRejected = (tradeResponseTimeoutSec > TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY);
-        D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
+        D.ebugPrintlnINFO("ourPlayerData.getCurrentOffer() = " + ourOffer);
 
-        boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
-
-        for (int pn = 0; pn < game.maxPlayers; ++pn)
+        if (ourOffer != null)
         {
-            D.ebugPrintlnINFO("offerRejections[" + pn + "]=" + offerRejections[pn]);
+            final boolean[] offeredTo = ourOffer.getTo();
 
-            if (offeredTo[pn] && ! offerRejections[pn])
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
-                everyoneRejected = false;
-                if (allHumansRejected && ! game.getPlayer(pn).isRobot())
-                    allHumansRejected = false;
+                D.ebugPrintlnINFO("offerRejections[" + pn + "]=" + offerRejections[pn]);
+
+                if (offeredTo[pn] && ! offerRejections[pn])
+                {
+                    everyoneRejected = false;
+                    if (allHumansRejected && ! game.getPlayer(pn).isRobot())
+                        allHumansRejected = false;
+                }
             }
+
+        } else {
+            // Inconsistent data, should have an offer;
+            // recover by clearing trade flags as if everyoneRejected
+            clearTradingFlags(false, true, true);
         }
 
         D.ebugPrintlnINFO("everyoneRejected=" + everyoneRejected);
 
         if (everyoneRejected)
         {
-            negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
+            negotiator.addToOffersMade(ourOffer);
             client.clearOffer(game);
             waitingForTradeResponse = false;
         }
@@ -3341,8 +3524,7 @@ public class SOCRobotBrain extends Thread
      * same as a rejection from them, but still wants to deal.
      * Call {@link #considerOffer(SOCTradeOffer)}, and if
      * we accept, clear our {@link #buildingPlan} so we'll replan it.
-     * Ignore our own MAKEOFFERs echoed from server
-     * and "not allowed" replies from server ({@link SOCTradeOffer#getFrom()} &lt; 0).
+     * Ignore our own MAKEOFFERs echoed from server.
      * Call {@link SOCRobotNegotiator#recordResourcesFromOffer(SOCTradeOffer)}.
      * @since 1.1.08
      */
@@ -3350,11 +3532,6 @@ public class SOCRobotBrain extends Thread
     {
         SOCTradeOffer offer = mes.getOffer();
         final int fromPN = offer.getFrom();
-        if (fromPN < 0)
-        {
-            return;  // <---- Ignore "not allowed" from server ----
-        }
-
         final SOCPlayer offeredFromPlayer = game.getPlayer(fromPN);
         offeredFromPlayer.setCurrentOffer(offer);
 
@@ -3480,10 +3657,19 @@ public class SOCRobotBrain extends Thread
             break;
 
         case SOCRobotNegotiator.COUNTER_OFFER:
+            {
+                final boolean madeCounter;
+                if (declinedOurPlayerTrades < MAX_DENIED_PLAYER_TRADES_PER_TURN)
+                {
+                    madeCounter = makeCounterOffer(offer);
+                } else {
+                    madeCounter = false;
+                    setDoneTrading(true);
+                }
 
-            if (! makeCounterOffer(offer))
-                client.rejectOffer(game);
-
+                if (! madeCounter)
+                    client.rejectOffer(game);
+            }
             break;
         }
     }
@@ -3492,22 +3678,36 @@ public class SOCRobotBrain extends Thread
      * Handle a REJECTOFFER for this game.
      * watch rejections of other players' offers, and of our offers.
      * If everyone's rejected our offer, clear {@link #waitingForTradeResponse}.
+     * If rejection is from server because of game rules
+     * ({@link SOCRejectOffer#getReasonCode() mes.getReasonCode()} != 0),
+     * increments {@link #failedBankTrades} or {@link #declinedOurPlayerTrades}.
      * @since 1.1.08
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
-        int rejector = mes.getPlayerNumber();
+        final int rejector = mes.getPlayerNumber(), reasonCode = mes.getReasonCode();
+
+        if ((rejector < 0) || (reasonCode != 0))
+        {
+            if (waitingForTradeMsg)
+                ++failedBankTrades;
+            else
+                ++declinedOurPlayerTrades;
+
+            if (reasonCode != SOCRejectOffer.REASON_CANNOT_MAKE_OFFER)
+                clearTradingFlags((rejector < 0), false, true);
+            else
+                clearTradingFlags(false, false, false);
+
+            return;
+        }
 
         if (waitingForTradeResponse)
         {
-            if (ourPlayerData.getCurrentOffer() == null)
-            {
-                return;  // <--- Early return: Inconsistent data, should have an offer ---
-            }
-
             negotiator.recordResourcesFromReject(rejector);
 
             handleTradeResponse(rejector, false);  // clear trading flags
+                // Also handles recovery if somehow ourPlayerData.getCurrentOffer() == null
         }
         else
         {
@@ -3517,8 +3717,10 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Handle a DEVCARDACTION for 1 card in this game.
-     * No brain-specific action.
-     * Ignores messages where {@link SOCDevCardAction#getCardTypes()} != {@code null}.
+     * Updates game data. No brain-specific action, but
+     * bots can override this to observe and record dev card interactions.
+     * Ignores messages where {@link SOCDevCardAction#getCardTypes()} != {@code null}
+     * because those are currently sent only at game end.
      *<P>
      * Before v2.0.00 this method was {@code handleDEVCARD}.
      *
@@ -3541,7 +3743,7 @@ public class SOCRobotBrain extends Thread
 
         case SOCDevCardAction.PLAY:
             cardsInv.removeDevCard(SOCInventory.OLD, cardType);
-            pl.updateDevCardsPlayed(cardType);
+            pl.updateDevCardsPlayed(cardType, false);
             break;
 
         case SOCDevCardAction.ADD_OLD:
@@ -3688,8 +3890,8 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Have the client ask to build our top planned piece
-     * (calls {@link #buildingPlan}{@link Stack#pop() .pop()}),
      * unless we've already been told by the server to not build it.
+     * Calls {@link #buildingPlan}.{@link SOCBuildPlan#advancePlan() advancePlan()}.
      * Sets {@link #whatWeWantToBuild}, {@link #waitingForDevCard},
      * or {@link #waitingForPickSpecialItem}.
      * Called from {@link #buildOrGetResourceByTradeOrCard()}.
@@ -3711,7 +3913,7 @@ public class SOCRobotBrain extends Thread
      */
     protected void buildRequestPlannedPiece()
     {
-        final SOCPossiblePiece targetPiece = buildingPlan.pop();
+        final SOCPossiblePiece targetPiece = buildingPlan.advancePlan();
         D.ebugPrintlnINFO("$ POPPED " + targetPiece);
         lastMove = targetPiece;
         currentDRecorder = (currentDRecorder + 1) % 2;
@@ -3838,7 +4040,7 @@ public class SOCRobotBrain extends Thread
 
         if (! buildingPlan.empty())
         {
-            lastTarget = buildingPlan.peek();
+            lastTarget = buildingPlan.getPlannedPiece(0);
             negotiator.setTargetPiece(ourPlayerNumber, lastTarget);
         }
     }
@@ -3857,6 +4059,11 @@ public class SOCRobotBrain extends Thread
 
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT(pl, pn, action, PEType.valueOf(etypes[i]), amounts[i]);
+
+        if ((action == SOCPlayerElement.SET) && (etypes.length == 5) && (etypes[0] == SOCResourceConstants.CLAY)
+            && (pl != null) && (game.getGameState() == SOCGame.ROLL_OR_CARD))
+            // dice roll results: when sent all known resources, clear UNKNOWN to 0
+            pl.getResources().setAmount(0, SOCResourceConstants.UNKNOWN);
     }
 
     /**
@@ -3895,7 +4102,7 @@ public class SOCRobotBrain extends Thread
      * @param amount  The new value to set, or the delta to gain/lose
      * @since 2.0.00
      */
-    @SuppressWarnings("fallthrough")
+    @SuppressWarnings({ "fallthrough", "unused" })
     protected void handlePLAYERELEMENT
         (SOCPlayer pl, final int pn, final int action, final PEType etype, final int amount)
     {
@@ -3968,25 +4175,14 @@ public class SOCRobotBrain extends Thread
             break;
 
         case RESOURCE_COUNT:
-            if (amount != pl.getResources().getTotal())
+            if (D.ebugOn && (amount != pl.getResources().getTotal())
+                && (game.getGameState() != SOCGame.WAITING_FOR_MONOPOLY))
             {
-                SOCResourceSet rsrcs = pl.getResources();
-
-                if (D.ebugOn)
-                {
-                    client.sendText(game, ">>> RESOURCE COUNT ERROR FOR PLAYER " + pl.getPlayerNumber()
-                        + ": " + amount + " != " + rsrcs.getTotal());
-                }
-
-                //
-                //  fix it
-                //
-                if (pl.getPlayerNumber() != ourPlayerNumber)
-                {
-                    rsrcs.clear();
-                    rsrcs.setAmount(amount, SOCResourceConstants.UNKNOWN);
-                }
+                client.sendText(game, ">>> RESOURCE COUNT ERROR FOR PLAYER " + pl.getPlayerNumber()
+                    + ": " + amount + " != " + pl.getResources().getTotal());
             }
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (game, pl, pn, action, etype, amount, ourPlayerName);
             break;
 
         case SCENARIO_WARSHIP_COUNT:
@@ -4019,10 +4215,12 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Update a player's amount of a resource.
+     * Calls {@link #handleResources(int, SOCPlayer, int, int)}.
      *<ul>
-     *<LI> If this is a {@link SOCPlayerElement#LOSE} action, and the player does not have enough of that type,
-     *     the rest are taken from the player's UNKNOWN amount.
-     *<LI> If we are losing from type UNKNOWN,
+     *<LI> If this is a {@link SOCPlayerElement#LOSE} action,
+     *     and the player does not have enough of that {@code rtype},
+     *     the rest are taken from the player's UNKNOWN rtype amount.
+     *<LI> If we are losing from {@code rtype} UNKNOWN,
      *     first convert player's known resources to unknown resources
      *     (individual amount information will be lost),
      *     then remove mes's unknown resources from player.
@@ -4078,7 +4276,7 @@ public class SOCRobotBrain extends Thread
             && (action != SOCPlayerElement.GAIN)
             && ! buildingPlan.isEmpty())
         {
-            final SOCPossiblePiece targetPiece = buildingPlan.peek();
+            final SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
             final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();  // may be null
 
             if (! ourPlayerData.getResources().contains(targetResources))
@@ -4331,7 +4529,6 @@ public class SOCRobotBrain extends Thread
             }
             catch (Exception e)
             {
-                tracker.releaseMonitor();
                 if (alive)
                 {
                     System.out.println("Exception caught - " + e);
@@ -4367,7 +4564,6 @@ public class SOCRobotBrain extends Thread
             }
             catch (Exception e)
             {
-                tracker.releaseMonitor();
                 if (alive)
                 {
                     System.out.println("Exception caught - " + e);
@@ -4401,7 +4597,6 @@ public class SOCRobotBrain extends Thread
             }
             catch (Exception e)
             {
-                tracker.releaseMonitor();
                 if (alive)
                 {
                     System.out.println("Exception caught - " + e);
@@ -4605,8 +4800,11 @@ public class SOCRobotBrain extends Thread
      * build there. Since we treat it like another player's new placement, we
      * can remove any of our planned pieces depending on this one.
      *<P>
+     * Calls {@link #resetBuildingPlan()}.
      * Also calls {@link SOCPlayer#clearPotentialSettlement(int)},
      * clearPotentialRoad, or clearPotentialCity.
+     * During Initial Placement states &lt;= {@link SOCGame#START3B},
+     * calls {@link OpeningBuildStrategy#cancelWrongPiecePlacement(SOCPlayingPiece)}.
      *
      * @param cancelPiece Type and coordinates of the piece to cancel; null is allowed but not very useful.
      * @since 1.1.00
@@ -4626,11 +4824,6 @@ public class SOCRobotBrain extends Thread
                     ourPlayerData.clearPotentialRoad(coord);
                 else
                     ourPlayerData.clearPotentialShip(coord);
-                if (game.getGameState() <= SOCGame.START3B)
-                {
-                    // needed for placeInitRoad() calculations
-                    ourPlayerData.clearPotentialSettlement(lastStartingRoadTowardsNode);
-                }
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
@@ -4643,6 +4836,9 @@ public class SOCRobotBrain extends Thread
                 ourPlayerData.clearPotentialCity(coord);
                 break;
             }
+
+            if (game.getGameState() <= SOCGame.START3B)
+                openingBuildStrategy.cancelWrongPiecePlacement(cancelPiece);
         }
 
         whatWeWantToBuild = null;
@@ -4687,7 +4883,7 @@ public class SOCRobotBrain extends Thread
         {
             msec = (int) (msec * BOTS_ONLY_FAST_PAUSE_FACTOR);
             if (msec == 0)
-                return;  // will still yield within run() loop
+                return;  // or would still yield within run() loop
         } else if (pauseFaster && ! waitingForTradeResponse) {
             msec = (msec / 2) + (msec / 4);
         }
@@ -4751,10 +4947,10 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Road choice is based on the best nearby potential settlements, and doesn't
      * directly check {@link SOCPlayer#isPotentialRoad(int) ourPlayerData.isPotentialRoad(edgeCoord)}.
-     * If the server rejects our road choice, then {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
-     * will need to know which settlement node we were aiming for,
-     * and call {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}.
-     * The {@link #lastStartingRoadTowardsNode} field holds this coordinate.
+     * If the server rejects our road choice, bot will call {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
+     * which will call {@link OpeningBuildStrategy#cancelWrongPiecePlacement(SOCPlayingPiece)}
+     * in case the OBS wants to take action to prevent re-choosing the same wrong choice again,
+     * like clearing the potential settlement node we were aiming for.
      */
     protected void planAndPlaceInitRoad()
     {
@@ -4767,7 +4963,6 @@ public class SOCRobotBrain extends Thread
 
         //D.ebugPrintln("Trying to build a road at "+Integer.toHexString(roadEdge));
         lastStartingPieceCoord = roadEdge;
-        lastStartingRoadTowardsNode = openingBuildStrategy.getPlannedInitRoadDestinationNode();
         client.putPiece(game, new SOCRoad(ourPlayerData, roadEdge, null));
         pause(1000);
     }
@@ -4775,6 +4970,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Select a new robber location and move the robber there.
      * Calls {@link RobberStrategy#getBestRobberHex()}.
+     * Calls {@link SOCRobotClient#moveRobber(SOCGame, SOCPlayer, int)}.
      *<P>
      * Currently the robot always chooses to move the robber, never the pirate.
      */
@@ -4788,270 +4984,46 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * do some trading -- this method is obsolete and not called.
-     * Instead see {@link #makeOffer(SOCBuildPlan)}, {@link #considerOffer(SOCTradeOffer)},
-     * etc, and the javadoc for {@link #negotiator}.
+     * Select resources to discard, then ask the server to do so.
+     * Calls {@link DiscardStrategy#discard(int, SOCBuildPlanStack)}.
+     * Calls {@link SOCRobotClient#discard(SOCGame, SOCResourceSet)}.
+     *<P>
+     * This method can be overridden if a bot's discard code needs to do
+     * something outside the scope of the {@link DiscardStrategy} method,
+     * like send messages to the server before or after the discard request.
+     *
+     * @param numDiscards  Number of resources bot's been asked to discard
+     * @since 2.5.00
      */
-    protected void tradeStuff()
+    protected void discard(final int numDiscards)
     {
-        /**
-         * make a tree of all the possible trades that we can
-         * make with the bank or ports
-         */
-        SOCTradeTree treeRoot = new SOCTradeTree(ourPlayerData.getResources(), (SOCTradeTree) null);
-        Hashtable<SOCResourceSet, SOCTradeTree> treeNodes = new Hashtable<SOCResourceSet, SOCTradeTree>();
-        treeNodes.put(treeRoot.getResourceSet(), treeRoot);
-
-        Queue<SOCTradeTree> queue = new Queue<SOCTradeTree>();
-        queue.put(treeRoot);
-
-        while (! queue.empty())
-        {
-            SOCTradeTree currentTreeNode = queue.get();
-
-            //D.ebugPrintln("%%% Expanding "+currentTreeNode.getResourceSet());
-            expandTradeTreeNode(currentTreeNode, treeNodes);
-
-            Enumeration<SOCTradeTree> childrenEnum = currentTreeNode.getChildren().elements();
-
-            while (childrenEnum.hasMoreElements())
-            {
-                SOCTradeTree child = childrenEnum.nextElement();
-
-                //D.ebugPrintln("%%% Child "+child.getResourceSet());
-                if (child.needsToBeExpanded())
-                {
-                    /**
-                     * make a new table entry
-                     */
-                    treeNodes.put(child.getResourceSet(), child);
-                    queue.put(child);
-                }
-            }
-        }
-
-        /**
-         * find the best trade result and then perform the trades
-         */
-        SOCResourceSet bestTradeOutcome = null;
-        int bestTradeScore = -1;
-        Enumeration<SOCResourceSet> possibleTrades = treeNodes.keys();
-
-        while (possibleTrades.hasMoreElements())
-        {
-            SOCResourceSet possibleTradeOutcome = possibleTrades.nextElement();
-
-            //D.ebugPrintln("%%% "+possibleTradeOutcome);
-            int score = scoreTradeOutcome(possibleTradeOutcome);
-
-            if (score > bestTradeScore)
-            {
-                bestTradeOutcome = possibleTradeOutcome;
-                bestTradeScore = score;
-            }
-        }
-
-        /**
-         * find the trade outcome in the tree, then follow
-         * the chain of parents until you get to the root
-         * all the while pushing the outcomes onto a stack.
-         * then pop outcomes off of the stack and perfoem
-         * the trade to get each outcome
-         */
-        Stack<SOCTradeTree> stack = new Stack<SOCTradeTree>();
-        SOCTradeTree cursor = treeNodes.get(bestTradeOutcome);
-
-        while (cursor != treeRoot)
-        {
-            stack.push(cursor);
-            cursor = cursor.getParent();
-        }
-
-        SOCResourceSet give = new SOCResourceSet();
-        SOCResourceSet get = new SOCResourceSet();
-        SOCTradeTree currTreeNode;
-        SOCTradeTree prevTreeNode;
-        prevTreeNode = treeRoot;
-
-        while (! stack.empty())
-        {
-            currTreeNode = stack.pop();
-            give.setAmounts(prevTreeNode.getResourceSet());
-            give.subtract(currTreeNode.getResourceSet());
-            get.setAmounts(currTreeNode.getResourceSet());
-            get.subtract(prevTreeNode.getResourceSet());
-
-            /**
-             * get rid of the negative numbers
-             */
-            for (int rt = Data.ResourceType.CLAY_VALUE;
-                    rt <= Data.ResourceType.WOOD_VALUE; rt++)
-            {
-                if (give.getAmount(rt) < 0)
-                {
-                    give.setAmount(0, rt);
-                }
-
-                if (get.getAmount(rt) < 0)
-                {
-                    get.setAmount(0, rt);
-                }
-            }
-
-            //D.ebugPrintln("Making bank trade:");
-            //D.ebugPrintln("give: "+give);
-            //D.ebugPrintln("get: "+get);
-            client.bankTrade(game, give, get);
-            pause(2000);
-            prevTreeNode = currTreeNode;
-        }
+        client.discard(game, discardStrategy.discard(numDiscards, buildingPlan));
     }
 
     /**
-     * expand a trade tree node
+     * Make bank trades or port trades to get the required resources for executing a plan, if possible.
+     * Calls {@link SOCRobotNegotiator#getOfferToBank(SOCBuildPlan, SOCResourceSet)}.
+     * Calls {@link #pause(int)} after requesting a bank/port trade.
+     * If returns true, caller typically sets a status flag like {@link #waitingForTradeMsg}.
+     *<P>
+     * Before v2.5.00 this method was {@code tradeToTarget2(SOCResourceSet)}.
+     *<P>
+     * Note: Caller should first check {@link #failedBankTrades} vs {@link #MAX_DENIED_BANK_TRADES_PER_TURN}.
      *
-     * @param currentTreeNode   the tree node that we're expanding
-     * @param table  the table of all of the nodes in the tree except this one
-     */
-    protected void expandTradeTreeNode(SOCTradeTree currentTreeNode, Hashtable<SOCResourceSet,SOCTradeTree> table)
-    {
-        /**
-         * the resources that we have to work with
-         */
-        SOCResourceSet rSet = currentTreeNode.getResourceSet();
-
-        /**
-         * go through the resources one by one, and generate all possible
-         * resource sets that result from trading that type of resource
-         */
-        for (int giveResource = Data.ResourceType.CLAY_VALUE;
-                giveResource <= Data.ResourceType.WOOD_VALUE; giveResource++)
-        {
-            /**
-             * find the ratio at which we can trade
-             */
-            int tradeRatio;
-
-            if (ourPlayerData.getPortFlag(giveResource))
-            {
-                tradeRatio = 2;
-            }
-            else if (ourPlayerData.getPortFlag(SOCBoard.MISC_PORT))
-            {
-                tradeRatio = 3;
-            }
-            else
-            {
-                tradeRatio = 4;
-            }
-
-            /**
-             * make sure we have enough resources to trade
-             */
-            if (rSet.getAmount(giveResource) >= tradeRatio)
-            {
-                /**
-                 * trade the resource that we're looking at for one
-                 * of every other resource
-                 */
-                for (int getResource = Data.ResourceType.CLAY_VALUE;
-                        getResource <= Data.ResourceType.WOOD_VALUE;
-                        getResource++)
-                {
-                    if (getResource != giveResource)
-                    {
-                        SOCResourceSet newTradeResult = rSet.copy();
-                        newTradeResult.subtract(tradeRatio, giveResource);
-                        newTradeResult.add(1, getResource);
-
-                        SOCTradeTree newTree = new SOCTradeTree(newTradeResult, currentTreeNode);
-
-                        /**
-                         * if the trade results in a set of resources that is
-                         * equal to or worse than a trade we've already seen,
-                         * then we don't want to expand this tree node
-                         */
-                        Enumeration<SOCResourceSet> tableEnum = table.keys();
-
-                        while (tableEnum.hasMoreElements())
-                        {
-                            SOCResourceSet oldTradeResult = tableEnum.nextElement();
-
-                            /*
-                               //D.ebugPrintln("%%%     "+newTradeResult);
-                               //D.ebugPrintln("%%%  <= "+oldTradeResult+" : "+
-                               SOCResourceSet.lte(newTradeResult, oldTradeResult));
-                             */
-                            if (SOCResourceSet.lte(newTradeResult, oldTradeResult))
-                            {
-                                newTree.setNeedsToBeExpanded(false);
-
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * evaluate a trade outcome by calculating how much you could build with it
-     *
-     * @param tradeOutcome  a set of resources that would be the result of trading
-     */
-    protected int scoreTradeOutcome(SOCResourceSet tradeOutcome)
-    {
-        int score = 0;
-        SOCResourceSet tempTO = tradeOutcome.copy();
-
-        if ((ourPlayerData.getNumPieces(SOCPlayingPiece.SETTLEMENT) >= 1) && (ourPlayerData.hasPotentialSettlement()))
-        {
-            while (tempTO.contains(SOCSettlement.COST))
-            {
-                score += 2;
-                tempTO.subtract(SOCSettlement.COST);
-            }
-        }
-
-        if ((ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 1) && (ourPlayerData.hasPotentialRoad()))
-        {
-            while (tempTO.contains(SOCRoad.COST))
-            {
-                score += 1;
-                tempTO.subtract(SOCRoad.COST);
-            }
-        }
-
-        if ((ourPlayerData.getNumPieces(SOCPlayingPiece.CITY) >= 1) && (ourPlayerData.hasPotentialCity()))
-        {
-            while (tempTO.contains(SOCCity.COST))
-            {
-                score += 2;
-                tempTO.subtract(SOCCity.COST);
-            }
-        }
-
-        //D.ebugPrintln("Score for "+tradeOutcome+" : "+score);
-        return score;
-    }
-
-    /**
-     * Make bank trades or port trades to get the target resources, if possible.
-     *
-     * @param targetResources  the resources that we want, can be {@code null} for an empty set (method returns false)
+     * @param buildPlan  Build plan to look for resources to build. {@code getOfferToBank(..)}
+     *     will typically call {@link SOCBuildPlan#getFirstPieceResources()} to determine
+     *     the resources we want. Can be {@code null} or empty (returns false).
      * @return true if we sent a request to trade, false if
      *     we already have the resources or if we don't have
-     *     enough to trade in for <tt>targetResources</tt>.
+     *     enough to trade in for {@code buildPlan}'s required resources.
      */
-    protected boolean tradeToTarget2(SOCResourceSet targetResources)
+    protected boolean tradeWithBank(SOCBuildPlan buildPlan)
     {
-        if ((targetResources == null) || ourPlayerData.getResources().contains(targetResources))
-        {
+        if ((buildPlan == null) || buildPlan.isEmpty()
+            || ourPlayerData.getResources().contains(buildPlan.getFirstPieceResources()))
             return false;
-        }
 
-        SOCTradeOffer bankTrade = negotiator.getOfferToBank(targetResources, ourPlayerData.getResources());
+        SOCTradeOffer bankTrade = negotiator.getOfferToBank(buildPlan, ourPlayerData.getResources());
 
         if ((bankTrade != null) && (ourPlayerData.getResources().contains(bankTrade.getGiveSet())))
         {
@@ -5103,7 +5075,9 @@ public class SOCRobotBrain extends Thread
      * Will set either {@link #waitingForTradeResponse} or {@link #doneTrading},
      * and update {@link #ourPlayerData}.{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) setCurrentOffer()},
      *<P>
-     * Before v2.4.10 this method took a {@link SOCPossiblePiece}, not a {@link SOCBuildPlan}.
+     * Before v2.5.00 this method took a {@link SOCPossiblePiece}, not a {@link SOCBuildPlan}.
+     *<P>
+     * Note: Caller should first check {@link #declinedOurPlayerTrades} vs {@link #MAX_DENIED_PLAYER_TRADES_PER_TURN}.
      *
      * @param buildPlan  our current build plan
      * @return true if we made an offer
@@ -5118,7 +5092,8 @@ public class SOCRobotBrain extends Thread
         if (offer != null)
         {
             ///
-            ///  reset the offerRejections flag and check for human players
+            ///  reset the offerRejections flag, and check for human players in game
+            ///  (which affects how long to keep the offer out there, so they can watch)
             ///
             boolean anyHumans = false;
             for (int pn = 0; pn < game.maxPlayers; ++pn)
@@ -5151,9 +5126,11 @@ public class SOCRobotBrain extends Thread
      * then {@link #ourPlayerData}{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) .setCurrentOffer(..)}
      * with the result or {@code null}. Updates {@link #waitingForTradeResponse} flag.
      * If no counteroffer is made here, sets {@link #doneTrading}.
+     *<P>
+     * Note: Caller should first check {@link #declinedOurPlayerTrades} vs {@link #MAX_DENIED_PLAYER_TRADES_PER_TURN}.
      *
      * @param offer  the other player's offer
-     * @return true if we made and sent an offer
+     * @return true if we made and sent a counteroffer
      */
     protected boolean makeCounterOffer(SOCTradeOffer offer)
     {
@@ -5167,10 +5144,10 @@ public class SOCRobotBrain extends Thread
             ///
             ///  reset the offerRejections flag
             ///
-            final int pn = offer.getFrom();
-            offerRejections[pn] = false;
+            final int fromPN = offer.getFrom();
+            offerRejections[fromPN] = false;
             waitingForTradeResponse = true;
-            tradeResponseTimeoutSec = (game.getPlayer(pn).isRobot())
+            tradeResponseTimeoutSec = (game.getPlayer(fromPN).isRobot())
                 ? TRADE_RESPONSE_TIMEOUT_SEC_BOTS_ONLY
                 : TRADE_RESPONSE_TIMEOUT_SEC_HUMANS;
             counter = 0;
@@ -5188,28 +5165,45 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Clears all flags waiting for a bank or player trade message.
+     * Clears all flags waiting for a bank or player trade message,
+     * or as needed to recover from a rejected trade offer:
      * {@link #waitingForTradeResponse}, {@link #waitingForTradeMsg},
      * any flags added in a third-party robot brain.
      *
      * @param isBankTrade  True if was bank/port trade, not player trade
-     * @param wasAllowed  True if trade was successfully offered or completed,
+     * @param wasAllowed  True if trade was successfully offered, completed, or rejected;
      *     false if server sent a message disallowing it
+     * @param wasOfferAllowed  False if server rejected our player trade offer, otherwise true.
+     *     If false, ignores value of {@code wasAllowed}.
      * @see #tradeStopWaitingClearOffer()
      * @see #handleTradeResponse(int, boolean)
-     * @since 2.4.10
+     * @see #setDoneTrading(boolean)
+     * @since 2.5.00
      */
-    public void clearTradingFlags(final boolean isBankTrade, final boolean wasAllowed)
+    public void clearTradingFlags(final boolean isBankTrade, final boolean wasAllowed, final boolean wasOfferAllowed)
     {
-        // This method clears both fields regardless of isBankTrade,
-        // but third-party bots might override it and use that parameter
+        // This implementation clears both fields regardless of isBankTrade or wasOfferAllowed,
+        // but third-party bots might override it and use those parameters
 
         waitingForTradeMsg = false;
         waitingForTradeResponse = false;
     }
 
     /**
+     * Updates the flag indicating done with player trading, do any other actions necessary at that time.
+     * This method is encapsulation to be overridden by third-party robot brains if needed.
+     * @param isDone  True to set flag, false to clear
+     * @see #clearTradingFlags(boolean, boolean, boolean)
+     * @since 2.5.00
+     */
+    public void setDoneTrading(final boolean isDone)
+    {
+        doneTrading = isDone;
+    }
+
+    /**
      * Handle the tracking of changing resources.
+     * Calls {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}.
      * Third-party bots can override this to
      * allow them to determine how accurately this is tracked
      * (full tracking of unknowns vs. cognitive modelling, etc).
@@ -5219,7 +5213,7 @@ public class SOCRobotBrain extends Thread
      * @param player  Player to update
      * @param resourceType  Type of resource, like {@link SOCResourceConstants#CLAY}
      * @param amount  The new value to set, or the delta to gain/lose
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected void handleResources(int action, SOCPlayer player, int resourceType, int amount)
     {
@@ -5237,7 +5231,7 @@ public class SOCRobotBrain extends Thread
      * @return a DecisionMaker based on this brain
      * @see #recreateDM()
      * @see #setStrategyFields()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected SOCRobotDM createDM()
     {
@@ -5247,7 +5241,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Recreates our decision maker, by calling {@link #createDM()} and setting the field
      * returned by {@link #getDecisionMaker()}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void recreateDM()
     {
@@ -5261,7 +5255,7 @@ public class SOCRobotBrain extends Thread
      *
      * @return a Negotiator based on this brain
      * @see #setStrategyFields()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected SOCRobotNegotiator createNegotiator()
     {
@@ -5276,7 +5270,7 @@ public class SOCRobotBrain extends Thread
      * @return a factory for this brain
      * @see #setStrategyFields()
      * @see #getEstimatorFactory()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected SOCBuildingSpeedEstimateFactory createEstimatorFactory()
     {
@@ -5290,7 +5284,7 @@ public class SOCRobotBrain extends Thread
      * Default behaviour: No special actions. Third-party bots may override this stub.
      *
      * @see #endTurnActions()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected void startTurnMainActions()
     {
@@ -5308,7 +5302,7 @@ public class SOCRobotBrain extends Thread
      *
      * @return true if can end turn, false otherwise
      * @see #startTurnMainActions()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected boolean endTurnActions()
     {
@@ -5319,7 +5313,7 @@ public class SOCRobotBrain extends Thread
      * Inform the brain of the final game result at end of game.
      * Third-party bots can override this stub to do any work needed.
      * @param message Game stats info message
-     * @since 2.4.10
+     * @since 2.5.00
      */
     protected void handleGAMESTATS(SOCGameStats message)
     {
@@ -5332,7 +5326,7 @@ public class SOCRobotBrain extends Thread
      *     in same format passed into {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate(SOCPlayerNumbers)}
      * @return an estimate of time to build something, based on {@code numbers}
      * @see #getEstimator()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCBuildingSpeedEstimate getEstimator(SOCPlayerNumbers numbers)
     {
@@ -5345,7 +5339,7 @@ public class SOCRobotBrain extends Thread
      * @return an estimate of time to build something, which doesn't consider player's dice numbers yet;
      *     see {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate()} javadoc
      * @see #getEstimator(SOCPlayerNumbers)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCBuildingSpeedEstimate getEstimator()
     {
@@ -5358,7 +5352,7 @@ public class SOCRobotBrain extends Thread
      *
      * @return This brain's factory
      * @see #getEstimator(SOCPlayerNumbers)
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCBuildingSpeedEstimateFactory getEstimatorFactory()
     {

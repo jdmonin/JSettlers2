@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -51,13 +51,14 @@ import soc.util.IntPair;
  * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
  * {@link #setLegalSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
- * See {@code SOCBoardAtServer}'s class javadoc, and its {@code makeNewBoard(SOCGameOptionSet)} javadoc,
+ * See {@link soc.server.SOCBoardAtServer}'s class javadoc, and its
+ * {@link soc.server.SOCBoardAtServer#makeNewBoard(SOCGameOptionSet) makeNewBoard(SOCGameOptionSet)},
  * for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
- * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
+ * If {@link #getStartingLandArea()} != 0, the players must start in that land area.
  * In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
@@ -277,7 +278,8 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed.
      * Used with some scenarios (see {@link SOCGameOptionSet#K_SC_FOG}).
-     * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
+     * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed,
+     * except the robber and pirate can't be moved onto a fog hex.
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only at the server during
      * {@link #makeNewBoard(SOCGameOptionSet)} before the board layout is finished and sent to the client.
@@ -534,7 +536,7 @@ public class SOCBoardLarge extends SOCBoard
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
      * If the players must start in a certain land area,
-     * {@link #startingLandArea} != 0, and
+     * then {@link #startingLandArea} != 0 and
      * <tt>landAreasLegalNodes[{@link #startingLandArea}]</tt>
      * is also the players' potential settlement nodes.
      *<P>
@@ -561,6 +563,8 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * The startingLandArea and {@link #landAreasLegalNodes} are sent
      * from the server to client as part of a <tt>POTENTIALSETTLEMENTS</tt> message.
+     *<P>
+     * See {@link #getStartingLandArea()} for other details.
      */
     protected int startingLandArea;
 
@@ -1646,9 +1650,9 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
-     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
-     *         or {@link #WATER_HEX}.
+     *         Land in range {@link SOCBoard#CLAY_HEX} to {@link SOCBoard#WOOD_HEX},
+     *         {@link SOCBoard#DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link SOCBoard#WATER_HEX}.
      *         Invalid hex coordinates return -1.
      *
      * @see #getLandHexCoords()
@@ -1669,9 +1673,9 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hex  the number of a hex, or -1 for invalid
      * @return the type of hex:
-     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
-     *         or {@link #WATER_HEX}.
+     *         Land in range {@link SOCBoard#CLAY_HEX} to {@link SOCBoard#WOOD_HEX},
+     *         {@link SOCBoard#DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link SOCBoard#WATER_HEX}.
      *         Invalid hex numbers return -1.
      *
      * @see #getHexTypeFromCoord(int)
@@ -2067,6 +2071,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this the coordinate of a land hex (not water)?
+     * Returns true for {@link #FOG_HEX} even though fog can sometimes be hidden water.
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if land, false if water or not a valid hex coordinate
      * @see #isHexOnWater(int)
@@ -2081,6 +2086,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this the coordinate of a water hex (not land)?
+     * Returns false for {@link #FOG_HEX} even though fog can sometimes be hidden water.
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if water, false if land or not a valid hex coordinate
      * @see #isHexOnLand(int)
@@ -2373,9 +2379,13 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the starting land area, if multiple "land areas" are used
      * and the players must start the game in a certain land area.
+     * Used by some game scenarios.
      *<P>
      * This is enforced during {@link #makeNewBoard(SOCGameOptionSet)}, by using
      * that land area for the only initial potential/legal settlement locations.
+     *<P>
+     * Must be &gt; 0 if using {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()};
+     * see that getter for details.
      *
      * @return the starting land area number; also its index in
      *   {@link #getLandAreasLegalNodes()}.
@@ -2400,7 +2410,7 @@ public class SOCBoardLarge extends SOCBoard
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
      * If the players must start in a certain land area,
-     * {@link #startingLandArea} != 0.
+     * {@link #getStartingLandArea()} != 0.
      *<P>
      * See also {@link #getLegalSettlements()}
      * which returns the starting land area's nodes, or if no starting

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2014,2016-2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,9 @@ import soc.proto.Message;
  *<P>
  * Text messages from clients in games use {@link SOCGameTextMsg} instead.
  *<P>
+ * Before v2.5.00 the server didn't remove {@link #getText()}'s trailing {@code \n} sent from the client,
+ * sending it unchanged to the channel's members, but the receiving clients trimmed it out.
+ *<P>
  * Before v2.0.00 this message class was {@code SOCTextMsg}.
  *
  * @author Robert S Thomas
@@ -42,7 +45,7 @@ public class SOCChannelTextMsg extends SOCMessage
      * Our token separator; to avoid collision with any possible text from user, not the normal {@link SOCMessage#sep2}.
      * Same separator as in {@link SOCGameTextMsg}.
      *<P>
-     * Before v2.4.10 this field was named {@code sep2}.
+     * Before v2.5.00 this field was named {@code sep2}.
      */
     private static String sep2_alt = "" + (char) 0;
 
@@ -167,7 +170,7 @@ public class SOCChannelTextMsg extends SOCMessage
      * returning message parameters as a list formatted for {@link SOCMessage#parseMsgStr(String)}.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,7 +78,7 @@ public class TestBoardLayouts
      * If {@link #roundCount} is this large, add an outer loop to get through the
      * whole list of layout types before possible timeout.
      * @see #ROUNDCOUNT_OUTER_LOOP_COUNT
-     * @since 2.4.10
+     * @since 2.5.00
      */
     private static final int ROUNDCOUNT_OUTER_LOOP_THRESHOLD = 500;
 
@@ -87,7 +87,7 @@ public class TestBoardLayouts
      * ({@link #ROUNDCOUNT_OUTER_LOOP_THRESHOLD}), run this many outer loops
      * and within each one, divide {@code roundCount} by this many
      * for the same overall total.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     private static final int ROUNDCOUNT_OUTER_LOOP_COUNT = 10;
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.extra.server.GameEventLog.EventEntry;
+import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -53,25 +55,24 @@ import soc.message.SOCChoosePlayer;
 import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
-import soctest.server.RecordingTesterServer.QueueEntry;
 import soctest.server.TestRecorder.StartedTestGameObjects;
 import soctest.server.savegame.TestLoadgame;
 
 /**
- * Extra testing to cover all core game actions and their messages, as recorded by {@link RecordingTesterServer}.
+ * Extra testing to cover all core game actions and their messages, as recorded by {@link RecordingSOCServer}.
  * Expands coverage past the basic unit tests done by {@link TestRecorder}.
- * @since 2.4.10
+ * @since 2.5.00
  */
 public class TestActionsMessages
 {
-    private static RecordingTesterServer srv;
+    private static RecordingSOCServer srv;
 
     @BeforeClass
     public static void startStringportServer()
     {
         SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER = false;  // keep games around, to check asserts
 
-        srv = new RecordingTesterServer();
+        srv = new RecordingSOCServer();
         srv.setPriority(5);  // same as in SOCServer.main
         srv.start();
 
@@ -148,7 +149,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         /* build road */
 
@@ -200,7 +201,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a settlement."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=60a"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* upgrade that settlement to city */
 
@@ -234,7 +235,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a city."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=2|coord=60a"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* build ship */
 
@@ -265,16 +266,16 @@ public class TestActionsMessages
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e3=1,e5=1"},
                 ((withBuildRequest) ? new String[]{"all:SOCGameState:", "|state=35"} : null),
-                {"all:SOCGameServerText:", "|text="+ CLIENT_NAME + " built a ship."},
+                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a ship."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=e05"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* move a different ship */
 
         records.clear();
-        final int MOVESHIP_EDGE_FROM = 3078,  // 0xc06
-            MOVESHIP_EDGE_TO = 3846;  // 0xf06
+        final int MOVESHIP_EDGE_FROM = 0xc06,
+            MOVESHIP_EDGE_TO = 0xf06;
         assertTrue("moving ship from here", board.roadOrShipAtEdge(MOVESHIP_EDGE_FROM) instanceof SOCShip);
         assertNull("no ship here yet", board.roadOrShipAtEdge(MOVESHIP_EDGE_TO));
         tcli.movePieceRequest(ga, cliPl.getPlayerNumber(), SOCPlayingPiece.SHIP, MOVESHIP_EDGE_FROM, MOVESHIP_EDGE_TO);
@@ -288,8 +289,8 @@ public class TestActionsMessages
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCMovePiece:", "|pn=3|pieceType=3|fromCoord=3078|toCoord=3846"}
-            });
+                {"all:SOCMovePiece:", "|pn=3|pieceType=3|fromCoord=c06|toCoord=f06"}
+            }, false);
 
         /* build settlement (on small island) */
 
@@ -313,7 +314,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text="+ CLIENT_NAME + " built a settlement."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=1006"},
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* leave game, consolidate results */
 
@@ -403,7 +404,7 @@ public class TestActionsMessages
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         records.clear();
         assertEquals(23, ga.getNumDevCards());
@@ -419,7 +420,6 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1"},
-                {"all:SOCGameElements:", "|e2=22"},
                 {"p3:SOCDevCardAction:", "|playerNum=3|actionType=DRAW|cardType=5"},  // type known from savegame devCardDeck
                 {
                     "!p3:SOCDevCardAction:",
@@ -427,9 +427,9 @@ public class TestActionsMessages
                         ? "|playerNum=3|actionType=DRAW|cardType=0"
                         : "|playerNum=3|actionType=DRAW|cardType=5"
                 },
-                {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},
+                {"all:SOCSimpleAction:", "|pn=3|actType=1|v1=22|v2=0"},  // DEVCARD_BOUGHT
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -479,7 +479,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         List<Integer> expectedCardsPlayed = new ArrayList<>(Arrays.asList(SOCDevCardConstants.KNIGHT));
         assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
@@ -511,17 +511,19 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=3"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Monopoly card."},
                 {"all:SOCGameState:", "|state=53"},
-                {"all:SOCSimpleAction:", "|pn=3|actType=3|v1=3|v2=3"},
                 {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=3|amount=0|news=Y"},
+                {"all:SOCResourceCount:", "|playerNum=1|count=6"},
                 {"all:SOCPlayerElement:", "|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y"},
+                {"all:SOCResourceCount:", "|playerNum=2|count=2"},
                 {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=3"},
+                {"all:SOCSimpleAction:", "|pn=3|actType=3|v1=3|v2=3"},  // 3 == RSRC_TYPE_MONOPOLIZED
                 (othersAsRobot ? null : new String[]{"p1:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 1 sheep."}),
                 (othersAsRobot ? null : new String[]{"p2:SOCGameServerText:", "|text=" + CLIENT_NAME + "'s Monopoly took your 2 sheep."}),
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* discovery/year of plenty */
 
@@ -549,14 +551,12 @@ public class TestActionsMessages
                 (records, new String[][]
                 {
                     {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=2"},
-                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
                     {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Year of Plenty card."},
                     {"all:SOCGameState:", "|state=52"},
-                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=2|amount=1"},
-                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=1"},
-                    {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " received 1 ore and 1 wheat from the bank."},
+                    {"all:SOCPickResources:", "|resources=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|pn=3|reason=2"},
                     {"all:SOCGameState:", "|state=20"}
-                });
+                }, false);
         }
 
         /* road building, gain longest road */
@@ -597,7 +597,7 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Road Building card."},
                 {"all:SOCGameState:", "|state=40"},
                 {"p3:SOCGameServerText:", "|text=You may place 2 roads/ships."},
@@ -606,9 +606,9 @@ public class TestActionsMessages
                 {"all:SOCGameState:", "|state=41"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a road."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=809"},
-                {"all:SOCGameElements:", "|e6=3"},
+                {"all:SOCGameElements:", "|e6=3"},  // LONGEST_ROAD_PLAYER
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* soldier (move pirate ship) */
 
@@ -663,8 +663,8 @@ public class TestActionsMessages
             {
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Soldier card."},
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=9"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},  // NUMKNIGHTS
                 {"all:SOCGameState:", "|state=54"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " must choose to move the robber or the pirate."},
                 {"all:SOCGameState:", "|state=34"},
@@ -672,16 +672,16 @@ public class TestActionsMessages
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=-d0a"},
                 {
                     (observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:",
-                    "|perp=3|victim=1|resType=" + resType + "|isGainLose=true|amount=1"
+                    "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"
                 },
                 (observabilityMode != 2)
-                    ? new String[]{"p1:SOCReportRobbery:", "|perp=3|victim=1|resType=" + resType + "|isGainLose=true|amount=1"}
+                    ? new String[]{"p1:SOCReportRobbery:", "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"}
                     : null,
                 (observabilityMode != 2)
-                    ? new String[]{"!p[3, 1]:SOCReportRobbery:", "|perp=3|victim=1|resType=6|isGainLose=true|amount=1"}
+                    ? new String[]{"!p[3, 1]:SOCReportRobbery:", "|perp=3|victim=1|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"},
-            });
+            }, false);
 
         /* soldier (move robber), gain largest army */
 
@@ -749,9 +749,9 @@ public class TestActionsMessages
             {
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Soldier card."},
                 {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=9"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},
-                {"all:SOCGameElements:", "|e5=3"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},  // NUMKNIGHTS
+                {"all:SOCGameElements:", "|e5=3"},  // LARGEST_ARMY_PLAYER
                 {"all:SOCGameState:", "|state=54"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " must choose to move the robber or the pirate."},
                 {"all:SOCGameState:", "|state=33"},
@@ -759,16 +759,16 @@ public class TestActionsMessages
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=703"},
                 {
                     (observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:",
-                    "|perp=3|victim=2|resType=" + resType + "|isGainLose=true|amount=1"
+                    "|perp=3|victim=2|resType=" + resType + "|amount=1|isGainLose=true"
                 },
                 (observabilityMode != 2)
-                    ? new String[]{"p2:SOCReportRobbery:", "|perp=3|victim=2|resType=" + resType + "|isGainLose=true|amount=1"}
+                    ? new String[]{"p2:SOCReportRobbery:", "|perp=3|victim=2|resType=" + resType + "|amount=1|isGainLose=true"}
                     : null,
                 (observabilityMode != 2)
-                    ? new String[]{"!p[3, 2]:SOCReportRobbery:", "|perp=3|victim=2|resType=6|isGainLose=true|amount=1"}
+                    ? new String[]{"!p[3, 2]:SOCReportRobbery:", "|perp=3|victim=2|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"}
-            });
+            }, false);
 
         /* leave game, consolidate results */
 
@@ -849,25 +849,32 @@ public class TestActionsMessages
         (final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IOException
     {
+        // CLIENT will always be the current player. CLIENT2 will be used only to test 2 players discarding.
         final String CLIENT_NAME
-            = "testRollDice_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
-        final int CLIENT_PN = 3;
+            = "testRollDice_"  + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h"),
+            CLIENT2_NAME
+            = "testRollDice2_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
+        final int CLIENT_PN = 3, CLIENT2_PN = 1;
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT_NAME, null, 0, null, false, observabilityMode, clientAsRobot, othersAsRobot);
-        final DisplaylessTesterClient tcli = objs.tcli;
+                (srv, CLIENT_NAME, CLIENT2_NAME, CLIENT2_PN,
+                 null, false, observabilityMode, clientAsRobot, othersAsRobot);
+        final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
         final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
-        final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final SOCPlayer cliPl = objs.clientPlayer, cli2Pl = objs.client2Player;
+        final Vector<EventEntry> records = objs.records;
 
         assertTrue(ga.isSeatVacant(0));
+        assertFalse(ga.isSeatVacant(CLIENT2_PN));
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
+        assertEquals(CLIENT2_PN, cli2Pl.getPlayerNumber());
 
         // clear debug player's resources so no one needs to discard on 7;
-        // once that sequence is validated, will change so must discard on 7
+        // once that sequence is validated, will change so client and CLIENT2 must discard on 7
+        assertEquals(new SOCResourceSet(1, 2, 1, 3, 0, 0), ga.getPlayer(CLIENT2_PN).getResources());
         cliPl.getResources().setAmounts(new SOCResourceSet(0, 3, 1, 2, 0, 0));
 
         // allow 7s to be rolled
@@ -994,14 +1001,13 @@ public class TestActionsMessages
                         /*
                         example:
                         all:SOCDiceResult:game=message-seqs|param=3
-                        all:SOCGameState:game=message-seqs|state=20
                         all:SOCDiceResultResources:game=message-seqs|p=2|p=2|p=5|p=1|p=3|p=0|p=3|p=7|p=1|p=4
                         p2:SOCPlayerElements:game=message-seqs|playerNum=2|actionType=SET|e1=1,e2=1,e3=3,e4=0,e5=0
                         p3:SOCPlayerElements:game=message-seqs|playerNum=3|actionType=SET|e1=0,e2=3,e3=1,e4=3,e5=0
+                        all:SOCGameState:game=message-seqs|state=20
                          */
                         ArrayList<String[]> recordsList = new ArrayList<>();
                         recordsList.add(new String[]{"all:SOCDiceResult:", "|param=" + diceNumber});
-                        recordsList.add(new String[]{"all:SOCGameState:", "|state=20"});
                         recordsList.add(new String[]{"all:SOCDiceResultResources:", diceResRsrc.toString()});
                         for (int i = 0; i < playerNums.size(); ++i)
                         {
@@ -1012,9 +1018,10 @@ public class TestActionsMessages
                                     playerRsrcElems.get(i).toString()
                                 });
                         }
+                        recordsList.add(new String[]{"all:SOCGameState:", "|state=20"});
 
                         comparesRsrcs = TestRecorder.compareRecordsToExpected
-                            (records, recordsList.toArray(new String[recordsList.size()][]));
+                            (records, recordsList.toArray(new String[recordsList.size()][]), false);
 
                         testedRsrcs = true;
                     }
@@ -1025,9 +1032,9 @@ public class TestActionsMessages
                             (records, new String[][]
                             {
                                 {"all:SOCDiceResult:", "|param=" + diceNumber},
+                                {"all:SOCGameServerText:", "|text=No player gets anything."},
                                 {"all:SOCGameState:", "|state=20"},
-                                {"all:SOCGameServerText:", "|text=No player gets anything."}
-                            });
+                            }, false);
 
                         testedNoRsrcs = true;
                     }
@@ -1051,16 +1058,20 @@ public class TestActionsMessages
 
                     tested7 = true;
 
-                    // adjust player resources so will have to discard at next 7
-                    savedRsrcs[CLIENT_PN] = new SOCResourceSet(3, 3, 3, 4, 4, 0);
+                    // adjust player resources so CLIENT_PN, CLIENT2_PN will have to discard at next 7
+                    savedRsrcs[CLIENT_PN]  = new SOCResourceSet(3, 3, 3, 4, 4, 0);
+                    savedRsrcs[CLIENT2_PN] = new SOCResourceSet(0, 8, 0, 0, 0, 0);
                 }
                 else if (! tested7Discard)
                 {
                     assertEquals(SOCGame.WAITING_FOR_DISCARDS, ga.getGameState());
                     assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
 
+                    // send a discard message from CLIENT2 first
+                    tcli2.discard(ga, new SOCResourceSet(0, 4, 0, 0, 0, 0));
                     try { Thread.sleep(60); }
                     catch(InterruptedException e) {}
+
                     tcli.discard(ga, new SOCResourceSet(0, 0, 0, 4, 4, 0));
 
                     try { Thread.sleep(60); }
@@ -1072,20 +1083,25 @@ public class TestActionsMessages
                             {
                                 {"all:SOCDiceResult:", "|param=7"},
                                 {"all:SOCGameState:", "|state=50"},
-                                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
+                                {"all:SOCGameServerText:", "|text=" + CLIENT2_NAME + " and " + CLIENT_NAME + " need to discard."},
+                                {"p1:SOCDiscardRequest:", "|numDiscards=4"},
                                 {"p3:SOCDiscardRequest:", "|numDiscards=8"},
                                 {
-                                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
-                                    "|playerNum=3|actionType=LOSE|elementType=4|amount=4"
-                                },
-                                {
-                                    ((observabilityMode != 2) ? "p3:SOCPlayerElement:" : "all:SOCPlayerElement:"),
-                                    "|playerNum=3|actionType=LOSE|elementType=5|amount=4"
+                                    ((observabilityMode != 2) ? "p1:SOCDiscard:" : "all:SOCDiscard:"),
+                                    "|playerNum=1|resources=clay=0|ore=4|sheep=0|wheat=0|wood=0|unknown=0"
                                 },
                                 ((observabilityMode != 2)
-                                    ? new String[]{"!p3:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=6|amount=8|news=Y"}
+                                    ? new String[]{"!p1:SOCDiscard:", "|playerNum=1|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=4"}
                                     : null),
-                                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " discarded 8 resources."}
+                                {"all:SOCGameState:", "|state=50"},
+                                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " needs to discard."},
+                                {
+                                    ((observabilityMode != 2) ? "p3:SOCDiscard:" : "all:SOCDiscard:"),
+                                    "|playerNum=3|resources=clay=0|ore=0|sheep=0|wheat=4|wood=4|unknown=0"
+                                },
+                                ((observabilityMode != 2)
+                                    ? new String[]{"!p3:SOCDiscard:", "|playerNum=3|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=8"}
+                                    : null)
                             });
 
                     tested7Discard = true;
@@ -1173,7 +1189,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer, cli2Pl = objs.client2Player;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         assertEquals(SOCBoardLarge.GOLD_HEX, board.getHexTypeFromCoord(0xF05));
         assertEquals(GOLD_DICE_NUM, board.getNumberOnHexFromCoord(0xF05));
@@ -1182,8 +1198,8 @@ public class TestActionsMessages
 
         // reminder: message-seqs.game.json has "N7" option to prevent 7s from being rolled
         // but just in case: clear debug player's resources to prevent discard on 7 from accumulated rolls
-        final int[] RS_KNOWN_AMOUNTS_ARR = {0, 3, 1, 2, 0}, RS_KNOWN_PLUS_CLAY = {1, 3, 1, 2, 0},
-            CLI2_RS_KNOWN_AMOUNTS_ARR = {1, 0, 3, 0, 2}, CLI2_RS_KNOWN_PLUS_WHEAT = {1, 0, 3, 1, 2};
+        final int[] RS_KNOWN_AMOUNTS_ARR = {0, 3, 1, 2, 0}, RS_KNOWN_PLUS_2_CLAY = {2, 3, 1, 2, 0},
+            CLI2_RS_KNOWN_AMOUNTS_ARR = {1, 0, 3, 0, 2}, CLI2_RS_KNOWN_PLUS_SHEEP_WHEAT = {1, 0, 4, 1, 2};
         final SOCResourceSet RS_KNOWN = new SOCResourceSet(RS_KNOWN_AMOUNTS_ARR),
             CLI2_RS_KNOWN = new SOCResourceSet(CLI2_RS_KNOWN_AMOUNTS_ARR);
         cliPl.getResources().setAmounts(RS_KNOWN);
@@ -1203,18 +1219,20 @@ public class TestActionsMessages
 
         ga.putPiece(new SOCShip(cliPl, SHIP_EDGE, board));
         ga.putPiece(new SOCSettlement(cliPl, ISLAND_SETTLE_NODE, board));
+        ga.putPiece(new SOCCity(cliPl, ISLAND_SETTLE_NODE, board));
 
         for (int edge : CLI2_SHIPS_EDGE)
             ga.putPiece(new SOCShip(cli2Pl, edge, board));
         ga.putPiece(new SOCSettlement(cli2Pl, CLI2_ISLAND_SETTLE_NODE, board));
+        ga.putPiece(new SOCCity(cli2Pl, CLI2_ISLAND_SETTLE_NODE, board));
 
         assertTrue(board.roadOrShipAtEdge(SHIP_EDGE) instanceof SOCShip);
-        assertTrue(board.settlementAtNode(ISLAND_SETTLE_NODE) instanceof SOCSettlement);
+        assertTrue(board.settlementAtNode(ISLAND_SETTLE_NODE) instanceof SOCCity);
         for (int edge : CLI2_SHIPS_EDGE)
             assertTrue(board.roadOrShipAtEdge(edge) instanceof SOCShip);
-        assertTrue(board.settlementAtNode(CLI2_ISLAND_SETTLE_NODE) instanceof SOCSettlement);
+        assertTrue(board.settlementAtNode(CLI2_ISLAND_SETTLE_NODE) instanceof SOCCity);
 
-        final int[] EXPECTED_GOLD_GAINS = {0, 1, 0, 1};
+        final int[] EXPECTED_GOLD_GAINS = {0, 2, 0, 2};
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
             assertEquals
                 ("pn[" + pn + "] gains", EXPECTED_GOLD_GAINS[pn],
@@ -1243,51 +1261,49 @@ public class TestActionsMessages
             if (diceNumber != GOLD_DICE_NUM)
                 continue;
 
-            assertEquals(1, cliPl.getNeedToPickGoldHexResources());
-            assertEquals(1, cli2Pl.getNeedToPickGoldHexResources());
+            assertEquals(2, cliPl.getNeedToPickGoldHexResources());
+            assertEquals(2, cli2Pl.getNeedToPickGoldHexResources());
             assertArrayEquals(RS_KNOWN_AMOUNTS_ARR, cliPl.getResources().getAmounts(false));
             assertArrayEquals(CLI2_RS_KNOWN_AMOUNTS_ARR, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, ga.getGameState());
 
-            tcli.pickResources(ga, new SOCResourceSet(1, 0, 0, 0, 0, 0));
+            tcli.pickResources(ga, new SOCResourceSet(2, 0, 0, 0, 0, 0));  // 2 of same type
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(0, cliPl.getNeedToPickGoldHexResources());
-            assertEquals(1, cli2Pl.getNeedToPickGoldHexResources());
-            assertArrayEquals(RS_KNOWN_PLUS_CLAY, cliPl.getResources().getAmounts(false));
+            assertEquals(2, cli2Pl.getNeedToPickGoldHexResources());
+            assertArrayEquals(RS_KNOWN_PLUS_2_CLAY, cliPl.getResources().getAmounts(false));
             assertArrayEquals(CLI2_RS_KNOWN_AMOUNTS_ARR, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, ga.getGameState());
 
-            tcli2.pickResources(ga, new SOCResourceSet(0, 0, 0, 1, 0, 0));
+            tcli2.pickResources(ga, new SOCResourceSet(0, 0, 1, 1, 0, 0));  // 1 each of 2 different types
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(0, cliPl.getNeedToPickGoldHexResources());
             assertEquals(0, cli2Pl.getNeedToPickGoldHexResources());
-            assertArrayEquals(CLI2_RS_KNOWN_PLUS_WHEAT, cli2Pl.getResources().getAmounts(false));
+            assertArrayEquals(CLI2_RS_KNOWN_PLUS_SHEEP_WHEAT, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.PLAY1, ga.getGameState());
 
             compares = TestRecorder.compareRecordsToExpected
                 (records, new String[][]
                 {
                     {"all:SOCDiceResult:game=", "|param=" + GOLD_DICE_NUM},
-                    {"all:SOCGameState:game=", "|state=56"},
                     {"all:SOCGameServerText:game=", "|text=No player gets anything."},
                     {"all:SOCGameServerText:game=", "|text=" + CLIENT2_NAME + " and " + CLIENT_NAME + " need to pick resources from the gold hex."},
-                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=1"},
-                    {"p1:SOCSimpleRequest:game=", "|pn=1|reqType=1|v1=1|v2=0"},
-                    {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=1"},
-                    {"p3:SOCSimpleRequest:game=", "|pn=3|reqType=1|v1=1|v2=0"},
-                    {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=GAIN|elementType=1|amount=1"},
-                    {"all:SOCGameServerText:game=", "|text=" + CLIENT_NAME + " has picked 1 clay from the gold hex."},
+                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=2"},  // NUM_PICK_GOLD_HEX_RESOURCES
+                    {"p1:SOCSimpleRequest:game=", "|pn=1|reqType=1|v1=2|v2=0"},
+                    {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=2"},
+                    {"p3:SOCSimpleRequest:game=", "|pn=3|reqType=1|v1=2|v2=0"},
+                    {"all:SOCGameState:game=", "|state=56"},
+                    {"all:SOCPickResources:game=", "|resources=clay=2|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=3"},
                     {"all:SOCPlayerElement:game=", "|playerNum=3|actionType=SET|elementType=101|amount=0"},
                     {"all:SOCGameState:game=", "|state=56"},
-                    {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=GAIN|elementType=4|amount=1"},
-                    {"all:SOCGameServerText:game=", "|text=" + CLIENT2_NAME + " has picked 1 wheat from the gold hex."},
+                    {"all:SOCPickResources:game=", "|resources=clay=0|ore=0|sheep=1|wheat=1|wood=0|unknown=0|pn=1|reason=3"},
                     {"all:SOCPlayerElement:game=", "|playerNum=1|actionType=SET|elementType=101|amount=0"},
                     {"all:SOCGameState:game=", "|state=20"}
-                });
+                }, false);
         }
 
         /* leave game, consolidate results */
@@ -1334,7 +1350,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         final SOCResourceSet SHEEP_1 = new SOCResourceSet(0, 0, 1, 0, 0, 0),
             WHEAT_4 = new SOCResourceSet(0, 0, 0, 4, 0, 0),
@@ -1355,10 +1371,8 @@ public class TestActionsMessages
         StringBuilder compares_4_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=4"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=1"},
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=0|wheat=4|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3"}
-            });
+            }, false);
 
         /* undo 4:1 bank trade */
 
@@ -1373,10 +1387,8 @@ public class TestActionsMessages
         StringBuilder compares_undo_4_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=3|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=4"},
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=4|wood=0|unknown=0|pn=3"}
-            });
+            }, false);
 
         /* build wheat port to enable 2:1 trades */
 
@@ -1409,10 +1421,8 @@ public class TestActionsMessages
         StringBuilder compares_2_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=2"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=3|amount=1"},
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3"}
-            });
+            }, false);
 
         /* undo 2:1 port trade */
 
@@ -1427,10 +1437,8 @@ public class TestActionsMessages
         StringBuilder compares_undo_2_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=3|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=4|amount=2"},
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|pn=3"}
-            });
+            }, false);
 
         /* leave game, consolidate results */
 
@@ -1508,7 +1516,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final String gaName = ga.getName();
         final SOCPlayer cli1Pl = objs.clientPlayer, cli2Pl = objs.client2Player;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         records.clear();
 
@@ -1572,23 +1580,18 @@ public class TestActionsMessages
         StringBuilder compares = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C1
+                {"all:SOCMakeOffer:", "|from=" + PN_C1
                  + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
                 {"all:SOCClearOffer:", "|playerNumber=" + PN_C1},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
-                {"all:SOCMakeOffer:", "|offer=game=" + gaName + "|from=" + PN_C2
+                {"all:SOCMakeOffer:", "|from=" + PN_C2
                  + "|to=false,false,false,true|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
-                {"all:SOCPlayerElement:", "|playerNum=2|actionType=LOSE|elementType=1|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=1|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=2|actionType=GAIN|elementType=2|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=2|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=2|actionType=GAIN|elementType=4|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=4|amount=1"},
-                {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2},
+                {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2
+                    + "|toAccepting=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
                 {"all:SOCClearOffer:", "|playerNumber=-1"}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -1637,7 +1640,7 @@ public class TestActionsMessages
                 (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
         final SOCGame ga = objs.gameAtServer;
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         records.clear();
 
@@ -1661,10 +1664,9 @@ public class TestActionsMessages
             (records, new String[][]
             {
                 {"all:SOCClearOffer:", "|playerNumber=-1"},
-                {"all:SOCPlayerElement:", "|playerNum=1|actionType=SET|elementType=19|amount=0"},
                 {"all:SOCTurn:", "|playerNumber=1|gameState=15"},
                 {"all:SOCRollDicePrompt:", "|playerNumber=1"}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -1694,10 +1696,8 @@ public class TestActionsMessages
 
         testOne_6pAskSpecialBuild(false, false);
         testOne_6pAskSpecialBuild(false, true);
-
-        // TODO server won't let clientAsRobot set up game properly
-        // testOne_6pAskSpecialBuild(true, false);
-        // testOne_6pAskSpecialBuild(true, true);
+        testOne_6pAskSpecialBuild(true, false);
+        testOne_6pAskSpecialBuild(true, true);
     }
 
     private void testOne_6pAskSpecialBuild
@@ -1722,7 +1722,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCPlayer clientPlayer = objs.clientPlayer;
         assertEquals(PN_CLI, clientPlayer.getPlayerNumber());
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         // Verify current player and basics of game: same as in TestLoadgame.testLoad6PlayerSBP.
         // Copying that code instead of calling it, to ensure it's still checked here if that check changes.
@@ -1789,16 +1789,14 @@ public class TestActionsMessages
         StringBuilder compares = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=16|amount=1"},
+                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=16|amount=1"},  // ASK_SPECIAL_BUILD
                 {"all:SOCClearOffer:game=", "|playerNumber=-1"},
-                {"all:SOCPlayerElement:game=", "|playerNum=5|actionType=SET|elementType=19|amount=0"},
                 {"all:SOCTurn:game=", "|playerNumber=5|gameState=100"},
-                {"all:SOCGameServerText:game=", "|text=Special building phase: " + CLIENT1_NAME + "'s turn to place."},
                 {"all:SOCPlayerElements:game=", "|playerNum=5|actionType=LOSE|e1=1,e5=1"},
                 {"all:SOCGameServerText:game=", "|text="+ CLIENT1_NAME + " built a road."},
                 {"all:SOCPutPiece:game=", "|playerNumber=5|pieceType=0|coord=82"},
                 {"all:SOCGameState:game=", "|state=100"}
-            });
+            }, false);
 
         /* leave game, check results */
 
@@ -1817,7 +1815,7 @@ public class TestActionsMessages
     }
 
     /**
-     * Test Win Game: With cient player win, another player win.
+     * Test Win Game: With client player win, another player win.
      */
     @Test
     public void testWinGame()
@@ -1862,7 +1860,7 @@ public class TestActionsMessages
         final String plName = plWin.getName();
         if (! clientWin)
             plWin.setRobotFlag(othersAsRobot, othersAsRobot);
-        final Vector<QueueEntry> records = objs.records;
+        final Vector<EventEntry> records = objs.records;
 
         /* prep: change game data and resume */
 
@@ -1906,10 +1904,10 @@ public class TestActionsMessages
                 {"all:SOCPlayerElements:", "|playerNum=" + PN_WIN + "|actionType=LOSE|e1=1,e3=1,e4=1,e5=1"},
                 {"all:SOCGameServerText:", "|text=" + plName + " built a settlement."},
                 {"all:SOCPutPiece:", "|playerNumber=" + PN_WIN + "|pieceType=1|coord=" + Integer.toHexString(SETTLE_NODE)},
-                {"all:SOCGameElements:", "|e4=" + PN_WIN},
+                {"all:SOCGameElements:", "|e4=" + PN_WIN},  // CURRENT_PLAYER
                 {"all:SOCGameState:", "|state=1000"},
                 {"all:SOCGameServerText:", "|text=>>> " + plName + " has won the game with 10 points."},
-                {"all:SOCDevCardAction:", "|playerNum=" + PN_OTHER_NONWIN_PLAYER + "|actionType=ADD_OLD|cardTypes=[4]"},
+                {"all:SOCDevCardAction:", "|playerNum=" + PN_OTHER_NONWIN_PLAYER + "|actionType=ADD_OLD|cardType=4"},
                 {"all:SOCDevCardAction:", "|playerNum=" + PN_WIN + "|actionType=ADD_OLD|cardTypes=[6, 6, 6, 6, 6]"},
                 {"all:SOCGameStats:",
                    ((clientWin) ? "|0|3|2|10" : "|0|3|10|2")
@@ -1919,7 +1917,7 @@ public class TestActionsMessages
                 ((othersAsRobot) ? null : new String[]{"p1:SOCPlayerStats:", "|p=1|p=1|p=1|p=1|p=2|p=0"}),
                 ((othersAsRobot) ? null : new String[]{"p2:SOCPlayerStats:", "|p=1|p=1|p=1|p=1|p=0|p=0"}),
                 ((clientAsRobot) ? null : new String[]{"p3:SOCPlayerStats:", "|p=1|p=1|p=0|p=0|p=2|p=2"})
-            });
+            }, false);
 
         /* leave game, check results */
 

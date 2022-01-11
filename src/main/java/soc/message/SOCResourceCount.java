@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,12 +28,13 @@ import java.util.StringTokenizer;
  * Includes all resources of known and unknown types, from
  * player's hand's {@link soc.game.SOCResourceSet#getTotal()}.
  *<P>
- * In games where all clients are v2.0.00 or newer, send {@link SOCPlayerElement.PEType#RESOURCE_COUNT} instead:
+ * In games where all clients are v2.0.00 or newer, can send {@link SOCPlayerElement.PEType#RESOURCE_COUNT} instead:
  * Check clients' version against {@link SOCPlayerElement#VERSION_FOR_CARD_ELEMENTS}.
  * For dice rolls, check against {@link SOCDiceResultResources#VERSION_FOR_DICERESULTRESOURCES}
  * and send {@link SOCDiceResultResources} instead.
  *<P>
- * v2.0.00 and newer clients still accept this message because of older servers and games which include older clients.
+ * Server v2.5.00 and newer also sends this as part of the monopoly-card message sequence;
+ * see {@link SOCPickResourceType} for details.
  *
  * @author Robert S. Thomas
  */
@@ -152,6 +153,6 @@ public class SOCResourceCount extends SOCMessage
      */
     public String toString()
     {
-        return "SOCResourceCount:game=" + game + "|playerNumber=" + playerNumber + "|count=" + count;
+        return "SOCResourceCount:game=" + game + "|playerNum=" + playerNumber + "|count=" + count;
     }
 }

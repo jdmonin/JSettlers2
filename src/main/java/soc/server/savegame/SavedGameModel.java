@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,6 +70,7 @@ import soc.util.Version;
  * To save, use the {@link #SavedGameModel(SOCGame, SOCServer)} constructor and {@link GameSaverJSON}.
  * To load, use {@link #SavedGameModel()} and {@link GameLoaderJSON}.
  * See those constructors' javadocs for usage details.
+ * See {@link #checkCanSave(SOCGame)} for current limitations.
  *<P>
  * This standalone model is cleaner than trying to serialize/deserialize {@link SOCGame}, SOCBoard, etc.
  *<P>
@@ -122,7 +123,22 @@ public class SavedGameModel
      * backwards-compatibility tests like {@code TestLoadgame.testLoadModelVersion2300} to ensure the old format
      * can still be reliably parsed.
      *
-     *<H4>Changed in 2.4.00:</H4>
+     *<H3>Changes by JSettlers version:</H3>
+     *
+     *<H4>2.5.00</H4>
+     *<UL>
+     * <LI> Model version is still 2400
+     * <LI> Adds game field {@link #playingRoadBuildingCardForLastRoad}
+     * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_DISC NUM_PLAYED_DEV_CARD_DISC},
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}
+     * <LI> Adds per-player list of dev cards played: {@link PlayerInfo#playedDevCards}
+     * <LI> Adds {@link TradeOffer#offeredAtDurationMillis}
+     * <LI> Earlier server versions will ignore these added fields while loading a savegame
+     *</UL>
+     *
+     *<H4>2.4.00</H4>
      *<UL>
      * <LI> Players' dev cards ({@link PlayerInfo#oldDevCards}, {@code newDevCards})
      *      are written as user-friendly type name strings like {@code "ROADS"}, not ints.
@@ -147,16 +163,9 @@ public class SavedGameModel
      *      and renamed using {@link #rand} if needed
      *</UL>
      *
-     *<H4>Changed in 2.4.10:</H4>
+     *<H4>2.3.00</H3>
      *<UL>
-     * <LI> Model version is still 2400
-     * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
-     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_DISC NUM_PLAYED_DEV_CARD_DISC},
-     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
-     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}
-     * <LI> Adds per-player list of dev cards played: {@link PlayerInfo#playedDevCards}
-     * <LI> Adds {@link TradeOffer#offeredAtDurationMillis}
-     * <LI> Earlier server versions will ignore these added fields while loading a savegame
+     * <LI> First version to have save/load feature and {@code SavedGameModel}
      *</UL>
      */
     public static final int MODEL_VERSION = 2400;
@@ -281,9 +290,18 @@ public class SavedGameModel
     @JsonAdapter(DevCardEnumListAdapter.class)
     public ArrayList<Integer> devCardDeck;
 
-    /** Flag fields, from {@link SOCGame#getFlagFieldsForSave()} */
+    /**
+     * Original set of Flag fields from {@link SOCGame#getFlagFieldsForSave()}.
+     * @see #playingRoadBuildingCardForLastRoad
+     */
     public boolean placingRobberForKnightCard, robberyWithPirateNotRobber,
         askedSpecialBuildPhase, movedShipThisTurn;
+
+    /**
+     * A flag field from {@link SOCGame#getFlagFieldsForSave()}.
+     * @since 2.5.00
+     */
+    public boolean playingRoadBuildingCardForLastRoad;
 
     /** Ships placed this turn if {@link SOCGame#hasSeaBoard}, from {@link SOCGame#getShipsPlacedThisTurn()}, or null */
     public List<Integer> shipsPlacedThisTurn;
@@ -322,7 +340,8 @@ public class SavedGameModel
      *  <UL>
      *   <LI> {@code "_SC_SANY"} is OK
      *   <LI> {@code "_SC_SEAC"} is OK
-     *   <LI> Any other scenario game option (keyname starts with {@code "_SC_"}) is unsupported
+     *   <LI> Any other scenario game option (keyname starts with {@code "_SC_"}) is unsupported:
+     *        They might use data fields or piece types which aren't in {@code SavedGameModel} yet.
      *  </UL>
      *   Throws {@link UnsupportedSGMOperationException} with message "admin.savegame.cannot_save.scen".
      *   {@link UnsupportedSGMOperationException#param1} is scenario name,
@@ -355,8 +374,7 @@ public class SavedGameModel
     /**
      * Check if a set of game options contains any scenario game options
      * which aren't yet supported by the savegame system.
-     * Currently only {@code _SC_SANY} and {@code _SC_SEAC} are supported.
-     * Other scenario options use data fields or piece types which aren't in {@code SavedGameModel} yet.
+     * See {@link #checkCanSave(SOCGame)} javadoc for more info.
      * @param opts Set of game options to check, or null.
      *     Ignores any option whose key name doesn't start with {@code "_SC_"}.
      * @return {@code null} if no problems, or the name of the first-seen unsupported option
@@ -446,6 +464,7 @@ public class SavedGameModel
         robberyWithPirateNotRobber = flags[1];
         askedSpecialBuildPhase = flags[2];
         movedShipThisTurn = flags[3];
+        playingRoadBuildingCardForLastRoad = flags[4];
 
         shipsPlacedThisTurn = ga.getShipsPlacedThisTurn();
 
@@ -682,7 +701,8 @@ public class SavedGameModel
                     }
             ga.setFieldsForLoad
                 (devCardDeck, oldGameState, shipsPlacedThisTurn,
-                 placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn);
+                 placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn,
+                 playingRoadBuildingCardForLastRoad);
             if (elements != null)
                 for (GEType elem : elements.keySet())
                     SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, elem, elements.get(elem));
@@ -899,7 +919,7 @@ public class SavedGameModel
          * @see #oldDevCards
          * @see #newDevCards
          * @see SavedGameModel#devCardDeck
-         * @since 2.4.10
+         * @since 2.5.00
          */
         @JsonAdapter(DevCardEnumListAdapter.class)
         public ArrayList<Integer> playedDevCards;
@@ -1082,7 +1102,7 @@ public class SavedGameModel
 
             if (playedDevCards != null)
                 for (final int ctype : playedDevCards)
-                    pl.updateDevCardsPlayed(ctype);
+                    pl.updateDevCardsPlayed(ctype, false);
 
             // Set some elements for scenario info before any putpiece,
             // so they know their starting land areas and scenario events
@@ -1353,7 +1373,7 @@ public class SavedGameModel
          * Time at which this offer was made, as number of milliseconds from start of game,
          * based on {@link SOCPlayer#getCurrentOfferTime()}.
          * This field is currently saved but not loaded.
-         * @since 2.4.10
+         * @since 2.5.00
          */
         public long offeredAtDurationMillis;
 

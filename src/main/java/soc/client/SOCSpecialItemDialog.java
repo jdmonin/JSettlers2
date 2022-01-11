@@ -569,7 +569,7 @@ import javax.swing.border.EmptyBorder;
 
                 final GameMessageSender messageSender = pi.getClient().getGameMessageSender();
                 boolean askedSBP = false;
-                if (! pi.clientIsCurrentPlayer())
+                if (! pi.isClientCurrentPlayer())
                 {
                     final int cpn = pi.getClientPlayerNumber();
                     if ((cpn != -1) && ga.canAskSpecialBuild(cpn, false))

@@ -1,9 +1,9 @@
 {
   "modelVersion": 2400,
-  "savedByVersion": 2410,
+  "savedByVersion": 2500,
   "gameMinVersion": -1,
   "gameName": "devcard-stats",
-  "comments": "player elements have Dev Card stats (added in v2.4.10): pn 1 robot 4 played 2 Road Building cards; pn 2 had nothing; pn 3 debug played 1 Discovery, 1 Monopoly",
+  "comments": "player elements have Dev Card stats (added in v2.5.00): pn 1 robot 4 played 2 Road Building cards; pn 2 had nothing; pn 3 debug played 1 Discovery, 1 Monopoly",
   "author": "Jeremy D Monin  2020",
   "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d4,RD\u003df",
   "gameDurationSeconds": 163,

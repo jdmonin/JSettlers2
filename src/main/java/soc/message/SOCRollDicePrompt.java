@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2007-2008,2010,2013,2016-2018 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2008,2010,2013,2016-2018,2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,7 +30,8 @@ import soc.proto.Message;
  * and they may roll the dice, or take other action allowable at that time.
  * For example, the player's hand panel can start an auto-roll countdown timer.
  *<P>
- * Also may be sent during initial placement when it's a player's turn to place.
+ * Was also sent during initial placement from servers older than v2.5.00 when it's a player's turn to place
+ * a settlement. (That version and newer send {@link SOCTurn} instead.)
  *<P>
  * If the player is rolling the dice they will respond with {@link SOCRollDice},
  * or {@link SOCPlayDevCardRequest} to play a development card instead.

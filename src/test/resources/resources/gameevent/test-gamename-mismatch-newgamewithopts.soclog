@@ -1,0 +1,7 @@
+SOC game event log: type=F, version=2500, created_at=1634127740, now=1634127740, game_name=test
+# Game created at: 2021-10-13 08:22:20 -0400
+# Log written at:  2021-10-13 08:22:20 -0400
+all:SOCVersion:2500|str=2.5.00|verBuild=JM20211010|feats=;ch;|cliLocale=(null)
+all:SOCNewGameWithOptions:game=othername|param1=2000|param2=BC=t4,N7=f7,RD=f,SBL=t,PL=4
+# This test artifact's game name is inconsistent in header vs SOCVersion.
+# Added comments are (C) Jeremy D Monin 2021 (GPLv3)

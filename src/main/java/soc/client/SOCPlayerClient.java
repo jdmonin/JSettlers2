@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -266,6 +266,23 @@ public class SOCPlayerClient
             System.setProperty("com.apple.mrj.application.apple.menu.about.name", "JSettlers");
                 // Works for earlier OSX versions
         }
+        else if (! IS_PLATFORM_WINDOWS)
+        {
+            // Linux/Unix: Use sub-pixel font antialiasing if available;
+            // some desktop environments don't enable antialiasing by default
+
+            String currVal = null;
+            try
+            {
+                currVal = System.getProperty("awt.useSystemAAFontSettings");
+            } catch (SecurityException e) {}
+            if (currVal == null)
+                try
+                {
+                    System.setProperty("awt.useSystemAAFontSettings", "lcd");
+                } catch (SecurityException e) {}
+
+        }
     }
 
     /**
@@ -278,17 +295,24 @@ public class SOCPlayerClient
 
     /**
      * Helper object to deal with network connectivity.
+     * Calls {@link #messageHandler} to dispatch inbound message traffic.
+     * @see #gameMessageSender
      * @since 2.0.00
      */
     private ClientNetwork net;
 
     /**
-     * Helper object to receive incoming network traffic from the server.
+     * Helper object to dispatch incoming messages from the server.
+     * Called by {@link ClientNetwork} when it receives network traffic.
+     * Must call {@link MessageHandler#init(SOCPlayerClient)} before usage.
+     * @see #gameMessageSender
      */
     private final MessageHandler messageHandler;
 
     /**
      * Helper object to form and send outgoing network traffic to the server.
+     * @see #messageHandler
+     * @see #net
      * @since 2.0.00
      */
     private final GameMessageSender gameMessageSender;
@@ -431,6 +455,8 @@ public class SOCPlayerClient
 
     /**
      * Map from game-name to the listener for that game.
+     * @see #getClientListeners()
+     * @see #getClientListener(String)
      */
     private final Map<String, PlayerClientListener> clientListeners = new HashMap<String, PlayerClientListener>();
 
@@ -469,6 +495,22 @@ public class SOCPlayerClient
      */
     public SOCPlayerClient()
     {
+        this(new MessageHandler());
+    }
+
+    /**
+     * Create a SOCPlayerClient with the specified {@link MessageHandler}.
+     * See {@link #SOCPlayerClient()} for all other details.
+     * @param mh  MessageHandler to use; not null
+     * @throws IllegalArgumentException if {@code mh} is null
+     * @since 2.5.00
+     */
+    protected SOCPlayerClient(final MessageHandler mh)
+        throws IllegalArgumentException
+    {
+        if (mh == null)
+            throw new IllegalArgumentException("mh");
+
         gotPassword = false;
 
         int id = UserPreferences.getPref(PREF_FACE_ICON, SOCPlayer.FIRST_HUMAN_FACE_ID);
@@ -519,7 +561,7 @@ public class SOCPlayerClient
 
         net = new ClientNetwork(this);
         gameMessageSender = new GameMessageSender(this, clientListeners);
-        messageHandler = new MessageHandler(this);
+        messageHandler = mh;
     }
 
     /**
@@ -541,6 +583,10 @@ public class SOCPlayerClient
      * Connect and give feedback by showing MESSAGE_PANEL.
      * Calls {@link MainDisplay#connect(String, String)} to set username and password,
      * then {@link ClientNetwork#connect(String, int)} to make the connection.
+     *<P>
+     * Note: If {@code chost} is null, {@link ClientNetwork#connect(String, int)}
+     * assumes client has started a local server, so will start a thread to
+     * periodically send it {@link SOCServerPing}s as a keepalive.
      *
      * @param chost Hostname to connect to, or null for localhost
      * @param cport Port number to connect to

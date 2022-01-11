@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -42,7 +42,9 @@ import soc.util.DataUtils;
  * This message does not contain information about where the
  * player's pieces are on the board.
  *<P>
- * Sent to a client who has joined a game as an observer or player.
+ * Sent to a client who is joining a game as an observer or player,
+ * after {@link SOCSitDown} messages about current players.
+ * Also sent during start of the game when its board is generated.
  *<P>
  * <H4>Typical parts of the board layout:</H4>
  *
@@ -321,8 +323,9 @@ public class SOCBoardLayout2 extends SOCMessage
     {
         final Object obj = layoutParts.get(pkey);
         if (obj instanceof Number)
-            return ((Number) obj).intValue();  // message was probably loaded from JSON
+            return ((Number) obj).intValue();
 
+        // message probably wasn't received & parsed from network or loaded from JSON
         String sobj = (String) obj;
         if (sobj == null)
             return 0;
@@ -472,7 +475,7 @@ public class SOCBoardLayout2 extends SOCMessage
                     }
                     parts.put(pname, pv);
                 } else {
-                    parts.put(pname, pvalue);
+                    parts.put(pname, Integer.valueOf(Integer.parseInt(pvalue)));
                 }
             }
         }
@@ -523,6 +526,75 @@ public class SOCBoardLayout2 extends SOCMessage
         gb.setGameName(game).setBoardLayout(b);
 
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
+     * Converts all array layout parts from hexadecimal except {@code "HL"}, {@code "NL"} which are already base 10.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.5.00
+     */
+    public static String stripAttribNames(final String messageStrParams)
+    {
+        String[] pieces = messageStrParams.split("\\|");  // split on SOCMessage.SEP_CHAR
+        StringBuffer ret = new StringBuffer();
+
+        if (! pieces[0].startsWith("game="))
+            return null;
+        ret.append(pieces[0].substring(5)).append(sep2_char);
+
+        if (! pieces[1].startsWith("bef="))
+            return null;
+        ret.append(pieces[1].substring(4)).append(sep2_char);
+
+        // the rest: K=V pairs
+        for (int i = 2; i < pieces.length; ++i)
+        {
+            final String k, v;
+            {
+                final String kv = pieces[i];
+                final int idx = kv.indexOf('=');
+                if (idx <= 0)
+                    return null;
+                k = kv.substring(0, idx);
+                v = kv.substring(idx + 1);
+                if (v.isEmpty())
+                    return null;
+            }
+
+            ret.append(k).append(sep2_char);
+
+            if (v.startsWith("{ "))
+            {
+                if (! v.endsWith(" }"))
+                    return null;
+
+                final boolean notHex = (k.equals("HL") || k.equals("NL"));
+                final String[] vals = v.substring(2, v.length() - 2).split(" ");
+
+                ret.append('[').append(vals.length).append(sep2_char);
+                for (String vitem : vals)
+                {
+                    if (notHex)
+                        ret.append(vitem);
+                    else
+                        try {
+                            ret.append(Integer.parseInt(vitem, 16));
+                        } catch (NumberFormatException e) {
+                            return null;
+                        }
+
+                    ret.append(sep2_char);
+                }
+            } else {
+                // single base-10 value
+                ret.append(v).append(sep2_char);
+            }
+        }
+
+        return ret.toString();
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -229,7 +229,7 @@ public class TestSavegame
      * Test whether player dev-card stats fields like {@link SOCPlayer#numRBCards} are properly added into SGM;
      * doesn't need to actually save the file.
      * @throws IOException
-     * @since 2.4.10
+     * @since 2.5.00
      */
     @Test
     public void testSGM_playerDevCardStats()
@@ -242,16 +242,16 @@ public class TestSavegame
         ga.setGameState(SOCGame.ROLL_OR_CARD);  // no pieces placed, but can't save during initial placement
 
         SOCPlayer pl = ga.getPlayer(0);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
         assertEquals(2, pl.numRBCards);
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
         assertEquals(Arrays.asList(SOCDevCardConstants.ROADS, SOCDevCardConstants.ROADS), pl.getDevCardsPlayed());
 
         pl = ga.getPlayer(3);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, false);
         assertEquals(0, pl.numRBCards);
         assertEquals(1, pl.numDISCCards);
         assertEquals(1, pl.numMONOCards);

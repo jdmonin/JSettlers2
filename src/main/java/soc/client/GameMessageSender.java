@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -101,21 +101,47 @@ import soc.message.SOCStartGame;
      *
      * @param s  the message command, formatted by a {@code soc.message} class's {@code toCmd()}
      * @param isPractice  Send to the practice server, not tcp network?
-     *                {@link ClientNetwork#localTCPServer} is considered "network" here.
-     *                Use <tt>isPractice</tt> only with {@link ClientNetwork#practiceServer}.
+     *      {@link ClientNetwork#localTCPServer} is considered "network" here.
+     *      Use {@code isPractice} only with {@link ClientNetwork#practiceServer}.
      * @return true if the message was sent, false if not
      * @throws IllegalArgumentException if {@code s} is {@code null}
+     * @see #put(SOCMessage, boolean)
      */
-    synchronized boolean put(String s, final boolean isPractice)
+    public synchronized boolean put(String s, final boolean isPractice)
         throws IllegalArgumentException
     {
         if (s == null)
-            throw new IllegalArgumentException("null");
+            throw new IllegalArgumentException("s null");
 
         if (isPractice)
             return net.putPractice(s);
         else
             return net.putNet(s);
+    }
+
+    /**
+     * Send a message to the net or practice server by calling {@link ClientNetwork} methods.
+     * This is a convenience method, instead of calling {@code new SomeMessage(...).toCmd()}
+     * for message types which don't have a static {@code toCmd(...)} method.
+     * Because the player can be in both network games and practice games,
+     * uses {@code isPractice} to route to the appropriate client-server connection.
+     *
+     * @param msg  the message to send, by calling its {@link SOCMessage#toCmd()}.
+     * @param isPractice  Send to the practice server, not tcp network?
+     *      {@link ClientNetwork#localTCPServer} is considered "network" here.
+     *      Use {@code isPractice} only with {@link ClientNetwork#practiceServer}.
+     * @return true if the message was sent, false if not
+     * @throws IllegalArgumentException if {@code msg} is {@code null}
+     * @see #put(String, boolean)
+     * @since 2.5.00
+     */
+    public synchronized boolean put(SOCMessage msg, final boolean isPractice)
+        throws IllegalArgumentException
+    {
+        if (msg == null)
+            throw new IllegalArgumentException("msg null");
+
+        return put(msg.toCmd(), isPractice);
     }
 
     /**
@@ -316,7 +342,7 @@ import soc.message.SOCStartGame;
      */
     public void discard(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCDiscard.toCmd(ga.getName(), rs), ga.isPractice);
+        put(new SOCDiscard(ga.getName(), -1, rs), ga.isPractice);
     }
 
     /**
@@ -379,7 +405,7 @@ import soc.message.SOCStartGame;
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), 0), ga.isPractice);
+        put(new SOCRejectOffer(ga.getName(), 0), ga.isPractice);
     }
 
     /**
@@ -390,7 +416,7 @@ import soc.message.SOCStartGame;
      */
     public void acceptOffer(SOCGame ga, final int offeringPN)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), 0, offeringPN), ga.isPractice);
+        put(new SOCAcceptOffer(ga.getName(), 0, offeringPN), ga.isPractice);
     }
 
     /**

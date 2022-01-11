@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010,2013,2016,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013,2016,2019-2020 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,10 @@
 package soc.client;
 
 /**
- * This is the dialog to ask players if they want to join an
+ * Dialog to ask players if they want to join an
  * existing practice game or start a new one.
+ * Is shown when client clicks {@link MainDisplay}'s "Practice" button
+ * if a practice game already exists.
  *<P>
  * The dialog is modal against {@link SOCPlayerClient}'s main frame.
  * Client should bring the existing practice game's {@link SOCPlayerInterface}

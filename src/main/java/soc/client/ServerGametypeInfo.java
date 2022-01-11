@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>:
  *     - parameterize types
  * This file's contents were formerly part of SOCPlayerClient.java:
@@ -84,7 +84,7 @@ import soc.message.SOCNewGameWithOptions;
  * @author jdmonin
  * @since 1.1.07
  */
-/*package*/ class ServerGametypeInfo
+public class ServerGametypeInfo
 {
     /**
      * If true, we know all options on this server,
@@ -116,7 +116,7 @@ import soc.message.SOCNewGameWithOptions;
      * May contain {@link SOCGameOption#OTYPE_UNKNOWN} opts sent from server
      * as part of gameopt info synchronization.
      *<P>
-     * Before v2.4.10 this field was {@code optionSet}.
+     * Before v2.5.00 this field was {@code optionSet}.
      * @see #newGameOpts
      */
     public SOCGameOptionSet knownOpts = null;
@@ -128,7 +128,7 @@ import soc.message.SOCNewGameWithOptions;
      *<P>
      * {@code NewGameOptionsFrame} may remove any {@link SOCGameOption#OTYPE_UNKNOWN} options
      * from this set, but they will remain in {@code knownOpts}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCGameOptionSet newGameOpts = null;
 

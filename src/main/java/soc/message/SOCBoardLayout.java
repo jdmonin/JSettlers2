@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,10 @@ import soc.util.DataUtils;
  * This message contains the board layout information: The hex layout, the
  * dice number layout, and the robber location.  Does not contain information
  * about any player's pieces on the board (see {@link SOCPutPiece PUTPIECE}).
+ *<P>
+ * Sent to a client who is joining a game as an observer or player,
+ * after {@link SOCSitDown} messages about current players.
+ * Also sent during start of the game when its board is generated.
  *<P>
  * This message sends the classic board layout for the original
  * 4-player game, {@link #BOARD_ENCODING_ORIGINAL}.
@@ -321,7 +325,7 @@ public class SOCBoardLayout extends SOCMessage
      * Converts robber hex coordinate to decimal from hexadecimal format.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public static String stripAttribNames(final String messageStrParams)
     {
@@ -343,7 +347,10 @@ public class SOCBoardLayout extends SOCMessage
         }
 
         // robber hex: need to convert from hex string to int - strip 0x and parse with radix=16
-        int robber = Integer.parseInt(pieces[3].substring(2), 16);
+        // If robber hex is -1, will be 0xffffffff
+        long robber = Long.parseLong(pieces[3].substring(2), 16);  // TODO java 8: use Integer.parseUnsignedInt
+        if (robber >= 0x80000000L)  // 2^31
+            robber -= 0x100000000L;  // 0xffffffff -> -1
         ret.append(robber);
 
         return ret.toString();

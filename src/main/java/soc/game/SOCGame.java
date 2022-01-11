@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -108,7 +108,7 @@ public class SOCGame implements Serializable, Cloneable
      * The main game class has a serialVersionUID; pieces and players don't.
      * To persist a game between versions, use {@link soc.server.savegame.SavedGameModel}.
      */
-    private static final long serialVersionUID = 2410L;  // Last structural change in v2.4.10
+    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
 
     /**
      * Game states.  {@link #NEW} is a brand-new game, not yet ready to start playing.
@@ -418,7 +418,7 @@ public class SOCGame implements Serializable, Cloneable
     public static final int WAITING_FOR_ROB_CHOOSE_PLAYER = 51;
 
     /**
-     * Waiting for player to choose 2 resources (Discovery card)
+     * Waiting for player to choose 2 resources (Discovery/Year of Plenty card)
      * Next game state is {@link #PLAY1}.
      */
     public static final int WAITING_FOR_DISCOVERY = 52;
@@ -626,9 +626,20 @@ public class SOCGame implements Serializable, Cloneable
     private static final int NUM_DEVCARDS_6PLAYER = 9 + NUM_DEVCARDS_STANDARD;
 
     /**
+     * Minimum version (2.5.00) that supports canceling the second free road or ship placement
+     * without ending player's turn.
+     * @see #cancelBuildRoad(int)
+     * @see #cancelBuildShip(int)
+     * @see #VERSION_FOR_CANCEL_FREE_ROAD2
+     * @since 2.5.00
+     */
+    public static final int VERSION_FOR_CANCEL_FREE_ROAD1 = 2500;
+
+    /**
      * Minimum version (1.1.17) that supports canceling the second free road or ship placement.
      * @see #cancelBuildRoad(int)
      * @see #cancelBuildShip(int)
+     * @see #VERSION_FOR_CANCEL_FREE_ROAD1
      * @since 1.1.17
      */
     public static final int VERSION_FOR_CANCEL_FREE_ROAD2 = 1117;
@@ -738,6 +749,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For a game at server which was loaded from disk and hasn't yet been resumed,
      * its {@link soc.server.savegame.SavedGameModel}. Otherwise {@code null}.
+     * After the game is resumed by {@link soc.server.savegame.SavedGameModel#resumePlay(boolean)},
+     * there's no field or flag that remembers it was previously loaded.
+     *<P>
      * Declared as Object here to avoid needing server class at client.
      * @since 2.3.00
      */
@@ -956,7 +970,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * All Known Options, for {@link #opts} validation and adding options from scenario if present.
      * Not null unless {@link #opts} is null.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     private final SOCGameOptionSet knownOpts;
 
@@ -1052,7 +1066,7 @@ public class SOCGame implements Serializable, Cloneable
      * Has a 7 been rolled yet in this game?
      * See {@link #hasRolledSeven()} for details.
      * @see #currentDice
-     * @since 2.4.10
+     * @since 2.5.00
      */
     private boolean hasRolledSeven;
 
@@ -1112,12 +1126,25 @@ public class SOCGame implements Serializable, Cloneable
      * the robber or pirate is being moved because a knight card
      * has just been played: {@link #playKnight()}.
      * If {@link #forceEndTurn()} is called, the knight card
-     * should be returned to the player's hand.
+     * should be returned to the player's inventory.
      *
      * @see #robberyWithPirateNotRobber
+     * @see #playingRoadBuildingCardForLastRoad
      * @since 1.1.00
      */
     private boolean placingRobberForKnightCard;
+
+    /**
+     * If true, and state is {@link #PLACING_FREE_ROAD2}, the Road Building dev card was played when
+     * player had only 1 road or ship remaining: {@link #playRoadBuilding()}.
+     * Checked by {@link #doesCancelRoadBuildingReturnCard()}.
+     * If {@link #cancelBuildRoad(int)}, {@link #cancelBuildShip(int)}, {@link #endTurn()} or
+     * {@link #forceEndTurn()} is called, the road building card should be returned to the player's inventory.
+     *
+     * @see #placingRobberForKnightCard
+     * @since 2.5.00
+     */
+    private boolean playingRoadBuildingCardForLastRoad;
 
     /**
      * If true, this turn is being ended. Controller of game (server) should call {@link #endTurn()}
@@ -1178,6 +1205,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * The number of development cards remaining in {@link #devCardDeck};
      * {@code numDevCards - 1} is index of the next card to buy for {@link #buyDevCard()}.
+     * @see #getNumDevCards()
      */
     private int numDevCards;
 
@@ -1549,9 +1577,11 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> robberyWithPirateNotRobber (also available from {@link #getRobberyPirateFlag()})
      * <LI> askedSpecialBuildPhase
      * <LI> movedShipThisTurn
+     * <LI> playingRoadBuildingCardForLastRoad (added in v2.5.00;
+     *      related to {@link #doesCancelRoadBuildingReturnCard()})
      *</UL>
      * For some other fields to save, see
-     * {@link #setFieldsForLoad(List, int, List, boolean, boolean, boolean, boolean)}.
+     * {@link #setFieldsForLoad(List, int, List, boolean, boolean, boolean, boolean, boolean)}.
      *
      * @return an array with the current values of those fields, in the order listed here
      * @since 2.3.00
@@ -1561,7 +1591,8 @@ public class SOCGame implements Serializable, Cloneable
         return new boolean[]
         {
             placingRobberForKnightCard, robberyWithPirateNotRobber,
-            askedSpecialBuildPhase, movedShipThisTurn
+            askedSpecialBuildPhase, movedShipThisTurn,
+            playingRoadBuildingCardForLastRoad
         };
     }
 
@@ -1584,7 +1615,8 @@ public class SOCGame implements Serializable, Cloneable
     public void setFieldsForLoad
         (final List<Integer> cards, final int oldGameState, final List<Integer> shipsPlacedThisTurn,
          final boolean placingRobberForKnightCard, final boolean robberyWithPirateNotRobber,
-         final boolean askedSpecialBuildPhase, final boolean movedShipThisTurn)
+         final boolean askedSpecialBuildPhase, final boolean movedShipThisTurn,
+         final boolean playingRoadBuildingCardForLastRoad)
         throws IllegalArgumentException
     {
         if (cards == null)
@@ -1618,6 +1650,7 @@ public class SOCGame implements Serializable, Cloneable
         this.robberyWithPirateNotRobber = robberyWithPirateNotRobber;
         this.askedSpecialBuildPhase = askedSpecialBuildPhase;
         this.movedShipThisTurn = movedShipThisTurn;
+        this.playingRoadBuildingCardForLastRoad = playingRoadBuildingCardForLastRoad;
     }
 
     /**
@@ -2146,7 +2179,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Get this game's {@link SOCGameOption}s, if any.
      *<P>
-     * Before v2.4.10 this method returned a <tt>Map&lt;String, SOCGameOption&gt;</tt>.
+     * Before v2.5.00 this method returned a <tt>Map&lt;String, SOCGameOption&gt;</tt>.
      *
      * @return this game's options, or null
      * @since 1.1.07
@@ -2231,7 +2264,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
      *         or <tt>defValue</tt> if not defined in the set of options;
      *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
-     * @since 2.4.10
+     * @since 2.5.00
      * @see #isOptionSet(String)
      * @see #getOptionIntValue(String)
      * @see #getOptionStringValue(String)
@@ -2541,7 +2574,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return true if {@link #rollDice()} at server, or {@link #setCurrentDice(int)} at client,
      *     has encountered a 7
      * @see #getCurrentDice()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public boolean hasRolledSeven()
     {
@@ -2576,11 +2609,12 @@ public class SOCGame implements Serializable, Cloneable
      * This method is generally called at the client, due to messages from the server
      * based on the server's complete game data.
      *<P>
-     * At the client if this is the first time {@code gs) == {@link #ROLL_OR_CARD} during this game,
+     * At the client if this is the first time {@code gs} == {@link #ROLL_OR_CARD} during this game,
      * and state is currently in initial placement ({@link #START1A} to {@link #START3B}),
      * calls {@link #updateAtGameFirstTurn()}.
      *
      * @param gs  the game state
+     * @see #updateAtTurn()
      */
     public void setGameState(final int gs)
     {
@@ -2723,6 +2757,7 @@ public class SOCGame implements Serializable, Cloneable
      * Get the number of development cards remaining to be bought.
      * @return the number of dev cards in the deck
      * @see #setNumDevCards(int)
+     * @see #buyDevCard()
      */
     public int getNumDevCards()
     {
@@ -3803,28 +3838,45 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pieceType != SOCPlayingPiece.CITY)
         {
+            final int placingPN = ppPlayer.getPlayerNumber();
+
             if (pp instanceof SOCRoutePiece)
             {
                 /**
                  * the affected player is the one who build the road or ship
                  */
-                updateLongestRoad(ppPlayer.getPlayerNumber());
+                updateLongestRoad(placingPN);
             }
             else if (pieceType == SOCPlayingPiece.SETTLEMENT)
             {
                 /**
                  * this is a settlement, check if it cut anyone else's road or trade route
+                 * or (on sea boards) if this connects a player's own roads to their ships
                  */
                 int[] roads = new int[maxPlayers];
+                boolean ownRoad = false, ownShip = false;
 
                 for (final int adjEdge : board.getAdjacentEdgesToNode(coord))
                 {
                     /**
-                     * look for other players' roads and ships adjacent to this node
+                     * check all roads and ships adjacent to this node
                      */
                     for (SOCRoutePiece road : board.getRoadsAndShips())
-                        if (adjEdge == road.getCoordinates())
-                            roads[road.getPlayerNumber()]++;
+                    {
+                        if (adjEdge != road.getCoordinates())
+                            continue;
+
+                        final int roadPN = road.getPlayerNumber();
+                        roads[roadPN]++;
+
+                        if (roadPN == placingPN)
+                        {
+                            if (road.isRoadNotShip())
+                                ownRoad = true;
+                            else
+                                ownShip = true;
+                        }
+                    }
                 }
 
                 /**
@@ -3834,7 +3886,7 @@ public class SOCGame implements Serializable, Cloneable
                  */
                 for (int i = 0; i < maxPlayers; i++)
                 {
-                    if ((i != ppPlayer.getPlayerNumber()) && (roads[i] == 2))
+                    if ((i != placingPN) && (roads[i] == 2))
                     {
                         updateLongestRoad(i);
 
@@ -3844,6 +3896,13 @@ public class SOCGame implements Serializable, Cloneable
                         break;
                     }
                 }
+
+                /**
+                 * if placing player has connected their own roads and ships
+                 * at this new coastal settlement, recalculate their longest route
+                 */
+                if (ownRoad && ownShip)
+                    updateLongestRoad(placingPN);
             }
         }
 
@@ -3952,7 +4011,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * During {@link #isInitialPlacement()}, only the server advances game state; when client's game calls
      * this method it returns immediately. In {@link #START2B} or {@link #START3B} after the last initial
-     * road/ship placement, this method calls {@link #updateAtGameFirstTurn()} which includes {@link #updateAtTurn()}.
+     * road/ship placement, at server this method calls {@link #updateAtGameFirstTurn()}
+     * which includes {@link #updateAtTurn()}.
      *<P>
      * If {@link #debugFreePlacement}, does nothing unless current player's
      * {@link SOCPlayer#getNeedToPickGoldHexResources()} &gt; 0 and so the state should
@@ -4081,8 +4141,15 @@ public class SOCGame implements Serializable, Cloneable
                         // Begin play.
                         // Player number is unchanged; "virtual" endTurn here.
                         // Don't clear forcingEndTurn flag, if it's set.
-                        gameState = ROLL_OR_CARD;
-                        updateAtGameFirstTurn();
+                        //
+                        // Not done if at client; instead, server will send a TURN message
+                        // from which client will call updateAtTurn and setGameState
+                        // in order to call updateAtGameFirstTurn.
+                        if (isAtServer)
+                        {
+                            gameState = ROLL_OR_CARD;
+                            updateAtGameFirstTurn();
+                        }
                     } else {
                         // Begin third placement.
                         gameState = START3A;
@@ -4138,9 +4205,16 @@ public class SOCGame implements Serializable, Cloneable
                     // Begin play.  The first player to roll is firstPlayerNumber.
                     // "virtual" endTurn here.
                     // Don't clear forcingEndTurn flag, if it's set.
-                    currentPlayerNumber = firstPlayerNumber;
-                    gameState = ROLL_OR_CARD;
-                    updateAtGameFirstTurn();
+                    //
+                    // Not done if at client; instead, server will send a TURN message
+                    // from which client will call updateAtTurn and setGameState
+                    // in order to call updateAtGameFirstTurn.
+                    if (isAtServer)
+                    {
+                        currentPlayerNumber = firstPlayerNumber;
+                        gameState = ROLL_OR_CARD;
+                        updateAtGameFirstTurn();
+                    }
                 }
                 else
                 {
@@ -4164,8 +4238,11 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case PLACING_ROAD:
+            // fall through
         case PLACING_SETTLEMENT:
+            // fall through
         case PLACING_CITY:
+            // fall through
         case PLACING_SHIP:
             if (needToPickFromGold)
             {
@@ -4208,6 +4285,8 @@ public class SOCGame implements Serializable, Cloneable
                 } else {
                     gameState = nextState;
                 }
+
+                playingRoadBuildingCardForLastRoad = false;
             }
             break;
 
@@ -4525,7 +4604,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Do the things involved in starting a game at server:
      * Call {@link #initAtServer()},
-     * shuffle the tiles and cards, make a board,
+     * shuffle the tiles and cards,
+     * make a board by calling {@link SOCBoard#makeNewBoard(SOCGameOptionSet)},
      * set players' legal and potential piece locations,
      * choose first player.
      * gameState becomes {@link #START1A}.
@@ -4631,7 +4711,7 @@ public class SOCGame implements Serializable, Cloneable
             devCardDeck[20] = SOCDevCardConstants.CAP;
             devCardDeck[21] = SOCDevCardConstants.MARKET;
             devCardDeck[22] = SOCDevCardConstants.UNIV;
-            devCardDeck[23] = SOCDevCardConstants.TEMP;
+            devCardDeck[23] = SOCDevCardConstants.TEMPLE;
             devCardDeck[24] = SOCDevCardConstants.CHAPEL;
         } else {
             // _SC_PIRI: VP cards become Knight cards, or omit if < 4 players
@@ -4730,7 +4810,8 @@ public class SOCGame implements Serializable, Cloneable
      * place both free roads. They also can call {@link #cancelBuildRoad(int)}
      * to continue their turn without placing the second free road.
      *
-     * @param pn  player number of the player who wants to end the turn
+     * @param pn  player number of the player who wants to end the turn;
+     *    returns false if out of range (-1, etc)
      * @return true if okay for this player to end the turn
      *    (They are current player; game state is {@link #PLAY1} or {@link #SPECIAL_BUILDING};
      *    or is {@link #PLACING_FREE_ROAD1} or {@link #PLACING_FREE_ROAD2} and
@@ -4787,12 +4868,21 @@ public class SOCGame implements Serializable, Cloneable
      * In 1.1.09 and later, player is allowed to Special Build at start of their
      * own turn, only if they haven't yet rolled or played a dev card.
      * To do so, call {@link #askSpecialBuild(int, boolean)} and then {@link #endTurn()}.
+     *<P>
+     * In 2.5.00 and later, if ending turn during {@link #PLACING_FREE_ROAD1}
+     * or if {@link #doesCancelRoadBuildingReturnCard()},
+     * this method calls {@link #cancelBuildRoad(int)} to return the dev card
+     * to current player's inventory.
      *
      * @see #forceEndTurn()
      * @see #isForcingEndTurn()
      */
     public void endTurn()
     {
+        if ((gameState == SOCGame.PLACING_FREE_ROAD1)
+            || (playingRoadBuildingCardForLastRoad && (gameState == SOCGame.PLACING_FREE_ROAD2)))
+            cancelBuildRoad(currentPlayerNumber);
+
         if (! advanceTurnToSpecialBuilding())
         {
             // "Normal" end-turn:
@@ -4803,7 +4893,6 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         updateAtTurn();
-        players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
 
         if ((players[currentPlayerNumber].getTotalVP() >= vp_winner) || hasScenarioWinCondition)
             checkForWinner();  // Will do nothing during Special Building Phase
@@ -4842,7 +4931,12 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Update game state as needed after initial placement before the first turn of normal play:
      *<UL>
-     *<LI> Call each player's {@link SOCPlayer#clearPotentialSettlements()}
+     *<LI> Calls each player's {@link SOCPlayer#clearPotentialSettlements()}
+     *
+     *<LI> At server, if {@link SOCBoardAtServer#getBonusExcludeLandArea()} != 0,
+     *     use that to set each player's second starting land area as a client compatibility workaround
+     *     for bonus calculations: Calls {@link SOCPlayer#setStartingLandAreasEncoded(int)}.
+     *
      *<LI> If {@link #hasSeaBoard}, check board for Added Layout Part {@code "AL"} for node lists that
      *     become legal locations for settlements after initial placement, and make them legal now.
      *     (This Added Layout Part is rarely used, currently is in scenario {@link SOCScenario#K_SC_WOND SC_WOND}.)
@@ -4853,10 +4947,12 @@ public class SOCGame implements Serializable, Cloneable
      *     players won't have roads to any node 2 away from their settlements, so they will have no
      *     new potential settlements yet.  Does call each player's
      *     {@link SOCPlayer#addLegalSettlement(int, boolean) pl.addLegalSettlement(coord, true)}.
-     *    <P>
-     *     Calls {@link #updateAtTurn()}.
+     *
+     *<LI> At server, calls {@link #updateAtTurn()}. Client will instead receive a {@link soc.message.SOCTurn}
+     *     message which will call that (always in v2.5+, sometimes in v2.0+).
      *</UL>
      *<P>
+     * Called after gameState is set to {@link #ROLL_OR_CARD}.
      * Called at server by {@link #advanceTurnStateAfterPutPiece()}, and at client by first
      * {@link #setGameState(int) setGameState}({@link #ROLL_OR_CARD}).
      *<P>
@@ -4870,6 +4966,16 @@ public class SOCGame implements Serializable, Cloneable
     {
         for (int pn = 0; pn < maxPlayers; ++pn)
             players[pn].clearPotentialSettlements();
+
+        if (board instanceof SOCBoardAtServer)
+        {
+            final int bxLAEnc = ((SOCBoardAtServer) board).getBonusExcludeLandArea() << 8;
+                // Shift left for "encoded" form of players' 2nd starting land area.
+                // If bxLAEnc != 0, board must have 1 starting land area, so can assume players' 2nd starting LA is 0.
+            if (bxLAEnc != 0)
+                for (final SOCPlayer pl: players)
+                    pl.setStartingLandAreasEncoded(pl.getStartingLandAreasEncoded() | bxLAEnc);
+        }
 
         final int[] partAL =
             (board instanceof SOCBoardLarge) ? ((SOCBoardLarge) board).getAddedLayoutPart("AL") : null;
@@ -4922,10 +5028,11 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         // Begin play.
-        // Player number is unchanged; "virtual" endTurn here.
+        // Player number is unchanged; "virtual" endTurn here if at server.
         // This code formerly in advanceTurnStateAfterPutPiece() when last initial piece has been placed.
 
-        updateAtTurn();
+        if (isAtServer)
+            updateAtTurn();
     }
 
     /**
@@ -4945,7 +5052,8 @@ public class SOCGame implements Serializable, Cloneable
      *     to mark their new dev cards as old and clear other flags
      *<LI> Clear any "x happened this turn" flags/lists
      *<LI> Clear any votes to reset the board
-     *<LI> If game state is {@link #ROLL_OR_CARD}, increment turnCount (and roundCount if necessary).
+     *<LI> If game state is {@link #ROLL_OR_CARD}, increment {@link #getTurnCount()}
+     *     (and {@link #getRoundCount()} if necessary).
      *     These include the current turn; they both are 1 during the first player's first turn.
      *</UL>
      * Called by server and client.
@@ -5074,6 +5182,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("Game not active: state " + gameState);
 
         forcingEndTurn = true;
+        final SOCPlayer currPlayer = players[currentPlayerNumber];
         SOCInventoryItem itemCard = null;  // card/inventory item being returned to player, if any
 
         if (gameState == WAITING_FOR_ROBBER_OR_PIRATE)
@@ -5157,23 +5266,45 @@ public class SOCGame implements Serializable, Cloneable
                 {
                     placingRobberForKnightCard = false;
                     itemCard = new SOCDevCard(SOCDevCardConstants.KNIGHT, false);
-                    players[currentPlayerNumber].getInventory().addItem(itemCard);
+                    currPlayer.getInventory().addItem(itemCard);
+
+                    final int newNumKnights = currPlayer.getNumKnights() - 1;
+                    if (newNumKnights >= 0)
+                        currPlayer.setNumKnights(newNumKnights);
+
+                    if (currentPlayerNumber == playerWithLargestArmy)
+                    {
+                        if (newNumKnights < 3)
+                            playerWithLargestArmy = -1;
+
+                        updateLargestArmy();
+                            // TODO: Not perfect; if there had been a tie before the Knight was played,
+                            // the current player would've taken Largest Army by playing it,
+                            // now it's returned so there's a tie again, but they keep Largest Army.
+                    }
                 }
                 return new SOCForceEndTurnResult
                     (SOCForceEndTurnResult.FORCE_ENDTURN_UNPLACE_ROBBER, itemCard);
             }
 
         case PLACING_FREE_ROAD1:
-            gameState = PLAY1;
-            itemCard = new SOCDevCard(SOCDevCardConstants.ROADS, false);
-            players[currentPlayerNumber].getInventory().addItem(itemCard);
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
-
         case PLACING_FREE_ROAD2:
-            gameState = PLAY1;
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE);
+            {
+                final boolean retDevCard =
+                    (gameState == PLACING_FREE_ROAD1)
+                    || (playingRoadBuildingCardForLastRoad && (gameState == PLACING_FREE_ROAD2));
+                gameState = PLAY1;
+                if (retDevCard)
+                {
+                    itemCard = new SOCDevCard(SOCDevCardConstants.ROADS, false);
+                    currPlayer.getInventory().addItem(itemCard);
+                    return new SOCForceEndTurnResult
+                        (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
+                } else {
+                    return new SOCForceEndTurnResult
+                        (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE);
+                }
+            }
 
         case WAITING_FOR_DISCARDS:
             return forceEndTurnChkDiscardOrGain(currentPlayerNumber, true);  // sets gameState, discards randomly
@@ -5186,14 +5317,14 @@ public class SOCGame implements Serializable, Cloneable
         case WAITING_FOR_DISCOVERY:
             gameState = PLAY1;
             itemCard = new SOCDevCard(SOCDevCardConstants.DISC, false);
-            players[currentPlayerNumber].getInventory().addItem(itemCard);
+            currPlayer.getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
         case WAITING_FOR_MONOPOLY:
             gameState = PLAY1;
             itemCard = new SOCDevCard(SOCDevCardConstants.MONO, false);
-            players[currentPlayerNumber].getInventory().addItem(itemCard);
+            currPlayer.getInventory().addItem(itemCard);
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE, itemCard);
 
@@ -5944,6 +6075,8 @@ public class SOCGame implements Serializable, Cloneable
      * If {@link #isForcingEndTurn()}, and no one else needs to discard,
      * gameState becomes {@link #PLAY1} but the caller must call
      * {@link #endTurn()} as soon as possible.
+     *<P>
+     * Called only at server.
      *
      * @param pn   the number of the player
      * @param rs   the resources that are being discarded
@@ -6033,8 +6166,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * A player is picking which resources to gain from the gold hex.
      * Gain them, check if other players must still pick, and set
-     * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
-     * or oldGameState (usually {@link #PLAY1}) accordingly.
+     * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE} if so,
+     * oldGameState otherwise (usually {@link #PLAY1}).
      * (Or, during initial placement, usually {@link #START2B} or {@link #START3B} after initial settlement at gold,
      * or {@link #START1A} or {@link #START2A} after placing a ship to a fog hex reveals gold.)
      * During normal play, the oldGameState might sometimes be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
@@ -6172,6 +6305,7 @@ public class SOCGame implements Serializable, Cloneable
      * Must be different from current robber coordinates.
      * Must not be a desert if {@link SOCGameOption game option} RD is set to true
      * ("Robber can't return to the desert").
+     * Must not be a fog hex ({@link SOCBoardLarge#FOG_HEX} can sometimes be hidden water, not land).
      * Must be current player.  Game state must be {@link #PLACING_ROBBER}.
      *
      * @return true if the player can move the robber to the coordinates
@@ -6235,10 +6369,14 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Called only at server.  Client gets messages with results of the move, and
      * calls {@link SOCBoard#setRobberHex(int, boolean)}.
-     *<P>
-     * If no victims (players to possibly steal from): State becomes oldGameState.
-     * If just one victim: call stealFromPlayer, State becomes oldGameState.
-     * If multiple possible victims: Player must choose a victim: State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
+     *
+     *<UL>
+     * <LI> If no victims (players to possibly steal from): State becomes oldGameState,
+     *      or {@link #OVER} if they just won with Largest Army.
+     * <LI> If just one victim: calls stealFromPlayer, during which State becomes oldGameState,
+     *      or {@link #OVER} if won with Largest Army
+     * <LI> If multiple possible victims: Player must choose a victim: State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
+     *</UL>
      *<P>
      * Assumes {@link #canMoveRobber(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_ROBBER}.
@@ -6299,6 +6437,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player currently move the pirate ship to these coordinates?
      * Must be a water hex, per {@link SOCBoardLarge#isHexOnWater(int)}.
      * Must be different from current pirate coordinates.
+     * Must not be a fog hex ({@link SOCBoardLarge#FOG_HEX} can sometimes be hidden land, not water).
      * Game must have {@link #hasSeaBoard}.
      * Must be current player.  Game state must be {@link #PLACING_PIRATE}.
      * For scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}, the player
@@ -6334,26 +6473,30 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Called only at server.  Client gets messages with results of the move, and
      * calls {@link SOCBoardLarge#setPirateHex(int, boolean)}.
-     *<br>
-     * <h5>Normal operation:</h5>
-     *<P>
-     * If no victims (players to possibly steal from): State becomes oldGameState.
-     *<br>
-     * If multiple possible victims: Player must choose a victim: State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
-     *    Once chosen, call {@link #choosePlayerForRobbery(int)} to choose a victim.
-     *<br>
-     * If just one victim: call stealFromPlayer, State becomes oldGameState.
-     * If cloth robbery gives player enough VP to win, sets gameState to {@link #OVER}.
-     *<br>
-     *    Or: If just one victim but {@link #canChooseRobClothOrResource(int)},
-     *    state becomes {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
-     *    Once chosen, call {@link #stealFromPlayer(int, boolean)}.
-     *<P>
+     *
+     *<H5>Normal operation:</H5>
+     *
+     *<UL>
+     * <LI> If no victims (players to possibly steal from): State becomes oldGameState,
+     *      or {@link #OVER} if they just won with Largest Army.
+     * <LI> If multiple possible victims: Player must choose a victim:
+     *      State becomes {@link #WAITING_FOR_ROB_CHOOSE_PLAYER}.
+     *      Once chosen, call {@link #choosePlayerForRobbery(int)} to choose a victim.
+     * <LI> If just one victim: calls stealFromPlayer, State becomes oldGameState.
+     *      If Largest Army or cloth robbery gives player enough VP to win, sets gameState to {@link #OVER}.
+     *      <P>
+     *      Or if just one victim but {@link #canChooseRobClothOrResource(int)},
+     *      state becomes {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
+     *      Once chosen, call {@link #stealFromPlayer(int, boolean)}.
+     *</UL>
+     *
      * Assumes {@link #canMovePirate(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_PIRATE}.
      * Also updates {@link #getRobberyResult()}.
-     *<P>
-     * In <b>game scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
+     *
+     *<H5>Game scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI}:</H5>
+     *
+     * The pirate is moved not by the player,
      * but by the game at every dice roll.  See {@link #movePirate(int, int, int)} instead of this method.
      *
      * @param pn  the number of the player that is moving the pirate ship
@@ -6917,7 +7060,7 @@ public class SOCGame implements Serializable, Cloneable
      * Is set at server only.
      * @return Robbery results at server, or {@code null} if none so far or at client
      * @see #getRobberyPirateFlag()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public SOCMoveRobberResult getRobberyResult()
     {
@@ -7528,6 +7671,8 @@ public class SOCGame implements Serializable, Cloneable
      * This method does not validate against game rules, so call
      * {@link #canMakeBankTrade(ResourceSet, ResourceSet)} first.
      *<P>
+     * Called only at server. Client instead updates {@link SOCPlayer#getResources()} contents.
+     *<P>
      * Undo was added in version 1.1.13; if the player's previous action
      * this turn was a bank trade, it can be undone by calling
      * {@link #canUndoBankTrade(ResourceSet, ResourceSet)},
@@ -7549,21 +7694,19 @@ public class SOCGame implements Serializable, Cloneable
             && currPlayer.lastActionBankTrade_get.equals(give)
             && currPlayer.lastActionBankTrade_give.equals(get))
         {
-            playerResources.subtract(give);
-            playerResources.add(get);
-            lastActionTime = System.currentTimeMillis();
+            // trade is undo
             lastActionWasBankTrade = false;
             currPlayer.lastActionBankTrade_give = null;
             currPlayer.lastActionBankTrade_get = null;
-            return;
+        } else {
+            lastActionWasBankTrade = true;
+            currPlayer.lastActionBankTrade_give = give;
+            currPlayer.lastActionBankTrade_get = get;
         }
 
         playerResources.subtract(give);
         playerResources.add(get);
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = true;
-        currPlayer.lastActionBankTrade_give = give;
-        currPlayer.lastActionBankTrade_get = get;
     }
 
     /**
@@ -7609,7 +7752,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * @return true if the player has the resources
      *         to buy a dev card, and if there are dev cards
-     *         left to buy
+     *         left to buy: {@link #getNumDevCards()} &gt; 0.
      *
      * @param pn  the number of the player
      * @see #buyDevCard()
@@ -7714,11 +7857,14 @@ public class SOCGame implements Serializable, Cloneable
      * Can the current player cancel building a piece in this game state?
      * True for each piece's normal placing state ({@link #PLACING_ROAD}, etc),
      * and for initial settlement placement.
+     * In v2.5.00+, also true in {@link #PLACING_FREE_ROAD1} to cancel playing Road Building dev card:
+     * See {@link #doesCancelRoadBuildingReturnCard()}.
      * In v1.1.17+, also true in {@link #PLACING_FREE_ROAD2} to skip the second placement.
      *
      * @param buildType  Piece type ({@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#CITY CITY}, etc)
      * @return  true if current game state allows it
      * @see #cancelBuildRoad(int)
+     * @see #cancelBuildShip(int)
      * @since 1.1.17
      */
     public boolean canCancelBuildPiece(final int buildType)
@@ -7730,13 +7876,15 @@ public class SOCGame implements Serializable, Cloneable
                 || (gameState == START2B) || (gameState == START3B);
 
         case SOCPlayingPiece.ROAD:
-            return (gameState == PLACING_ROAD) || (gameState == PLACING_FREE_ROAD2);
+            return (gameState == PLACING_ROAD)
+                || (gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2);
 
         case SOCPlayingPiece.CITY:
             return (gameState == PLACING_CITY);
 
         case SOCPlayingPiece.SHIP:
-            return (gameState == PLACING_SHIP) || (gameState == PLACING_FREE_ROAD2);
+            return (gameState == PLACING_SHIP)
+                || (gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2);
 
         default:
             return false;
@@ -7744,30 +7892,61 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * In game state {@link #PLACING_FREE_ROAD1} canceling the Road Building card
+     * ({@link #cancelBuildRoad(int)} or {@link #cancelBuildShip(int)})
+     * returns it to the player's inventory because they haven't built anything from it.
+     * Also happens in {@link #PLACING_FREE_ROAD2} if card was played with 1 road or ship left.
+     *
+     * @return true if canceling the Road Building card will return it to the player's inventory
+     * @since 2.5.00
+     */
+    public boolean doesCancelRoadBuildingReturnCard()
+    {
+        return ((gameState == PLACING_FREE_ROAD1)
+            || ((gameState == PLACING_FREE_ROAD2) && playingRoadBuildingCardForLastRoad));
+    }
+
+    /**
      * a player is UNbuying a road; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
+     *<P>
+     * Assumes {@link #canCancelBuildPiece(int)} has been called already.
      *<P>
      * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
      * can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
      * sets gameState to ROLL_OR_CARD or PLAY1 as if the free road was placed.<BR>
      * In v1.2.01 and newer, player can also end their turn from state
      * {@link #PLACING_FREE_ROAD1} or {@link #PLACING_FREE_ROAD2}.<BR>
-     * In v2.0.00 and newer, can similarly call {@link #cancelBuildShip(int)} in that state.
+     * In v2.0.00 and newer, can similarly call {@link #cancelBuildShip(int)} in those states.
+     *<P>
+     * In v2.5.00 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD1}),
+     * in {@link #PLACING_FREE_ROAD1} the Road Building card is returned to player's inventory
+     * because they haven't built anything from it.
+     * Also happens in {@link #PLACING_FREE_ROAD2} if card was played with 1 road or ship left:
+     * See {@link #doesCancelRoadBuildingReturnCard()}.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
      */
     public boolean cancelBuildRoad(final int pn)
     {
-        if (gameState == PLACING_FREE_ROAD2)
+        final SOCPlayer player = players[currentPlayerNumber];
+
+        if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
         {
+            if ((gameState == PLACING_FREE_ROAD1) || playingRoadBuildingCardForLastRoad)
+            {
+                player.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
+                player.setPlayedDevCard(false);
+                player.updateDevCardsPlayed(SOCDevCardConstants.ROADS, true);
+                gameState = PLACING_FREE_ROAD2;
+            }
+
             advanceTurnStateAfterPutPiece();
             return false;  // <--- Special case: Not returning resources ---
         }
 
-        SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, Data.ResourceType.CLAY_VALUE);
-        resources.add(1, Data.ResourceType.WOOD_VALUE);
+        player.getResources().add(SOCRoad.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7786,11 +7965,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void cancelBuildSettlement(int pn)
     {
-        SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, Data.ResourceType.CLAY_VALUE);
-        resources.add(1, Data.ResourceType.SHEEP_VALUE);
-        resources.add(1, Data.ResourceType.WHEAT_VALUE);
-        resources.add(1, Data.ResourceType.WOOD_VALUE);
+        players[pn].getResources().add(SOCSettlement.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7805,9 +7980,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void cancelBuildCity(final int pn)
     {
-        SOCResourceSet resources = players[pn].getResources();
-        resources.add(3, Data.ResourceType.ORE_VALUE);
-        resources.add(2, Data.ResourceType.WHEAT_VALUE);
+        players[pn].getResources().add(SOCCity.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7818,9 +7991,18 @@ public class SOCGame implements Serializable, Cloneable
      * a player is UNbuying a ship; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
      *<P>
-     * Can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2};
+     * Assumes {@link #canCancelBuildPiece(int)} has been called already.
+     *<P>
+     * Can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2},
+     * or cancel playing the Road Building card in {@link #PLACING_FREE_ROAD1};
      * sets gameState to ROLL_OR_CARD or PLAY1 as if the free ship was placed.
-     * Can similarly call {@link #cancelBuildRoad(int)} in that state.
+     * Can similarly call {@link #cancelBuildRoad(int)} in those states.
+     *<P>
+     * In v2.5.00 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD1}),
+     * in {@link #PLACING_FREE_ROAD1} the Road Building card is returned to player's inventory
+     * because they haven't built anything from it.
+     * Also happens in {@link #PLACING_FREE_ROAD2} if card was played with 1 road or ship left:
+     * see {@link #doesCancelRoadBuildingReturnCard()}.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
@@ -7828,15 +8010,23 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean cancelBuildShip(final int pn)
     {
-        if (gameState == PLACING_FREE_ROAD2)
+        final SOCPlayer player = players[currentPlayerNumber];
+
+        if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
         {
+            if ((gameState == PLACING_FREE_ROAD1) || playingRoadBuildingCardForLastRoad)
+            {
+                player.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.ROADS);
+                player.setPlayedDevCard(false);
+                player.updateDevCardsPlayed(SOCDevCardConstants.ROADS, true);
+                gameState = PLACING_FREE_ROAD2;
+            }
+
             advanceTurnStateAfterPutPiece();
             return false;  // <--- Special case: Not returning resources ---
         }
 
-        SOCResourceSet resources = players[pn].getResources();
-        resources.add(1, Data.ResourceType.SHEEP_VALUE);
-        resources.add(1, Data.ResourceType.WOOD_VALUE);
+        player.getResources().add(SOCShip.COST);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else
@@ -7924,6 +8114,41 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * For debugging at server, set card type of the next development card for {@link #buyDevCard()}
+     * To maintain the ratio of card types, will try to find a card of this type within the deck
+     * and swap it with the next-to-play card. If none found, will change the type of the next card
+     * in the deck.
+     *
+     * @param cardType  Dev card type from {@link SOCDevCardConstants}; not validated.
+     * @throws IllegalStateException if deck is empty or game hasn't started yet;
+     *     check {@link #getNumDevCards()} before calling.
+     * @since 2.5.00
+     */
+    public void setNextDevCard(final int cardType)
+        throws IllegalStateException
+    {
+        final int nextCardIdx = numDevCards - 1;
+        if ((nextCardIdx < 0) || (devCardDeck == null))
+            throw new IllegalStateException("empty");
+
+        if (cardType == devCardDeck[nextCardIdx])
+            return;  // already is the next type
+
+        for (int i = nextCardIdx - 1; i >= 0; --i)
+        {
+            if (cardType == devCardDeck[i])
+            {
+                final int otherType = devCardDeck[nextCardIdx];
+                devCardDeck[nextCardIdx] = cardType;
+                devCardDeck[i] = otherType;
+                return;
+            }
+        }
+
+        devCardDeck[nextCardIdx] = cardType;
+    }
+
+    /**
      * the current player is buying a dev card.
      *<P>
      *<b>Note:</b> Not checked for validity; please call {@link #couldBuyDevCard(int)} first.
@@ -7938,6 +8163,8 @@ public class SOCGame implements Serializable, Cloneable
      * @see #playKnight()
      * @see #playMonopoly()
      * @see #playRoadBuilding()
+     * @see #getNumDevCards()
+     * @see #setNextDevCard(int)
      */
     public int buyDevCard()
     {
@@ -8194,6 +8421,9 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes either {@link #PLACING_ROBBER}
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
      *<P>
+     * See note at {@link #moveRobber(int, int)} or {@link #movePirate(int, int)}
+     * about when Largest Army can win the game.
+     *<P>
      * <b>In scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> instead the player
      * converts a normal ship to a warship.  There is no robber piece in this scenario.
      * Call {@link SOCPlayer#getNumWarships()} afterwards to get the current player's new count.
@@ -8210,7 +8440,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
         pl.setPlayedDevCard(true);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.KNIGHT);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.KNIGHT, false);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
 
         if (! isWarshipConvert)
@@ -8245,6 +8475,8 @@ public class SOCGame implements Serializable, Cloneable
      * (Checks of game rules online show "MAY" or "CAN", not "MUST" place 2.)
      * If they have 0 roads, cannot play the card.
      *<P>
+     * Game state becomes {@link #PLACING_FREE_ROAD1}, or {@link #PLACING_FREE_ROAD2} if player has only 1 road piece.
+     *<P>
      * Assumes {@link #canPlayRoadBuilding(int)} has already been called, and move is valid.
      * The card can be played before or after rolling the dice.
      * Doesn't set <tt>oldGameState</tt>, because after placing the road, we might need that field.
@@ -8260,11 +8492,12 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer player = players[currentPlayerNumber];
         player.setPlayedDevCard(true);
         player.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.ROADS);
-        player.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
+        player.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
 
         final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
             + player.getNumPieces(SOCPlayingPiece.SHIP);
-        if (roadShipCount > 1)
+        playingRoadBuildingCardForLastRoad = (roadShipCount <= 1);
+        if (! playingRoadBuildingCardForLastRoad)
         {
             gameState = PLACING_FREE_ROAD1;  // First of 2 free roads / ships
         } else {
@@ -8275,6 +8508,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * the current player plays a Discovery card.
      * Assumes {@link #canPlayDiscovery(int)} has already been called, and move is valid.
+     *<P>
+     * Game state becomes {@link #WAITING_FOR_DISCOVERY}.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
      *
@@ -8287,7 +8522,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer pl = players[currentPlayerNumber];
         pl.setPlayedDevCard(true);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.DISC);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC, false);
         oldGameState = gameState;
         gameState = WAITING_FOR_DISCOVERY;
     }
@@ -8295,6 +8530,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * the current player plays a Monopoly card.
      * Assumes {@link #canPlayMonopoly(int)} has already been called, and move is valid.
+     *<P>
+     * Game state becomes {@link #WAITING_FOR_MONOPOLY}.
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
      *
@@ -8307,7 +8544,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer pl = players[currentPlayerNumber];
         pl.setPlayedDevCard(true);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.MONO);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, false);
         oldGameState = gameState;
         gameState = WAITING_FOR_MONOPOLY;
     }
@@ -8403,6 +8640,8 @@ public class SOCGame implements Serializable, Cloneable
      * larger than 2
      *<P>
      * For consistency, recalculates this field only if {@link #isAtServer}; does nothing at client.
+     * Before version 2.4.00 ({@link #VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}),
+     * Largest Army was calculated at both client and server.
      */
     public void updateLargestArmy()
     {
@@ -8453,6 +8692,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * For consistency, recalculates {@link #getPlayerWithLongestRoad()} only if {@link #isAtServer};
      * client only calls each player's {@code calcLongestRoad2}.
+     * Before version 2.4.00 ({@link #VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}),
+     * Longest Road was fully calculated at both client and server.
      *<P>
      * if there is a tie, the last player to have LR keeps it.
      * if two or more players are tied for LR and none of them
@@ -9257,19 +9498,25 @@ public class SOCGame implements Serializable, Cloneable
                 currentPlayerNumber = firstPlayerNumber;
                 if (! has3rdInitPlace)
                 {
-                    gameState = ROLL_OR_CARD;
-                    updateAtGameFirstTurn();  // "virtual" endTurn here,
-                      // just like advanceTurnStateAfterPutPiece().
+                    if (isAtServer)
+                    {
+                        gameState = ROLL_OR_CARD;
+                        updateAtGameFirstTurn();  // "virtual" endTurn here,
+                          // just like advanceTurnStateAfterPutPiece().
+                    }
                 } else {
                     gameState = START3A;
                 }
             }
             else if (npiece == 6)
             {
-                currentPlayerNumber = firstPlayerNumber;
-                gameState = ROLL_OR_CARD;
-                updateAtGameFirstTurn();  // "virtual" endTurn here,
-                  // just like advanceTurnStateAfterPutPiece().
+                if (isAtServer)
+                {
+                    currentPlayerNumber = firstPlayerNumber;
+                    gameState = ROLL_OR_CARD;
+                    updateAtGameFirstTurn();  // "virtual" endTurn here,
+                      // just like advanceTurnStateAfterPutPiece().
+                }
             }
         }
 
@@ -9287,7 +9534,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return the turn number
      * @see #getRoundCount()
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public int getTurnCount()
     {

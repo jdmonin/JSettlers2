@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@ package soc.message;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoardLarge;  // solely for javadocs
+import soc.game.SOCGame;        // solely for javadocs
 import soc.game.SOCGameOptionSet;  // solely for javadocs
 import soc.game.SOCResourceConstants;  // solely for javadocs
 import soc.util.SOCStringManager;  // solely for javadocs
@@ -94,8 +95,14 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * {@code value2}: The monopolized resource type,
      *     such as {@link SOCResourceConstants#CLAY} or {@link SOCResourceConstants#SHEEP}
      *<P>
-     * Will be followed by a {@link SOCPlayerElement} for each player to {@code SET} their new amount of
-     * that resource type, which for any victim also has the {@link SOCPlayerElement#isNews()} flag set.
+     * Is preceded by each affected player's {@link SOCPlayerElement}({@code GAIN}, <em>amount</em>) or ({@code SET}, 0)
+     * for that resource type, which for any victim also has the {@link SOCPlayerElement#isNews()} flag set.
+     *<P>
+     * In v2.0.00 - 2.4.00 those {@code SOCPlayerElement}s weren't sent until after
+     * SOCSimpleAction(RSRC_TYPE_MONOPOLIZED). v2.5.00 and newer send them before the action message
+     * (as v1.x did before sending current player "You monopolized..." text)
+     * so client's game data is updated by the time it sees RSRC_TYPE_MONOPOLIZED.
+     *
      * @since 2.0.00
      */
     public static final int RSRC_TYPE_MONOPOLIZED = 3;
@@ -141,6 +148,8 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      *        and recaptures the fortress
      *</UL>
      *
+     * See also {@link SOCReportRobbery} used in this scenario to announce pirate fleet attack results.
+     *
      * @since 2.0.00
      */
     public static final int SC_PIRI_FORT_ATTACK_RESULT = 1001;
@@ -149,7 +158,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * The current player has removed a trade port from the board.
      * {@code value1} is the former port's edge coordinate, {@code value2} is the port type.
      * Sent to entire game.  If the player must place the port immediately, server will soon send
-     * {@link SOCGameState}({@link soc.game.SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}) among other messages.
+     * {@link SOCGameState}({@link SOCGame#PLACING_INV_ITEM PLACING_INV_ITEM}) among other messages.
      *<P>
      * When the player wants to place the removed port, they will send {@link SOCSimpleRequest#TRADE_PORT_PLACE}
      * with their chosen location.  If the placement is allowed, the server will broadcast a similar

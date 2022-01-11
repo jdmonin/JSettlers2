@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013,2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -188,17 +188,42 @@ public class SOCMovePiece extends SOCMessageTemplate4i
     public int getMinimumVersion() { return 2000; }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
+     * Converts {@code fromCoord}, {@code toCoord} to decimal from hexadecimal format.
+     * @param messageStrParams  Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return  Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.5.00
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        String s = SOCMessage.stripAttribNames(messageStrParams);
+        if (s == null)
+            return null;
+        String[] pieces = s.split(SOCMessage.sep2);
+
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0; i < 3; i++)
+            ret.append(pieces[i]).append(sep2_char);
+        ret.append(Integer.parseInt(pieces[3], 16)).append(sep2_char);
+        ret.append(Integer.parseInt(pieces[4], 16));
+
+        return ret.toString();
+    }
+
+    /**
      * Build a human-readable form of the message, with this class's field names
      * instead of generic names from {@link SOCMessageTemplate4i}.
-     * @return a human readable form of the message
-     * @since 2.4.10
+     * {@code fromCoord} and {@code toCoord} are hexadecimal like coords in {@link SOCPutPiece}.
+     * @return a human-readable form of the message
+     * @since 2.5.00
      */
     @Override
     public String toString()
     {
         return "SOCMovePiece:game=" + game
             + "|pn=" + p1 + "|pieceType=" + p2
-            + "|fromCoord=" + p3 + "|toCoord=" + p4;
+            + "|fromCoord=" + Integer.toHexString(p3) + "|toCoord=" + Integer.toHexString(p4);
     }
 
 }

@@ -1,0 +1,8 @@
+SOC game event log: type=F, version=2500, created_at=1634127740, now=1634127740, game_name=test
+# Game created at: 2021-10-13 08:22:20 -0400
+# Log written at:  2021-10-13 08:22:20 -0400
+all:SOCVersion:2500|str=2.5.00|verBuild=JM20211010|feats=;ch;|cliLocale=(null)
+ob:SOCJoinGameAuth:game=test|bh=20|bw=21|vs=[-2, 1, 3, 0]
+ob:SOCSetSeatLock:game=test|states=LOCKED,LOCKED,UNLOCKED,UNLOCKED
+# This test artifact is missing required SOCNewGame/SOCNewGameWithOptions.
+# Added comments are (C) Jeremy D Monin 2021 (GPLv3)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -256,7 +256,7 @@ public class SOCPlayerTracker
     /**
      * Recalculate all ETAs: Calls {@link #recalcLargestArmyETA()},
      * {@link #recalcLongestRoadETA()}, {@link #recalcWinGameETA()}.
-     * @since 2.4.10
+     * @since 2.5.00
      */
     public void recalculateAllETAs()
     {
@@ -691,6 +691,7 @@ public class SOCPlayerTracker
         //
         final SOCBoard board = game.getBoard();
         Collection<Integer> adjNodeEnum = board.getAdjacentNodesToEdge(rs.getCoordinates());
+        final SOCBuildingSpeedEstimateFactory bsef = brain.getEstimatorFactory();
 
         for (Integer adjNode : adjNodeEnum)
         {
@@ -718,7 +719,7 @@ public class SOCPlayerTracker
                     // else, add new possible settlement
                     //
                     //D.ebugPrintln("$$$ adding new possible settlement at "+Integer.toHexString(adjNode.intValue()));
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), null);
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), null, bsef);
                     newPosSet.setNumberOfNecessaryRoads(0);
                     possibleSettlements.put(adjNode, newPosSet);
                     updateSettlementConflicts(newPosSet, trackers);
@@ -922,6 +923,7 @@ public class SOCPlayerTracker
         //
         //D.ebugPrintln("$$$ checking for possible settlements");
         //
+        final SOCBuildingSpeedEstimateFactory bsef = brain.getEstimatorFactory();
         for (Integer adjNode : board.getAdjacentNodesToEdge(tgtRoadEdge))
         {
             if (dummy.canPlaceSettlement(adjNode.intValue()))
@@ -964,7 +966,7 @@ public class SOCPlayerTracker
                     List<SOCPossibleRoad> nr = new ArrayList<SOCPossibleRoad>();
                     nr.add(targetRoad);
 
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(pl, adjNode.intValue(), nr);
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(pl, adjNode.intValue(), nr, bsef);
                     newPosSet.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
                     possibleSettlements.put(adjNode, newPosSet);
                     targetRoad.addNewPossibility(newPosSet);
@@ -1444,7 +1446,7 @@ public class SOCPlayerTracker
      *
      * @param settlement Location of our bad settlement
      *
-     * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @see SOCRobotBrain#cancelWrongPiecePlacement(soc.message.SOCCancelBuildRequest)
      * @since 1.1.00
      */
     public void cancelWrongSettlement(SOCSettlement settlement)
@@ -2021,7 +2023,7 @@ public class SOCPlayerTracker
      *
      * @param city Location of our bad city
      *
-     * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @see SOCRobotBrain#cancelWrongPiecePlacement(soc.message.SOCCancelBuildRequest)
      * @since 1.1.00
      */
     public void cancelWrongCity(SOCCity city)

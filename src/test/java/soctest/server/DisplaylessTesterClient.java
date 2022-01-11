@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@ import java.net.Socket;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.baseclient.ServerConnectInfo;
+import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
@@ -37,13 +38,13 @@ import soc.util.Version;
 
 /**
  * Non-testing class: Robot utility client to help run the actual tests.
- * Works with {@link RecordingTesterServer}.
+ * Works with {@link RecordingSOCServer}.
  * Debug Traffic flag is set, which makes unit test logs larger but is helpful when troubleshooting.
  * Unlike parent class, this client connects and authenticates as a "human" player, not a bot,
  * to see same messages a human would be shown.
  * To help set a known test environment, always uses locale {@code "en_US"} unless constructor says otherwise.
  *
- * @since 2.4.10
+ * @since 2.5.00
  */
 public class DisplaylessTesterClient
     extends SOCDisplaylessPlayerClient
@@ -104,7 +105,7 @@ public class DisplaylessTesterClient
             if (serverConnectInfo.stringSocketName == null)
             {
                 sock = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
-                sock.setSoTimeout(300000);
+                sock.setSoTimeout(300000);  // should be a few minutes longer than SOCServerRobotPinger.sleepTime
                 in = new DataInputStream(sock.getInputStream());
                 out = new DataOutputStream(sock.getOutputStream());
             }
@@ -190,28 +191,28 @@ public class DisplaylessTesterClient
     @Override
     protected void handleNEWGAME(final SOCNewGame mes)
     {
-        String gameName = mes.getGame();
+        String gaName = mes.getGame();
         boolean canJoin = true;
-        boolean hasUnjoinMarker = (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+        boolean hasUnjoinMarker = (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE);
         if (hasUnjoinMarker)
         {
-            gameName = gameName.substring(1);
+            gaName = gaName.substring(1);
             canJoin = false;
         }
-        serverGames.addGame(gameName, null, ! canJoin);
+        serverGames.addGame(gaName, null, ! canJoin);
     }
 
     @Override
     protected void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes)
     {
-        String gameName = mes.getGame();
+        String gaName = mes.getGame();
         boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
-        if (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+        if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
         {
-            gameName = gameName.substring(1);
+            gaName = gaName.substring(1);
             canJoin = false;
         }
-        serverGames.addGame(gameName, mes.getOptionsString(), ! canJoin);
+        serverGames.addGame(gaName, mes.getOptionsString(), ! canJoin);
     }
 
     @Override
@@ -219,8 +220,8 @@ public class DisplaylessTesterClient
     {
         gotPassword = true;
 
-        String gameName = mes.getGame();
-        SOCGameOptionSet opts = serverGames.parseGameOptions(gameName);
+        String gaName = mes.getGame();
+        SOCGameOptionSet opts = serverGames.parseGameOptions(gaName);
 
         final int bh = mes.getBoardHeight(), bw = mes.getBoardWidth();
         if ((bh != 0) || (bw != 0))
@@ -233,11 +234,10 @@ public class DisplaylessTesterClient
             opts.put(opt);
         }
 
-        final SOCGame ga = new SOCGame(gameName, opts, knownOpts);
+        final SOCGame ga = new SOCGame(gaName, opts, knownOpts);
         ga.isPractice = isPractice;
         ga.serverVersion = (isPractice) ? sLocalVersion : sVersion;
-        games.put(gameName, ga);
+        games.put(gaName, ga);
     }
-
 
 }
