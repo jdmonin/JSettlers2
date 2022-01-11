@@ -1383,7 +1383,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Broadcast a message to all connected clients, named and unnamed.
      *<P>
-     * Before v2.4.10 this method was {@code broadcast(String)}.
+     * Before v2.5.00 this method was {@code broadcast(String)}.
      *
      * @param m Message to send
      * @see #broadcastToVers(SOCMessage, int, int)
@@ -1410,7 +1410,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * up to and including <tt>vmax</tt>, receive the broadcast.
      * If vmin > vmax, do nothing.
      *<P>
-     * Before v2.4.10 this method was {@code broadcastToVers(String, vmin, vmax)}.
+     * Before v2.5.00 this method was {@code broadcastToVers(String, vmin, vmax)}.
      *
      * @param m Message to send
      * @param vmin Minimum version, as returned by {@link Connection#getVersion()},
