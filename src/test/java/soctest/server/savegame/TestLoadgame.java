@@ -930,6 +930,7 @@ public class TestLoadgame
     }
 
     /** Test loading an inactive {@link SOCGameOption}: {@code bad-gameopt-inactive.game.json} */
+    @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testLoadInactiveGameopt()
         throws IOException

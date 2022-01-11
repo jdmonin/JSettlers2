@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -51,7 +51,9 @@ import soc.util.IntTriple;
  * per-game board state, isolate {@link #makeNewBoard(SOCGameOptionSet)}, and simplify
  * that parent class. See {@code SOCBoardLarge} for more details.
  * For the board layout geometry, see that class javadoc's "Coordinate System" section.
- * Non-sea "classic" boards use {@link SOCBoard4p} or {@link SOCBoard6p} at server and client.
+ *<P>
+ * In v3 the non-sea "classic" boards also use this class at server and {@link SOCBoardLarge} at client,
+ * not v2's {@link soc.game.SOCBoard4p SOCBoard4p} or {@link soc.game.SOCBoard6p SOCBoard6p}.
  *<P>
  * Sea board layout: A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.

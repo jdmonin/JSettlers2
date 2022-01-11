@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +36,6 @@ import soc.game.SOCInventory;
 import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
@@ -1532,10 +1531,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT(ga, pl, pn, action, PEType.valueOf(etypes[i]), amounts[i], nickname);
 
-        if ((action == SOCPlayerElement.SET) && (etypes.length == 5) && (etypes[0] == SOCResourceConstants.CLAY)
+        if ((action == SOCPlayerElement.SET) && (etypes.length == 5) && (etypes[0] == Data.ResourceType.CLAY_VALUE)
             && (pl != null) && (ga.getGameState() == SOCGame.ROLL_OR_CARD))
             // dice roll results: when sent all known resources, clear UNKNOWN to 0
-            pl.getResources().setAmount(0, SOCResourceConstants.UNKNOWN);
+            pl.getResources().setAmount(0, Data.ResourceType.UNKNOWN_VALUE);
     }
 
     /**
@@ -1705,10 +1704,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                         int numKnown = rsrcs.getKnownTotal();
                         if (numKnown <= val)
                         {
-                            rsrcs.setAmount(val - numKnown, SOCResourceConstants.UNKNOWN);
+                            rsrcs.setAmount(val - numKnown, Data.ResourceType.UNKNOWN_VALUE);
                         } else {
                             rsrcs.clear();
-                            rsrcs.setAmount(val, SOCResourceConstants.UNKNOWN);
+                            rsrcs.setAmount(val, Data.ResourceType.UNKNOWN_VALUE);
                         }
                     }
                 }
@@ -2151,7 +2150,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final SOCPlayer pl = ga.getPlayer(pn);
         final ResourceSet res = mes.getResources();
-        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.UNKNOWN; ++rtype)
+        for (int rtype = Data.ResourceType.CLAY_VALUE; rtype <= Data.ResourceType.UNKNOWN_VALUE; ++rtype)
         {
             int amount = res.getAmount(rtype);
             if (amount != 0)
@@ -2238,7 +2237,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
         } else if (resSet != null) {
             // note: when using resSet, isGainLose is always true
-            for (int rtype = SOCResourceConstants.MIN; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            for (int rtype = Data.ResourceType.CLAY_VALUE; rtype <= Data.ResourceType.WOOD_VALUE; ++rtype)
             {
                 final int amt = resSet.getAmount(rtype);
                 if (amt == 0)

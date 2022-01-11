@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2022 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -3097,7 +3097,7 @@ public class SOCGameHandler extends GameHandler
         final SOCReportRobbery reportRobb = new SOCReportRobbery(gaName, pePN, viPN, rsrc, true, 1, 0, 0),
             reportRobbUnknown = (isFullyObservable)
                 ? null
-                : new SOCReportRobbery(gaName, pePN, viPN, SOCResourceConstants.UNKNOWN, true, 1, 0, 0);
+                : new SOCReportRobbery(gaName, pePN, viPN, Data.ResourceType.UNKNOWN_VALUE, true, 1, 0, 0);
 
         Connection peCon = srv.getConnection(peName);
         Connection viCon = srv.getConnection(viName);
@@ -3138,7 +3138,7 @@ public class SOCGameHandler extends GameHandler
         SOCPlayerElement gainUnknown;
         SOCPlayerElement loseUnknown;
 
-        // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
+        // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP == Data.ResourceType.SHEEP_VALUE.
         gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, rsrc, 1);
         loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1, true);
 
@@ -3543,9 +3543,9 @@ public class SOCGameHandler extends GameHandler
                     if (isRecording && sendAsElementsMessage)
                         srv.recordGameEventTo(gaName, mainPlayer, elementsMessage);
 
-                    for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+                    for (int res = Data.ResourceType.CLAY_VALUE; res <= Data.ResourceType.WOOD_VALUE; ++res)
                     {
-                        // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
+                        // This works because SOCPlayerElement.SHEEP == Data.ResourceType.SHEEP_VALUE.
 
                         final int amt = resAmounts[res];
                         if (amt <= 0)
@@ -3608,9 +3608,9 @@ public class SOCGameHandler extends GameHandler
                 // else
                 //  vmaxSend is already vmax or Integer.MAX_VALUE
 
-                for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+                for (int res = Data.ResourceType.CLAY_VALUE; res <= Data.ResourceType.WOOD_VALUE; ++res)
                 {
-                    // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
+                    // This works because SOCPlayerElement.SHEEP == Data.ResourceType.SHEEP_VALUE.
 
                     final int amt = resAmounts[res];
                     if (amt <= 0)
