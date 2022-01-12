@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -234,12 +234,9 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     {
         int typ = 0;
 
-        for (int i = SOCResourceConstants.MIN;
-                 i <= SOCResourceConstants.WOOD; ++i)
-        {
-            if (resources[i] != 0)
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            if (resources[rtype] != 0)
                 ++typ;
-        }
 
         return typ;
     }
@@ -256,11 +253,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     {
         int sum = 0;
 
-        for (int i = SOCResourceConstants.MIN;
-                 i <= SOCResourceConstants.WOOD; i++)
-        {
-            sum += resources[i];
-        }
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            sum += resources[rtype];
 
         return sum;
     }
@@ -363,12 +357,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      */
     public void add(ResourceSet toAdd)
     {
-        resources[SOCResourceConstants.CLAY]    += toAdd.getAmount(SOCResourceConstants.CLAY);
-        resources[SOCResourceConstants.ORE]     += toAdd.getAmount(SOCResourceConstants.ORE);
-        resources[SOCResourceConstants.SHEEP]   += toAdd.getAmount(SOCResourceConstants.SHEEP);
-        resources[SOCResourceConstants.WHEAT]   += toAdd.getAmount(SOCResourceConstants.WHEAT);
-        resources[SOCResourceConstants.WOOD]    += toAdd.getAmount(SOCResourceConstants.WOOD);
-        resources[SOCResourceConstants.UNKNOWN] += toAdd.getAmount(SOCResourceConstants.UNKNOWN);
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.UNKNOWN; ++rtype)
+            resources[rtype] += toAdd.getAmount(rtype);
     }
 
     /**
@@ -416,50 +406,17 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
         if (asUnknown && (amountSubtractUnknown > 0))
             convertToUnknown();
 
-        resources[SOCResourceConstants.CLAY] -= toSubtract.getAmount(SOCResourceConstants.CLAY);
-        if (resources[SOCResourceConstants.CLAY] < 0)
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
         {
-            if (asUnknown)
-                // subtract the excess from unknown
-                resources[SOCResourceConstants.UNKNOWN] += resources[SOCResourceConstants.CLAY];
+            resources[rtype] -= toSubtract.getAmount(rtype);
+            if (resources[rtype] < 0)
+            {
+                if (asUnknown)
+                    // subtract the excess from unknown
+                    resources[SOCResourceConstants.UNKNOWN] += resources[rtype];
 
-            resources[SOCResourceConstants.CLAY] = 0;
-        }
-
-        resources[SOCResourceConstants.ORE] -= toSubtract.getAmount(SOCResourceConstants.ORE);
-        if (resources[SOCResourceConstants.ORE] < 0)
-        {
-            if (asUnknown)
-                resources[SOCResourceConstants.UNKNOWN] += resources[SOCResourceConstants.ORE];
-
-            resources[SOCResourceConstants.ORE] = 0;
-        }
-
-        resources[SOCResourceConstants.SHEEP] -= toSubtract.getAmount(SOCResourceConstants.SHEEP);
-        if (resources[SOCResourceConstants.SHEEP] < 0)
-        {
-            if (asUnknown)
-                resources[SOCResourceConstants.UNKNOWN] += resources[SOCResourceConstants.SHEEP];
-
-            resources[SOCResourceConstants.SHEEP] = 0;
-        }
-
-        resources[SOCResourceConstants.WHEAT] -= toSubtract.getAmount(SOCResourceConstants.WHEAT);
-        if (resources[SOCResourceConstants.WHEAT] < 0)
-        {
-            if (asUnknown)
-                resources[SOCResourceConstants.UNKNOWN] += resources[SOCResourceConstants.WHEAT];
-
-            resources[SOCResourceConstants.WHEAT] = 0;
-        }
-
-        resources[SOCResourceConstants.WOOD] -= toSubtract.getAmount(SOCResourceConstants.WOOD);
-        if (resources[SOCResourceConstants.WOOD] < 0)
-        {
-            if (asUnknown)
-                resources[SOCResourceConstants.UNKNOWN] += resources[SOCResourceConstants.WOOD];
-
-            resources[SOCResourceConstants.WOOD] = 0;
+                resources[rtype] = 0;
+            }
         }
 
         resources[SOCResourceConstants.UNKNOWN] -= amountSubtractUnknown;
