@@ -909,7 +909,10 @@ public class TestLoadgame
         }
     }
 
-    /** Test loading an unknown {@link SOCGameOption}: {@code bad-gameopt-unknown.game.json} */
+    /**
+     * Test loading an unknown {@link SOCGameOption}: {@code bad-gameopt-unknown.game.json}
+     * @since 2.5.00
+     */
     @Test
     public void testLoadUnknownGameopt()
         throws IOException
@@ -929,7 +932,10 @@ public class TestLoadgame
         }
     }
 
-    /** Test loading an inactive {@link SOCGameOption}: {@code bad-gameopt-inactive.game.json} */
+    /**
+     * Test loading an inactive {@link SOCGameOption}: {@code bad-gameopt-inactive.game.json}
+     * @since 2.5.00
+     */
     @Test
     public void testLoadInactiveGameopt()
         throws IOException
