@@ -123,10 +123,11 @@ When preparing to release a new version, testing should include:
         - Play card, end turn; should see "cancelled the Road Building card" and card returned to inventory
         - In a new 2-player game on 6-player board, give debug player 2 Road Building cards:  
           `dev: 1 debug` (2 times)
-        - Join again as other player
+        - In another client, join same game as other player
         - Other player: Request Special Build
         - Debug player: Play card, build 1 free road, end turn; other player's Special Build should start as usual
-        - Other player: Request Special Build
+        - Other player: Finish that Special Build and usual turn
+        - Other player: During debug's turn, request Special Build
         - Debug player: Play card, end turn instead of building; card should be returned to debug's inventory, other player's Special Build should start as usual
     - Gain Longest Road/Route
         - To save time with these tests, run the test server with Savegame feature enabled:

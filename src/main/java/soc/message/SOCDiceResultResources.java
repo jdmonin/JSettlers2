@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2015,2017-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@ import soc.game.SOCResourceSet;
  * Those players' new resource totals, however, are from {@link SOCPlayer#getResources()}
  * {@link SOCResourceSet#getTotal() .getTotal()} which includes any unknown resources.
  *<P>
- * Sent from sent as a list of integer parameters with this format: <pre>
+ * Sent from server as a list of integer parameters with this format: <pre>
  * pa[0] = count of players gaining resource(s)
  * Per-player sequences consisting of:
  *   pa[i] = player number gaining resource(s)

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011,2013-2014,2018-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2014,2018-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -64,7 +64,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
 
     /**
      * Create a SOCNewGameWithOptions message at server, to send to a specific client version.
-     * Game otions and minimum required version will be extracted from {@code ga}.
+     * Game options and minimum required version will be extracted from {@code ga}.
      *<P>
      * Before v2.5.00 this constructor was a static {@code toCmd(..)} method.
      *

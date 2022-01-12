@@ -4150,8 +4150,8 @@ public class SOCServer extends Server
         /**
          * let everyone know about the destroyed channels
          */
-        for (String ga : toDestroy)
-            broadcast(new SOCDeleteChannel(ga));
+        for (String ch : toDestroy)
+            broadcast(new SOCDeleteChannel(ch));
     }
 
     /**
@@ -6927,7 +6927,7 @@ public class SOCServer extends Server
         {
             // Password too long, or user found in database but password incorrect
 
-            final SOCMessage msg = SOCStatusMessage.buildForVersion
+            final SOCStatusMessage msg = SOCStatusMessage.buildForVersion
                 (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
                  c.getLocalized("netmsg.status.incorrect_password", msgUser));  // "Incorrect password for "msgUser"."
             if (hadDelay)
