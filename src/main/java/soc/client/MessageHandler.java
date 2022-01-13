@@ -499,7 +499,7 @@ public class MessageHandler
                 break;
 
             /**
-             * the current number of development cards
+             * update game data, like the current number of development cards
              */
             case SOCMessage.DEVCARDCOUNT:
                 handleGAMEELEMENT(ga, GEType.DEV_CARD_COUNT, ((SOCDevCardCount) mes).getNumDevCards());
@@ -2273,7 +2273,9 @@ public class MessageHandler
     }
 
     /**
-     * handle the "reject offer"/"disallowed trade" message
+     * handle the "reject offer"/"disallowed trade" message:
+     * a player has rejected an offer,
+     * or server has disallowed our trade-related request.
      * @param mes  the message
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)

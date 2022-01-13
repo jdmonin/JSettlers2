@@ -3259,7 +3259,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user wants to sit down to play
+     * User is sending server a request to sit down to play.
      *
      * @param ga   the game
      * @param pn   the number of the seat where the user wants to sit

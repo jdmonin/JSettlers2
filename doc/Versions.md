@@ -191,7 +191,7 @@ JARs for recent JSettlers versions can be downloaded from
 	        - `PLAY_VPO`: Show all players' VP/dev card info
 	        - `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
 	    - "Third-Party Options" concept: Gameopts defined by a 3rd-party client, bot, or server JSettlers fork,
-	      as a way to add features or flags but remain backwards-compatible with standard JSettlers.
+	      as a way to add features or flags but remain compatible with standard JSettlers.
 	        - When connecting, client must ask server if it knows about all such gameopts, regardless of version
 	        - Associated with a given client feature; server looks for feature when a client connects
 	    - Refactored option maps to SOCGameOptionSet
